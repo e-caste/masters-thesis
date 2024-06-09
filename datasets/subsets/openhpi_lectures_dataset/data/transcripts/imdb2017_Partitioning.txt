@@ -1,0 +1,637 @@
+WEBVTT
+
+1
+00:00:05.500 --> 00:00:08.800 
+We have different
+types of partitioning,
+
+2
+00:00:10.100 --> 00:00:13.130 
+the reasons for
+partitioning, we want to
+
+3
+00:00:14.140 --> 00:00:17.170 
+further reduce the footprint
+or we want to distribute
+
+4
+00:00:18.180 --> 00:00:24.240 
+our data footprint in
+memory to multiple systems
+
+5
+00:00:24.240 --> 00:00:30.300 
+or we want to do it to
+partition inside the system.
+
+6
+00:00:30.300 --> 00:00:33.330 
+The partitioning is an easy
+way to achieve data level
+
+7
+00:00:34.340 --> 00:00:36.360 
+parallelism.
+
+8
+00:00:39.390 --> 00:00:43.430 
+I am not so much in
+favor of locality, why?
+
+9
+00:00:43.430 --> 00:00:48.480 
+It is a constraint,
+I'm much more, here I'm
+
+10
+00:00:48.480 --> 00:00:51.510 
+using the argument
+of the virtualizers
+
+11
+00:00:52.520 --> 00:00:57.570 
+I am much more a fan
+of, we see a large
+
+12
+00:00:58.580 --> 00:01:04.640 
+data storage, direct memory
+data storage, whether
+
+13
+00:01:04.640 --> 00:01:09.690 
+it's on one machine, whether
+it's located at several CPUs
+
+14
+00:01:09.690 --> 00:01:13.730 
+or it's on multiple
+nodes and distributed.
+
+15
+00:01:14.740 --> 00:01:18.780 
+As long as the connection
+from this CPU to that CPU
+
+16
+00:01:18.780 --> 00:01:21.810 
+is fast enough, this
+is good enough for me.
+
+17
+00:01:22.820 --> 00:01:27.870 
+On one machine,
+from this core to
+
+18
+00:01:27.870 --> 00:01:31.910 
+this CPU local
+data if this is one
+
+19
+00:01:31.910 --> 00:01:37.970 
+then the remote access to data
+which belongs to another CPU
+
+20
+00:01:37.970 --> 00:01:42.102 
+is factor two, no it's
+(about) 40 or 50% surcharge?
+
+21
+00:01:42.102 --> 00:01:43.103 
+some hardware, more?
+
+22
+00:01:47.107 --> 00:01:50.110 
+But some hardware guy just
+told me, does anybody know
+
+23
+00:01:50.110 --> 00:01:54.114 
+how much it really is? Ralf? You
+know this typically. (Ralf: No)
+
+24
+00:02:03.123 --> 00:02:07.127 
+I don't want to lie, I remembered the
+nanoseconds but I can't (right now), it looked
+
+25
+00:02:07.127 --> 00:02:13.133 
+like 40% more.
+When we go to a CPU
+
+26
+00:02:13.133 --> 00:02:17.137 
+which is on another
+node then technically we
+
+27
+00:02:17.137 --> 00:02:21.141 
+can do this, we have some systems
+where we can operate a multi-
+
+28
+00:02:21.141 --> 00:02:26.146 
+node system as one logical
+system. Then it's obviously
+
+29
+00:02:26.146 --> 00:02:29.149 
+more expensive, much more
+expensive when we use Infiniband
+
+30
+00:02:30.150 --> 00:02:35.155 
+but there are, one of
+our PhDs worked on a
+
+31
+00:02:35.155 --> 00:02:39.159 
+project in
+California where
+
+32
+00:02:39.159 --> 00:02:44.164 
+the access is through
+a different network.
+
+33
+00:02:44.164 --> 00:02:48.168 
+SAP has prototypes with
+a network which was
+
+34
+00:02:48.168 --> 00:02:53.173 
+provided by our old hero
+Andy (von) Bechtolsheim,
+
+35
+00:02:53.173 --> 00:02:56.176 
+he built a very
+fast switch.
+
+36
+00:02:57.177 --> 00:03:02.182 
+So these are two concepts,
+I prefer a concept
+
+37
+00:03:02.182 --> 00:03:07.187 
+where the hardware is taking of
+itself, we do not over optimize
+
+38
+00:03:07.187 --> 00:03:12.192 
+for a hardware configuration
+because hardware configurations
+
+39
+00:03:12.192 --> 00:03:15.195 
+are changing. So to
+finish that here -
+
+40
+00:03:16.196 --> 00:03:20.200 
+we can split the table vertically,
+so when you remember that
+
+41
+00:03:20.200 --> 00:03:21.201 
+a table looks like this
+
+42
+00:03:24.204 --> 00:03:27.207 
+these are the columns,
+I make them all
+
+43
+00:03:28.208 --> 00:03:31.211 
+of equal length. Just for
+drawing them we can say
+
+44
+00:03:31.211 --> 00:03:38.218 
+we split like this. We
+use the same ID twice.
+
+45
+00:03:42.222 --> 00:03:48.228 
+We do this actually to
+split away text, long text
+
+46
+00:03:48.228 --> 00:03:51.231 
+can not be really
+compressed, there is
+
+47
+00:03:51.231 --> 00:03:55.235 
+only text compression
+there is no dictionary
+
+48
+00:03:55.235 --> 00:03:59.239 
+compression. This
+could be a way to
+
+49
+00:03:59.239 --> 00:04:02.242 
+I would not do this for city
+and county but i would do this
+
+50
+00:04:02.242 --> 00:04:04.244 
+for text, as an example.
+
+51
+00:04:09.249 --> 00:04:13.253 
+Horizontal partitioning
+- the same table and we
+
+52
+00:04:13.253 --> 00:04:17.257 
+split the table up now
+in multiple segments.
+
+53
+00:04:17.257 --> 00:04:22.262 
+One two three four and
+this is what we do here.
+
+54
+00:04:23.263 --> 00:04:27.267 
+This can stay on
+the same machine,
+
+55
+00:04:27.267 --> 00:04:33.273 
+we can split this to CPUs of
+physical locality, I would
+
+56
+00:04:33.273 --> 00:04:37.277 
+not recommend to do this. Despite
+that we can split and operate
+
+57
+00:04:37.277 --> 00:04:43.283 
+in parallel and inside each of
+these partitions, we can then
+
+58
+00:04:43.283 --> 00:04:47.287 
+run in parallel again but
+smaller chunks in parallel,
+
+59
+00:04:47.287 --> 00:04:50.290 
+we don't run them 100
+times parallel, we
+
+60
+00:04:50.290 --> 00:04:53.293 
+probably run only
+10 times parallel or
+
+61
+00:04:53.293 --> 00:04:57.297 
+we can move the the chunks
+here, the partitions
+
+62
+00:04:57.297 --> 00:05:04.304 
+to different nodes.
+There are further
+
+63
+00:05:04.304 --> 00:05:09.309 
+examples here of partitioning
+rules, range partitioning
+
+64
+00:05:09.309 --> 00:05:12.312 
+for example by birthday this
+can only work when you have the
+
+65
+00:05:12.312 --> 00:05:16.316 
+birthday as the
+primary input.
+
+66
+00:05:17.317 --> 00:05:20.320 
+You have to know the
+birthday for direct access.
+
+67
+00:05:21.321 --> 00:05:25.325 
+If the application is, "I want
+to only analyze the old ones"
+
+68
+00:05:26.326 --> 00:05:30.330 
+or these ones, this
+is where I belong to,
+
+69
+00:05:30.330 --> 00:05:34.334 
+then we can run only
+through a partition so
+
+70
+00:05:34.334 --> 00:05:39.339 
+partitioning has to be
+evaluated per case there's no
+
+71
+00:05:39.339 --> 00:05:42.342 
+general rule. There is
+different partitioning in
+
+72
+00:05:42.342 --> 00:05:46.346 
+in retail, in
+healthcare,
+
+73
+00:05:46.346 --> 00:05:50.350 
+in a patient data system,
+that's all different.
+
+74
+00:05:50.350 --> 00:05:55.355 
+Typically banks and
+insurance companies
+
+75
+00:05:55.355 --> 00:05:58.358 
+heavily use partitioning
+for many years
+
+76
+00:05:58.358 --> 00:06:03.363 
+because there is no correlation,
+there's correlation,
+
+77
+00:06:03.363 --> 00:06:09.369 
+but there is no
+necessity to access data
+
+78
+00:06:09.369 --> 00:06:14.374 
+outside a partition if you access
+only one client, so all data
+
+79
+00:06:14.374 --> 00:06:18.378 
+of one client is in one partition,
+in one set of partitions
+
+80
+00:06:19.379 --> 00:06:27.387 
+of the same data. For
+sequential processing it doesn't
+
+81
+00:06:27.387 --> 00:06:31.391 
+mean anything, it
+is actually good
+
+82
+00:06:31.391 --> 00:06:35.395 
+to have multiple partitions,
+then you have automatic
+
+83
+00:06:35.395 --> 00:06:37.397 
+parallelism. You start
+with parallelism and then
+
+84
+00:06:37.397 --> 00:06:43.403 
+the process inside
+each partition,
+
+85
+00:06:43.403 --> 00:06:47.407 
+as I said, can be further
+dynamically parallelized.
+
+86
+00:06:51.411 --> 00:06:54.414 
+As another method
+for partitioning
+
+87
+00:06:54.414 --> 00:06:58.418 
+of SAP has used this mainly
+for testing, I don't,
+
+88
+00:06:59.419 --> 00:07:04.424 
+it is not a good way.
+Hash-based partitioning,
+
+89
+00:07:04.424 --> 00:07:10.430 
+I also, it has to be a very
+specific application, in this
+
+90
+00:07:10.430 --> 00:07:14.434 
+case, the country
+is being used as a
+
+91
+00:07:14.434 --> 00:07:20.440 
+starting point, so
+you have to know
+
+92
+00:07:20.440 --> 00:07:22.442 
+the country first because
+you can do anything.
+
+93
+00:07:23.443 --> 00:07:26.446 
+But instead of having now...
+- because the countries
+
+94
+00:07:26.446 --> 00:07:31.451 
+have completely different sizes,
+we hash now all the countries
+
+95
+00:07:31.451 --> 00:07:36.456 
+to a smaller set of hash
+keys so that we get a
+
+96
+00:07:36.456 --> 00:07:41.461 
+decent balance
+and can balance
+
+97
+00:07:41.461 --> 00:07:46.466 
+this out, so we have fewer the
+hash keys and then countries
+
+98
+00:07:46.466 --> 00:07:49.469 
+obviously and when we have
+country input we can calculate the
+
+99
+00:07:49.469 --> 00:07:52.472 
+hash key and access then
+the correct partition.
+
+100
+00:07:53.473 --> 00:07:55.475 
+Then we have
+my partitioning
+
+101
+00:07:55.475 --> 00:07:58.478 
+and I highly recommend
+
+102
+00:08:01.481 --> 00:08:03.483 
+active and history.
+
+103
+00:08:07.487 --> 00:08:10.490 
+We had an intensive
+discussion here about
+
+104
+00:08:10.490 --> 00:08:15.495 
+"hot and cold"
+and we actually found out
+
+105
+00:08:16.496 --> 00:08:20.500 
+that (the terms) hot and cold,
+for IT people, is too much
+
+106
+00:08:20.500 --> 00:08:26.506 
+related with aging and
+aging is not active and
+
+107
+00:08:26.506 --> 00:08:32.512 
+and history. Aging is
+
+108
+00:08:32.512 --> 00:08:37.517 
+a concept the database
+can do itself,
+
+109
+00:08:38.518 --> 00:08:43.523 
+it always did it with
+caches, aging means that
+
+110
+00:08:43.523 --> 00:08:47.527 
+we want to distribute
+data to different
+
+111
+00:08:47.527 --> 00:08:52.532 
+types of storage with
+different properties.
+
+112
+00:08:52.532 --> 00:08:55.535 
+So it is a concept
+the database wants to
+
+113
+00:08:56.536 --> 00:09:00.540 
+use and optimize for,
+active and passive is an
+
+114
+00:09:00.540 --> 00:09:02.542 
+application concept.
+
+115
+00:09:04.544 --> 00:09:10.550 
+This is application and active
+and passive can only be decided
+
+116
+00:09:10.550 --> 00:09:13.553 
+by the application, can not be
+decided by the database, has to
+
+117
+00:09:13.553 --> 00:09:17.557 
+be told to the database, the
+programs have to tell the database:
+
+118
+00:09:17.557 --> 00:09:21.561 
+This operation should take
+place on history and active
+
+119
+00:09:22.562 --> 00:09:27.567 
+or this application can
+use active data only
+
+120
+00:09:27.567 --> 00:09:30.570 
+and is an application
+definition, yeah.
+
+121
+00:09:31.571 --> 00:09:35.575 
+Then the database can
+only provide the splitting
+
+122
+00:09:35.575 --> 00:09:39.579 
+and not much more.
+
+123
+00:09:39.579 --> 00:09:42.582 
+So I'm not sure whether
+we should continue
+
+124
+00:09:42.582 --> 00:09:46.586 
+to use the word hot and
+cold, it is misunderstood by
+
+125
+00:09:46.586 --> 00:09:50.590 
+computer science people,
+database people namely
+
+126
+00:09:50.590 --> 00:09:55.595 
+and they go instantly
+into an aging
+
+127
+00:09:55.595 --> 00:10:00.600 
+philosophy and since
+active and history as
+
+128
+00:10:00.600 --> 00:10:04.604 
+an application concept for database
+person is outside the database
+
+129
+00:10:04.604 --> 00:10:05.605 
+they can not really
+do something.

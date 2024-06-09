@@ -1,0 +1,306 @@
+WEBVTT
+
+00:00:00.290 --> 00:00:05.950
+Let's turn our attention to how the operating
+system (OS) deals with input/output devices.
+
+00:00:05.950 --> 00:00:08.370
+There are actually two parts to the discussion.
+
+00:00:08.370 --> 00:00:14.110
+First, we'll talk about how the OS interacts
+with the devices themselves.
+
+00:00:14.110 --> 00:00:18.170
+This will involve a combination of interrupt
+handlers and kernel buffers.
+
+00:00:18.170 --> 00:00:23.750
+Then we'll discuss how supervisor calls access
+the kernel buffers in response to requests
+
+00:00:23.750 --> 00:00:26.130
+from user-mode processes.
+
+00:00:26.130 --> 00:00:31.080
+As we'll see, this can get a bit tricky when
+the OS cannot complete the request at the
+
+00:00:31.080 --> 00:00:34.290
+time the SVC was executed.
+
+00:00:34.290 --> 00:00:35.340
+Here's the plan!
+
+00:00:35.340 --> 00:00:39.440
+When the user types a key on the keyboard,
+the keyboard triggers an interrupt request
+
+00:00:39.440 --> 00:00:40.920
+to the CPU.
+
+00:00:40.920 --> 00:00:46.680
+The interrupt suspends execution of the currently-running
+process and executes the handler whose job
+
+00:00:46.680 --> 00:00:49.730
+it is to deal with this particular I/O event.
+
+00:00:49.730 --> 00:00:53.960
+In this case, the keyboard handler reads the
+character from the keyboard and saves it in
+
+00:00:53.960 --> 00:01:00.600
+a kernel buffer associated with the process
+that has been chosen to receive incoming keystrokes.
+
+00:01:00.600 --> 00:01:05.620
+In the language of OSes, we'd say that process
+has the keyboard focus.
+
+00:01:05.620 --> 00:01:11.130
+This transfer takes just a handful of instructions
+and when the handler exits, we resume running
+
+00:01:11.130 --> 00:01:14.250
+the interrupted process.
+
+00:01:14.250 --> 00:01:18.900
+Assuming the interrupt request is serviced
+promptly, the CPU can easily keep up with
+
+00:01:18.900 --> 00:01:21.190
+the arrival of typed characters.
+
+00:01:21.190 --> 00:01:25.670
+Humans are pretty slow compared to the rate
+of executing instructions!
+
+00:01:25.670 --> 00:01:30.049
+But the buffer in the kernel can hold only
+so many characters before it fills up.
+
+00:01:30.049 --> 00:01:31.180
+What happens then?
+
+00:01:31.180 --> 00:01:34.360
+Well, there are a couple of choices.
+
+00:01:34.360 --> 00:01:39.310
+Overwriting characters received earlier doesn't
+make much sense: why keep later characters
+
+00:01:39.310 --> 00:01:41.360
+if the earlier ones have been discarded.
+
+00:01:41.360 --> 00:01:47.310
+Better that the CPU discard any characters
+received after the buffer was full, but it
+
+00:01:47.310 --> 00:01:49.990
+should give some indication that it's doing
+so.
+
+00:01:49.990 --> 00:01:55.280
+And, in fact, many systems beep at the user
+to signal that the character they've just
+
+00:01:55.280 --> 00:01:58.600
+typed is being ignored.
+
+00:01:58.600 --> 00:02:04.280
+At some later time, a user-mode program executes
+a ReadKey() supervisor call, requesting that
+
+00:02:04.280 --> 00:02:08.470
+the OS return the next character in R0.
+
+00:02:08.470 --> 00:02:14.680
+In the OS, the ReadKey SVC handler grabs the
+next character from the buffer, places it
+
+00:02:14.680 --> 00:02:21.230
+in the user's R0, and resumes execution at
+the instruction following the SVC.
+
+00:02:21.230 --> 00:02:24.230
+There are few tricky bits we need to figure
+out.
+
+00:02:24.230 --> 00:02:31.189
+The ReadKey() SVC is what we call a "blocking
+I/O" request, i.e., the program assumes that
+
+00:02:31.189 --> 00:02:35.939
+when the SVC returns, the next character is
+in R0.
+
+00:02:35.939 --> 00:02:42.150
+If there isn't (yet) a character to be returned,
+execution should be "blocked", i.e., suspended,
+
+00:02:42.150 --> 00:02:45.950
+until such time that a character is available.
+
+00:02:45.950 --> 00:02:51.290
+Many OSes also provide for non-blocking I/O
+requests, which always return immediately
+
+00:02:51.290 --> 00:02:54.610
+with both a status flag and a result.
+
+00:02:54.610 --> 00:02:58.430
+The program can check the status flag to see
+if there was a character and do the right
+
+00:02:58.430 --> 00:03:03.749
+thing if there wasn't, e.g., reissue the request
+at a later time.
+
+00:03:03.749 --> 00:03:07.840
+Note that the user-mode program didn't have
+any direct interaction with the keyboard,
+
+00:03:07.840 --> 00:03:13.409
+i.e., it's not constantly polling the device
+to see if there's a keystroke to be processed.
+
+00:03:13.409 --> 00:03:19.849
+Instead, we're using an "event-driven" approach,
+where the device signals the OS, via an interrupt,
+
+00:03:19.849 --> 00:03:21.829
+when it needs attention.
+
+00:03:21.829 --> 00:03:24.909
+This is an elegant separation of responsibilities.
+
+00:03:24.909 --> 00:03:30.150
+Imagine how cumbersome it would be if every
+program had to check constantly to see if
+
+00:03:30.150 --> 00:03:32.329
+there were pending I/O operations.
+
+00:03:32.329 --> 00:03:38.260
+Our event-driven organization provides for
+on-demand servicing of devices, but doesn't
+
+00:03:38.260 --> 00:03:44.430
+devote CPU resources to the I/O subsystem
+until there's actually work to be done.
+
+00:03:44.430 --> 00:03:49.319
+The interrupt-driven OS interactions with
+I/O devices are completely transparent to
+
+00:03:49.319 --> 00:03:51.909
+user programs.
+
+00:03:51.909 --> 00:03:57.120
+Here's sketch of what the OS keyboard handler
+code might actually look like.
+
+00:03:57.120 --> 00:04:03.569
+Depending on the hardware, the CPU might access
+device status and data using special I/O instructions
+
+00:04:03.569 --> 00:04:05.299
+in the ISA.
+
+00:04:05.299 --> 00:04:11.150
+For example, in the simulated Beta used for
+lab assignments, there's a RDCHAR() instruction
+
+00:04:11.150 --> 00:04:15.430
+for reading keyboard characters and a CLICK()
+instruction for reading the coordinates of
+
+00:04:15.430 --> 00:04:17.600
+a mouse click.
+
+00:04:17.600 --> 00:04:23.170
+Another common approach is to use "memory-mapped
+I/O", where a portion of the kernel address
+
+00:04:23.170 --> 00:04:26.940
+space is devoted to servicing I/O devices.
+
+00:04:26.940 --> 00:04:33.650
+In this scheme, ordinary LD and ST store instructions
+are used to access specific addresses, which
+
+00:04:33.650 --> 00:04:39.690
+the CPU recognizes as accesses to the keyboard
+or mouse device interfaces.
+
+00:04:39.690 --> 00:04:42.290
+This is the scheme shown in the code here.
+
+00:04:42.290 --> 00:04:47.720
+The C data structure represents the two I/O
+locations devoted to the keyboard: one for
+
+00:04:47.720 --> 00:04:53.100
+status and one for the actual keyboard data.
+
+00:04:53.100 --> 00:04:58.430
+The keyboard interrupt handler reads the keystroke
+data from the keyboard and places the character
+
+00:04:58.430 --> 00:05:04.560
+into the next location in the circular character
+buffer in the kernel.
+
+00:05:04.560 --> 00:05:09.700
+In real life keyboard processing is usually
+a bit more complicated.
+
+00:05:09.700 --> 00:05:14.350
+What one actually reads from a keyboard is
+a key number and a flag indicating whether
+
+00:05:14.350 --> 00:05:17.980
+the event is a key press or a key release.
+
+00:05:17.980 --> 00:05:23.310
+Knowing the keyboard layout, the OS translates
+the key number into the appropriate ASCII
+
+00:05:23.310 --> 00:05:26.260
+character,
+dealing with complications like holding down
+
+00:05:26.260 --> 00:05:32.300
+the shift key or control key to indicate a
+capital character or a control character.
+
+00:05:32.300 --> 00:05:38.760
+And certain combination of keystrokes, e.g.,
+CTRL-ALT-DEL on a Windows system, are interpreted
+
+00:05:38.760 --> 00:05:44.110
+as special user commands to start running
+particular applications like the Task Manager.
+
+00:05:44.110 --> 00:05:50.550
+Many OSes let the user specify whether they
+want "raw" keyboard input (i.e., the key numbers
+
+00:05:50.550 --> 00:05:55.700
+and status) or "digested" input (i.e., ASCII
+characters).
+
+00:05:55.700 --> 00:05:56.700
+Whew!
+
+00:05:56.700 --> 00:06:00.460
+Who knew that processing keystrokes could
+be so complicated!
+
+00:06:00.460 --> 00:06:06.950
+Next, we'll figure out how to code the associated
+supervisor call that lets user programs read
+
+00:06:06.950 --> 00:06:07.160
+characters.

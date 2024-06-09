@@ -1,0 +1,3314 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.520
+The following content is
+provided under a Creative
+
+00:00:02.520 --> 00:00:03.970
+Commons license.
+
+00:00:03.970 --> 00:00:06.360
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.360 --> 00:00:10.690
+continue to offer high quality
+educational resources for free.
+
+00:00:10.690 --> 00:00:13.350
+To make a donation or
+view additional materials
+
+00:00:13.350 --> 00:00:17.190
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.190 --> 00:00:18.400
+at ocw.mit.edu.
+
+00:00:24.038 --> 00:00:25.830
+GEORGE VERGHESE: So
+we're going to continue
+
+00:00:25.830 --> 00:00:27.040
+talking about coding.
+
+00:00:27.040 --> 00:00:29.820
+We're going to focus on
+linear block codes, which
+
+00:00:29.820 --> 00:00:31.860
+I introduced briefly last time.
+
+00:00:31.860 --> 00:00:34.560
+But just to step back
+a bit and remind you,
+
+00:00:34.560 --> 00:00:37.990
+we're talking about this
+piece of the overall channel.
+
+00:00:37.990 --> 00:00:39.630
+So we've got the
+source that's done
+
+00:00:39.630 --> 00:00:44.660
+this source coding, compressing
+all the bits coming out
+
+00:00:44.660 --> 00:00:45.160
+of here.
+
+00:00:45.160 --> 00:00:46.980
+So that one bit,
+one binary digit,
+
+00:00:46.980 --> 00:00:48.610
+carries a bit of information.
+
+00:00:48.610 --> 00:00:50.970
+And now, we're actually
+reintroducing redundancy
+
+00:00:50.970 --> 00:00:53.430
+in a controlled way,
+so that we can protect
+
+00:00:53.430 --> 00:00:56.280
+the message across
+the physical channel
+
+00:00:56.280 --> 00:00:59.970
+with its noise sources
+and distortions and so on.
+
+00:00:59.970 --> 00:01:02.643
+Actually, I should be saying
+binary digits at this point.
+
+00:01:02.643 --> 00:01:04.560
+Because again, at this
+point, the binary digit
+
+00:01:04.560 --> 00:01:07.350
+doesn't carry a
+bit of information.
+
+00:01:07.350 --> 00:01:10.290
+We're introducing redundancy,
+but I'll leave you now
+
+00:01:10.290 --> 00:01:11.430
+to make the distinctions.
+
+00:01:11.430 --> 00:01:14.700
+OK, at this point here
+outside the source coding,
+
+00:01:14.700 --> 00:01:17.190
+one binary digit is
+one bit of information.
+
+00:01:17.190 --> 00:01:20.190
+But now, when you start to
+introduce the redundancy,
+
+00:01:20.190 --> 00:01:23.250
+you've got binary digits
+that are not necessarily
+
+00:01:23.250 --> 00:01:25.870
+one bit of information
+per binary digit.
+
+00:01:25.870 --> 00:01:27.225
+In fact, it won't be.
+
+00:01:27.225 --> 00:01:29.100
+And then across the
+channel at the other end,
+
+00:01:29.100 --> 00:01:33.780
+you do the decoding to try
+and recover from any errors
+
+00:01:33.780 --> 00:01:36.360
+that the channel might
+have encountered.
+
+00:01:36.360 --> 00:01:39.960
+And what we said last time
+is that the key to this
+
+00:01:39.960 --> 00:01:45.840
+is really to introduce
+some space around the code
+
+00:01:45.840 --> 00:01:47.190
+words that carry your messages.
+
+00:01:47.190 --> 00:01:52.320
+So you might want to
+expand your set of messages
+
+00:01:52.320 --> 00:01:56.610
+into a longer code word, such
+that a small number of errors
+
+00:01:56.610 --> 00:01:58.560
+on each code word
+will not flip you over
+
+00:01:58.560 --> 00:01:59.550
+into another code word.
+
+00:01:59.550 --> 00:02:01.508
+So you'll be able to
+recognize the neighborhood
+
+00:02:01.508 --> 00:02:02.980
+of the valid code words.
+
+00:02:02.980 --> 00:02:04.450
+That's the basic idea.
+
+00:02:04.450 --> 00:02:09.039
+So you're trying to put
+some space around things.
+
+00:02:09.039 --> 00:02:13.710
+So if you've got k bits
+in your original message,
+
+00:02:13.710 --> 00:02:16.740
+you've got 2 to the
+k messages, right?
+
+00:02:16.740 --> 00:02:28.020
+So k message bits, 2
+to the k messages--
+
+00:02:31.590 --> 00:02:35.970
+and what we're planning to do
+now is, with this input stream
+
+00:02:35.970 --> 00:02:42.720
+that's coming into
+our channel coder,
+
+00:02:42.720 --> 00:02:48.090
+we're going to take the stream
+and break it up into blocks.
+
+00:02:48.090 --> 00:02:51.450
+So each block will
+have k message bits.
+
+00:02:54.690 --> 00:02:56.970
+And then out come
+a series of blocks,
+
+00:02:56.970 --> 00:02:58.830
+but each block now
+has the large number.
+
+00:02:58.830 --> 00:03:00.630
+So we've got n bits.
+
+00:03:05.130 --> 00:03:05.630
+OK.
+
+00:03:05.630 --> 00:03:10.080
+So we've done some padding
+here. n is greater than k.
+
+00:03:10.080 --> 00:03:14.580
+And so you have the
+possibility of 2
+
+00:03:14.580 --> 00:03:16.513
+to the n possible
+messages in those n bits,
+
+00:03:16.513 --> 00:03:18.180
+but you're not going
+to use all of them.
+
+00:03:18.180 --> 00:03:20.400
+You're only going
+to use 2 to the k,
+
+00:03:20.400 --> 00:03:22.770
+and so you'll leave some
+space around each valid code
+
+00:03:22.770 --> 00:03:25.770
+word, all right?
+
+00:03:25.770 --> 00:03:29.080
+So the code words
+are selected from 2
+
+00:03:29.080 --> 00:03:40.080
+to the k code words selected
+from 2 to the n possibilities.
+
+00:03:44.380 --> 00:03:44.880
+OK.
+
+00:03:44.880 --> 00:03:45.838
+You get the idea there?
+
+00:03:45.838 --> 00:03:47.880
+Yeah.
+
+00:03:47.880 --> 00:03:50.560
+And we introduce this
+notion of Hamming distance
+
+00:03:50.560 --> 00:03:55.620
+then to measure the
+size of the neighborhood
+
+00:03:55.620 --> 00:03:56.590
+around the code word.
+
+00:03:56.590 --> 00:04:04.890
+So we have the notion
+of a Hamming distance,
+
+00:04:04.890 --> 00:04:07.770
+which we'll abbreviate to HD.
+
+00:04:07.770 --> 00:04:11.850
+And this is the Hamming
+distance between two bit
+
+00:04:11.850 --> 00:04:18.630
+streams or between
+two, let's say, blocks.
+
+00:04:18.630 --> 00:04:22.405
+And what this is is
+the number of positions
+
+00:04:22.405 --> 00:04:23.280
+in which they differ.
+
+00:04:30.420 --> 00:04:31.290
+OK.
+
+00:04:31.290 --> 00:04:37.290
+So it's a very simple notion
+of distance between bit strings
+
+00:04:37.290 --> 00:04:39.540
+or binary digit strings.
+
+00:04:39.540 --> 00:04:40.040
+All right.
+
+00:04:42.810 --> 00:04:46.230
+And what we then said is you
+get certain desirable error
+
+00:04:46.230 --> 00:04:49.650
+detection and error
+correction properties
+
+00:04:49.650 --> 00:04:52.260
+based on the minimum distance.
+
+00:04:52.260 --> 00:05:02.010
+minimum Hamming
+distance of a code,
+
+00:05:02.010 --> 00:05:03.895
+we use the simple
+little d for that.
+
+00:05:03.895 --> 00:05:06.270
+That's the minimum distance
+you find between any two code
+
+00:05:06.270 --> 00:05:08.050
+words in the code.
+
+00:05:08.050 --> 00:05:10.350
+So based on that, we said that--
+
+00:05:10.350 --> 00:05:12.210
+we wrote it slightly
+differently last time.
+
+00:05:12.210 --> 00:05:15.120
+I'm writing it to give you yet
+another way to think about it.
+
+00:05:15.120 --> 00:05:21.690
+What we basically said
+is, for instance, if you
+
+00:05:21.690 --> 00:05:26.410
+had a valid code word
+here, valid code word here,
+
+00:05:26.410 --> 00:05:28.510
+this is just a schematic.
+
+00:05:28.510 --> 00:05:31.540
+One hop, meaning one
+bit change, brings you
+
+00:05:31.540 --> 00:05:34.600
+to some other word which
+is not a code word.
+
+00:05:34.600 --> 00:05:37.270
+Then another bit change brings
+you to some other word, not
+
+00:05:37.270 --> 00:05:38.380
+a code word.
+
+00:05:38.380 --> 00:05:40.720
+And a further one brings
+you to a new code word.
+
+00:05:40.720 --> 00:05:43.570
+That's Hamming distance three.
+
+00:05:43.570 --> 00:05:45.790
+So if the minimum
+distance you find
+
+00:05:45.790 --> 00:05:48.490
+among all the spacings
+between code words
+
+00:05:48.490 --> 00:05:51.890
+is a distance of three, measured
+as the Hamming distance,
+
+00:05:51.890 --> 00:05:55.780
+then you can detect
+up to two errors.
+
+00:05:55.780 --> 00:06:00.250
+So if you went from this
+code word in two hops,
+
+00:06:00.250 --> 00:06:01.900
+you'd still not be
+at a new code word.
+
+00:06:01.900 --> 00:06:03.820
+So you know you've
+made a mistake.
+
+00:06:03.820 --> 00:06:05.500
+If you wanted to
+correct errors, you
+
+00:06:05.500 --> 00:06:09.880
+could correct up to one error
+in this case assuming that you
+
+00:06:09.880 --> 00:06:12.232
+have no more than one error.
+
+00:06:12.232 --> 00:06:13.690
+If you ended up
+here, you'd know it
+
+00:06:13.690 --> 00:06:15.460
+had to have come
+from this code word.
+
+00:06:15.460 --> 00:06:17.020
+If you ended up
+here, you know it
+
+00:06:17.020 --> 00:06:20.380
+had to have come from the
+code word on the right.
+
+00:06:20.380 --> 00:06:21.880
+Now, you have to
+be a little careful
+
+00:06:21.880 --> 00:06:23.530
+if you're trying
+to do correction
+
+00:06:23.530 --> 00:06:25.520
+and detection at the same time.
+
+00:06:25.520 --> 00:06:30.460
+So for instance, if
+you end up over here
+
+00:06:30.460 --> 00:06:35.142
+and if it's possible to
+get up to two errors, then
+
+00:06:35.142 --> 00:06:37.600
+you might think you've had one
+error that brought you here.
+
+00:06:37.600 --> 00:06:40.000
+And you might correct
+to this point.
+
+00:06:40.000 --> 00:06:43.300
+But if the way you
+actually got there was two
+
+00:06:43.300 --> 00:06:46.220
+hops from over here, then you've
+done an incorrect correction.
+
+00:06:46.220 --> 00:06:46.720
+OK.
+
+00:06:46.720 --> 00:06:48.428
+So you've got to be
+a little bit careful.
+
+00:06:48.428 --> 00:06:51.040
+And that's what the third
+case tries to deal with.
+
+00:06:51.040 --> 00:06:55.090
+It allows you to deal with
+combinations of correcting up
+
+00:06:55.090 --> 00:06:57.790
+to a certain number of
+errors and then detecting
+
+00:06:57.790 --> 00:06:58.670
+a certain number.
+
+00:06:58.670 --> 00:07:00.430
+So basically, what
+it's saying is
+
+00:07:00.430 --> 00:07:03.490
+that this entire
+distance here has
+
+00:07:03.490 --> 00:07:04.750
+to end up with a little gap.
+
+00:07:08.680 --> 00:07:11.170
+You've got to be able
+to make a number of hops
+
+00:07:11.170 --> 00:07:14.560
+equal to the number of areas you
+want to detect and still leave
+
+00:07:14.560 --> 00:07:17.890
+enough space to get to a
+code word unambiguously.
+
+00:07:17.890 --> 00:07:20.260
+So in this particular
+case, for instance,
+
+00:07:20.260 --> 00:07:23.470
+you couldn't unambiguously
+detect up to two errors
+
+00:07:23.470 --> 00:07:26.060
+if you were doing error
+correction for one.
+
+00:07:26.060 --> 00:07:34.590
+But if I had this
+picture, OK, this
+
+00:07:34.590 --> 00:07:39.240
+is now Hamming
+distance 4, 1 2, 3, 4.
+
+00:07:39.240 --> 00:07:42.450
+I could correct
+single bit errors,
+
+00:07:42.450 --> 00:07:45.972
+and I could detect up to 2
+because 2 errors would bring me
+
+00:07:45.972 --> 00:07:46.680
+up to this point.
+
+00:07:46.680 --> 00:07:48.972
+That's clearly an error that
+I wouldn't try to correct,
+
+00:07:48.972 --> 00:07:50.890
+but I'd recognize
+it as an error.
+
+00:07:50.890 --> 00:07:55.385
+OK, so that's what the third
+case tries to account for.
+
+00:07:55.385 --> 00:07:56.760
+You won't believe
+how much time I
+
+00:07:56.760 --> 00:07:59.983
+spent trying to distill that
+statement down into a bullet.
+
+00:07:59.983 --> 00:08:01.650
+And I don't know if
+I got it right here,
+
+00:08:01.650 --> 00:08:04.960
+but that's the idea.
+
+00:08:04.960 --> 00:08:05.460
+OK.
+
+00:08:05.460 --> 00:08:08.640
+So our focus today is
+on linear block codes.
+
+00:08:08.640 --> 00:08:11.805
+We're not talking about codes
+in general, but linear codes.
+
+00:08:14.370 --> 00:08:17.065
+This would be a general
+statement for a block code.
+
+00:08:17.065 --> 00:08:19.440
+I haven't said anything about
+linearity up to this point.
+
+00:08:19.440 --> 00:08:22.620
+All I said was take
+blocks of k bits,
+
+00:08:22.620 --> 00:08:27.870
+expand them to blocks of
+n bits, and pick subsets
+
+00:08:27.870 --> 00:08:29.040
+in this fashion.
+
+00:08:29.040 --> 00:08:31.560
+That's just a general
+statement about coding.
+
+00:08:31.560 --> 00:08:34.299
+There's nothing linear
+about this as stated.
+
+00:08:34.299 --> 00:08:35.820
+So if you want to
+impose linearity,
+
+00:08:35.820 --> 00:08:38.850
+then you've got to introduce
+this additional piece, which
+
+00:08:38.850 --> 00:08:43.590
+is to say that every
+bit in your code word
+
+00:08:43.590 --> 00:08:46.620
+is going to be a linear
+combination of bits
+
+00:08:46.620 --> 00:08:47.790
+from your message.
+
+00:08:47.790 --> 00:08:51.810
+And the easiest way to
+understand that is the matrix
+
+00:08:51.810 --> 00:08:53.400
+representation I had last time.
+
+00:08:56.310 --> 00:08:57.750
+Do I have it on this slide?
+
+00:08:57.750 --> 00:09:00.320
+Not yet, OK.
+
+00:09:00.320 --> 00:09:02.570
+But I probably do on the
+next, so let me pull that up.
+
+00:09:09.370 --> 00:09:09.870
+OK.
+
+00:09:09.870 --> 00:09:15.390
+So basically, you're going to
+generate your code words, c.
+
+00:09:15.390 --> 00:09:26.950
+So that's c1 up to cn is
+going to be d1 up to dk times
+
+00:09:26.950 --> 00:09:32.550
+some matrix, which
+is k times n matrix.
+
+00:09:32.550 --> 00:09:34.540
+And we'll call it G.
+
+00:09:34.540 --> 00:09:35.040
+OK.
+
+00:09:35.040 --> 00:09:37.770
+So that's referred to as the
+generator matrix for the code.
+
+00:09:40.360 --> 00:09:41.860
+We're talking about binary code.
+
+00:09:41.860 --> 00:09:45.970
+So all of these are 0s or 1s.
+
+00:09:45.970 --> 00:09:51.760
+And all of these
+entries are 0 or 1.
+
+00:09:51.760 --> 00:09:54.160
+And all computations
+are done in GF(2).
+
+00:09:54.160 --> 00:09:55.180
+They're done modulo 2.
+
+00:10:00.310 --> 00:10:03.940
+Well, let me just say that
+all operations are in GF(2).
+
+00:10:13.010 --> 00:10:13.510
+OK.
+
+00:10:13.510 --> 00:10:16.450
+So this is modulo 2 operations
+or Boolean operations.
+
+00:10:20.190 --> 00:10:26.360
+So if I'm working with the
+symbols 0 and 1, what is 0,
+
+00:10:26.360 --> 00:10:26.960
+minus 1?
+
+00:10:34.310 --> 00:10:35.475
+How am I to interpret this?
+
+00:10:35.475 --> 00:10:36.600
+I haven't quite defined it.
+
+00:10:36.600 --> 00:10:37.975
+But how would you
+interpret that?
+
+00:10:42.637 --> 00:10:45.220
+You can think of it as the thing
+I need on the right-hand side
+
+00:10:45.220 --> 00:10:47.260
+that, when I add 1 to
+both sides, I get 0.
+
+00:10:47.260 --> 00:10:49.460
+Is that one way to think of it?
+
+00:10:49.460 --> 00:10:51.190
+So 0 minus 1 is 1.
+
+00:10:51.190 --> 00:10:54.820
+Or another way to say that is
+minus 1 is the same as plus 1
+
+00:10:54.820 --> 00:10:56.105
+in this setting.
+
+00:10:59.960 --> 00:11:00.460
+OK.
+
+00:11:00.460 --> 00:11:02.830
+So you just have to
+get used to working
+
+00:11:02.830 --> 00:11:09.670
+with only 0 and 1 in GF(2), but
+we talked about that last time.
+
+00:11:09.670 --> 00:11:12.240
+All right, so back
+to the statement.
+
+00:11:12.240 --> 00:11:13.690
+This is for a linear block code.
+
+00:11:20.920 --> 00:11:22.900
+You're going to see
+matrix multiplication
+
+00:11:22.900 --> 00:11:25.780
+throughout your careers here.
+
+00:11:25.780 --> 00:11:27.280
+So if you haven't
+already seen them,
+
+00:11:27.280 --> 00:11:29.740
+this is a good
+opportunity to learn
+
+00:11:29.740 --> 00:11:31.910
+about matrix multiplications.
+
+00:11:31.910 --> 00:11:33.580
+So let's see, could
+somebody tell me
+
+00:11:33.580 --> 00:11:36.970
+what procedure I go
+through to, let's say,
+
+00:11:36.970 --> 00:11:40.960
+get the i-th position
+here in terms
+
+00:11:40.960 --> 00:11:43.360
+of what I do on
+the right-hand side
+
+00:11:43.360 --> 00:11:47.680
+if I want to get the i-th
+position on the left-hand side?
+
+00:11:47.680 --> 00:11:49.720
+What's the operation
+that I'm thinking of?
+
+00:11:53.440 --> 00:11:55.070
+Or let me ask you this.
+
+00:11:55.070 --> 00:11:57.260
+Is the entire matrix
+G relevant when
+
+00:11:57.260 --> 00:11:59.330
+I'm just interested in
+the i-th position here?
+
+00:12:04.250 --> 00:12:09.360
+Or is this some part of G
+that's what I should focus on?
+
+00:12:09.360 --> 00:12:09.860
+Yeah.
+
+00:12:09.860 --> 00:12:10.943
+AUDIENCE: The i-th column?
+
+00:12:10.943 --> 00:12:13.070
+GEORGE VERGHESE: It's just
+the i-th column, right?
+
+00:12:13.070 --> 00:12:15.530
+So we think of
+matrix multiplication
+
+00:12:15.530 --> 00:12:20.180
+as sort of being
+in the simple case.
+
+00:12:20.180 --> 00:12:21.870
+If you want the
+i-th position here,
+
+00:12:21.870 --> 00:12:27.560
+it's kind of the dot product of
+this row with the i-th column.
+
+00:12:27.560 --> 00:12:29.273
+So if you want the
+i-th position here,
+
+00:12:29.273 --> 00:12:30.815
+let me give you a
+particular example.
+
+00:12:34.140 --> 00:12:39.830
+If I've got 1, 0, 1, 1 here
+and I have 1, 1, 0, 0 here,
+
+00:12:39.830 --> 00:12:43.700
+then this position is going to
+be this is in the i-th column.
+
+00:12:48.770 --> 00:12:50.510
+What I'm going to find
+in the i-th column
+
+00:12:50.510 --> 00:12:55.100
+is 1 times 1, which is 1,
+plus 0 times 1, which is 0,
+
+00:12:55.100 --> 00:12:57.590
+plus 1 times 0 plus 1 times 0.
+
+00:12:57.590 --> 00:13:02.750
+So I just got a 1, right?
+
+00:13:02.750 --> 00:13:04.580
+So I'm just going
+to get a 1 or a 0
+
+00:13:04.580 --> 00:13:08.910
+depending on the
+specific entries here.
+
+00:13:08.910 --> 00:13:10.460
+So look what we've done.
+
+00:13:10.460 --> 00:13:13.460
+We've found a particular
+position in the code word
+
+00:13:13.460 --> 00:13:18.440
+as a linear combination of
+the bits in the message.
+
+00:13:18.440 --> 00:13:20.330
+We took the combination
+of these bits
+
+00:13:20.330 --> 00:13:22.740
+with the weights that
+are displayed out here.
+
+00:13:22.740 --> 00:13:26.660
+So that's really
+what this statement
+
+00:13:26.660 --> 00:13:28.500
+was on the previous slide.
+
+00:13:28.500 --> 00:13:29.750
+We said that a code is linear.
+
+00:13:35.670 --> 00:13:38.550
+Well, each of the k
+message bits is encoded
+
+00:13:38.550 --> 00:13:41.070
+as a linear transformation.
+
+00:13:41.070 --> 00:13:42.892
+Sorry, each of the
+code bits is encoded
+
+00:13:42.892 --> 00:13:44.850
+as a linear transformation
+of the message bits.
+
+00:13:44.850 --> 00:13:46.392
+I didn't quite say
+it that way there.
+
+00:13:46.392 --> 00:13:49.990
+Let me say it here
+on this slide.
+
+00:13:49.990 --> 00:13:54.120
+So each code word bit is a
+specified linear combination
+
+00:13:54.120 --> 00:13:55.240
+of the message bits.
+
+00:13:55.240 --> 00:13:56.490
+This is what I'm referring to.
+
+00:13:56.490 --> 00:13:58.800
+If you wanted to find
+any particular bit,
+
+00:13:58.800 --> 00:14:01.140
+you're going to take a linear
+combination of these bits
+
+00:14:01.140 --> 00:14:05.250
+with the weights
+that are here, OK?
+
+00:14:05.250 --> 00:14:07.080
+There's another way
+to think of this also
+
+00:14:07.080 --> 00:14:15.430
+which is the other
+blue line out there,
+
+00:14:15.430 --> 00:14:18.360
+which is to think of the matrix
+G as being made up of rows.
+
+00:14:22.780 --> 00:14:25.750
+OK.
+
+00:14:25.750 --> 00:14:27.520
+So can someone
+describe to me what
+
+00:14:27.520 --> 00:14:33.670
+we're doing with these rows to
+get this into our code vector?
+
+00:14:33.670 --> 00:14:35.461
+Yeah.
+
+00:14:35.461 --> 00:14:38.390
+AUDIENCE: [INAUDIBLE]
+
+00:14:38.390 --> 00:14:39.500
+GEORGE VERGHESE: OK.
+
+00:14:39.500 --> 00:14:42.650
+So basically, the way
+matrix multiplication works,
+
+00:14:42.650 --> 00:14:45.770
+if you think about it, is
+what we're going to be doing
+
+00:14:45.770 --> 00:14:50.240
+is 1 times the first row
+plus 0 times the second row
+
+00:14:50.240 --> 00:14:53.550
+plus 1 times the third row
+plus 1 times the fourth row.
+
+00:14:53.550 --> 00:14:56.180
+So another way to think
+of matrix multiplication,
+
+00:14:56.180 --> 00:15:00.050
+it's going to generate this
+vector as a linear combination
+
+00:15:00.050 --> 00:15:03.350
+of the rows of this matrix, OK?
+
+00:15:03.350 --> 00:15:06.170
+What linear combination--
+well, the linear combination
+
+00:15:06.170 --> 00:15:09.043
+that's described in the
+message part of this.
+
+00:15:09.043 --> 00:15:10.210
+So this is the message part.
+
+00:15:14.510 --> 00:15:17.420
+So that's the other
+statement out here.
+
+00:15:17.420 --> 00:15:19.520
+So each code word is
+a linear combination
+
+00:15:19.520 --> 00:15:21.095
+of the rows of this
+generator matrix.
+
+00:15:24.350 --> 00:15:25.940
+So these are concrete
+ways to think
+
+00:15:25.940 --> 00:15:27.920
+about what a linear code is.
+
+00:15:27.920 --> 00:15:30.530
+But we also saw that
+there's another way
+
+00:15:30.530 --> 00:15:34.970
+to think of it which is
+in terms of this property,
+
+00:15:34.970 --> 00:15:38.270
+that the sum of any two code
+words is also a code word.
+
+00:15:38.270 --> 00:15:40.160
+So if you have a
+set of code words
+
+00:15:40.160 --> 00:15:43.083
+with the property that the
+sum of any two is another word
+
+00:15:43.083 --> 00:15:44.750
+and that set, another
+code word and that
+
+00:15:44.750 --> 00:15:47.000
+set, then what you
+have is a linear code.
+
+00:15:47.000 --> 00:15:51.260
+And we argue that the all 0s
+code word must be in there.
+
+00:15:51.260 --> 00:15:53.150
+Because when you add
+a code word to itself,
+
+00:15:53.150 --> 00:15:57.200
+you get the all 0s
+code word, right?
+
+00:15:57.200 --> 00:15:58.580
+OK.
+
+00:15:58.580 --> 00:16:01.520
+So that's the class of codes
+we're going to be focusing on.
+
+00:16:06.480 --> 00:16:13.640
+But I'm going to make a
+further restriction, which
+
+00:16:13.640 --> 00:16:20.760
+is that I'm going to
+look at code words that
+
+00:16:20.760 --> 00:16:22.230
+are of a very special type.
+
+00:16:22.230 --> 00:16:24.990
+So I'm going to
+limit myself to code
+
+00:16:24.990 --> 00:16:26.725
+words that have this structure.
+
+00:16:32.900 --> 00:16:38.050
+So here's my data
+bits, d1 up to dk.
+
+00:16:38.050 --> 00:16:44.890
+I'm going to pick my code word,
+so that, let's say, the first k
+
+00:16:44.890 --> 00:16:47.290
+bits are precisely
+the data bits.
+
+00:16:47.290 --> 00:16:48.970
+And then I'll pick
+the additional ones
+
+00:16:48.970 --> 00:16:52.730
+to be some set of what
+we'll call parity bits.
+
+00:16:52.730 --> 00:16:57.400
+So this is p1 up to pn minus k.
+
+00:16:57.400 --> 00:17:00.250
+All right, so I'm not
+going to have an arbitrary
+
+00:17:00.250 --> 00:17:01.460
+transformation here.
+
+00:17:01.460 --> 00:17:04.450
+I'm going to restrict
+myself to transformations
+
+00:17:04.450 --> 00:17:07.660
+that have the property that,
+when I multiply by the data
+
+00:17:07.660 --> 00:17:12.099
+vector here, what I get is
+the data vector reproduced
+
+00:17:12.099 --> 00:17:17.380
+in the initial part and
+then a bunch of new bits
+
+00:17:17.380 --> 00:17:19.510
+representing the
+redundant relationships
+
+00:17:19.510 --> 00:17:20.349
+that I'm computing.
+
+00:17:20.349 --> 00:17:21.970
+We refer to them as parity bits.
+
+00:17:28.060 --> 00:17:32.320
+It's not so important that the
+data bits be in the first k
+
+00:17:32.320 --> 00:17:34.930
+position, so I'm willing
+to tolerate variations
+
+00:17:34.930 --> 00:17:37.600
+of this where the data bits are
+somewhere in this code vector.
+
+00:17:37.600 --> 00:17:40.330
+But the key thing about what's
+called a systematic code
+
+00:17:40.330 --> 00:17:43.780
+is that, when I look at the code
+word in designated positions,
+
+00:17:43.780 --> 00:17:46.510
+I find the data bits and
+the other positions are
+
+00:17:46.510 --> 00:17:48.700
+the so-called
+parity bits that are
+
+00:17:48.700 --> 00:17:53.500
+obtained as linear combinations
+of the data bits, OK?
+
+00:17:53.500 --> 00:17:56.900
+So if you are familiar
+with matrix operations,
+
+00:17:56.900 --> 00:18:02.350
+then that what I'll
+need is all the way down
+
+00:18:02.350 --> 00:18:04.540
+the diagonal to
+have a matrix that
+
+00:18:04.540 --> 00:18:09.430
+has 1s along the diagonal,
+0s everywhere else,
+
+00:18:09.430 --> 00:18:10.690
+and then something here.
+
+00:18:10.690 --> 00:18:14.920
+Let me just call this matrix
+of left over 0s and 1s,
+
+00:18:14.920 --> 00:18:16.600
+matrix A. OK.
+
+00:18:16.600 --> 00:18:27.470
+So I've got here a k
+times k matrix with 1s
+
+00:18:27.470 --> 00:18:30.470
+down the diagonal and
+0s everywhere else.
+
+00:18:30.470 --> 00:18:33.320
+And then I've got a matrix
+which has 0s and 1s in it.
+
+00:18:33.320 --> 00:18:37.990
+This is going to be, what is
+it, k times n minus k, right?
+
+00:18:43.620 --> 00:18:44.430
+So do you buy this?
+
+00:18:44.430 --> 00:18:46.860
+So think about how matrix
+multiplication works.
+
+00:18:46.860 --> 00:18:49.200
+If I want the first
+column on the left,
+
+00:18:49.200 --> 00:18:51.960
+I take this row inner
+product or dot product
+
+00:18:51.960 --> 00:18:53.490
+with the first column here.
+
+00:18:53.490 --> 00:18:55.440
+That just selects out d1.
+
+00:18:55.440 --> 00:18:57.330
+And indeed, I get the d1 there.
+
+00:18:57.330 --> 00:19:01.590
+And that happens for
+the first k positions.
+
+00:19:01.590 --> 00:19:04.350
+Beyond that, I'm taking
+linear combinations
+
+00:19:04.350 --> 00:19:06.600
+with whatever sits here.
+
+00:19:06.600 --> 00:19:07.100
+OK.
+
+00:19:10.380 --> 00:19:14.070
+It turns out that this is
+not really a special case.
+
+00:19:14.070 --> 00:19:19.560
+It turns out that
+any linear code
+
+00:19:19.560 --> 00:19:25.340
+can be transformed to this
+form by invertible operation.
+
+00:19:25.340 --> 00:19:29.010
+So basically, if you use
+invertible operations
+
+00:19:29.010 --> 00:19:32.340
+on the rows here and some
+rearrangement of the columns,
+
+00:19:32.340 --> 00:19:35.610
+you can bring any
+code to this form.
+
+00:19:35.610 --> 00:19:39.330
+And then the resulting code will
+have effectively the same error
+
+00:19:39.330 --> 00:19:42.760
+correction properties that
+the code out here did.
+
+00:19:42.760 --> 00:19:43.260
+OK.
+
+00:19:43.260 --> 00:19:44.843
+So we're just going
+to limit ourselves
+
+00:19:44.843 --> 00:19:48.210
+to thinking of
+linear codes, which
+
+00:19:48.210 --> 00:19:49.930
+are in the so-called
+systematic form.
+
+00:19:55.840 --> 00:19:57.690
+In other words, some
+part of the code word
+
+00:19:57.690 --> 00:20:04.220
+is the message bits and the
+other part is parity bits, OK?
+
+00:20:10.480 --> 00:20:13.480
+So let's look at a
+specific code that
+
+00:20:13.480 --> 00:20:29.580
+is of this form,
+very simple code,
+
+00:20:29.580 --> 00:20:33.720
+referred to as a
+rectangular code.
+
+00:20:33.720 --> 00:20:36.240
+And you see a particular
+example on this slide here.
+
+00:20:38.770 --> 00:20:40.260
+So what do we do?
+
+00:20:40.260 --> 00:20:45.360
+We arrange our data
+bits into a matrix
+
+00:20:45.360 --> 00:20:47.160
+which could be
+rectangular or square
+
+00:20:47.160 --> 00:20:48.580
+depending on what you have.
+
+00:20:48.580 --> 00:21:04.290
+So we're going to have r, rows,
+and c, columns, with the data
+
+00:21:04.290 --> 00:21:09.510
+bits in here, so D1, D2, all
+the way up to D sub, let's say,
+
+00:21:09.510 --> 00:21:11.490
+r times c, right?
+
+00:21:14.460 --> 00:21:16.650
+In this particular case,
+r and c are both 2.
+
+00:21:20.667 --> 00:21:22.500
+And then you're going
+to generate the parity
+
+00:21:22.500 --> 00:21:24.240
+bits in the simple fashion.
+
+00:21:24.240 --> 00:21:27.270
+What you're going to do is
+choose a parity bit associated
+
+00:21:27.270 --> 00:21:30.660
+with the first row that
+basically makes sure
+
+00:21:30.660 --> 00:21:32.730
+that in the first row,
+including the parity bit,
+
+00:21:32.730 --> 00:21:34.480
+you've got an even number of 1s.
+
+00:21:34.480 --> 00:21:34.980
+OK.
+
+00:21:34.980 --> 00:21:37.950
+So this is a choice
+for even parity here.
+
+00:21:37.950 --> 00:21:40.410
+Similarly, P2 will
+be chosen such
+
+00:21:40.410 --> 00:21:43.320
+that the second row
+has even parity.
+
+00:21:43.320 --> 00:21:46.740
+In other words, you've got
+an even number of 1s there.
+
+00:21:46.740 --> 00:21:51.910
+And for the columns, similarly,
+P3 will be chosen such that D1
+
+00:21:51.910 --> 00:21:55.500
+and D3 and P3 together
+have even parity.
+
+00:21:55.500 --> 00:22:00.600
+In other words, the number
+of 1s in that column is even.
+
+00:22:00.600 --> 00:22:02.992
+Again-- the same
+thing for this column.
+
+00:22:02.992 --> 00:22:04.450
+So what you're
+trying to do is sort
+
+00:22:04.450 --> 00:22:07.465
+of have sentries on the
+rows and columns that
+
+00:22:07.465 --> 00:22:09.090
+will signal when
+something has happened
+
+00:22:09.090 --> 00:22:12.090
+to a bit of the intersection.
+
+00:22:12.090 --> 00:22:14.580
+That's the general
+idea here, all right?
+
+00:22:14.580 --> 00:22:16.950
+So you'll take this out
+and arrange it then.
+
+00:22:16.950 --> 00:22:21.210
+So you've got your parity bits.
+
+00:22:21.210 --> 00:22:22.530
+What's the sequence I used--
+
+00:22:22.530 --> 00:22:38.400
+P1, P2 and then more parity
+bits here, OK, so row
+
+00:22:38.400 --> 00:22:39.630
+and column parity bits.
+
+00:22:43.480 --> 00:22:47.620
+So here's a way to think about
+what these are explicitly.
+
+00:22:47.620 --> 00:22:52.240
+So what you'll do
+is P1 is D1 plus D2.
+
+00:22:52.240 --> 00:22:55.810
+When I say plus, of
+course, I mean in GF(2).
+
+00:22:55.810 --> 00:23:01.960
+So that's modulo
+2 addition, right?
+
+00:23:01.960 --> 00:23:06.580
+Does that simple
+formula ensure that I've
+
+00:23:06.580 --> 00:23:12.400
+got an even number of 1s
+in that first row, right?
+
+00:23:12.400 --> 00:23:16.600
+If D1 is 0 and D2
+is 1, then I'll
+
+00:23:16.600 --> 00:23:19.000
+make this equal to 1,
+which is what I need.
+
+00:23:19.000 --> 00:23:21.250
+If D1 and D2 are both
+1, I'll make this 0,
+
+00:23:21.250 --> 00:23:23.060
+which is what I need and so on.
+
+00:23:23.060 --> 00:23:26.110
+So this simple
+expression captures it
+
+00:23:26.110 --> 00:23:27.730
+and similarly for the r-th row.
+
+00:23:27.730 --> 00:23:30.580
+So for each row,
+you make the parity
+
+00:23:30.580 --> 00:23:35.590
+bit equal to the sum of the
+data bits in that row, similarly
+
+00:23:35.590 --> 00:23:39.993
+for the columns, OK?
+
+00:23:39.993 --> 00:23:41.410
+Another thing, by
+the way, can you
+
+00:23:41.410 --> 00:23:47.510
+tell me what P1 plus D1 plus
+D2 is going to be in this case?
+
+00:23:47.510 --> 00:23:52.030
+If I pick P1 in
+this fashion, what
+
+00:23:52.030 --> 00:23:55.420
+does it guarantee for
+P1 plus P2 plus D2?
+
+00:23:55.420 --> 00:23:56.295
+AUDIENCE: [INAUDIBLE]
+
+00:23:56.295 --> 00:23:57.253
+GEORGE VERGHESE: Sorry?
+
+00:23:57.253 --> 00:23:58.150
+AUDIENCE: [INAUDIBLE]
+
+00:23:58.150 --> 00:23:59.410
+GEORGE VERGHESE: 0, right?
+
+00:23:59.410 --> 00:24:04.690
+Because really I'm taking
+P1 and adding P1 again.
+
+00:24:04.690 --> 00:24:08.305
+And when I take something and
+add it to itself in GF(2),
+
+00:24:08.305 --> 00:24:09.430
+I get 0.
+
+00:24:09.430 --> 00:24:10.590
+So this is equal to 0.
+
+00:24:13.330 --> 00:24:14.830
+So these are just
+two different ways
+
+00:24:14.830 --> 00:24:17.810
+of thinking about
+the parity bit here.
+
+00:24:17.810 --> 00:24:20.800
+So this is how you
+compute the parity bit,
+
+00:24:20.800 --> 00:24:23.710
+whereas this might be referred
+to as parity relation.
+
+00:24:30.260 --> 00:24:33.550
+It's a linear constraint
+relating the parity
+
+00:24:33.550 --> 00:24:35.500
+bit and the data bit.
+
+00:24:39.793 --> 00:24:42.220
+In fact, we might try
+constructing this matrix
+
+00:24:42.220 --> 00:24:43.780
+as we go, right?
+
+00:24:43.780 --> 00:24:55.360
+So we've got D1, D2,
+D3, D4, P1, P2, P3, P4.
+
+00:24:57.720 --> 00:24:58.220
+Whoops.
+
+00:25:02.260 --> 00:25:09.250
+And here is D1, D2, D3, D4.
+
+00:25:09.250 --> 00:25:12.220
+I'm going to have my
+generator matrix here.
+
+00:25:12.220 --> 00:25:15.700
+It's got the identity
+matrix in this first part.
+
+00:25:15.700 --> 00:25:17.920
+We use the symbol capital
+I for identity matrix.
+
+00:25:26.570 --> 00:25:28.240
+So when you see
+identity matrix, you
+
+00:25:28.240 --> 00:25:32.390
+know it's a square matrix
+with 1s down the diagonals.
+
+00:25:32.390 --> 00:25:32.890
+OK.
+
+00:25:32.890 --> 00:25:36.553
+So what goes in the
+next column over here
+
+00:25:36.553 --> 00:25:37.720
+for this particular example?
+
+00:25:42.080 --> 00:25:44.205
+The next column over
+is going to be P1.
+
+00:25:47.660 --> 00:25:50.930
+P1 is D1 plus D2.
+
+00:25:50.930 --> 00:25:56.600
+So what I need is
+1, 1, 0, 0, right--
+
+00:25:59.620 --> 00:26:01.310
+and similarly for
+the other parity bit.
+
+00:26:01.310 --> 00:26:04.010
+So once you're
+told the rule here,
+
+00:26:04.010 --> 00:26:06.950
+it's easy to generate the
+matrix that goes with it.
+
+00:26:13.700 --> 00:26:14.390
+OK.
+
+00:26:14.390 --> 00:26:21.380
+So let's get some practice
+figuring out what's what here.
+
+00:26:21.380 --> 00:26:23.180
+This is all we're
+going to be aiming
+
+00:26:23.180 --> 00:26:25.580
+to do in this lecture is
+construct codes that correct up
+
+00:26:25.580 --> 00:26:26.790
+to a single error.
+
+00:26:26.790 --> 00:26:30.680
+So we're focusing on
+Single-Error Correction codes
+
+00:26:30.680 --> 00:26:33.130
+or what are referred
+to as SEC codes,
+
+00:26:33.130 --> 00:26:34.800
+OK, Single-Error Correction.
+
+00:26:34.800 --> 00:26:39.830
+So assume that only one error
+has happened or zero errors.
+
+00:26:39.830 --> 00:26:43.190
+You don't get more
+than one, let's say.
+
+00:26:43.190 --> 00:26:46.910
+If you receive this, I've
+just rearranged the code word
+
+00:26:46.910 --> 00:26:50.280
+into the pattern that allows
+you to look at this very easily.
+
+00:26:50.280 --> 00:26:55.160
+So here's D1, D2,
+D3, D4, and so on.
+
+00:26:55.160 --> 00:26:56.870
+Any errors here in this?
+
+00:27:00.240 --> 00:27:02.670
+You can see that, if I
+look along the first row,
+
+00:27:02.670 --> 00:27:06.840
+I've got even parity, even
+parity, even parity, even
+
+00:27:06.840 --> 00:27:07.360
+parity.
+
+00:27:07.360 --> 00:27:09.510
+So everything looks fine.
+
+00:27:09.510 --> 00:27:12.930
+And I'll declare that
+there are no errors.
+
+00:27:12.930 --> 00:27:18.990
+On the other hand,
+if I receive that,
+
+00:27:18.990 --> 00:27:25.950
+OK, so here I have a parity
+check failure, right?
+
+00:27:25.950 --> 00:27:29.490
+And so I know that something
+is wrong in this column.
+
+00:27:29.490 --> 00:27:30.510
+I look along the rows.
+
+00:27:30.510 --> 00:27:32.500
+I see a parity check
+failure in that row.
+
+00:27:32.500 --> 00:27:35.430
+So I pinpoint the error as
+being at the intersection
+
+00:27:35.430 --> 00:27:36.750
+of those two.
+
+00:27:36.750 --> 00:27:40.940
+And I know that's the bit
+that I have to flip, OK?
+
+00:27:46.010 --> 00:27:57.020
+And another case, here
+there is a failure on a row,
+
+00:27:57.020 --> 00:27:59.703
+but nothing on the
+corresponding columns.
+
+00:27:59.703 --> 00:28:02.120
+So what that tells us, it's
+actually the parity bit that's
+
+00:28:02.120 --> 00:28:04.040
+failed, right?
+
+00:28:04.040 --> 00:28:06.638
+Everything else looks fine,
+but the parity bit has failed.
+
+00:28:06.638 --> 00:28:08.180
+If there's a single
+error to correct,
+
+00:28:08.180 --> 00:28:10.730
+it would be to
+convert this 1 to a 0.
+
+00:28:10.730 --> 00:28:13.260
+And then all parity
+relations are satisfied.
+
+00:28:13.260 --> 00:28:13.760
+OK.
+
+00:28:13.760 --> 00:28:15.430
+So you can get errors
+in the parity bits
+
+00:28:15.430 --> 00:28:17.180
+as easily as you get
+them in the data bits
+
+00:28:17.180 --> 00:28:19.430
+because the channel doesn't
+know the difference.
+
+00:28:19.430 --> 00:28:22.850
+The channel is just
+seeing a sequence of bits.
+
+00:28:22.850 --> 00:28:26.280
+All right, so this is
+how you work backwards
+
+00:28:26.280 --> 00:28:27.530
+to figure out what's going on.
+
+00:28:33.320 --> 00:28:35.770
+Another way to say it--
+
+00:28:35.770 --> 00:28:39.010
+and we'll see this
+later-- is you
+
+00:28:39.010 --> 00:28:41.530
+get what should be D1 and
+D2, but you're not sure
+
+00:28:41.530 --> 00:28:43.030
+yet whether they're
+in error or not.
+
+00:28:43.030 --> 00:28:48.110
+So let me call them D1
+and D2 prime for now.
+
+00:28:48.110 --> 00:28:54.040
+So you compute your estimate of
+the first parity relationship
+
+00:28:54.040 --> 00:28:57.406
+and compare it with
+what's sitting in--
+
+00:28:57.406 --> 00:28:59.720
+well, let me say,
+are these equal?
+
+00:28:59.720 --> 00:29:03.340
+So what you're doing
+is you're computing
+
+00:29:03.340 --> 00:29:05.590
+your estimate of the
+parity relationship
+
+00:29:05.590 --> 00:29:08.500
+based on what's sitting in the
+code word in these positions
+
+00:29:08.500 --> 00:29:11.670
+and seeing whether it's equal to
+what you think it should equal.
+
+00:29:11.670 --> 00:29:12.170
+OK.
+
+00:29:12.170 --> 00:29:14.337
+And if it's equal, then you
+say that parity relation
+
+00:29:14.337 --> 00:29:15.760
+is satisfied.
+
+00:29:15.760 --> 00:29:18.308
+And otherwise, you
+try and make a change.
+
+00:29:18.308 --> 00:29:20.350
+Now, we'll see how to do
+this more systematically
+
+00:29:20.350 --> 00:29:22.450
+next lecture, actually,
+when we'll go further
+
+00:29:22.450 --> 00:29:24.010
+with the matrix story.
+
+00:29:24.010 --> 00:29:27.980
+But I'm just trying to get
+you a little oriented here.
+
+00:29:27.980 --> 00:29:28.480
+OK.
+
+00:29:32.820 --> 00:29:37.470
+So you probably believe
+by now that this code can
+
+00:29:37.470 --> 00:29:40.102
+correct single errors, right?
+
+00:29:40.102 --> 00:29:42.060
+The rectangular code can
+correct single errors.
+
+00:29:42.060 --> 00:29:45.370
+Basically, an error
+in a message bit
+
+00:29:45.370 --> 00:29:49.560
+is pinpointed by parity
+errors on the row and column.
+
+00:29:49.560 --> 00:29:53.490
+A message in a parity bit is
+pinpointed by just an error
+
+00:29:53.490 --> 00:29:56.700
+in the parity row or column.
+
+00:29:56.700 --> 00:29:58.590
+And if you get something
+other than that,
+
+00:29:58.590 --> 00:30:01.650
+then you say you have an
+uncorrectable error, right?
+
+00:30:01.650 --> 00:30:06.960
+You're not set up to do things
+with other errors there.
+
+00:30:06.960 --> 00:30:10.350
+But now, how do we know
+the Hamming distance is 3?
+
+00:30:10.350 --> 00:30:12.185
+The minimum Hamming
+distance is 2.
+
+00:30:12.185 --> 00:30:14.310
+We know that, if the minimum
+Hamming distance is 3,
+
+00:30:14.310 --> 00:30:16.745
+we can correct a single error.
+
+00:30:16.745 --> 00:30:18.870
+But it's possible that the
+minimum Hamming distance
+
+00:30:18.870 --> 00:30:21.690
+is greater than 3 for this
+case, which might mean
+
+00:30:21.690 --> 00:30:23.560
+we have more possibilities.
+
+00:30:23.560 --> 00:30:28.480
+So how can we establish what
+the minimum Hamming distance is?
+
+00:30:32.150 --> 00:30:32.920
+Any ideas?
+
+00:30:32.920 --> 00:30:33.420
+Yeah.
+
+00:30:33.420 --> 00:30:35.920
+AUDIENCE: [INAUDIBLE] the case
+in which the Hamming distance
+
+00:30:35.920 --> 00:30:38.832
+is [INAUDIBLE] change
+one of the data bits
+
+00:30:38.832 --> 00:30:42.547
+and and the two parity bits
+that correspond [INAUDIBLE]..
+
+00:30:42.547 --> 00:30:43.380
+GEORGE VERGHESE: OK.
+
+00:30:43.380 --> 00:30:47.460
+So am I going to search all
+pairs-- so the suggestion was
+
+00:30:47.460 --> 00:30:51.270
+change something until you
+find the Hamming distance of 3.
+
+00:30:51.270 --> 00:30:54.250
+And presumably, you won't
+find anything smaller, right?
+
+00:30:54.250 --> 00:30:54.870
+OK.
+
+00:30:54.870 --> 00:30:57.240
+Because we know we can
+correct single errors.
+
+00:30:57.240 --> 00:31:01.380
+But am I going to search
+through all pairs of code words
+
+00:31:01.380 --> 00:31:02.010
+to do this?
+
+00:31:02.010 --> 00:31:03.630
+Or can I do something better?
+
+00:31:09.360 --> 00:31:10.212
+Yeah.
+
+00:31:10.212 --> 00:31:14.148
+AUDIENCE: [INAUDIBLE]
+if you have [INAUDIBLE]..
+
+00:31:22.840 --> 00:31:24.340
+GEORGE VERGHESE:
+So you're giving me
+
+00:31:24.340 --> 00:31:27.150
+a particular
+computation here, but I
+
+00:31:27.150 --> 00:31:29.590
+don't know that you've answered
+my question, which was,
+
+00:31:29.590 --> 00:31:33.360
+am I going to have to search
+through all pairs of code words
+
+00:31:33.360 --> 00:31:36.330
+to see that I can establish
+a known distance of 3?
+
+00:31:36.330 --> 00:31:38.747
+Or is there something simpler
+than that that I can do?
+
+00:31:38.747 --> 00:31:43.563
+AUDIENCE: [INAUDIBLE]
+
+00:31:43.563 --> 00:31:44.980
+GEORGE VERGHESE:
+Can you speak up?
+
+00:31:44.980 --> 00:31:46.272
+My hearing is not great, sorry.
+
+00:31:46.272 --> 00:31:51.713
+AUDIENCE: [INAUDIBLE] high
+dimensional [INAUDIBLE]..
+
+00:31:55.206 --> 00:31:59.730
+It's whatever minimum Hamming
+distance is [INAUDIBLE]..
+
+00:31:59.730 --> 00:32:02.850
+GEORGE VERGHESE: Oh, so you've
+got a general formula, OK.
+
+00:32:02.850 --> 00:32:04.770
+Can you invoke
+linearity in some way?
+
+00:32:04.770 --> 00:32:07.320
+Because I haven't heard you
+use the linearity of the code
+
+00:32:07.320 --> 00:32:10.310
+in anything you've said.
+
+00:32:10.310 --> 00:32:11.870
+Were you going to
+offer a suggestion?
+
+00:32:11.870 --> 00:32:12.370
+Yeah.
+
+00:32:12.370 --> 00:32:20.700
+AUDIENCE: [INAUDIBLE] what
+happens when you [? put one ?]
+
+00:32:20.700 --> 00:32:25.803
+[INAUDIBLE] when you [INAUDIBLE]
+parity [INAUDIBLE] you
+
+00:32:25.803 --> 00:32:29.020
+pick one bit you have
+to put two other bits.
+
+00:32:29.020 --> 00:32:30.687
+[INAUDIBLE]
+
+00:32:30.687 --> 00:32:31.520
+GEORGE VERGHESE: OK.
+
+00:32:31.520 --> 00:32:33.145
+So I think I get what
+your argument is.
+
+00:32:33.145 --> 00:32:35.870
+You're saying start from
+an arbitrary message bit.
+
+00:32:35.870 --> 00:32:38.200
+And then if you make any
+flip, you'll get at least 3.
+
+00:32:38.200 --> 00:32:39.867
+That may have been
+the earlier argument,
+
+00:32:39.867 --> 00:32:42.100
+which I missed, right?
+
+00:32:42.100 --> 00:32:44.710
+Is there a way to invoke
+the linearity of the code
+
+00:32:44.710 --> 00:32:45.868
+in making these arguments?
+
+00:32:45.868 --> 00:32:47.410
+You're on the right
+track, but I just
+
+00:32:47.410 --> 00:32:48.820
+want to see if linearity
+can be invoked.
+
+00:32:48.820 --> 00:32:49.210
+Yeah.
+
+00:32:49.210 --> 00:32:50.903
+AUDIENCE: I think
+you can use the all 0
+
+00:32:50.903 --> 00:32:54.192
+codes and [INAUDIBLE].
+
+00:32:54.192 --> 00:32:55.150
+GEORGE VERGHESE: Right.
+
+00:32:55.150 --> 00:32:58.660
+So what we've established
+is that, for a linear code,
+
+00:32:58.660 --> 00:33:01.060
+the minimum Hamming distance
+is the minimum weight
+
+00:33:01.060 --> 00:33:03.410
+among all non-0 vectors, right?
+
+00:33:03.410 --> 00:33:06.790
+So all you have to do
+is start with the 0 code
+
+00:33:06.790 --> 00:33:17.780
+word, everything 0, and then
+flip a bit in the message
+
+00:33:17.780 --> 00:33:21.440
+and then see if you get
+Hamming distance 3 or greater.
+
+00:33:21.440 --> 00:33:21.940
+OK.
+
+00:33:21.940 --> 00:33:23.482
+So we can start with
+the 0 code word.
+
+00:33:23.482 --> 00:33:25.700
+I guess that's the point
+I was going to make here.
+
+00:33:25.700 --> 00:33:26.200
+OK.
+
+00:33:29.880 --> 00:33:32.250
+There is another expression
+that popped up there
+
+00:33:32.250 --> 00:33:33.990
+before completing that argument.
+
+00:33:33.990 --> 00:33:37.800
+Do you agree with what it
+said about the code rate?
+
+00:33:37.800 --> 00:33:46.530
+It says the code rate is
+rc over rc plus r plus c.
+
+00:33:46.530 --> 00:33:47.780
+Do you agree with that?
+
+00:33:47.780 --> 00:33:48.510
+Yeah.
+
+00:33:48.510 --> 00:33:54.480
+Because we have the number
+of message bits being rc.
+
+00:33:54.480 --> 00:33:58.600
+And then the total number
+of bits is rc plus r plus c.
+
+00:33:58.600 --> 00:34:01.960
+So the rate is, indeed, what's
+given by that expression.
+
+00:34:01.960 --> 00:34:02.460
+OK.
+
+00:34:02.460 --> 00:34:07.500
+And then we'll go on to make
+this argument about the three
+
+00:34:07.500 --> 00:34:08.830
+cases here.
+
+00:34:08.830 --> 00:34:11.130
+So you can actually
+go case by case.
+
+00:34:11.130 --> 00:34:14.135
+And the argument
+here is actually
+
+00:34:14.135 --> 00:34:16.010
+closer to what was being
+described out there.
+
+00:34:16.010 --> 00:34:17.937
+It doesn't start
+with the 0 message.
+
+00:34:17.937 --> 00:34:19.770
+But it says, if you've
+got two messages that
+
+00:34:19.770 --> 00:34:23.880
+differ in 1 bit in
+the message area,
+
+00:34:23.880 --> 00:34:27.030
+then they're going to differ by
+1 bit in the associated parity
+
+00:34:27.030 --> 00:34:27.630
+areas.
+
+00:34:27.630 --> 00:34:30.889
+And, therefore, the overall
+code word has moved by 3.
+
+00:34:30.889 --> 00:34:32.639
+And then you go through
+each of the cases,
+
+00:34:32.639 --> 00:34:35.429
+and you argue that you've
+moved by at least 3.
+
+00:34:35.429 --> 00:34:37.469
+So this argument is
+actually closer to what
+
+00:34:37.469 --> 00:34:39.250
+was being suggested earlier.
+
+00:34:39.250 --> 00:34:39.750
+OK.
+
+00:34:39.750 --> 00:34:41.375
+So you can go through
+each of the cases
+
+00:34:41.375 --> 00:34:46.230
+and discover that the nearest
+code word you can get to
+
+00:34:46.230 --> 00:34:51.210
+is Hamming distance
+3 away, all right?
+
+00:34:51.210 --> 00:34:55.860
+Why is it that we're flipping
+a bit in the message section
+
+00:34:55.860 --> 00:34:57.840
+to decide what's a new case?
+
+00:35:01.070 --> 00:35:02.620
+The way we count
+our code words is
+
+00:35:02.620 --> 00:35:05.200
+by arranging through all
+the possible 2 the k, right?
+
+00:35:05.200 --> 00:35:07.930
+So we've got to flip
+bits in the data section
+
+00:35:07.930 --> 00:35:09.130
+to get to another code word.
+
+00:35:09.130 --> 00:35:11.530
+So we're saying we have
+a code word corresponding
+
+00:35:11.530 --> 00:35:13.210
+to some set of data bits.
+
+00:35:13.210 --> 00:35:17.720
+We'll flip a bit there, and then
+look to see what happens, OK?
+
+00:35:21.080 --> 00:35:21.640
+OK.
+
+00:35:21.640 --> 00:35:31.330
+So here's a little
+modification to the code,
+
+00:35:31.330 --> 00:35:35.960
+which actually puts in an
+overall parity bit, P here.
+
+00:35:35.960 --> 00:35:39.370
+So what this is is the
+sum of all the entries
+
+00:35:39.370 --> 00:35:42.110
+and every other position.
+
+00:35:42.110 --> 00:35:44.180
+OK.
+
+00:35:44.180 --> 00:35:46.350
+And if you go through
+the argument there,
+
+00:35:46.350 --> 00:35:51.337
+what you'll discover is what
+you've done is go from--
+
+00:35:51.337 --> 00:35:52.670
+do I still have it on the board?
+
+00:35:52.670 --> 00:35:54.087
+I might have it
+on the board here.
+
+00:35:57.370 --> 00:35:58.750
+No.
+
+00:35:58.750 --> 00:36:02.920
+What you've done is go from
+the rectangular code that
+
+00:36:02.920 --> 00:36:09.010
+had this structure, Hamming
+distance 3, to now one that
+
+00:36:09.010 --> 00:36:10.300
+has Hamming distance 4.
+
+00:36:15.770 --> 00:36:16.270
+OK.
+
+00:36:16.270 --> 00:36:18.430
+So adding that
+overall parity bit
+
+00:36:18.430 --> 00:36:20.770
+has increased the minimum
+Hamming distance of the code
+
+00:36:20.770 --> 00:36:22.660
+from 3 to 4.
+
+00:36:22.660 --> 00:36:26.140
+Does that improve error
+correction capabilities?
+
+00:36:26.140 --> 00:36:28.960
+You still can only
+correct up to one error.
+
+00:36:28.960 --> 00:36:31.340
+But the difference now is
+that, if you get two errors,
+
+00:36:31.340 --> 00:36:35.610
+you can actually detect it
+accurately as a 2-bit error.
+
+00:36:35.610 --> 00:36:37.960
+OK.
+
+00:36:37.960 --> 00:36:43.750
+All right, so I'll leave you
+to go through that analysis.
+
+00:36:43.750 --> 00:36:47.420
+This we've pretty
+much done already.
+
+00:36:47.420 --> 00:36:49.420
+This has just filled out
+the rest of the matrix.
+
+00:36:49.420 --> 00:36:52.450
+You see that we filled out
+this column on the board.
+
+00:36:52.450 --> 00:36:53.305
+That was this case.
+
+00:36:57.880 --> 00:37:00.010
+But you can actually
+fill them all out
+
+00:37:00.010 --> 00:37:02.950
+once you have the description
+of the parity check bits.
+
+00:37:02.950 --> 00:37:03.580
+OK.
+
+00:37:03.580 --> 00:37:07.960
+So these other columns you
+can fill out similarly.
+
+00:37:07.960 --> 00:37:10.610
+And this is for the case of--
+
+00:37:10.610 --> 00:37:12.640
+let's see, what case is
+it referring to here?
+
+00:37:18.740 --> 00:37:20.090
+n equals 3.
+
+00:37:22.970 --> 00:37:27.080
+Let's see-- sorry, n equals 9.
+
+00:37:27.080 --> 00:37:28.700
+k equals 4.
+
+00:37:28.700 --> 00:37:29.690
+d equal 4.
+
+00:37:29.690 --> 00:37:33.545
+So what rectangular picture
+am I talking about here?
+
+00:37:33.545 --> 00:37:34.670
+This is a rectangular code.
+
+00:37:34.670 --> 00:37:36.980
+What rectangular code
+has these parameters?
+
+00:37:43.840 --> 00:37:47.440
+So I must be
+talking about 2 by 2
+
+00:37:47.440 --> 00:37:54.070
+for the data bits, 2 rows, 2
+columns, and then 1 overall,
+
+00:37:54.070 --> 00:37:56.920
+right?
+
+00:37:56.920 --> 00:38:00.070
+The overall, what gives
+me the clue is I've
+
+00:38:00.070 --> 00:38:01.570
+got a minimum distance of 4.
+
+00:38:01.570 --> 00:38:03.760
+If it's a rectangular code
+with minimum distance 4,
+
+00:38:03.760 --> 00:38:07.480
+then I know I must have
+an overall parity bit.
+
+00:38:07.480 --> 00:38:13.180
+k is 4 because I just
+have 4 data bits.
+
+00:38:13.180 --> 00:38:18.590
+And overall, I've got to
+send 9 bits in each block.
+
+00:38:18.590 --> 00:38:20.920
+OK.
+
+00:38:20.920 --> 00:38:22.570
+So for that
+particular case, this
+
+00:38:22.570 --> 00:38:25.100
+is what the matrix looks like.
+
+00:38:25.100 --> 00:38:27.880
+So the only difference is
+there is an overall parity bit
+
+00:38:27.880 --> 00:38:34.952
+here, P5, which is the
+sum of all the data bits.
+
+00:38:34.952 --> 00:38:36.910
+Actually, all the data
+bits on the parity bits,
+
+00:38:36.910 --> 00:38:40.540
+but this is what
+it works out to be.
+
+00:38:40.540 --> 00:38:41.040
+OK.
+
+00:38:43.900 --> 00:38:48.310
+And we've pretty much talked
+through the decoding here.
+
+00:38:48.310 --> 00:38:49.510
+Let me put it all up there.
+
+00:38:54.200 --> 00:38:56.480
+So you calculate
+all the parity bits.
+
+00:38:56.480 --> 00:38:59.600
+If you see no parity errors,
+you return all the data bits.
+
+00:38:59.600 --> 00:39:04.582
+If you detect a row or
+column parity bit error,
+
+00:39:04.582 --> 00:39:06.790
+then you make the change in
+that particular position.
+
+00:39:06.790 --> 00:39:09.150
+And otherwise, you flag
+an uncorrectable error.
+
+00:39:09.150 --> 00:39:11.595
+So the correction
+is straightforward.
+
+00:39:11.595 --> 00:39:13.220
+If you look on the
+slides later, you'll
+
+00:39:13.220 --> 00:39:15.410
+see a little quiz that you
+can try for yourselves.
+
+00:39:15.410 --> 00:39:18.500
+Or you might try
+it in recitation.
+
+00:39:18.500 --> 00:39:22.030
+But let me pass on that.
+
+00:39:22.030 --> 00:39:23.320
+OK.
+
+00:39:23.320 --> 00:39:25.930
+So the question arises,
+is a rectangular code
+
+00:39:25.930 --> 00:39:29.050
+using this redundant
+information in an efficient way?
+
+00:39:34.430 --> 00:39:35.540
+Or could we do better?
+
+00:39:39.290 --> 00:39:48.910
+So let's see, we've got a code
+word that's got k message bits.
+
+00:39:48.910 --> 00:39:53.060
+And then it's got n
+minus k parity bits.
+
+00:39:53.060 --> 00:39:53.560
+OK.
+
+00:39:53.560 --> 00:39:54.640
+So here's the data bits.
+
+00:39:54.640 --> 00:39:58.120
+Here's the parity bits.
+
+00:39:58.120 --> 00:40:01.190
+We want to use the parity bits
+as effectively as possible.
+
+00:40:04.390 --> 00:40:05.980
+How many different
+conditions can we
+
+00:40:05.980 --> 00:40:12.580
+signal if we have P bits that
+can only take value 0 or 1?
+
+00:40:12.580 --> 00:40:15.040
+Just 2 to the n minus
+k conditions, right?
+
+00:40:15.040 --> 00:40:16.690
+So if we're looking
+at the code word
+
+00:40:16.690 --> 00:40:20.390
+and trying to deduce something
+from the parity bits,
+
+00:40:20.390 --> 00:40:22.390
+how many different
+things can we deduce?
+
+00:40:22.390 --> 00:40:25.750
+Well, n minus k
+bits can signal 2
+
+00:40:25.750 --> 00:40:29.890
+to the n minus k
+different things, right?
+
+00:40:29.890 --> 00:40:31.090
+What do they have to signal?
+
+00:40:31.090 --> 00:40:34.060
+What do the parity
+bits have to tell us?
+
+00:40:34.060 --> 00:40:37.480
+They have to tell us either
+that an error didn't occur
+
+00:40:37.480 --> 00:40:39.790
+or that an error occurred
+in the first position
+
+00:40:39.790 --> 00:40:43.750
+or second position or third
+all the way up to the n-th.
+
+00:40:43.750 --> 00:40:46.930
+So the number of things we want
+to learn from the parity bits
+
+00:40:46.930 --> 00:40:49.000
+is n plus 1.
+
+00:40:49.000 --> 00:40:56.000
+So you would hope
+that this is true,
+
+00:40:56.000 --> 00:40:59.112
+that the number of things you
+can signal with the parity bits
+
+00:40:59.112 --> 00:41:00.820
+is at least equal to
+the number of things
+
+00:41:00.820 --> 00:41:03.520
+you want to get in the case
+of single-error correction.
+
+00:41:03.520 --> 00:41:06.140
+All right, we're only trying
+to correct a single error here.
+
+00:41:06.140 --> 00:41:10.090
+So we want the number of
+possibilities that the parity
+
+00:41:10.090 --> 00:41:13.760
+bits can indicate to include
+the case of no errors--
+
+00:41:13.760 --> 00:41:15.520
+that's the 1 over there--
+
+00:41:15.520 --> 00:41:18.310
+plus the case of an error
+in the first position
+
+00:41:18.310 --> 00:41:21.480
+or second position or
+third position and so on.
+
+00:41:21.480 --> 00:41:22.980
+OK.
+
+00:41:22.980 --> 00:41:26.340
+If you plug in the
+typical parameters
+
+00:41:26.340 --> 00:41:31.140
+for the rectangular code,
+you'll see that you're actually
+
+00:41:31.140 --> 00:41:32.460
+exceeding this wildly.
+
+00:41:32.460 --> 00:41:33.270
+Let's see.
+
+00:41:33.270 --> 00:41:36.610
+For that particular case,
+9, 4, 4, what do we have?
+
+00:41:36.610 --> 00:41:39.570
+We have 9 plus 1 on this side.
+
+00:41:39.570 --> 00:41:43.440
+And we have 2 to the what--
+
+00:41:43.440 --> 00:41:44.680
+9 minus 4.
+
+00:41:49.135 --> 00:41:51.400
+So what's that-- 32
+on the right-hand side
+
+00:41:51.400 --> 00:41:53.500
+and 10 on the left.
+
+00:41:53.500 --> 00:41:54.940
+So you've got a big gap.
+
+00:41:54.940 --> 00:42:03.420
+If you were going to allow me
+1, 2, 3, 4, 5, parity bits,
+
+00:42:03.420 --> 00:42:05.370
+I could do a lot
+more than tell you
+
+00:42:05.370 --> 00:42:08.880
+what you're asking me to tell
+you in this particular code.
+
+00:42:08.880 --> 00:42:12.240
+So I'm not using the parity
+bits as efficiently as I could.
+
+00:42:12.240 --> 00:42:16.720
+And that motivates the
+search for better choices.
+
+00:42:16.720 --> 00:42:20.850
+So this is a fundamental
+inequality here, something
+
+00:42:20.850 --> 00:42:23.267
+we'll keep referring back to.
+
+00:42:23.267 --> 00:42:25.350
+So make sure you understand
+where that comes from.
+
+00:42:30.475 --> 00:42:32.600
+And that leads us to what
+are called Hamming codes.
+
+00:42:32.600 --> 00:42:35.770
+So Hamming codes are codes
+that actually use the parity
+
+00:42:35.770 --> 00:42:41.780
+bits efficiently in that they
+match this bound with equality.
+
+00:42:41.780 --> 00:42:44.240
+OK.
+
+00:42:44.240 --> 00:42:46.670
+So can you think of
+the smallest k and n
+
+00:42:46.670 --> 00:42:49.840
+pair that's going to satisfy
+this with equality just playing
+
+00:42:49.840 --> 00:42:50.840
+with some small numbers?
+
+00:42:54.617 --> 00:42:56.450
+Maybe I shouldn't play
+this game since we're
+
+00:42:56.450 --> 00:42:58.710
+late on the lecture.
+
+00:42:58.710 --> 00:43:03.410
+Here's a suggestion, nkd.
+
+00:43:03.410 --> 00:43:06.020
+The Hamming code is going to be
+a single-error correcting code
+
+00:43:06.020 --> 00:43:08.900
+with minimum Hamming distance 3.
+
+00:43:08.900 --> 00:43:11.060
+So the 3 will always be there.
+
+00:43:11.060 --> 00:43:13.790
+This is n, and this is k.
+
+00:43:13.790 --> 00:43:17.543
+And you'll see that this
+is satisfied with equality.
+
+00:43:17.543 --> 00:43:18.710
+But there are other choices.
+
+00:43:18.710 --> 00:43:21.230
+This is the smallest choice,
+the smallest non-trivial choice
+
+00:43:21.230 --> 00:43:22.850
+anyway.
+
+00:43:22.850 --> 00:43:28.740
+But you can go to more
+general possibilities.
+
+00:43:28.740 --> 00:43:30.830
+So this code is
+called a perfect code
+
+00:43:30.830 --> 00:43:34.178
+because it matches that
+inequality with equality,
+
+00:43:34.178 --> 00:43:35.720
+but actually that
+doesn't necessarily
+
+00:43:35.720 --> 00:43:38.210
+mean it's the best code.
+
+00:43:38.210 --> 00:43:40.775
+It turns out to be
+a good code provided
+
+00:43:40.775 --> 00:43:42.650
+you're picking these
+parameters appropriately
+
+00:43:42.650 --> 00:43:44.390
+for your application.
+
+00:43:44.390 --> 00:43:46.970
+But this is perfect code
+in a very technical sense,
+
+00:43:46.970 --> 00:43:51.000
+meaning it's a code that attains
+this inequality with equality.
+
+00:43:51.000 --> 00:43:53.480
+OK, that's all that
+it means there.
+
+00:43:53.480 --> 00:43:55.370
+OK, so what's the idea
+on the Hamming code?
+
+00:44:04.390 --> 00:44:07.100
+Let me put it all down there,
+and then we'll talk through it.
+
+00:44:07.100 --> 00:44:12.580
+So this little Venn
+diagram conveys for you
+
+00:44:12.580 --> 00:44:14.958
+how the parity bits are picked.
+
+00:44:14.958 --> 00:44:17.500
+And they end up actually being
+picked in a very efficient way
+
+00:44:17.500 --> 00:44:19.220
+to provide the
+coverage you want.
+
+00:44:19.220 --> 00:44:22.490
+So this is the case that
+was mentioned before.
+
+00:44:22.490 --> 00:44:28.798
+This is the, was it, 7, 4, 3.
+
+00:44:28.798 --> 00:44:30.010
+Is that what we had?
+
+00:44:33.380 --> 00:44:36.400
+Yeah, 7, 4, 3, right?
+
+00:44:39.290 --> 00:44:41.540
+So let's give ourselves
+some space here.
+
+00:44:50.110 --> 00:44:52.510
+So with 3 parity
+bits, we're actually
+
+00:44:52.510 --> 00:44:56.230
+going to indicate
+whether there was 0 error
+
+00:44:56.230 --> 00:44:58.440
+or whether the error occurred
+in the first position,
+
+00:44:58.440 --> 00:45:00.190
+second position, and
+so on, all the way up
+
+00:45:00.190 --> 00:45:02.270
+to the seventh position.
+
+00:45:02.270 --> 00:45:05.230
+So we're going to use
+3 bits, 3 parity bits,
+
+00:45:05.230 --> 00:45:07.960
+to indicate eight
+possibilities, which is what we
+
+00:45:07.960 --> 00:45:09.265
+know you should be able to do.
+
+00:45:09.265 --> 00:45:10.390
+And here's the arrangement.
+
+00:45:10.390 --> 00:45:11.390
+This picture conveys it.
+
+00:45:11.390 --> 00:45:15.580
+So basically, P1 is
+D1 plus D2 plus D4.
+
+00:45:15.580 --> 00:45:21.910
+So P1 fires if D1, D2, or
+D4, if any one of those
+
+00:45:21.910 --> 00:45:23.990
+is 1 and similarly for
+these other things.
+
+00:45:23.990 --> 00:45:24.490
+OK.
+
+00:45:24.490 --> 00:45:28.660
+So this picture tells
+you what data bits
+
+00:45:28.660 --> 00:45:31.630
+are included in the
+coverage of each parity bit.
+
+00:45:31.630 --> 00:45:34.660
+So that's the way to think
+of what this picture is.
+
+00:45:34.660 --> 00:45:37.406
+So these are
+apportioned carefully.
+
+00:45:37.406 --> 00:45:40.270
+So for instance,
+let's see, if you
+
+00:45:40.270 --> 00:45:43.180
+discover that P1 and P3
+indicate an error, that
+
+00:45:43.180 --> 00:45:46.660
+means some data bit
+in the coverage of P1
+
+00:45:46.660 --> 00:45:50.920
+and in the coverage
+of P3 have an error.
+
+00:45:53.820 --> 00:45:56.620
+But P2 didn't have an error.
+
+00:45:56.620 --> 00:45:57.120
+OK.
+
+00:45:57.120 --> 00:45:59.400
+So what does that tell you?
+
+00:45:59.400 --> 00:46:02.760
+We're only considering
+up to single errors.
+
+00:46:02.760 --> 00:46:06.570
+If P1 and P3 have an error,
+but P2 doesn't have an error,
+
+00:46:06.570 --> 00:46:10.290
+well, P1 and P3 share D2, D4.
+
+00:46:10.290 --> 00:46:12.990
+But P2 didn't have an
+error, so D4 must be fine.
+
+00:46:12.990 --> 00:46:15.630
+So D2 must be the one
+that's an error, OK?
+
+00:46:15.630 --> 00:46:18.588
+And so you get full coverage
+by that kind of reasoning.
+
+00:46:22.080 --> 00:46:24.570
+One way to think of this,
+and this is actually
+
+00:46:24.570 --> 00:46:30.450
+how Hamming set it up, was he
+actually arranged the parity
+
+00:46:30.450 --> 00:46:32.550
+bits and the data bits
+a little differently
+
+00:46:32.550 --> 00:46:34.500
+down that code word.
+
+00:46:34.500 --> 00:46:37.500
+He had parity bit 1
+in the first position,
+
+00:46:37.500 --> 00:46:40.650
+parity bit 2 in the second
+position, parity bit 3
+
+00:46:40.650 --> 00:46:42.010
+in the fourth position.
+
+00:46:42.010 --> 00:46:43.740
+If you had a long code
+word, the next one
+
+00:46:43.740 --> 00:46:45.450
+would be in the eighth position.
+
+00:46:45.450 --> 00:46:48.780
+So it's 2 to the 0, 2 to the
+1, 2 to the 2, 2 to the 3,
+
+00:46:48.780 --> 00:46:49.630
+and so on.
+
+00:46:49.630 --> 00:46:52.320
+So those are the positions in
+which he puts the parity bits.
+
+00:46:52.320 --> 00:46:55.050
+Everywhere else
+are the data bits.
+
+00:46:55.050 --> 00:47:02.880
+And then the data bits that
+feed into parity P1 or parity
+
+00:47:02.880 --> 00:47:06.570
+relation P1 are the
+data bits and positions
+
+00:47:06.570 --> 00:47:08.870
+that end with a 1.
+
+00:47:08.870 --> 00:47:09.390
+OK.
+
+00:47:09.390 --> 00:47:11.310
+So if the positions
+end with the 1,
+
+00:47:11.310 --> 00:47:14.820
+you stick them in the coverage
+of this parity relationship,
+
+00:47:14.820 --> 00:47:19.710
+so D1, D2, not D3, but D4.
+
+00:47:19.710 --> 00:47:25.770
+For P2, similarly,
+the parity relation P2
+
+00:47:25.770 --> 00:47:27.420
+includes the data
+bits that have a 1
+
+00:47:27.420 --> 00:47:33.940
+in their second position, so
+D1, not D2, yes D3, and yes D4.
+
+00:47:33.940 --> 00:47:34.440
+OK.
+
+00:47:34.440 --> 00:47:37.170
+So the nice thing about
+that is that, when
+
+00:47:37.170 --> 00:47:40.650
+you get a particular
+pattern of errors,
+
+00:47:40.650 --> 00:47:46.810
+it actually leads you exactly to
+the right position in the code
+
+00:47:46.810 --> 00:47:47.310
+word.
+
+00:47:47.310 --> 00:47:49.518
+So I don't want to actually
+spend a lot of time here.
+
+00:47:49.518 --> 00:47:52.770
+I want you to look
+at that separately.
+
+00:47:52.770 --> 00:47:56.750
+But just to go over the
+process, here's what happens.
+
+00:47:56.750 --> 00:48:01.730
+We know that parity bit
+P1 was D1 plus D2 plus D4.
+
+00:48:01.730 --> 00:48:04.355
+So we know that this parity
+relationship was satisfied
+
+00:48:04.355 --> 00:48:06.710
+at the transmitting end.
+
+00:48:06.710 --> 00:48:08.690
+By the time you receive
+all of this, all of it
+
+00:48:08.690 --> 00:48:09.773
+might have been corrupted.
+
+00:48:09.773 --> 00:48:12.740
+That's why I put a little
+primes next to these.
+
+00:48:12.740 --> 00:48:14.840
+Not all of them, but one
+of them may have been.
+
+00:48:14.840 --> 00:48:17.930
+We're limiting ourselves to a
+single-error correction, OK?
+
+00:48:17.930 --> 00:48:22.890
+So the D1 prime may not
+be D1 because of an error.
+
+00:48:22.890 --> 00:48:27.710
+So what you do is you compute
+these so-called syndrome bits.
+
+00:48:27.710 --> 00:48:31.580
+If there were no errors, then
+E1 should be 0, E2 should be 0,
+
+00:48:31.580 --> 00:48:34.550
+E3 should be 0 because that's
+how it was on the other end.
+
+00:48:34.550 --> 00:48:37.520
+If there's a single error
+in one of the bits covered
+
+00:48:37.520 --> 00:48:39.170
+by the appropriate
+relationship, you're
+
+00:48:39.170 --> 00:48:43.040
+going to get the associated
+syndrome bit going to 1.
+
+00:48:43.040 --> 00:48:46.160
+So you compute these syndromes
+and then line them up
+
+00:48:46.160 --> 00:48:47.570
+as a binary number.
+
+00:48:47.570 --> 00:48:49.670
+And it turns out that,
+depending on the pattern
+
+00:48:49.670 --> 00:48:51.890
+of the syndromes,
+it'll tell you exactly
+
+00:48:51.890 --> 00:48:55.110
+the position and the code word
+in which there's an error.
+
+00:48:55.110 --> 00:48:57.800
+So it's kind of
+cute and powerful.
+
+00:48:57.800 --> 00:48:59.480
+You can correct up to t errors.
+
+00:48:59.480 --> 00:49:01.190
+And there's a
+natural relationship
+
+00:49:01.190 --> 00:49:04.370
+that extends from this.
+
+00:49:04.370 --> 00:49:06.080
+I wanted to make one
+final point, which
+
+00:49:06.080 --> 00:49:09.230
+is that these error correcting
+codes occur all over the place,
+
+00:49:09.230 --> 00:49:11.030
+not just in the
+setting of binary.
+
+00:49:11.030 --> 00:49:14.030
+And one thing you
+might try and DO
+
+00:49:14.030 --> 00:49:16.670
+if you're carrying
+a textbook with you,
+
+00:49:16.670 --> 00:49:18.830
+look at the ISBN number.
+
+00:49:18.830 --> 00:49:25.460
+The ISBN number is a 10
+digit number x1 up to x10.
+
+00:49:25.460 --> 00:49:32.300
+And it turns out that 1 times
+x1 plus 2 times x2 plus 10 times
+
+00:49:32.300 --> 00:49:38.030
+x10 is going to be 0 modulo 11.
+
+00:49:38.030 --> 00:49:40.040
+So try that out on the
+ISBN number of any book
+
+00:49:40.040 --> 00:49:41.180
+you're carrying.
+
+00:49:41.180 --> 00:49:43.820
+What you'll see is that this
+is a parity relationship that
+
+00:49:43.820 --> 00:49:48.290
+guards against errors
+in any single ISBN
+
+00:49:48.290 --> 00:49:50.300
+number or a
+transposition of two,
+
+00:49:50.300 --> 00:49:53.420
+which turn out to be the
+two most natural errors.
+
+00:49:53.420 --> 00:49:54.110
+OK.
+
+00:49:54.110 --> 00:49:57.100
+Look for parity relations
+in other places.

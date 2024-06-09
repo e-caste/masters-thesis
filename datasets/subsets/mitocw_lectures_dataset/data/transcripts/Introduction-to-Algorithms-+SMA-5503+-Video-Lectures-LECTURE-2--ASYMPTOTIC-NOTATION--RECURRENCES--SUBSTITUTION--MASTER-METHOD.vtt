@@ -1,0 +1,3966 @@
+WEBVTT
+
+00:00:10.000 --> 00:00:13.000
+My name is Erik Demaine.
+You should call me Erik.
+
+00:00:13.000 --> 00:00:16.000
+Welcome back to 6.046.
+This is Lecture 2.
+
+00:00:16.000 --> 00:00:20.000
+And today we are going to
+essentially fill in some of the
+
+00:00:20.000 --> 00:00:23.000
+more mathematical underpinnings
+of Lecture 1.
+
+00:00:23.000 --> 00:00:26.000
+So, Lecture 1,
+we just sort of barely got our
+
+00:00:26.000 --> 00:00:31.000
+feet wet with some analysis of
+algorithms, insertion sort and
+
+00:00:31.000 --> 00:00:34.000
+mergesort.
+And we needed a couple of
+
+00:00:34.000 --> 00:00:36.000
+tools.
+We had this big idea of
+
+00:00:36.000 --> 00:00:40.000
+asymptotics and forgetting about
+constants, just looking at the
+
+00:00:40.000 --> 00:00:41.000
+lead term.
+And so, today,
+
+00:00:41.000 --> 00:00:44.000
+we're going to develop
+asymptotic notation so that we
+
+00:00:44.000 --> 00:00:47.000
+know that mathematically.
+And we also ended up with a
+
+00:00:47.000 --> 00:00:51.000
+recurrence with mergesort,
+the running time of mergesort,
+
+00:00:51.000 --> 00:00:53.000
+so we need to see how to solve
+recurrences.
+
+00:00:53.000 --> 00:00:55.000
+And we will do those two things
+today.
+
+00:00:55.000 --> 00:00:58.000
+Question?
+Yes, I will speak louder.
+
+00:00:58.000 --> 00:01:00.000
+Thanks.
+Good.
+
+00:01:00.000 --> 00:01:03.000
+Even though I have a
+microphone, I am not amplified.
+
+00:01:03.000 --> 00:01:07.000
+OK, so let's start with
+asymptotic notation.
+
+00:01:16.000 --> 00:01:19.000
+We have seen some basic
+asymptotic notation.
+
+00:01:19.000 --> 00:01:22.000
+I am sure you have seen it in
+other classes before,
+
+00:01:22.000 --> 00:01:26.000
+things like big O-notation.
+And today we are going to
+
+00:01:26.000 --> 00:01:30.000
+really define this rigorously so
+we know what is true and what is
+
+00:01:30.000 --> 00:01:34.000
+not, what is valid and what is
+not.
+
+00:01:40.000 --> 00:01:43.000
+We are going to define,
+and unfortunately today is
+This will be true if c_1 is
+
+00:01:43.000 --> 00:01:48.000
+going to be really mathematical
+and really no algorithms today,
+
+00:01:48.000 --> 00:01:52.000
+which is sort of an anticlimax.
+But next lecture we will talk
+
+00:01:52.000 --> 00:01:57.000
+about real algorithms and will
+apply all the things we learned
+
+00:01:57.000 --> 00:02:04.000
+today to real algorithms.
+This is big O-notation,
+
+00:02:04.000 --> 00:02:12.000
+capital O-notation.
+We have f(n)=O[g(n)].
+
+00:02:12.000 --> 00:02:21.000
+This means that there are some
+suitable constants,
+
+00:02:21.000 --> 00:02:30.000
+c and n_o, such that f is
+bounded by cg(n) for all
+
+00:02:30.000 --> 00:02:38.000
+sufficiently large n.
+So, this is pretty intuitive
+
+00:02:38.000 --> 00:02:42.000
+notion.
+We have seen it before.
+
+00:02:42.000 --> 00:02:47.000
+We are going to assume that
+f(n) is non-negative here.
+
+00:02:47.000 --> 00:02:52.000
+And I just want f(n) to be
+bounded above by g(n).
+
+00:02:52.000 --> 00:02:57.000
+We have seen a bunch of
+examples, but something like
+
+00:02:57.000 --> 00:03:02.000
+2n^2=O(n^3) defined.
+And roughly this means if you
+
+00:03:02.000 --> 00:03:07.000
+drop leading constants and low
+order terms then this is less
+
+00:03:07.000 --> 00:03:10.000
+than or equal to that.
+So, big O corresponds roughly
+
+00:03:10.000 --> 00:03:14.000
+to less than or equal to.
+But this is the formalization.
+
+00:03:14.000 --> 00:03:18.000
+Another way to think of it
+formally, a funny thing about
+
+00:03:18.000 --> 00:03:20.000
+this notation is it is
+asymmetric.
+
+00:03:20.000 --> 00:03:23.000
+Normally, you think of
+equality being symmetric.
+
+00:03:23.000 --> 00:03:26.000
+If A=B then B=A.
+But it's not true here.
+
+00:03:26.000 --> 00:03:30.000
+We do not have n^3 being big O
+of n^2.
+
+00:03:30.000 --> 00:03:33.000
+We don't even have big O of n^3
+equaling n^2.
+
+00:03:33.000 --> 00:03:38.000
+So, we will see exactly what
+that means in a second.
+
+00:03:38.000 --> 00:03:43.000
+But before we get there,
+this is a bit bizarre notation
+
+00:03:43.000 --> 00:03:47.000
+and you should always think
+about what it really means.
+
+00:03:47.000 --> 00:03:53.000
+Another way to think about what
+it really means is that f(n) is
+
+00:03:53.000 --> 00:03:58.000
+in some set of functions that
+are like g.
+
+00:03:58.000 --> 00:04:04.000
+You could define big O[g(n)] to
+be a set of functions,
+
+00:04:04.000 --> 00:04:10.000
+let's call it f(n),
+such that there exist
+
+00:04:10.000 --> 00:04:15.000
+constants.
+They are the same definition,
+
+00:04:15.000 --> 00:04:21.000
+I think, fancy here,
+c and n_o, such that we have
+
+00:04:21.000 --> 00:04:28.000
+the bound f(n) is between zero
+and cg(n).
+
+00:04:34.000 --> 00:04:37.000
+It is a bit of a long
+definition, and that is why we
+
+00:04:37.000 --> 00:04:41.000
+use the notation,
+to avoid having to write this
+
+00:04:41.000 --> 00:04:44.000
+over and over.
+You can think of instead of n^2
+
+00:04:44.000 --> 00:04:48.000
+being equal to big O of n^3,
+what we really mean is that
+
+00:04:48.000 --> 00:04:52.000
+2n^2 is in the set big O(n^3).
+When we write equal sign,
+
+00:04:52.000 --> 00:04:56.000
+we in some sense mean this in
+the set, but we are going to use
+
+00:04:56.000 --> 00:05:00.000
+equal sign.
+You could write this.
+
+00:05:00.000 --> 00:05:03.000
+And occasionally you see papers
+that write this,
+
+00:05:03.000 --> 00:05:08.000
+but this is the notation that
+we are going to use.
+
+00:05:08.000 --> 00:05:12.000
+That has the consequence the
+equal sign is asymmetric,
+
+00:05:12.000 --> 00:05:17.000
+just like this operator.
+We have some nifty ways that we
+
+00:05:17.000 --> 00:05:20.000
+actually use big O-notation.
+
+00:05:29.000 --> 00:05:33.000
+And it is using it as a macro.
+By the way, we have a lot to
+
+00:05:33.000 --> 00:05:37.000
+cover today, so I am going to go
+relatively fast.
+
+00:05:37.000 --> 00:05:41.000
+If anything is unclear,
+just stop, ask questions,
+
+00:05:41.000 --> 00:05:45.000
+then I will slow down.
+Otherwise, I will take this as
+
+00:05:45.000 --> 00:05:50.000
+all completely obvious and I can
+keep going at full speed.
+
+00:05:50.000 --> 00:05:52.000
+The convention,
+this is intuitive,
+
+00:05:52.000 --> 00:05:57.000
+I guess, if you do some macro
+programming or something,
+
+00:05:57.000 --> 00:06:01.000
+but it's a bit more
+mathematical.
+
+00:06:09.000 --> 00:06:13.000
+We have defined big O-notation
+and it equals big O of
+
+00:06:13.000 --> 00:06:16.000
+something.
+And so we have only defined big
+
+00:06:16.000 --> 00:06:20.000
+O when on the equal sign we have
+big O of some function.
+
+00:06:20.000 --> 00:06:24.000
+But it is useful to have some
+general expression on the
+
+00:06:24.000 --> 00:06:28.000
+right-hand side that involves
+big O.
+
+00:06:28.000 --> 00:06:34.000
+For example,
+let's say we have f(n) = n^3 +
+
+00:06:34.000 --> 00:06:39.000
+O(n^2).
+This is attempting to get an
+
+00:06:39.000 --> 00:06:45.000
+error bound.
+This is saying f(n) is
+
+00:06:45.000 --> 00:06:54.000
+basically n^3 but there are
+these lower order terms that are
+
+00:06:54.000 --> 00:07:00.000
+O(n^2).
+And so this means that there is
+
+00:07:00.000 --> 00:07:08.000
+a function, shorthand for a
+function, h(n) which is in
+
+00:07:08.000 --> 00:07:18.000
+O(n^2) or equals O(n^2) such
+that f(n) = n^3 + h(n).
+
+00:07:18.000 --> 00:07:21.000
+It is saying that there are
+some lower order terms that are
+
+00:07:21.000 --> 00:07:25.000
+bounded above by some constant
+times n^2 for sufficiently large
+
+00:07:25.000 --> 00:07:28.000
+n, and that is what is here.
+And then f(n) equals,
+
+00:07:28.000 --> 00:07:32.000
+now this is a true equality,
+n^3 plus that error term.
+
+00:07:32.000 --> 00:07:34.000
+This is very useful here.
+Essentially,
+
+00:07:34.000 --> 00:07:37.000
+I am expressing what the lead
+constant is and then saying
+
+00:07:37.000 --> 00:07:40.000
+well, there is other stuff and
+it's all at most n^2.
+
+00:07:40.000 --> 00:07:42.000
+Saying that f(n) therefore is
+also order n^3,
+
+00:07:42.000 --> 00:07:44.000
+but that is a bit weaker of a
+statement.
+
+00:07:44.000 --> 00:07:47.000
+This is a bit more refined.
+We won't need to use this too
+
+00:07:47.000 --> 00:07:50.000
+often, but it is useful.
+Sometimes we will see,
+
+00:07:50.000 --> 00:07:53.000
+like in last class we even had
+a big O inside a summation.
+
+00:07:53.000 --> 00:07:55.000
+So, you can use them all over
+the place.
+
+00:07:55.000 --> 00:08:00.000
+The point is they represent
+some function in that set.
+
+00:08:00.000 --> 00:08:04.000
+A bit less intuitive,
+and this is more subtle,
+
+00:08:04.000 --> 00:08:10.000
+is what it means to have big O
+on the left-hand side.
+
+00:08:10.000 --> 00:08:15.000
+It means the same thing,
+but there is some convention
+
+00:08:15.000 --> 00:08:20.000
+what equality means.
+And this is why equal sign is
+
+00:08:20.000 --> 00:08:24.000
+asymmetric.
+You should read equals like
+
+00:08:24.000 --> 00:08:27.000
+"is".
+Is means that everything over
+
+00:08:27.000 --> 00:08:34.000
+here is something over here.
+So, there is an implicit for
+
+00:08:34.000 --> 00:08:39.000
+all on the left-hand side and
+there exists on the right-hand
+
+00:08:39.000 --> 00:08:41.000
+side.
+This is a true statement.
+
+00:08:41.000 --> 00:08:47.000
+Anything that is n^2 + O(n) is
+also O(n^2), but not the other
+
+00:08:47.000 --> 00:08:50.000
+way around.
+So, this is a bit asymmetric.
+
+00:08:50.000 --> 00:08:55.000
+If you think about it,
+this is pretty intuitive but it
+
+00:08:55.000 --> 00:08:59.000
+is subtle so you should be
+careful.
+
+00:09:15.000 --> 00:09:20.000
+This says for any expansion of
+the macro on the left-hand side,
+
+00:09:20.000 --> 00:09:24.000
+which should be f(n),
+there is an expansion of the
+
+00:09:24.000 --> 00:09:30.000
+macro on the right-hand side
+such that we get equality.
+
+00:09:30.000 --> 00:09:34.000
+And what this allows you to do
+is if you have a chain of equal
+
+00:09:34.000 --> 00:09:36.000
+signs relations,
+a chain of "is"s,
+
+00:09:36.000 --> 00:09:40.000
+then the very first one is
+equal to or bounded by the very
+
+00:09:40.000 --> 00:09:42.000
+last one.
+So, you can chain equal signs
+
+00:09:42.000 --> 00:09:45.000
+the way you normally would.
+You just cannot flip them
+
+00:09:45.000 --> 00:09:46.000
+around.
+Good.
+
+00:09:46.000 --> 00:09:51.000
+So, that's big O-notation.
+Any questions about that?
+
+00:09:58.000 --> 00:10:01.000
+So, big O is great for
+expressing upper bounds.
+
+00:10:01.000 --> 00:10:04.000
+But we also want to talk about
+lower bounds.
+
+00:10:04.000 --> 00:10:06.000
+For algorithms,
+we usually care about upper
+
+00:10:06.000 --> 00:10:11.000
+bounds on their running time.
+Running times at most n^2 is at
+
+00:10:11.000 --> 00:10:14.000
+most n log n up to big O,
+but sometimes we need to
+
+00:10:14.000 --> 00:10:17.000
+express functions that are at
+least some quantity.
+
+00:10:17.000 --> 00:10:20.000
+For example,
+we will show that sorting
+
+00:10:20.000 --> 00:10:23.000
+requires at least n log n time
+in some model.
+
+00:10:23.000 --> 00:10:26.000
+So, we need some other notation
+for that.
+
+00:10:26.000 --> 00:10:30.000
+And the notation is big
+Omega-notation.
+
+00:10:30.000 --> 00:10:35.000
+And it is pretty symmetric.
+I will just write out the set
+
+00:10:35.000 --> 00:10:40.000
+definition here.
+And we are going to write f(n)=
+
+00:10:40.000 --> 00:10:46.000
+big Omega[g(n)] to mean f(n) is
+at least some constant times
+
+00:10:46.000 --> 00:10:48.000
+g(n) --
+
+00:10:55.000 --> 00:10:57.000
+-- for sufficiently large n.
+
+00:11:09.000 --> 00:11:12.000
+So, I am basically just
+reversing the inequality
+
+00:11:12.000 --> 00:11:16.000
+relation between f and g,
+nothing surprising,
+
+00:11:16.000 --> 00:11:19.000
+just to have it there.
+A random example,
+
+00:11:19.000 --> 00:11:24.000
+and now we will get a little
+bit more sophisticated,
+
+00:11:24.000 --> 00:11:29.000
+root n= big Omega(lg n).
+And you should read this that
+
+00:11:29.000 --> 00:11:34.000
+up to constant factors root n is
+at least log n for sufficiently
+
+00:11:34.000 --> 00:11:38.000
+large n.
+So, omega sort of corresponds
+
+00:11:38.000 --> 00:11:43.000
+to greater than or equal to.
+Let me give you some analogies.
+
+00:11:43.000 --> 00:11:46.000
+We have big O,
+we have big omega,
+
+00:11:46.000 --> 00:11:51.000
+this is less than or equal to,
+this is greater than or equal
+
+00:11:51.000 --> 00:11:53.000
+to.
+And I am going to fill in some
+
+00:11:53.000 --> 00:11:57.000
+more here in a moment.
+
+00:12:10.000 --> 00:12:12.000
+It's nice to have all the usual
+operators we have.
+
+00:12:12.000 --> 00:12:16.000
+Normally we have strict less
+than, strict greater than and
+
+00:12:16.000 --> 00:12:18.000
+equal sign.
+And we want those sort of
+
+00:12:18.000 --> 00:12:22.000
+analogs in the asymptotic world
+where we ignore constant factors
+
+00:12:22.000 --> 00:12:25.000
+and ignore lower order terms.
+We have, for example,
+
+00:12:25.000 --> 00:12:28.000
+big Theta[g(n)].
+This is a capital theta which
+
+00:12:28.000 --> 00:12:31.000
+means you write the horizontal
+bar in the middle as opposed to
+
+00:12:31.000 --> 00:12:35.000
+all the way through.
+I didn't invent Greek,
+
+00:12:35.000 --> 00:12:40.000
+so that is the way it is.
+Theta means that you are less
+
+00:12:40.000 --> 00:12:44.000
+than or equal to and you are
+greater than or equal to up to
+
+00:12:44.000 --> 00:12:48.000
+constant factors,
+so it is the inner section of
+
+00:12:48.000 --> 00:12:51.000
+these two sets,
+big O and big Omega.
+
+00:12:51.000 --> 00:12:55.000
+That is sort of like equal sign
+but, of course,
+
+00:12:55.000 --> 00:13:00.000
+this is very different.
+You have things like n^2 is big
+
+00:13:00.000 --> 00:13:04.000
+Theta of 2(n^2) because you
+ignore constant factors,
+
+00:13:04.000 --> 00:13:07.000
+but all of these other
+relations, OK,
+
+00:13:07.000 --> 00:13:11.000
+n^2 + O(n) = Theta(n^2),
+but this does not hold with
+
+00:13:11.000 --> 00:13:16.000
+theta because square root of n
+is really asymptotically bigger
+
+00:13:16.000 --> 00:13:19.000
+than log n.
+And some of the other examples
+
+00:13:19.000 --> 00:13:25.000
+we saw like n^2 versus n^3,
+those don't hold with T.
+
+00:13:25.000 --> 00:13:29.000
+And we have some strict
+notation which are the little
+
+00:13:29.000 --> 00:13:32.000
+o-notation and little
+omega-notation.
+
+00:13:32.000 --> 00:13:37.000
+There is no little theta
+because there is not notion of
+
+00:13:37.000 --> 00:13:41.000
+strict equality versus unstrict
+equality.
+
+00:13:41.000 --> 00:13:47.000
+Little o is going to correspond
+roughly to less than and little
+
+00:13:47.000 --> 00:13:51.000
+omega is going to correspond to
+greater than.
+
+00:13:51.000 --> 00:13:57.000
+This is a notation you will
+just have to get used to.
+
+00:13:57.000 --> 00:14:03.000
+And I am not going to define it
+precisely here because it is
+
+00:14:03.000 --> 00:14:08.000
+almost exactly the same.
+The difference is that instead
+
+00:14:08.000 --> 00:14:15.000
+of saying there exists constant
+c and n_o, you have to say for
+
+00:14:15.000 --> 00:14:19.000
+every constant c there exists a
+constant n_o.
+
+00:14:19.000 --> 00:14:26.000
+The relationship between f and
+g, this inequality must hold for
+
+00:14:26.000 --> 00:14:32.000
+all c instead of just for 1.
+And so n_o can now depend on c.
+
+00:14:32.000 --> 00:14:37.000
+You can assume that really n is
+sufficiently large,
+
+00:14:37.000 --> 00:14:40.000
+but this gives you a strict
+inequality.
+
+00:14:40.000 --> 00:14:45.000
+No matter what constant you put
+here, in front of g,
+
+00:14:45.000 --> 00:14:50.000
+let's say we are doing little
+o, f will be still less than c
+
+00:14:50.000 --> 00:14:53.000
+times g for sufficiently large
+n.
+
+00:14:53.000 --> 00:14:57.000
+We have some random examples.
+
+00:15:04.000 --> 00:15:06.000
+We are again ignoring
+constants.
+
+00:15:06.000 --> 00:15:11.000
+n^2 is always less than n^3 for
+sufficiently large n.
+
+00:15:11.000 --> 00:15:15.000
+And it is a bit subtle here.
+I mean in order to prove
+
+00:15:15.000 --> 00:15:19.000
+something like this,
+it will become intuitive after
+
+00:15:19.000 --> 00:15:25.000
+you manipulate it a little bit.
+You have to figure out what n_o
+
+00:15:25.000 --> 00:15:30.000
+is in terms of c.
+I think it something like 2/c.
+
+00:15:30.000 --> 00:15:34.000
+If we have less than or equal
+to, that should be right.
+
+00:15:34.000 --> 00:15:38.000
+As long n is at least this big,
+no matter how small of a c,
+
+00:15:38.000 --> 00:15:42.000
+you should think of c here as
+being epsilon now,
+
+00:15:42.000 --> 00:15:44.000
+in the usual epsilon and
+deltas.
+
+00:15:44.000 --> 00:15:49.000
+No matter how small c gets,
+still I can bound n^2 in terms
+
+00:15:49.000 --> 00:15:53.000
+of n^3, upper bound,
+but whenever you have theta you
+
+00:15:53.000 --> 00:15:57.000
+do not have either of these
+relations.
+
+00:15:57.000 --> 00:16:00.000
+For example,
+Ωn^2 = Theta(n^2) and it is not
+
+00:16:00.000 --> 00:16:06.000
+little o(n^2) and it not little
+omega(n^2) because it is exactly
+
+00:16:06.000 --> 00:16:08.000
+n^2.
+You will get some sense in
+
+00:16:08.000 --> 00:16:13.000
+order relation out of this,
+although there are some messy
+
+00:16:13.000 --> 00:16:17.000
+behaviors as you will see in
+your problem set.
+
+00:16:17.000 --> 00:16:21.000
+Any questions about asymptotic
+notation?
+
+00:16:21.000 --> 00:16:25.000
+That is the quick rundown.
+Now we are going to use it to
+
+00:16:25.000 --> 00:16:31.000
+solve some recurrences.
+Although we won't use it that
+
+00:16:31.000 --> 00:16:35.000
+much today, we will use it a lot
+more on Wednesday.
+
+00:16:35.000 --> 00:16:36.000
+OK.
+
+00:16:53.000 --> 00:16:57.000
+We will move onto the second
+topic of today,
+
+00:16:57.000 --> 00:17:02.000
+which is solving recurrences.
+You have probably solved some
+
+00:17:02.000 --> 00:17:06.000
+recurrences before in 6.042 or
+whatever discrete math class you
+
+00:17:06.000 --> 00:17:09.000
+have taken.
+We are going to do more and
+
+00:17:09.000 --> 00:17:14.000
+have some techniques here that
+are particularly useful for
+
+00:17:14.000 --> 00:17:18.000
+analyzing recursive algorithms,
+and we will see that mostly on
+
+00:17:18.000 --> 00:17:21.000
+Wednesday.
+There are three main methods
+
+00:17:21.000 --> 00:17:25.000
+that we are going to use here
+for solving recurrences.
+
+00:17:25.000 --> 00:17:30.000
+The first one is the
+substitution method.
+
+00:17:30.000 --> 00:17:32.000
+There is no general procedure
+for solving a recurrence.
+
+00:17:32.000 --> 00:17:35.000
+There is no good algorithm for
+solving recurrences,
+
+00:17:35.000 --> 00:17:37.000
+unfortunately.
+We just have a bunch of
+
+00:17:37.000 --> 00:17:39.000
+techniques.
+Some of them work some of the
+
+00:17:39.000 --> 00:17:42.000
+time, and if you are lucky yours
+will work for your recurrence,
+
+00:17:42.000 --> 00:17:44.000
+but it is sort of like solving
+an integral.
+
+00:17:44.000 --> 00:17:47.000
+You have to just know some of
+them, you have to know various
+
+00:17:47.000 --> 00:17:50.000
+methods for solving them.
+It is usually easy to check if
+
+00:17:50.000 --> 00:17:53.000
+you have the right answer.
+Just like with integrals,
+
+00:17:53.000 --> 00:17:56.000
+you just differentiate and say
+oh, I got the right answer.
+
+00:17:56.000 --> 00:18:00.000
+And that is essentially the
+idea of substitution method.
+
+00:18:00.000 --> 00:18:04.000
+Substitution method will always
+work, but unfortunately Step 1
+
+00:18:04.000 --> 00:18:07.000
+is guess the answer.
+And you have to guess it
+
+00:18:07.000 --> 00:18:09.000
+correctly.
+That makes it a big difficult.
+
+00:18:09.000 --> 00:18:12.000
+You don't have to guess it
+completely.
+
+00:18:12.000 --> 00:18:15.000
+You can usually get away with
+not knowing the constant
+
+00:18:15.000 --> 00:18:19.000
+factors, which is a good thing
+because we don't really care
+
+00:18:19.000 --> 00:18:22.000
+about the constant factors.
+You guess the form.
+
+00:18:22.000 --> 00:18:26.000
+You say oh, it is going to be
+roughly n^2, and so it's some
+
+00:18:26.000 --> 00:18:31.000
+constant times n^2 presumably.
+So, you guess that.
+
+00:18:31.000 --> 00:18:34.000
+We are going to figure out the
+constants.
+
+00:18:34.000 --> 00:18:38.000
+You try to verify whether the
+recurrence satisfies this bound
+
+00:18:38.000 --> 00:18:40.000
+by induction,
+and that is the key.
+
+00:18:40.000 --> 00:18:44.000
+Substitution uses induction.
+And from that you usually get
+
+00:18:44.000 --> 00:18:48.000
+the constants for free.
+You figure out what the
+
+00:18:48.000 --> 00:18:51.000
+constants have to be in order to
+make this work.
+
+00:18:51.000 --> 00:18:55.000
+So, that is the general idea.
+You will see a few examples of
+
+00:18:55.000 --> 00:18:57.000
+this.
+Actually, the same example
+
+00:18:57.000 --> 00:19:01.000
+several times.
+Unfortunately,
+
+00:19:01.000 --> 00:19:04.000
+this is what you might call,
+I don't know.
+
+00:19:04.000 --> 00:19:08.000
+This is an algorithm,
+but it uses an oracle which is
+
+00:19:08.000 --> 00:19:12.000
+knowing the right answer.
+But sometimes it is not too
+
+00:19:12.000 --> 00:19:14.000
+hard to guess the answer.
+It depends.
+
+00:19:14.000 --> 00:19:18.000
+If you look at this recurrence,
+T(n) = 4T(n/2) + n,
+
+00:19:18.000 --> 00:19:23.000
+we should implicitly always
+have some base case of T of some
+
+00:19:23.000 --> 00:19:26.000
+constant, usually 1 is a
+constant, so we don't really
+
+00:19:26.000 --> 00:19:32.000
+care about the base case.
+For algorithms that is always
+
+00:19:32.000 --> 00:19:34.000
+the case.
+And we want to solve this
+
+00:19:34.000 --> 00:19:37.000
+thing.
+Does anyone have a guess to
+
+00:19:37.000 --> 00:19:40.000
+what the solution is?
+Ideally someone who doesn't
+
+00:19:40.000 --> 00:19:43.000
+already know how to solve this
+recurrence.
+
+00:19:43.000 --> 00:19:45.000
+OK.
+How many people know how to
+
+00:19:45.000 --> 00:19:48.000
+solve this recurrence?
+A few, OK.
+
+00:19:48.000 --> 00:19:50.000
+And, of the rest,
+any guesses?
+
+00:19:50.000 --> 00:19:55.000
+If you look at what is going on
+here, here you have T(n/2) and
+
+00:19:55.000 --> 00:19:59.000
+let's ignore this term more or
+less.
+
+00:19:59.000 --> 00:20:02.000
+We have n/2 here.
+If we double n and get T(n)
+
+00:20:02.000 --> 00:20:06.000
+then we multiply the value by 4.
+And then there is this additive
+
+00:20:06.000 --> 00:20:08.000
+end, but that doesn't matter so
+much.
+
+00:20:08.000 --> 00:20:13.000
+What function do you know that
+when you double the argument the
+
+00:20:13.000 --> 00:20:15.000
+output goes up by a factor of 4?
+Sorry?
+
+00:20:15.000 --> 00:20:18.000
+n^2,yeah.
+You should think n^2 and you
+
+00:20:18.000 --> 00:20:21.000
+would be right.
+But we won't prove n^2 yet.
+
+00:20:21.000 --> 00:20:25.000
+Let's prove something simpler,
+because it turns out proving
+
+00:20:25.000 --> 00:20:29.000
+that it is at most n^2 is a bit
+of a pain.
+
+00:20:29.000 --> 00:20:31.000
+We will see that in just a few
+minutes.
+
+00:20:31.000 --> 00:20:36.000
+But let's guess that T(n) =
+O(n^3) first because that will
+
+00:20:36.000 --> 00:20:41.000
+be easier to prove by induction.
+You sort of see how it is done
+
+00:20:41.000 --> 00:20:44.000
+in the easy case,
+and then we will actually get
+
+00:20:44.000 --> 00:20:47.000
+the right answer,
+n^2, later.
+
+00:20:47.000 --> 00:20:50.000
+I need to prove.
+What I am going to do is guess
+
+00:20:50.000 --> 00:20:55.000
+that T(n) is some constant times
+n^3 at most, so I will be a
+
+00:20:55.000 --> 00:20:59.000
+little more precise.
+I cannot use the big O-notation
+
+00:20:59.000 --> 00:21:03.000
+in the substitution method so I
+have to expand it out to use
+
+00:21:03.000 --> 00:21:08.000
+constants.
+I will show you why in a little
+
+00:21:08.000 --> 00:21:13.000
+bit, but let me just tell you at
+a high level what is important
+
+00:21:13.000 --> 00:21:17.000
+in not using big O-notation.
+Big O-notation is great if you
+
+00:21:17.000 --> 00:21:21.000
+have a finite chain of big O
+relations, you know,
+
+00:21:21.000 --> 00:21:25.000
+n^2 is big O(n^3) is big O(n^4)
+is big O(n^4) is big O(n^4).
+
+00:21:25.000 --> 00:21:29.000
+That is all true.
+And so you get that n^2 is big
+
+00:21:29.000 --> 00:21:33.000
+O(n^4).
+But if you have an infinite
+
+00:21:33.000 --> 00:21:37.000
+chain of those relations then
+the first thing is not big O of
+
+00:21:37.000 --> 00:21:41.000
+the last thing.
+You have to be very careful.
+
+00:21:41.000 --> 00:21:44.000
+For example,
+this is a total aside on the
+
+00:21:44.000 --> 00:21:47.000
+lecture notes.
+Suppose you want to prove that
+
+00:21:47.000 --> 00:21:50.000
+n = O(1).
+This is a great relation.
+
+00:21:50.000 --> 00:21:53.000
+If it were true,
+every algorithm would have
+
+00:21:53.000 --> 00:21:56.000
+constant running time.
+This is not true.
+
+00:21:56.000 --> 00:22:02.000
+Not in Wayne's World notation.
+You could "prove this by
+
+00:22:02.000 --> 00:22:07.000
+induction" by saying well,
+base case is 1 = O(1).
+
+00:22:07.000 --> 00:22:12.000
+OK, that is true.
+And then the induction step as
+
+00:22:12.000 --> 00:22:18.000
+well, if I know that n-1,
+so let's suppose that n-1 =
+
+00:22:18.000 --> 00:22:23.000
+O(1), well, that implies that n,
+which is (n-1) +1,
+
+00:22:23.000 --> 00:22:30.000
+if this is O(1) and 1 = O(1),
+the whole thing is O(1).
+
+00:22:30.000 --> 00:22:32.000
+And that is true.
+If you knew that (n-1) = O(1)
+
+00:22:32.000 --> 00:22:35.000
+and 1 = O(1) then their sum is
+also O(1), but this is a false
+
+00:22:35.000 --> 00:22:37.000
+proof.
+You cannot induct over big Os.
+
+00:22:37.000 --> 00:22:40.000
+What is going on here is that
+the constants that are implicit
+
+00:22:40.000 --> 00:22:43.000
+in here are changing.
+Here you have some big O of 1,
+
+00:22:43.000 --> 00:22:46.000
+here you have some big O of 1.
+You are probably doubling the
+
+00:22:46.000 --> 00:22:49.000
+constant in there every time you
+do this relation.
+
+00:22:49.000 --> 00:22:52.000
+If you have a finite number of
+doubling of constants,
+
+00:22:52.000 --> 00:22:54.000
+no big deal,
+it is just a constant,
+
+00:22:54.000 --> 00:22:55.000
+two the power number of
+doublings.
+
+00:22:55.000 --> 00:23:00.000
+But here you are doing n
+doublings and that is no good.
+
+00:23:00.000 --> 00:23:02.000
+The constant is now depending
+on n.
+
+00:23:02.000 --> 00:23:06.000
+So, we are avoiding this kind
+of problem by writing out the
+
+00:23:06.000 --> 00:23:08.000
+constant.
+We have to make sure that
+
+00:23:08.000 --> 00:23:11.000
+constant doesn't change.
+Good.
+
+00:23:11.000 --> 00:23:13.000
+Now I have written out the
+constant.
+
+00:23:13.000 --> 00:23:16.000
+I should be safe.
+I am assuming it for all k less
+
+00:23:16.000 --> 00:23:20.000
+than n, now I have to prove it
+for k equal to n.
+
+00:23:20.000 --> 00:23:23.000
+I am going to take T(n) and
+just expand it.
+
+00:23:23.000 --> 00:23:25.000
+I am going to do the obvious
+thing.
+
+00:23:25.000 --> 00:23:30.000
+I have this recurrence how to
+expand T(n).
+
+00:23:30.000 --> 00:23:35.000
+Then it involves T(n/2).
+And I know some fact about
+
+00:23:35.000 --> 00:23:39.000
+T(n/2) because n/2 is less than
+n.
+
+00:23:39.000 --> 00:23:43.000
+So, let's expand.
+T(n) = 4T(n/2) + n.
+
+00:23:43.000 --> 00:23:50.000
+And now I have an upper bound
+on this thing from the induction
+
+00:23:50.000 --> 00:23:55.000
+hypothesis.
+This is at most 4 times c times
+
+00:23:55.000 --> 00:24:00.000
+the argument cubed plus n.
+
+00:24:40.000 --> 00:24:48.000
+Continuing on here.
+Let's expand this a little bit.
+
+00:24:48.000 --> 00:24:56.000
+We have n cubed over 2 cubed.
+Two cubed is 8,
+
+00:24:56.000 --> 00:25:05.000
+so 4 over 8 is a half.
+So, we have Ωcn^3 + n.
+
+00:25:05.000 --> 00:25:10.000
+And what I would like this to
+be is, so at the bottom where I
+
+00:25:10.000 --> 00:25:13.000
+would like to go is that this is
+at most cn3.
+
+00:25:13.000 --> 00:25:18.000
+That is what I would like to
+prove to reestablish the
+
+00:25:18.000 --> 00:25:21.000
+induction hypothesis for n.
+What I will do,
+
+00:25:21.000 --> 00:25:26.000
+in order to see when that is
+case, is just write this as what
+
+00:25:26.000 --> 00:25:30.000
+I want, so this is sort of the
+desired value,
+
+00:25:30.000 --> 00:25:34.000
+cn3, minus whatever I don't
+want.
+
+00:25:34.000 --> 00:25:39.000
+This is called the residual.
+Now I have to actually figure
+
+00:25:39.000 --> 00:25:41.000
+this out.
+Let's see.
+
+00:25:41.000 --> 00:25:44.000
+We have cn^3,
+but only Ωcn^3 here,
+
+00:25:44.000 --> 00:25:49.000
+so I need to subtract off Ωcn^3
+to get that lead term correct.
+
+00:25:49.000 --> 00:25:54.000
+And then I have plus n and
+there is a minus here,
+
+00:25:54.000 --> 00:25:59.000
+so it is minus n.
+And that is the residual.
+
+00:25:59.000 --> 00:26:04.000
+In order for this to be at most
+this, I need that the residual
+
+00:26:04.000 --> 00:26:07.000
+is non-negative.
+This is if the residual part is
+
+00:26:07.000 --> 00:26:12.000
+greater than or equal to zero,
+which is pretty easy to do
+
+00:26:12.000 --> 00:26:15.000
+because here I have control over
+c.
+
+00:26:15.000 --> 00:26:18.000
+I get to pick c to be whatever
+I want.
+
+00:26:18.000 --> 00:26:22.000
+And, as long as c is at least,
+oh, I don't know,
+
+00:26:22.000 --> 00:26:26.000
+2, then this is a 1 at least.
+Then I have n^3 should be
+
+00:26:26.000 --> 00:26:33.000
+greater than or equal to n.
+And that is always the case.
+
+00:26:33.000 --> 00:26:37.000
+For example,
+this is true if c is at least
+
+00:00:01.000 --> 00:26:41.000
+And I don't think it matters
+
+00:26:41.000 --> 00:26:47.000
+what n is, but let's say n is at
+least 1 just for kicks.
+
+00:26:47.000 --> 00:26:53.000
+So, what we have done is proved
+that T(n) is at most some
+
+00:26:53.000 --> 00:27:00.000
+constant times n^3.
+And the constant is like 1.
+
+00:27:00.000 --> 00:27:03.000
+So, that is an upper bound.
+It is not a tight upper bound.
+
+00:27:03.000 --> 00:27:06.000
+We actually believed that it is
+n^2, and it is,
+
+00:27:06.000 --> 00:27:09.000
+but you have to be a little
+careful.
+
+00:27:09.000 --> 00:27:11.000
+This does not mean that the
+answer is n^3.
+
+00:27:11.000 --> 00:27:14.000
+It just means that at most n^3
+is big O(n^3).
+
+00:27:14.000 --> 00:27:16.000
+And this is a proof by
+induction.
+
+00:27:16.000 --> 00:27:20.000
+Now, technically I should have
+put a base case in this
+
+00:27:20.000 --> 00:27:22.000
+induction, so there is a little
+bit missing.
+
+00:27:22.000 --> 00:27:26.000
+The base case is pretty easy
+because T(1) is some constant,
+
+00:27:26.000 --> 00:27:29.000
+but it will sort of influence
+things.
+
+00:27:29.000 --> 00:27:33.000
+If the base case T(1) is some
+constant.
+
+00:27:33.000 --> 00:27:37.000
+And what we need is that it is
+at most c times one cubed,
+
+00:27:37.000 --> 00:27:40.000
+which is c.
+And that will be true as long
+
+00:27:40.000 --> 00:27:43.000
+as you choose c to be
+sufficiently large.
+
+00:27:43.000 --> 00:27:47.000
+So, this is true if c is chosen
+sufficiently large.
+
+00:27:47.000 --> 00:27:52.000
+Now, we don't care about
+constants, but the point is just
+
+00:27:52.000 --> 00:27:56.000
+to be a little bit careful.
+It is not true that T(n) is at
+
+00:27:56.000 --> 00:28:00.000
+most 1 times n^2,
+even though here all we need is
+
+00:28:00.000 --> 00:28:05.000
+that c is at least 1.
+For the base case to work,
+
+00:28:05.000 --> 00:28:10.000
+c actually might have to be a
+hundred or whatever T(1) is.
+
+00:28:10.000 --> 00:28:14.000
+So, be a little bit careful
+there.
+
+00:28:14.000 --> 00:28:19.000
+It doesn't really affect the
+answer, usually it won't because
+
+00:28:19.000 --> 00:28:23.000
+we have very simple base cases
+here.
+
+00:28:23.000 --> 00:28:29.000
+OK, so let's try to prove the
+tight bound of O(n^2).
+
+00:28:29.000 --> 00:28:33.000
+I am not going to prove an
+omega bound, but you can prove
+
+00:28:33.000 --> 00:28:38.000
+an omega n squared bound as well
+using substitution method.
+
+00:28:38.000 --> 00:28:43.000
+I will just be satisfied for
+now proving an upper bound of n
+
+00:28:43.000 --> 00:28:46.000
+squared.
+Let's try to prove that T(n),
+
+00:28:46.000 --> 00:28:51.000
+this is the same recurrence,
+I want to prove that it is
+
+00:28:51.000 --> 00:28:53.000
+O(n^2).
+I am going to do the same
+
+00:28:53.000 --> 00:28:56.000
+thing.
+And I will write a bit faster
+
+00:28:56.000 --> 00:29:01.000
+because this is basically
+copying.
+
+00:29:06.000 --> 00:29:10.000
+Except now, instead of three,
+I have two.
+
+00:29:10.000 --> 00:29:17.000
+Then I have T(n) = 4T(n/2) + n.
+I expand this T(n/2).
+
+00:29:17.000 --> 00:29:24.000
+This is at most 4c(n/2)^2 + n.
+And now, instead of have 2
+
+00:29:24.000 --> 00:29:30.000
+cubed, I have 2 squared,
+which is only 4.
+
+00:29:30.000 --> 00:29:32.000
+The fours cancel.
+I get cn^2 + n.
+
+00:29:32.000 --> 00:29:37.000
+And if you prefer to write it
+as desired minus residual,
+
+00:29:37.000 --> 00:29:42.000
+then I have cn^2 - (-n).
+And I want this to be
+
+00:29:42.000 --> 00:29:46.000
+non-negative.
+And it is damn hard for minus n
+
+00:29:46.000 --> 00:29:50.000
+to be non-negative.
+If n is zero we are happy,
+
+00:29:50.000 --> 00:29:54.000
+but unfortunately this is an
+induction on n.
+
+00:29:54.000 --> 00:30:00.000
+It's got to hold for all n
+greater than or equal to 1.
+
+00:30:00.000 --> 00:30:02.000
+This is not less than or equal
+to cn^2.
+
+00:30:02.000 --> 00:30:06.000
+Notice the temptation is to
+write that this equals O(n^2),
+
+00:30:06.000 --> 00:30:09.000
+which is true for this one
+step.
+
+00:30:09.000 --> 00:30:12.000
+cn^2 - (-n),
+well, these are both order n,
+
+00:30:12.000 --> 00:30:15.000
+or this is order n,
+this is order n squared.
+
+00:30:15.000 --> 00:30:18.000
+Certainly this thing is O(n^2),
+that is true,
+
+00:30:18.000 --> 00:30:21.000
+but it is not completing the
+induction.
+
+00:30:21.000 --> 00:30:25.000
+To complete the induction,
+you have to prove the induction
+
+00:30:25.000 --> 00:30:29.000
+hypothesis for n with this
+constant c.
+
+00:30:29.000 --> 00:30:32.000
+Here you are getting a constant
+c of like c + 1,
+
+00:30:32.000 --> 00:30:36.000
+which is not good.
+This is true but useless.
+
+00:30:36.000 --> 00:30:40.000
+It does not finish the
+induction, so you can sort of
+
+00:30:40.000 --> 00:30:42.000
+ignore that.
+This proof doesn't work,
+
+00:30:42.000 --> 00:30:46.000
+which is kind of annoying
+because we feel,
+
+00:30:46.000 --> 00:30:49.000
+in our heart of hearts,
+that T(n) = n^2.
+
+00:30:49.000 --> 00:30:53.000
+It turns out to fix this you
+need to express T(n) in a
+
+00:30:53.000 --> 00:30:56.000
+slightly different form.
+This is, again,
+
+00:30:56.000 --> 00:31:00.000
+divine inspiration.
+And, if you have a good
+
+00:31:00.000 --> 00:31:03.000
+connection to some divinity,
+you are all set.
+
+00:31:03.000 --> 00:31:06.000
+[LAUGHTER] But it is a little
+bit harder for the rest of us
+
+00:31:06.000 --> 00:31:08.000
+mere mortals.
+It turns out,
+
+00:31:08.000 --> 00:31:12.000
+and maybe you could guess this,
+that the idea is we want to
+
+00:31:12.000 --> 00:31:14.000
+strengthen the induction
+hypothesis.
+
+00:31:14.000 --> 00:31:18.000
+We assumed this relatively weak
+thing, T(k) is less than or
+
+00:31:18.000 --> 00:31:20.000
+equal to some constant times
+k^2.
+
+00:31:20.000 --> 00:31:22.000
+We didn't know what the
+constant was,
+
+00:31:22.000 --> 00:31:25.000
+that is fine,
+but we assumed that there were
+
+00:31:25.000 --> 00:31:28.000
+no lower order terms.
+I want to look at lower order
+
+00:31:28.000 --> 00:31:31.000
+terms.
+Maybe they play a role.
+
+00:31:31.000 --> 00:31:33.000
+And if you look at this
+progression you say,
+
+00:31:33.000 --> 00:31:36.000
+oh, well, I am getting
+something like n^2 and the
+
+00:31:36.000 --> 00:31:40.000
+constants are pretty damn tight.
+I mean the fours are canceling
+
+00:31:40.000 --> 00:31:43.000
+and the c just is preserved.
+How am I going to get rid of
+
+00:31:43.000 --> 00:31:46.000
+this lower order term plus n?
+Well, maybe I could subtract
+
+00:31:46.000 --> 00:31:49.000
+off a linear term in here and,
+if I am lucky,
+
+00:31:49.000 --> 00:31:52.000
+it will cancel with this one.
+That is all the intuition we
+
+00:31:52.000 --> 00:31:56.000
+have at this point.
+It turns out it works.
+
+00:31:56.000 --> 00:32:01.000
+We look at T(n) and this is
+4T(n/2) + n as usual.
+
+00:32:01.000 --> 00:32:05.000
+Now we expand a slightly
+messier form.
+
+00:32:05.000 --> 00:32:09.000
+We have 4[c_1*(n/2)^2 -
+c_2*(n/2)] + n.
+
+00:32:09.000 --> 00:32:14.000
+This part is the same because
+the fours cancel again.
+
+00:32:14.000 --> 00:32:18.000
+So, we get c_1*n^2,
+which is good.
+
+00:32:18.000 --> 00:32:22.000
+I mean that is sort of the form
+we want.
+
+00:32:22.000 --> 00:32:30.000
+Then we have something times n,
+so let's figure it out.
+
+00:32:30.000 --> 00:32:34.000
+We have a plus 1 times n,
+so let's write it 1 minus c_2
+
+00:32:34.000 --> 00:32:38.000
+over 2 times n.
+Oops, got that wrong.
+
+00:32:38.000 --> 00:32:43.000
+There is four times a two so,
+in fact, the two is upstairs.
+
+00:32:43.000 --> 00:32:46.000
+Let me double check.
+Right.
+
+00:32:46.000 --> 00:32:48.000
+OK.
+Now we can write this as
+
+00:32:48.000 --> 00:32:53.000
+desired minus residual.
+And we have to be a little
+
+00:32:53.000 --> 00:32:58.000
+careful here because now we have
+a stronger induction hypothesis
+
+00:32:58.000 --> 00:33:03.000
+to prove.
+We don't just need it is at
+
+00:33:03.000 --> 00:33:07.000
+most c_1*n^2,
+which would be fine here
+
+00:33:07.000 --> 00:33:12.000
+because we could choose c_2 to
+be large, but what we really
+
+00:33:12.000 --> 00:33:17.000
+need is c_1*n^2 - c_2*n,
+and then minus some other
+
+00:33:17.000 --> 00:33:19.000
+stuff.
+This is, again,
+
+00:33:19.000 --> 00:33:23.000
+desired minus residual.
+And minus residual,
+
+00:33:23.000 --> 00:33:30.000
+let's see, we have a minus 1
+and we have a minus c_2.
+
+00:33:30.000 --> 00:33:35.000
+That doesn't look so happy.
+Plus c_2, thank you,
+
+00:33:35.000 --> 00:33:40.000
+because that again looked
+awfully negative.
+
+00:33:40.000 --> 00:33:44.000
+It is plus c_2.
+I am getting my signs,
+
+00:33:44.000 --> 00:33:50.000
+there is a minus here and there
+is one minus here,
+
+00:33:50.000 --> 00:33:55.000
+so there we go.
+Again, I want my residual to be
+
+00:33:55.000 --> 00:34:03.000
+greater than or equal to zero.
+And if I have that I will be
+
+00:34:03.000 --> 00:34:07.000
+all set in making this inductive
+argument.
+
+00:34:07.000 --> 00:34:14.000
+Office hours start this week,
+in case you are eager to go.
+
+00:34:14.000 --> 00:34:19.000
+They are all held in some room
+in Building 24,
+
+00:34:19.000 --> 00:34:25.000
+which is roughly the midpoint
+between here and Stata,
+
+00:34:25.000 --> 00:34:30.000
+I think, for no particular
+reason.
+
+00:34:30.000 --> 00:34:34.000
+And you can look at the Web
+page for details on the office
+
+00:34:34.000 --> 00:34:35.000
+hours.
+Continuing along,
+
+00:34:35.000 --> 00:34:39.000
+when is c_2 - 1 going to be
+greater than or equal to zero?
+
+00:34:39.000 --> 00:34:44.000
+Well, that is true if c_2 is at
+least 1, which is no big deal.
+
+00:34:44.000 --> 00:34:47.000
+Again, we get to choose the
+constants however we want.
+
+00:34:47.000 --> 00:34:51.000
+It only has to hold for some
+choice of constants.
+
+00:34:51.000 --> 00:34:54.000
+So, we can set c_2 greater than
+or equal to 1.
+
+00:34:54.000 --> 00:34:59.000
+And then we are happy.
+That means this whole thing is
+
+00:34:59.000 --> 00:35:03.000
+less than or equal to c_1*n^2 -
+c_2*n if c_2 is greater than or
+
+00:35:03.000 --> 00:35:06.000
+equal to 1.
+It is kind of funny here.
+
+00:35:06.000 --> 00:35:10.000
+This finishes the induction,
+at least the induction step.
+
+00:35:10.000 --> 00:35:13.000
+We proved now that for any
+value of c_1,
+
+00:35:13.000 --> 00:35:16.000
+and provided c_2 is at least
+one.
+
+00:35:16.000 --> 00:35:20.000
+We have to be a little more
+careful that c_1 does actually
+
+00:35:20.000 --> 00:35:26.000
+have to be sufficiently large.
+Any particular reason why?
+
+00:35:32.000 --> 00:35:34.000
+c_1 better not be negative,
+indeed.
+
+00:35:34.000 --> 00:35:39.000
+c_1 has to be positive for this
+to work, but it even has to be
+
+00:35:39.000 --> 00:35:43.000
+larger than positive depending.
+Sorry.
+
+00:35:43.000 --> 00:35:47.000
+I have been going so fast,
+I haven't asked you questions.
+
+00:35:47.000 --> 00:35:50.000
+Now you are caught off guard.
+Yeah?
+
+00:35:50.000 --> 00:35:53.000
+Because of the base case,
+exactly.
+
+00:35:53.000 --> 00:35:58.000
+So, the base case will have
+T(1) is c_1 time 1 squared minus
+
+00:35:58.000 --> 00:36:02.000
+c_2, we want to prove that it is
+at most this,
+
+00:36:02.000 --> 00:36:07.000
+and T(1) is some constant we
+have assumed.
+
+00:36:07.000 --> 00:36:11.000
+We need to choose c_1 to be
+sufficiently larger than c_2,
+
+00:36:11.000 --> 00:36:14.000
+in fact, so c_2 has to be at
+least 1.
+
+00:36:14.000 --> 00:36:20.000
+c_1 may have to be at least a
+hundred more than one if this is
+
+00:36:22.000 --> 00:36:26.000
+sufficiently large.
+And sufficiently large now
+
+00:36:26.000 --> 00:36:31.000
+means with respect to c_2.
+You have to be a little bit
+
+00:36:31.000 --> 00:36:34.000
+careful, but in this case it
+doesn't matter.
+
+00:36:34.000 --> 00:36:37.000
+Any questions about the
+substitution method?
+
+00:36:37.000 --> 00:36:40.000
+That was the same example three
+times.
+
+00:36:40.000 --> 00:36:43.000
+In the end, it turned out we
+got the right answer.
+
+00:36:43.000 --> 00:36:47.000
+But we sort of had to know the
+answer in order to find it,
+
+00:36:47.000 --> 00:36:51.000
+which is a bit of a pain.
+It would certainly be nicer to
+
+00:36:51.000 --> 00:36:54.000
+just figure out the answer by
+some procedure,
+
+00:36:54.000 --> 00:36:58.000
+and that will be the next two
+techniques we talk about.
+
+00:36:58.000 --> 00:37:02.000
+Sorry?
+How would you prove a lower
+
+00:37:02.000 --> 00:37:04.000
+bound?
+I haven't tried it for this
+
+00:37:04.000 --> 00:37:09.000
+recurrence, but you should be
+able to do exactly the same
+
+00:37:09.000 --> 00:37:12.000
+form.
+Argue that T(n) is greater than
+
+00:37:12.000 --> 00:37:16.000
+or equal to c_1*n^2 - c_2*n.
+I didn't check whether that
+
+00:37:16.000 --> 00:37:20.000
+particular form will work,
+but I think it does.
+
+00:37:20.000 --> 00:37:22.000
+Try it.
+These other methods will give
+
+00:37:22.000 --> 00:37:26.000
+you, in some sense,
+upper and lower bounds if you
+
+00:37:26.000 --> 00:37:31.000
+are a little bit careful.
+But, to really check things,
+
+00:37:31.000 --> 00:37:33.000
+you pretty much have to do the
+substitution method.
+
+00:37:33.000 --> 00:37:35.000
+And you will get some practice
+with that.
+
+00:37:35.000 --> 00:37:37.000
+Usually we only care about
+upper bounds.
+
+00:37:37.000 --> 00:37:39.000
+Proving upper bounds like this
+is what we will focus on,
+
+00:37:39.000 --> 00:37:41.000
+but occasionally we need lower
+bounds.
+
+00:37:41.000 --> 00:37:43.000
+It is always nice to know that
+you have the right answer by
+
+00:37:43.000 --> 00:37:46.000
+proving a matching lower bound.
+
+00:37:51.000 --> 00:37:54.000
+The next method we will talk
+about is the recursion-tree
+
+00:37:54.000 --> 00:37:57.000
+method.
+And it is a particular way of
+
+00:37:57.000 --> 00:38:00.000
+adding up a recurrence,
+and it is my favorite way.
+
+00:38:00.000 --> 00:38:04.000
+It usually just works.
+That's the great thing about
+
+00:38:04.000 --> 00:38:06.000
+it.
+It provides you intuition for
+
+00:38:06.000 --> 00:38:08.000
+free.
+It tells you what the answer is
+
+00:38:08.000 --> 00:38:11.000
+pretty much.
+It is slightly nonrigorous,
+
+00:38:11.000 --> 00:38:14.000
+this is a bit of a pain,
+so you have to be really
+
+00:38:14.000 --> 00:38:18.000
+careful when you apply it.
+Otherwise, you might get the
+
+00:38:18.000 --> 00:38:20.000
+wrong answer.
+Because it involves dot,
+
+00:38:20.000 --> 00:38:24.000
+dot, dots, our favorite three
+characters, but dot,
+
+00:38:24.000 --> 00:38:30.000
+dot, dots are always a little
+bit nonrigorous so be careful.
+
+00:38:30.000 --> 00:38:32.000
+Technically,
+what you should do is find out
+
+00:38:32.000 --> 00:38:34.000
+what the answer is with
+recursion-tree method.
+
+00:38:34.000 --> 00:38:37.000
+Then prove that it is actually
+right with the substitution
+
+00:38:37.000 --> 00:38:39.000
+method.
+Usually that is not necessary,
+
+00:38:39.000 --> 00:38:42.000
+but you should at least have in
+your mind that that is required
+
+00:38:42.000 --> 00:38:43.000
+rigorously.
+And probably the first few
+
+00:38:43.000 --> 00:38:46.000
+recurrences you solve,
+you should do it that way.
+
+00:38:46.000 --> 00:38:48.000
+When you really understand the
+recursion-tree method,
+
+00:38:48.000 --> 00:38:51.000
+you can be a little bit more
+sloppy if you are really sure
+
+00:38:51.000 --> 00:38:55.000
+you have the right answer.
+Let's do an example.
+
+00:38:55.000 --> 00:38:59.000
+We saw recursion trees very
+briefly last time with mergesort
+
+00:38:59.000 --> 00:39:01.000
+as the intuition why it was n
+log n.
+
+00:39:01.000 --> 00:39:05.000
+And, if you took an example
+like the one we just did with
+
+00:39:05.000 --> 00:39:08.000
+the recursion-tree method,
+it is dead simple.
+
+00:39:08.000 --> 00:39:12.000
+Just to make our life harder,
+let's do a more complicated
+
+00:39:12.000 --> 00:39:15.000
+recursion.
+Here we imagine we have some
+
+00:39:15.000 --> 00:39:17.000
+algorithm.
+It starts with a problem size
+
+00:39:17.000 --> 00:39:21.000
+n, it recursively solves a
+problem of size n/4,
+
+00:39:21.000 --> 00:39:24.000
+it then recursively solves a
+problem of size n/2,
+
+00:39:24.000 --> 00:39:30.000
+and it does n^2 work on the
+side without nonrecursive work.
+
+00:39:30.000 --> 00:39:33.000
+What is that?
+I mean that is a bit less
+
+00:39:33.000 --> 00:39:38.000
+obvious, I would say.
+What we are going to do is draw
+
+00:39:38.000 --> 00:39:45.000
+a picture, and we are just going
+to expand out that recursion in
+
+00:39:45.000 --> 00:39:47.000
+tree form --
+
+00:39:56.000 --> 00:40:00.000
+-- and then just add everything
+up.
+
+00:40:00.000 --> 00:40:05.000
+We want the general picture,
+and the general principle in
+
+00:40:05.000 --> 00:40:12.000
+the recursion-tree method is we
+just draw this as a picture.
+
+00:40:12.000 --> 00:40:16.000
+We say well,
+T(n) equals the sum of n^2,
+
+00:40:16.000 --> 00:40:21.000
+T(n/4) and T(n/2).
+This is a weird way of writing
+
+00:40:21.000 --> 00:40:25.000
+a sum but why not write it that
+way.
+
+00:40:25.000 --> 00:40:31.000
+This is going to be a tree.
+And it is going to be a tree by
+
+00:40:31.000 --> 00:40:35.000
+recursively expanding each of
+these two leaves.
+
+00:40:35.000 --> 00:40:40.000
+I start by expanding T(n) to
+this, then I keep expanding,
+
+00:40:40.000 --> 00:40:42.000
+expanding, expanding
+everything.
+
+00:40:42.000 --> 00:40:46.000
+Let's go one more step.
+We have this n^2,
+
+00:40:46.000 --> 00:40:49.000
+T(n/4), T(n/2).
+If we expand one more time,
+
+00:40:49.000 --> 00:40:53.000
+this is going to be n^2 plus
+two things.
+
+00:40:53.000 --> 00:40:58.000
+The first thing is going to be
+(n/4)^2, the second thing is
+
+00:40:58.000 --> 00:41:03.000
+going to be (n/2)^2.
+Plus their recursive branches.
+
+00:41:03.000 --> 00:41:08.000
+We have T(n/16) and T(n/8).
+Here my arithmetic shows thin.
+
+00:41:08.000 --> 00:41:12.000
+This better be the same,
+T(n/8), and this should be
+
+00:41:12.000 --> 00:41:15.000
+T(n/4), I believe.
+You just keep going forever,
+
+00:41:15.000 --> 00:41:20.000
+I mean, until you get down to
+the base case where T is a
+
+00:41:20.000 --> 00:41:23.000
+constant.
+So, I am now going to skip some
+
+00:41:23.000 --> 00:41:25.000
+steps and say dot,
+dot, dot.
+
+00:41:25.000 --> 00:41:30.000
+This is where you have to be
+careful.
+
+00:41:30.000 --> 00:41:33.000
+We have n^2,
+(n/4)^2, (n/2)^2.
+
+00:41:33.000 --> 00:41:39.000
+Now this is easy because I have
+already done them all.
+
+00:41:39.000 --> 00:41:43.000
+(n/16)^2, (n/8)^2,
+(n/8)^2 again,
+
+00:41:43.000 --> 00:41:47.000
+(n/4)^2 and et cetera,
+dot, dot, dot,
+
+00:41:47.000 --> 00:41:52.000
+of various levels of recursion
+here.
+
+00:41:52.000 --> 00:41:57.000
+At the bottom,
+we are going to get a bunch of
+
+00:41:57.000 --> 00:42:01.000
+constants.
+These are the leaves.
+
+00:42:01.000 --> 00:42:04.000
+I would like to know how many
+leaves there are.
+
+00:42:04.000 --> 00:42:07.000
+One challenge is how many
+leaves in this tree could there
+
+00:42:07.000 --> 00:42:09.000
+be?
+This is a bit subtle,
+
+00:42:09.000 --> 00:42:13.000
+unlike mergesort or unlike the
+previous recurrence we solved,
+
+00:42:13.000 --> 00:42:16.000
+the number of leaves here is a
+bit funny because we are
+
+00:42:16.000 --> 00:42:20.000
+recursing at different speeds.
+This tree is going to be much
+
+00:42:20.000 --> 00:42:23.000
+smaller than this tree.
+It is going to have smaller
+
+00:42:23.000 --> 00:42:26.000
+depth because it has already
+done down to (n/16).
+
+00:42:26.000 --> 00:42:30.000
+Here it has only gone down to
+(n/4).
+
+00:42:30.000 --> 00:42:35.000
+But how many leaves are there
+in this recursion tree?
+
+00:42:35.000 --> 00:42:41.000
+All I need is an upper bound,
+some reasonable upper bound.
+
+00:42:41.000 --> 00:42:47.000
+I can tell you it is at most
+T(n^10), but that is a bit
+
+00:42:47.000 --> 00:42:51.000
+unreasonable.
+It should be less than n,
+
+00:42:51.000 --> 00:42:54.000
+good.
+Why is it less than n?
+
+00:42:54.000 --> 00:42:58.000
+Exactly.
+I start with a problem of size
+
+00:42:58.000 --> 00:43:02.000
+n.
+And I recurse into a problem
+
+00:43:02.000 --> 00:43:04.000
+that n/4 and a problem that says
+n/2.
+
+00:43:04.000 --> 00:43:08.000
+When I get down to one I stop.
+So, n/4 + n/2 = æn,
+
+00:43:08.000 --> 00:43:13.000
+which is strictly less than n.
+So, definitely the total number
+
+00:43:13.000 --> 00:43:17.000
+of leaves has to be at most n.
+If I start out with n sort of
+
+00:43:17.000 --> 00:43:21.000
+stuff and get rid of a quarter
+of it and then recurse,
+
+00:43:21.000 --> 00:43:26.000
+it is definitely going to be
+less than n stuff at the bottom.
+
+00:43:26.000 --> 00:43:30.000
+So, strictly less than n
+leaves.
+
+00:43:30.000 --> 00:43:32.000
+At this point,
+I have done nothing
+
+00:43:32.000 --> 00:43:34.000
+interesting.
+And then the second cool idea
+
+00:43:34.000 --> 00:43:38.000
+in recursion trees is you don't
+just expand this tree and see
+
+00:43:38.000 --> 00:43:42.000
+what it looks like and then say,
+well, God, how the hell am I
+
+00:43:42.000 --> 00:43:45.000
+going to sum that?
+You sum it level by level.
+
+00:43:45.000 --> 00:43:48.000
+That is the only other idea.
+It usually works really,
+
+00:43:48.000 --> 00:43:50.000
+really well.
+Here it is a bit complicated
+
+00:43:50.000 --> 00:43:54.000
+and I have to think a bit to
+figure out n^2 is n^2.
+
+00:43:54.000 --> 00:43:55.000
+That is the first level.
+Easy.
+
+00:43:55.000 --> 00:44:00.000
+The second level,
+I have to think a lot harder.
+
+00:44:00.000 --> 00:44:03.000
+There are three kinds of
+mathematicians,
+
+00:44:03.000 --> 00:44:08.000
+those who can add and those who
+cannot, and I am the latter kind
+
+00:44:08.000 --> 00:44:12.000
+so I need your help.
+Can you add these things
+
+00:44:12.000 --> 00:44:15.000
+together?
+It's n^2 over something.
+
+00:44:15.000 --> 00:44:16.000
+Please?
+(5/16)n^2.
+
+00:44:16.000 --> 00:44:21.000
+Now I really need your help.
+I think that one I could have
+
+00:44:21.000 --> 00:44:24.000
+done, but this one is a little
+bit harder.
+
+00:44:24.000 --> 00:44:30.000
+I will go look at my notes
+while you compute that.
+
+00:44:35.000 --> 00:44:37.000
+Any answers?
+73/256.
+
+00:44:37.000 --> 00:44:44.000
+Anyone else confirm that?
+It seems a bit high to me.
+
+00:44:44.000 --> 00:44:49.000
+73 does not sound right to me.
+64?
+
+00:44:49.000 --> 00:44:54.000
+Closer.
+It is actually important that
+
+00:44:54.000 --> 00:44:59.000
+we get this right.
+The 256 is correct.
+
+00:44:59.000 --> 00:45:04.000
+I can tell.
+Everyone should know that 16^2
+
+00:45:04.000 --> 00:45:06.000
+= 256.
+We are computer scientists.
+
+00:45:06.000 --> 00:45:09.000
+25, good.
+We have two people saying 25,
+
+00:45:09.000 --> 00:45:12.000
+therefore it is correct by
+democracy.
+
+00:45:12.000 --> 00:45:17.000
+[LAUGHTER] 25 is also what my
+notes say, and I computed it at
+
+00:45:17.000 --> 00:45:19.000
+home.
+(25/256)n^2 is the right
+
+00:45:19.000 --> 00:45:21.000
+answer.
+Now, did anyone notice
+
+00:45:21.000 --> 00:45:24.000
+something magical about this
+progression?
+
+00:45:24.000 --> 00:45:28.000
+It squares each time,
+good.
+
+00:45:28.000 --> 00:45:32.000
+And, if we were going to add
+these up, you might call it?
+
+00:45:32.000 --> 00:45:34.000
+A geometric series,
+very good.
+
+00:45:34.000 --> 00:45:37.000
+So, it turns out this is
+geometric.
+
+00:45:37.000 --> 00:45:40.000
+And we know how to sum
+geometric series,
+
+00:45:40.000 --> 00:45:43.000
+at least you should.
+
+00:45:59.000 --> 00:46:01.000
+We started n^2.
+We know that at the bottom,
+
+00:46:01.000 --> 00:46:05.000
+well, this is not quite a
+level, we get something like n,
+
+00:46:05.000 --> 00:46:07.000
+but we are decreasing
+geometrically.
+
+00:46:07.000 --> 00:46:10.000
+So, the total,
+I mean the solution to the
+
+00:46:10.000 --> 00:46:13.000
+recurrence is the sum of all the
+numbers in this tree.
+
+00:46:13.000 --> 00:46:17.000
+If we added it up level by
+level and then add up all the
+
+00:46:17.000 --> 00:46:20.000
+levels that is going to give us
+the answer.
+
+00:46:20.000 --> 00:46:22.000
+This is the total computed
+level by level.
+
+00:46:22.000 --> 00:46:25.000
+It is just a cute way to
+compute it.
+
+00:46:25.000 --> 00:46:30.000
+It usually gives you nice
+answers like geometric answers.
+
+00:46:30.000 --> 00:46:32.000
+We have n^2(1 + 5/16 + 25/256 +
+...).
+
+00:46:32.000 --> 00:46:37.000
+And, if we believe in fate and
+we see this three number
+
+00:46:37.000 --> 00:46:41.000
+recurrence, we know that we have
+the right answer.
+
+00:46:41.000 --> 00:46:45.000
+In general, it is going to be
+(5/16)k, at least we hope,
+
+00:46:45.000 --> 00:46:47.000
+and so on.
+And it keeps going.
+
+00:46:47.000 --> 00:46:52.000
+It doesn't go on infinitely,
+but let's just assume it goes
+
+00:46:52.000 --> 00:46:55.000
+on infinitely.
+That will be an upper bound
+
+00:46:55.000 --> 00:47:00.000
+that goes on forever.
+This is all times n^2.
+
+00:47:00.000 --> 00:47:05.000
+Now, if you are going to know
+one thing about geometric
+
+00:47:05.000 --> 00:47:10.000
+series, you should know that 1 +
+Ω + º, if you sum all the powers
+
+00:47:10.000 --> 00:47:14.000
+of 2 you get 2.
+We are computer scientists.
+
+00:47:14.000 --> 00:47:19.000
+We have got to know at least
+the binary case.
+
+00:47:19.000 --> 00:47:23.000
+This is like writing 0.1111111
+in binary, actually,
+
+00:00:01.111 --> 00:47:27.000
+And 11111 forever is the same
+
+00:47:27.000 --> 00:47:31.000
+as 1, so this is 2.
+This is even smaller.
+
+00:47:31.000 --> 00:47:34.000
+We have 5/16,
+that is less than a half and
+
+00:47:34.000 --> 00:47:39.000
+then we are squaring each time,
+so this is even less than 2.
+
+00:47:39.000 --> 00:47:42.000
+If you want,
+there is a nifty formula for
+
+00:47:42.000 --> 00:47:47.000
+solving the general geometric
+series, but all we need is that
+
+00:47:47.000 --> 00:47:49.000
+it is a constant.
+This is O(n^2).
+
+00:47:49.000 --> 00:47:53.000
+It is also O(n^2).
+It is pretty obvious that it is
+
+00:47:53.000 --> 00:47:56.000
+O(n^2) because the top thing is
+n^2.
+
+00:47:56.000 --> 00:48:00.000
+So, there is our lower bound of
+n^2.
+
+00:48:00.000 --> 00:48:03.000
+And we have it within a factor
+of 2, which is pretty good.
+
+00:48:03.000 --> 00:48:05.000
+You actually get a better
+factor here.
+
+00:48:05.000 --> 00:48:07.000
+So, that is recursion-tree
+method.
+
+00:48:07.000 --> 00:48:10.000
+It is a little shaky here
+because we have these dot,
+
+00:48:10.000 --> 00:48:13.000
+dot, dots, and we just believe
+that it is geometric.
+
+00:48:13.000 --> 00:48:16.000
+It turns out most of the time
+it is geometric.
+
+00:48:16.000 --> 00:48:18.000
+No problem here.
+I would definitely check it
+
+00:48:18.000 --> 00:48:21.000
+with the substitution method
+because this is not obvious to
+
+00:48:21.000 --> 00:48:23.000
+me that it is going to be
+geometric.
+
+00:48:23.000 --> 00:48:27.000
+In the cases we will look at in
+a moment, it will be much
+
+00:48:27.000 --> 00:48:30.000
+clearer, so clear that we can
+state a theorem that everything
+
+00:48:30.000 --> 00:48:34.000
+is working fine.
+And still time,
+
+00:48:34.000 --> 00:48:38.000
+good.
+So, that was recursion-trees.
+
+00:48:38.000 --> 00:48:43.000
+There is one more method we are
+going to talk about,
+
+00:48:43.000 --> 00:48:49.000
+and you could essentially think
+of it as an application of the
+
+00:48:49.000 --> 00:48:55.000
+recursion-tree method but it is
+made more precise.
+
+00:48:55.000 --> 00:49:00.000
+And it is an actual theorem,
+whereas recursion trees,
+
+00:49:00.000 --> 00:49:04.000
+if the dot, dot,
+dots aren't obvious,
+
+00:49:04.000 --> 00:49:10.000
+you better check them.
+The sad part about the master
+
+00:49:10.000 --> 00:49:13.000
+method is it is pretty
+restrictive.
+
+00:49:13.000 --> 00:49:18.000
+It only applies to a particular
+family of recurrences.
+
+00:49:27.000 --> 00:49:29.000
+It should be T(n) = aT(n/b) +
+f(n).
+
+00:49:29.000 --> 00:49:32.000
+Am I going to call it f?
+Yes, I will call it f.
+
+00:49:32.000 --> 00:49:35.000
+In particular,
+it will not cover the
+
+00:49:35.000 --> 00:49:40.000
+recurrence I just solved because
+I was recursing on two different
+
+00:49:40.000 --> 00:49:44.000
+problems of different sizes.
+Here, every problem you recurse
+
+00:49:44.000 --> 00:49:48.000
+on should be of the same size.
+There are a subproblems.
+
+00:49:48.000 --> 00:49:51.000
+A way to think of this is a
+recursive algorithm.
+
+00:49:51.000 --> 00:49:55.000
+You have a subproblems.
+Each of them is of size n/b,
+
+00:49:55.000 --> 00:49:57.000
+so the total costs will be
+this.
+
+00:49:57.000 --> 00:50:02.000
+Then you are doing f(n)
+nonrecursive work.
+
+00:50:02.000 --> 00:50:05.000
+A few constraints.
+a should be at least 1,
+
+00:50:05.000 --> 00:50:08.000
+should have at least 1
+recursion.
+
+00:50:08.000 --> 00:50:12.000
+b should be strictly greater
+than 1.
+
+00:50:12.000 --> 00:50:17.000
+You better make the problem
+smaller or else it is going to
+
+00:50:17.000 --> 00:50:21.000
+be infinity.
+And f should have some nice
+
+00:50:21.000 --> 00:50:25.000
+property.
+f(n) should be asymptotically
+
+00:50:25.000 --> 00:50:27.000
+positive.
+
+00:50:32.000 --> 00:50:37.000
+How many people know what
+asymptotically positive means?
+
+00:50:37.000 --> 00:50:40.000
+No one.
+OK, you haven't read the
+
+00:50:40.000 --> 00:50:41.000
+textbook.
+That's OK.
+
+00:50:41.000 --> 00:50:46.000
+I haven't read it either,
+although don't tell Charles.
+
+00:50:46.000 --> 00:50:50.000
+And he'd notice.
+And what might you think
+
+00:50:50.000 --> 00:50:55.000
+asymptotically positive means?
+That we can do a little bit
+
+00:50:55.000 --> 00:50:56.000
+better.
+Sorry?
+
+00:50:56.000 --> 00:51:03.000
+Yes, it means for large enough
+n, f(n) is positive.
+
+00:51:03.000 --> 00:51:07.000
+This means f(n) is greater than
+zero for n, at least some n_o,
+
+00:51:07.000 --> 00:51:10.000
+so for some constant n_o.
+Eventually it should be
+
+00:51:10.000 --> 00:51:12.000
+positive.
+I mean, we don't care about
+
+00:51:12.000 --> 00:51:16.000
+whether it's negative 1 for n=1,
+not a big deal.
+
+00:51:16.000 --> 00:51:20.000
+It won't affect the answer
+because we only care about the
+
+00:51:20.000 --> 00:51:22.000
+asympotics within.
+
+00:51:28.000 --> 00:51:30.000
+The master method,
+you gave it a recurrence of
+
+00:51:30.000 --> 00:51:33.000
+this form, it tells you the
+answer.
+
+00:51:33.000 --> 00:51:36.000
+That is the great thing about
+the master method.
+
+00:51:36.000 --> 00:51:39.000
+The annoying thing about the
+master method is that it has
+
+00:51:39.000 --> 00:51:41.000
+three cases.
+It is a big long.
+
+00:51:41.000 --> 00:51:45.000
+It takes a little bit longer to
+memorize than all the others
+
+00:51:45.000 --> 00:51:47.000
+because the others are just
+ideas.
+
+00:51:47.000 --> 00:51:50.000
+Here we need to actually
+remember a few things.
+
+00:51:50.000 --> 00:51:53.000
+Let me state the theorem.
+Well, not quite yet.
+
+00:51:53.000 --> 00:51:57.000
+There is one very simple idea,
+which is we are going to
+
+00:51:57.000 --> 00:52:01.000
+compare this nonrecursive work
+f(n) with a very particular
+
+00:52:01.000 --> 00:52:05.000
+function n^(log_b(a)).
+Why n^(log_b(a))?
+
+00:52:05.000 --> 00:52:08.000
+You will see later.
+It turns out it is the number
+
+00:52:08.000 --> 00:52:13.000
+of leaves in the recursion tree,
+but that is foreshadowing.
+
+00:52:13.000 --> 00:52:16.000
+So, it is either less,
+equal or bigger.
+
+00:52:16.000 --> 00:52:18.000
+And here we care about
+asymptotics.
+
+00:52:18.000 --> 00:52:22.000
+And we have to be a little bit
+more precious about less,
+
+00:52:22.000 --> 00:52:25.000
+equal or bigger.
+You might think well,
+
+00:52:25.000 --> 00:52:30.000
+it means little o,
+big Theta, or little omega.
+
+00:52:30.000 --> 00:52:34.000
+It would be nice if the theorem
+held for all of those cases,
+
+00:52:34.000 --> 00:52:38.000
+but it leaves some gaps.
+Let's start with Case 1.
+
+00:52:38.000 --> 00:52:42.000
+Case 1 is when f is smaller.
+And not just that it is little
+
+00:52:42.000 --> 00:52:46.000
+o, but it is actually quite a
+bit smaller.
+
+00:52:46.000 --> 00:52:51.000
+It has got to be polynomially
+smaller than n^(log_b(a)).
+
+00:53:00.000 --> 00:53:04.000
+For some positive epsilon,
+the running time should be this
+
+00:53:04.000 --> 00:53:09.000
+n to this constant log base b of
+a minus that epsilon,
+
+00:53:09.000 --> 00:53:13.000
+so it is really polynomially
+smaller than n^(log_b(a)).
+
+00:53:13.000 --> 00:53:18.000
+We cannot handle the little o
+case, that's a little bit too
+
+00:53:18.000 --> 00:53:21.000
+strong.
+This is saying it is really
+
+00:53:21.000 --> 00:53:25.000
+quite a bit smaller.
+But the answer then is really
+
+00:53:25.000 --> 00:53:28.000
+simple, T(n) =
+Theta(n^(log_b(a))).
+
+00:53:28.000 --> 00:53:31.000
+Great.
+That is Case 1.
+
+00:53:31.000 --> 00:53:39.000
+Case 2 is when f(n) is pretty
+much equal to n^(log_b(a)).
+
+00:53:39.000 --> 00:53:46.000
+And by pretty much equal I mean
+up to poly log factors.
+
+00:53:46.000 --> 00:53:51.000
+This is log base 2 of n to the
+power k.
+
+00:53:51.000 --> 00:53:56.000
+You should know this notation.
+For example,
+
+00:53:56.000 --> 00:54:02.000
+k could be zero.
+And then they are equal up to
+
+00:54:02.000 --> 00:54:06.000
+constant factors,
+for some k greater than or
+
+00:54:06.000 --> 00:54:09.000
+equal to zero.
+Less than will not work,
+
+00:54:09.000 --> 00:54:13.000
+so it is really important that
+k is non-negative.
+
+00:54:13.000 --> 00:54:16.000
+It should probably be an
+integer.
+
+00:54:16.000 --> 00:54:20.000
+It doesn't actually matter
+whether there is an integer,
+
+00:54:20.000 --> 00:54:24.000
+but there it is.
+It could n^(log_b(a)) times log
+
+00:54:24.000 --> 00:54:27.000
+n or just times nothing,
+whatever.
+
+00:54:27.000 --> 00:54:32.000
+Again, the solution is easy
+here, T(n) = Theta(n^(log_b(a))*
+
+00:54:32.000 --> 00:54:38.000
+lg^(k+1)(n)).
+Presumably it has to be at
+
+00:54:38.000 --> 00:54:44.000
+least times log k.
+It turns out it is log to the k
+
+00:54:44.000 --> 00:54:47.000
+plus 1 of n.
+That is Case 2.
+
+00:54:47.000 --> 00:54:53.000
+We have one more case which is
+slightly more complicated.
+
+00:54:53.000 --> 00:55:00.000
+We need to assume slightly more
+for Case 3.
+
+00:55:00.000 --> 00:55:05.000
+But Case 3 is roughly when f(n)
+grows bigger than n^(log_b(a)).
+
+00:55:05.000 --> 00:55:10.000
+So, it should be capital Omega,
+here is one place where we get
+
+00:55:10.000 --> 00:55:14.000
+to use omega,
+(n^(log_b(a)) + epsilon) for
+
+00:55:14.000 --> 00:55:19.000
+some positive epsilon.
+It should grow not just bigger
+
+00:55:19.000 --> 00:55:23.000
+but polynomially bigger.
+Here it was growing just a log
+
+00:55:23.000 --> 00:55:27.000
+factor bigger,
+poly log, and here it is a
+
+00:55:27.000 --> 00:55:31.000
+polynomial factor.
+In this case,
+
+00:55:31.000 --> 00:55:36.000
+we need another assumption
+about f because we worry a
+
+00:55:36.000 --> 00:55:40.000
+little bit about how quickly f
+grows.
+
+00:55:40.000 --> 00:55:46.000
+We want to make sure that as
+you go down the recursion f gets
+
+00:55:46.000 --> 00:55:49.000
+smaller.
+It would be kind of nice if f
+
+00:55:49.000 --> 00:55:54.000
+gets smaller as you go down,
+otherwise you are,
+
+00:55:54.000 --> 00:55:58.000
+again, trying to sum to
+infinity or whatever.
+
+00:55:58.000 --> 00:56:06.000
+I see why this is for some
+epsilon prime greater than zero.
+
+00:56:06.000 --> 00:56:09.000
+What I would like is that if I
+just sort of take the
+
+00:56:09.000 --> 00:56:13.000
+recurrence, this T(n) and just
+throw in fs instead,
+
+00:56:13.000 --> 00:56:16.000
+f(n) should be somehow related
+to af(n/b).
+
+00:56:16.000 --> 00:56:20.000
+What I would like is that f(n),
+which is at the top of the
+
+00:56:20.000 --> 00:56:23.000
+recursion tree,
+should be bigger than the thing
+
+00:56:23.000 --> 00:56:27.000
+at the next level down.
+The sum of all the values at
+
+00:56:27.000 --> 00:56:33.000
+the next level down should be
+bigger by some constant factor.
+
+00:56:33.000 --> 00:56:37.000
+Here I have the next level down
+is at most some 1 - e,
+
+00:56:37.000 --> 00:56:42.000
+something strictly less than 1,
+some constant strictly less
+
+00:56:42.000 --> 00:56:45.000
+than 1 times the thing at the
+top level.
+
+00:56:45.000 --> 00:56:49.000
+I need that to make sure things
+are getting smaller as I go
+
+00:56:49.000 --> 00:56:52.000
+down.
+Then T(n) = Theta[f(n)].
+
+00:56:52.000 --> 00:56:56.000
+And that is the theorem.
+This is the master theorem or
+
+00:56:56.000 --> 00:57:02.000
+whatever you want to call it.
+It is not named after some guy
+
+00:57:02.000 --> 00:57:05.000
+name Master.
+It is just the master of all
+
+00:57:05.000 --> 00:57:09.000
+methods because it is very easy
+to apply.
+
+00:57:09.000 --> 00:57:14.000
+Let's apply it a few times.
+It is a bit much to take in all
+
+00:57:14.000 --> 00:57:16.000
+at once.
+And then I will give you a
+
+00:57:16.000 --> 00:57:22.000
+sketch of the proof to see that
+it is really not that surprising
+
+00:57:22.000 --> 00:57:26.000
+this is true if you look at the
+recursion-tree.
+
+00:57:26.000 --> 00:57:30.000
+But first let's just try using
+it.
+
+00:57:30.000 --> 00:57:35.000
+For example,
+we could take T(n) = 4T(n/2) +
+
+00:57:35.000 --> 00:57:38.000
+n.
+This is a, this is b,
+
+00:57:38.000 --> 00:57:44.000
+this is f(n).
+The first thing we should
+
+00:57:44.000 --> 00:57:51.000
+compute is n^(log_b(a)).
+This I think even I can do.
+
+00:57:51.000 --> 00:57:56.000
+Log base 2 of 4.
+Yeah, log base 2 I can do.
+
+00:57:56.000 --> 00:58:04.000
+This is n^2.
+OK, so is f(n) smaller or
+
+00:58:04.000 --> 00:58:10.000
+bigger than n^2?
+Well, f(n) = n.
+
+00:58:10.000 --> 00:58:19.000
+n^2 is clearly bigger by a
+polynomial factor.
+
+00:58:19.000 --> 00:58:26.000
+So, we are in Case 1.
+What is the answer?
+
+00:58:26.000 --> 00:58:32.000
+n^2, yeah.
+It is T(n^(log_b(a))),
+
+00:58:32.000 --> 00:58:40.000
+which here it is just n^2.
+Let's do some slight variation.
+
+00:58:40.000 --> 00:58:46.000
+I am going to keep a and b the
+same and just change f.
+
+00:58:46.000 --> 00:58:54.000
+Let's say T(n) = 4T(n/2) + n^2.
+This is like drill spelling.
+
+00:58:54.000 --> 00:59:03.000
+n^2 is asymptotically the same
+as n^2 even up to constants.
+
+00:59:03.000 --> 00:59:06.000
+What is the answer?
+This is Case 2.
+
+00:59:12.000 --> 00:59:14.000
+It is slightly harder.
+
+00:59:22.000 --> 00:59:31.000
+What is k in this example? Zero.
+The answer is?
+
+00:59:31.000 --> 00:59:35.000
+Survey says?
+n^2 log n.
+
+00:59:44.000 --> 00:59:49.000
+Good.
+And a couple more.
+
+00:59:49.000 --> 00:59:58.000
+T(n) = 4T(n/2) + n^3.
+What is the answer?
+
+00:59:58.000 --> 01:00:01.948
+n^3.
+This is Case 3.
+
+01:00:01.948 --> 01:00:08.961
+I know this is pretty boring.
+At this point we are just
+
+01:00:08.961 --> 01:00:15.194
+applying this stupid theorem.
+How about n^2/lg n?
+
+01:00:15.194 --> 01:00:18.311
+What is the answer?
+Good.
+
+01:00:18.311 --> 01:00:22.597
+In this case no one should
+answer.
+
+01:00:22.597 --> 01:00:30.000
+It is a big tricky.
+I forget exactly the answer.
+
+01:00:30.000 --> 01:00:31.539
+I think it is like n^2 log log
+n over log n,
+
+01:00:31.539 --> 01:00:31.897
+no?
+Oh, no.
+
+01:00:31.897 --> 01:00:32.864
+n^2 log log n,
+that's right.
+
+01:00:32.864 --> 01:00:34.046
+Yeah.
+But you shouldn't know that,
+
+01:00:34.046 --> 01:00:35.693
+and this doesn't follow from
+the master method.
+
+01:00:35.693 --> 01:00:37.161
+This is something you would
+have to solve,
+
+01:00:37.161 --> 01:00:38.843
+probably with the
+recursion-tree would be a good
+
+01:00:38.843 --> 01:00:40.419
+way to do this one,
+and you need to know some
+
+01:00:40.419 --> 01:00:41.851
+properties of logs to know how
+that goes.
+
+01:00:41.851 --> 01:00:44.000
+But here the master method does
+not apply.
+
+01:01:05.000 --> 01:01:08.094
+And so you have to use a
+different method.
+
+01:01:08.094 --> 01:01:10.584
+OK.
+The last thing I want to do is
+
+01:01:10.584 --> 01:01:15.188
+tell you why the master method
+is true, and that makes it much
+
+01:01:15.188 --> 01:01:17.528
+more intuitive,
+especially using
+
+01:01:17.528 --> 01:01:21.000
+recursion-trees,
+why everything works.
+
+01:01:35.000 --> 01:01:38.770
+This is a sketch of a proof,
+not the full thing.
+
+01:01:38.770 --> 01:01:42.060
+You should read the proof in
+the textbook.
+
+01:01:42.060 --> 01:01:45.911
+It is not that much harder than
+what I will show,
+
+01:01:45.911 --> 01:01:49.842
+but it is good for you to know
+the formal details.
+
+01:01:49.842 --> 01:01:53.613
+I don't have time here to do
+all of the details.
+
+01:01:53.613 --> 01:01:56.661
+I will just tell you the
+salient parts.
+
+01:01:56.661 --> 01:02:01.315
+This is the proof sketch or the
+intuition behind the master
+
+01:02:01.315 --> 01:02:06.099
+method.
+What we are going to do is just
+
+01:02:06.099 --> 01:02:12.500
+take the recursion-tree for this
+recurrence and add up each level
+
+01:02:12.500 --> 01:02:17.500
+and then add up all the levels
+and see what we get.
+
+01:02:17.500 --> 01:02:23.000
+We start with f(n) at the top
+after we have expanded one
+
+01:02:23.000 --> 01:02:25.900
+level.
+Then we get a different
+
+01:02:25.900 --> 01:02:31.498
+problems, each of n/b.
+And after we expand them it
+
+01:02:31.498 --> 01:02:36.310
+will f(n/b) for each one.
+They are all the same size.
+
+01:02:36.310 --> 01:02:41.677
+Then we expand all of those and
+so on, and we get another a
+
+01:02:41.677 --> 01:02:46.026
+subproblems from there.
+We are going to get like
+
+01:02:46.026 --> 01:02:49.450
+f((n/b)^2).
+That is sort of decreasing
+
+01:02:49.450 --> 01:02:54.355
+geometrically the size,
+and so on and so on and so on,
+
+01:02:54.355 --> 01:03:00.000
+until at the bottom we get
+constant size problems.
+
+01:03:00.000 --> 01:03:03.904
+This is a bit special because
+this is the base case,
+
+01:03:03.904 --> 01:03:07.349
+but we have some other constant
+at the bottom.
+
+01:03:07.349 --> 01:03:10.947
+We would like to know how many
+leaves there are,
+
+01:03:10.947 --> 01:03:14.392
+but that is a little bit tricky
+at the moment.
+
+01:03:14.392 --> 01:03:17.684
+Let's first compute the height
+of this tree.
+
+01:03:17.684 --> 01:03:21.588
+Let me draw it over here.
+What is the height of this
+
+01:03:21.588 --> 01:03:24.267
+tree?
+I start with a problem of size
+
+01:03:24.267 --> 01:03:26.794
+n.
+I want to get down to a problem
+
+01:03:26.794 --> 01:03:29.397
+of size 1.
+How long does that take?
+
+01:03:29.397 --> 01:03:32.000
+How many levels?
+
+01:03:38.000 --> 01:03:44.346
+This is probably too easy for
+some and not at your fingertips
+
+01:03:44.346 --> 01:03:47.201
+for others.
+Log base b of n,
+
+01:03:47.201 --> 01:03:50.480
+good.
+The height of this tree is
+
+01:03:50.480 --> 01:03:54.711
+n^(log_b(a)),
+because it is just how many
+
+01:03:54.711 --> 01:04:00.000
+times I divide by b until I get
+down to 1.
+
+01:04:00.000 --> 01:04:04.189
+That is great.
+Now I should be able to compute
+
+01:04:04.189 --> 01:04:09.216
+the number of leaves because I
+have branching factor a,
+
+01:04:09.216 --> 01:04:13.312
+I have height h.
+The number of leaves is a^h,
+
+01:04:13.312 --> 01:04:16.849
+a^log_b(n).
+Let me expand that a little
+
+01:04:16.849 --> 01:04:20.108
+bit.
+a^log_b(n), properties of logs,
+
+01:04:20.108 --> 01:04:24.855
+we can take the n downstairs
+and put the a upstairs,
+
+01:04:24.855 --> 01:04:31.000
+and we get n^(log_b(a)).
+Our good friend n^(log_b(a)).
+
+01:04:31.000 --> 01:04:35.246
+So, that is why Our good friend
+n^(log_b(a)) is so important in
+
+01:04:35.246 --> 01:04:38.534
+the master method.
+What we are doing is comparing
+
+01:04:38.534 --> 01:04:41.410
+f, which is the top level,
+to n^(log_b(a)),
+
+01:04:41.410 --> 01:04:43.945
+which up to theta is the bottom
+level.
+
+01:04:43.945 --> 01:04:47.643
+Now the leaves are all at the
+same level because we are
+
+01:04:47.643 --> 01:04:50.589
+decreasing at the same rate in
+every branch.
+
+01:04:50.589 --> 01:04:53.328
+If I add up the cost at the
+bottom level,
+
+01:04:53.328 --> 01:04:57.163
+it is Theta(n^(log_b(a))).
+I add up the things at the top
+
+01:04:57.163 --> 01:05:01.000
+level it is f(n),
+not terribly exciting.
+
+01:05:01.000 --> 01:05:04.529
+But the next level,
+this is a little bit more
+
+01:05:04.529 --> 01:05:08.779
+interesting, is af(n/b),
+which should look familiar if
+
+01:05:08.779 --> 01:05:12.229
+you had the master method
+already memorized,
+
+01:05:12.229 --> 01:05:15.358
+it is that.
+So, we know that af(n/b) has
+
+01:05:15.358 --> 01:05:19.368
+decreased by some constant
+factor, 1-epsilon prime.
+
+01:05:19.368 --> 01:05:22.818
+We have gone down.
+This is a constant factor
+
+01:05:22.818 --> 01:05:26.508
+smaller than this.
+And then you sum up the next
+
+01:05:26.508 --> 01:05:28.754
+level.
+It is going to be like
+
+01:05:28.754 --> 01:05:33.551
+a^2f(n/b^2).
+I see that I actually wrote
+
+01:05:33.551 --> 01:05:37.804
+this wrong, the parentheses.
+Sorry about that.
+
+01:05:37.804 --> 01:05:40.829
+It is not (n/b)^2.
+It is (n/b^2).
+
+01:05:40.829 --> 01:05:44.326
+So, this sequence,
+in Case 3 at least,
+
+01:05:44.326 --> 01:05:48.768
+is decreasing geometrically.
+If it is decreasing
+
+01:05:48.768 --> 01:05:54.344
+geometrically up to constant
+factors, it is dominated by the
+
+01:05:54.344 --> 01:05:56.896
+biggest term,
+which is f(n).
+
+01:05:56.896 --> 01:06:02.000
+Therefore, in Case 3,
+we get Theta[f(n)].
+
+01:06:02.000 --> 01:06:07.613
+Let's look at the other cases,
+and let me adapt those cases to
+
+01:06:07.613 --> 01:06:11.846
+how much time we have left.
+Wow, lot's of time.
+
+01:06:11.846 --> 01:06:14.239
+Five minutes.
+Tons of time.
+
+01:06:14.239 --> 01:06:17.368
+What to do?
+Let me write that down.
+
+01:06:17.368 --> 01:06:22.429
+Case 3, the costs decrease.
+Now, this is a place I would
+
+01:06:22.429 --> 01:06:26.754
+argue where the dot,
+dot, dot is pretty obvious.
+
+01:06:26.754 --> 01:06:32.000
+Here, this is damn simple,
+it is a^kf(n/b^k).
+
+01:06:32.000 --> 01:06:37.187
+And, in Case 3,
+we assume that the costs
+
+01:06:37.187 --> 01:06:43.172
+decrease geometrically as we go
+down the tree.
+
+01:06:43.172 --> 01:06:49.423
+That was sort of backwards to
+start with Case 3.
+
+01:06:49.423 --> 01:06:55.009
+Let's do Case 1,
+which is sort of the other
+
+01:06:55.009 --> 01:07:01.079
+intuitively easy case.
+In Case 1, we know that f(n) is
+
+01:07:01.079 --> 01:07:03.494
+polynomially smaller than this
+thing.
+
+01:07:03.494 --> 01:07:07.452
+And we are sort of changing by
+this very simple procedure in
+
+01:07:07.452 --> 01:07:10.203
+the middle.
+I am going to wave my hands if
+
+01:07:10.203 --> 01:07:13.221
+this is where you need a more
+formal argument.
+
+01:07:13.221 --> 01:07:16.241
+I claim that this will increase
+geometrically.
+
+01:07:16.241 --> 01:07:19.528
+It has to increase
+geometrically because this f(n)
+
+01:07:19.528 --> 01:07:23.419
+is polynomially smaller than
+this one, you are going to get
+
+01:07:23.419 --> 01:07:26.639
+various polynomials in the
+middle which interpret
+
+01:07:26.639 --> 01:07:31.000
+geometrically from the small one
+to the big one.
+
+01:07:31.000 --> 01:07:34.444
+Therefore, the big one
+dominates because it is,
+
+01:07:34.444 --> 01:07:38.413
+again, geometric series.
+As I said, this is intuition,
+
+01:07:38.413 --> 01:07:42.007
+not a formal argument.
+This one was pretty formal
+
+01:07:42.007 --> 01:07:45.751
+because we assumed it,
+but here you need a bit more
+
+01:07:45.751 --> 01:07:47.997
+argument.
+They may not increase
+
+01:07:47.997 --> 01:07:51.292
+geometrically but they could
+increase faster,
+
+01:07:51.292 --> 01:07:53.987
+and that is also fine.
+So, in Case 3,
+
+01:07:53.987 --> 01:07:57.657
+you are dominated,
+I mean you are always dominated
+
+01:07:57.657 --> 01:08:02.000
+by the biggest term in a
+geometric series.
+
+01:08:02.000 --> 01:08:08.416
+Here it happens to be f(n) and
+here you are dominated by
+
+01:08:08.416 --> 01:08:13.316
+n^(log_b(a)) with a bottom term,
+oh, Theta.
+
+01:08:13.316 --> 01:08:19.733
+Case 2, here it is pretty easy
+but you need to know some
+
+01:08:19.733 --> 01:08:25.332
+properties of logs.
+In Case 2, we assume that all
+
+01:08:25.332 --> 01:08:31.904
+of these are basically the same.
+I mean, we assume that the top
+
+01:08:31.904 --> 01:08:35.145
+is equal to the bottom.
+And this is changing in this
+
+01:08:35.145 --> 01:08:38.258
+very procedural way.
+Therefore, all of the ones in
+
+01:08:38.258 --> 01:08:40.926
+the middle have to be pretty
+much the same.
+
+01:08:40.926 --> 01:08:44.167
+Not quite because here we don't
+have the log factor.
+
+01:08:44.167 --> 01:08:47.850
+Here we have a log to the k.
+We have n^(log_b(a)) times log
+
+01:08:47.850 --> 01:08:50.328
+to the kn.
+Here we don't have the log to
+
+01:08:50.328 --> 01:08:52.680
+the k.
+So, the logs do disappear here.
+
+01:08:52.680 --> 01:08:57.000
+It turns out the way they
+disappear is pretty slowly.
+
+01:08:57.000 --> 01:09:02.255
+If you look at the top half of
+these terms, they will all have
+
+01:09:02.255 --> 01:09:06.046
+log to the k.
+The bottom half they will start
+
+01:09:06.046 --> 01:09:09.493
+to disappear.
+I am giving you some oracle
+
+01:09:09.493 --> 01:09:13.112
+information.
+If you take logs and you don't
+
+01:09:13.112 --> 01:09:17.247
+change the argument by too much,
+the logs remain.
+
+01:09:17.247 --> 01:09:22.073
+Maybe halfway is too far.
+The claim is that each level is
+
+01:09:22.073 --> 01:09:25.691
+roughly the same,
+especially the upper most
+
+01:09:25.691 --> 01:09:30.000
+levels are all asymptotically
+equal.
+
+01:09:30.000 --> 01:09:34.658
+Roughly the same.
+And, therefore,
+
+01:09:34.658 --> 01:09:42.375
+the cost is one level,
+here like f(n) times the number
+
+01:09:42.375 --> 01:09:47.908
+of levels, h.
+And h is log base b of n.
+
+01:09:47.908 --> 01:09:52.567
+B is a constant so we don't
+care.
+
+01:09:52.567 --> 01:09:57.662
+This is Theta(lg n).
+And, therefore,
+
+01:09:57.662 --> 01:10:05.961
+we get T(n) = (n^(log_b(a))
+lg^(k+1)(n)) times another log
+
+01:10:05.961 --> 01:10:11.232
+n.
+So, we get [f(n)lg n].
+
+01:10:11.232 --> 01:10:20.046
+That is the very quick sketch.
+Sorry, I am being pretty fuzzy
+
+01:10:20.046 --> 01:10:27.098
+on Cases 1 and 2.
+Read the proof because you will
+
+01:10:27.098 --> 01:10:34.590
+have to, at some point,
+manipulate logs in that way.
+
+01:10:34.590 --> 01:10:38.998
+And that is all.
+Any questions?
+
+01:10:38.998 --> 01:10:43.552
+Or, you are all eager to go.
+OK.
+
+01:10:43.552 --> 01:10:46.000
+Thanks.
+See you Wednesday.

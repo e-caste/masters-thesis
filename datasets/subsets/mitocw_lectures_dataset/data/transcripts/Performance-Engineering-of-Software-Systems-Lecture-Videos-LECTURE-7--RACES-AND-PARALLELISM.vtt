@@ -1,0 +1,5319 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT OpenCourseWare
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high-quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:18.140
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:18.140 --> 00:00:19.026
+at ocw.mit.edu.
+
+00:00:21.807 --> 00:00:23.390
+JULIAN SHUN: Good
+afternoon, everyone.
+
+00:00:23.390 --> 00:00:26.012
+So let's get started.
+
+00:00:26.012 --> 00:00:27.470
+So today, we're
+going to be talking
+
+00:00:27.470 --> 00:00:31.130
+about races and parallelism.
+
+00:00:31.130 --> 00:00:34.310
+And you'll be doing a lot
+of parallel programming
+
+00:00:34.310 --> 00:00:38.173
+for the next homework
+assignment and project.
+
+00:00:38.173 --> 00:00:40.340
+One thing I want to point
+out is that it's important
+
+00:00:40.340 --> 00:00:43.800
+to meet with your MITPOSSE
+as soon as possible,
+
+00:00:43.800 --> 00:00:46.310
+if you haven't done so
+already, since that's
+
+00:00:46.310 --> 00:00:49.430
+going to be part of the
+evaluation for the Project 1
+
+00:00:49.430 --> 00:00:50.400
+grade.
+
+00:00:50.400 --> 00:00:53.900
+And if you have trouble
+reaching your MITPOSSE members,
+
+00:00:53.900 --> 00:00:57.087
+please contact your TA and
+also make a post on Piazza
+
+00:00:57.087 --> 00:00:57.920
+as soon as possible.
+
+00:01:00.730 --> 00:01:05.209
+So as a reminder, let's
+look at the basics of Cilk.
+
+00:01:05.209 --> 00:01:09.350
+So we have cilk_spawn
+and cilk_sync statements.
+
+00:01:09.350 --> 00:01:12.080
+In Cilk, this was
+the code that we
+
+00:01:12.080 --> 00:01:14.690
+saw in last lecture, which
+computes the nth Fibonacci
+
+00:01:14.690 --> 00:01:16.380
+number.
+
+00:01:16.380 --> 00:01:20.510
+So when we say
+cilk_spawn, it means
+
+00:01:20.510 --> 00:01:23.540
+that the named child
+function, the function right
+
+00:01:23.540 --> 00:01:26.450
+after the cilk_spawn keyword,
+can execute in parallel
+
+00:01:26.450 --> 00:01:28.010
+with the parent caller.
+
+00:01:28.010 --> 00:01:29.960
+So it says that fib
+of n minus 1 can
+
+00:01:29.960 --> 00:01:35.420
+execute in parallel with the
+fib function that called it.
+
+00:01:35.420 --> 00:01:39.620
+And then cilk_sync says that
+control cannot pass this point
+
+00:01:39.620 --> 00:01:42.870
+until all of this spawned
+children have returned.
+
+00:01:42.870 --> 00:01:45.920
+So this is going to wait
+for fib of n minus 1
+
+00:01:45.920 --> 00:01:53.240
+to finish before it goes on
+and returns the sum of x and y.
+
+00:01:53.240 --> 00:01:55.880
+And recall that the Cilk
+keywords grant permission
+
+00:01:55.880 --> 00:01:58.280
+for parallel execution,
+but they don't actually
+
+00:01:58.280 --> 00:01:59.660
+force parallel execution.
+
+00:01:59.660 --> 00:02:03.800
+So this code here says that we
+can execute fib of n minus 1
+
+00:02:03.800 --> 00:02:06.208
+in parallel with
+this parent caller,
+
+00:02:06.208 --> 00:02:08.000
+but it doesn't say that
+we necessarily have
+
+00:02:08.000 --> 00:02:10.310
+to execute them in parallel.
+
+00:02:10.310 --> 00:02:12.380
+And it's up to
+the runtime system
+
+00:02:12.380 --> 00:02:16.040
+to decide whether these
+different functions will
+
+00:02:16.040 --> 00:02:17.120
+be executed in parallel.
+
+00:02:17.120 --> 00:02:21.980
+We'll talk more about
+the runtime system today.
+
+00:02:21.980 --> 00:02:25.130
+And also, we talked
+about this example,
+
+00:02:25.130 --> 00:02:28.310
+where we wanted to do an
+in-place matrix transpose.
+
+00:02:28.310 --> 00:02:32.210
+And this used the
+cilk_for keyword.
+
+00:02:32.210 --> 00:02:34.100
+And this says that
+we can execute
+
+00:02:34.100 --> 00:02:39.260
+the iterations of this
+cilk_for loop in parallel.
+
+00:02:39.260 --> 00:02:42.140
+And again, this says
+that the runtime system
+
+00:02:42.140 --> 00:02:44.348
+is allowed to schedule these
+iterations in parallel,
+
+00:02:44.348 --> 00:02:45.890
+but doesn't necessarily
+say that they
+
+00:02:45.890 --> 00:02:49.940
+have to execute in parallel.
+
+00:02:49.940 --> 00:02:53.690
+And under the hood,
+cilk_for statements
+
+00:02:53.690 --> 00:02:58.620
+are translated into nested
+cilk_spawn and cilk_sync calls.
+
+00:02:58.620 --> 00:03:02.540
+So the compiler is going
+to divide the iteration
+
+00:03:02.540 --> 00:03:06.690
+space in half, do a cilk_spawn
+on one of the two halves,
+
+00:03:06.690 --> 00:03:08.750
+call the other
+half, and then this
+
+00:03:08.750 --> 00:03:12.200
+is done recursively
+until we reach
+
+00:03:12.200 --> 00:03:14.420
+a certain size for the
+number of iterations
+
+00:03:14.420 --> 00:03:16.190
+in a loop, at
+which point it just
+
+00:03:16.190 --> 00:03:19.730
+creates a single task for that.
+
+00:03:19.730 --> 00:03:22.880
+So any questions on
+the Cilk constructs?
+
+00:03:22.880 --> 00:03:23.650
+Yes?
+
+00:03:23.650 --> 00:03:27.680
+AUDIENCE: Is Cilk smart
+enough to recognize issues
+
+00:03:27.680 --> 00:03:30.985
+with reading and writing
+for matrix transpose?
+
+00:03:30.985 --> 00:03:32.360
+JULIAN SHUN: So
+it's actually not
+
+00:03:32.360 --> 00:03:36.950
+going to figure out
+whether the iterations are
+
+00:03:36.950 --> 00:03:37.840
+independent for you.
+
+00:03:37.840 --> 00:03:40.910
+The programmer actually
+has to reason about that.
+
+00:03:40.910 --> 00:03:44.090
+But Cilk does have a nice
+tool, which we'll talk about,
+
+00:03:44.090 --> 00:03:47.690
+that will tell you which
+places your code might possibly
+
+00:03:47.690 --> 00:03:50.540
+be reading and writing
+the same memory location,
+
+00:03:50.540 --> 00:03:53.640
+and that allows you to
+localize any possible race
+
+00:03:53.640 --> 00:03:54.390
+bugs in your code.
+
+00:03:54.390 --> 00:03:57.020
+So we'll actually
+talk about races.
+
+00:03:57.020 --> 00:03:58.710
+But if you just
+compile this code,
+
+00:03:58.710 --> 00:04:03.462
+Cilk isn't going to know whether
+the iterations are independent.
+
+00:04:07.530 --> 00:04:13.000
+So determinacy races--
+so race conditions
+
+00:04:13.000 --> 00:04:15.020
+are the bane of concurrency.
+
+00:04:15.020 --> 00:04:18.670
+So you don't want to have
+race conditions in your code.
+
+00:04:18.670 --> 00:04:23.480
+And there are these two famous
+race bugs that cause disaster.
+
+00:04:23.480 --> 00:04:27.850
+So there is this Therac-25
+radiation therapy machine,
+
+00:04:27.850 --> 00:04:30.650
+and there was a race
+condition in the software.
+
+00:04:30.650 --> 00:04:32.610
+And this led to three
+people being killed
+
+00:04:32.610 --> 00:04:36.100
+and many more being
+seriously injured.
+
+00:04:36.100 --> 00:04:39.040
+The North American
+blackout of 2003
+
+00:04:39.040 --> 00:04:41.530
+was also caused by a
+race bug in the software,
+
+00:04:41.530 --> 00:04:45.110
+and this left 50 million
+people without power.
+
+00:04:45.110 --> 00:04:47.050
+So these are very bad.
+
+00:04:47.050 --> 00:04:49.450
+And they're notoriously
+difficult to discover
+
+00:04:49.450 --> 00:04:50.650
+by conventional testing.
+
+00:04:50.650 --> 00:04:52.870
+So race bugs aren't going
+to appear every time
+
+00:04:52.870 --> 00:04:54.405
+you execute your program.
+
+00:04:54.405 --> 00:04:59.980
+And in fact, the hardest ones to
+find, which cause these events,
+
+00:04:59.980 --> 00:05:01.712
+are actually very rare events.
+
+00:05:01.712 --> 00:05:03.670
+So most of the times when
+you run your program,
+
+00:05:03.670 --> 00:05:05.212
+you're not going to
+see the race bug.
+
+00:05:05.212 --> 00:05:07.110
+Only very rarely
+will you see it.
+
+00:05:07.110 --> 00:05:10.512
+So this makes it very hard
+to find these race bugs.
+
+00:05:10.512 --> 00:05:12.220
+And furthermore, when
+you see a race bug,
+
+00:05:12.220 --> 00:05:14.110
+it doesn't necessarily
+always happen
+
+00:05:14.110 --> 00:05:15.662
+in the same place in your code.
+
+00:05:15.662 --> 00:05:16.870
+So that makes it even harder.
+
+00:05:19.490 --> 00:05:20.920
+So what is a race?
+
+00:05:20.920 --> 00:05:24.925
+So a determinacy race is one of
+the most basic forms of races.
+
+00:05:24.925 --> 00:05:27.550
+And a determinacy
+race occurs when
+
+00:05:27.550 --> 00:05:29.500
+two logically
+parallel instructions
+
+00:05:29.500 --> 00:05:32.560
+access the same memory
+location, and at least one
+
+00:05:32.560 --> 00:05:35.950
+of these instructions performs
+a write to that location.
+
+00:05:35.950 --> 00:05:39.500
+So let's look at
+a simple example.
+
+00:05:39.500 --> 00:05:43.030
+So in this code here, I'm
+first setting x equal to 0.
+
+00:05:43.030 --> 00:05:45.790
+And then I have a cilk_for
+loop with two iterations,
+
+00:05:45.790 --> 00:05:47.680
+and each of the
+two iterations are
+
+00:05:47.680 --> 00:05:50.140
+incrementing this variable x.
+
+00:05:50.140 --> 00:05:55.090
+And then at the end, I'm going
+to assert that x is equal to 2.
+
+00:05:55.090 --> 00:05:58.820
+So there's actually a
+race in this program here.
+
+00:05:58.820 --> 00:06:01.540
+So in order to understand
+where the race occurs,
+
+00:06:01.540 --> 00:06:05.230
+let's look at the
+execution graph here.
+
+00:06:05.230 --> 00:06:08.200
+So I'm going to label each of
+these statements with a letter.
+
+00:06:08.200 --> 00:06:12.940
+The first statement, a, is
+just setting x equal to 0.
+
+00:06:12.940 --> 00:06:14.500
+And then after
+that, we're actually
+
+00:06:14.500 --> 00:06:16.780
+going to have two
+parallel paths, because we
+
+00:06:16.780 --> 00:06:19.060
+have two iterations of
+this cilk_for loop, which
+
+00:06:19.060 --> 00:06:21.190
+can execute in parallel.
+
+00:06:21.190 --> 00:06:26.840
+And each of these paths are
+going to increment x by 1.
+
+00:06:26.840 --> 00:06:30.850
+And then finally, we're going
+to assert that x is equal to 2
+
+00:06:30.850 --> 00:06:33.010
+at the end.
+
+00:06:33.010 --> 00:06:36.310
+And this sort of graph is
+known as a dependency graph.
+
+00:06:36.310 --> 00:06:38.620
+It tells you what
+instructions have
+
+00:06:38.620 --> 00:06:41.360
+to finish before you execute
+the next instruction.
+
+00:06:41.360 --> 00:06:43.840
+So here it says
+that B and C must
+
+00:06:43.840 --> 00:06:46.013
+wait for A to execute
+before they proceed,
+
+00:06:46.013 --> 00:06:48.430
+but B and C can actually happen
+in parallel, because there
+
+00:06:48.430 --> 00:06:49.840
+is no dependency among them.
+
+00:06:49.840 --> 00:06:55.300
+And then D has to happen
+after B and C finish.
+
+00:06:55.300 --> 00:06:57.940
+So to understand why
+there's a race bug here,
+
+00:06:57.940 --> 00:07:00.190
+we actually need to
+take a closer look
+
+00:07:00.190 --> 00:07:01.640
+at this dependency graph.
+
+00:07:01.640 --> 00:07:04.370
+So let's take a closer look.
+
+00:07:04.370 --> 00:07:08.620
+So when you run this
+code, x plus plus
+
+00:07:08.620 --> 00:07:12.650
+is actually going to be
+translated into three steps.
+
+00:07:12.650 --> 00:07:14.530
+So first, we're going
+to load the value
+
+00:07:14.530 --> 00:07:19.030
+of x into some
+processor's register, r1.
+
+00:07:19.030 --> 00:07:20.980
+And then we're going
+to increment r1,
+
+00:07:20.980 --> 00:07:24.830
+and then we're going to set
+x equal to the result of r1.
+
+00:07:24.830 --> 00:07:25.970
+And the same thing for r2.
+
+00:07:25.970 --> 00:07:30.160
+We're going to load x into
+register r2, increment r2,
+
+00:07:30.160 --> 00:07:32.070
+and then set x equal to r2.
+
+00:07:35.620 --> 00:07:43.990
+So here, we have a race,
+because both of these stores,
+
+00:07:43.990 --> 00:07:46.420
+x1 equal to r1 and
+x2 equal to r2,
+
+00:07:46.420 --> 00:07:49.840
+are actually writing to
+the same memory location.
+
+00:07:49.840 --> 00:07:53.710
+So let's look at one possible
+execution of this computation
+
+00:07:53.710 --> 00:07:54.460
+graph.
+
+00:07:54.460 --> 00:07:58.195
+And we're going to keep track
+of the values of x, r1 and r2.
+
+00:08:00.722 --> 00:08:02.680
+So the first instruction
+we're going to execute
+
+00:08:02.680 --> 00:08:04.120
+is x equal to 0.
+
+00:08:04.120 --> 00:08:08.290
+So we just set x equal to 0,
+and everything's good so far.
+
+00:08:08.290 --> 00:08:11.560
+And then next, we can actually
+pick one of two instructions
+
+00:08:11.560 --> 00:08:15.610
+to execute, because both
+of these two instructions
+
+00:08:15.610 --> 00:08:19.090
+have their predecessors
+satisfied already.
+
+00:08:19.090 --> 00:08:20.900
+Their predecessors
+have already executed.
+
+00:08:20.900 --> 00:08:26.090
+So let's say I pick r1
+equal to x to execute.
+
+00:08:26.090 --> 00:08:31.070
+And this is going to place
+the value 0 into register r1.
+
+00:08:31.070 --> 00:08:33.460
+Now I'm going to
+increment r1, so this
+
+00:08:33.460 --> 00:08:36.940
+changes the value in r1 to 1.
+
+00:08:36.940 --> 00:08:41.140
+Then now, let's say I
+execute r2 equal to x.
+
+00:08:41.140 --> 00:08:44.020
+So that's going to read
+x, which has a value of 0.
+
+00:08:44.020 --> 00:08:46.700
+It's going to place
+the value of 0 into r2.
+
+00:08:46.700 --> 00:08:48.550
+It's going to increment r2.
+
+00:08:48.550 --> 00:08:50.605
+That's going to change
+that value to 1.
+
+00:08:50.605 --> 00:08:54.550
+And then now, let's say
+I write r2 back to x.
+
+00:08:54.550 --> 00:08:58.460
+So I'm going to place
+a value of 1 into x.
+
+00:08:58.460 --> 00:09:02.250
+Then now, when I execute this
+instruction, x1 equal to r1,
+
+00:09:02.250 --> 00:09:06.460
+it's also placing a
+value of 1 into x.
+
+00:09:06.460 --> 00:09:09.190
+And then finally, when
+I do the assertion,
+
+00:09:09.190 --> 00:09:12.840
+this value here is not equal
+to 2, and that's wrong.
+
+00:09:12.840 --> 00:09:14.590
+Because if you executed
+this sequentially,
+
+00:09:14.590 --> 00:09:18.050
+you would get a value of 2 here.
+
+00:09:18.050 --> 00:09:20.530
+And the reason-- as I said,
+the reason why this occurs
+
+00:09:20.530 --> 00:09:22.645
+is because we have
+multiple writes
+
+00:09:22.645 --> 00:09:25.360
+to the same shared
+memory location, which
+
+00:09:25.360 --> 00:09:27.910
+could execute in parallel.
+
+00:09:27.910 --> 00:09:32.020
+And one of the nasty
+things about this example
+
+00:09:32.020 --> 00:09:34.850
+here is that the race bug
+doesn't necessarily always
+
+00:09:34.850 --> 00:09:35.350
+occur.
+
+00:09:35.350 --> 00:09:38.800
+So does anyone see why this
+race bug doesn't necessarily
+
+00:09:38.800 --> 00:09:39.850
+always show up?
+
+00:09:42.730 --> 00:09:43.595
+Yes?
+
+00:09:43.595 --> 00:09:46.515
+AUDIENCE: [INAUDIBLE]
+
+00:09:48.748 --> 00:09:49.540
+JULIAN SHUN: Right.
+
+00:09:49.540 --> 00:09:53.750
+So the answer is because if
+one of these two branches
+
+00:09:53.750 --> 00:09:55.520
+executes all three
+of its instructions
+
+00:09:55.520 --> 00:09:59.330
+before we start the other one,
+then the final result in x
+
+00:09:59.330 --> 00:10:01.020
+is going to be 2,
+which is correct.
+
+00:10:01.020 --> 00:10:03.650
+So if I executed
+these instructions
+
+00:10:03.650 --> 00:10:08.690
+in order of 1, 2, 3, 7, 4, 5, 6,
+and then, finally, 8, the value
+
+00:10:08.690 --> 00:10:11.960
+is going to be 2 in x.
+
+00:10:11.960 --> 00:10:15.960
+So the race bug here doesn't
+necessarily always occur.
+
+00:10:15.960 --> 00:10:20.470
+And this is one thing that
+makes these bugs hard to find.
+
+00:10:20.470 --> 00:10:21.500
+So any questions?
+
+00:10:30.030 --> 00:10:34.370
+So there are two different
+types of determinacy races.
+
+00:10:34.370 --> 00:10:36.990
+And they're shown
+in this table here.
+
+00:10:36.990 --> 00:10:40.010
+So let's suppose that
+instruction A and instruction
+
+00:10:40.010 --> 00:10:44.660
+B both access some location x,
+and suppose A is parallel to B.
+
+00:10:44.660 --> 00:10:48.720
+So both of the instructions
+can execute in parallel.
+
+00:10:48.720 --> 00:10:51.440
+So if A and B are just
+reading that location,
+
+00:10:51.440 --> 00:10:52.160
+then that's fine.
+
+00:10:52.160 --> 00:10:54.400
+You don't actually
+have a race here.
+
+00:10:54.400 --> 00:10:56.270
+But if one of the
+two instructions
+
+00:10:56.270 --> 00:10:59.150
+is writing to that location,
+whereas the other one is
+
+00:10:59.150 --> 00:11:01.400
+reading to that
+location, then you
+
+00:11:01.400 --> 00:11:03.320
+have what's called a read race.
+
+00:11:03.320 --> 00:11:06.950
+And the program might have
+a non-deterministic result
+
+00:11:06.950 --> 00:11:09.800
+when you have a read race,
+because the final answer might
+
+00:11:09.800 --> 00:11:13.250
+depend on whether you
+read A first before B
+
+00:11:13.250 --> 00:11:16.820
+updated the value, or
+whether A read the updated
+
+00:11:16.820 --> 00:11:19.680
+value before B reads it.
+
+00:11:19.680 --> 00:11:23.090
+So the order of the
+execution of A and B
+
+00:11:23.090 --> 00:11:26.420
+can affect the final
+result that you see.
+
+00:11:26.420 --> 00:11:28.340
+And finally, if
+both A and B write
+
+00:11:28.340 --> 00:11:32.420
+to the same shared location,
+then you have a write race.
+
+00:11:32.420 --> 00:11:35.030
+And again, this will cause
+non-deterministic behavior
+
+00:11:35.030 --> 00:11:37.610
+in your program, because the
+final answer could depend on
+
+00:11:37.610 --> 00:11:42.260
+whether A did the write first
+or B did the write first.
+
+00:11:42.260 --> 00:11:44.180
+And we say that two
+sections of code
+
+00:11:44.180 --> 00:11:49.200
+are independent if there are no
+determinacy races between them.
+
+00:11:49.200 --> 00:11:52.040
+So the two pieces of code
+can't have a shared location,
+
+00:11:52.040 --> 00:11:55.490
+where one computation
+writes to it
+
+00:11:55.490 --> 00:11:58.160
+and another computation
+reads from it,
+
+00:11:58.160 --> 00:12:03.200
+or if both computations
+write to that location.
+
+00:12:03.200 --> 00:12:04.820
+Any questions on the definition?
+
+00:12:09.660 --> 00:12:12.810
+So races are really bad,
+and you should avoid
+
+00:12:12.810 --> 00:12:16.590
+having races in your program.
+
+00:12:16.590 --> 00:12:19.060
+So here are some tips
+on how to avoid races.
+
+00:12:19.060 --> 00:12:22.140
+So I can tell you not to
+write races in your program,
+
+00:12:22.140 --> 00:12:25.073
+and you know that races
+are bad, but sometimes,
+
+00:12:25.073 --> 00:12:26.490
+when you're writing
+code, you just
+
+00:12:26.490 --> 00:12:28.740
+have races in your program,
+and you can't help it.
+
+00:12:28.740 --> 00:12:33.270
+But here are some tips on
+how you can avoid races.
+
+00:12:33.270 --> 00:12:36.733
+So first, the iterations
+of a cilk_for loop
+
+00:12:36.733 --> 00:12:37.650
+should be independent.
+
+00:12:37.650 --> 00:12:40.380
+So you should make sure that
+the different iterations
+
+00:12:40.380 --> 00:12:44.095
+of a cilk_for loop aren't
+writing to the same memory
+
+00:12:44.095 --> 00:12:44.595
+location.
+
+00:12:47.310 --> 00:12:50.070
+Secondly, between a
+cilk_spawn statement
+
+00:12:50.070 --> 00:12:53.820
+and a corresponding cilk_sync,
+the code of the spawn child
+
+00:12:53.820 --> 00:12:57.150
+should be independent of
+the code of the parent.
+
+00:12:57.150 --> 00:13:01.440
+And this includes code that's
+executed by additional spawned
+
+00:13:01.440 --> 00:13:04.348
+or called children
+by the spawned child.
+
+00:13:04.348 --> 00:13:06.390
+So you should make sure
+that these pieces of code
+
+00:13:06.390 --> 00:13:08.040
+are independent--
+there's no read
+
+00:13:08.040 --> 00:13:09.340
+or write races between them.
+
+00:13:12.370 --> 00:13:15.180
+One thing to note is that the
+arguments to a spawn function
+
+00:13:15.180 --> 00:13:17.820
+are evaluated in the parent
+before the spawn actually
+
+00:13:17.820 --> 00:13:18.320
+occurs.
+
+00:13:18.320 --> 00:13:21.510
+So you can't get a race in
+the argument evaluation,
+
+00:13:21.510 --> 00:13:25.620
+because the parent is going
+to evaluate these arguments.
+
+00:13:25.620 --> 00:13:29.470
+And there's only one
+thread that's doing this,
+
+00:13:29.470 --> 00:13:32.100
+so it's fine.
+
+00:13:32.100 --> 00:13:35.490
+And another thing to note
+is that the machine word
+
+00:13:35.490 --> 00:13:36.743
+size matters.
+
+00:13:36.743 --> 00:13:38.160
+So you need to
+watch out for races
+
+00:13:38.160 --> 00:13:42.990
+when you're reading and writing
+to packed data structures.
+
+00:13:42.990 --> 00:13:44.250
+So here's an example.
+
+00:13:44.250 --> 00:13:49.050
+I have a struct x with
+two chars, a and b.
+
+00:13:49.050 --> 00:13:54.990
+And updating x.a and x.b
+may possibly cause a race.
+
+00:13:54.990 --> 00:13:57.240
+And this is a nasty
+race, because it
+
+00:13:57.240 --> 00:14:00.790
+depends on the compiler
+optimization level.
+
+00:14:00.790 --> 00:14:02.758
+Fortunately, this is safe
+on the Intel machines
+
+00:14:02.758 --> 00:14:04.050
+that we're using in this class.
+
+00:14:04.050 --> 00:14:06.450
+You can't get a race
+in this example.
+
+00:14:06.450 --> 00:14:07.860
+But there are
+other architectures
+
+00:14:07.860 --> 00:14:12.780
+that might have a race when
+you're updating the two
+
+00:14:12.780 --> 00:14:15.138
+variables a and b in this case.
+
+00:14:15.138 --> 00:14:16.680
+So with the Intel
+machines that we're
+
+00:14:16.680 --> 00:14:20.580
+using, if you're using standard
+data types like chars, shorts,
+
+00:14:20.580 --> 00:14:25.560
+ints, and longs inside a
+struct, you won't get races.
+
+00:14:25.560 --> 00:14:27.750
+But if you're using
+non-standard types--
+
+00:14:27.750 --> 00:14:30.510
+for example, you're using
+the C bit fields facilities,
+
+00:14:30.510 --> 00:14:35.220
+and the sizes of the fields are
+not one of the standard sizes,
+
+00:14:35.220 --> 00:14:38.320
+then you could
+possibly get a race.
+
+00:14:38.320 --> 00:14:42.900
+In particular, if you're
+updating individual bits
+
+00:14:42.900 --> 00:14:47.370
+inside a word in parallel, then
+you might see a race there.
+
+00:14:47.370 --> 00:14:48.510
+So you need to be careful.
+
+00:14:51.070 --> 00:14:52.155
+Questions?
+
+00:14:59.510 --> 00:15:02.290
+So fortunately,
+the Cilk platform
+
+00:15:02.290 --> 00:15:04.690
+has a very nice
+tool called the--
+
+00:15:04.690 --> 00:15:05.440
+yes, question?
+
+00:15:05.440 --> 00:15:09.970
+AUDIENCE: [INAUDIBLE] was going
+to ask, what causes that race?
+
+00:15:09.970 --> 00:15:13.120
+JULIAN SHUN: Because the
+architecture might actually
+
+00:15:13.120 --> 00:15:18.700
+be updating this struct
+at the granularity of more
+
+00:15:18.700 --> 00:15:20.950
+than 1 byte.
+
+00:15:20.950 --> 00:15:25.440
+So if you're updating single
+bytes inside this larger word,
+
+00:15:25.440 --> 00:15:27.670
+then that might cause a race.
+
+00:15:30.088 --> 00:15:32.380
+But fortunately, this doesn't
+happen on Intel machines.
+
+00:15:35.140 --> 00:15:38.950
+So the Cilksan race detector--
+
+00:15:38.950 --> 00:15:41.380
+if you compile your
+code using this flag,
+
+00:15:41.380 --> 00:15:45.820
+minus f sanitize
+equal to cilk, then
+
+00:15:45.820 --> 00:15:49.300
+it's going to generate a
+Cilksan instrumentive program.
+
+00:15:49.300 --> 00:15:53.950
+And then if an ostensibly
+deterministic Cilk program
+
+00:15:53.950 --> 00:15:57.280
+run on a given input could
+possibly behave any differently
+
+00:15:57.280 --> 00:16:00.250
+than its serial
+elision, then Cilksan
+
+00:16:00.250 --> 00:16:02.800
+is going to guarantee
+to report and localize
+
+00:16:02.800 --> 00:16:05.170
+the offending race.
+
+00:16:05.170 --> 00:16:08.770
+So Cilksan is going to tell
+you which memory location there
+
+00:16:08.770 --> 00:16:12.250
+might be a race on and
+which of the instructions
+
+00:16:12.250 --> 00:16:15.100
+were involved in this race.
+
+00:16:15.100 --> 00:16:17.710
+So Cilksan employs a
+regression test methodology
+
+00:16:17.710 --> 00:16:20.740
+where the programmer provides
+it different test inputs.
+
+00:16:20.740 --> 00:16:23.020
+And for each test input,
+if there could possibly
+
+00:16:23.020 --> 00:16:28.630
+be a race in the program, then
+it will report these races.
+
+00:16:28.630 --> 00:16:32.290
+And it identifies the
+file names, the lines,
+
+00:16:32.290 --> 00:16:34.780
+the variables
+involved in the races,
+
+00:16:34.780 --> 00:16:36.130
+including the stack traces.
+
+00:16:36.130 --> 00:16:39.430
+So it's very helpful when
+you're trying to debug your code
+
+00:16:39.430 --> 00:16:43.930
+and find out where there's
+a race in your program.
+
+00:16:43.930 --> 00:16:45.490
+One thing to note
+is that you should
+
+00:16:45.490 --> 00:16:48.845
+ensure that all of your
+program files are instrumented.
+
+00:16:48.845 --> 00:16:51.220
+Because if you only instrument
+some of your files and not
+
+00:16:51.220 --> 00:16:53.830
+the other ones, then
+you'll possibly miss out
+
+00:16:53.830 --> 00:16:55.240
+on some of these race bugs.
+
+00:16:58.510 --> 00:17:01.300
+And one of the nice things
+about the Cilksan race detector
+
+00:17:01.300 --> 00:17:04.420
+is that it's always going
+to report a race if there
+
+00:17:04.420 --> 00:17:08.660
+is possibly a race, unlike many
+other race detectors, which
+
+00:17:08.660 --> 00:17:09.520
+are best efforts.
+
+00:17:09.520 --> 00:17:12.250
+So they might report a
+race some of the times
+
+00:17:12.250 --> 00:17:14.650
+when the race actually occurs,
+but they don't necessarily
+
+00:17:14.650 --> 00:17:15.790
+report a race all the time.
+
+00:17:15.790 --> 00:17:18.849
+Because in some executions,
+the race doesn't occur.
+
+00:17:18.849 --> 00:17:20.950
+But the Cilksan race
+detector is going
+
+00:17:20.950 --> 00:17:23.829
+to always report the race,
+if there is potentially
+
+00:17:23.829 --> 00:17:24.550
+a race in there.
+
+00:17:28.520 --> 00:17:29.850
+Cilksan is your best friend.
+
+00:17:29.850 --> 00:17:33.720
+So use this when you're
+debugging your homeworks
+
+00:17:33.720 --> 00:17:36.090
+and projects.
+
+00:17:36.090 --> 00:17:39.900
+Here's an example of the output
+that's generated by Cilksan.
+
+00:17:39.900 --> 00:17:43.770
+So you can see that it's saying
+that there's a race detected
+
+00:17:43.770 --> 00:17:46.410
+at this memory address here.
+
+00:17:46.410 --> 00:17:51.300
+And the line of code
+that caused this race
+
+00:17:51.300 --> 00:17:53.940
+is shown here, as
+well as the file name.
+
+00:17:53.940 --> 00:17:56.860
+So this is a matrix
+multiplication example.
+
+00:17:56.860 --> 00:17:59.110
+And then it also tells you
+how many races it detected.
+
+00:18:04.540 --> 00:18:07.420
+So any questions on
+determinacy races?
+
+00:18:16.630 --> 00:18:19.930
+So let's now talk
+about parallelism.
+
+00:18:19.930 --> 00:18:21.190
+So what is parallelism?
+
+00:18:21.190 --> 00:18:25.717
+Can we quantitatively
+define what parallelism is?
+
+00:18:25.717 --> 00:18:27.550
+So what does it mean
+when somebody tells you
+
+00:18:27.550 --> 00:18:30.900
+that their code is
+highly parallel?
+
+00:18:30.900 --> 00:18:34.390
+So to have a formal
+definition of parallelism,
+
+00:18:34.390 --> 00:18:38.230
+we first need to look at
+the Cilk execution model.
+
+00:18:38.230 --> 00:18:43.480
+So this is a code that we
+saw before for Fibonacci.
+
+00:18:43.480 --> 00:18:49.670
+Let's now look at what a
+call to fib of 4 looks like.
+
+00:18:49.670 --> 00:18:54.200
+So here, I've color coded the
+different lines of code here
+
+00:18:54.200 --> 00:18:55.750
+so that I can refer
+to them when I'm
+
+00:18:55.750 --> 00:18:58.480
+drawing this computation graph.
+
+00:18:58.480 --> 00:19:01.180
+So now, I'm going to draw this
+computation graph corresponding
+
+00:19:01.180 --> 00:19:05.210
+to how the computation
+unfolds during execution.
+
+00:19:05.210 --> 00:19:07.210
+So the first thing
+I'm going to do
+
+00:19:07.210 --> 00:19:09.040
+is I'm going to call fib of 4.
+
+00:19:09.040 --> 00:19:11.920
+And that's going to
+generate this magenta node
+
+00:19:11.920 --> 00:19:15.070
+here corresponding to
+the call to fib of 4,
+
+00:19:15.070 --> 00:19:17.890
+and that's going to represent
+this pink code here.
+
+00:19:20.740 --> 00:19:25.558
+And this illustration is similar
+to the computation graphs
+
+00:19:25.558 --> 00:19:27.100
+that you saw in the
+previous lecture,
+
+00:19:27.100 --> 00:19:29.560
+but this is happening
+in parallel.
+
+00:19:29.560 --> 00:19:32.300
+And I'm only labeling
+the argument here,
+
+00:19:32.300 --> 00:19:34.730
+but you could actually also
+write the local variables
+
+00:19:34.730 --> 00:19:35.230
+there.
+
+00:19:35.230 --> 00:19:37.990
+But I didn't do it, because
+I want to fit everything
+
+00:19:37.990 --> 00:19:38.740
+on this slide.
+
+00:19:42.220 --> 00:19:44.020
+So what happens when
+you call fib of 4?
+
+00:19:44.020 --> 00:19:46.670
+It's going to get to this
+cilk_spawn statement,
+
+00:19:46.670 --> 00:19:49.360
+and then it's going
+to call fib of 3.
+
+00:19:49.360 --> 00:19:51.850
+And when I get to a cilk_spawn
+statement, what I do
+
+00:19:51.850 --> 00:19:54.700
+is I'm going to create
+another node that corresponds
+
+00:19:54.700 --> 00:19:57.640
+to the child that I spawned.
+
+00:19:57.640 --> 00:20:01.840
+So this is this magenta
+node here in this blue box.
+
+00:20:01.840 --> 00:20:04.480
+And then I also
+have a continue edge
+
+00:20:04.480 --> 00:20:07.240
+going to a green node that
+represents the computation
+
+00:20:07.240 --> 00:20:08.810
+after the cilk_spawn statement.
+
+00:20:08.810 --> 00:20:12.400
+So this green node here
+corresponds to the green line
+
+00:20:12.400 --> 00:20:14.260
+of code in the code snippet.
+
+00:20:18.040 --> 00:20:20.470
+Now I can unfold this
+computation graph
+
+00:20:20.470 --> 00:20:22.150
+one more step.
+
+00:20:22.150 --> 00:20:25.130
+So we see that fib 3 is
+going to call fib of 2,
+
+00:20:25.130 --> 00:20:27.400
+so I created another node here.
+
+00:20:27.400 --> 00:20:30.100
+And the green node
+here, which corresponds
+
+00:20:30.100 --> 00:20:32.680
+to this green line
+of code-- it's
+
+00:20:32.680 --> 00:20:34.270
+also going to make
+a function call.
+
+00:20:34.270 --> 00:20:36.550
+It's going to call fib of 2.
+
+00:20:36.550 --> 00:20:40.190
+And that's also going
+to create a new node.
+
+00:20:40.190 --> 00:20:42.370
+So in general,
+when I do a spawn,
+
+00:20:42.370 --> 00:20:47.320
+I'm going to have two outgoing
+edges out of a magenta node.
+
+00:20:47.320 --> 00:20:50.110
+And when I do a call, I'm going
+to have one outgoing edge out
+
+00:20:50.110 --> 00:20:50.980
+of a green node.
+
+00:20:50.980 --> 00:20:53.950
+So this green node,
+the outgoing edge
+
+00:20:53.950 --> 00:20:55.870
+corresponds to a function call.
+
+00:20:55.870 --> 00:20:59.410
+And for this magenta node,
+its first outgoing edge
+
+00:20:59.410 --> 00:21:02.650
+corresponds to spawn, and
+then its second outgoing edge
+
+00:21:02.650 --> 00:21:06.790
+goes to the continuation strand.
+
+00:21:06.790 --> 00:21:11.170
+So I can unfold
+this one more time.
+
+00:21:11.170 --> 00:21:16.090
+And here, I see that I'm
+creating some more spawns
+
+00:21:16.090 --> 00:21:17.680
+and calls to fib.
+
+00:21:17.680 --> 00:21:20.078
+And if I do this
+one more time, I've
+
+00:21:20.078 --> 00:21:21.370
+actually reached the base case.
+
+00:21:21.370 --> 00:21:25.000
+Because once n is
+equal to 1 or 0,
+
+00:21:25.000 --> 00:21:28.960
+I'm not going to make
+any more recursive calls.
+
+00:21:28.960 --> 00:21:33.280
+And by the way, the color of
+these boxes that I used here
+
+00:21:33.280 --> 00:21:35.530
+correspond to whether
+I called that function
+
+00:21:35.530 --> 00:21:36.700
+or whether I spawned it.
+
+00:21:36.700 --> 00:21:40.180
+So a box with white background
+corresponds to a function
+
+00:21:40.180 --> 00:21:43.347
+that I called, whereas a
+box with blue background
+
+00:21:43.347 --> 00:21:45.055
+corresponds to a
+function that I spawned.
+
+00:21:48.630 --> 00:21:53.290
+So now I've gotten
+to the base case,
+
+00:21:53.290 --> 00:21:55.930
+I need to now execute
+this blue statement, which
+
+00:21:55.930 --> 00:21:59.820
+sums up x and y and returns the
+result to the parent caller.
+
+00:22:04.070 --> 00:22:06.920
+So here I have a blue node.
+
+00:22:06.920 --> 00:22:09.920
+So this is going to take
+the results of the two
+
+00:22:09.920 --> 00:22:12.420
+recursive calls,
+sum them together.
+
+00:22:12.420 --> 00:22:14.540
+And I have another
+blue node here.
+
+00:22:14.540 --> 00:22:16.910
+And then it's going
+to pass its value
+
+00:22:16.910 --> 00:22:18.860
+to the parent that called it.
+
+00:22:18.860 --> 00:22:22.880
+So I'm going to pass
+this up to its parent,
+
+00:22:22.880 --> 00:22:25.740
+and then I'm going to
+pass this one up as well.
+
+00:22:25.740 --> 00:22:29.480
+And finally, I have a blue
+node at the top level, which
+
+00:22:29.480 --> 00:22:31.083
+is going to compute
+my final result,
+
+00:22:31.083 --> 00:22:33.125
+and that's going to be
+the output of the program.
+
+00:22:36.810 --> 00:22:41.760
+So one thing to note is
+that this computation dag
+
+00:22:41.760 --> 00:22:44.240
+unfolds dynamically
+during the execution.
+
+00:22:44.240 --> 00:22:46.860
+So the runtime
+system isn't going
+
+00:22:46.860 --> 00:22:48.930
+to create this graph
+at the beginning.
+
+00:22:48.930 --> 00:22:51.570
+It's actually going to
+create this on the fly
+
+00:22:51.570 --> 00:22:53.580
+as you run the program.
+
+00:22:53.580 --> 00:22:58.650
+So this graph here
+unfolds dynamically.
+
+00:22:58.650 --> 00:23:01.500
+And also, this graph here
+is processor-oblivious.
+
+00:23:01.500 --> 00:23:03.990
+So nowhere in this
+computation dag
+
+00:23:03.990 --> 00:23:06.960
+did I mention the
+number of processors
+
+00:23:06.960 --> 00:23:08.610
+I had for the computation.
+
+00:23:08.610 --> 00:23:10.860
+And similarly, in the
+code here, I never
+
+00:23:10.860 --> 00:23:13.347
+mentioned the number of
+processors that I'm using.
+
+00:23:13.347 --> 00:23:15.180
+So the runtime system
+is going to figure out
+
+00:23:15.180 --> 00:23:18.060
+how to map these tasks to
+the number of processors
+
+00:23:18.060 --> 00:23:21.932
+that you give to the computation
+dynamically at runtime.
+
+00:23:21.932 --> 00:23:24.390
+So for example, I can run this
+on any number of processors.
+
+00:23:24.390 --> 00:23:26.520
+If I run it on one
+processor, it's
+
+00:23:26.520 --> 00:23:28.782
+just going to execute
+these tasks in parallel.
+
+00:23:28.782 --> 00:23:30.240
+In fact, it's going
+to execute them
+
+00:23:30.240 --> 00:23:33.520
+in a depth-first order,
+which corresponds to the what
+
+00:23:33.520 --> 00:23:35.610
+the sequential
+algorithm would do.
+
+00:23:35.610 --> 00:23:40.320
+So I'm going to start with fib
+of 4, go to fib of 3, fib of 2,
+
+00:23:40.320 --> 00:23:43.680
+fib of 1, and go pop back
+up and then do fib of 0
+
+00:23:43.680 --> 00:23:44.890
+and go back up and so on.
+
+00:23:44.890 --> 00:23:49.200
+So if I use one
+processor, it's going
+
+00:23:49.200 --> 00:23:51.150
+to create and execute
+this computation
+
+00:23:51.150 --> 00:23:52.750
+dag in the depth-first manner.
+
+00:23:52.750 --> 00:23:55.765
+And if I have more
+than one processor,
+
+00:23:55.765 --> 00:23:58.140
+it's not necessarily going to
+follow a depth-first order,
+
+00:23:58.140 --> 00:24:00.630
+because I could have multiple
+computations going on.
+
+00:24:05.640 --> 00:24:08.350
+Any questions on this example?
+
+00:24:08.350 --> 00:24:10.920
+I'm actually going to
+formally define some terms
+
+00:24:10.920 --> 00:24:14.370
+on the next slide so that
+we can formalize the notion
+
+00:24:14.370 --> 00:24:17.340
+of a computation dag.
+
+00:24:17.340 --> 00:24:19.650
+So dag stands for
+directed acyclic graph,
+
+00:24:19.650 --> 00:24:21.660
+and this is a directed
+acyclic graph.
+
+00:24:21.660 --> 00:24:24.780
+So we call it a computation dag.
+
+00:24:24.780 --> 00:24:27.210
+So a parallel
+instruction stream is
+
+00:24:27.210 --> 00:24:31.830
+a dag G with vertices
+V and edges E.
+
+00:24:31.830 --> 00:24:36.000
+And each vertex in this dag
+corresponds to a strand.
+
+00:24:36.000 --> 00:24:38.940
+And a strand is a
+sequence of instructions
+
+00:24:38.940 --> 00:24:42.420
+not containing a spawn, a
+sync, or a return from a spawn.
+
+00:24:42.420 --> 00:24:44.910
+So the instructions
+inside a strand
+
+00:24:44.910 --> 00:24:46.590
+are executed sequentially.
+
+00:24:46.590 --> 00:24:49.800
+There's no parallelism
+within a strand.
+
+00:24:49.800 --> 00:24:52.830
+We call the first strand
+the initial strand,
+
+00:24:52.830 --> 00:24:56.193
+so this is the
+magenta node up here.
+
+00:24:56.193 --> 00:24:58.110
+The last strand-- we
+call it the final strand.
+
+00:24:58.110 --> 00:25:02.050
+And then everything else,
+we just call it a strand.
+
+00:25:02.050 --> 00:25:05.010
+And then there are
+four types of edges.
+
+00:25:05.010 --> 00:25:08.010
+So there are spawn edges,
+call edges, return edges,
+
+00:25:08.010 --> 00:25:09.890
+or continue edges.
+
+00:25:09.890 --> 00:25:14.460
+And a spawn edge corresponds
+to an edge to a function
+
+00:25:14.460 --> 00:25:16.420
+that you spawned.
+
+00:25:16.420 --> 00:25:22.670
+So these spawn edges are
+going to go to a magenta node.
+
+00:25:22.670 --> 00:25:25.590
+A call edge corresponds to an
+edge that goes to a function
+
+00:25:25.590 --> 00:25:27.330
+that you called.
+
+00:25:27.330 --> 00:25:30.660
+So in this example, these are
+coming out of the green nodes
+
+00:25:30.660 --> 00:25:35.425
+and going to a magenta node.
+
+00:25:35.425 --> 00:25:38.520
+A return edge corresponds
+to an edge going back up
+
+00:25:38.520 --> 00:25:40.320
+to the parent caller.
+
+00:25:40.320 --> 00:25:44.970
+So here, it's going into
+one of these blue nodes.
+
+00:25:44.970 --> 00:25:49.020
+And then finally, a continue
+edge is just the other edge
+
+00:25:49.020 --> 00:25:50.140
+when you spawn a function.
+
+00:25:50.140 --> 00:25:52.170
+So this is the edge that
+goes to the green node.
+
+00:25:52.170 --> 00:25:55.020
+It's representing
+the computation
+
+00:25:55.020 --> 00:25:56.793
+after you spawn something.
+
+00:26:00.420 --> 00:26:03.420
+And notice that in
+this computation dag,
+
+00:26:03.420 --> 00:26:06.090
+we never explicitly
+represented cilk_for,
+
+00:26:06.090 --> 00:26:07.950
+because as I said
+before, cilk_fors
+
+00:26:07.950 --> 00:26:11.370
+are converted to
+nested cilk_spawns
+
+00:26:11.370 --> 00:26:12.510
+and cilk_sync statements.
+
+00:26:12.510 --> 00:26:15.780
+So we don't actually need to
+explicitly represent cilk_fors
+
+00:26:15.780 --> 00:26:16.920
+in the computation DAG.
+
+00:26:20.080 --> 00:26:22.638
+Any questions on
+this definition?
+
+00:26:22.638 --> 00:26:24.430
+So we're going to be
+using this computation
+
+00:26:24.430 --> 00:26:27.550
+dag throughout this lecture to
+analyze how much parallelism
+
+00:26:27.550 --> 00:26:28.775
+there is in a program.
+
+00:26:39.070 --> 00:26:44.463
+So assuming that each of these
+strands executes in unit time--
+
+00:26:44.463 --> 00:26:46.380
+this assumption isn't
+always true in practice.
+
+00:26:46.380 --> 00:26:48.880
+In practice, strands will take
+different amounts of time.
+
+00:26:48.880 --> 00:26:50.470
+But let's assume,
+for simplicity,
+
+00:26:50.470 --> 00:26:53.740
+that each strand
+here takes unit time.
+
+00:26:53.740 --> 00:26:55.960
+Does anyone want to guess
+what the parallelism
+
+00:26:55.960 --> 00:26:57.100
+of this computation is?
+
+00:27:04.100 --> 00:27:06.170
+So how parallel do
+you think this is?
+
+00:27:06.170 --> 00:27:09.760
+What's the maximum speedup you
+might get on this computation?
+
+00:27:09.760 --> 00:27:10.935
+AUDIENCE: 5.
+
+00:27:10.935 --> 00:27:11.560
+JULIAN SHUN: 5.
+
+00:27:11.560 --> 00:27:12.880
+Somebody said 5.
+
+00:27:12.880 --> 00:27:14.920
+Any other guesses?
+
+00:27:14.920 --> 00:27:17.540
+Who thinks this is going
+to be less than five?
+
+00:27:20.490 --> 00:27:21.698
+A couple people.
+
+00:27:21.698 --> 00:27:23.490
+Who thinks it's going
+to be more than five?
+
+00:27:26.478 --> 00:27:28.383
+A couple of people.
+
+00:27:28.383 --> 00:27:29.800
+Who thinks there's
+any parallelism
+
+00:27:29.800 --> 00:27:31.485
+at all in this computation?
+
+00:27:36.040 --> 00:27:39.190
+Yeah, seems like a lot of people
+think there is some parallelism
+
+00:27:39.190 --> 00:27:40.078
+here.
+
+00:27:40.078 --> 00:27:42.370
+So we're actually going to
+analyze how much parallelism
+
+00:27:42.370 --> 00:27:43.897
+is in this computation.
+
+00:27:43.897 --> 00:27:45.730
+So I'm not going to
+tell you the answer now,
+
+00:27:45.730 --> 00:27:49.300
+but I'll tell you in
+a couple of slides.
+
+00:27:49.300 --> 00:27:53.170
+First need to go over
+some terminology.
+
+00:27:53.170 --> 00:27:55.930
+So whenever you start
+talking about parallelism,
+
+00:27:55.930 --> 00:28:00.250
+somebody is almost always
+going to bring up Amdahl's Law.
+
+00:28:00.250 --> 00:28:04.930
+And Amdahl's Law says that
+if 50% of your application
+
+00:28:04.930 --> 00:28:08.410
+is parallel and the
+other 50% is serial,
+
+00:28:08.410 --> 00:28:11.980
+then you can't get more
+than a factor of 2 speedup,
+
+00:28:11.980 --> 00:28:16.600
+no matter how many processors
+you run the computation on.
+
+00:28:16.600 --> 00:28:19.350
+Does anyone know why
+this is the case?
+
+00:28:22.320 --> 00:28:22.920
+Yes?
+
+00:28:22.920 --> 00:28:25.395
+AUDIENCE: Because you need it
+to execute for at least 50%
+
+00:28:25.395 --> 00:28:27.870
+of the time in order to get
+through the serial portion.
+
+00:28:27.870 --> 00:28:28.662
+JULIAN SHUN: Right.
+
+00:28:28.662 --> 00:28:30.960
+So you have to
+spend at least 50%
+
+00:28:30.960 --> 00:28:33.000
+of the time in the
+serial portion.
+
+00:28:33.000 --> 00:28:35.820
+So in the best
+case, if I gave you
+
+00:28:35.820 --> 00:28:37.200
+an infinite number
+of processors,
+
+00:28:37.200 --> 00:28:40.560
+and you can reduce the
+parallel portion of your code
+
+00:28:40.560 --> 00:28:43.920
+to 0 running time, you still
+have the 50% of the serial time
+
+00:28:43.920 --> 00:28:45.540
+that you have to execute.
+
+00:28:45.540 --> 00:28:51.390
+And therefore, the best speedup
+you can get is a factor of 2.
+
+00:28:51.390 --> 00:28:55.260
+And in general, if a fraction
+alpha of an application
+
+00:28:55.260 --> 00:28:59.130
+must be run serially, then
+the speedup can be at most 1
+
+00:28:59.130 --> 00:28:59.950
+over alpha.
+
+00:28:59.950 --> 00:29:04.500
+So if 1/3 of your program has
+to be executed sequentially,
+
+00:29:04.500 --> 00:29:06.480
+then the speedup
+can be, at most, 3.
+
+00:29:06.480 --> 00:29:10.800
+Because even if you reduce the
+parallel portion of your code
+
+00:29:10.800 --> 00:29:13.620
+to tab a running
+time of 0, you still
+
+00:29:13.620 --> 00:29:16.320
+have the sequential part of your
+code that you have to wait for.
+
+00:29:21.380 --> 00:29:25.790
+So let's try to quantify the
+parallelism in this computation
+
+00:29:25.790 --> 00:29:26.600
+here.
+
+00:29:26.600 --> 00:29:30.620
+So how many of these nodes have
+to be executed sequentially?
+
+00:29:40.710 --> 00:29:41.220
+Yes?
+
+00:29:41.220 --> 00:29:43.740
+AUDIENCE: 9 of them.
+
+00:29:43.740 --> 00:29:46.140
+JULIAN SHUN: So it turns
+out to be less than 9.
+
+00:29:53.288 --> 00:29:53.788
+Yes?
+
+00:29:53.788 --> 00:29:55.215
+AUDIENCE: 7.
+
+00:29:55.215 --> 00:29:55.840
+JULIAN SHUN: 7.
+
+00:29:55.840 --> 00:29:57.670
+It turns out to be less than 7.
+
+00:30:02.472 --> 00:30:02.972
+Yes?
+
+00:30:02.972 --> 00:30:03.752
+AUDIENCE: 6.
+
+00:30:03.752 --> 00:30:05.710
+JULIAN SHUN: So it turns
+out to be less than 6.
+
+00:30:09.407 --> 00:30:10.702
+AUDIENCE: 4.
+
+00:30:10.702 --> 00:30:12.410
+JULIAN SHUN: Turns
+out to be less than 4.
+
+00:30:12.410 --> 00:30:14.750
+You're getting close.
+
+00:30:14.750 --> 00:30:16.250
+AUDIENCE: 2.
+
+00:30:16.250 --> 00:30:17.660
+JULIAN SHUN: 2.
+
+00:30:17.660 --> 00:30:19.050
+So turns out to be more than 2.
+
+00:30:24.762 --> 00:30:26.298
+AUDIENCE: 2.5.
+
+00:30:26.298 --> 00:30:27.340
+JULIAN SHUN: What's left?
+
+00:30:27.340 --> 00:30:28.230
+AUDIENCE: 3.
+
+00:30:28.230 --> 00:30:28.970
+JULIAN SHUN: 3.
+
+00:30:28.970 --> 00:30:29.470
+OK.
+
+00:30:31.960 --> 00:30:36.250
+So 3 of these nodes have to
+be executed sequentially.
+
+00:30:36.250 --> 00:30:38.330
+Because when you're
+executing these nodes,
+
+00:30:38.330 --> 00:30:40.960
+there's nothing else that
+can happen in parallel.
+
+00:30:40.960 --> 00:30:43.900
+For all of the remaining nodes,
+when you're executing them,
+
+00:30:43.900 --> 00:30:46.510
+you can potentially
+be executing some
+
+00:30:46.510 --> 00:30:48.310
+of the other nodes in parallel.
+
+00:30:48.310 --> 00:30:52.060
+But for these three nodes
+that I've colored in yellow,
+
+00:30:52.060 --> 00:30:53.770
+you have to execute
+those sequentially,
+
+00:30:53.770 --> 00:30:57.940
+because there's nothing else
+that's going on in parallel.
+
+00:30:57.940 --> 00:31:00.790
+So according to
+Amdahl's Law, this
+
+00:31:00.790 --> 00:31:04.910
+says that the serial fraction
+of the program is 3 over 18.
+
+00:31:04.910 --> 00:31:08.590
+So there's 18 nodes
+in this graph here.
+
+00:31:08.590 --> 00:31:11.890
+So therefore, the serial
+factor is 1 over 6,
+
+00:31:11.890 --> 00:31:17.170
+and the speedup is upper bound
+by 1 over that, which is 6.
+
+00:31:17.170 --> 00:31:20.920
+So Amdahl's Law tells us that
+the maximum speedup we can get
+
+00:31:20.920 --> 00:31:23.470
+is 6.
+
+00:31:23.470 --> 00:31:26.080
+Any questions on how I
+got this number here?
+
+00:31:31.450 --> 00:31:34.200
+So it turns out that Amdahl's
+Law actually gives us
+
+00:31:34.200 --> 00:31:38.190
+a pretty loose upper
+bound on the parallelism,
+
+00:31:38.190 --> 00:31:41.108
+and it's not that useful
+in many practical cases.
+
+00:31:41.108 --> 00:31:42.900
+So we're actually going
+to look at a better
+
+00:31:42.900 --> 00:31:45.270
+definition of parallelism
+that will give us
+
+00:31:45.270 --> 00:31:48.720
+a better upper bound on the
+maximum speedup we can get.
+
+00:31:52.060 --> 00:31:55.720
+So we're going to define T
+sub P to be the execution time
+
+00:31:55.720 --> 00:31:59.770
+of the program on P processors.
+
+00:31:59.770 --> 00:32:01.860
+And T sub 1 is just the work.
+
+00:32:01.860 --> 00:32:05.910
+So T sub 1 is if you executed
+this program on one processor,
+
+00:32:05.910 --> 00:32:07.380
+how much stuff do
+you have to do?
+
+00:32:07.380 --> 00:32:09.550
+And we define that
+to be the work.
+
+00:32:09.550 --> 00:32:12.690
+Recall in lecture 2,
+we looked at many ways
+
+00:32:12.690 --> 00:32:14.500
+to optimize the work.
+
+00:32:14.500 --> 00:32:15.420
+This is the work term.
+
+00:32:20.450 --> 00:32:23.140
+So in this example,
+the number of nodes
+
+00:32:23.140 --> 00:32:26.635
+here is 18, so the work
+is just going to be 18.
+
+00:32:31.360 --> 00:32:35.050
+We also define T of
+infinity to be the span.
+
+00:32:35.050 --> 00:32:37.420
+The span is also called
+the critical path
+
+00:32:37.420 --> 00:32:41.020
+length, or the computational
+depth, of the graph.
+
+00:32:41.020 --> 00:32:44.050
+And this is equal to the
+longest directed path
+
+00:32:44.050 --> 00:32:48.750
+you can find in this graph.
+
+00:32:48.750 --> 00:32:51.600
+So in this example,
+the longest path is 9.
+
+00:32:51.600 --> 00:32:54.180
+So one of the students
+answered 9 earlier,
+
+00:32:54.180 --> 00:32:58.870
+and this is actually
+the span of this graph.
+
+00:32:58.870 --> 00:33:01.228
+So there are 9 nodes
+along this path here,
+
+00:33:01.228 --> 00:33:02.895
+and that's the longest
+one you can find.
+
+00:33:08.790 --> 00:33:12.180
+And we call this T of infinity
+because that's actually
+
+00:33:12.180 --> 00:33:14.700
+the execution time
+of this program
+
+00:33:14.700 --> 00:33:18.760
+if you had an infinite
+number of processors.
+
+00:33:18.760 --> 00:33:20.370
+So there are two
+laws that are going
+
+00:33:20.370 --> 00:33:22.320
+to relate these quantities.
+
+00:33:22.320 --> 00:33:26.520
+So the work law
+says that T sub P
+
+00:33:26.520 --> 00:33:30.030
+is greater than or equal
+to T sub 1 divided by P.
+
+00:33:30.030 --> 00:33:33.480
+So this says that the
+execution time on P processors
+
+00:33:33.480 --> 00:33:35.850
+has to be greater than
+or equal to the work
+
+00:33:35.850 --> 00:33:40.020
+of the program divided by the
+number of processors you have.
+
+00:33:40.020 --> 00:33:43.090
+Does anyone see why
+the work law is true?
+
+00:33:43.090 --> 00:33:47.280
+So the answer is that if you
+have P processors, on each time
+
+00:33:47.280 --> 00:33:49.980
+stub, you can do,
+at most, P work.
+
+00:33:49.980 --> 00:33:53.020
+So if you multiply
+both sides by P,
+
+00:33:53.020 --> 00:33:57.480
+you get P times T sub P is
+greater than or equal to T1.
+
+00:33:57.480 --> 00:34:00.780
+If P times T sub P
+was less than T1, then
+
+00:34:00.780 --> 00:34:03.030
+that means you're not
+done with the computation,
+
+00:34:03.030 --> 00:34:05.340
+because you haven't
+done all the work yet.
+
+00:34:05.340 --> 00:34:07.560
+So the work law
+says that T sub P
+
+00:34:07.560 --> 00:34:12.510
+has to be greater than
+or equal to T1 over P.
+
+00:34:12.510 --> 00:34:13.770
+Any questions on the work law?
+
+00:34:16.900 --> 00:34:18.610
+So let's look at another law.
+
+00:34:18.610 --> 00:34:20.350
+This is called the span law.
+
+00:34:20.350 --> 00:34:24.909
+It says that T sub P has to be
+greater than or equal to T sub
+
+00:34:24.909 --> 00:34:25.449
+infinity.
+
+00:34:25.449 --> 00:34:27.460
+So the execution
+time on P processors
+
+00:34:27.460 --> 00:34:31.120
+has to be at least execution
+time on an infinite number
+
+00:34:31.120 --> 00:34:32.920
+of processors.
+
+00:34:32.920 --> 00:34:36.780
+Anyone know why the
+span law has to be true?
+
+00:34:36.780 --> 00:34:39.570
+So another way to see
+this is that if you
+
+00:34:39.570 --> 00:34:41.400
+had an infinite
+number of processors,
+
+00:34:41.400 --> 00:34:43.800
+you can actually simulate
+a P processor system.
+
+00:34:43.800 --> 00:34:46.320
+You just use P of the
+processors and leave all
+
+00:34:46.320 --> 00:34:48.630
+the remaining processors idle.
+
+00:34:48.630 --> 00:34:51.000
+And that can't slow
+down your program.
+
+00:34:51.000 --> 00:34:54.360
+So therefore, you
+have that T sub P
+
+00:34:54.360 --> 00:34:56.940
+has to be greater than or
+equal to T sub infinity.
+
+00:34:56.940 --> 00:34:58.740
+If you add more
+processors to it,
+
+00:34:58.740 --> 00:35:00.660
+the running time can't go up.
+
+00:35:03.570 --> 00:35:04.663
+Any questions?
+
+00:35:09.756 --> 00:35:12.040
+So let's see how we
+can compose the work
+
+00:35:12.040 --> 00:35:14.890
+and the span quantities
+of different computations.
+
+00:35:14.890 --> 00:35:18.100
+So let's say I have two
+computations, A and B.
+
+00:35:18.100 --> 00:35:22.780
+And let's say that A
+has to execute before B.
+
+00:35:22.780 --> 00:35:24.610
+So everything in
+A has to be done
+
+00:35:24.610 --> 00:35:28.120
+before I start the
+computation in B. Let's say
+
+00:35:28.120 --> 00:35:32.740
+I know what the work of A and
+the work of B individually are.
+
+00:35:32.740 --> 00:35:35.440
+What would be the
+work of A union B?
+
+00:35:44.720 --> 00:35:45.220
+Yes?
+
+00:35:45.220 --> 00:35:49.480
+AUDIENCE: I guess it
+would be T1 A plus T1 B.
+
+00:35:49.480 --> 00:35:50.230
+JULIAN SHUN: Yeah.
+
+00:35:50.230 --> 00:35:51.938
+So why is that?
+
+00:35:51.938 --> 00:35:54.408
+AUDIENCE: Well, you have
+to execute sequentially.
+
+00:35:54.408 --> 00:35:57.866
+So then you just take the time
+and [INAUDIBLE] execute A,
+
+00:35:57.866 --> 00:35:59.360
+then it'll execute B after that.
+
+00:35:59.360 --> 00:36:00.430
+JULIAN SHUN: Yeah.
+
+00:36:00.430 --> 00:36:03.460
+So the work is just going to
+be the sum of the work of A
+
+00:36:03.460 --> 00:36:07.090
+and the work of B. Because you
+have to do all of the work of A
+
+00:36:07.090 --> 00:36:09.280
+and then do all
+of the work of B,
+
+00:36:09.280 --> 00:36:12.960
+so you just add them together.
+
+00:36:12.960 --> 00:36:13.920
+What about the span?
+
+00:36:13.920 --> 00:36:15.720
+So let's say I
+know the span of A
+
+00:36:15.720 --> 00:36:20.100
+and I know the span of B.
+What's the span of A union B?
+
+00:36:20.100 --> 00:36:25.230
+So again, it's just a sum of
+the span of A and the span of B.
+
+00:36:25.230 --> 00:36:27.240
+This is because I have
+to execute everything
+
+00:36:27.240 --> 00:36:33.840
+in A before I start B. So I
+just sum together the spans.
+
+00:36:33.840 --> 00:36:36.180
+So this is series composition.
+
+00:36:36.180 --> 00:36:38.110
+What if I do
+parallel composition?
+
+00:36:38.110 --> 00:36:41.070
+So let's say here,
+I'm executing the two
+
+00:36:41.070 --> 00:36:44.760
+computations in parallel.
+
+00:36:44.760 --> 00:36:46.620
+What's the work of A union B?
+
+00:36:54.305 --> 00:36:56.180
+So it's not it's not
+going to be the maximum.
+
+00:36:59.170 --> 00:36:59.670
+Yes?
+
+00:36:59.670 --> 00:37:01.997
+AUDIENCE: It should still
+be T1 of A plus T1 of B.
+
+00:37:01.997 --> 00:37:03.580
+JULIAN SHUN: Yeah,
+so it's still going
+
+00:37:03.580 --> 00:37:06.640
+to be the sum of T1
+of A and T1 of B.
+
+00:37:06.640 --> 00:37:08.890
+Because you still have
+the same amount of work
+
+00:37:08.890 --> 00:37:10.870
+that you have to do.
+
+00:37:10.870 --> 00:37:13.120
+It's just that you're
+doing it in parallel.
+
+00:37:13.120 --> 00:37:16.662
+But the work is just the time
+if you had one processor.
+
+00:37:16.662 --> 00:37:18.370
+So if you had one
+processor, you wouldn't
+
+00:37:18.370 --> 00:37:20.380
+be executing these in parallel.
+
+00:37:20.380 --> 00:37:21.430
+What about the span?
+
+00:37:21.430 --> 00:37:24.040
+So if I know the span
+of A and the span of B,
+
+00:37:24.040 --> 00:37:27.440
+what's the span of the parallel
+composition of the two?
+
+00:37:34.310 --> 00:37:34.810
+Yes?
+
+00:37:34.810 --> 00:37:37.330
+AUDIENCE: [INAUDIBLE]
+
+00:37:37.330 --> 00:37:41.410
+JULIAN SHUN: Yeah, so
+the span of A union B
+
+00:37:41.410 --> 00:37:44.590
+is going to be the max of the
+span of A and the span of B,
+
+00:37:44.590 --> 00:37:47.590
+because I'm going
+to be bottlenecked
+
+00:37:47.590 --> 00:37:50.140
+by the slower of the
+two computations.
+
+00:37:50.140 --> 00:37:52.960
+So I just take the one
+that has longer span,
+
+00:37:52.960 --> 00:37:54.550
+and that gives me
+the overall span.
+
+00:37:57.903 --> 00:37:59.340
+Any questions?
+
+00:38:05.150 --> 00:38:07.160
+So here's another definition.
+
+00:38:07.160 --> 00:38:14.190
+So T1 divided by TP is the
+speedup on P processors.
+
+00:38:14.190 --> 00:38:18.060
+If I have T1 divided
+by TP less than P, then
+
+00:38:18.060 --> 00:38:20.010
+this means that I have
+sub-linear speedup.
+
+00:38:20.010 --> 00:38:22.290
+I'm not making use of
+all the processors.
+
+00:38:22.290 --> 00:38:24.210
+Because I'm using P
+processors, but I'm not
+
+00:38:24.210 --> 00:38:27.650
+getting a speedup of P.
+
+00:38:27.650 --> 00:38:31.050
+If T1 over TP is
+equal to P, then I'm
+
+00:38:31.050 --> 00:38:32.820
+getting perfect linear speedup.
+
+00:38:32.820 --> 00:38:35.370
+I'm making use of
+all of my processors.
+
+00:38:35.370 --> 00:38:38.880
+I'm putting P times as many
+resources into my computation,
+
+00:38:38.880 --> 00:38:40.900
+and it becomes P times faster.
+
+00:38:40.900 --> 00:38:42.930
+So this is the good case.
+
+00:38:42.930 --> 00:38:46.680
+And finally, if T1 over
+TP is greater than P,
+
+00:38:46.680 --> 00:38:49.740
+we have something called
+superlinear speedup.
+
+00:38:49.740 --> 00:38:51.660
+In our simple
+performance model, this
+
+00:38:51.660 --> 00:38:53.800
+can't actually happen,
+because of the work law.
+
+00:38:53.800 --> 00:38:58.848
+The work law says that TP has
+to be at least T1 divided by P.
+
+00:38:58.848 --> 00:39:00.390
+So if you rearrange
+the terms, you'll
+
+00:39:00.390 --> 00:39:03.630
+see that we get a
+contradiction in our model.
+
+00:39:03.630 --> 00:39:07.140
+In practice, you might sometimes
+see that you have a superlinear
+
+00:39:07.140 --> 00:39:10.410
+speedup, because when you're
+using more processors,
+
+00:39:10.410 --> 00:39:12.570
+you might have
+access to more cache,
+
+00:39:12.570 --> 00:39:15.420
+and that could improve the
+performance of your program.
+
+00:39:15.420 --> 00:39:18.330
+But in general, you might see
+a little bit of superlinear
+
+00:39:18.330 --> 00:39:20.260
+speedup, but not that much.
+
+00:39:20.260 --> 00:39:22.290
+And in our simplified
+model, we're
+
+00:39:22.290 --> 00:39:24.880
+just going to assume that
+you can't have a superlinear
+
+00:39:24.880 --> 00:39:25.380
+speedup.
+
+00:39:25.380 --> 00:39:27.990
+And getting perfect linear
+speedup is already very good.
+
+00:39:34.220 --> 00:39:40.010
+So because the span law says
+that TP has to be at least T
+
+00:39:40.010 --> 00:39:42.770
+infinity, the maximum
+possible speedup
+
+00:39:42.770 --> 00:39:45.830
+is just going to be T1
+divided by T infinity,
+
+00:39:45.830 --> 00:39:50.090
+and that's the parallelism
+of your computation.
+
+00:39:50.090 --> 00:39:52.610
+This is a maximum possible
+speedup you can get.
+
+00:39:52.610 --> 00:39:56.030
+Another way to view
+this is that it's
+
+00:39:56.030 --> 00:39:58.100
+equal to the average
+amount of work
+
+00:39:58.100 --> 00:40:01.880
+that you have to do per
+step along the span.
+
+00:40:01.880 --> 00:40:03.980
+So for every step
+along the span,
+
+00:40:03.980 --> 00:40:05.450
+you're doing this much work.
+
+00:40:05.450 --> 00:40:08.240
+And after all the steps, then
+you've done all of the work.
+
+00:40:11.500 --> 00:40:15.580
+So what's the parallelism of
+this computation dag here?
+
+00:40:25.807 --> 00:40:26.790
+AUDIENCE: 2.
+
+00:40:26.790 --> 00:40:27.870
+JULIAN SHUN: 2.
+
+00:40:27.870 --> 00:40:28.985
+Why is it 2?
+
+00:40:28.985 --> 00:40:31.560
+AUDIENCE: T1 is 18
+and T infinity is 9.
+
+00:40:31.560 --> 00:40:32.310
+JULIAN SHUN: Yeah.
+
+00:40:32.310 --> 00:40:33.750
+So T1 is 18.
+
+00:40:33.750 --> 00:40:36.040
+There are 18 nodes
+in this graph.
+
+00:40:36.040 --> 00:40:38.780
+T infinity is 9.
+
+00:40:38.780 --> 00:40:42.820
+And the last time I checked,
+18 divided by 9 is 2.
+
+00:40:42.820 --> 00:40:45.000
+So the parallelism here is 2.
+
+00:40:47.680 --> 00:40:51.130
+So now we can go back to
+our Fibonacci example,
+
+00:40:51.130 --> 00:40:54.700
+and we can also analyze the
+work and the span of this
+
+00:40:54.700 --> 00:40:58.730
+and compute the
+maximum parallelism.
+
+00:40:58.730 --> 00:41:01.300
+So again, for
+simplicity, let's assume
+
+00:41:01.300 --> 00:41:03.800
+that each of these strands
+takes unit time to execute.
+
+00:41:03.800 --> 00:41:05.800
+Again, in practice, that's
+not necessarily true.
+
+00:41:05.800 --> 00:41:10.570
+But for simplicity,
+let's just assume that.
+
+00:41:10.570 --> 00:41:13.660
+So what's the work
+of this computation?
+
+00:41:20.282 --> 00:41:22.190
+AUDIENCE: 17.
+
+00:41:22.190 --> 00:41:23.270
+JULIAN SHUN: 17.
+
+00:41:23.270 --> 00:41:24.290
+Right.
+
+00:41:24.290 --> 00:41:26.510
+So the work is just
+the number of nodes
+
+00:41:26.510 --> 00:41:27.710
+you have in this graph.
+
+00:41:27.710 --> 00:41:31.580
+And you can just count
+that up, and you get 17.
+
+00:41:31.580 --> 00:41:32.450
+What about the span?
+
+00:41:37.150 --> 00:41:39.590
+Somebody said 8.
+
+00:41:39.590 --> 00:41:41.570
+Yeah, so the span is 8.
+
+00:41:41.570 --> 00:41:44.950
+And here's the longest path.
+
+00:41:44.950 --> 00:41:47.780
+So this is the path
+that has 8 nodes in it,
+
+00:41:47.780 --> 00:41:50.570
+and that's the longest
+one you can find here.
+
+00:41:50.570 --> 00:41:52.690
+So therefore, the
+parallelism is just 17
+
+00:41:52.690 --> 00:41:58.300
+divided by 8, which is 2.125.
+
+00:41:58.300 --> 00:42:01.000
+And so for all of you who
+guessed that the parallelism
+
+00:42:01.000 --> 00:42:04.900
+was 2, you were very close.
+
+00:42:04.900 --> 00:42:08.710
+This tells us that using
+many more than two processors
+
+00:42:08.710 --> 00:42:12.490
+can only yield us marginal
+performance gains.
+
+00:42:12.490 --> 00:42:16.040
+Because the maximum speedup
+we can get is 2.125.
+
+00:42:16.040 --> 00:42:18.370
+So we throw eight processors
+at this computation,
+
+00:42:18.370 --> 00:42:27.530
+we're not going to get
+a speedup beyond 2.125.
+
+00:42:27.530 --> 00:42:30.200
+So to figure out
+how much parallelism
+
+00:42:30.200 --> 00:42:33.080
+is in your computation,
+you need to analyze
+
+00:42:33.080 --> 00:42:36.770
+the work of your computation
+and the span of your computation
+
+00:42:36.770 --> 00:42:39.820
+and then take the ratio
+between the two quantities.
+
+00:42:39.820 --> 00:42:42.560
+But for large computations,
+it's actually pretty tedious
+
+00:42:42.560 --> 00:42:43.730
+to analyze this by hand.
+
+00:42:43.730 --> 00:42:45.590
+You don't want to
+draw these things out
+
+00:42:45.590 --> 00:42:47.960
+by hand for a very
+large computation.
+
+00:42:47.960 --> 00:42:51.440
+And fortunately, Cilk has
+a tool called the Cilkscale
+
+00:42:51.440 --> 00:42:53.750
+Scalability Analyzer.
+
+00:42:53.750 --> 00:42:57.140
+So this is integrated into
+the Tapir/LLVM compiler
+
+00:42:57.140 --> 00:43:00.420
+that you'll be using
+for this course.
+
+00:43:00.420 --> 00:43:04.670
+And Cilkscale uses
+compiler instrumentation
+
+00:43:04.670 --> 00:43:07.040
+to analyze a serial
+execution of a program,
+
+00:43:07.040 --> 00:43:10.010
+and it's going to generate the
+work and the span quantities
+
+00:43:10.010 --> 00:43:12.050
+and then use those
+quantities to derive
+
+00:43:12.050 --> 00:43:16.737
+upper bounds on the parallel
+speedup of your program.
+
+00:43:16.737 --> 00:43:18.320
+So you'll have a
+chance to play around
+
+00:43:18.320 --> 00:43:20.750
+with Cilkscale in homework 4.
+
+00:43:23.640 --> 00:43:28.800
+So let's try to analyze the
+parallelism of quicksort.
+
+00:43:28.800 --> 00:43:32.810
+And here, we're using a
+parallel quicksort algorithm.
+
+00:43:32.810 --> 00:43:35.670
+The function quicksort
+here takes two inputs.
+
+00:43:35.670 --> 00:43:37.200
+These are two pointers.
+
+00:43:37.200 --> 00:43:40.750
+Left points to the beginning of
+the array that we want to sort.
+
+00:43:40.750 --> 00:43:45.750
+Right points to one element
+after the end of the array.
+
+00:43:45.750 --> 00:43:50.880
+And what we do is we first
+check if left is equal to right.
+
+00:43:50.880 --> 00:43:53.400
+If so, then we just return,
+because there are no elements
+
+00:43:53.400 --> 00:43:54.900
+to sort.
+
+00:43:54.900 --> 00:43:57.750
+Otherwise, we're going to
+call this partition function.
+
+00:43:57.750 --> 00:44:02.310
+The partition function is
+going to pick a random pivot--
+
+00:44:02.310 --> 00:44:04.830
+so this is a randomized
+quicksort algorithm--
+
+00:44:04.830 --> 00:44:08.610
+and then it's going to
+move everything that's
+
+00:44:08.610 --> 00:44:11.190
+less than the pivot to
+the left part of the array
+
+00:44:11.190 --> 00:44:13.980
+and everything
+that's greater than
+
+00:44:13.980 --> 00:44:16.370
+or equal to the pivot to
+the right part of the array.
+
+00:44:16.370 --> 00:44:19.530
+It's also going to return
+us a pointer to the pivot.
+
+00:44:19.530 --> 00:44:22.890
+And then now we can execute
+two recursive calls.
+
+00:44:22.890 --> 00:44:25.530
+So we do quicksort on the
+left side and quicksort
+
+00:44:25.530 --> 00:44:26.280
+on the right side.
+
+00:44:26.280 --> 00:44:28.450
+And this can happen in parallel.
+
+00:44:28.450 --> 00:44:31.320
+So we use the cilk_spawn here
+to spawn off one of these calls
+
+00:44:31.320 --> 00:44:32.790
+to quicksort in parallel.
+
+00:44:32.790 --> 00:44:36.030
+And therefore, the two
+recursive calls are parallel.
+
+00:44:36.030 --> 00:44:38.160
+And then finally,
+we sync up before we
+
+00:44:38.160 --> 00:44:39.300
+return from the function.
+
+00:44:44.640 --> 00:44:49.080
+So let's say we wanted
+to sort 1 million numbers
+
+00:44:49.080 --> 00:44:51.600
+with this quicksort algorithm.
+
+00:44:51.600 --> 00:44:54.570
+And let's also assume that
+the partition function here
+
+00:44:54.570 --> 00:44:56.910
+is written sequentially,
+so you have
+
+00:44:56.910 --> 00:45:00.030
+to go through all of the
+elements, one by one.
+
+00:45:00.030 --> 00:45:01.890
+Can anyone guess
+what the parallelism
+
+00:45:01.890 --> 00:45:05.406
+is in this computation?
+
+00:45:05.406 --> 00:45:08.400
+AUDIENCE: 1 million.
+
+00:45:08.400 --> 00:45:10.590
+JULIAN SHUN: So the
+guess was 1 million.
+
+00:45:10.590 --> 00:45:11.564
+Any other guesses?
+
+00:45:19.468 --> 00:45:20.460
+AUDIENCE: 50,000.
+
+00:45:20.460 --> 00:45:23.620
+JULIAN SHUN: 50,000.
+
+00:45:23.620 --> 00:45:24.970
+Any other guesses?
+
+00:45:24.970 --> 00:45:25.656
+Yes?
+
+00:45:25.656 --> 00:45:26.490
+AUDIENCE: 2.
+
+00:45:26.490 --> 00:45:28.020
+JULIAN SHUN: 2.
+
+00:45:28.020 --> 00:45:31.255
+It's a good guess.
+
+00:45:31.255 --> 00:45:32.740
+AUDIENCE: Log 2 of a million.
+
+00:45:32.740 --> 00:45:34.660
+JULIAN SHUN: Log
+base 2 of a million.
+
+00:45:37.500 --> 00:45:38.820
+Any other guesses?
+
+00:45:38.820 --> 00:45:45.270
+So log base 2 of a million,
+2, 50,000, and 1 million.
+
+00:45:45.270 --> 00:45:48.520
+Anyone think it's
+more than 1 million?
+
+00:45:48.520 --> 00:45:49.020
+No.
+
+00:45:49.020 --> 00:45:51.000
+So no takers on
+more than 1 million.
+
+00:45:54.400 --> 00:45:57.820
+So if you run this
+program using Cilkscale,
+
+00:45:57.820 --> 00:46:01.540
+it will generate a plot
+that looks like this.
+
+00:46:01.540 --> 00:46:03.260
+And there are several
+lines on this plot.
+
+00:46:03.260 --> 00:46:06.970
+So let's talk about what
+each of these lines mean.
+
+00:46:06.970 --> 00:46:11.470
+So this purple line
+here is the speedup
+
+00:46:11.470 --> 00:46:13.750
+that you observe
+in your computation
+
+00:46:13.750 --> 00:46:15.250
+when you're running it.
+
+00:46:15.250 --> 00:46:18.910
+And you can get that by
+taking the single processor
+
+00:46:18.910 --> 00:46:21.220
+running time and dividing
+it by the running
+
+00:46:21.220 --> 00:46:22.540
+time on P processors.
+
+00:46:22.540 --> 00:46:24.160
+So this is the observed speedup.
+
+00:46:24.160 --> 00:46:27.280
+That's the purple line.
+
+00:46:27.280 --> 00:46:32.860
+The blue line here is the line
+that you get from the span law.
+
+00:46:32.860 --> 00:46:36.070
+So this is T1 over T infinity.
+
+00:46:36.070 --> 00:46:41.950
+And here, this gives us a bound
+of about 6 for the parallelism.
+
+00:46:41.950 --> 00:46:44.950
+The green line is the
+bound from the work law.
+
+00:46:44.950 --> 00:46:50.800
+So this is just a linear
+line with a slope of 1.
+
+00:46:50.800 --> 00:46:52.600
+It says that on
+P processors, you
+
+00:46:52.600 --> 00:46:55.750
+can't get more than a
+factor of P speedup.
+
+00:46:55.750 --> 00:46:58.450
+So therefore, the maximum
+speedup you can get
+
+00:46:58.450 --> 00:47:02.840
+has to be below the green
+line and below the blue line.
+
+00:47:02.840 --> 00:47:07.780
+So you're in this lower
+right quadrant of the plot.
+
+00:47:07.780 --> 00:47:09.340
+There's also this
+orange line, which
+
+00:47:09.340 --> 00:47:12.910
+is the speedup you would get
+if you used a greedy scheduler.
+
+00:47:12.910 --> 00:47:15.340
+We'll talk more about
+the greedy scheduler
+
+00:47:15.340 --> 00:47:18.140
+later on in this lecture.
+
+00:47:18.140 --> 00:47:21.610
+So this is the plot
+that you would get.
+
+00:47:21.610 --> 00:47:27.190
+And we see here that the
+maximum speedup is about 5.
+
+00:47:27.190 --> 00:47:31.160
+So for those of you who guessed
+2 and log base 2 of a million,
+
+00:47:31.160 --> 00:47:32.035
+you were the closest.
+
+00:47:35.500 --> 00:47:38.380
+You can also
+generate a plot that
+
+00:47:38.380 --> 00:47:40.630
+just tells you the execution
+time versus the number
+
+00:47:40.630 --> 00:47:42.820
+of processors.
+
+00:47:42.820 --> 00:47:45.550
+And you can get
+this quite easily
+
+00:47:45.550 --> 00:47:47.260
+just by doing a
+simple transformation
+
+00:47:47.260 --> 00:47:50.050
+from the previous plot.
+
+00:47:50.050 --> 00:47:52.750
+So Cilkscale is going to give
+you these useful plots that you
+
+00:47:52.750 --> 00:47:58.090
+can use to figure out how much
+parallelism is in your program.
+
+00:47:58.090 --> 00:48:06.130
+And let's see why the
+parallelism here is so low.
+
+00:48:06.130 --> 00:48:09.490
+So I said that we were going
+to execute this partition
+
+00:48:09.490 --> 00:48:11.980
+function sequentially,
+and it turns out
+
+00:48:11.980 --> 00:48:14.758
+that that's actually the
+bottleneck to the parallelism.
+
+00:48:18.610 --> 00:48:22.600
+So the expected work of
+quicksort is order n log n.
+
+00:48:22.600 --> 00:48:24.580
+So some of you
+might have seen this
+
+00:48:24.580 --> 00:48:27.130
+in your previous
+algorithms courses.
+
+00:48:27.130 --> 00:48:29.140
+If you haven't seen
+this yet, then you
+
+00:48:29.140 --> 00:48:31.540
+can take a look at your
+favorite textbook, Introduction
+
+00:48:31.540 --> 00:48:34.690
+to Algorithms.
+
+00:48:34.690 --> 00:48:37.240
+It turns out that the
+parallel version of quicksort
+
+00:48:37.240 --> 00:48:40.330
+also has an expected work
+bound of order n log n,
+
+00:48:40.330 --> 00:48:41.980
+if you pick a random pivot.
+
+00:48:41.980 --> 00:48:43.120
+So the analysis is similar.
+
+00:48:45.730 --> 00:48:50.530
+The expected span bound
+turns out to be at least n.
+
+00:48:50.530 --> 00:48:53.170
+And this is because on the
+first level of recursion,
+
+00:48:53.170 --> 00:48:56.050
+we have to call this
+partition function, which
+
+00:48:56.050 --> 00:48:58.630
+is going to go through
+the elements one by one.
+
+00:48:58.630 --> 00:49:01.580
+So that already
+has a linear span.
+
+00:49:01.580 --> 00:49:05.920
+And it turns out that the
+overall span is also order n,
+
+00:49:05.920 --> 00:49:07.690
+because the span
+actually works out
+
+00:49:07.690 --> 00:49:13.980
+to be a geometrically decreasing
+sequence and sums to order n.
+
+00:49:13.980 --> 00:49:17.140
+And therefore, the maximum
+parallelism you can get
+
+00:49:17.140 --> 00:49:19.210
+is order log n.
+
+00:49:19.210 --> 00:49:22.540
+So you just take the
+work divided by the span.
+
+00:49:22.540 --> 00:49:25.390
+So for the student who guessed
+that the parallelism is log
+
+00:49:25.390 --> 00:49:28.540
+base 2 of n, that's very good.
+
+00:49:28.540 --> 00:49:30.728
+Turns out that it's
+not exactly log base
+
+00:49:30.728 --> 00:49:32.770
+2 of n, because there are
+constants in these work
+
+00:49:32.770 --> 00:49:37.330
+and span bounds, so it's
+on the order of log of n.
+
+00:49:37.330 --> 00:49:38.890
+That's the parallelism.
+
+00:49:38.890 --> 00:49:42.898
+And it turns out that order log
+n parallelism is not very high.
+
+00:49:42.898 --> 00:49:45.190
+In general, you want the
+parallelism to be much higher,
+
+00:49:45.190 --> 00:49:49.600
+something polynomial in n.
+
+00:49:49.600 --> 00:49:52.030
+And in order to get
+more parallelism
+
+00:49:52.030 --> 00:49:58.060
+in this algorithm,
+what you have to do
+
+00:49:58.060 --> 00:50:00.310
+is you have to
+parallelize this partition
+
+00:50:00.310 --> 00:50:02.320
+function, because
+right now I I'm
+
+00:50:02.320 --> 00:50:04.540
+just executing
+this sequentially.
+
+00:50:04.540 --> 00:50:07.630
+But you can actually indeed
+write a parallel partition
+
+00:50:07.630 --> 00:50:12.520
+function that takes linear
+your work in order log n span.
+
+00:50:12.520 --> 00:50:15.100
+And then this would give you
+an overall span bound of log
+
+00:50:15.100 --> 00:50:16.090
+squared n.
+
+00:50:16.090 --> 00:50:18.340
+And then if you take n log
+n divided by log squared n,
+
+00:50:18.340 --> 00:50:20.090
+that gives you an
+overall parallelism of n
+
+00:50:20.090 --> 00:50:24.532
+over log n, which is much
+higher than order log n here.
+
+00:50:24.532 --> 00:50:26.740
+And similarly, if you were
+to implement a merge sort,
+
+00:50:26.740 --> 00:50:29.830
+you would also need to make
+sure that the merging routine is
+
+00:50:29.830 --> 00:50:31.330
+implemented in
+parallel, if you want
+
+00:50:31.330 --> 00:50:32.590
+to see significant speedup.
+
+00:50:32.590 --> 00:50:35.165
+So not only do you have to
+execute the two recursive calls
+
+00:50:35.165 --> 00:50:36.790
+in parallel, you also
+need to make sure
+
+00:50:36.790 --> 00:50:41.790
+that the merging portion of
+the code is done in parallel.
+
+00:50:41.790 --> 00:50:43.040
+Any questions on this example?
+
+00:50:49.019 --> 00:50:50.936
+AUDIENCE: In the graph
+that you had, sometimes
+
+00:50:50.936 --> 00:50:55.610
+when you got to higher processor
+numbers, it got jagged,
+
+00:50:55.610 --> 00:50:59.040
+and so sometimes adding a
+processor was making it slower.
+
+00:50:59.040 --> 00:51:00.960
+What are some
+reasons [INAUDIBLE]??
+
+00:51:00.960 --> 00:51:04.555
+JULIAN SHUN: Yeah so I believe
+that's just due to noise,
+
+00:51:04.555 --> 00:51:06.680
+because there's some noise
+going on in the machine.
+
+00:51:06.680 --> 00:51:08.720
+So if you ran it
+enough times and took
+
+00:51:08.720 --> 00:51:12.110
+the average or the median,
+it should be always going up,
+
+00:51:12.110 --> 00:51:14.000
+or it shouldn't be
+decreasing, at least.
+
+00:51:17.380 --> 00:51:17.880
+Yes?
+
+00:51:17.880 --> 00:51:22.740
+AUDIENCE: So [INAUDIBLE]
+is also [INAUDIBLE]??
+
+00:51:27.600 --> 00:51:29.650
+JULIAN SHUN: So at one
+level of recursion,
+
+00:51:29.650 --> 00:51:33.060
+the partition function
+takes order log n span.
+
+00:51:33.060 --> 00:51:35.580
+You can show that there are
+log n levels of recursion
+
+00:51:35.580 --> 00:51:37.660
+in this quicksort algorithm.
+
+00:51:37.660 --> 00:51:40.360
+I didn't go over the
+details of this analysis,
+
+00:51:40.360 --> 00:51:42.690
+but you can show that.
+
+00:51:42.690 --> 00:51:44.190
+And then therefore,
+the overall span
+
+00:51:44.190 --> 00:51:45.930
+is going to be
+order log squared.
+
+00:51:45.930 --> 00:51:47.820
+And I can show you on
+the board after class,
+
+00:51:47.820 --> 00:51:50.010
+if you're interested, or I
+can give you a reference.
+
+00:51:53.090 --> 00:51:54.020
+Other questions?
+
+00:51:59.640 --> 00:52:04.020
+So it turns out that in
+addition to quicksort,
+
+00:52:04.020 --> 00:52:06.540
+there are also many other
+interesting practical parallel
+
+00:52:06.540 --> 00:52:07.570
+algorithms out there.
+
+00:52:07.570 --> 00:52:09.270
+So here, I've listed
+a few of them.
+
+00:52:09.270 --> 00:52:12.480
+And by practical, I mean
+that the Cilk program running
+
+00:52:12.480 --> 00:52:14.820
+on one processor is
+competitive with the best
+
+00:52:14.820 --> 00:52:17.640
+sequential program
+for that problem.
+
+00:52:17.640 --> 00:52:22.500
+And so you can see that I've
+listed the work and the span
+
+00:52:22.500 --> 00:52:23.880
+of merge sort here.
+
+00:52:23.880 --> 00:52:26.580
+And if you implement
+the merge and parallel,
+
+00:52:26.580 --> 00:52:28.350
+the span of the
+overall computation
+
+00:52:28.350 --> 00:52:29.370
+would be log cubed n.
+
+00:52:29.370 --> 00:52:32.905
+And log n divided by log cubed
+n is n over log squared n.
+
+00:52:32.905 --> 00:52:34.780
+That's the parallelism,
+which is pretty high.
+
+00:52:34.780 --> 00:52:36.930
+And in general, all
+of these computations
+
+00:52:36.930 --> 00:52:39.030
+have pretty high parallelism.
+
+00:52:39.030 --> 00:52:42.060
+Another thing to note is that
+these algorithms are practical,
+
+00:52:42.060 --> 00:52:45.120
+because their work
+bound is asymptotically
+
+00:52:45.120 --> 00:52:48.360
+equal to the work of the
+corresponding sequential
+
+00:52:48.360 --> 00:52:49.530
+algorithm.
+
+00:52:49.530 --> 00:52:52.040
+That's known as a work-efficient
+parallel algorithm.
+
+00:52:52.040 --> 00:52:54.540
+It's actually one of the goals
+of parallel algorithm design,
+
+00:52:54.540 --> 00:52:57.300
+to come up with work-efficient
+parallel algorithms.
+
+00:52:57.300 --> 00:52:58.830
+Because this means
+that even if you
+
+00:52:58.830 --> 00:53:00.420
+have a small number
+of processors,
+
+00:53:00.420 --> 00:53:04.140
+you can still be competitive
+with a sequential algorithm
+
+00:53:04.140 --> 00:53:06.410
+running on one processor.
+
+00:53:06.410 --> 00:53:12.330
+And in the next
+lecture, we actually
+
+00:53:12.330 --> 00:53:15.450
+see some examples of
+these other algorithms,
+
+00:53:15.450 --> 00:53:17.550
+and possibly even ones
+not listed on this slide,
+
+00:53:17.550 --> 00:53:20.430
+and we'll go over the
+work and span analysis
+
+00:53:20.430 --> 00:53:22.091
+and figure out the parallelism.
+
+00:53:26.020 --> 00:53:29.290
+So now I want to move on to talk
+about some scheduling theory.
+
+00:53:29.290 --> 00:53:32.675
+So I talked about these
+computation dags earlier,
+
+00:53:32.675 --> 00:53:34.300
+analyzed the work
+and the span of them,
+
+00:53:34.300 --> 00:53:37.630
+but I never talked about how
+these different strands are
+
+00:53:37.630 --> 00:53:41.140
+actually mapped to
+processors at running time.
+
+00:53:41.140 --> 00:53:43.275
+So let's talk a little bit
+about scheduling theory.
+
+00:53:43.275 --> 00:53:45.400
+And it turns out that
+scheduling theory is actually
+
+00:53:45.400 --> 00:53:46.090
+very general.
+
+00:53:46.090 --> 00:53:49.900
+It's not just limited
+to parallel programming.
+
+00:53:49.900 --> 00:53:54.280
+It's used all over the place
+in computer science, operations
+
+00:53:54.280 --> 00:53:58.060
+research, and math.
+
+00:53:58.060 --> 00:54:00.010
+So as a reminder, Cilk
+allows the program
+
+00:54:00.010 --> 00:54:03.460
+to express potential
+parallelism in an application.
+
+00:54:03.460 --> 00:54:05.980
+And a Cilk scheduler is
+going to map these strands
+
+00:54:05.980 --> 00:54:10.750
+onto the processors that you
+have available dynamically
+
+00:54:10.750 --> 00:54:13.690
+at runtime.
+
+00:54:13.690 --> 00:54:16.900
+Cilk actually uses a
+distributed scheduler.
+
+00:54:16.900 --> 00:54:19.180
+But since the theory of
+distributed schedulers
+
+00:54:19.180 --> 00:54:21.040
+is a little bit
+complicated, we'll
+
+00:54:21.040 --> 00:54:23.590
+actually explore the
+ideas of scheduling first
+
+00:54:23.590 --> 00:54:25.390
+using a centralized scheduler.
+
+00:54:25.390 --> 00:54:29.230
+And a centralized
+scheduler knows everything
+
+00:54:29.230 --> 00:54:31.660
+about what's going on
+in the computation,
+
+00:54:31.660 --> 00:54:34.490
+and it can use that to
+make a good decision.
+
+00:54:34.490 --> 00:54:37.540
+So let's first look at what
+a centralized scheduler does,
+
+00:54:37.540 --> 00:54:39.580
+and then I'll talk a
+little bit about the Cilk
+
+00:54:39.580 --> 00:54:40.570
+distributed scheduler.
+
+00:54:40.570 --> 00:54:43.120
+And we'll learn more about that
+in a future lecture as well.
+
+00:54:47.240 --> 00:54:49.710
+So we're going to look
+at a greedy scheduler.
+
+00:54:49.710 --> 00:54:51.490
+And an idea of a
+greedy scheduler
+
+00:54:51.490 --> 00:54:53.770
+is to just do as
+much as possible
+
+00:54:53.770 --> 00:54:56.170
+in every step of
+the computation.
+
+00:54:56.170 --> 00:54:59.480
+So has anyone seen
+greedy algorithms before?
+
+00:54:59.480 --> 00:54:59.980
+Right.
+
+00:54:59.980 --> 00:55:02.110
+So many of you have seen
+greedy algorithms before.
+
+00:55:02.110 --> 00:55:03.220
+So the idea is similar here.
+
+00:55:03.220 --> 00:55:04.970
+We're just going to
+do as much as possible
+
+00:55:04.970 --> 00:55:06.100
+at the current time step.
+
+00:55:06.100 --> 00:55:08.225
+We're not going to think
+too much about the future.
+
+00:55:11.820 --> 00:55:14.190
+So we're going to
+define a ready strand
+
+00:55:14.190 --> 00:55:17.490
+to be a strand where all of its
+predecessors in the computation
+
+00:55:17.490 --> 00:55:20.710
+dag have already executed.
+
+00:55:20.710 --> 00:55:22.560
+So in this example
+here, let's say
+
+00:55:22.560 --> 00:55:26.320
+I already executed all
+of these blue strands.
+
+00:55:26.320 --> 00:55:28.740
+Then the ones
+shaded in yellow are
+
+00:55:28.740 --> 00:55:31.170
+going to be my ready
+strands, because they
+
+00:55:31.170 --> 00:55:35.540
+have all of their
+predecessors executed already.
+
+00:55:35.540 --> 00:55:39.600
+And there are two types of
+steps in a greedy scheduler.
+
+00:55:39.600 --> 00:55:44.160
+The first kind of step is
+called a complete step.
+
+00:55:44.160 --> 00:55:50.250
+And in a complete step, we
+have at least P strands ready.
+
+00:55:50.250 --> 00:55:54.600
+So if we had P equal to 3, then
+we have a complete step now,
+
+00:55:54.600 --> 00:55:58.410
+because we have 5 strands
+ready, which is greater than 3.
+
+00:55:58.410 --> 00:56:00.480
+So what are we going to
+do in a complete step?
+
+00:56:00.480 --> 00:56:02.010
+What would a greedy
+scheduler do?
+
+00:56:04.520 --> 00:56:05.020
+Yes?
+
+00:56:05.020 --> 00:56:07.995
+AUDIENCE: [INAUDIBLE]
+
+00:56:07.995 --> 00:56:10.120
+JULIAN SHUN: Yeah, so a
+greedy scheduler would just
+
+00:56:10.120 --> 00:56:11.880
+do as much as it can.
+
+00:56:11.880 --> 00:56:16.190
+So it would just run any 3 of
+these, or any P in general.
+
+00:56:16.190 --> 00:56:20.680
+So let's say I picked
+these 3 to run.
+
+00:56:20.680 --> 00:56:23.920
+So it turns out that these are
+actually the worst 3 to run,
+
+00:56:23.920 --> 00:56:26.920
+because they don't enable
+any new strands to be ready.
+
+00:56:26.920 --> 00:56:30.040
+But I can pick those 3.
+
+00:56:30.040 --> 00:56:32.200
+And then the
+incomplete step is one
+
+00:56:32.200 --> 00:56:34.660
+where I have fewer
+than P strands ready.
+
+00:56:34.660 --> 00:56:39.070
+So here, I have 2 strands
+ready, and I have 3 processors.
+
+00:56:39.070 --> 00:56:42.010
+So what would I do in
+an incomplete step?
+
+00:56:42.010 --> 00:56:46.010
+AUDIENCE: Just run through
+the strands that are ready.
+
+00:56:46.010 --> 00:56:48.435
+JULIAN SHUN: Yeah, so
+just run all of them.
+
+00:56:48.435 --> 00:56:50.435
+So here, I'm going to
+execute these two strands.
+
+00:56:52.980 --> 00:56:54.730
+And then we're going
+to use complete steps
+
+00:56:54.730 --> 00:56:57.580
+and incomplete steps to
+analyze the performance
+
+00:56:57.580 --> 00:56:59.350
+of the greedy scheduler.
+
+00:56:59.350 --> 00:57:03.130
+There's a famous
+theorem which was first
+
+00:57:03.130 --> 00:57:06.010
+shown by Ron Graham
+in 1968 that says
+
+00:57:06.010 --> 00:57:07.660
+that any greedy
+scheduler achieves
+
+00:57:07.660 --> 00:57:09.610
+the following time bound--
+
+00:57:09.610 --> 00:57:15.610
+T sub P is less than or equal
+to T1 over P plus T infinity.
+
+00:57:15.610 --> 00:57:18.580
+And you might recognize the
+terms on the right hand side--
+
+00:57:18.580 --> 00:57:22.930
+T1 is the work, and T
+infinity is the span
+
+00:57:22.930 --> 00:57:26.130
+that we saw earlier.
+
+00:57:26.130 --> 00:57:29.755
+And here's a simple proof for
+why this time bound holds.
+
+00:57:33.030 --> 00:57:35.810
+So we can upper bound the
+number of complete steps
+
+00:57:35.810 --> 00:57:40.010
+in the computation by
+T1 over P. And this
+
+00:57:40.010 --> 00:57:43.060
+is because each complete step
+is going to perform P work.
+
+00:57:43.060 --> 00:57:45.830
+So after T1 over
+P completes steps,
+
+00:57:45.830 --> 00:57:49.010
+we'll have done all the
+work in our computation.
+
+00:57:49.010 --> 00:57:51.710
+So that means that the
+number of complete steps
+
+00:57:51.710 --> 00:57:54.620
+can be at most T1 over P.
+
+00:57:54.620 --> 00:57:55.900
+So any questions on this?
+
+00:58:02.750 --> 00:58:06.130
+So now, let's look at the
+number of incomplete steps
+
+00:58:06.130 --> 00:58:08.620
+we can have.
+
+00:58:08.620 --> 00:58:11.320
+So the number of incomplete
+steps we can have
+
+00:58:11.320 --> 00:58:15.890
+is upper bounded by the
+span, or T infinity.
+
+00:58:15.890 --> 00:58:21.910
+And the reason why is that if
+you look at the unexecuted dag
+
+00:58:21.910 --> 00:58:25.480
+right before you execute
+an incomplete step,
+
+00:58:25.480 --> 00:58:28.090
+and you measure the span
+of that unexecuted dag,
+
+00:58:28.090 --> 00:58:30.880
+you'll see that once you
+execute an incomplete step,
+
+00:58:30.880 --> 00:58:34.240
+it's going to reduce the
+span of that dag by 1.
+
+00:58:34.240 --> 00:58:39.310
+So here, this is the span
+of our unexecuted dag
+
+00:58:39.310 --> 00:58:41.230
+that contains just
+these seven nodes.
+
+00:58:41.230 --> 00:58:43.270
+The span of this is 5.
+
+00:58:43.270 --> 00:58:45.070
+And when we execute
+an incomplete step,
+
+00:58:45.070 --> 00:58:48.730
+we're going to process all the
+roots of this unexecuted dag,
+
+00:58:48.730 --> 00:58:51.370
+delete them from the
+dag, and therefore, we're
+
+00:58:51.370 --> 00:58:54.070
+going to reduce the length
+of the longest path by 1.
+
+00:58:54.070 --> 00:58:56.200
+So when we execute
+an incomplete step,
+
+00:58:56.200 --> 00:58:58.480
+it decreases the
+span from 5 to 4.
+
+00:59:01.690 --> 00:59:05.040
+And then the time
+bound up here, T sub P,
+
+00:59:05.040 --> 00:59:09.760
+is just upper bounded by the
+sum of these two types of steps.
+
+00:59:09.760 --> 00:59:13.370
+Because after you execute
+T1 over P complete steps
+
+00:59:13.370 --> 00:59:15.460
+and T infinity
+incomplete steps, you
+
+00:59:15.460 --> 00:59:19.705
+must have finished the
+entire computation.
+
+00:59:19.705 --> 00:59:20.970
+So any questions?
+
+00:59:28.590 --> 00:59:31.860
+A corollary of this theorem
+is that any greedy scheduler
+
+00:59:31.860 --> 00:59:35.250
+achieves within a factor of 2
+of the optimal running time.
+
+00:59:35.250 --> 00:59:38.370
+So this is the optimal
+running time of a scheduler
+
+00:59:38.370 --> 00:59:43.680
+that knows everything and can
+predict the future and so on.
+
+00:59:43.680 --> 00:59:48.330
+So let's let TP star be
+the execution time produced
+
+00:59:48.330 --> 00:59:51.780
+by an optimal scheduler.
+
+00:59:51.780 --> 00:59:55.620
+We know that TP star has to
+be at least the max of T1
+
+00:59:55.620 --> 00:59:57.690
+over P and T infinity.
+
+00:59:57.690 --> 01:00:01.060
+This is due to the
+work and span laws.
+
+01:00:01.060 --> 01:00:04.530
+So it has to be at least
+a max of these two terms.
+
+01:00:04.530 --> 01:00:08.850
+Otherwise, we wouldn't have
+finished the computation.
+
+01:00:08.850 --> 01:00:12.270
+So now we can take
+the inequality
+
+01:00:12.270 --> 01:00:16.270
+we had before for the
+greedy scheduler bound--
+
+01:00:16.270 --> 01:00:20.500
+so TP is less than or equal
+to T1 over P plus T infinity.
+
+01:00:20.500 --> 01:00:23.430
+And this is upper bounded by
+2 times the max of these two
+
+01:00:23.430 --> 01:00:24.280
+terms.
+
+01:00:24.280 --> 01:00:30.150
+So A plus B is upper bounded
+by 2 times the max of A and B.
+
+01:00:30.150 --> 01:00:32.580
+And then now, the max
+of T1 over P and T
+
+01:00:32.580 --> 01:00:36.960
+infinity is just upper
+bounded by TP star.
+
+01:00:36.960 --> 01:00:39.420
+So we can substitute
+that in, and we
+
+01:00:39.420 --> 01:00:42.810
+get that TP is upper
+bounded by 2 times
+
+01:00:42.810 --> 01:00:46.440
+TP star, which is the running
+time of the optimal scheduler.
+
+01:00:46.440 --> 01:00:49.230
+So the greedy scheduler
+achieves within a factor
+
+01:00:49.230 --> 01:00:51.555
+of 2 of the optimal scheduler.
+
+01:00:57.000 --> 01:00:59.368
+Here's another corollary.
+
+01:00:59.368 --> 01:01:00.910
+This is a more
+interesting corollary.
+
+01:01:00.910 --> 01:01:02.850
+It says that any greedy
+scheduler achieves
+
+01:01:02.850 --> 01:01:06.720
+near-perfect linear speedup
+whenever T1 divided by T
+
+01:01:06.720 --> 01:01:12.850
+infinity is greater
+than or equal to P.
+
+01:01:12.850 --> 01:01:14.830
+To see why this is true--
+
+01:01:14.830 --> 01:01:17.350
+if we have that
+T1 over T infinity
+
+01:01:17.350 --> 01:01:20.350
+is much greater than P--
+
+01:01:20.350 --> 01:01:25.612
+so the double arrows here
+mean that the left hand
+
+01:01:25.612 --> 01:01:27.570
+side is much greater than
+the right hand side--
+
+01:01:27.570 --> 01:01:32.500
+then this means that the span
+is much less than T1 over P.
+
+01:01:32.500 --> 01:01:35.230
+And the greedy scheduling
+theorem gives us
+
+01:01:35.230 --> 01:01:40.630
+that TP is less than or equal
+to T1 over P plus T infinity,
+
+01:01:40.630 --> 01:01:43.150
+but T infinity is much
+less than T1 over P,
+
+01:01:43.150 --> 01:01:45.250
+so the first term
+dominates, and we have
+
+01:01:45.250 --> 01:01:48.940
+that TP is approximately
+equal to T1 over P.
+
+01:01:48.940 --> 01:01:54.760
+And therefore, the speedup you
+get is T1 over P, which is P.
+
+01:01:54.760 --> 01:01:57.180
+And this is linear speedup.
+
+01:02:02.040 --> 01:02:04.910
+The quantity T1
+divided by P times T
+
+01:02:04.910 --> 01:02:08.270
+infinity is known as
+the parallel slackness.
+
+01:02:08.270 --> 01:02:11.030
+So this is basically
+measuring how much more
+
+01:02:11.030 --> 01:02:13.550
+parallelism you have in a
+computation than the number
+
+01:02:13.550 --> 01:02:15.440
+of processors you have.
+
+01:02:15.440 --> 01:02:18.320
+And if parallel
+slackness is very high,
+
+01:02:18.320 --> 01:02:20.000
+then this corollary
+is going to hold,
+
+01:02:20.000 --> 01:02:23.660
+and you're going to see
+near-linear speedup.
+
+01:02:23.660 --> 01:02:26.270
+As a rule of thumb, you usually
+want the parallel slackness
+
+01:02:26.270 --> 01:02:29.600
+of your program
+to be at least 10.
+
+01:02:29.600 --> 01:02:33.590
+Because if you have a
+parallel slackness of just 1,
+
+01:02:33.590 --> 01:02:37.160
+you can't actually amortize
+the overheads of the scheduling
+
+01:02:37.160 --> 01:02:38.030
+mechanism.
+
+01:02:38.030 --> 01:02:40.130
+So therefore, you want
+the parallel slackness
+
+01:02:40.130 --> 01:02:43.010
+to be at least 10 when
+you're programming in Cilk.
+
+01:02:50.990 --> 01:02:53.750
+So that was the
+greedy scheduler.
+
+01:02:53.750 --> 01:02:56.650
+Let's talk a little bit
+about the Cilk scheduler.
+
+01:02:56.650 --> 01:02:59.600
+So Cilk uses a
+work-stealing scheduler,
+
+01:02:59.600 --> 01:03:02.630
+and it achieves an
+expected running time
+
+01:03:02.630 --> 01:03:08.150
+of TP equal to T1 over
+P plus order T infinity.
+
+01:03:08.150 --> 01:03:10.100
+So instead of just
+summing the two terms,
+
+01:03:10.100 --> 01:03:12.720
+we actually have a big O
+in front of the T infinity,
+
+01:03:12.720 --> 01:03:16.820
+and this is used to account for
+the overheads of scheduling.
+
+01:03:16.820 --> 01:03:18.770
+The greedy scheduler
+I presented earlier--
+
+01:03:18.770 --> 01:03:21.170
+I didn't account for any of
+the overheads of scheduling.
+
+01:03:21.170 --> 01:03:23.720
+I just assumed that it could
+figure out which of the tasks
+
+01:03:23.720 --> 01:03:26.250
+to execute.
+
+01:03:26.250 --> 01:03:28.220
+So this Cilk
+work-stealing scheduler
+
+01:03:28.220 --> 01:03:31.730
+has this expected
+time provably, so you
+
+01:03:31.730 --> 01:03:35.990
+can prove this using
+random variables and tail
+
+01:03:35.990 --> 01:03:37.050
+bounds of distribution.
+
+01:03:37.050 --> 01:03:39.470
+So Charles Leiserson
+has a paper that
+
+01:03:39.470 --> 01:03:42.140
+talks about how to prove this.
+
+01:03:42.140 --> 01:03:46.730
+And empirically, we usually
+see that TP is more like T1
+
+01:03:46.730 --> 01:03:48.830
+over P plus T infinity.
+
+01:03:48.830 --> 01:03:52.760
+So we usually don't see any
+big constant in front of the T
+
+01:03:52.760 --> 01:03:56.090
+infinity term in practice.
+
+01:03:56.090 --> 01:03:59.780
+And therefore, we can get
+near-perfect linear speedup,
+
+01:03:59.780 --> 01:04:04.250
+as long as the number of
+processors is much less than T1
+
+01:04:04.250 --> 01:04:08.690
+over T infinity, the
+maximum parallelism.
+
+01:04:08.690 --> 01:04:11.780
+And as I said earlier, the
+instrumentation in Cilkscale
+
+01:04:11.780 --> 01:04:14.150
+will allow you to
+measure the work and span
+
+01:04:14.150 --> 01:04:17.060
+terms so that you can figure
+out how much parallelism
+
+01:04:17.060 --> 01:04:20.552
+is in your program.
+
+01:04:20.552 --> 01:04:22.034
+Any questions?
+
+01:04:28.730 --> 01:04:32.360
+So let's talk a little bit
+about how the Cilk runtime
+
+01:04:32.360 --> 01:04:33.065
+system works.
+
+01:04:36.140 --> 01:04:39.950
+So in the Cilk runtime system,
+each worker or processor
+
+01:04:39.950 --> 01:04:42.350
+maintains a work deque.
+
+01:04:42.350 --> 01:04:44.180
+Deque stands for
+double-ended queue,
+
+01:04:44.180 --> 01:04:46.160
+so it's just short for
+double-ended queue.
+
+01:04:46.160 --> 01:04:49.280
+It maintains a work
+deque of ready strands,
+
+01:04:49.280 --> 01:04:51.860
+and it manipulates the
+bottom of the deck,
+
+01:04:51.860 --> 01:04:56.060
+just like you would in a
+stack of a sequential program.
+
+01:04:56.060 --> 01:04:58.490
+So here, I have four
+processors, and each one of them
+
+01:04:58.490 --> 01:05:03.900
+have their own deques, and they
+have these things on the stack,
+
+01:05:03.900 --> 01:05:06.650
+these function calls,
+saves the return address
+
+01:05:06.650 --> 01:05:09.860
+to local variables, and so on.
+
+01:05:09.860 --> 01:05:11.660
+So a processor can
+call a function,
+
+01:05:11.660 --> 01:05:13.700
+and when it calls
+a function, it just
+
+01:05:13.700 --> 01:05:19.790
+places that function's frame
+at the bottom of its stack.
+
+01:05:19.790 --> 01:05:23.360
+You can also spawn things, so
+then it places a spawn frame
+
+01:05:23.360 --> 01:05:25.575
+at the bottom of its stack.
+
+01:05:25.575 --> 01:05:27.450
+And then these things
+can happen in parallel,
+
+01:05:27.450 --> 01:05:29.918
+so multiple processes can
+be spawning and calling
+
+01:05:29.918 --> 01:05:30.710
+things in parallel.
+
+01:05:34.220 --> 01:05:38.330
+And you can also return
+from a spawn or a call.
+
+01:05:38.330 --> 01:05:40.970
+So here, I'm going to
+return from a call.
+
+01:05:40.970 --> 01:05:43.330
+Then I return from a spawn.
+
+01:05:43.330 --> 01:05:44.870
+And at this point,
+I don't actually
+
+01:05:44.870 --> 01:05:48.440
+have anything left to do
+for the second processor.
+
+01:05:48.440 --> 01:05:52.340
+So what do I do now, when
+I'm left with nothing to do?
+
+01:05:55.060 --> 01:05:55.951
+Yes?
+
+01:05:55.951 --> 01:05:59.720
+AUDIENCE: Take a [INAUDIBLE].
+
+01:05:59.720 --> 01:06:01.200
+JULIAN SHUN: Yeah,
+so the idea here
+
+01:06:01.200 --> 01:06:05.640
+is to steal some work
+from another processor.
+
+01:06:05.640 --> 01:06:08.080
+So when a worker runs
+out of work to do,
+
+01:06:08.080 --> 01:06:11.640
+it's going to steal from the
+top of a random victim's deque.
+
+01:06:11.640 --> 01:06:13.990
+So it's going to pick one of
+these processors at random.
+
+01:06:13.990 --> 01:06:19.140
+It's going to roll some dice
+to determine who to steal from.
+
+01:06:19.140 --> 01:06:23.670
+And let's say that it
+picked the third processor.
+
+01:06:23.670 --> 01:06:26.370
+Now it's going to
+take all of the stuff
+
+01:06:26.370 --> 01:06:29.010
+at the top of the deque
+up until the next spawn
+
+01:06:29.010 --> 01:06:32.160
+and place it into its own deque.
+
+01:06:32.160 --> 01:06:33.960
+And then now it has
+stuff to do again.
+
+01:06:33.960 --> 01:06:36.900
+So now it can continue
+executing this code.
+
+01:06:36.900 --> 01:06:42.190
+It can spawn stuff,
+call stuff, and so on.
+
+01:06:42.190 --> 01:06:45.600
+So the idea is that whenever a
+worker runs out of work to do,
+
+01:06:45.600 --> 01:06:47.430
+it's going to start
+stealing some work
+
+01:06:47.430 --> 01:06:48.960
+from other processors.
+
+01:06:48.960 --> 01:06:52.710
+But if it always has enough
+work to do, then it's happy,
+
+01:06:52.710 --> 01:06:56.760
+and it doesn't need to steal
+things from other processors.
+
+01:06:56.760 --> 01:06:59.310
+And this is why MIT gives
+us so much work to do,
+
+01:06:59.310 --> 01:07:01.440
+so we don't have to steal
+work from other people.
+
+01:07:04.090 --> 01:07:08.010
+So a famous theorem says that
+with sufficient parallelism,
+
+01:07:08.010 --> 01:07:11.910
+workers steal very
+infrequently, and this gives us
+
+01:07:11.910 --> 01:07:13.200
+near-linear speedup.
+
+01:07:13.200 --> 01:07:16.230
+So with sufficient
+parallelism, the first term
+
+01:07:16.230 --> 01:07:19.540
+in our running bound is going
+to dominate the T1 over P term,
+
+01:07:19.540 --> 01:07:21.430
+and that gives us
+near-linear speedup.
+
+01:07:26.430 --> 01:07:32.070
+Let me actually show you a
+pseudoproof of this theorem.
+
+01:07:32.070 --> 01:07:34.127
+And I'm allowed to
+do a pseudoproof.
+
+01:07:34.127 --> 01:07:36.210
+It's not actually a real
+proof, but a pseudoproof.
+
+01:07:36.210 --> 01:07:37.998
+So I'm allowed to do
+this, because I'm not
+
+01:07:37.998 --> 01:07:39.540
+the author of an
+algorithms textbook.
+
+01:07:42.060 --> 01:07:43.753
+So here's a pseudo proof.
+
+01:07:43.753 --> 01:07:44.500
+AUDIENCE: Yet.
+
+01:07:44.500 --> 01:07:45.208
+JULIAN SHUN: Yet.
+
+01:07:48.330 --> 01:07:53.170
+So a processor is either working
+or stealing at every time step.
+
+01:07:53.170 --> 01:07:56.310
+And the total time that all
+processors spend working
+
+01:07:56.310 --> 01:08:01.240
+is just T1, because that's the
+total work that you have to do.
+
+01:08:01.240 --> 01:08:03.940
+And then when it's not
+doing work, it's stealing.
+
+01:08:03.940 --> 01:08:06.870
+And each steal has
+a 1 over P chance
+
+01:08:06.870 --> 01:08:09.780
+of reducing the span by 1,
+because one of the processors
+
+01:08:09.780 --> 01:08:14.187
+is contributing to the longest
+path in the compilation dag.
+
+01:08:14.187 --> 01:08:15.770
+And there's a 1 over
+P chance that I'm
+
+01:08:15.770 --> 01:08:17.609
+going to pick that
+processor and steal
+
+01:08:17.609 --> 01:08:19.590
+some work from that
+processor and reduce
+
+01:08:19.590 --> 01:08:23.550
+the span of my remaining
+computation by 1.
+
+01:08:23.550 --> 01:08:26.040
+And therefore, the
+expected cost of all steals
+
+01:08:26.040 --> 01:08:28.439
+is going to be order
+P times T infinity,
+
+01:08:28.439 --> 01:08:31.260
+because I have to steal P
+things in expectation before I
+
+01:08:31.260 --> 01:08:37.740
+get to the processor that
+has the critical path.
+
+01:08:37.740 --> 01:08:42.840
+And therefore, my overall costs
+for stealing is order P times T
+
+01:08:42.840 --> 01:08:46.370
+infinity, because I'm going
+to do this T infinity times.
+
+01:08:46.370 --> 01:08:48.810
+And since there
+are P processors,
+
+01:08:48.810 --> 01:08:52.200
+I'm going to divide
+the expected time by P,
+
+01:08:52.200 --> 01:08:57.915
+so T1 plus O of P times
+T infinity divided by P,
+
+01:08:57.915 --> 01:08:59.540
+and that's going to
+give me the bound--
+
+01:08:59.540 --> 01:09:03.670
+T1 over P plus order T infinity.
+
+01:09:03.670 --> 01:09:08.490
+So this pseudoproof here ignores
+issues with independence,
+
+01:09:08.490 --> 01:09:10.140
+but it still gives
+you an intuition
+
+01:09:10.140 --> 01:09:14.490
+of why we get this
+expected running time.
+
+01:09:14.490 --> 01:09:16.407
+If you want to actually
+see the full proof,
+
+01:09:16.407 --> 01:09:17.740
+it's actually quite interesting.
+
+01:09:17.740 --> 01:09:21.910
+It uses random variables and
+tail bounds of distributions.
+
+01:09:21.910 --> 01:09:24.805
+And this is the
+paper that has this.
+
+01:09:24.805 --> 01:09:28.115
+This is by Blumofe
+and Charles Leiserson.
+
+01:09:34.189 --> 01:09:36.859
+So another thing I
+want to talk about
+
+01:09:36.859 --> 01:09:40.540
+is that Cilk supports
+C's rules for pointers.
+
+01:09:40.540 --> 01:09:43.970
+So a pointer to a stack space
+can be passed from a parent
+
+01:09:43.970 --> 01:09:47.450
+to a child, but not from
+a child to a parent.
+
+01:09:47.450 --> 01:09:51.590
+And this is the same as the
+stack rule for sequential C
+
+01:09:51.590 --> 01:09:53.170
+programs.
+
+01:09:53.170 --> 01:09:56.910
+So let's say I have this
+computation on the left here.
+
+01:09:56.910 --> 01:10:00.440
+So A is going to spawn
+off B, and then it's
+
+01:10:00.440 --> 01:10:03.170
+going to continue
+executing C. In then C
+
+01:10:03.170 --> 01:10:07.160
+is going to spawn
+off D and execute E.
+
+01:10:07.160 --> 01:10:10.400
+So we see on the right hand
+side the views of the stacks
+
+01:10:10.400 --> 01:10:12.800
+for each of the tasks here.
+
+01:10:12.800 --> 01:10:15.110
+So A sees its own stack.
+
+01:10:15.110 --> 01:10:17.780
+B sees its own
+stack, but it also
+
+01:10:17.780 --> 01:10:20.990
+sees A's stack, because
+A is its parent.
+
+01:10:20.990 --> 01:10:23.450
+C will see its own
+stack, but again, it
+
+01:10:23.450 --> 01:10:25.810
+sees A's stack, because
+A is its parent.
+
+01:10:25.810 --> 01:10:28.940
+And then finally, D and E,
+they see the stack of C,
+
+01:10:28.940 --> 01:10:30.380
+and they also see
+the stack of A.
+
+01:10:30.380 --> 01:10:33.380
+So in general, a task
+can see the stack
+
+01:10:33.380 --> 01:10:36.770
+of all of its ancestors
+in this computation graph.
+
+01:10:40.190 --> 01:10:43.010
+And we call this a
+cactus stack, because it
+
+01:10:43.010 --> 01:10:47.630
+sort of looks like a cactus,
+if you draw this upside down.
+
+01:10:47.630 --> 01:10:50.180
+And Cilk's cactus stack
+supports multiple views
+
+01:10:50.180 --> 01:10:51.800
+of the stacks in
+parallel, and this
+
+01:10:51.800 --> 01:10:59.010
+is what makes the parallel
+calls to functions work in C.
+
+01:10:59.010 --> 01:11:04.200
+We can also bound the stack
+space used by a Cilk program.
+
+01:11:04.200 --> 01:11:07.410
+So let's let S sub 1 be
+the stack space required
+
+01:11:07.410 --> 01:11:11.760
+by the serial execution
+of a Cilk program.
+
+01:11:11.760 --> 01:11:15.420
+Then the stack space required
+by a P-processor execution
+
+01:11:15.420 --> 01:11:19.050
+is going to be
+bounded by P times S1.
+
+01:11:19.050 --> 01:11:21.060
+So SP is the stack
+space required
+
+01:11:21.060 --> 01:11:23.370
+by a P-processor execution.
+
+01:11:23.370 --> 01:11:27.900
+That's less than or
+equal to P times S1.
+
+01:11:27.900 --> 01:11:30.900
+Here's a high-level proof
+of why this is true.
+
+01:11:30.900 --> 01:11:33.480
+So it turns out that the
+work-stealing algorithm in Cilk
+
+01:11:33.480 --> 01:11:36.990
+maintains what's called
+the busy leaves property.
+
+01:11:36.990 --> 01:11:41.670
+And this says that each of the
+existing leaves that are still
+
+01:11:41.670 --> 01:11:44.780
+active in the computation
+dag have some work
+
+01:11:44.780 --> 01:11:47.280
+they're executing on it.
+
+01:11:47.280 --> 01:11:50.910
+So in this example
+here, the vertices
+
+01:11:50.910 --> 01:11:52.330
+shaded in blue and purple--
+
+01:11:52.330 --> 01:11:55.830
+these are the ones that are in
+my remaining computation dag.
+
+01:11:55.830 --> 01:11:59.650
+And all of the gray nodes
+have already been finished.
+
+01:11:59.650 --> 01:12:01.380
+And here-- for
+each of the leaves
+
+01:12:01.380 --> 01:12:05.130
+here, I have one processor
+on that leaf executing
+
+01:12:05.130 --> 01:12:06.450
+the task associated with it.
+
+01:12:06.450 --> 01:12:08.970
+So Cilk guarantees this
+busy leaves property.
+
+01:12:11.650 --> 01:12:14.040
+And now, for each
+of these processors,
+
+01:12:14.040 --> 01:12:15.840
+the amount of stack
+space it needs
+
+01:12:15.840 --> 01:12:18.420
+is it needs the stack
+space for its own task
+
+01:12:18.420 --> 01:12:22.420
+and then everything above
+it in this computation dag.
+
+01:12:22.420 --> 01:12:25.170
+And we can actually bound
+that by the stack space needed
+
+01:12:25.170 --> 01:12:30.360
+by a single processor execution
+of the Cilk program, S1,
+
+01:12:30.360 --> 01:12:33.690
+because S1 is just the
+maximum stack space we need,
+
+01:12:33.690 --> 01:12:39.900
+which is basically the
+longest path in this graph.
+
+01:12:39.900 --> 01:12:41.640
+And we do this for
+every processor.
+
+01:12:41.640 --> 01:12:45.000
+So therefore, the upper
+bound on the stack space
+
+01:12:45.000 --> 01:12:49.560
+required by P-processor
+execution is just P times S1.
+
+01:12:49.560 --> 01:12:51.960
+And in general, this is a
+quite loose upper bound,
+
+01:12:51.960 --> 01:12:54.420
+because you're not
+necessarily going
+
+01:12:54.420 --> 01:12:58.380
+all the way all the way
+down in this competition dag
+
+01:12:58.380 --> 01:13:01.140
+every time.
+
+01:13:01.140 --> 01:13:05.320
+Usually you'll be much higher
+in this computation dag.
+
+01:13:05.320 --> 01:13:06.060
+So any questions?
+
+01:13:06.060 --> 01:13:06.560
+Yes?
+
+01:13:06.560 --> 01:13:09.810
+AUDIENCE: In practice,
+how much work is stolen?
+
+01:13:09.810 --> 01:13:13.643
+JULIAN SHUN: In practice, if you
+have enough parallelism, then
+
+01:13:13.643 --> 01:13:15.060
+you're not actually
+going to steal
+
+01:13:15.060 --> 01:13:17.560
+that much in your algorithm.
+
+01:13:17.560 --> 01:13:20.520
+So if you guarantee that
+there's a lot of parallelism,
+
+01:13:20.520 --> 01:13:24.690
+then each processor is going
+to have a lot of its own work
+
+01:13:24.690 --> 01:13:28.650
+to do, and it doesn't need
+to steal very frequently.
+
+01:13:28.650 --> 01:13:31.597
+But if your
+parallelism is very low
+
+01:13:31.597 --> 01:13:33.180
+compared to the
+number of processors--
+
+01:13:33.180 --> 01:13:34.980
+if it's equal to the
+number of processors,
+
+01:13:34.980 --> 01:13:37.590
+then you're going to spend
+a significant amount of time
+
+01:13:37.590 --> 01:13:41.750
+stealing, and the overheads
+of the work-stealing algorithm
+
+01:13:41.750 --> 01:13:43.500
+are going to show up
+in your running time.
+
+01:13:43.500 --> 01:13:45.690
+AUDIENCE: So I
+meant in one steal--
+
+01:13:45.690 --> 01:13:48.250
+like do you take
+half of the deque,
+
+01:13:48.250 --> 01:13:50.035
+or do you take one
+element of the deque?
+
+01:13:50.035 --> 01:13:52.410
+JULIAN SHUN: So the standard
+Cilk work-stealing scheduler
+
+01:13:52.410 --> 01:13:55.800
+takes everything at
+the top of the deque up
+
+01:13:55.800 --> 01:13:57.120
+until the next spawn.
+
+01:13:57.120 --> 01:13:58.950
+So basically that's a strand.
+
+01:13:58.950 --> 01:13:59.847
+So it takes that.
+
+01:13:59.847 --> 01:14:01.680
+There are variants that
+take more than that,
+
+01:14:01.680 --> 01:14:03.310
+but the Cilk
+work-stealing scheduler
+
+01:14:03.310 --> 01:14:04.770
+that we'll be
+using in this class
+
+01:14:04.770 --> 01:14:06.510
+just takes the top strand.
+
+01:14:09.510 --> 01:14:11.010
+Any other questions?
+
+01:14:13.720 --> 01:14:16.508
+So that's actually
+all I have for today.
+
+01:14:16.508 --> 01:14:18.050
+If you have any
+additional questions,
+
+01:14:18.050 --> 01:14:20.470
+you can come talk
+to us after class.
+
+01:14:20.470 --> 01:14:25.170
+And remember to meet with
+your MITPOSSE mentors soon.

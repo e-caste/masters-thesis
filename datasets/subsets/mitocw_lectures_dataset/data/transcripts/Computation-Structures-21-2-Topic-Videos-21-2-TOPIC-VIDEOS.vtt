@@ -1,0 +1,495 @@
+WEBVTT
+
+00:00:00.429 --> 00:00:04.529
+The problem with our simple multicore system
+is that there is no communication when the
+
+00:00:04.529 --> 00:00:07.769
+value of a shared variable is changed.
+
+00:00:07.769 --> 00:00:12.630
+The fix is to provide the necessary communications
+over a shared bus that's watched by all the
+
+00:00:12.630 --> 00:00:13.630
+caches.
+
+00:00:13.630 --> 00:00:19.200
+A cache can then "snoop" on what's happening
+in other caches and then update its local
+
+00:00:19.200 --> 00:00:21.510
+state to be consistent.
+
+00:00:21.510 --> 00:00:26.630
+The required communications protocol is called
+a "cache coherence protocol".
+
+00:00:26.630 --> 00:00:31.050
+In designing the protocol, we'd like to incur
+the communications overhead only when there's
+
+00:00:31.050 --> 00:00:37.690
+actual sharing in progress, i.e., when multiple
+caches have local copies of a shared variable.
+
+00:00:37.690 --> 00:00:42.480
+To implement a cache coherence protocol, we'll
+change the state maintained for each cache
+
+00:00:42.480 --> 00:00:43.649
+line.
+
+00:00:43.649 --> 00:00:48.350
+The initial state for all cache lines is INVALID
+indicating that the tag and data fields do
+
+00:00:48.350 --> 00:00:51.200
+not contain up-to-date information.
+
+00:00:51.200 --> 00:00:56.660
+This corresponds to setting the valid bit
+to 0 in our original cache implementation.
+
+00:00:56.660 --> 00:01:01.610
+When the cache line state is EXCLUSIVE, this
+cache has the only copy of those memory locations
+
+00:01:01.610 --> 00:01:05.970
+and indicates that the local data is the same
+as that in main memory.
+
+00:01:05.970 --> 00:01:12.020
+This corresponds to setting the valid bit
+to 1 in our original cache implementation.
+
+00:01:12.020 --> 00:01:16.970
+If the cache line state is MODIFIED, that
+means the cache line data is the sole valid
+
+00:01:16.970 --> 00:01:18.600
+copy of the data.
+
+00:01:18.600 --> 00:01:22.979
+This corresponds to setting both the dirty
+and valid bits to 1 in our original cache
+
+00:01:22.979 --> 00:01:24.610
+implementation.
+
+00:01:24.610 --> 00:01:29.450
+To deal with sharing issues, there's a fourth
+state called SHARED that indicates when other
+
+00:01:29.450 --> 00:01:35.009
+caches may also have a copy of the same unmodified
+memory data.
+
+00:01:35.009 --> 00:01:40.280
+When filling a cache from main memory, other
+caches can snoop on the read request and participate
+
+00:01:40.280 --> 00:01:43.119
+if fulfilling the read request.
+
+00:01:43.119 --> 00:01:47.689
+If no other cache has the requested data,
+the data is fetched from main memory and the
+
+00:01:47.689 --> 00:01:52.799
+requesting cache sets the state of that cache
+line to EXCLUSIVE.
+
+00:01:52.799 --> 00:01:58.039
+If some other cache has the requested in line
+in the EXCLUSIVE or SHARED state, it supplies
+
+00:01:58.039 --> 00:02:03.070
+the data and asserts the SHARED signal on
+the snoopy bus to indicate that more than
+
+00:02:03.070 --> 00:02:06.200
+one cache now has a copy of the data.
+
+00:02:06.200 --> 00:02:10.369
+All caches will mark the state of the cache
+line as SHARED.
+
+00:02:10.369 --> 00:02:15.739
+If another cache has a MODIFIED copy of the
+cache line, it supplies the changed data,
+
+00:02:15.739 --> 00:02:20.480
+providing the correct values for the requesting
+cache as well as updating the values in main
+
+00:02:20.480 --> 00:02:21.480
+memory.
+
+00:02:21.480 --> 00:02:26.370
+Again the SHARED signal is asserted and both
+the reading and responding cache will set
+
+00:02:26.370 --> 00:02:29.099
+the state for that cache line to SHARED.
+
+00:02:29.099 --> 00:02:34.860
+So, at the end of the read request, if there
+are multiple copies of the cache line, they
+
+00:02:34.860 --> 00:02:38.049
+will all be in the SHARED state.
+
+00:02:38.049 --> 00:02:43.469
+If there's only one copy of the cache line
+it will be in the EXCLUSIVE state.
+
+00:02:43.469 --> 00:02:47.000
+Writing to a cache line is when the sharing
+magic happens.
+
+00:02:47.000 --> 00:02:52.849
+If there's a cache miss, the first cache performs
+a cache line read as described above.
+
+00:02:52.849 --> 00:02:57.459
+If the cache line is now in the SHARED state,
+a write will cause the cache to send an INVALIDATE
+
+00:02:57.459 --> 00:03:01.390
+message on the snoopy bus,
+telling all other caches to invalidate their
+
+00:03:01.390 --> 00:03:06.689
+copy of the cache line, guaranteeing the local
+cache now has EXCLUSIVE access to the cache
+
+00:03:06.689 --> 00:03:08.029
+line.
+
+00:03:08.029 --> 00:03:12.670
+If the cache line is in the EXCLUSIVE state
+when the write happens, no communication is
+
+00:03:12.670 --> 00:03:14.529
+necessary.
+
+00:03:14.529 --> 00:03:19.370
+Now the cache data can be changed and the
+cache line state set to MODIFIED, completing
+
+00:03:19.370 --> 00:03:21.109
+the write.
+
+00:03:21.109 --> 00:03:26.249
+This protocol is called "MESI" after the first
+initials of the possible states.
+
+00:03:26.249 --> 00:03:30.169
+Note that the the valid and dirty state bits
+in our original cache implementation have
+
+00:03:30.169 --> 00:03:34.418
+been repurposed to encode one of the four
+MESI states.
+
+00:03:34.418 --> 00:03:39.549
+The key to success is that each cache now
+knows when a cache line may be shared by another
+
+00:03:39.549 --> 00:03:45.719
+cache, prompting the necessary communication
+when the value of a shared location is changed.
+
+00:03:45.719 --> 00:03:51.449
+No attempt is made to update shared values,
+they're simply invalidated and the other caches
+
+00:03:51.449 --> 00:03:56.250
+will issue read requests if they need the
+value of the shared variable at some future
+
+00:03:56.250 --> 00:03:58.369
+time.
+
+00:03:58.369 --> 00:04:03.229
+To support cache coherence, the cache hardware
+has to be modified to support two request
+
+00:04:03.229 --> 00:04:08.249
+streams: one from the CPU and one from the
+snoopy bus.
+
+00:04:08.249 --> 00:04:13.249
+The CPU side includes a queue of store requests
+that were delayed by cache misses.
+
+00:04:13.249 --> 00:04:17.459
+This allows the CPU to proceed without having
+to wait for the cache refill operation to
+
+00:04:17.459 --> 00:04:19.048
+complete.
+
+00:04:19.048 --> 00:04:23.680
+Note that CPU read requests will need to check
+the store queue before they check the cache
+
+00:04:23.680 --> 00:04:28.229
+to ensure the most-recent value is supplied
+to the CPU.
+
+00:04:28.229 --> 00:04:32.540
+Usually there's a STORE_BARRIER instruction
+that stalls the CPU until the store queue
+
+00:04:32.540 --> 00:04:37.900
+is empty, guaranteeing that all processors
+have seen the effect of the writes before
+
+00:04:37.900 --> 00:04:40.830
+execution resumes.
+
+00:04:40.830 --> 00:04:45.990
+On the snoopy side, the cache has to snoop
+on the transactions from other caches, invalidating
+
+00:04:45.990 --> 00:04:51.990
+or supplying cache line data as appropriate,
+and then updating the local cache line state.
+
+00:04:51.990 --> 00:04:56.830
+If the cache is busy with, say, a refill operation,
+INVALIDATE requests may be queued until they
+
+00:04:56.830 --> 00:04:58.680
+can be processed.
+
+00:04:58.680 --> 00:05:03.310
+Usually there's a READ_BARRIER instruction
+that stalls the CPU until the invalidate queue
+
+00:05:03.310 --> 00:05:08.360
+is empty, guaranteeing that updates from other
+processors have been applied to the local
+
+00:05:08.360 --> 00:05:12.180
+cache state before execution resumes.
+
+00:05:12.180 --> 00:05:16.509
+Note that the "read with intent to modify"
+transaction shown here is just protocol shorthand
+
+00:05:16.509 --> 00:05:22.370
+for a READ immediately followed by an INVALIDATE,
+indicating that the requester will be changing
+
+00:05:22.370 --> 00:05:24.699
+the contents of the cache line.
+
+00:05:24.699 --> 00:05:29.240
+How do the CPU and snoopy cache requests affect
+the cache state?
+
+00:05:29.240 --> 00:05:33.280
+Here in micro type is a flow chart showing
+what happens when.
+
+00:05:33.280 --> 00:05:37.990
+If you're interested, try following the actions
+required to complete various transactions.
+
+00:05:37.990 --> 00:05:43.759
+Intel, in its wisdom, adds a fifth "F" state,
+used to determine which cache will respond
+
+00:05:43.759 --> 00:05:48.139
+to read requests when the requested cache
+line is shared by multiple caches
+
+00:05:48.139 --> 00:05:52.900
+basically it selects which of the SHARED cache
+lines gets to be the responder.
+
+00:05:52.900 --> 00:05:55.040
+But this is a bit abstract.
+
+00:05:55.040 --> 00:06:00.009
+Let's try the MESI cache coherence protocol
+on our earlier example!
+
+00:06:00.009 --> 00:06:05.159
+Here are our two threads and their local cache
+states indicating that values of locations
+
+00:06:05.159 --> 00:06:07.849
+X and Y are shared by both caches.
+
+00:06:07.849 --> 00:06:13.980
+Let's see what happens when the operations
+happen in the order (1 through 4) shown here.
+
+00:06:13.980 --> 00:06:19.330
+You can check what happens when the transactions
+are in a different order or happen concurrently.
+
+00:06:19.330 --> 00:06:22.930
+First, Thread A changes X to 3.
+
+00:06:22.930 --> 00:06:28.129
+Since this location is marked as SHARED [S]
+in the local cache, the cache for core 0 ($_0)
+
+00:06:28.129 --> 00:06:32.270
+issues an INVALIDATE transaction for location
+X to the other caches,
+
+00:06:32.270 --> 00:06:37.229
+giving it exclusive access to location X,
+which it changes to have the value 3.
+
+00:06:37.229 --> 00:06:41.920
+At the end of this step, the cache for core
+1 ($_1) no longer has a copy of the value
+
+00:06:41.920 --> 00:06:44.629
+for location X.
+
+00:06:44.629 --> 00:06:48.580
+In step 2, Thread B changes Y to 4.
+
+00:06:48.580 --> 00:06:53.229
+Since this location is marked as SHARED in
+the local cache, cache 1 issues an INVALIDATE
+
+00:06:53.229 --> 00:06:59.509
+transaction for location Y to the other caches,
+giving it exclusive access to location Y,
+
+00:06:59.509 --> 00:07:03.180
+which it changes to have the value 4.
+
+00:07:03.180 --> 00:07:08.999
+In step 3, execution continues in Thread B,
+which needs the value of location X.
+
+00:07:08.999 --> 00:07:15.210
+That's a cache miss, so it issues a read request
+on the snoopy bus, and cache 0 responds with
+
+00:07:15.210 --> 00:07:21.110
+its updated value, and both caches mark the
+location X as SHARED.
+
+00:07:21.110 --> 00:07:26.919
+Main memory, which is also watching the snoopy
+bus, also updates its copy of the X value.
+
+00:07:26.919 --> 00:07:32.800
+Finally, in step 4, Thread A needs the value
+for Y, which results in a similar transaction
+
+00:07:32.800 --> 00:07:34.430
+on the snoopy bus.
+
+00:07:34.430 --> 00:07:39.270
+Note the outcome corresponds exactly to that
+produced by the same execution sequence on
+
+00:07:39.270 --> 00:07:43.199
+a timeshared core
+since the coherence protocol guarantees that
+
+00:07:43.199 --> 00:07:47.249
+no cache has an out-of-date copy of a shared
+memory location.
+
+00:07:47.249 --> 00:07:53.029
+And both caches agree on the ending values
+for the shared variables X and Y.
+
+00:07:53.029 --> 00:07:57.430
+If you try other execution orders, you'll
+see that sequential consistency and shared
+
+00:07:57.430 --> 00:08:00.930
+memory semantics are maintained in each case.
+
+00:08:00.930 --> 00:08:03.919
+The cache coherency protocol has done it's
+job!
+
+00:08:03.919 --> 00:08:08.229
+Let's summarize our discussion of parallel
+processing.
+
+00:08:08.229 --> 00:08:13.260
+At the moment, it seems that the architecture
+of a single core has reached a stable point.
+
+00:08:13.260 --> 00:08:19.009
+At least with the current ISAs, pipeline depths
+are unlikely to increase and out-of-order,
+
+00:08:19.009 --> 00:08:24.389
+superscalar instruction execution has reached
+the point of diminishing performance returns.
+
+00:08:24.389 --> 00:08:28.279
+So it seems unlikely there will be dramatic
+performance improvements due to architectural
+
+00:08:28.279 --> 00:08:31.219
+changes inside the CPU core.
+
+00:08:31.219 --> 00:08:36.000
+GPU architectures continue to evolve as they
+adapt to new uses in specific application
+
+00:08:36.000 --> 00:08:41.539
+areas, but they are unlikely to impact general-purpose
+computing.
+
+00:08:41.539 --> 00:08:46.029
+At the system level, the trend is toward increasing
+the number of cores and figuring out how to
+
+00:08:46.029 --> 00:08:50.510
+best exploit parallelism with new algorithms.
+
+00:08:50.510 --> 00:08:55.690
+Looking further ahead, notice that the brain
+is able to accomplish remarkable results using
+
+00:08:55.690 --> 00:09:00.079
+fairly slow mechanisms
+It takes ~.01 seconds to get a message to
+
+00:09:00.079 --> 00:09:06.410
+the brain and synapses fire somewhere between
+0.3 to 1.8 times per second.
+
+00:09:06.410 --> 00:09:10.829
+Is it massive parallelism that gives the brain
+its "computational" power?
+
+00:09:10.829 --> 00:09:16.350
+Or is it that the brain uses a different computation
+model, e.g., neural nets, to decide upon new
+
+00:09:16.350 --> 00:09:18.800
+actions given new inputs?
+
+00:09:18.800 --> 00:09:23.550
+At least for applications involving cognition
+there are new architectural and technology
+
+00:09:23.550 --> 00:09:25.579
+frontiers to explore.
+
+00:09:25.579 --> 00:09:29.630
+You have some interesting challenges ahead
+if you get interested in the future of parallel
+
+00:09:29.630 --> 00:09:30.060
+processing!

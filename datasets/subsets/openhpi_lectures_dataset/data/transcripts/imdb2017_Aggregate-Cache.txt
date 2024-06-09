@@ -1,0 +1,1629 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.300 
+The handling of aggregates
+is one of the most important
+
+2
+00:00:03.300 --> 00:00:07.700 
+query types in computers
+and in enterprise systems
+
+3
+00:00:08.800 --> 00:00:12.120 
+and we see the
+handling of aggregates
+
+4
+00:00:12.120 --> 00:00:17.000 
+being different in the
+OLTP and OLAP systems.
+
+5
+00:00:17.170 --> 00:00:20.200 
+In typical OLAP systems
+you have materialized
+
+6
+00:00:20.200 --> 00:00:25.250 
+aggregates, data cubes that
+are all static pre materialized
+
+7
+00:00:25.250 --> 00:00:27.270 
+and so on that limit
+you in your flexibility
+
+8
+00:00:27.270 --> 00:00:31.310 
+and in OLAP and OLTP systems
+you have applications
+
+9
+00:00:31.310 --> 00:00:35.350 
+that maintain those
+summary tables
+
+10
+00:00:35.350 --> 00:00:38.380 
+increasing the complexity
+of applications,
+
+11
+00:00:39.390 --> 00:00:44.440 
+the chance of errors of
+
+12
+00:00:44.440 --> 00:00:48.480 
+incorrectness and so on. So
+the goal and the idea with
+
+13
+00:00:48.480 --> 00:00:55.550 
+with this unified system
+is to execute queries
+
+14
+00:00:55.550 --> 00:00:59.590 
+with the highest flexibility
+on the highest granularity so
+
+15
+00:00:59.590 --> 00:01:02.620 
+that you can essentially
+issue any type of query
+
+16
+00:01:02.620 --> 00:01:07.670 
+and get everything
+you want to,
+
+17
+00:01:07.670 --> 00:01:13.730 
+that you want to know out of
+the system. Having such a system
+
+18
+00:01:14.740 --> 00:01:17.770 
+and having such
+applications will
+
+19
+00:01:18.780 --> 00:01:21.810 
+have a major impact on the
+workload of those systems
+
+20
+00:01:21.810 --> 00:01:24.840 
+because what we will see is, we
+will see an even higher share of
+
+21
+00:01:24.840 --> 00:01:28.880 
+those aggregate queries that
+are very resource intensive.
+
+22
+00:01:30.900 --> 00:01:33.930 
+We came up with the idea
+
+23
+00:01:33.930 --> 00:01:36.960 
+since we have this main
+delta architecture that
+
+24
+00:01:36.960 --> 00:01:39.990 
+that HANA builds on.
+But the idea was to
+
+25
+00:01:39.990 --> 00:01:43.103 
+this main delta petition
+to cache only the partial
+
+26
+00:01:43.103 --> 00:01:46.000 
+query results that go
+against the main store
+
+27
+00:01:46.106 --> 00:01:49.109 
+and compute everything else,
+aggregate everything else on the
+
+28
+00:01:49.109 --> 00:01:52.112 
+fly, all the data that is
+coming into the data storage.
+
+29
+00:01:53.113 --> 00:01:55.115 
+We support the
+
+30
+00:01:55.115 --> 00:02:00.120 
+most used aggregate
+functions, mainly sum, count,
+
+31
+00:02:00.120 --> 00:02:04.124 
+and average min and max is
+not playing such an important
+
+32
+00:02:04.124 --> 00:02:09.129 
+role. We create an
+aggregate cache entry
+
+33
+00:02:09.129 --> 00:02:12.132 
+for a unique combination
+of the table ID,
+
+34
+00:02:12.132 --> 00:02:16.136 
+the grouping attributes,
+the calculated aggregates,
+
+35
+00:02:17.137 --> 00:02:20.140 
+so the aggregate attributes,
+and the further predicates.
+
+36
+00:02:20.140 --> 00:02:24.144 
+And based on this
+combination we can then not
+
+37
+00:02:24.144 --> 00:02:28.148 
+only answer the exactly
+same queries but also
+
+38
+00:02:29.149 --> 00:02:32.152 
+small variations of the queries.
+So if you have a subset,
+
+39
+00:02:32.152 --> 00:02:35.155 
+use a subset of the
+grouping attributes
+
+40
+00:02:36.156 --> 00:02:40.160 
+for applying a HAVING
+clause on aggregate
+
+41
+00:02:40.160 --> 00:02:42.162 
+query, this can
+all be handled.
+
+42
+00:02:44.164 --> 00:02:47.167 
+But what we don't
+do is we don't
+
+43
+00:02:47.167 --> 00:02:50.170 
+maintain the aggregate
+when we have a change
+
+44
+00:02:50.170 --> 00:02:52.172 
+and change to the
+data can happen
+
+45
+00:02:53.173 --> 00:02:56.176 
+on two levels, one
+one level is an insert
+
+46
+00:02:57.177 --> 00:02:59.179 
+and insert always goes
+against delta partition.
+
+47
+00:03:00.180 --> 00:03:04.184 
+So we compensate that insert
+by the on the fly aggregation
+
+48
+00:03:05.185 --> 00:03:07.187 
+but what we can also have
+is updates and deletes.
+
+49
+00:03:08.188 --> 00:03:10.190 
+I come to that
+in a minute
+
+50
+00:03:10.190 --> 00:03:13.193 
+because that affects
+the main partition
+
+51
+00:03:13.193 --> 00:03:16.196 
+and we have to deal
+with that in some ways.
+
+52
+00:03:18.198 --> 00:03:22.202 
+This is an
+example query,
+
+53
+00:03:22.202 --> 00:03:27.207 
+that's from an ATP data schema,
+so we have a facts table
+
+54
+00:03:27.207 --> 00:03:31.211 
+that has entries
+for product
+
+55
+00:03:31.211 --> 00:03:35.215 
+movements, so incoming
+goods and outgoing goods.
+
+56
+00:03:35.215 --> 00:03:38.218 
+What we want to do is
+we wanna aggregate it
+
+57
+00:03:39.219 --> 00:03:43.223 
+and group by the date and product
+that is moved, so we have a sum
+
+58
+00:03:43.223 --> 00:03:46.226 
+of all those account, of
+all those product movements
+
+59
+00:03:46.226 --> 00:03:47.227 
+for that
+perspective date.
+
+60
+00:03:49.229 --> 00:03:55.235 
+Now when caching this query,
+what we do, we just cache the
+
+61
+00:03:55.235 --> 00:04:00.240 
+the main partition so only this
+data set has this query cached
+
+62
+00:04:01.241 --> 00:04:05.245 
+and after that query
+has been cached there
+
+63
+00:04:05.245 --> 00:04:08.248 
+might have been some
+additional records
+
+64
+00:04:08.248 --> 00:04:10.250 
+coming into the delta
+storage and we just
+
+65
+00:04:11.251 --> 00:04:14.254 
+do the on the fly aggregation
+and combine those two
+
+66
+00:04:15.255 --> 00:04:18.258 
+our relations with a
+SQL union statement
+
+67
+00:04:18.258 --> 00:04:21.261 
+to compute and deliver
+the final query results.
+
+68
+00:04:23.263 --> 00:04:26.266 
+That is the basic
+algorithm behind that.
+
+69
+00:04:27.267 --> 00:04:30.270 
+This shows the
+architecture of the
+
+70
+00:04:30.270 --> 00:04:36.276 
+system, so as you can see it's
+integrated into SAP HANA, so it's
+
+71
+00:04:36.276 --> 00:04:39.279 
+totally transparent for the
+applications, they don't have to
+
+72
+00:04:40.280 --> 00:04:44.284 
+they don't need to pre-defined
+what kind of queries what
+
+73
+00:04:44.284 --> 00:04:48.288 
+kind of aggregates want to
+materialized, it's all decided
+
+74
+00:04:48.288 --> 00:04:51.291 
+on the fly automatically
+inside the system.
+
+75
+00:04:52.292 --> 00:04:55.295 
+As you see we have interaction
+with the transaction
+
+76
+00:04:55.295 --> 00:04:59.299 
+manager which is needed to
+handle updates and deletes,
+
+77
+00:04:59.299 --> 00:05:03.303 
+so we have those bit vectors
+that deliver the current
+
+78
+00:05:03.303 --> 00:05:07.307 
+snapshot of the system
+and it maintains a
+
+79
+00:05:07.307 --> 00:05:11.311 
+a list of cache entries so that
+those are the cached aggregates
+
+80
+00:05:11.311 --> 00:05:13.313 
+and at the same
+time we have
+
+81
+00:05:13.313 --> 00:05:17.317 
+so-called cache metrics and
+those metrics are needed
+
+82
+00:05:17.317 --> 00:05:21.321 
+to decide what queries
+are kept in the cache
+
+83
+00:05:22.322 --> 00:05:25.325 
+and what queries are
+evicted from the cache,
+
+84
+00:05:25.325 --> 00:05:27.327 
+what queries are
+potentially being maintained
+
+85
+00:05:28.328 --> 00:05:34.334 
+during the merge process and
+so on. The simplest idea would
+
+86
+00:05:34.334 --> 00:05:37.337 
+be to just use
+an LRU algorithm
+
+87
+00:05:38.338 --> 00:05:42.342 
+or LFU, but
+that is lacking
+
+88
+00:05:42.342 --> 00:05:45.345 
+the cost component of a query
+and that's very essential
+
+89
+00:05:45.345 --> 00:05:49.349 
+because having a query
+that is executed multiple
+
+90
+00:05:49.349 --> 00:05:53.353 
+times, but that does
+not aggregate much or
+
+91
+00:05:53.353 --> 00:05:58.358 
+this is not very costly,
+wouldn't be very beneficial
+
+92
+00:05:58.358 --> 00:06:03.363 
+to keep that kind of query in a
+cache. We combined or we created
+
+93
+00:06:03.363 --> 00:06:08.368 
+metrics that combine the recency
+and the frequency of a query
+
+94
+00:06:09.369 --> 00:06:14.374 
+with the costs of query and that
+delivered performance improvements
+
+95
+00:06:15.375 --> 00:06:19.379 
+of over 40 %
+and even 15 %
+
+96
+00:06:19.379 --> 00:06:23.383 
+of existing cost based metrics
+because those metrics did not
+
+97
+00:06:23.383 --> 00:06:26.386 
+take into account the specific
+main data architecture.
+
+98
+00:06:31.391 --> 00:06:34.394 
+Deletes and updates,
+as I mentioned briefly,
+
+99
+00:06:35.395 --> 00:06:38.398 
+what happens when
+we have a delete
+
+100
+00:06:39.399 --> 00:06:42.402 
+of a tuple that is already
+merged into the main store?
+
+101
+00:06:43.403 --> 00:06:48.408 
+Essentially we
+have visibilities
+
+102
+00:06:49.409 --> 00:06:53.413 
+managed by bit vectors,
+so down here we have,
+
+103
+00:06:54.414 --> 00:06:56.416 
+you can see for every row we
+have a create bit vector, delete
+
+104
+00:06:56.416 --> 00:06:59.419 
+bit vector and some
+create and delete chunks.
+
+105
+00:07:00.420 --> 00:07:04.424 
+Those bit vectors, so
+as the name implies,
+
+106
+00:07:05.425 --> 00:07:09.429 
+create bit vectors set when that
+query, when that row is inserted
+
+107
+00:07:09.429 --> 00:07:12.432 
+and the delete bit vector
+is set when it's deleted.
+
+108
+00:07:13.433 --> 00:07:18.438 
+In this example
+you see that nearly
+
+109
+00:07:18.438 --> 00:07:22.442 
+all rows are visible, for our
+transaction, becides row 11.
+
+110
+00:07:23.443 --> 00:07:26.446 
+That's probably
+
+111
+00:07:26.446 --> 00:07:31.451 
+a record that has not been
+committed during the merge process
+
+112
+00:07:31.451 --> 00:07:35.455 
+so there is still a
+transaction that is running and
+
+113
+00:07:35.455 --> 00:07:39.459 
+is not yet committed, all
+the other rows are visible
+
+114
+00:07:40.460 --> 00:07:43.463 
+and a couple of rows
+have already been deleted
+
+115
+00:07:43.463 --> 00:07:47.467 
+by setting this delete
+bit vectors. Row four
+
+116
+00:07:47.467 --> 00:07:49.469 
+has been deleted, yeah
+that's only row four.
+
+117
+00:07:50.470 --> 00:07:54.474 
+Then additionally, for
+all ongoing transactions
+
+118
+00:07:55.475 --> 00:07:59.479 
+you have a set of chunks that
+define which transactions
+
+119
+00:08:00.480 --> 00:08:04.484 
+have deleted a record
+but have not yet been
+
+120
+00:08:04.484 --> 00:08:10.490 
+committed. Transaction
+two has created this
+
+121
+00:08:11.491 --> 00:08:14.494 
+record already but it has not been
+committed so it is not visible to the
+
+122
+00:08:14.494 --> 00:08:18.498 
+other transactions.
+What we do for the cache
+
+123
+00:08:19.499 --> 00:08:23.503 
+is to take this snapshot
+that we can get by
+
+124
+00:08:24.504 --> 00:08:27.507 
+combining those two bit vectors
+at the cache creation time,
+
+125
+00:08:30.510 --> 00:08:35.515 
+it is outlined here. When
+we create a cache entry,
+
+126
+00:08:36.516 --> 00:08:39.519 
+we get this so called
+consolidated bit vector
+
+127
+00:08:39.519 --> 00:08:42.522 
+which gives us a current
+snapshot the view on the system,
+
+128
+00:08:43.523 --> 00:08:46.526 
+at the cache creation time,
+store that with the cache entry
+
+129
+00:08:46.526 --> 00:08:48.528 
+then just execute the
+query main storage
+
+130
+00:08:49.529 --> 00:08:52.532 
+and combine it with the
+query on the data storage
+
+131
+00:08:52.532 --> 00:08:56.536 
+and give out the result
+and then when another query
+
+132
+00:08:56.536 --> 00:08:59.539 
+comes in we want to check
+if there has been any
+
+133
+00:09:00.540 --> 00:09:04.544 
+updates or deletes which result
+in invalidations on the main
+
+134
+00:09:04.544 --> 00:09:08.548 
+storage. We check for those
+invalidations, so there is a dirty
+
+135
+00:09:08.548 --> 00:09:12.552 
+counter that is always increased
+when we have an invalidation
+
+136
+00:09:12.552 --> 00:09:15.555 
+and when that dirty
+counter is increased
+
+137
+00:09:15.555 --> 00:09:20.560 
+we get the current delete bit
+vector of the current snapshot
+
+138
+00:09:20.560 --> 00:09:25.565 
+of the system, combine
+that with the bit vectors
+
+139
+00:09:25.565 --> 00:09:28.568 
+already stored with the
+cache entry and that
+
+140
+00:09:28.568 --> 00:09:32.572 
+gets us exact rows that have
+been invalidated and we can
+
+141
+00:09:32.572 --> 00:09:35.575 
+apply, just apply those rows to
+the cached result and retrieve
+
+142
+00:09:35.575 --> 00:09:39.579 
+it back to the user. This is
+the number of other percentage
+
+143
+00:09:39.579 --> 00:09:41.581 
+of invalidated records
+in the main storage so,
+
+144
+00:09:41.581 --> 00:09:44.584 
+I mean going
+above 50 % is
+
+145
+00:09:45.585 --> 00:09:48.588 
+or even going about
+5 % or one 1 % is
+
+146
+00:09:49.589 --> 00:09:54.594 
+highly hypothetical but
+just for this benchmark.
+
+147
+00:09:54.594 --> 00:09:57.597 
+What we do,
+what we did is,
+
+148
+00:09:57.597 --> 00:10:01.601 
+this is a strategy of doing
+this invalidation approach,
+
+149
+00:10:01.601 --> 00:10:06.606 
+we just explained
+so we take the bit
+
+150
+00:10:06.606 --> 00:10:09.609 
+vector, take that and we
+compute the the aggregate
+
+151
+00:10:10.610 --> 00:10:15.615 
+and the other one,
+this approach, is just
+
+152
+00:10:15.615 --> 00:10:18.618 
+completely re-calculating
+the aggregate on the fly
+
+153
+00:10:19.619 --> 00:10:26.626 
+and we see that those
+those two graphs
+
+154
+00:10:26.626 --> 00:10:29.629 
+needed nearly 50 %
+which is exactly the
+
+155
+00:10:30.630 --> 00:10:34.634 
+calculated
+mathematical even
+
+156
+00:10:35.635 --> 00:10:41.641 
+when they should meet. So this
+is showing that the overhead
+
+157
+00:10:41.641 --> 00:10:46.646 
+is really
+insignificant..
+
+158
+00:10:46.646 --> 00:10:52.652 
+Have you ever checked what kind
+of attributes have been changed?
+
+159
+00:10:52.652 --> 00:10:54.654 
+This has nothing to do with what's
+really happening in the system
+
+160
+00:10:54.654 --> 00:10:59.659 
+just, validation.
+
+161
+00:10:59.659 --> 00:11:06.666 
+Basically there shouldn't
+be any changes of attributes
+
+162
+00:11:06.666 --> 00:11:14.674 
+which have any influence on aggregation, it
+just a safety net. I totally agree, is just
+
+163
+00:11:14.674 --> 00:11:19.679 
+for the sake of completeness.
+When you have the data
+
+164
+00:11:20.680 --> 00:11:21.681 
+you should look at
+what type of changes
+
+165
+00:11:24.684 --> 00:11:26.686 
+are really happening and are they
+relevant for the aggregations.
+
+166
+00:11:30.690 --> 00:11:31.691 
+Most of the things I
+know are text changes.
+
+167
+00:11:34.694 --> 00:11:38.698 
+That's only, it is not a transactional
+table, just in the configuration.
+
+168
+00:11:38.698 --> 00:11:44.704 
+No, it is in the transactional
+tables, they are text associated
+
+169
+00:11:47.707 --> 00:11:54.714 
+and users take notes to change notes, that is
+the number one change. In accounting you are not
+
+170
+00:11:54.714 --> 00:11:59.719 
+allowed to change anything. You are not
+allowed to change the date, the account,
+
+171
+00:12:00.720 --> 00:12:02.722 
+the amount. You are not allowed
+to change the additional,
+
+172
+00:12:07.727 --> 00:12:12.732 
+flexible posting key, you are not
+allowed to change that. In sales
+
+173
+00:12:16.736 --> 00:12:19.739 
+orders you can change but when
+you change the sales order line
+
+174
+00:12:19.739 --> 00:12:22.742 
+item you can not change
+the product definition,
+
+175
+00:12:23.743 --> 00:12:26.746 
+maximum you delete the
+line and add a new one.
+
+176
+00:12:27.747 --> 00:12:32.752 
+Analyse this a little bit,
+probably you get some more ideas. I
+
+177
+00:12:33.753 --> 00:12:35.755 
+just going to say
+that the approach we
+
+178
+00:12:35.755 --> 00:12:40.760 
+chose is very efficient.
+Ok, another challenge, so
+
+179
+00:12:40.760 --> 00:12:44.764 
+to say, is using this
+cache for aggregate
+
+180
+00:12:44.764 --> 00:12:47.767 
+set up build or calculated
+upon multiple relations
+
+181
+00:12:48.768 --> 00:12:52.772 
+and relations meaning
+transactional data so what
+
+182
+00:12:52.772 --> 00:12:55.775 
+we often analyze what
+we found in the systems,
+
+183
+00:12:56.776 --> 00:12:59.779 
+enterprise systems was
+that many cases we have
+
+184
+00:12:59.779 --> 00:13:03.783 
+header and line
+items tables.
+
+185
+00:13:03.783 --> 00:13:06.786 
+Imagine you have
+
+186
+00:13:07.787 --> 00:13:09.789 
+the set up, you have those
+two transaction tables
+
+187
+00:13:10.790 --> 00:13:14.794 
+and you cache a query, as
+that query result is just
+
+188
+00:13:15.795 --> 00:13:18.798 
+based on the
+main partitions
+
+189
+00:13:18.798 --> 00:13:20.800 
+what do you
+do if you have
+
+190
+00:13:21.801 --> 00:13:24.804 
+that query again and compute
+the query on the delta petitions
+
+191
+00:13:25.805 --> 00:13:28.808 
+but you have some
+overlaps between,
+
+192
+00:13:28.808 --> 00:13:32.812 
+so you have join partners
+of the header delta with the
+
+193
+00:13:32.812 --> 00:13:36.816 
+items main, even if
+you don't have you
+
+194
+00:13:36.816 --> 00:13:41.821 
+you need to consider them. We
+found that there are some patterns
+
+195
+00:13:41.821 --> 00:13:44.824 
+in enterprise
+applications namely that
+
+196
+00:13:45.825 --> 00:13:48.828 
+those header and item records
+are mostly inserted within
+
+197
+00:13:48.828 --> 00:13:53.833 
+the same transaction.
+Given that, and given that
+
+198
+00:13:53.833 --> 00:13:56.836 
+the merge between those
+two tables happens
+
+199
+00:13:56.836 --> 00:13:59.839 
+somewhere at
+the same time
+
+200
+00:14:00.840 --> 00:14:03.843 
+we can infer that those
+joins do not exist and
+
+201
+00:14:03.843 --> 00:14:04.844 
+we can eliminate them.
+
+202
+00:14:07.847 --> 00:14:12.852 
+To achieve that we found
+out that we need some
+
+203
+00:14:13.853 --> 00:14:17.857 
+temporal additional
+attribute to
+
+204
+00:14:17.857 --> 00:14:21.861 
+model that semantic so that
+temporal relationship between
+
+205
+00:14:21.861 --> 00:14:25.865 
+two tuples. So on the left hand
+side you have the the header
+
+206
+00:14:25.865 --> 00:14:32.872 
+table, you have a main and a delta
+and as we can't always infer that the
+
+207
+00:14:32.872 --> 00:14:38.878 
+primary key is also incremented,
+we added an additional
+
+208
+00:14:38.878 --> 00:14:43.883 
+timestamp that is, can
+be the transaction ID
+
+209
+00:14:43.883 --> 00:14:45.885 
+or a timestamp, any
+
+210
+00:14:46.886 --> 00:14:48.888 
+temporal attribute that
+is also incremented
+
+211
+00:14:49.889 --> 00:14:52.892 
+and at that for every
+primary key insertion.
+
+212
+00:14:52.892 --> 00:14:55.895 
+When we have a
+foreign-key insert
+
+213
+00:14:56.896 --> 00:15:00.900 
+we do a look up of the primary
+key so we know the primary key,
+
+214
+00:15:01.901 --> 00:15:04.904 
+the following key
+is 100 so we look up
+
+215
+00:15:04.904 --> 00:15:07.907 
+that key and take that
+temporal attribute
+
+216
+00:15:08.908 --> 00:15:13.913 
+and store it with that
+foreign key and given that
+
+217
+00:15:15.915 --> 00:15:19.919 
+temporal relationship we can,
+during query execution time
+
+218
+00:15:20.920 --> 00:15:24.924 
+check the the max and
+the min values of those
+
+219
+00:15:24.924 --> 00:15:27.927 
+temporal attributes and those
+can be retrieved very efficiently
+
+220
+00:15:27.927 --> 00:15:31.931 
+over the dictionaries. So
+we checked the max value
+
+221
+00:15:32.932 --> 00:15:34.934 
+of the temporal
+attribute which is four
+
+222
+00:15:34.934 --> 00:15:39.939 
+and check if it's
+lower than this value,
+
+223
+00:15:39.939 --> 00:15:44.944 
+the min value which is five
+and as that is the case we
+
+224
+00:15:44.944 --> 00:15:47.947 
+can infer that there
+are no potential join
+
+225
+00:15:47.947 --> 00:15:51.951 
+partners between those two
+relations and we can just skip the
+
+226
+00:15:51.951 --> 00:15:54.954 
+whole subjoin
+in that case.
+
+227
+00:15:55.955 --> 00:15:57.957 
+The same is true with
+the other relation,
+
+228
+00:15:57.957 --> 00:16:01.961 
+so here we check if
+the max of the main,
+
+229
+00:16:02.962 --> 00:16:06.966 
+the four is smaller
+than the five
+
+230
+00:16:07.000 --> 00:16:12.972 
+so the min of that attribute
+there and that's also the
+
+231
+00:16:12.972 --> 00:16:17.977 
+case. Now as the
+merge may not be
+
+232
+00:16:17.977 --> 00:16:21.981 
+totally synchronised, we
+could have the case that
+
+233
+00:16:23.983 --> 00:16:26.986 
+the main is, sorry,
+that the item tale
+
+234
+00:16:26.986 --> 00:16:28.988 
+is merged before
+the the header table
+
+235
+00:16:29.989 --> 00:16:31.991 
+and in this case we
+would have an overlap.
+
+236
+00:16:32.992 --> 00:16:36.996 
+We can also address this
+
+237
+00:16:37.997 --> 00:16:39.999 
+problem by
+checking the same
+
+238
+00:16:40.100 --> 00:16:42.100 
+the same constraints
+and see that
+
+239
+00:16:43.100 --> 00:16:47.100 
+five is not smaller than
+five so we have to do this
+
+240
+00:16:47.100 --> 00:16:48.100 
+join in this case.
+
+241
+00:17:02.102 --> 00:17:05.102 
+That is only through
+foreign key, primary key
+
+242
+00:17:05.102 --> 00:17:10.103 
+relationships. For
+foreign key relationships
+
+243
+00:17:13.103 --> 00:17:17.103 
+it does not work when
+there is this foreign key
+
+244
+00:17:17.103 --> 00:17:21.104 
+is not unique and mean that
+it has just one primary key.
+
+245
+00:17:32.105 --> 00:17:36.105 
+No, just as
+user requested.
+
+246
+00:17:39.105 --> 00:17:42.106 
+One additional comment
+on this concept,
+
+247
+00:17:42.106 --> 00:17:47.106 
+so as you may know that
+the typical query in an
+
+248
+00:17:47.106 --> 00:17:49.106 
+enterprise system, it is
+not just joining two tables
+
+249
+00:17:49.106 --> 00:17:54.107 
+but many many other tables
+but those other tables
+
+250
+00:17:54.107 --> 00:17:58.107 
+are mostly text tables,
+configuration tables,
+
+251
+00:17:58.107 --> 00:18:01.108 
+some dimension tables
+which are fairly static so
+
+252
+00:18:02.108 --> 00:18:06.108 
+they mostly always have
+an empty delta partition
+
+253
+00:18:07.108 --> 00:18:10.109 
+and having
+that eliminates
+
+254
+00:18:14.109 --> 00:18:18.109 
+the costly join with
+the main partition.
+
+255
+00:18:19.109 --> 00:18:24.110 
+The main (join-)partners
+in further joins
+
+256
+00:18:25.110 --> 00:18:30.111 
+are the master data. Let us assume this is
+accounting and master data is the customer
+
+257
+00:18:36.000 --> 00:18:36.111 
+and we want to have
+
+258
+00:18:38.111 --> 00:18:41.112 
+aggregates per customer
+
+259
+00:18:42.112 --> 00:18:46.112 
+for a certain market,
+so that's a typical
+
+260
+00:18:46.112 --> 00:18:48.112 
+scenario where
+we can use that.
+
+261
+00:18:50.113 --> 00:18:55.113 
+Then the aggregate that we can
+reuse, the aggregate in a free
+
+262
+00:18:55.113 --> 00:18:59.113 
+form has to be an
+aggregate independent
+
+263
+00:18:59.113 --> 00:19:03.114 
+of a customer filter so it
+has to be for all customers.
+
+264
+00:19:03.114 --> 00:19:09.114 
+These intermediate
+aggregates have to be
+
+265
+00:19:10.115 --> 00:19:16.115 
+a little bit designed, otherwise if
+they are too specific, we can not
+
+266
+00:19:16.115 --> 00:19:19.115 
+use result
+sets of queries
+
+267
+00:19:20.116 --> 00:19:24.116 
+if the query is, "give me the
+revenue for all customers"
+
+268
+00:19:25.116 --> 00:19:28.116 
+we always practice with that example,
+it is nice, there are probably
+
+269
+00:19:28.116 --> 00:19:31.117 
+200 customers on a real database
+in Hamburg, it is nice to see that
+
+270
+00:19:32.117 --> 00:19:35.117 
+because we know that companies
+have much less in Potsdam.
+
+271
+00:19:40.118 --> 00:19:44.118 
+If you do this then
+you can not re-use this
+
+272
+00:19:44.118 --> 00:19:46.118 
+aggregation anywhere but
+if you do an aggregation
+
+273
+00:19:47.118 --> 00:19:51.119 
+of revenue for a certain
+period for all customers
+
+274
+00:19:51.119 --> 00:19:58.119 
+world wide, then you can
+re-use this aggregate. So the
+
+275
+00:19:58.119 --> 00:20:05.120 
+hard part is, or the harder part
+is to design this, so that is
+
+276
+00:20:05.120 --> 00:20:07.120 
+not totally free of
+
+277
+00:20:12.121 --> 00:20:17.121 
+designer intervention. When we do
+this in, for example, when we do
+
+278
+00:20:17.121 --> 00:20:21.122 
+the simulation or others
+then we we can define
+
+279
+00:20:21.122 --> 00:20:26.122 
+what intermediate
+cache we want to have.
+
+280
+00:20:26.122 --> 00:20:29.122 
+There is always a level
+where it makes sense
+
+281
+00:20:30.123 --> 00:20:34.123 
+and then you have to calculate is
+it more expensive to re-run it or
+
+282
+00:20:34.123 --> 00:20:38.123 
+is it much cheaper not to
+re run it to get this level
+
+283
+00:20:39.123 --> 00:20:42.124 
+and use this. You always use
+cache which is a little bit
+
+284
+00:20:42.124 --> 00:20:46.124 
+bigger than, probably your actual
+or not, is bigger than you actually
+
+285
+00:20:46.124 --> 00:20:51.125 
+query requires. This is
+what has to be tested.
+
+286
+00:20:52.125 --> 00:20:55.125 
+We see that in a minute with the
+simulation demo. Ok, that is good.
+
+287
+00:20:55.125 --> 00:20:58.125 
+Just before that I want
+
+288
+00:20:58.125 --> 00:21:02.126 
+to show another demo,
+what we've built was
+
+289
+00:21:02.126 --> 00:21:05.126 
+a financial and managerial
+accounting application
+
+290
+00:21:06.126 --> 00:21:11.127 
+that aggregates
+on the fly on
+
+291
+00:21:11.127 --> 00:21:15.127 
+330 million records and
+
+292
+00:21:15.127 --> 00:21:18.127 
+you see here is PNL
+(profit and loss) statement
+
+293
+00:21:20.128 --> 00:21:24.128 
+so you have your
+PNL accounts here
+
+294
+00:21:24.128 --> 00:21:27.128 
+which are grouped by
+
+295
+00:21:27.128 --> 00:21:30.129 
+the months in this
+case and as you can see
+
+296
+00:21:31.129 --> 00:21:34.129 
+the query takes
+about a second.
+
+297
+00:21:35.129 --> 00:21:40.130 
+We see that on the right
+hand inside here. But
+
+298
+00:21:41.130 --> 00:21:44.130 
+what we want to anticipate
+is an increasing
+
+299
+00:21:45.130 --> 00:21:48.130 
+share of applications and
+users issuing the same kind
+
+300
+00:21:48.130 --> 00:21:51.131 
+of queries or different queries,
+so putting the system under load
+
+301
+00:21:52.131 --> 00:21:54.131 
+and we do that
+by simulating
+
+302
+00:21:56.131 --> 00:22:01.132 
+a select load on the system and
+execute that same query again
+
+303
+00:22:02.132 --> 00:22:05.132 
+and what you see is that it
+doesn't take a second, doesn't take
+
+304
+00:22:05.132 --> 00:22:10.133 
+two seconds, can take three
+more, ten seconds whatsoever. So
+
+305
+00:22:10.133 --> 00:22:15.133 
+you see the system becomes
+slower, not as responsive and
+
+306
+00:22:15.133 --> 00:22:19.133 
+some very interactive
+applications
+
+307
+00:22:19.133 --> 00:22:23.134 
+might not be as
+usable anymore.
+
+308
+00:22:23.134 --> 00:22:25.134 
+What do I do now is
+activate the cache
+
+309
+00:22:27.134 --> 00:22:29.134 
+and re run that
+same query again
+
+310
+00:22:32.135 --> 00:22:38.135 
+and now it's already going
+lit faster, shouldn't
+
+311
+00:22:38.135 --> 00:22:41.136 
+be that fast because it's
+the first time the cache is
+
+312
+00:22:41.136 --> 00:22:44.136 
+being built up but all
+subsequent queries now
+
+313
+00:22:45.136 --> 00:22:51.137 
+should run within an instant.
+Lets do a drill down, so that
+
+314
+00:22:51.137 --> 00:22:56.137 
+takes some time because the first
+time the queries being executed.
+
+315
+00:22:59.137 --> 00:23:02.138 
+No it's not,
+sorry, there we go.
+
+316
+00:23:03.138 --> 00:23:08.138 
+Three and a half seconds
+and all subsequent queries
+
+317
+00:23:09.138 --> 00:23:13.139 
+should drop down. You
+see it, the response is
+
+318
+00:23:14.139 --> 00:23:18.139 
+is very fast but now
+the magic comes in
+
+319
+00:23:18.139 --> 00:23:24.140 
+when we simulate in transactional
+workloads, so inserting
+
+320
+00:23:25.140 --> 00:23:28.140 
+many new accounting line
+items into the system.
+
+321
+00:23:31.141 --> 00:23:34.141 
+When I go back into
+our original screen,
+
+322
+00:23:35.141 --> 00:23:38.141 
+see that the numbers from
+a on our, the profit is
+
+323
+00:23:39.141 --> 00:23:42.142 
+around 20 million and
+re doing that same query
+
+324
+00:23:44.142 --> 00:23:46.142 
+you see that now the
+numbers have been changed.
+
+325
+00:23:48.142 --> 00:23:51.143 
+We can do the same drill
+down, the same speed
+
+326
+00:23:54.143 --> 00:23:57.143 
+and see that the
+numbers change again.
+
+327
+00:23:59.143 --> 00:24:02.144 
+That all being executed
+on the system with
+
+328
+00:24:02.144 --> 00:24:06.144 
+a load of over 80% CPU
+
+329
+00:24:07.144 --> 00:24:08.144 
+utilisation, which
+is very high.

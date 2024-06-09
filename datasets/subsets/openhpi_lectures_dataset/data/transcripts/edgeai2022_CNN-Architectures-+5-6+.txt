@@ -1,0 +1,353 @@
+WEBVTT
+
+1
+00:00:00.640 --> 00:00:03.279 
+Hello and welcome! In this video,
+
+2
+00:00:03.290 --> 00:00:09.839 
+We will further introduce ConvNets architectures.
+
+3
+00:00:09.839 --> 00:00:13.080 
+ResNext is an improved version of ResNet,
+
+4
+00:00:13.080 --> 00:00:14.759 
+by the same author.
+
+5
+00:00:15.339 --> 00:00:25.359 
+It draws on the design idea of multi branch parallelism in Inception Net V3, it also tries to learn better features
+
+6
+00:00:25.359 --> 00:00:33.009 
+by decoupling the spatial and channel features.
+
+7
+00:00:33.020 --> 00:00:40.750 
+The goal is to improves accuracy without increasing complexity while reducing the number of hyper parameters.
+
+8
+00:00:41.740 --> 00:00:50.560 
+So it is in general unclear how to adapt the inception architecture to new data sets or task, especially when there are many
+
+9
+00:00:50.560 --> 00:00:54.060 
+factors and hyper parameters to be designed.
+
+10
+00:00:55.439 --> 00:01:00.359 
+But Split-Transform-Merge strategy from InceptionNet
+
+11
+00:01:00.359 --> 00:01:02.549 
+seems to be promising.
+
+12
+00:01:03.340 --> 00:01:15.230 
+Thus transfer this strategy to ResNet model can deliver a new blog design. For example, the ResNExt-101 model can achieve
+
+13
+00:01:15.239 --> 00:01:21.159 
+better accuracy than ResNExt-200 but has only 50% complexity.
+
+14
+00:01:21.739 --> 00:01:32.120 
+It achieved the second place in the ImageNet classification challenge in 2016. It can perform consistently better than ResNet
+
+15
+00:01:32.120 --> 00:01:36.060 
+on ImageNet 5K and COCO object detection task.
+
+16
+00:01:38.739 --> 00:01:39.709 
+Let's look at the ResNExt
+
+17
+00:01:39.709 --> 00:01:45.659 
+block design. It introduced a new dimension cardinality.
+
+18
+00:01:46.739 --> 00:01:54.150 
+Denoted by the characters C along with the width and depth of the input X.
+
+19
+00:01:55.239 --> 00:02:04.439 
+Here we can also simply understand C as our constraints on the channel dimensions. It replaces the original ResNet's
+
+20
+00:02:04.439 --> 00:02:12.479 
+three layer convolution block with a parallel stack of blocks of the same topology. In the figure,
+
+21
+00:02:12.479 --> 00:02:25.150 
+we can see that the author equally divides the input 256 channels into 32 paths and each path process 4 channels, after that
+
+22
+00:02:25.159 --> 00:02:28.060 
+they were merged through a point wise addition.
+
+23
+00:02:28.439 --> 00:02:34.860 
+Of course there is also an identity mapping, identity connection around this block.
+
+24
+00:02:35.439 --> 00:02:37.360 
+Just like the ResNet design.
+
+25
+00:02:38.840 --> 00:02:43.610 
+The author demonstrates three different topologies of the block design.
+
+26
+00:02:43.620 --> 00:02:51.469 
+All of them have exactly the same output. As we have already shown in the previous slides,
+
+27
+00:02:51.479 --> 00:03:02.460 
+The first design uses 1x1 convolution on each path to scale the channel number back to 256 and fed into the addition operator.
+
+28
+00:03:03.139 --> 00:03:12.810 
+And the second one will first fuse the branches by concatenation operator and then use just 1x1 convolution to learn
+
+29
+00:03:12.810 --> 00:03:16.960 
+the fused feature and fed into the addition with shortcut.
+
+30
+00:03:18.039 --> 00:03:24.060 
+But actually the most efficient method is to implement this using group convolution.
+
+31
+00:03:24.939 --> 00:03:29.610 
+We just said the group number to equal the cardinality parameter C.
+
+32
+00:03:29.620 --> 00:03:35.939 
+And the paper said that these three block designs are equivalent in mathematics.
+
+33
+00:03:35.949 --> 00:03:41.050 
+Therefore using group convolution is the simplest way for the implementation.
+
+34
+00:03:43.439 --> 00:03:51.949 
+Next I will briefly talk about the principle of group convolution. First, let's quickly recap the standard convolution.
+
+35
+00:03:52.120 --> 00:03:59.770 
+If you have an input feature vector with width, height and channel number, we have convolution filter with the kernel size
+
+36
+00:03:59.770 --> 00:04:03.379 
+K * K * (input channel number).
+
+37
+00:04:03.400 --> 00:04:12.889 
+So basically both channel numbers are the same and after the convolution operation we will have the output feature tensor
+
+38
+00:04:12.900 --> 00:04:14.490 
+with the size H-prime
+
+39
+00:04:14.490 --> 00:04:16.449 
+and W-prime.
+
+40
+00:04:17.639 --> 00:04:30.540 
+So if we have another filter here indicated by another color, then we have another output feature map.
+
+41
+00:04:30.540 --> 00:04:31.930 
+In the group convolution,
+
+42
+00:04:31.939 --> 00:04:35.759 
+We will have a new hyper parameter, the group number G.
+
+43
+00:04:36.339 --> 00:04:41.810 
+The number of channels C will be evenly divided by G.
+
+44
+00:04:41.819 --> 00:04:45.060 
+And we will do the same to the convolutional filter.
+
+45
+00:04:45.839 --> 00:04:54.560 
+In the example we have a group number equals two and the input tensor will be divided into two groups and assume that we
+
+46
+00:04:54.560 --> 00:05:00.350 
+have two computers with the channel number equals half of C.
+
+47
+00:05:03.339 --> 00:05:12.000 
+And in group convolution calculation, each convolution kernel will only be applied to the corresponding group and will not
+
+48
+00:05:12.000 --> 00:05:14.329 
+be involved with other groups.
+
+49
+00:05:14.370 --> 00:05:19.550 
+In other words, the groups are relatively independent.
+
+50
+00:05:20.740 --> 00:05:29.870 
+To some extent the receptive field of each convolution kernel has been reduced but the computation overhead has also been
+
+51
+00:05:29.870 --> 00:05:33.639 
+reduced a lot.
+
+52
+00:05:33.639 --> 00:05:37.230 
+Compared with ResNet of the same number of layers,
+
+53
+00:05:37.639 --> 00:05:41.529 
+ResNext has better training and validation accuracy.
+
+54
+00:05:41.810 --> 00:05:45.350 
+It also converge faster. ResNExt101
+
+55
+00:05:45.350 --> 00:05:53.079 
+with cardinality equals 64 obtained the SOTA accuracy on ImageNet.
+
+56
+00:05:53.089 --> 00:05:57.259 
+In different comparison categories, we show them in this table.
+
+57
+00:06:01.540 --> 00:06:09.850 
+So next I want to introduce the winner of the last ImageNet classification challenge in 2017.
+
+58
+00:06:10.449 --> 00:06:21.750 
+SENet. It generalise extremely well across challenging datasets, SE blocks produced significant performance improvement
+
+59
+00:06:21.759 --> 00:06:23.649 
+for existing state of the art.
+
+60
+00:06:23.660 --> 00:06:31.980 
+Deep architectures at a minimal additional computation cost. SENets formed the foundations of the image and challenge
+
+61
+00:06:31.980 --> 00:06:42.779 
+winner model in 2017 which won the first place and the significant play reduced the top five error to 2.3% over the winner
+
+62
+00:06:42.779 --> 00:06:44.860 
+model from the previous year.
+
+63
+00:06:46.040 --> 00:06:55.779 
+So it used a global average pooling to squeeze the global feature tensor to the channel dimension 1x1xC.
+
+64
+00:06:56.740 --> 00:06:58.480 
+C denotes the channel dimensions.
+
+65
+00:06:59.040 --> 00:07:09.199 
+It creates a channel-wise feature descriptor, which embeds the global distribution of the channel-wise feature responses, enabling
+
+66
+00:07:09.199 --> 00:07:16.160 
+information from the global receptive field of the network to be leveraged by its lower layers.
+
+67
+00:07:16.639 --> 00:07:26.259 
+Then it uses the simple, fully connected layer to learn the channel-wise attention or we can also say to learn channel-wise scaling factors.
+
+68
+00:07:27.240 --> 00:07:33.889 
+So those scaling factors will be applied to the sample specific input tensor of the SE block,
+
+69
+00:07:33.889 --> 00:07:41.060 
+and to re-weight the feature maps and generate the output of the SE block.
+
+70
+00:07:41.439 --> 00:07:42.720 
+So the SE block
+
+71
+00:07:42.720 --> 00:07:49.339 
+first time introduces a channel-wise attention mechanism.
+
+72
+00:07:49.339 --> 00:07:58.939 
+This figure shows the training curve of SE-ResNet50 model compared to the original ResNet50 and the SE
+
+73
+00:07:58.939 --> 00:08:07.649 
+version ResNet has a better training and testing accuracy. As seeing that it's a plug-and-use module. Its generalization
+
+74
+00:08:07.649 --> 00:08:12.319 
+ability has been proven using different deep network architectures.
+
+75
+00:08:12.329 --> 00:08:14.660 
+It has been shown in the table.
+
+76
+00:08:15.139 --> 00:08:19.959 
+It can always improve the accuracy with negligible computation overhead.
+
+77
+00:08:20.740 --> 00:08:29.350 
+SENet also showed its effectiveness on the various downstream task, such as detection and semantic segmentation.
+
+78
+00:08:33.039 --> 00:08:34.429 
+After SENet,
+
+79
+00:08:34.440 --> 00:08:41.460 
+There were also some advanced attention mechanisms have been proposed, such as SKNet and ResNeSt.
+
+80
+00:08:42.139 --> 00:08:50.980 
+For example, in ResNeSt model, first, the feature flow is split into more fine grained spatial dimensions, which is similar
+
+81
+00:08:50.980 --> 00:08:51.539 
+to ResNeXt
+
+82
+00:08:51.539 --> 00:08:54.950 
+strategy to obtain multiple branches.
+
+83
+00:08:55.639 --> 00:09:04.490 
+It is called the cardinal groups in this work and then the channel wise correlation of features are learned separately on the
+
+84
+00:09:04.490 --> 00:09:09.559 
+branches to perform more refined channel feature calibration.
+
+85
+00:09:10.029 --> 00:09:18.559 
+In short, it handles the channel wise attention, more fine-grained and SKNet did a similar job.
+
+86
+00:09:18.570 --> 00:09:22.070 
+I will not continue to explore further here.
+
+87
+00:09:22.080 --> 00:09:29.759 
+But if you are interested in more details, you may want to read the corresponding paper at the bottom of the page.
+
+88
+00:09:32.940 --> 00:09:34.460 
+Thank you for watching the video.

@@ -1,0 +1,3667 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.520
+The following content is
+provided under a Creative
+
+00:00:02.520 --> 00:00:03.970
+Commons license.
+
+00:00:03.970 --> 00:00:06.330
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.330 --> 00:00:10.660
+continue to offer high-quality
+educational resources for free.
+
+00:00:10.660 --> 00:00:13.320
+To make a donation or
+view additional materials
+
+00:00:13.320 --> 00:00:17.170
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.170 --> 00:00:18.370
+at ocw.mit.edu.
+
+00:00:21.900 --> 00:00:23.735
+RUSS TEDRAKE: OK,
+so last time we
+
+00:00:23.735 --> 00:00:25.110
+talked about
+non-linear dynamics.
+
+00:00:25.110 --> 00:00:26.130
+We drew phase plots.
+
+00:00:26.130 --> 00:00:28.260
+We talked about
+basins of attraction.
+
+00:00:28.260 --> 00:00:31.380
+We talked about fixed points.
+
+00:00:31.380 --> 00:00:34.980
+And we hinted at control, and
+I tried to motivate control
+
+00:00:34.980 --> 00:00:39.780
+not as some nice matrix
+manipulation of equations,
+
+00:00:39.780 --> 00:00:42.797
+but actually by thinking
+about phase plots and saying,
+
+00:00:42.797 --> 00:00:44.880
+you're going to move that
+phase plot a little bit.
+
+00:00:44.880 --> 00:00:46.338
+You're going to
+reshape it in order
+
+00:00:46.338 --> 00:00:48.390
+to bend the system
+to your will right--
+
+00:00:48.390 --> 00:00:49.380
+but just a little bend.
+
+00:00:49.380 --> 00:00:51.600
+You're only allowed a little
+building in this class.
+
+00:00:51.600 --> 00:00:55.377
+OK, so today we're going
+to make good on that idea,
+
+00:00:55.377 --> 00:00:57.960
+but we're going to do it on an
+even simpler system first, just
+
+00:00:57.960 --> 00:00:58.830
+today.
+
+00:00:58.830 --> 00:01:00.997
+We're going to do it on the
+double integrator, which
+
+00:01:00.997 --> 00:01:02.750
+is q double dot equals u--
+
+00:01:09.710 --> 00:01:14.120
+because here I can do everything
+analytically on the board.
+
+00:01:14.120 --> 00:01:16.910
+If you want a physical
+interpretation of that--
+
+00:01:16.910 --> 00:01:18.320
+which I always like--
+
+00:01:18.320 --> 00:01:25.790
+you can think of this
+as a brick of unit mass
+
+00:01:25.790 --> 00:01:29.300
+on ice, where you provide
+as a control input
+
+00:01:29.300 --> 00:01:31.970
+a force, like this.
+
+00:01:31.970 --> 00:01:34.670
+[INAUDIBLE] force equals
+u, and there's no friction,
+
+00:01:34.670 --> 00:01:35.990
+and mass equals 1.
+
+00:01:38.840 --> 00:01:43.250
+What we're going to try to do
+with this double integrator is
+
+00:01:43.250 --> 00:01:45.920
+roughly, we're going to
+try to drive it to some--
+
+00:01:45.920 --> 00:01:46.650
+to the origin.
+
+00:01:46.650 --> 00:01:50.243
+We're going to try to
+drive it to zero position--
+
+00:01:53.458 --> 00:01:55.250
+I guess that's negative
+x in this picture--
+
+00:01:55.250 --> 00:01:58.760
+and with 0 velocity.
+
+00:01:58.760 --> 00:02:03.860
+It turns out there's
+lots of ways to do that.
+
+00:02:03.860 --> 00:02:06.830
+And the goal here is to
+make you think about ways
+
+00:02:06.830 --> 00:02:09.500
+to do that that involve
+invoking optimality,
+
+00:02:09.500 --> 00:02:12.050
+because that's going to be
+our computational crutch
+
+00:02:12.050 --> 00:02:14.520
+for the rest of the term.
+
+00:02:14.520 --> 00:02:15.020
+OK.
+
+00:02:19.040 --> 00:02:22.220
+I've been trying
+to bring the tools
+
+00:02:22.220 --> 00:02:24.240
+from the different
+disciplines all together.
+
+00:02:24.240 --> 00:02:28.610
+So let me start by doing
+just a quick pole placement
+
+00:02:28.610 --> 00:02:31.400
+analysis, for those of you
+that don't think about poles
+
+00:02:31.400 --> 00:02:35.790
+and linear systems that much.
+
+00:02:35.790 --> 00:02:39.320
+So if I want to write the--
+
+00:02:39.320 --> 00:02:42.710
+a state space form
+this equation-- again,
+
+00:02:42.710 --> 00:02:45.470
+I've always tried to use q
+just to be my coordinates,
+
+00:02:45.470 --> 00:02:49.140
+and I'll use x to
+be my state vector.
+
+00:02:49.140 --> 00:02:58.667
+So a state space form of this
+is going to use vector x to be,
+
+00:02:58.667 --> 00:02:59.750
+in this case, q and q dot.
+
+00:03:02.930 --> 00:03:06.680
+And that dynamics there is
+the simplest state space
+
+00:03:06.680 --> 00:03:13.380
+form you're going to see, but
+a state space linear equation
+
+00:03:13.380 --> 00:03:17.780
+will have the form Ax plus Bu.
+
+00:03:17.780 --> 00:03:28.760
+In our case, it's going to be
+the trivial 0,1' 0, 0; and x
+
+00:03:28.760 --> 00:03:35.432
+plus 0, 1 times u.
+
+00:03:35.432 --> 00:03:37.310
+OK, it's not going to
+get easier than that,
+
+00:03:37.310 --> 00:03:38.900
+but we're going
+to use that form,
+
+00:03:38.900 --> 00:03:40.108
+because that's going to help.
+
+00:03:43.250 --> 00:03:48.190
+OK, our goal now is to design u.
+
+00:03:48.190 --> 00:03:50.692
+We want to come up with
+a control action u--
+
+00:03:50.692 --> 00:03:52.900
+which you can think of as
+being a force on the brick,
+
+00:03:52.900 --> 00:03:54.040
+let's say--
+
+00:03:54.040 --> 00:03:57.640
+which drives the system to 0.
+
+00:03:57.640 --> 00:04:05.380
+So in general, our goal is
+to design some feedback law--
+
+00:04:05.380 --> 00:04:09.340
+I use pi for my
+control policies--
+
+00:04:09.340 --> 00:04:10.540
+which is a function of x.
+
+00:04:15.320 --> 00:04:17.430
+Let's start by doing
+the linear thing.
+
+00:04:17.430 --> 00:04:23.480
+Let's start with
+considering [INAUDIBLE]
+
+00:04:23.480 --> 00:04:29.735
+of the form of negative
+kx, where k is a matrix.
+
+00:04:29.735 --> 00:04:31.360
+Well, actually, what
+is k in this case?
+
+00:04:34.720 --> 00:04:36.160
+AUDIENCE: [INAUDIBLE]
+
+00:04:36.160 --> 00:04:37.660
+RUSS TEDRAKE: 1 by 2, right?
+
+00:04:37.660 --> 00:04:53.020
+So it's going to be k1, k2
+times x, which is my q, q dot--
+
+00:04:53.020 --> 00:04:57.993
+equivalent of saying
+negative k1q minus k2 q dot.
+
+00:04:57.993 --> 00:04:59.410
+So many of you
+will recognize this
+
+00:04:59.410 --> 00:05:02.980
+as a proportional
+derivative controller form.
+
+00:05:07.060 --> 00:05:09.700
+OK, so if I take this
+u equals negative x
+
+00:05:09.700 --> 00:05:12.910
+and I start thinking about
+what that-- if I change k,
+
+00:05:12.910 --> 00:05:15.490
+what happens to
+my control system?
+
+00:05:15.490 --> 00:05:18.170
+That's easy to do
+in linear systems.
+
+00:05:18.170 --> 00:05:23.290
+So if I stick that gain
+matrix in, then what I get
+
+00:05:23.290 --> 00:05:26.560
+is a closed loop system,
+which is A minus--
+
+00:05:26.560 --> 00:05:43.910
+sorry-- minus Bk x, which
+is just the system 0, 1;
+
+00:05:43.910 --> 00:05:47.321
+negative k1, negative k2; x.
+
+00:05:50.040 --> 00:05:53.450
+OK, and if you've had a class
+on differential equations,
+
+00:05:53.450 --> 00:05:54.830
+you know how to solve that.
+
+00:05:58.790 --> 00:06:02.128
+The solution uses the
+eigenvalues of the system.
+
+00:06:02.128 --> 00:06:04.295
+You can quickly take the
+eigenvalues of that matrix.
+
+00:06:11.754 --> 00:06:23.500
+Characteristic equation out to
+be k squared minus 4k1 over 2,
+
+00:06:23.500 --> 00:06:27.490
+with eigenvectors--
+
+00:06:27.490 --> 00:06:34.330
+v1 is this, v2 is this.
+
+00:06:40.220 --> 00:06:45.770
+That's just the eigenvalues and
+eigenvectors of this matrix.
+
+00:06:54.100 --> 00:06:56.590
+So what are the conditions
+on the eigenvalues
+
+00:06:56.590 --> 00:06:59.344
+to make sure the
+system's stable?
+
+00:06:59.344 --> 00:07:00.720
+AUDIENCE: [INAUDIBLE]
+
+00:07:00.720 --> 00:07:05.610
+RUSS TEDRAKE: [INAUDIBLE]
+both negative.
+
+00:07:05.610 --> 00:07:08.113
+Potentially, we care about
+whether the system has any
+
+00:07:08.113 --> 00:07:10.530
+oscillations or not, which
+manifest themselves and whether
+
+00:07:10.530 --> 00:07:11.340
+that's--
+
+00:07:11.340 --> 00:07:12.824
+whether the thing's complex--
+
+00:07:12.824 --> 00:07:14.490
+[INAUDIBLE] complex eigenvalues.
+
+00:07:14.490 --> 00:07:17.910
+This is all things you've
+seen in plenty of classes,
+
+00:07:17.910 --> 00:07:19.770
+but the only way it's
+going to be complex
+
+00:07:19.770 --> 00:07:22.030
+is if this thing
+goes negative, right?
+
+00:07:24.570 --> 00:07:25.320
+OK.
+
+00:07:25.320 --> 00:07:27.210
+So we want a couple of things.
+
+00:07:27.210 --> 00:07:29.640
+We want both of them to be--
+
+00:07:29.640 --> 00:07:35.460
+both of these to be less than 0,
+which we can get pretty easily.
+
+00:07:35.460 --> 00:07:38.910
+And we want k2 squared
+to be bigger than 4k1.
+
+00:07:43.170 --> 00:07:46.800
+k2 squared is bigger than 4k1--
+
+00:07:46.800 --> 00:07:48.750
+then the system is
+actually overdamped.
+
+00:07:52.590 --> 00:07:55.560
+If it equals 4k1, it's
+critically damped.
+
+00:08:01.660 --> 00:08:03.720
+And it's underdamped
+if it's less than 4k1.
+
+00:08:11.550 --> 00:08:19.310
+For stability, we want lambda
+1 and 2 to be less than 0
+
+00:08:19.310 --> 00:08:20.469
+for stability.
+
+00:08:29.950 --> 00:08:33.970
+OK, so just to connect this to
+the phase plots we were talking
+
+00:08:33.970 --> 00:08:35.380
+about yesterday, you've seen--
+
+00:08:35.380 --> 00:08:39.309
+you might have seen phase
+plots first in this context,
+
+00:08:39.309 --> 00:08:42.010
+in the linear systems. context .
+
+00:08:42.010 --> 00:08:44.920
+The reason to do this
+eigenvalue decomposition
+
+00:08:44.920 --> 00:08:47.920
+is that you have these beautiful
+graphical interpretations
+
+00:08:47.920 --> 00:08:50.390
+of the solutions to the system.
+
+00:08:50.390 --> 00:08:54.670
+Let's choose a particular case.
+
+00:08:54.670 --> 00:08:56.810
+What did I pick?
+
+00:08:56.810 --> 00:08:59.788
+So let's say k1 is 1.
+
+00:08:59.788 --> 00:09:01.330
+That means I'm going
+to want to think
+
+00:09:01.330 --> 00:09:05.620
+about an overdamped system.
+
+00:09:05.620 --> 00:09:09.590
+I want k2 to be at
+least greater than 2.
+
+00:09:19.390 --> 00:09:22.780
+So I'm going to
+choose k2 equals 4.
+
+00:09:22.780 --> 00:09:29.770
+If I do that, then
+my eigenvalues
+
+00:09:29.770 --> 00:09:38.650
+work out to be negative 4
+plus or minus 16 minus 4
+
+00:09:38.650 --> 00:09:44.620
+over 2, which is negative 2 plus
+or minus the square root of 3.
+
+00:09:44.620 --> 00:09:48.910
+Square root of 3 is about 1.75.
+
+00:09:48.910 --> 00:09:55.120
+So I get negative
+0.25 and negative 3.75
+
+00:09:55.120 --> 00:09:57.040
+for my eigenvalues.
+
+00:10:02.860 --> 00:10:05.770
+OK.
+
+00:10:05.770 --> 00:10:09.797
+And the eigenvectors are
+going to be just this form.
+
+00:10:09.797 --> 00:10:12.130
+So what that allows me to do
+is make my same state space
+
+00:10:12.130 --> 00:10:19.530
+plots we were making yesterday
+where now I have q and q dot.
+
+00:10:33.850 --> 00:10:45.940
+And my first eigenvector is
+going to be 1, negative 0.25.
+
+00:10:45.940 --> 00:10:47.800
+I'll use these as quarters.
+
+00:10:47.800 --> 00:10:51.520
+So I go minus 0.25
+[INAUDIBLE] 1 here,
+
+00:10:51.520 --> 00:10:54.760
+so I get a line that
+looks like this.
+
+00:10:58.600 --> 00:10:59.110
+That's v1.
+
+00:11:04.690 --> 00:11:10.330
+And I get a line that goes
+almost 1, negative 4--
+
+00:11:10.330 --> 00:11:13.795
+so a little bit under that here.
+
+00:11:20.140 --> 00:11:21.370
+v2 is over here.
+
+00:11:25.510 --> 00:11:27.310
+OK.
+
+00:11:27.310 --> 00:11:29.978
+And the eigenvalues
+on this-- if you've
+
+00:11:29.978 --> 00:11:32.020
+seen these plots before,
+we typically [INAUDIBLE]
+
+00:11:32.020 --> 00:11:34.000
+They're both negative,
+so we're going
+
+00:11:34.000 --> 00:11:36.250
+to draw an arrow like this.
+
+00:11:36.250 --> 00:11:38.980
+Systems-- initial conditions
+that start on this
+
+00:11:38.980 --> 00:11:41.160
+will just get smaller.
+
+00:11:41.160 --> 00:11:43.660
+Initial conditions that start
+on this will also get smaller,
+
+00:11:43.660 --> 00:11:45.660
+but they can actually get
+smaller a lot quicker.
+
+00:11:54.400 --> 00:11:56.080
+Just to say a few
+of the subtleties,
+
+00:11:56.080 --> 00:11:58.570
+so I an overdamp
+system so I don't
+
+00:11:58.570 --> 00:12:00.730
+have repeated eigenvalues.
+
+00:12:00.730 --> 00:12:03.220
+I chose a overdamped system
+so I don't have oscillations,
+
+00:12:03.220 --> 00:12:04.900
+because I can make
+the same plots.
+
+00:12:04.900 --> 00:12:05.970
+But for the overdamped
+system, this
+
+00:12:05.970 --> 00:12:07.512
+is a great way to
+think about things.
+
+00:12:09.670 --> 00:12:11.800
+When I don't have repeated
+eigenvalues, the--
+
+00:12:14.530 --> 00:12:16.630
+any initial condition
+of the system
+
+00:12:16.630 --> 00:12:18.880
+can be written as a
+linear combination.
+
+00:12:18.880 --> 00:12:20.680
+That means that, when
+the system doesn't
+
+00:12:20.680 --> 00:12:26.530
+have repeated eigenvalues, the
+eigenvectors span the space.
+
+00:12:26.530 --> 00:12:29.500
+Any initial conditions can be
+written as a linear combination
+
+00:12:29.500 --> 00:12:30.580
+of the two eigenvalues.
+
+00:12:33.250 --> 00:12:37.030
+And the dynamics from
+this point are just
+
+00:12:37.030 --> 00:12:41.510
+the exponential
+dynamics on the--
+
+00:12:41.510 --> 00:12:43.930
+of the two components.
+
+00:12:43.930 --> 00:12:44.880
+I don't know.
+
+00:12:44.880 --> 00:12:47.130
+Tell me if you want me to
+say that again in a more--
+
+00:12:51.700 --> 00:12:55.600
+it's not really the focus,
+but if you understand that,
+
+00:12:55.600 --> 00:12:56.970
+you got the whole thing here.
+
+00:12:56.970 --> 00:13:01.360
+So what it means is you could
+take any initial condition-- it
+
+00:13:01.360 --> 00:13:04.570
+turns out, any initial condition
+when I have eigen vectors which
+
+00:13:04.570 --> 00:13:06.070
+span the space.
+
+00:13:06.070 --> 00:13:09.460
+I'm guaranteed to have that,
+if I have unique eigenvalues.
+
+00:13:12.070 --> 00:13:15.700
+Then I can write this as a
+combination of these vectors.
+
+00:13:20.840 --> 00:13:24.140
+I've got one component like this
+and one component like this.
+
+00:13:24.140 --> 00:13:26.170
+This initial condition--
+if I say this is x0--
+
+00:13:30.970 --> 00:13:36.610
+so I can say x0 is alpha 1
+times v1 plus alpha 2 times v2.
+
+00:13:41.110 --> 00:13:47.950
+We know that initial conditions
+that are just on the line v1
+
+00:13:47.950 --> 00:13:52.420
+go e to the negative lambda--
+
+00:13:52.420 --> 00:13:58.270
+or e to the lambda t
+v1, so the whole system
+
+00:13:58.270 --> 00:14:02.680
+goes alpha 1 e to the
+negative lamb-- oh, sorry.
+
+00:14:02.680 --> 00:14:07.690
+I've got negative eigenvalues--
+to the lambda t v1 plus alpha 2
+
+00:14:07.690 --> 00:14:12.340
+e to the lambda 2 t v2.
+
+00:14:15.460 --> 00:14:21.110
+That's the great thing about
+all these linear systems.
+
+00:14:21.110 --> 00:14:24.280
+So what that means is, if
+I've drawn the eigenvectors,
+
+00:14:24.280 --> 00:14:28.030
+then I know exactly the entire
+phase plot of the system.
+
+00:14:28.030 --> 00:14:30.550
+So we're connecting
+back to the pendulum.
+
+00:14:30.550 --> 00:14:33.190
+I went through in all
+the different places.
+
+00:14:33.190 --> 00:14:35.080
+I thought about what
+the contributions
+
+00:14:35.080 --> 00:14:36.452
+were and mapped it out.
+
+00:14:36.452 --> 00:14:37.660
+Here I don't have to do that.
+
+00:14:37.660 --> 00:14:41.380
+I know that this system is
+going to-- the component--
+
+00:14:41.380 --> 00:14:44.260
+the space that has--
+in this eigenvalue
+
+00:14:44.260 --> 00:14:46.425
+is going to decay
+quickly towards 0.
+
+00:14:46.425 --> 00:14:48.550
+And it's going to decay
+faster than this one, which
+
+00:14:48.550 --> 00:14:52.240
+means an initial condition like
+this is going to go like this.
+
+00:14:52.240 --> 00:14:55.360
+I should have used one of my
+many other colors to do that.
+
+00:14:59.080 --> 00:15:01.270
+Looks like a blue--
+
+00:15:01.270 --> 00:15:05.860
+so trajectories from
+that initial condition
+
+00:15:05.860 --> 00:15:08.710
+are going to do that.
+
+00:15:08.710 --> 00:15:13.210
+And trajectories from
+this initial condition
+
+00:15:13.210 --> 00:15:15.515
+are going to-- what
+are they going to do,
+
+00:15:15.515 --> 00:15:16.390
+if I start over here?
+
+00:15:19.810 --> 00:15:22.120
+They're going to go mostly
+down, and eventually we
+
+00:15:22.120 --> 00:15:24.580
+think it's stable, so it's
+going to get to the origin.
+
+00:15:24.580 --> 00:15:29.777
+I can even do my
+filled in circle there.
+
+00:15:29.777 --> 00:15:32.110
+When are they going to start
+bending towards the origin?
+
+00:15:35.098 --> 00:15:36.100
+AUDIENCE: [INAUDIBLE]
+
+00:15:36.100 --> 00:15:40.900
+RUSS TEDRAKE: Later-- they
+have to pass this before--
+
+00:15:40.900 --> 00:15:43.240
+they have to pass that and
+get the negative velocities
+
+00:15:43.240 --> 00:15:45.370
+before they can hook back in.
+
+00:15:45.370 --> 00:15:51.400
+So the trajectories look
+like this, and go in.
+
+00:15:51.400 --> 00:15:53.920
+Yeah?
+
+00:15:53.920 --> 00:15:57.310
+And likewise, so all
+these trajectories--
+
+00:15:57.310 --> 00:16:05.140
+you can map out the entire
+phase portrait of the space
+
+00:16:05.140 --> 00:16:09.610
+pretty quickly just by
+understanding the eigenvalues
+
+00:16:09.610 --> 00:16:10.745
+and eigenvectors.
+
+00:16:14.553 --> 00:16:15.720
+Same thing's true over here.
+
+00:16:24.566 --> 00:16:27.500
+OK, so there's another example
+of a phase plot that we have.
+
+00:16:27.500 --> 00:16:29.840
+In the linear systems,
+it works out to be clean.
+
+00:16:29.840 --> 00:16:32.600
+You can just do these
+eigenvalues, eigenvectors.
+
+00:16:32.600 --> 00:16:40.340
+OK, now, control-- we're
+allowed to change k1 and k2.
+
+00:16:40.340 --> 00:16:45.287
+Changing k1 and k2 is going
+to change the phase portrait.
+
+00:16:45.287 --> 00:16:46.745
+It's going to change
+those vectors.
+
+00:16:49.880 --> 00:16:55.148
+I want to change them to
+make it do whatever I want.
+
+00:16:55.148 --> 00:16:57.440
+The first discussion is, what
+do we want to make it do?
+
+00:17:03.200 --> 00:17:05.750
+Maybe even before that,
+I should observe that,
+
+00:17:05.750 --> 00:17:10.880
+without thinking about
+optimality at all,
+
+00:17:10.880 --> 00:17:15.349
+it would be easy to
+stop here, because I--
+
+00:17:15.349 --> 00:17:20.480
+if I look at this carefully,
+as long as I choose k squared--
+
+00:17:20.480 --> 00:17:22.880
+k2 squared greater than 4, K1.
+
+00:17:22.880 --> 00:17:26.420
+I know I'm going
+to not oscillate.
+
+00:17:26.420 --> 00:17:29.630
+And I can just
+start driving k1--
+
+00:17:29.630 --> 00:17:34.700
+and correspondingly, k2--
+up as high as I like,
+
+00:17:34.700 --> 00:17:37.310
+and make the system get to
+the origin as fast as I want,
+
+00:17:37.310 --> 00:17:38.360
+and it won't oscillate.
+
+00:17:41.330 --> 00:17:45.490
+Why not just drive them
+all the way to infinity?
+
+00:17:45.490 --> 00:17:47.450
+AUDIENCE: [INAUDIBLE]
+
+00:17:47.450 --> 00:17:48.740
+RUSS TEDRAKE: You can't--
+don't have a motive to do that.
+
+00:17:48.740 --> 00:17:50.930
+That's the first
+unsatisfying thing--
+
+00:17:50.930 --> 00:17:52.257
+absolutely.
+
+00:17:52.257 --> 00:17:53.840
+Probably there's
+some unmodeled thing.
+
+00:17:53.840 --> 00:17:55.290
+Even if I did have a
+motive that could do that,
+
+00:17:55.290 --> 00:17:56.990
+there's probably
+some unmodeled things
+
+00:17:56.990 --> 00:18:00.310
+that I might excite, and cause
+bad things to happen anyways.
+
+00:18:00.310 --> 00:18:01.190
+AUDIENCE: [INAUDIBLE]
+
+00:18:01.190 --> 00:18:02.480
+RUSS TEDRAKE: You could melt
+the ice and it'll break.
+
+00:18:02.480 --> 00:18:03.860
+That's right.
+
+00:18:03.860 --> 00:18:04.460
+That's right.
+
+00:18:04.460 --> 00:18:05.835
+I guess I could
+have said wheels,
+
+00:18:05.835 --> 00:18:10.100
+and then maybe they'd
+melt the tires.
+
+00:18:10.100 --> 00:18:12.500
+OK.
+
+00:18:12.500 --> 00:18:14.060
+And you can see
+that here, actually.
+
+00:18:14.060 --> 00:18:14.560
+Remember?
+
+00:18:17.390 --> 00:18:21.290
+What is the unactuated phase
+plot of the system look like?
+
+00:18:21.290 --> 00:18:23.450
+I can just draw that.
+
+00:18:23.450 --> 00:18:27.230
+If u was just uniformally
+0, if k1 and k2 were 0,
+
+00:18:27.230 --> 00:18:31.270
+what would the phase
+have looked like there?
+
+00:18:31.270 --> 00:18:35.808
+AUDIENCE: [INAUDIBLE]
+
+00:18:35.808 --> 00:18:37.350
+RUSS TEDRAKE: It
+would have just been
+
+00:18:37.350 --> 00:18:42.090
+x dot equals A of x,
+where A is this guy.
+
+00:18:46.410 --> 00:18:49.350
+So it wouldn't have
+been as interesting.
+
+00:18:49.350 --> 00:18:54.140
+Every point would have just
+had a vector like this.
+
+00:18:54.140 --> 00:18:57.960
+It would have been a little
+bigger with bigger velocities,
+
+00:18:57.960 --> 00:18:58.860
+but it's just--
+
+00:18:58.860 --> 00:19:03.180
+it would just be
+a flow like that,
+
+00:19:03.180 --> 00:19:06.030
+which I hope is what
+you'd expect it to do,
+
+00:19:06.030 --> 00:19:08.040
+since it's an integrator.
+
+00:19:08.040 --> 00:19:09.450
+Things are just going to--
+
+00:19:09.450 --> 00:19:13.200
+off into the ether.
+
+00:19:13.200 --> 00:19:15.540
+OK.
+
+00:19:15.540 --> 00:19:16.380
+So if I consider--
+
+00:19:16.380 --> 00:19:19.680
+I started with this, and
+I'm getting out things that
+
+00:19:19.680 --> 00:19:22.320
+look like this, I'm already--
+
+00:19:22.320 --> 00:19:26.160
+in my unitless cartoon
+here, it's sort of already
+
+00:19:26.160 --> 00:19:28.710
+looks like I'm using a lot of
+torque to do what I'm doing.
+
+00:19:28.710 --> 00:19:31.440
+I'm using a lot of force.
+
+00:19:31.440 --> 00:19:33.150
+I'm really
+significantly changing
+
+00:19:33.150 --> 00:19:35.430
+those dynamics in order
+to bend this thing
+
+00:19:35.430 --> 00:19:37.050
+to come around like that.
+
+00:19:37.050 --> 00:19:38.850
+That's OK, but we can do better.
+
+00:19:42.720 --> 00:19:45.960
+So today I want to
+use this system, which
+
+00:19:45.960 --> 00:19:51.780
+I think it's quite easy to
+have strong intuition for,
+
+00:19:51.780 --> 00:19:54.868
+to start designing optimal
+feedback controllers.
+
+00:19:59.240 --> 00:20:02.270
+So let's address the we
+don't have infinite torque
+
+00:20:02.270 --> 00:20:02.990
+problem first.
+
+00:20:23.770 --> 00:20:26.215
+One more comment on this--
+
+00:20:26.215 --> 00:20:28.390
+I didn't actually
+call them poles--
+
+00:20:28.390 --> 00:20:30.460
+there's a pole placement
+version of this too.
+
+00:20:30.460 --> 00:20:32.025
+It's exactly the same thing.
+
+00:20:32.025 --> 00:20:33.400
+If you were to
+draw a root locus,
+
+00:20:33.400 --> 00:20:35.440
+what would the system look like?
+
+00:20:39.280 --> 00:20:41.110
+The typical root
+locus would be you're
+
+00:20:41.110 --> 00:20:46.300
+multiplying the entire
+feedback by some linear term.
+
+00:20:46.300 --> 00:20:49.850
+You're not scaling them
+in some squared law,
+
+00:20:49.850 --> 00:20:52.840
+so what you get is, for
+very small feedback gains,
+
+00:20:52.840 --> 00:20:54.580
+you get oscillations.
+
+00:20:54.580 --> 00:20:59.290
+As you crank it up, the poles
+connect in the left half plane,
+
+00:20:59.290 --> 00:21:01.600
+and then they separate.
+
+00:21:01.600 --> 00:21:03.670
+And as I keep turning
+up my gains, one of them
+
+00:21:03.670 --> 00:21:04.753
+creeps towards the origin.
+
+00:21:04.753 --> 00:21:07.508
+The other one goes off
+really far to infinity.
+
+00:21:07.508 --> 00:21:09.550
+So just those of you think
+about poles and zeros,
+
+00:21:09.550 --> 00:21:12.220
+this is exactly the
+same way to say that.
+
+00:21:12.220 --> 00:21:14.920
+I didn't do a root locus because
+I was changing two parameters,
+
+00:21:14.920 --> 00:21:16.360
+but it all connects.
+
+00:21:21.810 --> 00:21:26.100
+OK, so now, let's say I
+have a hard constraint
+
+00:21:26.100 --> 00:21:27.825
+on what u I can provide.
+
+00:21:31.470 --> 00:21:44.580
+Let's just say that I have an
+additional constraint that's,
+
+00:21:44.580 --> 00:21:48.790
+let's say, the absolute value
+of u has got to be less than 1.
+
+00:21:54.580 --> 00:21:59.870
+Well, that changes
+a lot of things.
+
+00:21:59.870 --> 00:22:06.100
+My linear system analysis
+is impoverished now.
+
+00:22:06.100 --> 00:22:10.540
+If you want a graphical version
+of what that's doing, that's--
+
+00:22:10.540 --> 00:22:14.070
+my zero input looked like that.
+
+00:22:14.070 --> 00:22:16.210
+I wanted to go like this
+with my linear controller,
+
+00:22:16.210 --> 00:22:18.085
+but maybe it's capped
+at something like this.
+
+00:22:21.073 --> 00:22:22.990
+OK, so what's that going
+to do to your system?
+
+00:22:29.505 --> 00:22:35.730
+If I just ran the policy
+u is some saturation, say,
+
+00:22:35.730 --> 00:22:39.630
+on negative kx, I took my same
+feedback-- linear feedback
+
+00:22:39.630 --> 00:22:43.440
+controller and I just said,
+if it's greater than 1 it's 1;
+
+00:22:43.440 --> 00:22:48.470
+if it's less than negative
+1, it's negative 1,
+
+00:22:48.470 --> 00:22:50.810
+I think you're still OK.
+
+00:22:50.810 --> 00:22:53.120
+Trajectories are still
+going to get to the origin.
+
+00:22:53.120 --> 00:22:57.163
+They might take fairly
+long routes to the origin.
+
+00:22:57.163 --> 00:22:58.580
+You're not going
+to lose stability
+
+00:22:58.580 --> 00:23:02.420
+in this case because
+of that, but it
+
+00:23:02.420 --> 00:23:04.503
+starts to feel like,
+man, I should really
+
+00:23:04.503 --> 00:23:06.170
+be thinking about
+those hard constraints
+
+00:23:06.170 --> 00:23:09.120
+when I design my controller.
+
+00:23:09.120 --> 00:23:11.030
+All right.
+
+00:23:11.030 --> 00:23:12.357
+So how do we do that?
+
+00:23:12.357 --> 00:23:13.940
+One way to do that
+is optimal control.
+
+00:23:13.940 --> 00:23:15.232
+It's not the only way to do it.
+
+00:23:17.508 --> 00:23:19.300
+Let's formulate an
+optimal control problem.
+
+00:23:22.580 --> 00:23:26.360
+Let me sync up with my notes
+so I don't go too far afield.
+
+00:23:30.350 --> 00:23:33.230
+OK.
+
+00:23:33.230 --> 00:23:37.340
+Let's say my goal in life is
+to get to the origin as fast
+
+00:23:37.340 --> 00:23:40.910
+as possible in minimum time.
+
+00:23:40.910 --> 00:23:44.248
+But I'm subject to
+this constraint.
+
+00:23:44.248 --> 00:23:46.040
+So that's the famous
+minimum time problem--
+
+00:24:15.240 --> 00:24:18.661
+subject to that constraint.
+
+00:24:21.750 --> 00:24:22.605
+OK.
+
+00:24:22.605 --> 00:24:23.970
+AUDIENCE: [INAUDIBLE]
+
+00:24:23.970 --> 00:24:24.720
+RUSS TEDRAKE: Yes.
+
+00:24:24.720 --> 00:24:25.230
+What do we want?
+
+00:24:25.230 --> 00:24:27.022
+Both the position and
+the velocity to be 0.
+
+00:24:30.512 --> 00:24:32.220
+Turns out you need
+this constraint for it
+
+00:24:32.220 --> 00:24:34.590
+to be a well-posed problem.
+
+00:24:34.590 --> 00:24:36.810
+If I didn't have constraints
+on u, then, like I said,
+
+00:24:36.810 --> 00:24:38.813
+I would just use as
+much u as possible.
+
+00:24:38.813 --> 00:24:40.230
+I would get there
+infinitely fast,
+
+00:24:40.230 --> 00:24:41.800
+and we haven't
+learned a whole lot.
+
+00:24:44.430 --> 00:24:49.960
+There are other ways to penalize
+u or something like that,
+
+00:24:49.960 --> 00:24:52.420
+but we're going to put a
+hard constraint on it here.
+
+00:24:52.420 --> 00:24:56.670
+OK, now, muster all your
+intuition about bricks and ice
+
+00:24:56.670 --> 00:24:57.720
+and tell me--
+
+00:24:57.720 --> 00:25:00.900
+if I've got limited
+force to give
+
+00:25:00.900 --> 00:25:05.100
+and I want to get to the
+origin as fast as possible,
+
+00:25:05.100 --> 00:25:07.995
+what should I do?
+
+00:25:07.995 --> 00:25:09.360
+AUDIENCE: Bang-bang.
+
+00:25:09.360 --> 00:25:10.610
+RUSS TEDRAKE: Bang-bang.
+
+00:25:10.610 --> 00:25:11.260
+Good.
+
+00:25:11.260 --> 00:25:12.430
+He knows the answer.
+
+00:25:12.430 --> 00:25:13.560
+What should I do?
+
+00:25:13.560 --> 00:25:16.660
+People haven't thought about
+it and don't know bang-bang is.
+
+00:25:16.660 --> 00:25:21.660
+AUDIENCE: [INAUDIBLE]
+
+00:25:21.660 --> 00:25:22.710
+RUSS TEDRAKE: Right.
+
+00:25:22.710 --> 00:25:23.520
+Right.
+
+00:25:23.520 --> 00:25:26.250
+So if I want to get there
+as fast as possible,
+
+00:25:26.250 --> 00:25:28.770
+I'm going to hit
+the accelerator,
+
+00:25:28.770 --> 00:25:32.753
+go as fast as I can until
+some critical point,
+
+00:25:32.753 --> 00:25:34.170
+where I'm going
+to hit the brakes.
+
+00:25:34.170 --> 00:25:37.040
+And I'm going to skid
+stop right into the goal.
+
+00:25:37.040 --> 00:25:38.790
+There's nothing better
+I can do than that.
+
+00:25:38.790 --> 00:25:41.910
+We're going to prove
+that, but I want
+
+00:25:41.910 --> 00:25:45.318
+to see-- that's a fairly
+complicated thing.
+
+00:25:45.318 --> 00:25:47.610
+It's something you can guess
+for the double integrator.
+
+00:25:47.610 --> 00:25:52.043
+You can't guess for a
+walking robot, for instance.
+
+00:25:52.043 --> 00:25:54.210
+But we want to get that out
+of some machinery that's
+
+00:25:54.210 --> 00:25:58.380
+going to be more general
+than double integrators.
+
+00:25:58.380 --> 00:26:12.320
+OK, so the proposition
+was bang-bang control.
+
+00:26:21.300 --> 00:26:23.790
+You might hear
+people casually say,
+
+00:26:23.790 --> 00:26:28.230
+bang-bang control's
+optimal, and that is--
+
+00:26:28.230 --> 00:26:32.340
+if you have hard limits
+on your actuators,
+
+00:26:32.340 --> 00:26:34.950
+it's very common that
+the best thing to do
+
+00:26:34.950 --> 00:26:36.795
+is to be at those
+limits all the time.
+
+00:26:36.795 --> 00:26:38.670
+If that's the way you've
+defined the problem,
+
+00:26:38.670 --> 00:26:42.970
+bang-bang control solutions
+are pretty ubiquitous.
+
+00:26:46.780 --> 00:26:48.780
+They don't always work
+that well in real robots,
+
+00:26:48.780 --> 00:26:51.990
+because actuators don't
+like to produce zero--
+
+00:26:51.990 --> 00:26:53.070
+infinite force and then--
+
+00:26:53.070 --> 00:26:55.110
+or max force and
+then negative max
+
+00:26:55.110 --> 00:26:58.440
+force within a single time step.
+
+00:27:14.410 --> 00:27:29.370
+Good-- OK, so I think the
+only subtle part about it
+
+00:27:29.370 --> 00:27:33.720
+is figuring out when I
+need to switch from hitting
+
+00:27:33.720 --> 00:27:36.405
+the gas to hitting the brakes.
+
+00:27:36.405 --> 00:27:38.280
+So let's see if we can
+figure that out first.
+
+00:27:42.683 --> 00:27:44.100
+I think a pretty
+good way to do it
+
+00:27:44.100 --> 00:27:46.830
+is to think about what
+happens if you hit the brakes.
+
+00:27:49.650 --> 00:27:51.150
+And then you want
+to hit the brakes
+
+00:27:51.150 --> 00:27:53.730
+and arrive directly at the goal.
+
+00:27:53.730 --> 00:27:56.340
+There's only going to
+be a handful of states
+
+00:27:56.340 --> 00:27:58.660
+from which, if I was
+going at some-- if I was
+
+00:27:58.660 --> 00:28:02.640
+some position and some velocity
+and I hit the brakes full now,
+
+00:28:02.640 --> 00:28:05.420
+I'm going to land
+exactly at the goal.
+
+00:28:05.420 --> 00:28:08.070
+Let's see if we can figure
+out that set of states first.
+
+00:28:15.120 --> 00:28:20.040
+Let's think about the case
+where q is greater than 0 first.
+
+00:28:20.040 --> 00:28:21.870
+Just pick a side.
+
+00:28:21.870 --> 00:28:30.615
+So in that case,
+hitting the brakes--
+
+00:28:34.560 --> 00:28:37.885
+is that positive
+1 or negative 1?
+
+00:28:37.885 --> 00:28:38.760
+AUDIENCE: [INAUDIBLE]
+
+00:28:38.760 --> 00:28:40.110
+RUSS TEDRAKE: Negative 1--
+
+00:28:40.110 --> 00:28:42.200
+no, it's positive 1.
+
+00:28:42.200 --> 00:28:43.152
+You almost got me.
+
+00:28:47.440 --> 00:28:52.690
+If q is greater than
+0, it's positive.
+
+00:28:52.690 --> 00:28:54.640
+q is greater than 0--
+
+00:28:54.640 --> 00:28:57.640
+then u is positive.
+
+00:28:57.640 --> 00:29:00.520
+I want to be pushing
+back in the direction
+
+00:29:00.520 --> 00:29:03.010
+I'm already coming from,
+so u is positive 1.
+
+00:29:05.550 --> 00:29:09.977
+All right, so now, we're going
+to have some math ahead of us.
+
+00:29:09.977 --> 00:29:11.560
+See if we can integrate
+this equation.
+
+00:29:15.130 --> 00:29:18.500
+I can do that on
+the board for you.
+
+00:29:18.500 --> 00:29:20.853
+q dot of t--
+
+00:29:20.853 --> 00:29:21.770
+I better get it right.
+
+00:29:21.770 --> 00:29:23.786
+[LAUGHTER]
+
+00:29:26.528 --> 00:29:28.900
+ut-- so in this case, it was 1--
+
+00:29:28.900 --> 00:29:30.400
+plus q dot of 0.
+
+00:29:34.850 --> 00:29:38.120
+I'll just make it a little bit
+more [INAUDIBLE] This case,
+
+00:29:38.120 --> 00:29:43.870
+it was 1, and q
+double dot of t is--
+
+00:29:43.870 --> 00:29:51.760
+sorry-- switch orders-- q0 plus
+q dot 0 t plus 1/2 ut squared.
+
+00:29:57.730 --> 00:29:59.357
+OK, I want to figure out--
+
+00:29:59.357 --> 00:30:01.967
+AUDIENCE: [INAUDIBLE]
+
+00:30:01.967 --> 00:30:03.300
+RUSS TEDRAKE: Did I screw it up?
+
+00:30:03.300 --> 00:30:04.090
+What?
+
+00:30:04.090 --> 00:30:05.860
+AUDIENCE: [INAUDIBLE]
+
+00:30:05.860 --> 00:30:07.560
+AUDIENCE: [INAUDIBLE]
+
+00:30:07.560 --> 00:30:08.560
+RUSS TEDRAKE: Oh, sorry.
+
+00:30:08.560 --> 00:30:09.060
+Sorry.
+
+00:30:09.060 --> 00:30:11.740
+Thank you-- good.
+
+00:30:11.740 --> 00:30:12.240
+Thank you.
+
+00:30:16.510 --> 00:30:21.220
+OK, so let's figure out, if
+u is 1, what trajectories
+
+00:30:21.220 --> 00:30:23.500
+are going to get me so that q--
+
+00:30:23.500 --> 00:30:28.600
+at some t final, qt
+and q dot of t are 0--
+
+00:30:28.600 --> 00:30:30.730
+simple enough--
+little manipulation.
+
+00:30:41.530 --> 00:30:47.965
+So it turns out I'm going
+to solve for q0 and q dot 0.
+
+00:31:01.850 --> 00:31:03.710
+So q dot 0--
+
+00:31:03.710 --> 00:31:05.990
+looks like that's going
+to be negative u of t.
+
+00:31:13.270 --> 00:31:15.020
+It's a little bit
+weird, my notation here.
+
+00:31:15.020 --> 00:31:16.603
+I'm saying that the
+initial conditions
+
+00:31:16.603 --> 00:31:20.277
+are moving backwards.
+
+00:31:20.277 --> 00:31:21.610
+The equations are simple enough.
+
+00:31:21.610 --> 00:31:23.530
+I hope it's OK.
+
+00:31:23.530 --> 00:31:26.350
+And q0 t had better be--
+
+00:31:28.970 --> 00:31:31.760
+it turns out to
+be 1/2 ut squared.
+
+00:31:31.760 --> 00:31:37.210
+So q dot of t is negative ut.
+
+00:31:37.210 --> 00:31:38.680
+Add those together.
+
+00:31:38.680 --> 00:31:42.760
+q0 is going to be
+1/2 ut squared.
+
+00:31:46.240 --> 00:31:48.220
+If I solve for t-- solve out t--
+
+00:31:51.766 --> 00:31:59.800
+in this case, u is 1 so t,
+say, is just negative q dot.
+
+00:32:04.960 --> 00:32:11.373
+So q of 0 is just 1/2--
+
+00:32:11.373 --> 00:32:12.040
+let's keep that.
+
+00:32:12.040 --> 00:32:18.121
+This is just 1 t
+squared q dot 0 squared.
+
+00:32:18.121 --> 00:32:27.760
+If I plot that, what I've
+got in my state space--
+
+00:32:27.760 --> 00:32:38.200
+q, q dot-- is a manifold of
+solutions, which starts at 0.
+
+00:32:38.200 --> 00:32:40.990
+And then I said that I did
+this for u is positive.
+
+00:32:46.810 --> 00:32:48.040
+And it goes like this.
+
+00:32:54.960 --> 00:32:56.280
+This one's not a solution.
+
+00:32:56.280 --> 00:32:59.772
+Where did I get that out?
+
+00:32:59.772 --> 00:33:01.230
+And one of my
+assumptions here when
+
+00:33:01.230 --> 00:33:05.662
+I inverted t or something that
+I-- that solution disappears.
+
+00:33:05.662 --> 00:33:06.870
+You can't have negative time.
+
+00:33:12.690 --> 00:33:14.310
+In fact, in my notes, I did it.
+
+00:33:14.310 --> 00:33:16.620
+I solved for the other t,
+which would have been better.
+
+00:33:16.620 --> 00:33:17.400
+Sorry.
+
+00:33:17.400 --> 00:33:23.440
+OK, so there's a line
+of solutions here--
+
+00:33:23.440 --> 00:33:26.530
+which, if I started this
+q-- this is actually
+
+00:33:26.530 --> 00:33:30.030
+the positive queue,
+negative q velocities.
+
+00:33:30.030 --> 00:33:31.710
+I hit the brakes.
+
+00:33:31.710 --> 00:33:34.770
+I go coasting into the
+stop at the origin.
+
+00:33:37.830 --> 00:33:41.310
+Turns out, if I do-- if I think
+about the negative q case,
+
+00:33:41.310 --> 00:33:43.110
+I get a similar line--
+
+00:33:43.110 --> 00:33:43.920
+similar curve.
+
+00:33:43.920 --> 00:33:46.440
+[INAUDIBLE] quadratic
+curve over here.
+
+00:33:50.123 --> 00:33:52.290
+You know what-- let me be
+a little bit more careful.
+
+00:33:52.290 --> 00:33:57.465
+Let me make that one pink,
+because this is the now u
+
+00:33:57.465 --> 00:33:58.680
+is negative 1 case.
+
+00:34:09.489 --> 00:34:09.989
+Good.
+
+00:34:15.120 --> 00:34:17.280
+We figured out the
+line of solutions
+
+00:34:17.280 --> 00:34:21.480
+where, if I hit the brakes,
+they get to the origin.
+
+00:34:21.480 --> 00:34:22.889
+Harness your intuition again.
+
+00:34:22.889 --> 00:34:25.409
+What do I do if I'm here?
+
+00:34:29.353 --> 00:34:31.330
+AUDIENCE: [INAUDIBLE]
+
+00:34:31.330 --> 00:34:32.290
+RUSS TEDRAKE: Right.
+
+00:34:32.290 --> 00:34:35.300
+This was the stopping
+all the way to the goal.
+
+00:34:35.300 --> 00:34:38.170
+So pretty much, from anywhere
+else, I want to accelerate.
+
+00:34:38.170 --> 00:34:42.082
+So what does accelerating
+look like when I'm here?
+
+00:34:42.082 --> 00:34:43.020
+AUDIENCE: [INAUDIBLE]
+
+00:34:43.020 --> 00:34:44.853
+RUSS TEDRAKE: It's going
+to put me going up.
+
+00:34:47.215 --> 00:34:55.210
+And what happens is, any
+time I'm below this curve,
+
+00:34:55.210 --> 00:34:59.620
+I'm going to drive myself up.
+
+00:34:59.620 --> 00:35:03.160
+I can't go backwards like that
+and drive myself up, hit that,
+
+00:35:03.160 --> 00:35:06.310
+and ride it in.
+
+00:35:06.310 --> 00:35:08.350
+And if I'm above the
+curve, what do I do?
+
+00:35:12.142 --> 00:35:13.033
+AUDIENCE: [INAUDIBLE]
+
+00:35:13.033 --> 00:35:14.950
+RUSS TEDRAKE: Have to
+overshoot a little bit--
+
+00:35:14.950 --> 00:35:18.090
+I can't bend down
+more than this,
+
+00:35:18.090 --> 00:35:20.650
+so I'm going to ride it
+all the way over to here,
+
+00:35:20.650 --> 00:35:25.120
+connect up to this
+surface, and ride it in.
+
+00:35:25.120 --> 00:35:29.380
+And it turns out, any time I'm
+over here, the best thing to do
+
+00:35:29.380 --> 00:35:29.890
+is to--
+
+00:35:32.440 --> 00:35:33.760
+did I get my colors wrong?
+
+00:35:33.760 --> 00:35:36.730
+Got my colors wrong--
+
+00:35:36.730 --> 00:35:37.460
+let me fix that.
+
+00:35:37.460 --> 00:35:37.960
+Sorry.
+
+00:35:40.750 --> 00:35:43.870
+It's confusing.
+
+00:35:43.870 --> 00:35:47.650
+This is the accelerate,
+and then break.
+
+00:35:47.650 --> 00:35:49.450
+And this is the break.
+
+00:36:01.440 --> 00:36:05.340
+Let me just recolor it for you
+to make it a little more clear.
+
+00:36:05.340 --> 00:36:06.080
+Sorry about that.
+
+00:36:19.465 --> 00:36:25.685
+So let's say I'm pink
+over here, blue over here.
+
+00:36:25.685 --> 00:36:26.185
+OK.
+
+00:36:28.730 --> 00:36:29.540
+I want to be pink.
+
+00:36:29.540 --> 00:36:31.440
+I want to decelerate
+just like this
+
+00:36:31.440 --> 00:36:33.773
+if I'm above it because I
+want to take these curves that
+
+00:36:33.773 --> 00:36:34.670
+are almost there.
+
+00:36:42.035 --> 00:36:43.410
+If I've got extra
+time, I'm going
+
+00:36:43.410 --> 00:36:45.702
+to accelerate to the point
+where I decelerate again, so
+
+00:36:45.702 --> 00:36:47.435
+down here should be blue.
+
+00:36:47.435 --> 00:36:48.810
+And then this is,
+again, the case
+
+00:36:48.810 --> 00:36:51.900
+where I decelerate as much as I
+can until I take the pink line.
+
+00:36:56.550 --> 00:36:59.740
+This was the u
+equals negative 1,
+
+00:36:59.740 --> 00:37:02.690
+and this was the u
+equals positive 1.
+
+00:37:08.990 --> 00:37:10.040
+OK.
+
+00:37:10.040 --> 00:37:12.260
+Is that at all satisfying?
+
+00:37:12.260 --> 00:37:17.480
+We can now connect this back
+again to your phase plot
+
+00:37:17.480 --> 00:37:18.830
+pictures.
+
+00:37:18.830 --> 00:37:23.000
+We had our initial lines
+that looked like this.
+
+00:37:23.000 --> 00:37:28.370
+[INAUDIBLE] allowed to apply
+a bounded amount of torque.
+
+00:37:28.370 --> 00:37:30.350
+So the best thing I can
+do, if I'm right here,
+
+00:37:30.350 --> 00:37:32.990
+is I can warp this thing
+down to the point where
+
+00:37:32.990 --> 00:37:34.790
+I get right there.
+
+00:37:40.310 --> 00:37:41.990
+And if I'm here,
+I can warp it up
+
+00:37:41.990 --> 00:37:44.380
+to push me here, and
+then ride it down.
+
+00:37:47.520 --> 00:37:49.920
+The hard part is actually
+showing that that's optimal.
+
+00:37:49.920 --> 00:37:52.560
+And the reason I'm going to go
+through it is because it's-- it
+
+00:37:52.560 --> 00:37:55.050
+forms the basis for all the
+algorithms that are going to be
+
+00:37:55.050 --> 00:37:55.592
+more general.
+
+00:37:59.040 --> 00:38:00.840
+So let me show you
+that that's optimal.
+
+00:38:07.560 --> 00:38:12.900
+To do that, I need to
+introduce our first optimality
+
+00:38:12.900 --> 00:38:14.550
+ideas for the course.
+
+00:38:17.196 --> 00:38:19.200
+Are people OK with the--
+
+00:38:19.200 --> 00:38:20.760
+that picture?
+
+00:38:20.760 --> 00:38:23.880
+AUDIENCE: [INAUDIBLE]
+below the line.
+
+00:38:23.880 --> 00:38:24.777
+RUSS TEDRAKE: Mm-hmm.
+
+00:38:24.777 --> 00:38:28.600
+AUDIENCE: [INAUDIBLE]
+
+00:38:28.600 --> 00:38:30.300
+RUSS TEDRAKE: So tell me where.
+
+00:38:30.300 --> 00:38:32.110
+Bottom right?
+
+00:38:32.110 --> 00:38:34.120
+OK.
+
+00:38:34.120 --> 00:38:36.180
+So this is the place
+where, if I decelerate,
+
+00:38:36.180 --> 00:38:38.310
+I get to the origin.
+
+00:38:38.310 --> 00:38:41.250
+If I'm here, then I have
+a little bit more velocity
+
+00:38:41.250 --> 00:38:43.860
+in the same position.
+
+00:38:43.860 --> 00:38:47.070
+So if I hit the brakes, I'm
+not going to stop in time.
+
+00:38:51.810 --> 00:38:53.490
+I don't quite
+decelerate fast enough
+
+00:38:53.490 --> 00:38:55.770
+to get here, because
+there's limited torque,
+
+00:38:55.770 --> 00:38:59.880
+so I just slip past it until my
+chance to come in the other way
+
+00:38:59.880 --> 00:39:00.380
+again.
+
+00:39:08.320 --> 00:39:12.810
+The only separation
+is that curve.
+
+00:39:12.810 --> 00:39:15.837
+AUDIENCE: [INAUDIBLE]
+
+00:39:15.837 --> 00:39:17.920
+RUSS TEDRAKE: Everywhere
+up here, you want to be--
+
+00:39:17.920 --> 00:39:19.132
+top left you said?
+
+00:39:19.132 --> 00:39:23.260
+AUDIENCE: [INAUDIBLE]
+
+00:39:23.260 --> 00:39:26.110
+RUSS TEDRAKE: Here, you're blue.
+
+00:39:26.110 --> 00:39:28.870
+The same way, you want to
+accelerate as much as you can,
+
+00:39:28.870 --> 00:39:30.370
+because you want
+to get to the place
+
+00:39:30.370 --> 00:39:33.280
+where you have to
+hit the brakes.
+
+00:39:33.280 --> 00:39:34.030
+This is me.
+
+00:39:34.030 --> 00:39:35.752
+I'm at some position.
+
+00:39:35.752 --> 00:39:37.210
+I don't have enough
+velocity that I
+
+00:39:37.210 --> 00:39:38.950
+have to just hit
+my brakes, so I'm
+
+00:39:38.950 --> 00:39:42.010
+going to gun it until I'm
+at the velocity where I just
+
+00:39:42.010 --> 00:39:44.920
+have to hit my brakes,
+and then ride it in.
+
+00:39:44.920 --> 00:39:48.760
+Up here, I'm at the point
+where I have too much velocity.
+
+00:39:48.760 --> 00:39:50.207
+Even if I hit my
+brakes, I'm still
+
+00:39:50.207 --> 00:39:51.790
+going to overshoot
+a little bit, which
+
+00:39:51.790 --> 00:39:53.240
+means I'm going to have to--
+
+00:39:53.240 --> 00:39:55.090
+and so you could
+think of it as now--
+
+00:39:55.090 --> 00:39:57.812
+the word brakes maybe flips
+when you flip that cross across.
+
+00:39:57.812 --> 00:39:59.020
+Maybe that's the right thing.
+
+00:39:59.020 --> 00:40:03.100
+But the action I take
+is only changing based
+
+00:40:03.100 --> 00:40:05.900
+on that switching surface--
+
+00:40:08.700 --> 00:40:11.010
+which, as you know,
+will be a nightmare
+
+00:40:11.010 --> 00:40:13.447
+for a lot of our reinforcement
+learning algorithms.
+
+00:40:13.447 --> 00:40:14.280
+This is a hard cusp.
+
+00:40:19.830 --> 00:40:22.710
+So if you have a control system
+that has a hard non-linearity
+
+00:40:22.710 --> 00:40:24.650
+like this, which is--
+
+00:40:24.650 --> 00:40:27.150
+I'm doing one thing here,
+and I'm immediately,
+
+00:40:27.150 --> 00:40:30.720
+at some discrete place,
+doing a different thing--
+
+00:40:30.720 --> 00:40:34.860
+that's a very non-linear event.
+
+00:40:34.860 --> 00:40:36.927
+And it's hard to
+get analytically
+
+00:40:36.927 --> 00:40:38.760
+when you're doing
+something more complicated
+
+00:40:38.760 --> 00:40:41.130
+than a double
+integrator, and it can
+
+00:40:41.130 --> 00:40:43.200
+be hard to get computationally.
+
+00:40:43.200 --> 00:40:46.170
+But we'll talk about
+that when the time comes.
+
+00:40:46.170 --> 00:40:53.410
+OK, so how the heck do I make an
+optimality argument about this?
+
+00:40:53.410 --> 00:40:57.178
+I want to introduce
+Pontryagin's minimum principle.
+
+00:41:15.010 --> 00:41:15.510
+OK.
+
+00:41:34.070 --> 00:41:39.020
+This is going to be a load
+of equations real quick,
+
+00:41:39.020 --> 00:41:43.130
+and we're going
+to tease them out.
+
+00:41:43.130 --> 00:41:47.330
+In general, optimal control
+problems are going to go--
+
+00:41:47.330 --> 00:41:51.050
+are going to be formulated
+by designing a cost function.
+
+00:41:51.050 --> 00:41:58.430
+That cost function is
+some scalar quantity
+
+00:41:58.430 --> 00:42:00.260
+that I want to minimize.
+
+00:42:12.300 --> 00:42:15.590
+I'm going to use the
+symbols g of x you
+
+00:42:15.590 --> 00:42:17.430
+as an instantaneous
+cost function.
+
+00:42:25.850 --> 00:42:32.540
+I'll use h of x to
+mean final costs.
+
+00:42:32.540 --> 00:42:35.080
+I'm going to show you what
+this means in a second.
+
+00:42:35.080 --> 00:42:40.240
+And I'm going to use J
+of x to be a cost-to-go.
+
+00:42:48.050 --> 00:42:52.130
+It's very important-- all
+of these are scalars--
+
+00:42:52.130 --> 00:42:55.160
+not vectors at all,
+just a scalar quantity.
+
+00:42:58.010 --> 00:43:03.200
+So a typical optimal
+control problem
+
+00:43:03.200 --> 00:43:09.320
+will be formulated as
+something like h of x capital T
+
+00:43:09.320 --> 00:43:21.650
+plus integral from 0 to T g of
+x u dt, subject to x dot of t
+
+00:43:21.650 --> 00:43:22.580
+is f of xu.
+
+00:43:22.580 --> 00:43:29.220
+Let's say the dynamics
+and x0 t is some--
+
+00:43:29.220 --> 00:43:31.830
+let me it call it x0 here--
+
+00:43:31.830 --> 00:43:32.330
+x0.
+
+00:43:40.440 --> 00:43:44.010
+This is a general
+cost function--
+
+00:43:44.010 --> 00:43:47.160
+cost-to-go function form
+for optimal control.
+
+00:43:47.160 --> 00:43:50.460
+We're going to use it a lot.
+
+00:43:50.460 --> 00:43:52.970
+There's just a couple of
+things to note about it.
+
+00:43:52.970 --> 00:43:55.638
+So just to get some
+intuition, so g of xu--
+
+00:43:55.638 --> 00:43:57.930
+that's things I'm penalizing
+throughout the trajectory.
+
+00:43:57.930 --> 00:44:08.310
+So maybe I want to do
+small actions in general,
+
+00:44:08.310 --> 00:44:10.630
+in which case, I could
+put some term in here,
+
+00:44:10.630 --> 00:44:13.770
+which penalizes
+me for having a u.
+
+00:44:13.770 --> 00:44:17.280
+I could put a u squared in
+here or something like that.
+
+00:44:17.280 --> 00:44:21.630
+Or maybe I want to
+just worry about being
+
+00:44:21.630 --> 00:44:22.830
+a long way from the origin.
+
+00:44:22.830 --> 00:44:26.000
+Maybe I'll put an x squared in
+here or something like this.
+
+00:44:28.710 --> 00:44:32.310
+h is a final cost.
+
+00:44:32.310 --> 00:44:34.050
+It's some function
+that only penalizes
+
+00:44:34.050 --> 00:44:36.100
+the final state of the system.
+
+00:44:36.100 --> 00:44:39.390
+So maybe I don't care what I'm
+doing for the first capital T
+
+00:44:39.390 --> 00:44:44.670
+seconds, but at
+time capital T, I
+
+00:44:44.670 --> 00:44:46.890
+want to penalize it
+for being away from 0--
+
+00:44:46.890 --> 00:44:49.170
+x squared here or
+something like that.
+
+00:44:49.170 --> 00:44:51.277
+There's lots of different forms.
+
+00:44:51.277 --> 00:44:52.860
+The only thing that's
+really important
+
+00:44:52.860 --> 00:44:55.360
+to note about this, the only
+really restriction in the forms
+
+00:44:55.360 --> 00:44:56.940
+that you can play
+with, is that we
+
+00:44:56.940 --> 00:45:01.140
+do tend to assume this
+form, which is additive.
+
+00:45:01.140 --> 00:45:06.270
+It's integrable-- integrates
+some scalar cost g.
+
+00:45:06.270 --> 00:45:09.460
+So I don't look at
+multiplicative contributions
+
+00:45:09.460 --> 00:45:09.960
+of--
+
+00:45:09.960 --> 00:45:13.170
+from x at time 1 and x time
+4 or something like that.
+
+00:45:13.170 --> 00:45:17.190
+I'm only looking at
+additive cost functions.
+
+00:45:17.190 --> 00:45:20.880
+Assuming that form--
+that additive cost form
+
+00:45:20.880 --> 00:45:25.380
+will make all the
+derivations work, roughly.
+
+00:45:25.380 --> 00:45:30.930
+OK, so for the minimum time
+problem, what is that form?
+
+00:45:34.907 --> 00:45:36.990
+You could formulate it a
+couple of different ways.
+
+00:46:01.565 --> 00:46:08.510
+In this case, I could actually
+have g of xu equals 1,
+
+00:46:08.510 --> 00:46:23.720
+and have capital T
+defined as the time,
+
+00:46:23.720 --> 00:46:25.490
+and have h of x equal 0.
+
+00:46:28.490 --> 00:46:34.550
+That's a perfectly reasonable
+optimal control formulation.
+
+00:46:34.550 --> 00:46:39.860
+So it certainly fits in this
+general optimal control form.
+
+00:46:44.030 --> 00:46:45.980
+OK, so now we need
+to know how to--
+
+00:46:45.980 --> 00:46:47.090
+we've got this guess.
+
+00:46:47.090 --> 00:46:50.150
+I'm going to leave that
+hard-earned picture up there.
+
+00:46:53.570 --> 00:46:54.980
+I like this one too, but--
+
+00:47:18.110 --> 00:47:20.240
+let me just say what
+Pontryagin's minimum principle
+
+00:47:20.240 --> 00:47:23.600
+is first, and then we'll
+make sure it makes sense.
+
+00:47:23.600 --> 00:47:35.150
+So for this general form, J
+of x is h of xT plus integral
+
+00:47:35.150 --> 00:47:40.610
+from 0 to T g x,
+u dt, subject to--
+
+00:47:40.610 --> 00:47:45.200
+and I'm going to try to be
+very careful about writing
+
+00:47:45.200 --> 00:47:48.500
+these all every time.
+
+00:47:58.780 --> 00:48:03.317
+Let's assume for-- to begin
+with, capital T is fixed,
+
+00:48:03.317 --> 00:48:04.650
+just a parameter somebody chose.
+
+00:48:09.176 --> 00:48:12.217
+Let's say u is
+bounded to some set u.
+
+00:48:12.217 --> 00:48:14.550
+In our problem right now, it
+was negative 1 to 1, right?
+
+00:48:22.800 --> 00:48:24.420
+The minimum principle
+goes like this.
+
+00:48:56.010 --> 00:48:58.350
+We're going to define this
+new auxiliary function,
+
+00:48:58.350 --> 00:49:33.830
+the Hamiltonian, capital H. If I
+have found some optimal control
+
+00:49:33.830 --> 00:49:34.871
+solution--
+
+00:49:42.410 --> 00:49:44.330
+I'll think of it in
+terms of-- the solution
+
+00:49:44.330 --> 00:49:48.800
+right now in terms of
+a trajectory, which
+
+00:49:48.800 --> 00:49:54.546
+is some sequence x
+star of t, u star of t.
+
+00:49:59.210 --> 00:50:04.384
+Then it must satisfy the
+following conditions.
+
+00:50:10.320 --> 00:50:15.950
+First of all, we know it must
+satisfy f of x star u star.
+
+00:50:15.950 --> 00:50:21.380
+That was already one
+of our conditions.
+
+00:50:21.380 --> 00:50:22.730
+And it has to satisfy the--
+
+00:50:30.470 --> 00:50:31.430
+OK.
+
+00:50:31.430 --> 00:50:34.040
+There's a significantly
+less trivial one,
+
+00:50:34.040 --> 00:50:42.080
+which is that p dot of t has got
+to equal to negative partial h,
+
+00:50:42.080 --> 00:50:49.970
+partial x evaluated
+at x star, u star, p--
+
+00:50:54.640 --> 00:50:57.600
+which, if h is what
+I had up there,
+
+00:50:57.600 --> 00:51:02.850
+works out to be
+partial g, partial x,
+
+00:51:02.850 --> 00:51:06.180
+plus partial f, partial x.
+
+00:51:06.180 --> 00:51:07.650
+Transpose p.
+
+00:51:21.390 --> 00:51:24.000
+And this auxillary
+variable that we
+
+00:51:24.000 --> 00:51:31.140
+had has to be the gradient of
+partial h evaluated x star t.
+
+00:51:36.990 --> 00:51:44.340
+One last condition--
+this is 1, 2, 3.
+
+00:51:47.100 --> 00:51:52.260
+u star t had better
+be the argmin
+
+00:51:52.260 --> 00:52:00.030
+over u of h of x star, u, p.
+
+00:52:08.200 --> 00:52:08.860
+OK.
+
+00:52:08.860 --> 00:52:09.910
+Sorry.
+
+00:52:09.910 --> 00:52:10.510
+Cut that out.
+
+00:52:10.510 --> 00:52:12.010
+We're going to make
+sense of it now.
+
+00:52:19.180 --> 00:52:20.515
+OK, before we derive it--
+
+00:52:20.515 --> 00:52:22.390
+and I'll just do a sketch
+of the derivation--
+
+00:52:22.390 --> 00:52:24.100
+but before we derive
+it, let's just
+
+00:52:24.100 --> 00:52:26.123
+think about the implications.
+
+00:52:29.470 --> 00:52:34.060
+First of all, this says the
+optimal control trajectory must
+
+00:52:34.060 --> 00:52:40.630
+satisfy, which means it's
+a necessary condition
+
+00:52:40.630 --> 00:52:42.176
+for optimality.
+
+00:52:48.130 --> 00:52:51.430
+If I found some
+optimal trajectory x
+
+00:52:51.430 --> 00:52:57.430
+star, u star, some trajectory
+x, u, I can verify that--
+
+00:52:57.430 --> 00:52:59.863
+a necessary condition is that
+all these things are hold,
+
+00:52:59.863 --> 00:53:01.780
+but that's actually not
+a sufficient condition
+
+00:53:01.780 --> 00:53:04.420
+in general.
+
+00:53:04.420 --> 00:53:07.120
+For linear systems
+that are convex--
+
+00:53:07.120 --> 00:53:10.160
+linear dynamics that are
+convex and the cost function,
+
+00:53:10.160 --> 00:53:12.400
+it turns out it's OK,
+but in general, it's
+
+00:53:12.400 --> 00:53:14.055
+not always sufficient.
+
+00:53:22.970 --> 00:53:26.200
+And it says that, if I take my
+x and I integrate it forward
+
+00:53:26.200 --> 00:53:29.440
+in time, solving x by
+integrating my dynamics
+
+00:53:29.440 --> 00:53:33.370
+forward, and then I take
+this other function--
+
+00:53:33.370 --> 00:53:36.340
+this new set of variables p,
+which happens to have the same
+
+00:53:36.340 --> 00:53:37.470
+size as x--
+
+00:53:37.470 --> 00:53:40.960
+we'll see that-- and integrate
+it effectively backwards
+
+00:53:40.960 --> 00:53:46.560
+in time, because I have
+final condition on p--
+
+00:53:46.560 --> 00:53:50.620
+if I do both of those things,
+and I can write down u as being
+
+00:53:50.620 --> 00:53:53.890
+the argument of
+what's left-- h, x--
+
+00:53:53.890 --> 00:53:59.247
+then I've satisfied a necessary
+condition for optimality.
+
+00:53:59.247 --> 00:54:00.580
+Let's try to make sense of that.
+
+00:54:24.810 --> 00:54:27.680
+How many people have done
+optimization before at all?
+
+00:54:30.740 --> 00:54:32.990
+How many people have seen
+Lagrange multipliers before?
+
+00:54:35.960 --> 00:54:42.800
+OK, good-- so let me say a
+few things but not dwell.
+
+00:54:42.800 --> 00:54:47.043
+And there's a lot of
+information in the notes--
+
+00:54:47.043 --> 00:54:47.960
+as fast as I can type.
+
+00:55:07.330 --> 00:55:09.190
+All right, in general,
+what I'm trying to do
+
+00:55:09.190 --> 00:55:11.000
+is I'm trying to
+minimize some function.
+
+00:55:11.000 --> 00:55:12.500
+In this case, I'm
+trying to minimize
+
+00:55:12.500 --> 00:55:18.010
+J. I'm trying to
+minimize this J of x
+
+00:55:18.010 --> 00:55:23.793
+by finding the u [INAUDIBLE]
+which minimizes then.
+
+00:55:23.793 --> 00:55:25.210
+But let's make it
+a little simpler
+
+00:55:25.210 --> 00:55:27.160
+just to make sure we
+get the basic idea.
+
+00:55:27.160 --> 00:55:30.580
+Let me just say J is some
+function of some parameter
+
+00:55:30.580 --> 00:55:32.080
+alpha.
+
+00:55:32.080 --> 00:55:33.360
+I'm trying to minimize J--
+
+00:55:37.060 --> 00:55:38.820
+I can even do it even simpler.
+
+00:55:38.820 --> 00:55:41.380
+Let's just say
+minimize over x J of x.
+
+00:55:44.320 --> 00:55:49.720
+So if I have some
+function of x--
+
+00:55:49.720 --> 00:55:53.590
+J of x looks like this--
+
+00:55:53.590 --> 00:55:55.390
+I want to find the minimum.
+
+00:55:55.390 --> 00:55:58.810
+The first condition,
+the necessary condition,
+
+00:55:58.810 --> 00:56:01.390
+is that, at the minimum,
+the derivative of that thing
+
+00:56:01.390 --> 00:56:01.990
+better be 0.
+
+00:56:07.460 --> 00:56:12.530
+So I can check by just checking
+if partial J, partial x equals
+
+00:56:12.530 --> 00:56:18.860
+0, that I've got a necessary
+condition for a minimum.
+
+00:56:31.340 --> 00:56:33.300
+That's actually a lot of it.
+
+00:56:33.300 --> 00:56:35.740
+The second part is the
+Lagrange multiplier part.
+
+00:56:40.610 --> 00:56:42.260
+Let's say x is a vector now--
+
+00:56:42.260 --> 00:56:44.310
+a two-dimensional vector.
+
+00:56:44.310 --> 00:56:48.470
+Let's say I want to
+do the optimization
+
+00:56:48.470 --> 00:56:58.820
+min J of x, subject to the
+constraint that x1 equals x2--
+
+00:56:58.820 --> 00:57:02.620
+or let's do something
+slightly more interesting.
+
+00:57:02.620 --> 00:57:05.340
+x1 plus x2 is 3.
+
+00:57:12.750 --> 00:57:15.870
+Turns out, thanks to
+the method of Lagrange--
+
+00:57:15.870 --> 00:57:17.220
+one of his many methods--
+
+00:57:20.220 --> 00:57:23.730
+solving this problem is no
+more difficult than solving
+
+00:57:23.730 --> 00:57:27.990
+this problem-- finding necessary
+conditions for this problem.
+
+00:57:27.990 --> 00:57:34.710
+By just making an
+augmented function,
+
+00:57:34.710 --> 00:57:45.090
+you can now minimize x and
+lambda of J of x plus lambda
+
+00:57:45.090 --> 00:57:48.540
+times this constraint--
+which, in this case,
+
+00:57:48.540 --> 00:57:54.732
+is x1 plus x2 minus 3--
+
+00:57:54.732 --> 00:57:55.980
+has to equal 0.
+
+00:58:01.540 --> 00:58:08.333
+It turns out, if partial
+J, partial lambda equals 0,
+
+00:58:08.333 --> 00:58:10.125
+then that means the
+constraint is enforced.
+
+00:58:17.120 --> 00:58:24.560
+Partial J, partial lambda in
+this is x1 plus x2 minus 3.
+
+00:58:24.560 --> 00:58:26.810
+If that equals 0, which
+is the condition I'm
+
+00:58:26.810 --> 00:58:31.880
+looking for anyways for the
+minimum, then I've now--
+
+00:58:31.880 --> 00:58:36.620
+not only have I satisfied my
+constraint, but the remaining
+
+00:58:36.620 --> 00:58:38.540
+minima--
+
+00:58:38.540 --> 00:58:41.150
+the minimization of this is
+this constrained solution
+
+00:58:41.150 --> 00:58:43.820
+to that optimization.
+
+00:58:43.820 --> 00:58:46.315
+The Lagrange multiplier
+method is very, very useful.
+
+00:58:46.315 --> 00:58:47.690
+If you don't know
+it, look it up.
+
+00:58:47.690 --> 00:58:48.410
+It's very good.
+
+00:58:57.750 --> 00:58:58.250
+Yeah?
+
+00:58:58.250 --> 00:59:00.500
+AUDIENCE: So in the
+partial J, partial lambda,
+
+00:59:00.500 --> 00:59:02.650
+that J [INAUDIBLE]
+partial is this new J--
+
+00:59:02.650 --> 00:59:03.650
+RUSS TEDRAKE: Oh, sorry.
+
+00:59:03.650 --> 00:59:04.130
+Thank you.
+
+00:59:04.130 --> 00:59:04.630
+Thank you.
+
+00:59:04.630 --> 00:59:05.360
+Yep.
+
+00:59:05.360 --> 00:59:07.430
+Good catch, good
+catch-- thank you.
+
+00:59:07.430 --> 00:59:10.233
+Partial of-- I don't
+know-- that whole thing--
+
+00:59:10.233 --> 00:59:11.900
+partial lambda-- thank
+you-- good catch.
+
+00:59:19.270 --> 00:59:23.410
+And in the method of
+Lagrange multipliers,
+
+00:59:23.410 --> 00:59:26.350
+lambda has an interpretation
+of a constraint force.
+
+00:59:29.680 --> 00:59:34.570
+What you're about to see
+is that all I'm saying
+
+00:59:34.570 --> 00:59:36.670
+in Pontryagin's
+minimum principle--
+
+00:59:36.670 --> 00:59:42.940
+which is an absolute
+staple in optimal control--
+
+00:59:42.940 --> 00:59:47.140
+is all I'm saying
+is that J of x is--
+
+00:59:47.140 --> 00:59:50.470
+which is my cost function--
+my cost-to-go function--
+
+00:59:50.470 --> 00:59:54.610
+is at a stationary point
+with a Lagrange multiplier
+
+00:59:54.610 --> 00:59:58.150
+which enforces this dynamic.
+
+00:59:58.150 --> 01:00:03.180
+And that Lagrange
+multiplier happens to p.
+
+01:00:03.180 --> 01:00:03.720
+OK?
+
+01:00:03.720 --> 01:00:05.262
+So let's just see
+how that plays out.
+
+01:00:13.320 --> 01:00:19.710
+OK, so this is a sketch
+of the derivation
+
+01:00:19.710 --> 01:00:21.953
+of Pontryagin's minimum
+principle, which, I think--
+
+01:00:21.953 --> 01:00:23.370
+I'm just going to
+do enough so you
+
+01:00:23.370 --> 01:00:24.330
+see where those
+things are and have
+
+01:00:24.330 --> 01:00:25.655
+some intuition about them--
+
+01:00:25.655 --> 01:00:27.780
+a sketch of it based on
+the calculus of variations.
+
+01:00:27.780 --> 01:00:30.020
+So there's many
+other ways to do it--
+
+01:00:35.790 --> 01:00:41.580
+calculus of variations,
+which is a scary name
+
+01:00:41.580 --> 01:00:42.770
+for a very simple thing.
+
+01:00:54.150 --> 01:00:55.710
+This is the problem solving--
+
+01:00:55.710 --> 01:01:00.180
+J of x0 is h of x
+plus integral over g,
+
+01:01:00.180 --> 01:01:02.910
+subject to those constraints.
+
+01:01:02.910 --> 01:01:06.480
+So how do I write that in
+terms of a Lagrange multiplier?
+
+01:01:06.480 --> 01:01:08.250
+I'm going to do a
+second function, which
+
+01:01:08.250 --> 01:01:10.292
+I won't make the mistake
+of calling J again here.
+
+01:01:10.292 --> 01:01:19.500
+Let's call it S. Some function
+S is going to be h of xT
+
+01:01:19.500 --> 01:01:26.520
+plus the integral from
+0 to T of g of xt,
+
+01:01:26.520 --> 01:01:31.710
+ut plus some Lagrange
+multipliers--
+
+01:01:31.710 --> 01:01:34.660
+p in this case--
+
+01:01:34.660 --> 01:01:40.550
+times my constraint, which
+is x dot minus f of xu.
+
+01:01:40.550 --> 01:01:42.540
+I was trying to
+use T's everywhere.
+
+01:01:42.540 --> 01:02:07.580
+[INAUDIBLE]
+
+01:02:07.580 --> 01:02:13.520
+OK, so now I can explicitly
+try to find the place where S--
+
+01:02:13.520 --> 01:02:17.780
+which is my Lagrange multiplayer
+version of my problem,
+
+01:02:17.780 --> 01:02:21.590
+which has the explicit cost
+that I'm trying to minimize--
+
+01:02:21.590 --> 01:02:24.410
+subject to the constraints
+that x better be--
+
+01:02:24.410 --> 01:02:27.440
+satisfy my dynamics--
+exactly the same
+
+01:02:27.440 --> 01:02:30.373
+as that two-second Lagrange
+multiplayer introduction.
+
+01:02:34.650 --> 01:02:39.360
+Now, getting it right
+is a little bit funny.
+
+01:02:39.360 --> 01:02:41.070
+So S is now--
+
+01:02:41.070 --> 01:02:43.320
+you could think of S as
+a functional [INAUDIBLE]
+
+01:02:43.320 --> 01:02:47.040
+a function of functions.
+
+01:02:47.040 --> 01:02:49.320
+If I take a variation,
+this is just--
+
+01:02:49.320 --> 01:02:52.710
+it's going to be exactly
+like your basic calculus,
+
+01:02:52.710 --> 01:02:56.430
+but the calculus of
+variations uses these symbols
+
+01:02:56.430 --> 01:02:59.760
+for a variation on
+a function is just
+
+01:02:59.760 --> 01:03:06.760
+going to be partial h, partial
+x times the variation in x
+
+01:03:06.760 --> 01:03:16.850
+of T plus the integral 0 dt
+
+01:03:16.850 --> 01:03:20.650
+Notice quickly that this
+thing inside here is just h.
+
+01:03:23.600 --> 01:03:26.360
+That's my Hamiltonian.
+
+01:03:26.360 --> 01:03:28.880
+So that thing inside
+there I can just--
+
+01:03:54.568 --> 01:03:58.830
+OK, this says this is a
+variational analysis of S that
+
+01:03:58.830 --> 01:04:03.360
+says, if my function changes by
+some small amount in x tilde,
+
+01:04:03.360 --> 01:04:06.900
+this is the result of--
+in changing S-- in S.
+
+01:04:06.900 --> 01:04:10.650
+Similarly, if my thing
+changes by a little bit in xt,
+
+01:04:10.650 --> 01:04:12.960
+or in ut, or pt,
+or in all of them
+
+01:04:12.960 --> 01:04:15.210
+simultaneously, this tells
+me what the variation's
+
+01:04:15.210 --> 01:04:19.680
+going to be in S.
+
+01:04:19.680 --> 01:04:22.740
+The stationary conditions
+then-- if I'm at an optima,
+
+01:04:22.740 --> 01:04:24.390
+what I care about is that--
+
+01:04:24.390 --> 01:04:27.990
+if I change u a little bit,
+if I change x a little bit,
+
+01:04:27.990 --> 01:04:30.040
+if I change p a little
+bit, S better not change.
+
+01:04:30.040 --> 01:04:31.920
+That's my condition--
+my necessary condition
+
+01:04:31.920 --> 01:04:32.953
+for optimality.
+
+01:04:40.350 --> 01:04:45.780
+If partial h, partial
+p is 0, then I
+
+01:04:45.780 --> 01:04:48.760
+know that changing p isn't
+going to change the solution,
+
+01:04:48.760 --> 01:04:52.020
+so I can look for stationary
+points with respect to p.
+
+01:04:54.870 --> 01:04:57.870
+Partial h, partial
+p better be 0.
+
+01:04:57.870 --> 01:05:00.690
+What's partial h, partial p?
+
+01:05:00.690 --> 01:05:05.880
+Well, it turns out it's
+just x dot minus f of xu,
+
+01:05:05.880 --> 01:05:07.220
+which is my forward dynamics.
+
+01:05:10.140 --> 01:05:14.550
+So if I've integrated my
+system forward in time,
+
+01:05:14.550 --> 01:05:16.470
+then this thing's
+going to be true,
+
+01:05:16.470 --> 01:05:19.680
+and [INAUDIBLE] steady state
+with respect to changes in p.
+
+01:05:43.610 --> 01:05:48.380
+OK, let's look at the
+changes with respect to x.
+
+01:05:48.380 --> 01:05:53.000
+So to get the contributions
+from x correct,
+
+01:05:53.000 --> 01:05:55.133
+we first need to worry
+about this x dot.
+
+01:05:55.133 --> 01:05:57.550
+We don't want to have that x
+dot floating around in there,
+
+01:05:57.550 --> 01:05:59.758
+so let's integrate by parts
+to get that out of there.
+
+01:06:04.400 --> 01:06:09.230
+We're going to look at
+this partial h, partial x--
+
+01:06:09.230 --> 01:06:12.140
+the variations-- but
+first, integrate by parts.
+
+01:06:30.890 --> 01:06:39.260
+The integral of my p of
+t x dot t dt from 0 to t
+
+01:06:39.260 --> 01:06:47.600
+is just going to be p
+of T, x of T minus p0,
+
+01:06:47.600 --> 01:06:58.520
+[? x0 ?] minus the integral
+capital T of p dot t x of t--
+
+01:06:58.520 --> 01:06:59.600
+I forgot my transpose--
+
+01:07:03.120 --> 01:07:07.710
+dt-- basic integration by parts.
+
+01:07:07.710 --> 01:07:14.840
+OK, if I now take my variation
+in partial x, having used that,
+
+01:07:14.840 --> 01:07:16.370
+then what I get is--
+
+01:07:41.080 --> 01:07:51.190
+which gives me-- which, in
+this case, was partial g,
+
+01:07:51.190 --> 01:07:56.665
+partial x transpose plus partial
+f, partial x transpose p of t.
+
+01:08:07.772 --> 01:08:09.730
+My goal is to show you
+enough of the derivation
+
+01:08:09.730 --> 01:08:12.093
+that you understand
+what these terms are,
+
+01:08:12.093 --> 01:08:14.260
+and not so much to get
+completely bogged down in it.
+
+01:08:14.260 --> 01:08:17.529
+If you want a good treatment,
+a careful treatment,
+
+01:08:17.529 --> 01:08:26.479
+you should see Bertsekas
+optimal control book.
+
+01:08:35.702 --> 01:08:37.160
+When I say careful
+treatment there,
+
+01:08:37.160 --> 01:08:39.930
+it's going to be 5
+pages or more at least.
+
+01:08:43.430 --> 01:08:50.420
+OK, so Pontryagin's minimum
+principle says that,
+
+01:08:50.420 --> 01:08:54.290
+if my constraint is
+satisfied to x dot,
+
+01:08:54.290 --> 01:08:59.600
+and if I can just integrate back
+to this p dot backwards in time
+
+01:08:59.600 --> 01:09:02.300
+from some final conditions--
+which are the same basic
+
+01:09:02.300 --> 01:09:05.660
+variation argument
+that drives this--
+
+01:09:05.660 --> 01:09:08.000
+then I found Lagrange
+multipliers which
+
+01:09:08.000 --> 01:09:11.740
+satisfies that constraint.
+
+01:09:11.740 --> 01:09:14.710
+And the final variation
+says that u had better
+
+01:09:14.710 --> 01:09:17.770
+be the minimum of h of x.
+
+01:09:17.770 --> 01:09:20.770
+That puts me at
+a local minima in
+
+01:09:20.770 --> 01:09:22.452
+my constrained optimization--
+
+01:09:26.000 --> 01:09:27.830
+big pill to swallow,
+but this is the way
+
+01:09:27.830 --> 01:09:36.535
+we're going to show that the
+brick solution is optimal.
+
+01:09:36.535 --> 01:09:37.910
+People are much
+more enthusiastic
+
+01:09:37.910 --> 01:09:42.643
+when there's bricks.
+
+01:09:42.643 --> 01:09:43.550
+It's OK.
+
+01:09:43.550 --> 01:09:44.608
+I understand.
+
+01:10:06.100 --> 01:10:12.010
+OK, so let's turn the crank and
+use this tool now to see what
+
+01:10:12.010 --> 01:10:13.510
+the heck--
+
+01:10:13.510 --> 01:10:18.520
+see if we can verify our
+original bang-bang policy
+
+01:10:18.520 --> 01:10:19.210
+is optimal.
+
+01:10:32.060 --> 01:10:32.920
+So for the bang--
+
+01:10:37.030 --> 01:10:44.932
+Pontryagin bang-bang
+double integrator--
+
+01:11:00.550 --> 01:11:02.550
+what's the [INAUDIBLE]
+look like for this thing?
+
+01:11:05.840 --> 01:11:08.240
+g of xu we said was just 1--
+
+01:11:14.040 --> 01:11:19.050
+and p transpose times
+x dot minus f of xu.
+
+01:11:26.112 --> 01:11:27.820
+I'll just write it
+out in elements forms.
+
+01:11:27.820 --> 01:11:29.130
+It's so simple.
+
+01:11:29.130 --> 01:11:37.850
+It's p1 times q dot
+plus p2 times u.
+
+01:11:41.210 --> 01:11:41.710
+OK?
+
+01:11:58.110 --> 01:12:01.420
+If we had derived our bang-bang
+controller just like this,
+
+01:12:01.420 --> 01:12:03.810
+then we could actually
+immediately say,
+
+01:12:03.810 --> 01:12:06.360
+what's the optimal
+control solution?
+
+01:12:06.360 --> 01:12:21.020
+If I want to take u star as
+the argmin, u in negative 1
+
+01:12:21.020 --> 01:12:31.020
+of 1 of h x, u, p--
+
+01:12:31.020 --> 01:12:33.035
+and what's it going to
+be, just looking at what
+
+01:12:33.035 --> 01:12:34.160
+I've got on the board here?
+
+01:12:40.600 --> 01:12:44.800
+This is a good time to
+make sure you get it.
+
+01:12:53.215 --> 01:12:55.210
+AUDIENCE: [INAUDIBLE]
+
+01:12:55.210 --> 01:12:57.290
+RUSS TEDRAKE: Yeah-- good.
+
+01:12:57.290 --> 01:13:01.411
+So these terms are--
+
+01:13:01.411 --> 01:13:03.910
+have no impact.
+
+01:13:03.910 --> 01:13:07.550
+If p2 is positive, and I
+want to minimize this thing,
+
+01:13:07.550 --> 01:13:09.280
+then u better be negative--
+
+01:13:09.280 --> 01:13:12.130
+as negative as possible.
+
+01:13:12.130 --> 01:13:15.250
+Negative as possible
+means negative 1.
+
+01:13:15.250 --> 01:13:19.580
+And if p2 is negative,
+then you should
+
+01:13:19.580 --> 01:13:23.740
+be as positive as possible
+to minimize that thing.
+
+01:13:23.740 --> 01:13:26.260
+So it turns out our same
+policy that we worked hard
+
+01:13:26.260 --> 01:13:31.570
+for in the Pontryagin, in terms
+of the Lagrange multipliers,
+
+01:13:31.570 --> 01:13:35.320
+works out to just be p2--
+
+01:13:35.320 --> 01:13:37.675
+sine of p2 of t--
+
+01:13:37.675 --> 01:13:38.550
+negative sine, sorry.
+
+01:13:41.190 --> 01:13:45.128
+So the sine function is just
+1 if it's greater than 0,
+
+01:13:45.128 --> 01:13:46.420
+negative 1 if it's less than 0.
+
+01:13:51.310 --> 01:13:53.630
+My equations for p--
+
+01:13:53.630 --> 01:13:55.880
+which, if I didn't use the
+word adjoint equations yet,
+
+01:13:55.880 --> 01:13:57.970
+I should have--
+
+01:13:57.970 --> 01:14:00.923
+these equations for p are
+called the adjoint equations.
+
+01:14:17.200 --> 01:14:20.620
+My equations for p
+are pretty painless.
+
+01:14:20.620 --> 01:14:28.792
+So p1 dot is negative
+partial h, partial x1.
+
+01:14:31.750 --> 01:14:34.293
+x1 is q, so--
+
+01:14:34.293 --> 01:14:35.210
+doesn't appear at all.
+
+01:14:35.210 --> 01:14:36.965
+That's 0.
+
+01:14:36.965 --> 01:14:39.340
+So that Lagrange multiplier
+isn't going to change at all.
+
+01:14:39.340 --> 01:14:42.370
+That's pretty painless.
+
+01:14:42.370 --> 01:14:52.120
+And p2 dot is negative
+partial h, partial x2,
+
+01:14:52.120 --> 01:14:55.600
+and that's negative p1 t.
+
+01:15:10.440 --> 01:15:18.870
+OK, so it turns out that p1--
+
+01:15:18.870 --> 01:15:21.750
+my Lagrange multiplier's just
+going to be some constant.
+
+01:15:21.750 --> 01:15:28.770
+And p2-- t is just going to be
+the interval of that constant--
+
+01:15:28.770 --> 01:15:30.740
+c2 plus c1 times t.
+
+01:15:37.820 --> 01:15:42.010
+Try and debate how
+much to squeeze
+
+01:15:42.010 --> 01:15:43.200
+in the next few minutes--
+
+01:16:05.540 --> 01:16:07.400
+you know what, let's--
+
+01:16:07.400 --> 01:16:09.830
+let me do it tomorrow for
+real-- or on Thursday for real,
+
+01:16:09.830 --> 01:16:11.930
+because I don't-- because
+it's going to take 10 minutes
+
+01:16:11.930 --> 01:16:13.760
+to finish, but it's
+worth doing it right.
+
+01:16:13.760 --> 01:16:19.170
+So for homework, to yourself,
+see if you can work it through.
+
+01:16:19.170 --> 01:16:21.290
+Take the equations
+that we had and show
+
+01:16:21.290 --> 01:16:24.050
+that these-- those four
+conditions are satisfied,
+
+01:16:24.050 --> 01:16:26.270
+and I'll spend the first 10
+minutes of class doing it
+
+01:16:26.270 --> 01:16:27.210
+properly on Thursday.
+
+01:16:27.210 --> 01:16:29.750
+I don't want to rush through
+it and have it mean nothing.
+
+01:16:33.410 --> 01:16:34.280
+Sorry.
+
+01:16:34.280 --> 01:16:35.172
+I wrote 3 here.
+
+01:16:35.172 --> 01:16:37.130
+There's a condition-- a
+final condition on p2--
+
+01:16:37.130 --> 01:16:40.880
+so three conditions
+by this number.
+
+01:16:40.880 --> 01:16:42.500
+Awesome.

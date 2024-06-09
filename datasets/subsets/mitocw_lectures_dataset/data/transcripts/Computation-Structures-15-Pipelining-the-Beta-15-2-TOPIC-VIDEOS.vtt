@@ -1,0 +1,527 @@
+WEBVTT
+
+00:00:01.280 --> 00:00:05.540
+In this lecture, we're going to use the circuit
+pipelining techniques we learned in Part 1
+
+00:00:05.540 --> 00:00:10.660
+of the course to improve the performance of
+the 32-bit Beta CPU design we developed in
+
+00:00:10.660 --> 00:00:11.999
+Part 2 of the course.
+
+00:00:11.999 --> 00:00:16.560
+This CPU design executes one Beta instruction
+per clock cycle.
+
+00:00:16.560 --> 00:00:18.570
+Hopefully you remember the design!
+
+00:00:18.570 --> 00:00:25.290
+If not, you might find it worthwhile to review
+Lecture 13, Building the Beta, from Part 2.
+
+00:00:25.290 --> 00:00:28.950
+At the beginning of the clock cycle, this
+circuit loads a new value into the program
+
+00:00:28.950 --> 00:00:33.969
+counter, which is then sent to main memory
+as the address of the instruction to be executed
+
+00:00:33.969 --> 00:00:35.730
+this cycle.
+
+00:00:35.730 --> 00:00:39.730
+When the 32-bit word containing the binary
+encoding of the instruction is returned by
+
+00:00:39.730 --> 00:00:44.739
+the memory, the opcode field is decoded by
+the control logic to determine the control
+
+00:00:44.739 --> 00:00:47.780
+signals for the rest of the data path.
+
+00:00:47.780 --> 00:00:52.570
+The operands are read from the register file
+and routed to the ALU to perform the desired
+
+00:00:52.570 --> 00:00:53.839
+operation.
+
+00:00:53.839 --> 00:00:58.300
+For memory operations, the output of the ALU
+serves as the memory address and, in the case
+
+00:00:58.300 --> 00:01:02.749
+of load instructions, the main memory supplies
+the data to be written into the register file
+
+00:01:02.749 --> 00:01:04.409
+at the end of the cycle.
+
+00:01:04.409 --> 00:01:09.640
+PC+4 and ALU values can also be written to
+the register file.
+
+00:01:09.640 --> 00:01:14.390
+The clock period of the Beta is determined
+by the cumulative delay through all the components
+
+00:01:14.390 --> 00:01:16.329
+involved in instruction execution.
+
+00:01:16.329 --> 00:01:20.210
+Today's question is: how can we make this
+faster?
+
+00:01:20.210 --> 00:01:25.360
+We can characterize the time spent executing
+a program as the product of three terms.
+
+00:01:25.360 --> 00:01:28.280
+The first term is the total number of instructions
+executed.
+
+00:01:28.280 --> 00:01:33.890
+Since the program usually contains loops and
+procedure calls, many of the encoded instructions
+
+00:01:33.890 --> 00:01:36.390
+will be executed many times.
+
+00:01:36.390 --> 00:01:41.229
+We want the total count of instructions executed,
+not the static size of the program as measured
+
+00:01:41.229 --> 00:01:44.590
+by the number of encoded instructions in memory.
+
+00:01:44.590 --> 00:01:50.229
+The second term is the average number of clock
+cycles it takes to execute a single instruction.
+
+00:01:50.229 --> 00:01:55.130
+And the third term is the duration of a single
+clock cycle.
+
+00:01:55.130 --> 00:02:01.109
+As CPU designers it's the last two terms which
+are under our control: the cycles per instruction
+
+00:02:01.109 --> 00:02:03.960
+(CPI) and the clock period (t_CLK).
+
+00:02:03.960 --> 00:02:10.250
+To affect the first term, we would need to
+change the ISA or write a better compiler!
+
+00:02:10.250 --> 00:02:15.420
+Our design for the Beta was able to execute
+every instruction in a single clock cycle,
+
+00:02:15.420 --> 00:02:17.950
+so our CPI is 1.
+
+00:02:17.950 --> 00:02:22.129
+As we discussed in the previous slide, t_CLK
+is determined by the longest path through
+
+00:02:22.129 --> 00:02:23.480
+the Beta circuitry.
+
+00:02:23.480 --> 00:02:28.940
+For example, consider the execution of an
+OP-class instruction, which involves two register
+
+00:02:28.940 --> 00:02:31.990
+operands and an ALU operation.
+
+00:02:31.990 --> 00:02:37.049
+The arrow shows all the components that are
+involved in the execution of the instruction.
+
+00:02:37.049 --> 00:02:44.920
+Aside from a few muxes, the main memory, register
+file, and ALU must all have time to do their
+
+00:02:44.920 --> 00:02:45.920
+thing.
+
+00:02:45.920 --> 00:02:50.110
+The worst-case execution time is for the LD
+instruction.
+
+00:02:50.110 --> 00:02:54.370
+In one clock cycle we need to fetch the instruction
+from main memory (t_IFETCH),
+
+00:02:54.370 --> 00:02:59.680
+read the operands from the register file (t_RF),
+perform the address addition in the ALU (t_ALU),
+
+00:02:59.680 --> 00:03:02.459
+read the requested location from main memory
+(t_MEM),
+
+00:03:02.459 --> 00:03:07.599
+and finally write the memory data to the destination
+register (t_WB).
+
+00:03:07.599 --> 00:03:12.870
+The component delays add up and the result
+is a fairly long clock period and hence it
+
+00:03:12.870 --> 00:03:16.040
+will take a long time to run the program.
+
+00:03:16.040 --> 00:03:19.730
+And our two example execution paths illustrate
+another issue:
+
+00:03:19.730 --> 00:03:24.799
+we're forced to choose the clock period to
+accommodate the worst-case execution time,
+
+00:03:24.799 --> 00:03:29.659
+even though we may be able to execute some
+instructions faster since their execution
+
+00:03:29.659 --> 00:03:32.980
+path through the circuitry is shorter.
+
+00:03:32.980 --> 00:03:36.879
+We're making all the instructions slower just
+because there's one instruction that has a
+
+00:03:36.879 --> 00:03:38.680
+long critical path.
+
+00:03:38.680 --> 00:03:44.659
+So why not have simple instructions execute
+in one clock cycle and more complex instructions
+
+00:03:44.659 --> 00:03:49.550
+take multiple cycles instead of forcing all
+instructions to execute in a single, long
+
+00:03:49.550 --> 00:03:50.849
+clock cycle?
+
+00:03:50.849 --> 00:03:55.420
+As we'll see in the next few slides, we have
+a good answer to this question, one that will
+
+00:03:55.420 --> 00:03:59.689
+allow us to execute *all* instructions with
+a short clock period.
+
+00:03:59.689 --> 00:04:02.769
+We're going to use pipelining to address these
+issues.
+
+00:04:02.769 --> 00:04:06.980
+We're going to divide the execution of an
+instruction into a sequence of steps, where
+
+00:04:06.980 --> 00:04:10.870
+each step is performed in successive stages
+of the pipeline.
+
+00:04:10.870 --> 00:04:15.659
+So it will take multiple clock cycles to execute
+an instruction as it travels through the stages
+
+00:04:15.659 --> 00:04:17.890
+of the execution pipeline.
+
+00:04:17.890 --> 00:04:22.690
+But since there are only one or two components
+in each stage of the pipeline, the clock period
+
+00:04:22.690 --> 00:04:27.710
+can be much shorter and the throughput of
+the CPU can be much higher.
+
+00:04:27.710 --> 00:04:34.220
+The increased throughput is the result of
+overlapping the execution of consecutive instructions.
+
+00:04:34.220 --> 00:04:38.400
+At any given time, there will be multiple
+instructions in the CPU, each at a different
+
+00:04:38.400 --> 00:04:40.950
+stage of its execution.
+
+00:04:40.950 --> 00:04:47.130
+The time to execute all the steps for a particular
+instruction (i.e., the instruction latency)
+
+00:04:47.130 --> 00:04:50.729
+may be somewhat higher than in our unpipelined
+implementation.
+
+00:04:50.729 --> 00:04:55.979
+But we will finish the last step of executing
+some instruction in each clock cycle, so the
+
+00:04:55.979 --> 00:04:59.080
+instruction throughput is 1 per clock cycle.
+
+00:04:59.080 --> 00:05:03.230
+And since the clock cycle of our pipelined
+CPU is quite a bit shorter, the instruction
+
+00:05:03.230 --> 00:05:06.199
+throughput is quite a bit higher.
+
+00:05:06.199 --> 00:05:11.470
+All this sounds great, but, not surprisingly,
+there are few issues we'll have to deal with.
+
+00:05:11.470 --> 00:05:15.580
+There are many ways to pipeline the execution
+of an instruction.
+
+00:05:15.580 --> 00:05:20.710
+We're going to look at the design of the classic
+5-stage instruction execution pipeline, which
+
+00:05:20.710 --> 00:05:26.560
+was widely used in the integrated circuit
+CPU designs of the 1980's.
+
+00:05:26.560 --> 00:05:31.860
+The 5 pipeline stages correspond to the steps
+of executing an instruction in a von-Neumann
+
+00:05:31.860 --> 00:05:34.030
+stored-program architecture.
+
+00:05:34.030 --> 00:05:38.890
+The first stage (IF) is responsible for fetching
+the binary-encoded instruction from the main
+
+00:05:38.890 --> 00:05:42.340
+memory location indicated by the program counter.
+
+00:05:42.340 --> 00:05:48.030
+The 32-bit instruction is passed to the register
+file stage (RF) where the required register
+
+00:05:48.030 --> 00:05:51.289
+operands are read from the register file.
+
+00:05:51.289 --> 00:05:59.580
+The operand values are passed to the ALU stage
+(ALU), which performs the requested operation.
+
+00:05:59.580 --> 00:06:05.539
+The memory stage (MEM) performs the second
+access to main memory to read or write the
+
+00:06:05.539 --> 00:06:11.490
+data for LD, LDR, or ST instructions, using
+the value from the ALU stage as the memory
+
+00:06:11.490 --> 00:06:13.240
+address.
+
+00:06:13.240 --> 00:06:18.710
+For load instructions, the output of the MEM
+stage is the read data from main memory.
+
+00:06:18.710 --> 00:06:22.550
+For all other instructions, the output of
+the MEM stage is simply the value from the
+
+00:06:22.550 --> 00:06:24.630
+ALU stage.
+
+00:06:24.630 --> 00:06:29.830
+In the final write-back stage (WB), the result
+from the earlier stages is written to the
+
+00:06:29.830 --> 00:06:33.030
+destination register in the register file.
+
+00:06:33.030 --> 00:06:37.240
+Looking at the execution path from the previous
+slide, we see that each of the main components
+
+00:06:37.240 --> 00:06:41.800
+of the unpipelined design is now in its own
+pipeline stage.
+
+00:06:41.800 --> 00:06:47.849
+So the clock period will now be determined
+by the slowest of these components.
+
+00:06:47.849 --> 00:06:52.889
+Having divided instruction execution into
+five stages, would we expect the clock period
+
+00:06:52.889 --> 00:06:55.830
+to be one fifth of its original value?
+
+00:06:55.830 --> 00:07:00.440
+Well, that would only happen if we were able
+to divide the execution so that each stage
+
+00:07:00.440 --> 00:07:03.720
+performed exactly one fifth of the total work.
+
+00:07:03.720 --> 00:07:08.110
+In real life, the major components have somewhat
+different latencies, so the improvement in
+
+00:07:08.110 --> 00:07:13.289
+instruction throughput will be a little less
+than the factor of 5 a perfect 5-stage pipeline
+
+00:07:13.289 --> 00:07:15.490
+could achieve.
+
+00:07:15.490 --> 00:07:21.340
+If we have a slow component, e.g., the ALU,
+we might choose to pipeline that component
+
+00:07:21.340 --> 00:07:26.870
+into further stages, or, interleave multiple
+ALUs to achieve the same effect.
+
+00:07:26.870 --> 00:07:31.810
+But for this lecture, we'll go with the 5-stage
+pipeline described above.
+
+00:07:31.810 --> 00:07:34.699
+So why isn't this a 20-minute lecture?
+
+00:07:34.699 --> 00:07:37.650
+After all we know how pipeline combinational
+circuits:
+
+00:07:37.650 --> 00:07:43.350
+We can build a valid k-stage pipeline by drawing
+k contours across the circuit diagram and
+
+00:07:43.350 --> 00:07:47.270
+adding a pipeline register wherever a contour
+crosses a signal.
+
+00:07:47.270 --> 00:07:49.270
+What's the big deal here?
+
+00:07:49.270 --> 00:07:51.500
+Well, is this circuit combinational?
+
+00:07:51.500 --> 00:07:52.500
+No!
+
+00:07:52.500 --> 00:07:55.270
+There's state in the registers and memories.
+
+00:07:55.270 --> 00:07:59.319
+This means that the result of executing a
+given instruction may depend on the results
+
+00:07:59.319 --> 00:08:01.610
+from earlier instructions.
+
+00:08:01.610 --> 00:08:06.190
+There are loops in the circuit where data
+from later pipeline stages affects the execution
+
+00:08:06.190 --> 00:08:08.389
+of earlier pipeline stages.
+
+00:08:08.389 --> 00:08:13.629
+For example, the write to the register file
+at the end of the WB stage will change values
+
+00:08:13.629 --> 00:08:16.240
+read from the register file in the RF stage.
+
+00:08:16.240 --> 00:08:21.979
+In other words, there are execution dependencies
+between instructions and these dependencies
+
+00:08:21.979 --> 00:08:27.419
+will need to be taken into account when we're
+trying to pipeline instruction execution.
+
+00:08:27.419 --> 00:08:33.700
+We'll be addressing these issues as we examine
+the operation of our execution pipeline.
+
+00:08:33.700 --> 00:08:37.710
+Sometimes execution of a given instruction
+will depend on the results of executing a
+
+00:08:37.710 --> 00:08:39.010
+previous instruction.
+
+00:08:39.010 --> 00:08:43.010
+Two are two types of problematic dependencies.
+
+00:08:43.010 --> 00:08:47.970
+The first, termed a data hazard, occurs when
+the execution of the current instruction depends
+
+00:08:47.970 --> 00:08:50.280
+on data produced by an earlier instruction.
+
+00:08:50.280 --> 00:08:56.230
+For example, an instruction that reads R0
+will depend on the execution of an earlier
+
+00:08:56.230 --> 00:08:58.250
+instruction that wrote R0.
+
+00:08:58.250 --> 00:09:02.920
+The second, termed a control hazard, occurs
+when a branch, jump, or exception changes
+
+00:09:02.920 --> 00:09:04.850
+the order of execution.
+
+00:09:04.850 --> 00:09:09.610
+For example, the choice of which instruction
+to execute after a BNE depends on whether
+
+00:09:09.610 --> 00:09:13.410
+the branch is taken or not.
+
+00:09:13.410 --> 00:09:18.500
+Instruction execution triggers a hazard when
+the instruction on which it depends is also
+
+00:09:18.500 --> 00:09:23.680
+in the pipeline, i.e., the earlier instruction
+hasn't finished execution!
+
+00:09:23.680 --> 00:09:28.920
+We'll need to adjust execution in our pipeline
+to avoid these hazards.
+
+00:09:28.920 --> 00:09:33.160
+Here's our plan of attack:
+We'll start by designing a 5-stage pipeline
+
+00:09:33.160 --> 00:09:38.440
+that works with sequences of instructions
+that don't trigger hazards, i.e., where instruction
+
+00:09:38.440 --> 00:09:43.340
+execution doesn't depend on earlier instructions
+still in the pipeline.
+
+00:09:43.340 --> 00:09:47.220
+Then we'll fix our pipeline to deal correctly
+with data hazards.
+
+00:09:47.220 --> 00:09:49.250
+And finally, we'll address control hazards.

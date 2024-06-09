@@ -1,0 +1,320 @@
+WEBVTT
+
+1
+00:00:00.740 --> 00:00:03.669 
+Hello and welcome! In this video,
+
+2
+00:00:03.870 --> 00:00:08.250 
+we will learn a new model compression method:
+knowledge distillation.
+
+3
+00:00:10.939 --> 00:00:21.649 
+Many insects have a larval form optimized for extracting energy and
+nutrients(njutrience) from the environment and a completely different
+
+4
+00:00:21.660 --> 00:00:22.559 
+adult form
+
+5
+00:00:22.570 --> 00:00:27.149 
+optimized for the other requirements of traveling and re-production.
+
+6
+00:00:28.640 --> 00:00:37.079 
+In large-scale machine learning systems, we typically use very similar
+models for the training stage and the deployment
+
+7
+00:00:37.079 --> 00:00:37.770 
+stage.
+
+8
+00:00:37.780 --> 00:00:40.850 
+Although they have very different requirements.
+
+9
+00:00:42.140 --> 00:00:50.859 
+Training often must extract structure from very large and redundant
+datasets, but it does not need to operate in real time
+
+10
+00:00:51.340 --> 00:00:54.649 
+and it can use a massive amount of computation.
+
+11
+00:00:55.439 --> 00:01:04.750 
+However, deployment to a large number of users has much harder
+requirements on latency and computational resources.
+
+12
+00:01:05.439 --> 00:01:15.269 
+The analogy with insects suggests that we should be willing to train huge
+models or an ensemble of models if that makes
+
+13
+00:01:15.269 --> 00:01:19.459 
+extracting useful structure from the data more accessible.
+
+14
+00:01:20.640 --> 00:01:30.400 
+Once the big model has been trained, we can transfer it's learned
+knowledge to a more compact model, which we call “distillation”.
+
+15
+00:01:31.540 --> 00:01:34.750 
+The compact model is more suitable for deployment.
+
+16
+00:01:37.939 --> 00:01:49.150 
+A model ensemble can generally improve the performance compared to a
+small or single model, but it requires way more computing
+
+17
+00:01:49.159 --> 00:01:50.060 
+resources.
+
+18
+00:01:50.640 --> 00:01:59.590 
+Previously, the authors convincingly demonstrate in their paper that the
+knowledge acquired by a large ensemble of models could
+
+19
+00:01:59.590 --> 00:02:04.739 
+be transferred to a single small model. From the figure.
+
+20
+00:02:04.750 --> 00:02:09.550 
+we can see that the model ensemble can be considerate as a teacher.
+
+21
+00:02:10.240 --> 00:02:20.460 
+For another smaller model we can use the fused output of the teacher
+as the supervision to train the small model.
+
+22
+00:02:20.840 --> 00:02:30.139 
+In machine learning, we consider this process as “knowledge transfer”.
+
+23
+00:02:30.139 --> 00:02:40.159 
+Hinton et al. consider the neural network model a black box;
+knowledge can be regarded as the mapping from input to output.
+
+24
+00:02:41.139 --> 00:02:49.860 
+Transferring knowledge from a big model(s) to a small model
+objectively realize the purpose of model compression.
+
+25
+00:02:51.039 --> 00:03:00.240 
+Thus, we normally consider KD as a model compression method.
+But it actually has surpassed this limit and the brick
+
+26
+00:03:00.240 --> 00:03:03.139 
+border and become efficient training method
+
+27
+00:03:03.139 --> 00:03:13.550 
+now for multiple use cases. KD training usually applies
+KL divergence as its loss function.
+
+28
+00:03:14.340 --> 00:03:24.310 
+KL divergence is a measure of how one probability distribution
+is different from another one. This difference can be used
+
+29
+00:03:24.319 --> 00:03:28.129 
+as the loss for the neural network training. Here
+
+30
+00:03:28.129 --> 00:03:34.060 
+the paper's the authors from the paper introduce a
+temperature parameter Tau.
+
+31
+00:03:34.639 --> 00:03:39.949 
+If it equals 1 then the function is a standard softmax function.
+
+32
+00:03:40.939 --> 00:03:45.650 
+If tau is larger, the output distribution is smoother.
+
+33
+00:03:46.340 --> 00:03:54.229 
+The information carried by negative labels will be relatively
+enlarged, and the training will pay more attention to negative
+
+34
+00:03:54.229 --> 00:03:54.949 
+labels.
+
+35
+00:03:55.539 --> 00:04:04.360 
+If tau is equal to in’finity, it becomes a uniform distribution,
+and the information entropy reaches its maximum.
+
+36
+00:04:04.840 --> 00:04:10.780 
+So, we can use this parameter to adjust the shape
+of the probability distribution.
+
+37
+00:04:10.789 --> 00:04:18.759 
+We can also think of it as adjusting the granularity of
+information or the granularity of knowledge to transfer.
+
+38
+00:04:22.139 --> 00:04:32.199 
+Why is this distribution better than hard labels for the training?
+Because the probability distribution are regarded
+
+39
+00:04:32.199 --> 00:04:39.360 
+as soft labels offer more granular information
+about the data than hard labels.
+
+40
+00:04:40.240 --> 00:04:51.569 
+So let's  take the image classification example, an image of
+eagle is more related to a sparrow or a airplane than
+
+41
+00:04:51.569 --> 00:04:52.990 
+a car visually
+
+42
+00:04:53.000 --> 00:05:01.050 
+and semantically. Hard label can not offer those quantitative
+information of negative classes.
+
+43
+00:05:01.740 --> 00:05:10.860 
+However, based on that additional information, we are able to
+obtain Model with stronger generalization ability.
+
+44
+00:05:13.439 --> 00:05:16.430 
+Soft labels have less gradient variance,
+
+45
+00:05:16.439 --> 00:05:18.240 
+thus the optimization.
+
+46
+00:05:18.240 --> 00:05:19.709 
+landscape in SGD
+
+47
+00:05:20.389 --> 00:05:22.870 
+is smoother than using hard labels,
+
+48
+00:05:22.879 --> 00:05:31.079 
+thus we can make a faster convergence. Furthermore, we can reduce
+the reliance on labeling the dataset.
+
+49
+00:05:33.639 --> 00:05:36.160 
+Now let's take a look at the example.
+
+50
+00:05:36.930 --> 00:05:42.149 
+The popular language model BERT-Base has
+110 million parameters.
+
+51
+00:05:42.699 --> 00:05:47.610 
+This work introduces a distilled version of BERT,
+so called distilBERT.
+
+52
+00:05:49.139 --> 00:05:52.319 
+DistillBERT is trained based on the teacher model
+
+53
+00:05:52.319 --> 00:05:53.160 
+BERT-based.
+
+54
+00:05:53.740 --> 00:06:02.459 
+We can see from the table, the accuracy loss of
+distilBERT compared to BERT base is minimal.
+
+55
+00:06:02.839 --> 00:06:12.160 
+The loss on GLUE bentchmark is about 2.5%, and only
+0.64% on IMDb data set.
+
+56
+00:06:12.540 --> 00:06:24.139 
+However, the model compression rate and the speed up are almost 40%
+compared to the teacher. And the training is 34 times faster in terms
+
+57
+00:06:24.139 --> 00:06:25.459 
+of GPU hours.
+
+58
+00:06:28.339 --> 00:06:33.350 
+If we compare to BERT-Medium model, which
+is smaller than BERT-base.
+
+59
+00:06:34.339 --> 00:06:44.430 
+So, BERT-Base: 12 layers,
+768 heads; BERT-Medium: 8 layers, 512 heads.
+
+60
+00:06:45.040 --> 00:06:55.790 
+DistilBert is about 30% smaller but achieves 3.5%
+higher accuracy on GLUE benchmark compared to BERT-Medium and
+
+61
+00:06:55.790 --> 00:07:01.050 
+the training time of distilBERT is also 24x shorter.
+
+62
+00:07:03.540 --> 00:07:04.970 
+As a short summary:
+
+63
+00:07:04.980 --> 00:07:13.259 
+In this video we briefly present the intuition and the motivation
+of knowledge distillation method for model compression.
+
+64
+00:07:13.740 --> 00:07:19.160 
+It utilizes the fact that large models are often overparameterized
+
+65
+00:07:19.639 --> 00:07:28.250 
+We introduced the teacher-student training paradigm and
+Student model learns based on soft labels produced by its teacher.
+
+66
+00:07:28.639 --> 00:07:32.959 
+We also explained the benefits of using of the soft labels.
+
+67
+00:07:33.740 --> 00:07:43.269 
+We further shown the effectiveness of KD method by
+using an example: distilBERT. KD can make
+
+68
+00:07:43.269 --> 00:07:47.660 
+the training faster and also reduce the energy
+consumption of AI computing,
+
+69
+00:07:48.209 --> 00:07:58.000 
+since we will use more efficient student model for deployment.
+Next video, I will introduce some advanced techniques of KD.
+
+70
+00:08:01.139 --> 00:08:02.660 
+Thank you for watching the video.

@@ -1,0 +1,409 @@
+WEBVTT
+
+1
+00:00:00.640 --> 00:00:03.160 
+Hello and welcome! In this video,
+
+2
+00:00:03.160 --> 00:00:15.310 
+We will be talking about other CNN architectures such as the 2nd and 3rd versions of Google InceptionNet and the ResNet.
+
+3
+00:00:15.310 --> 00:00:22.940 
+In InceptionNet V2, Google researchers have made many improvements to the Inception module.
+
+4
+00:00:22.949 --> 00:00:28.160 
+Of course the first step is to add batch norm to each convolutional layer.
+
+5
+00:00:28.820 --> 00:00:38.179 
+They propose three different Inception modules, let's take a look at them one by one. So in M1, the 5x5 convolutional
+
+6
+00:00:38.179 --> 00:00:48.350 
+layer is replaced and two 3x3 convolution layers are used instead. On the one hand the computational complexity is
+
+7
+00:00:48.350 --> 00:00:59.340 
+reduced and the latter method as more non linearity and this idea is learned from the VGG network.
+
+8
+00:00:59.340 --> 00:01:08.980 
+In the second design M2, they also proposed to use n×1 and 1×n convolution to replace n x n
+
+9
+00:01:08.980 --> 00:01:09.659 
+convolution.
+
+10
+00:01:10.340 --> 00:01:15.560 
+The intention is to reduce the parameters and increases the non linearity.
+
+11
+00:01:16.140 --> 00:01:25.659 
+Experimental results show that if this structure design is placed in the middle of the network and
+
+12
+00:01:25.670 --> 00:01:29.459 
+n = 7, the accuracy of the model is higher.
+
+13
+00:01:31.040 --> 00:01:41.859 
+I personally think this design has some problems, unfortunately, for example, this improvement seems to be fully empirical
+
+14
+00:01:41.870 --> 00:01:50.599 
+and random sounds and frequently changing the shape of the convolutional kernel makes it extremely irregular.
+
+15
+00:01:50.609 --> 00:02:01.530 
+So it is not friendly to the computation intensive accelerators such as GPU, even if the theoretical complexity is reduced
+
+16
+00:02:01.859 --> 00:02:04.159 
+and the speed may not be really fast.
+
+17
+00:02:06.439 --> 00:02:17.569 
+The third design method is to use the parallel composition to combine n×1 and 1×n convolution layers
+
+18
+00:02:17.580 --> 00:02:20.960 
+instead of the previous sequential connections.
+
+19
+00:02:21.439 --> 00:02:30.939 
+So the author claimed that when the input feature map sizes 8 x 8 using this kind of module can increase the output filters
+
+20
+00:02:30.949 --> 00:02:34.849 
+and generate a high dimensional sparse feature.
+
+21
+00:02:37.240 --> 00:02:43.150 
+InceptionNet V2 has 5.6% accuracy improvement on ImageNet,
+
+22
+00:02:43.280 --> 00:02:52.560 
+in comparison to the first version, 1.8% improvement to BN-InceptionNet.
+
+23
+00:02:52.590 --> 00:02:59.080 
+So we can clearly see that the largest again comes from adding batch norm layer.
+
+24
+00:03:00.039 --> 00:03:02.949 
+The overall structure is shown in the table.
+
+25
+00:03:04.139 --> 00:03:11.889 
+So the decision of design like which kind of Inception module should be used at which place and how many blocks should be
+
+26
+00:03:11.889 --> 00:03:12.740 
+used.
+
+27
+00:03:12.750 --> 00:03:15.860 
+They are all determined empirically.
+
+28
+00:03:16.340 --> 00:03:21.949 
+But again, I personally think this design principle has some possible drawbacks.
+
+29
+00:03:22.840 --> 00:03:30.460 
+First, it has a lot of inconsistent kernel shapes which is not friendly to the hardware accelerators.
+
+30
+00:03:30.840 --> 00:03:39.460 
+Hard to fully utilize the parallelization of the GPU units and the second is over engineering of the network structure.
+
+31
+00:03:39.840 --> 00:03:50.460 
+For example, the complicated Inception module design which lacks explanation for their design choice or for their effectiveness.
+
+32
+00:03:50.469 --> 00:04:00.840 
+The design choice heavily relies on the expert knowledge and feeling, and the increased design complexity and poor interpretability
+
+33
+00:04:00.849 --> 00:04:10.280 
+finally resulted in the automatic search method being way more efficient than expert design by hand but the automatic search
+
+34
+00:04:10.289 --> 00:04:16.139 
+will break the interpretability further.
+
+35
+00:04:16.139 --> 00:04:21.769 
+InceptionNet V3 further boost the accuracy by 2.2% on ImageNet.
+
+36
+00:04:22.439 --> 00:04:25.860 
+The most essential modifications are listed below.
+
+37
+00:04:26.639 --> 00:04:30.310 
+First it removed the early auxiliary loss.
+
+38
+00:04:31.439 --> 00:04:39.939 
+The experimental results shown that the middle of auxiliary layer has little effect in the early stage of the training but
+
+39
+00:04:39.949 --> 00:04:46.560 
+it can improve the accuracy in the later stage of the training which is equivalent to a regularization term.
+
+40
+00:04:47.500 --> 00:04:53.339 
+The loss function is multi class cross entropy due to the exponential function.
+
+41
+00:04:53.339 --> 00:05:02.279 
+The loss function is too sharp and this problem can be alleviated by label smoothing using label smoothing method.
+
+42
+00:05:02.290 --> 00:05:12.300 
+At the same time, a large number of research results showed that the use of soft label improved the network performance. Label
+
+43
+00:05:12.300 --> 00:05:22.060 
+smoothing reduce the impact of a one-hot label class, increases the impact of other classes according to the uniform distribution.
+
+44
+00:05:22.540 --> 00:05:28.860 
+I briefly show how to calculate the soft label based on the one-hot ground truth factor.
+
+45
+00:05:29.339 --> 00:05:37.350 
+So by which the parameters ε needs to be carefully selected to achieve the best result.
+
+46
+00:05:40.040 --> 00:05:50.740 
+In the year 2015, the researchers from Microsoft Research Asia proposed the ResNet which is an epoch making work already
+
+47
+00:05:50.740 --> 00:05:54.259 
+got more than a 94,000 citations.
+
+48
+00:05:54.839 --> 00:06:05.160 
+The authors introduced 152 layers ResNet on ImageNet dataset and 1202 layers ResNet on CIFAR dataset.
+
+49
+00:06:05.740 --> 00:06:14.819 
+It swept the first place in all the ImageNet challenge task and also the COCO competition task. ResNet-152
+
+50
+00:06:15.459 --> 00:06:20.250 
+achieved 3.57% top 5 error on ImageNet.
+
+51
+00:06:20.629 --> 00:06:26.129 
+This result is the first time it outperformed the human performance. Overall,
+
+52
+00:06:26.139 --> 00:06:35.069 
+the core contribution of this work is that it introduced a simple but effective technique for preventing network degradation
+
+53
+00:06:35.069 --> 00:06:37.660 
+problem with residual connections.
+
+54
+00:06:38.040 --> 00:06:42.000 
+And thus we are able to train extreme deeper networks.
+
+55
+00:06:45.139 --> 00:06:53.480 
+We have already talked about this figure before we can realize that deeper model without shortcut connection suffers from
+
+56
+00:06:53.480 --> 00:06:55.259 
+network degradation problem.
+
+57
+00:06:56.139 --> 00:07:02.350 
+It has both lower training and testing accuracy which is obviously now the over-fitting problem.
+
+58
+00:07:03.139 --> 00:07:11.829 
+It probably showed that multi layer feed forward network is hard to learn the identity mapping because if the forward neural
+
+59
+00:07:11.829 --> 00:07:19.410 
+network can learn identity mapping successfully, then we can directly just add more layers on top of the shallow network
+
+60
+00:07:19.420 --> 00:07:28.120 
+and then the newly added layer just need to learn the identity mapping, then the deep network should at least match the
+
+61
+00:07:28.120 --> 00:07:29.850 
+performance of the shallow one.
+
+62
+00:07:30.339 --> 00:07:34.920 
+Not the worst performance as shown in this figure.
+
+63
+00:07:34.920 --> 00:07:38.290 
+Therefore ResNet's intuition
+
+64
+00:07:38.290 --> 00:07:41.000 
+actually started from this speculation.
+
+65
+00:07:41.500 --> 00:07:51.829 
+The figure shows the basic ResNet block consisting of two convolutional layer and identity shortcut and the two branches
+
+66
+00:07:51.829 --> 00:07:54.069 
+emerged by element wise addition.
+
+67
+00:07:54.740 --> 00:08:05.529 
+According to his mathematical expression, the function Hx represent the output of the block after the addition and Fx represents
+
+68
+00:08:05.540 --> 00:08:08.350 
+the output of the convolutional branch.
+
+69
+00:08:08.740 --> 00:08:09.949 
+The big X
+
+70
+00:08:09.959 --> 00:08:11.050 
+is the input.
+
+71
+00:08:11.740 --> 00:08:16.339 
+As we can see Hx = Fx + X
+
+72
+00:08:16.350 --> 00:08:22.800 
+Or in other words, Fx = Hx - X
+
+73
+00:08:22.800 --> 00:08:32.659 
+Here, the larger X is actually the identity shortcut since it is difficult to directly learn identity mapping using neural network.
+
+74
+00:08:33.039 --> 00:08:38.289 
+So we can instead let the network to learn the residual function Fx.
+
+75
+00:08:38.299 --> 00:08:45.460 
+This should be easier to learn and this is actually the core motivation or core intuition from the author.
+
+76
+00:08:45.940 --> 00:08:54.340 
+On the other hand, if we're adding a shortcut entity connection, this can significantly help the gradient propagation in
+
+77
+00:08:54.340 --> 00:08:59.860 
+the backward pass and it effectively solved the gradient managing problem.
+
+78
+00:09:01.500 --> 00:09:05.769 
+The ResNet model is designed based on the stacked residual blocks.
+
+79
+00:09:06.840 --> 00:09:11.759 
+So the basic idea of the design is the same as that of the VGGNet.
+
+80
+00:09:12.340 --> 00:09:22.149 
+The biggest difference is adding this identity shortcut and the entire network gradually reduces the resolution
+
+81
+00:09:22.159 --> 00:09:31.639 
+of feature maps to expand the receptive field while gradually increasing the number of channels so to keep the overall representation
+
+82
+00:09:31.639 --> 00:09:35.159 
+capacity across all the network stages.
+
+83
+00:09:37.740 --> 00:09:45.740 
+The ResNet paper proposed five ResNet models with different depths, different scale. At the same time,
+
+84
+00:09:45.750 --> 00:09:53.059 
+it is proposed to use bottleneck design similar to the GoogleNet when the network depth is too high.
+
+85
+00:09:53.440 --> 00:10:05.289 
+So normally it's great if the depth is greater than 50 layers, by default to use the Bottleneck design. Effectively
+
+86
+00:10:05.289 --> 00:10:12.860 
+this will reduce the computational complexity of the model and the number of the parameters.
+
+87
+00:10:13.340 --> 00:10:22.789 
+This method drastically reduces the difficulty and the cost of model training because if the bottleneck design is not
+
+88
+00:10:22.789 --> 00:10:31.519 
+used, the required graphical memory and computation capacity will be very high and the training process will be rather slow
+
+89
+00:10:31.519 --> 00:10:35.940 
+than training large models.
+
+90
+00:10:35.940 --> 00:10:44.549 
+ResNet and InceptionNet, are the two most popular deep neural networks architecture that emerged around the same era.
+
+91
+00:10:45.340 --> 00:10:48.580 
+So they are also often compared.
+
+92
+00:10:48.620 --> 00:10:53.259 
+Let's also make a simple comparison here. First of all,
+
+93
+00:10:53.259 --> 00:11:02.350 
+from the perspective of a network design, InceptionNet has more complex architecture and it relies more on expert knowledge
+
+94
+00:11:02.360 --> 00:11:15.340 
+and handcrafted tuning. ResNet inherits the basic design idea of the VGGNet and it has a relatively simple structure.
+
+95
+00:11:15.340 --> 00:11:24.080 
+Regarding the computation efficiency, ResNet has more consistent shapes of the convolutional kernels and has fewer parallel
+
+96
+00:11:24.080 --> 00:11:24.960 
+branches.
+
+97
+00:11:25.539 --> 00:11:33.309 
+On the other hand, the larger number of parallel branches and inconsistent kernel shapes of InceptionNet
+
+98
+00:11:33.309 --> 00:11:44.100 
+are not friendly to the hardware accelerators. Because of those aspects ResNet is easier to be extended and modified.
+
+99
+00:11:44.110 --> 00:11:54.159 
+It has become one of the most popular backbones in a large number of various downstream task. ResNet and pre trained models
+
+100
+00:11:54.169 --> 00:11:57.629 
+are supported by almost all deep learning frameworks.
+
+101
+00:11:57.639 --> 00:12:04.460 
+In contrast, InceptionNet were open source late and are mainly supported by Tensorflow.
+
+102
+00:12:07.639 --> 00:12:09.159 
+Thank you for watching the video

@@ -1,0 +1,1116 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.200 
+So the idea is to give a
+short overview over what's
+
+2
+00:00:02.200 --> 00:00:06.600 
+happening in the hardware
+world, looking into CPUs
+
+3
+00:00:06.600 --> 00:00:10.100 
+and memory especially and
+then also looking into what's
+
+4
+00:00:10.100 --> 00:00:13.130 
+happening beyond CPUs in
+the world of accelerators.
+
+5
+00:00:13.130 --> 00:00:18.180 
+So of course what
+we've been hearing
+
+6
+00:00:18.180 --> 00:00:22.220 
+a lot is that the database performance
+depends a lot on the hardware
+
+7
+00:00:22.220 --> 00:00:25.250 
+so we get a lot of performance
+because the hardware
+
+8
+00:00:25.250 --> 00:00:30.300 
+enables us to do fast scans of
+columns and to do so we need
+
+9
+00:00:30.300 --> 00:00:32.320 
+to understand what's
+happening in the hardware
+
+10
+00:00:32.320 --> 00:00:36.360 
+and so for long time we could
+go into the store we would buy
+
+11
+00:00:36.360 --> 00:00:38.380 
+a new CPU, the
+frequency was higher
+
+12
+00:00:39.390 --> 00:00:42.420 
+and you would know that the
+2 gigabyte CPU is better
+
+13
+00:00:42.420 --> 00:00:44.440 
+than 1.5 gigabyte CPU
+everything's good.
+
+14
+00:00:45.450 --> 00:00:50.500 
+Gigahertz, yes.
+
+15
+00:00:50.500 --> 00:00:55.550 
+And that's not happening anymore
+so if you look into the gigahertz
+
+16
+00:00:55.550 --> 00:00:59.590 
+numbers over the last years,
+they are slightly increasing
+
+17
+00:00:59.590 --> 00:01:02.620 
+but not to the point where you
+get much more performance just
+
+18
+00:01:02.620 --> 00:01:05.650 
+from that so that free lunch is
+over and now you have to look
+
+19
+00:01:05.650 --> 00:01:08.680 
+into how you can use
+the new CPU hardware
+
+20
+00:01:08.680 --> 00:01:12.720 
+to actually gain any
+performance. This is basically
+
+21
+00:01:12.720 --> 00:01:16.760 
+visualization of what I just
+meant with the frequencies are
+
+22
+00:01:16.760 --> 00:01:20.800 
+not really going up anymore,
+we see a slight trend here
+
+23
+00:01:20.800 --> 00:01:24.840 
+but in general since
+maybe 2005 we've
+
+24
+00:01:24.840 --> 00:01:27.870 
+stagnated. So the
+single core performance,
+
+25
+00:01:28.880 --> 00:01:30.900 
+measured in frequency
+in clock cycles
+
+26
+00:01:30.900 --> 00:01:34.940 
+has not changed. If we
+can't increase a frequency,
+
+27
+00:01:34.940 --> 00:01:37.970 
+what else can we do? So
+one thing you notice is
+
+28
+00:01:37.970 --> 00:01:40.100 
+that within CPU if you
+have a very simple CPU
+
+29
+00:01:40.100 --> 00:01:44.104 
+without any improvement you wait a
+lot, so you wait for memory accesses
+
+30
+00:01:44.104 --> 00:01:47.107 
+you wait for the instruction to
+finish before you do something
+
+31
+00:01:47.107 --> 00:01:49.109 
+else and that basically
+looks like this.
+
+32
+00:01:49.109 --> 00:01:52.112 
+So you have four steps for
+every instruction you fetch the
+
+33
+00:01:52.112 --> 00:01:55.115 
+instruction, you decode it
+then you actually execute it
+
+34
+00:01:56.116 --> 00:01:59.119 
+and you write the result
+back. If you simplify
+
+35
+00:01:59.119 --> 00:02:01.121 
+that you can say that
+everything takes one cycle
+
+36
+00:02:02.122 --> 00:02:04.124 
+so you know four clock
+cycles per instruction
+
+37
+00:02:06.126 --> 00:02:10.130 
+now you could say ok, can
+we improve that in a week?
+
+38
+00:02:10.130 --> 00:02:13.133 
+We can, we packed that together
+so that more things are happening
+
+39
+00:02:13.133 --> 00:02:16.136 
+at the same time, that's
+the idea of pipelining.
+
+40
+00:02:17.137 --> 00:02:19.139 
+So this is the first improvement
+that I want to talk about
+
+41
+00:02:19.139 --> 00:02:23.143 
+the idea of pipelining is
+that instead of executing
+
+42
+00:02:23.143 --> 00:02:25.145 
+one thing after another and
+then doing the next instruction
+
+43
+00:02:26.146 --> 00:02:28.148 
+you actually already
+fetch the instruction
+
+44
+00:02:28.148 --> 00:02:31.151 
+before the previous
+one is finished.
+
+45
+00:02:31.151 --> 00:02:35.155 
+So theoretically, if everything
+works out perfectly, you can
+
+46
+00:02:35.155 --> 00:02:36.156 
+quadruple the performance
+just doing this.
+
+47
+00:02:38.158 --> 00:02:41.161 
+Now the problem here is that
+you might have some dependencies
+
+48
+00:02:42.162 --> 00:02:45.165 
+so let's say you're trying to
+do a + b and then you multiply
+
+49
+00:02:45.165 --> 00:02:49.169 
+the result by c you can't really
+execute the multiplication before
+
+50
+00:02:49.169 --> 00:02:51.171 
+you already have the
+result of the addition
+
+51
+00:02:52.172 --> 00:02:55.175 
+and so you have some dependencies
+there and the second problem
+
+52
+00:02:55.175 --> 00:03:00.180 
+is that in reality with most
+processors, CISC architectures,
+
+53
+00:03:00.180 --> 00:03:02.182 
+so with complex
+instruction sets,
+
+54
+00:03:02.182 --> 00:03:04.184 
+it's not only
+four cycles but it
+
+55
+00:03:05.185 --> 00:03:09.189 
+can take longer. So let's take
+a look at a more complicated
+
+56
+00:03:09.189 --> 00:03:13.193 
+example, we already have
+four instructions here
+
+57
+00:03:13.193 --> 00:03:15.195 
+we have the fetch, the decode,
+the execute on the write cycles
+
+58
+00:03:16.196 --> 00:03:20.200 
+and now in this example, because
+we have a dependency here,
+
+59
+00:03:20.200 --> 00:03:23.203 
+because instruction too depends
+on the result from instruction
+
+60
+00:03:23.203 --> 00:03:27.207 
+one. We have a stall here so we
+actually need to wait for instruction
+
+61
+00:03:27.207 --> 00:03:33.213 
+one here and all these slots here
+are times lots that are lost.
+
+62
+00:03:33.213 --> 00:03:37.217 
+So we don't do any work
+there, instead what we can do
+
+63
+00:03:37.217 --> 00:03:39.219 
+something called out
+of order execution.
+
+64
+00:03:39.219 --> 00:03:42.222 
+So the CPU does that
+automatically for you.
+
+65
+00:03:42.222 --> 00:03:47.227 
+It notices that instruction one
+is something that instruction
+
+66
+00:03:47.227 --> 00:03:50.230 
+two depends on but instruction three
+and four are not, so instruction
+
+67
+00:03:50.230 --> 00:03:54.234 
+three and four can execute
+first, then we do instruction two
+
+68
+00:03:54.234 --> 00:03:57.237 
+and this way, in the end,
+we save two time slots here.
+
+69
+00:04:01.241 --> 00:04:05.245 
+Ok, this all assumes that
+we have a linear model
+
+70
+00:04:05.245 --> 00:04:09.249 
+so that you have one piece
+of code and it runs from the
+
+71
+00:04:09.249 --> 00:04:12.252 
+beginning to the end
+but as you all know that
+
+72
+00:04:12.252 --> 00:04:15.255 
+doesn't make too much sense
+because somewhere in our program
+
+73
+00:04:15.255 --> 00:04:17.257 
+we need things like
+branches or loops
+
+74
+00:04:18.000 --> 00:04:20.260 
+and at that point it's not
+strictly linear anymore.
+
+75
+00:04:21.261 --> 00:04:26.266 
+So in order to be able to do that
+as well, in order to optimize
+
+76
+00:04:26.266 --> 00:04:30.270 
+over those jumps we need something
+called branch prediction.
+
+77
+00:04:31.271 --> 00:04:33.273 
+So one analogy
+that I found once,
+
+78
+00:04:33.273 --> 00:04:37.277 
+that I really liked was with
+a train... you reach of fork
+
+79
+00:04:38.278 --> 00:04:40.280 
+and if you don't have any branch
+prediction and you don't know
+
+80
+00:04:40.280 --> 00:04:43.283 
+anything about the train schedule
+then the train would come,
+
+81
+00:04:43.283 --> 00:04:47.287 
+it would have to stop here,
+the train operator gets out and
+
+82
+00:04:47.287 --> 00:04:49.289 
+moves the fork into
+the right position.
+
+83
+00:04:50.290 --> 00:04:53.293 
+Now what you can do with
+branch prediction is
+
+84
+00:04:53.293 --> 00:04:56.296 
+that you assume that for instance
+the train goes straight in
+
+85
+00:04:56.296 --> 00:04:59.299 
+90% of the cases
+because this
+
+86
+00:04:59.299 --> 00:05:03.303 
+track right here is not used
+that much. So if you just put the
+
+87
+00:05:03.303 --> 00:05:05.305 
+fork into position where the
+train always goes straight
+
+88
+00:05:05.305 --> 00:05:09.309 
+and the train never stops then
+you can rush through that fork
+
+89
+00:05:09.309 --> 00:05:12.312 
+and only when you realize
+oh wait this was not the
+
+90
+00:05:12.312 --> 00:05:16.316 
+right branch that I predicted.
+You roll back what you
+
+91
+00:05:16.316 --> 00:05:19.319 
+did and you take the other branch.
+Now this means that in 90 %
+
+92
+00:05:19.319 --> 00:05:21.321 
+of the cases you don't
+have to slow down.
+
+93
+00:05:23.323 --> 00:05:29.329 
+So we heard a bit about
+what different CPUs
+
+94
+00:05:29.329 --> 00:05:32.332 
+do to perform more usable
+work in a given amount of time
+
+95
+00:05:33.333 --> 00:05:38.338 
+and with a given frequency. That
+actually differs from processor
+
+96
+00:05:38.338 --> 00:05:41.341 
+to processor, so there
+are some processors that
+
+97
+00:05:41.341 --> 00:05:44.344 
+do a lot of these optimizations,
+that can do a lot of
+
+98
+00:05:44.344 --> 00:05:48.348 
+out of order execution. I think
+the current intel CPUs are
+
+99
+00:05:48.348 --> 00:05:53.353 
+around 60 executions
+that can be reordered
+
+100
+00:05:53.353 --> 00:05:56.356 
+and then there are others
+that are very simple
+
+101
+00:05:56.356 --> 00:06:00.360 
+something like ARM processors
+that don't do that many
+
+102
+00:06:00.360 --> 00:06:03.363 
+optimizations. But
+because of that they are
+
+103
+00:06:03.363 --> 00:06:06.366 
+not as complex and they
+don't need as much energy.
+
+104
+00:06:07.367 --> 00:06:09.369 
+Now what you can
+now do is you can
+
+105
+00:06:10.370 --> 00:06:14.374 
+order all processors on a
+graph with two axes one is the
+
+106
+00:06:14.374 --> 00:06:18.378 
+clock speed and the other one is
+the instruction level parallelism.
+
+107
+00:06:18.378 --> 00:06:22.382 
+So ILP is something that
+gives you information
+
+108
+00:06:22.382 --> 00:06:26.386 
+how much work you can do
+within one clock cycle
+
+109
+00:06:27.387 --> 00:06:30.390 
+and then when you put all the
+CPUs there you can see ARM
+
+110
+00:06:30.390 --> 00:06:32.392 
+as I just mention this somewhere
+down here, it has a decent
+
+111
+00:06:32.392 --> 00:06:35.395 
+clock speed but the
+ILP is really low.
+
+112
+00:06:36.396 --> 00:06:38.398 
+So it doesn't do too much
+work within one clock cycle
+
+113
+00:06:38.398 --> 00:06:41.401 
+and then goes all the way up
+here so you can see for instance
+
+114
+00:06:41.401 --> 00:06:44.404 
+so it's the apple processors
+do a lot of work but they are
+
+115
+00:06:44.404 --> 00:06:49.409 
+not that fast and intel is doing
+good job in balancing both.
+
+116
+00:06:53.413 --> 00:06:55.415 
+So that's
+
+117
+00:06:58.418 --> 00:07:01.421 
+that's power six, that's power
+seven, that's power eight.
+
+118
+00:07:02.422 --> 00:07:05.425 
+So as you can see IBM has not
+been increasing the frequency
+
+119
+00:07:05.425 --> 00:07:08.428 
+actually they made a bit
+of a step backwards here
+
+120
+00:07:09.429 --> 00:07:13.433 
+to increase their ILP level,
+so they're not getting faster
+
+121
+00:07:13.433 --> 00:07:17.437 
+in terms of frequency but in
+terms off how much work they can
+
+122
+00:07:17.437 --> 00:07:18.000 
+do per cycle.
+
+123
+00:07:21.441 --> 00:07:24.444 
+Ok, now we have out of
+order execution, we have
+
+124
+00:07:24.444 --> 00:07:28.448 
+pipelining, we have branch predictions
+but still we can't find enough
+
+125
+00:07:28.448 --> 00:07:31.451 
+work to keep our CPU busy
+so when we look into all the
+
+126
+00:07:31.451 --> 00:07:33.453 
+execution units that
+we have, we realize
+
+127
+00:07:33.453 --> 00:07:36.456 
+that we still
+wasting a lot of time
+
+128
+00:07:36.456 --> 00:07:39.459 
+and that's something called
+the ILP wall. So before we have
+
+129
+00:07:39.459 --> 00:07:43.463 
+the power wall, the power wall was
+where we couldn't scale the frequency
+
+130
+00:07:43.463 --> 00:07:47.467 
+anymore, now we have the ILP
+wall where we can't find enough
+
+131
+00:07:47.467 --> 00:07:51.471 
+tasks to do to achieve more of
+an instruction level parallelism.
+
+132
+00:07:52.472 --> 00:07:56.476 
+So any ideas what we do when we
+can't do that many instructions
+
+133
+00:07:56.476 --> 00:07:57.477 
+at the same time?
+
+134
+00:08:00.480 --> 00:08:04.484 
+Ok so what we do is we
+execute two things in parallel
+
+135
+00:08:05.485 --> 00:08:09.489 
+and the idea is that if
+you look into this graph
+
+136
+00:08:09.489 --> 00:08:14.494 
+all the boxes here, so you
+have four boxes on the x axis
+
+137
+00:08:14.494 --> 00:08:17.497 
+they all resemble
+an execution unit
+
+138
+00:08:17.497 --> 00:08:20.500 
+so you could have something that's
+good for adds, you could have
+
+139
+00:08:20.500 --> 00:08:22.502 
+something that's good
+for floating points,
+
+140
+00:08:22.502 --> 00:08:24.504 
+you could have something
+that's for memory,
+
+141
+00:08:24.504 --> 00:08:29.509 
+and this blue program
+here will never use all of
+
+142
+00:08:29.509 --> 00:08:32.512 
+the execution units at the same
+time except for this time slot
+
+143
+00:08:33.513 --> 00:08:35.515 
+same for the greeny
+program here.
+
+144
+00:08:35.515 --> 00:08:38.518 
+So as you can see there are a
+lot of gaps that could be filled
+
+145
+00:08:38.518 --> 00:08:43.523 
+with meaningful work. So the
+idea of hyper threading here is
+
+146
+00:08:43.523 --> 00:08:46.526 
+to just clone the
+registers of the core
+
+147
+00:08:46.526 --> 00:08:50.530 
+and then interleave everything
+so that in the end we save three
+
+148
+00:08:50.530 --> 00:08:51.531 
+times slots here.
+
+149
+00:08:53.533 --> 00:08:56.536 
+So Intel is doing that, they call
+that hyper threading, they do
+
+150
+00:08:56.536 --> 00:09:00.540 
+it with two threads, IBM is
+actually going up to eight now
+
+151
+00:09:00.540 --> 00:09:03.543 
+but they found that the
+performance increase towards
+
+152
+00:09:03.543 --> 00:09:07.547 
+the end isn't that big, so two
+or four is a good number there.
+
+153
+00:09:09.549 --> 00:09:11.551 
+Ok so the thing that you
+have to notice here is
+
+154
+00:09:11.551 --> 00:09:14.554 
+we save three time slots but
+we only could do so because
+
+155
+00:09:15.555 --> 00:09:19.559 
+we used multiple threads so
+we have to write multithreaded
+
+156
+00:09:19.559 --> 00:09:21.561 
+programs to get a
+performance benefit here
+
+157
+00:09:22.562 --> 00:09:25.565 
+and then the second thing
+is hyper threading only
+
+158
+00:09:25.565 --> 00:09:28.568 
+helps us when you actually
+can share the resources,
+
+159
+00:09:28.568 --> 00:09:32.572 
+so when you have to programs for
+instance, two database instances
+
+160
+00:09:32.572 --> 00:09:34.574 
+that want to access memory all
+the time and don't do anything
+
+161
+00:09:34.574 --> 00:09:37.577 
+else but accessing memory, they
+can't share the execution units
+
+162
+00:09:37.577 --> 00:09:40.580 
+because everyone needs
+100% of the load unit
+
+163
+00:09:41.581 --> 00:09:43.583 
+and that's why you can see that
+many benefits with hyper threading
+
+164
+00:09:43.583 --> 00:09:46.586 
+there whereas when you
+have two programs that
+
+165
+00:09:46.586 --> 00:09:48.588 
+do completely different
+things you see a big
+
+166
+00:09:49.589 --> 00:09:53.593 
+benefit there. All
+right now moving on,
+
+167
+00:09:53.593 --> 00:09:57.597 
+so we have hyper threading
+now within our processor
+
+168
+00:09:57.597 --> 00:09:59.599 
+but it's still not enough so
+we need to make it faster.
+
+169
+00:09:59.599 --> 00:10:03.603 
+Ideas? We take the processor
+and we multiply it,
+
+170
+00:10:04.604 --> 00:10:09.609 
+so instead of only having one core
+we build multi-core processors.
+
+171
+00:10:09.609 --> 00:10:13.613 
+So here for instance is
+an example for a four core
+
+172
+00:10:13.613 --> 00:10:17.617 
+four core
+processor, we have
+
+173
+00:10:17.617 --> 00:10:20.620 
+four cores here that
+do all the execution.
+
+174
+00:10:20.620 --> 00:10:24.624 
+They share a level three cache
+and then you have all the stuff
+
+175
+00:10:24.624 --> 00:10:28.628 
+like graphics, memory
+controller, and so on around it.
+
+176
+00:10:29.629 --> 00:10:32.632 
+Of course four core
+is a thing of the past
+
+177
+00:10:32.632 --> 00:10:35.635 
+maybe still used in notebooks but
+when you look into the processors
+
+178
+00:10:35.635 --> 00:10:38.638 
+that are interesting for us here,
+then you are actually looking into
+
+179
+00:10:38.638 --> 00:10:41.641 
+something up to twenty
+eight course per processor.
+
+180
+00:10:42.642 --> 00:10:46.646 
+Ok and now we come to the
+part that we've been at
+
+181
+00:10:46.646 --> 00:10:50.650 
+15 minutes ago where we
+realized okay even that is not
+
+182
+00:10:50.650 --> 00:10:53.653 
+enough so we have 28
+cores here, we have
+
+183
+00:10:53.653 --> 00:10:57.657 
+1.5 terabytes of memory here
+but what do we do if that's
+
+184
+00:10:57.657 --> 00:11:00.660 
+not enough? What we do
+here is, we take that one
+
+185
+00:11:00.660 --> 00:11:03.663 
+processor that
+already has 28 cores
+
+186
+00:11:03.663 --> 00:11:05.665 
+and we put more than
+one into the system.
+
+187
+00:11:06.666 --> 00:11:08.668 
+Here you have four but as we
+just heard which you can also
+
+188
+00:11:08.668 --> 00:11:12.672 
+go up to eight. Now what you have
+to do when you put in multiple
+
+189
+00:11:12.672 --> 00:11:15.675 
+processors in there is obviously
+to connect them in some way.
+
+190
+00:11:16.676 --> 00:11:20.680 
+This something that's
+here, still with QPI,
+
+191
+00:11:20.680 --> 00:11:25.685 
+QPI is the interconnect
+between the processors
+
+192
+00:11:25.685 --> 00:11:30.690 
+and that's basically there
+to handle all the traffic
+
+193
+00:11:30.690 --> 00:11:33.693 
+between the processes. So if
+you need data from this memory
+
+194
+00:11:34.694 --> 00:11:37.697 
+to CPU, it goes all the way
+through this interconnect.
+
+195
+00:11:39.699 --> 00:11:44.704 
+Ok now we're here, we have
+an eight socket system and
+
+196
+00:11:44.704 --> 00:11:47.707 
+as we just heard, there
+are still customers that
+
+197
+00:11:47.707 --> 00:11:49.709 
+need more,
+what can we do?
+
+198
+00:11:51.711 --> 00:11:53.713 
+We take more of those
+systems and connect those.
+
+199
+00:11:54.714 --> 00:11:57.717 
+So let's say there's
+actually an old processor,
+
+200
+00:11:57.717 --> 00:12:00.720 
+Intel just announced
+new ones this month
+
+201
+00:12:00.720 --> 00:12:03.723 
+but if we have the system
+that can have eight sockets
+
+202
+00:12:03.723 --> 00:12:07.727 
+with 24 terabytes
+and we need more
+
+203
+00:12:07.727 --> 00:12:10.730 
+then we put multiple of
+these systems in a big system
+
+204
+00:12:10.730 --> 00:12:14.734 
+and we connect those as
+well. Ok so to wrap this
+
+205
+00:12:14.734 --> 00:12:18.738 
+part about CPUs up, what's
+something that you have
+
+206
+00:12:18.738 --> 00:12:21.741 
+to keep in mind about
+CPUs? There are four things
+
+207
+00:12:21.741 --> 00:12:24.744 
+that have a direct impact
+on you as a programmer,
+
+208
+00:12:24.744 --> 00:12:27.747 
+that can mean a difference
+of a factor of 5x,
+
+209
+00:12:27.747 --> 00:12:31.751 
+if we do local accesses compared
+to remote accesses.
+
+210
+00:12:32.752 --> 00:12:35.755 
+Next thing,
+out-of-order-execution,
+
+211
+00:12:35.755 --> 00:12:39.759 
+so the CPu actually re-orders
+things and it does a lot
+
+212
+00:12:39.759 --> 00:12:41.761 
+of different other things,
+branch prediction and so on.
+
+213
+00:12:42.762 --> 00:12:44.764 
+So you can't really
+be sure that it does
+
+214
+00:12:45.765 --> 00:12:49.769 
+everything exactly the same
+as you planned it, so in some
+
+215
+00:12:49.769 --> 00:12:52.772 
+edge cases you need to be aware
+that the runtimes may not be the
+
+216
+00:12:52.772 --> 00:12:55.775 
+same or the execution
+orders might not be the same
+
+217
+00:12:55.775 --> 00:12:59.779 
+and you need to add fences
+there. Caching, we jumped
+
+218
+00:12:59.779 --> 00:13:02.782 
+over that caching part,
+but basically because you
+
+219
+00:13:02.782 --> 00:13:04.784 
+have limited cache
+resources in every processor
+
+220
+00:13:05.000 --> 00:13:08.788 
+you want to make optimal use of
+that so you don't want to load
+
+221
+00:13:08.788 --> 00:13:12.792 
+anything into cache that you don't
+need and then finally multi threading
+
+222
+00:13:12.792 --> 00:13:15.795 
+which is becoming the
+biggest and most important
+
+223
+00:13:15.795 --> 00:13:19.799 
+part. If you want reasonable
+performance, then you can't write a
+
+224
+00:13:19.799 --> 00:13:20.800 
+single threaded
+application anymore.

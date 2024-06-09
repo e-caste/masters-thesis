@@ -1,0 +1,475 @@
+WEBVTT
+
+00:00:00.350 --> 00:00:05.060
+Today we're going to talk about how to translate
+high-level languages into code that computers
+
+00:00:05.060 --> 00:00:06.700
+can execute.
+
+00:00:06.700 --> 00:00:12.020
+So far we've seen the Beta ISA, which includes
+instructions that control the datapath operations
+
+00:00:12.020 --> 00:00:15.880
+performed on 32-bit data stored in the registers.
+
+00:00:15.880 --> 00:00:20.320
+There are also instructions for accessing
+main memory and changing the program counter.
+
+00:00:20.320 --> 00:00:25.130
+The instructions are formatted as opcode,
+source, and destination fields that form 32-bit
+
+00:00:25.130 --> 00:00:27.810
+values in main memory.
+
+00:00:27.810 --> 00:00:32.590
+To make our lives easier, we developed assembly
+language as a way of specifying sequences
+
+00:00:32.590 --> 00:00:34.390
+of instructions.
+
+00:00:34.390 --> 00:00:38.579
+Each assembly language statement corresponds
+to a single instruction.
+
+00:00:38.579 --> 00:00:43.199
+As assembly language programmers, we're responsible
+for managing which values are in registers
+
+00:00:43.199 --> 00:00:48.019
+and which are in main memory, and we need
+to figure out how to break down complicated
+
+00:00:48.019 --> 00:00:52.019
+operations,
+e.g., accessing an element of an array, into
+
+00:00:52.019 --> 00:00:55.710
+the right sequence of Beta operations.
+
+00:00:55.710 --> 00:01:00.170
+We can go one step further and use high-level
+languages to describe the computations we
+
+00:01:00.170 --> 00:01:01.979
+want to perform.
+
+00:01:01.979 --> 00:01:06.840
+These languages use variables and other data
+structures to abstract away the details of
+
+00:01:06.840 --> 00:01:11.680
+storage allocation and the movement of data
+to and from main memory.
+
+00:01:11.680 --> 00:01:16.200
+We can just refer to a data object by name
+and let the language processor handle the
+
+00:01:16.200 --> 00:01:17.200
+details.
+
+00:01:17.200 --> 00:01:22.320
+Similarly, we'll write expressions and other
+operators such as assignment (=) to efficiently
+
+00:01:22.320 --> 00:01:27.320
+describe what would require many statements
+in assembly language.
+
+00:01:27.320 --> 00:01:32.439
+Today we're going to dive into how to translate
+high-level language programs into code that
+
+00:01:32.439 --> 00:01:34.140
+will run on the Beta.
+
+00:01:34.140 --> 00:01:39.289
+Here we see Euclid's algorithm for determining
+the greatest common divisor of two numbers,
+
+00:01:39.289 --> 00:01:43.420
+in this case the algorithm is written in the
+C programming language.
+
+00:01:43.420 --> 00:01:47.939
+We'll be using a simple subset of C as our
+example high-level language.
+
+00:01:47.939 --> 00:01:52.109
+Please see the brief overview of C in the
+Handouts section if you'd like an introduction
+
+00:01:52.109 --> 00:01:55.429
+to C syntax and semantics.
+
+00:01:55.429 --> 00:02:00.689
+C was developed by Dennis Ritchie at AT&T
+Bell Labs in the late 60's and early 70's
+
+00:02:00.689 --> 00:02:04.180
+to use when implementing the Unix operating
+system.
+
+00:02:04.180 --> 00:02:08.660
+Since that time many new high-level languages
+have been introduced providing modern abstractions
+
+00:02:08.660 --> 00:02:16.150
+like object-oriented programming along with
+useful new data and control structures.
+
+00:02:16.150 --> 00:02:21.060
+Using C allows us describe a computation without
+referring to any of the details of the Beta
+
+00:02:21.060 --> 00:02:25.920
+ISA like registers, specific Beta instructions,
+and so on.
+
+00:02:25.920 --> 00:02:30.930
+The absence of such details means there is
+less work required to create the program and
+
+00:02:30.930 --> 00:02:37.470
+makes it easier for others to read and understand
+the algorithm implemented by the program.
+
+00:02:37.470 --> 00:02:40.750
+There are many advantages to using a high-level
+language.
+
+00:02:40.750 --> 00:02:46.430
+They enable programmers to be very productive
+since the programs are concise and readable.
+
+00:02:46.430 --> 00:02:49.720
+These attributes also make it easy to maintain
+the code.
+
+00:02:49.720 --> 00:02:55.280
+Often it is harder to make certain types of
+mistakes since the language allows us to check
+
+00:02:55.280 --> 00:03:00.370
+for silly errors like storing a string value
+into a numeric variable.
+
+00:03:00.370 --> 00:03:05.540
+And more complicated tasks like dynamically
+allocating and deallocating storage can be
+
+00:03:05.540 --> 00:03:08.090
+completely automated.
+
+00:03:08.090 --> 00:03:13.200
+The result is that it can take much less time
+to create a correct program in a high-level
+
+00:03:13.200 --> 00:03:17.720
+language than it would it when writing in
+assembly language.
+
+00:03:17.720 --> 00:03:22.930
+Since the high-level language has abstracted
+away the details of a particular ISA, the
+
+00:03:22.930 --> 00:03:28.010
+programs are portable in the sense that we
+can expect to run the same code on different
+
+00:03:28.010 --> 00:03:30.920
+ISAs without having to rewrite the code.
+
+00:03:30.920 --> 00:03:35.490
+What do we lose by using a high-level language?
+
+00:03:35.490 --> 00:03:39.579
+Should we worry that we'll pay a price in
+terms of the efficiency and performance we
+
+00:03:39.579 --> 00:03:42.980
+might get by crafting each instruction by
+hand?
+
+00:03:42.980 --> 00:03:47.329
+The answer depends on how we choose to run
+high-level language programs.
+
+00:03:47.329 --> 00:03:53.050
+The two basic execution strategies are "interpretation"
+and "compilation".
+
+00:03:53.050 --> 00:03:58.230
+To interpret a high-level language program,
+we'll write a special program called an "interpreter"
+
+00:03:58.230 --> 00:04:01.630
+that runs on the actual computer, M1.
+
+00:04:01.630 --> 00:04:07.431
+The interpreter mimics the behavior of some
+abstract easy-to-program machine M2 and for
+
+00:04:07.431 --> 00:04:14.340
+each M2 operation executes sequences of M1
+instructions to achieve the desired result.
+
+00:04:14.340 --> 00:04:20.370
+We can think of the interpreter along with
+M1 as an implementation of M2, i.e., given
+
+00:04:20.370 --> 00:04:26.710
+a program written for M2, the interpreter
+will, step-by-step, emulate the effect of
+
+00:04:26.710 --> 00:04:28.620
+M2 instructions.
+
+00:04:28.620 --> 00:04:34.120
+We often use several layers of interpretation
+when tackling computation tasks.
+
+00:04:34.120 --> 00:04:41.240
+For example, an engineer may use her laptop
+with an Intel CPU to run the Python interpreter.
+
+00:04:41.240 --> 00:04:47.140
+In Python, she loads the SciPy toolkit, which
+provides a calculator-like interface for numerical
+
+00:04:47.140 --> 00:04:50.180
+analysis for matrices and data.
+
+00:04:50.180 --> 00:04:56.650
+For each SciPy command, e.g., "find the maximum
+value of a dataset", the SciPy tool kit executes
+
+00:04:56.650 --> 00:05:01.389
+many Python statements, e.g., to loop over
+each element of the array, remembering the
+
+00:05:01.389 --> 00:05:03.600
+largest value.
+
+00:05:03.600 --> 00:05:09.920
+For each Python statement, the Python interpreter
+executes many x86 instructions, e.g., to increment
+
+00:05:09.920 --> 00:05:14.310
+the loop index and check for loop termination.
+
+00:05:14.310 --> 00:05:20.000
+Executing a single SciPy command may require
+executing of tens of Python statements, which
+
+00:05:20.000 --> 00:05:24.000
+in turn each may require executing hundreds
+of x86 instructions.
+
+00:05:24.000 --> 00:05:31.320
+The engineer is very happy she didn't have
+to write each of those instructions herself!
+
+00:05:31.320 --> 00:05:35.820
+Interpretation is an effective implementation
+strategy when performing a computation once,
+
+00:05:35.820 --> 00:05:41.020
+or when exploring which computational approach
+is most effective before making a more substantial
+
+00:05:41.020 --> 00:05:44.470
+investment in creating a more efficient implementation.
+
+00:05:44.470 --> 00:05:50.270
+We'll use a compilation implementation strategy
+when we have computational tasks that we need
+
+00:05:50.270 --> 00:05:56.210
+to execute repeatedly and hence we are willing
+to invest more time up-front for more efficiency
+
+00:05:56.210 --> 00:05:57.909
+in the long-term.
+
+00:05:57.909 --> 00:06:02.430
+In compilation, we also start with our actual
+computer M1.
+
+00:06:02.430 --> 00:06:07.639
+Then we'll take our high-level language program
+P2 and translate it statement-by-statement
+
+00:06:07.639 --> 00:06:09.950
+into a program for M1.
+
+00:06:09.950 --> 00:06:13.330
+Note that we're not actually running the P2
+program.
+
+00:06:13.330 --> 00:06:18.590
+Instead we're using it as a template to create
+an equivalent P1 program that can execute
+
+00:06:18.590 --> 00:06:20.750
+directly on M1.
+
+00:06:20.750 --> 00:06:25.870
+The translation process is called "compilation"
+and the program that does the translation
+
+00:06:25.870 --> 00:06:28.540
+is called a "compiler".
+
+00:06:28.540 --> 00:06:34.780
+We compile the P2 program once to get the
+translation P1, and then we'll run P1 on M1
+
+00:06:34.780 --> 00:06:37.300
+whenever we want to execute P2.
+
+00:06:37.300 --> 00:06:43.480
+Running P1 avoids the overhead of having to
+process the P2 source and the costs of executing
+
+00:06:43.480 --> 00:06:46.409
+any intervening layers of interpretation.
+
+00:06:46.409 --> 00:06:51.240
+Instead of dynamically figuring out the necessary
+machine instructions for each P2 statement
+
+00:06:51.240 --> 00:06:55.060
+as it's encountered,
+in effect we've arranged to capture that stream
+
+00:06:55.060 --> 00:07:00.600
+of machine instructions and save them as a
+P1 program for later execution.
+
+00:07:00.600 --> 00:07:06.070
+If we're willing to pay the up-front costs
+of compilation, we'll get more efficient execution.
+
+00:07:06.070 --> 00:07:12.420
+And, with different compilers, we can arrange
+to run P2 on many different machines - M2,
+
+00:07:12.420 --> 00:07:17.360
+M3, etc. - without having rewrite P2.
+
+00:07:17.360 --> 00:07:25.020
+So we now have two ways to execute a high-level
+language program: interpretation and compilation.
+
+00:07:25.020 --> 00:07:28.169
+Both allow us to change the original source
+program.
+
+00:07:28.169 --> 00:07:32.540
+Both allow us to abstract away the details
+of the actual computer we'll use to run the
+
+00:07:32.540 --> 00:07:33.540
+program.
+
+00:07:33.540 --> 00:07:38.080
+And both strategies are widely used in modern
+computer systems!
+
+00:07:38.080 --> 00:07:42.770
+Let's summarize the differences between interpretation
+and compilation.
+
+00:07:42.770 --> 00:07:47.960
+Suppose the statement "x+2" appears in the
+high-level program.
+
+00:07:47.960 --> 00:07:52.699
+When the interpreter processes this statement
+it immediately fetches the value of the variable
+
+00:07:52.699 --> 00:07:54.760
+x and adds 2 to it.
+
+00:07:54.760 --> 00:07:58.949
+On the other hand, the compiler would generate
+Beta instructions that would LD the variable
+
+00:07:58.949 --> 00:08:04.360
+x into a register and then ADD 2 to that value.
+
+00:08:04.360 --> 00:08:09.760
+The interpreter is executing each statement
+as it's processed and, in fact, may process
+
+00:08:09.760 --> 00:08:14.810
+and execute the same statement many times
+if, e.g., it was in a loop.
+
+00:08:14.810 --> 00:08:21.650
+The compiler is just generating instructions
+to be executed at some later time.
+
+00:08:21.650 --> 00:08:26.590
+Interpreters have the overhead of processing
+the high-level source code during execution
+
+00:08:26.590 --> 00:08:31.650
+and that overhead may be incurred many times
+in loops.
+
+00:08:31.650 --> 00:08:37.169
+Compilers incur the processing overhead once,
+making the eventual execution more efficient.
+
+00:08:37.169 --> 00:08:42.549
+But during development, the programmer may
+have to compile and run the program many times,
+
+00:08:42.549 --> 00:08:48.079
+often incurring the cost of compilation for
+only a single execution of the program.
+
+00:08:48.079 --> 00:08:52.790
+So the compile-run-debug loop can take more
+time.
+
+00:08:52.790 --> 00:08:57.709
+The interpreter is making decisions about
+the data type of x and the type of operations
+
+00:08:57.709 --> 00:09:02.490
+necessary at run time, i.e., while the program
+is running.
+
+00:09:02.490 --> 00:09:07.880
+The compiler is making those decisions during
+the compilation process.
+
+00:09:07.880 --> 00:09:09.779
+Which is the better approach?
+
+00:09:09.779 --> 00:09:14.759
+In general, executing compiled code is much
+faster than running the code interpretively.
+
+00:09:14.759 --> 00:09:19.920
+But since the interpreter is making decisions
+at run time, it can change its behavior depending,
+
+00:09:19.920 --> 00:09:26.129
+say, on the type of the data in the variable
+X, offering considerable flexibility in handling
+
+00:09:26.129 --> 00:09:30.610
+different types of data with the same algorithm.
+
+00:09:30.610 --> 00:09:34.470
+Compilers take away that flexibility in exchange
+for fast execution.

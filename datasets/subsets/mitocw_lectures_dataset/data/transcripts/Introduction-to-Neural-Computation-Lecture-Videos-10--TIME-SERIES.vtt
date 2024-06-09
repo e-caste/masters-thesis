@@ -1,0 +1,5172 @@
+WEBVTT
+
+00:00:16.020 --> 00:00:20.820
+MICHALE FEE: OK, so we're going
+to start a new topic today.
+
+00:00:20.820 --> 00:00:22.860
+We're going to
+spend the next three
+
+00:00:22.860 --> 00:00:26.520
+or so lectures talking
+about spectral analysis.
+
+00:00:26.520 --> 00:00:28.860
+And we're going to
+warm up to that topic
+
+00:00:28.860 --> 00:00:34.230
+today by talking about
+time series more generally.
+
+00:00:34.230 --> 00:00:36.290
+Now, one of the
+things that we're
+
+00:00:36.290 --> 00:00:39.755
+going to discuss in the
+context of this new topic--
+
+00:00:39.755 --> 00:00:42.980
+so I'm going to spend
+a few minutes reviewing
+
+00:00:42.980 --> 00:00:45.320
+a little bit about
+receptive fields
+
+00:00:45.320 --> 00:00:49.260
+that we've talked about
+in the last lecture.
+
+00:00:49.260 --> 00:00:51.680
+And one of the
+really cool things
+
+00:00:51.680 --> 00:00:57.950
+that I find in developing
+tools for analyzing data
+
+00:00:57.950 --> 00:01:00.680
+is that there's a really
+big sense in which, when
+
+00:01:00.680 --> 00:01:02.630
+we developed tools
+to analyze data,
+
+00:01:02.630 --> 00:01:06.530
+we're actually developing
+tools that kind of look
+
+00:01:06.530 --> 00:01:07.850
+like what the brain does.
+
+00:01:10.550 --> 00:01:15.410
+So our brains basically learn
+to analyze sensory stimuli
+
+00:01:15.410 --> 00:01:19.010
+and extract information
+from those sensory stimuli.
+
+00:01:19.010 --> 00:01:22.130
+And so when we think
+about developing tools
+
+00:01:22.130 --> 00:01:25.610
+for analyzing data, we
+take a lot of inspiration
+
+00:01:25.610 --> 00:01:29.840
+from how neurons and
+brain circuits actually
+
+00:01:29.840 --> 00:01:31.670
+do the same thing.
+
+00:01:31.670 --> 00:01:35.150
+And a lot of the
+sort of formulation
+
+00:01:35.150 --> 00:01:39.170
+that we've developed for
+understanding how neurons
+
+00:01:39.170 --> 00:01:42.410
+respond to sensory
+inputs has a lot
+
+00:01:42.410 --> 00:01:48.440
+of similarity to the kind of
+things we do to analyze data.
+
+00:01:48.440 --> 00:01:53.210
+All right, so a brief review
+of mathematical models
+
+00:01:53.210 --> 00:01:56.880
+of receptive fields--
+so the basic,
+
+00:01:56.880 --> 00:01:59.670
+most common model for thinking
+about how neurons respond
+
+00:01:59.670 --> 00:02:02.940
+to sensory stimuli is the
+linear/non-linear model.
+
+00:02:02.940 --> 00:02:04.440
+And again, the basic
+idea is that we
+
+00:02:04.440 --> 00:02:06.540
+have a sensory stimulus.
+
+00:02:06.540 --> 00:02:10.650
+In this case, this is the
+intensity of a visual field.
+
+00:02:10.650 --> 00:02:14.670
+So it's intensity as a
+function of position x and y--
+
+00:02:14.670 --> 00:02:17.580
+let's say on the
+screen or on a retina.
+
+00:02:17.580 --> 00:02:20.940
+Then that stimulus
+goes through a filter.
+
+00:02:20.940 --> 00:02:24.480
+And the filter is
+basically a pattern
+
+00:02:24.480 --> 00:02:28.830
+of sensitivity of the
+neuron to the sensory input.
+
+00:02:28.830 --> 00:02:32.010
+And so in this case, I've
+represented this filter
+
+00:02:32.010 --> 00:02:37.740
+as a filter that's
+sensitive to a ring of light
+
+00:02:37.740 --> 00:02:40.790
+around a center of darkness.
+
+00:02:40.790 --> 00:02:45.600
+So this might be like an
+off neuron in the retina.
+
+00:02:45.600 --> 00:02:48.870
+So that filter acts
+on the stimulus.
+
+00:02:48.870 --> 00:02:51.300
+It filters some aspect
+of the stimulus,
+
+00:02:51.300 --> 00:02:55.140
+and develops a response
+to the stimulus.
+
+00:02:55.140 --> 00:02:59.370
+That response goes to what's
+called an output non-linearity,
+
+00:02:59.370 --> 00:03:02.910
+which typically looks
+something like this, where
+
+00:03:02.910 --> 00:03:05.400
+a very negative
+response produces
+
+00:03:05.400 --> 00:03:09.120
+no spiking of the neuron,
+no output of the neuron,
+
+00:03:09.120 --> 00:03:13.110
+whereas a large overlap of
+the stimulus with the filter,
+
+00:03:13.110 --> 00:03:16.180
+with the receptive field,
+produces a large spiking
+
+00:03:16.180 --> 00:03:16.680
+response.
+
+00:03:16.680 --> 00:03:19.380
+So a typical way this
+would look for a neuron
+
+00:03:19.380 --> 00:03:24.840
+is that if the filter
+response, L, is 0,
+
+00:03:24.840 --> 00:03:29.580
+the neuron might have some
+spontaneous firing rate, r0.
+
+00:03:29.580 --> 00:03:32.580
+And the firing
+rate of the neuron
+
+00:03:32.580 --> 00:03:37.620
+is modulated linearly around
+that spontaneous firing rate r
+
+00:03:37.620 --> 00:03:41.340
+by an amount proportional to
+the response of the filter.
+
+00:03:41.340 --> 00:03:44.190
+And then obviously if the
+response of the filter
+
+00:03:44.190 --> 00:03:46.800
+is very negative,
+then the firing rate
+
+00:03:46.800 --> 00:03:49.560
+of the neuron at
+some point reaches 0.
+
+00:03:49.560 --> 00:03:53.873
+And if the r0 plus
+L goes below 0,
+
+00:03:53.873 --> 00:03:55.290
+then the firing
+rate of the neuron
+
+00:03:55.290 --> 00:03:57.330
+can obviously not go negative.
+
+00:03:57.330 --> 00:03:59.400
+And so the firing
+rate of the neuron
+
+00:03:59.400 --> 00:04:03.980
+will just kind of sit at
+that floor of 0 firing rate.
+
+00:04:03.980 --> 00:04:06.840
+All right, so that
+is a response-- that
+
+00:04:06.840 --> 00:04:09.480
+is an output non-linearity.
+
+00:04:09.480 --> 00:04:17.459
+And then most neurons fire
+sort of randomly, at a rate
+
+00:04:17.459 --> 00:04:19.709
+corresponding to
+this firing rate
+
+00:04:19.709 --> 00:04:24.060
+that is the output of
+this output nonlinearity.
+
+00:04:24.060 --> 00:04:27.030
+And so what happens is a
+neuron generates spikes
+
+00:04:27.030 --> 00:04:30.720
+probabilistically at
+a rate corresponding
+
+00:04:30.720 --> 00:04:37.550
+to the output of this
+non-linear response function.
+
+00:04:37.550 --> 00:04:40.140
+OK, any questions about that?
+
+00:04:40.140 --> 00:04:42.810
+All right, so what
+we're going to do today
+
+00:04:42.810 --> 00:04:46.200
+is I'm going to take a
+little bit of a detour
+
+00:04:46.200 --> 00:04:52.710
+and talk about how we
+think about the randomness
+
+00:04:52.710 --> 00:04:56.790
+or the stochasticity of
+neuronal firing rates.
+
+00:04:56.790 --> 00:05:00.130
+OK, and I'll talk about
+the Poisson process.
+
+00:05:00.130 --> 00:05:04.710
+And then we're going
+to come back and think
+
+00:05:04.710 --> 00:05:08.850
+about filters more
+generally, and how
+
+00:05:08.850 --> 00:05:11.580
+we can analyze signals
+by applying filters
+
+00:05:11.580 --> 00:05:13.950
+of different types to them.
+
+00:05:13.950 --> 00:05:19.170
+OK, so I think this is basically
+what we covered last time.
+
+00:05:19.170 --> 00:05:22.410
+Again, the idea is
+that we can think
+
+00:05:22.410 --> 00:05:25.650
+of the response of a neuron
+as a spontaneous firing
+
+00:05:25.650 --> 00:05:30.880
+rate plus a filter acting
+on a stimulus input.
+
+00:05:30.880 --> 00:05:33.320
+In this case, the filter is
+a two-dimensional filter.
+
+00:05:33.320 --> 00:05:37.920
+So here I'm just fleshing out
+what this looks like here,
+
+00:05:37.920 --> 00:05:41.460
+for the case of a linear
+filter in the visual system,
+
+00:05:41.460 --> 00:05:43.510
+a spatial receptive field.
+
+00:05:43.510 --> 00:05:45.990
+So G is the spatial
+receptive field.
+
+00:05:45.990 --> 00:05:49.620
+i is the intensity as
+a function of position.
+
+00:05:49.620 --> 00:05:53.490
+And what we do is we multiply
+that spatial receptive field
+
+00:05:53.490 --> 00:05:57.810
+times the stimulus,
+and integrate over all
+
+00:05:57.810 --> 00:06:00.180
+the spatial dimensions x and y.
+
+00:06:00.180 --> 00:06:03.030
+In one dimension, we would
+have a spatial receptive field
+
+00:06:03.030 --> 00:06:04.020
+that looks like this.
+
+00:06:04.020 --> 00:06:09.000
+So this receptive
+field is sensitive
+
+00:06:09.000 --> 00:06:12.420
+to a positive brightness
+in the center,
+
+00:06:12.420 --> 00:06:21.310
+and a negative or a dark
+feature in the surrounding area.
+
+00:06:21.310 --> 00:06:23.790
+And again, the way
+we think about this
+
+00:06:23.790 --> 00:06:27.030
+is that the neuron is
+maximally responsive
+
+00:06:27.030 --> 00:06:31.980
+if the pattern of sensory
+input looks like the receptive
+
+00:06:31.980 --> 00:06:35.470
+field, is highly correlated
+with the receptive field.
+
+00:06:35.470 --> 00:06:38.790
+So if the receptive field
+has a positive central region
+
+00:06:38.790 --> 00:06:41.400
+surrounded by negative
+flanks, then that neuron
+
+00:06:41.400 --> 00:06:44.640
+is maximally responsive
+if the pattern of light
+
+00:06:44.640 --> 00:06:46.960
+looks like the receptive field.
+
+00:06:46.960 --> 00:06:50.460
+So if the light pattern has
+a bright spot surrounded
+
+00:06:50.460 --> 00:06:56.050
+by dark flanking
+regions, then we
+
+00:06:56.050 --> 00:06:59.230
+calculate this
+integral, what you find
+
+00:06:59.230 --> 00:07:02.110
+is that the positive parts--
+
+00:07:02.110 --> 00:07:06.970
+the positive receptive field
+times the positive intensity
+
+00:07:06.970 --> 00:07:10.660
+or brightness multiplies to
+give you a positive contribution
+
+00:07:10.660 --> 00:07:12.520
+to the neuronal response.
+
+00:07:12.520 --> 00:07:15.850
+A negative component
+of the receptive field
+
+00:07:15.850 --> 00:07:19.870
+multiplies by a negative
+component of the intensity.
+
+00:07:19.870 --> 00:07:22.890
+And that gives you a positive
+contribution to the response.
+
+00:07:22.890 --> 00:07:25.900
+And so you can see that even
+though the receptive field has
+
+00:07:25.900 --> 00:07:28.060
+positive and negative
+parts, so does
+
+00:07:28.060 --> 00:07:31.448
+the intensity function have
+positive and negative parts.
+
+00:07:31.448 --> 00:07:32.990
+And when you multiply
+those together,
+
+00:07:32.990 --> 00:07:36.160
+you get a positive contribution
+to the response of the neuron
+
+00:07:36.160 --> 00:07:36.770
+everywhere.
+
+00:07:36.770 --> 00:07:40.610
+And so when you integrate
+that, you get a big response.
+
+00:07:40.610 --> 00:07:44.840
+In contrast, if the intensity
+profile looked like this--
+
+00:07:44.840 --> 00:07:45.920
+it's very broad.
+
+00:07:45.920 --> 00:07:50.540
+So this looks like a bright
+spot surrounded by a dark ring.
+
+00:07:50.540 --> 00:07:53.840
+If, on the other hand, you
+have a large bright spot that
+
+00:07:53.840 --> 00:07:56.600
+completely overlaps
+this receptive field,
+
+00:07:56.600 --> 00:07:59.030
+then when you multiply these
+two functions together,
+
+00:07:59.030 --> 00:08:02.270
+this positive times positive
+will give you a positive here.
+
+00:08:02.270 --> 00:08:05.090
+But the negative part
+of the receptive field
+
+00:08:05.090 --> 00:08:07.820
+overlaps with a positive
+part of the intensity.
+
+00:08:07.820 --> 00:08:09.710
+And that gives you a
+negative contribution
+
+00:08:09.710 --> 00:08:11.210
+to the neuronal response.
+
+00:08:11.210 --> 00:08:13.880
+And when you integrate
+that, the positive here
+
+00:08:13.880 --> 00:08:15.890
+is canceled by the
+negative there,
+
+00:08:15.890 --> 00:08:18.680
+and you get a small response.
+
+00:08:18.680 --> 00:08:21.600
+All right, any
+questions about that?
+
+00:08:21.600 --> 00:08:24.880
+I think we covered that in
+a lot of detail last time.
+
+00:08:24.880 --> 00:08:27.830
+But again, the
+important point here
+
+00:08:27.830 --> 00:08:33.409
+is that this neuron is
+looking for a particular kind
+
+00:08:33.409 --> 00:08:35.900
+of pattern in the sensory input.
+
+00:08:35.900 --> 00:08:39.530
+And it responds when the
+sensory input has that pattern.
+
+00:08:43.700 --> 00:08:46.460
+It doesn't respond as well
+when the sensory input has
+
+00:08:46.460 --> 00:08:47.330
+a different pattern.
+
+00:08:53.900 --> 00:08:57.350
+And we have the same
+kind of situation
+
+00:08:57.350 --> 00:09:02.430
+for the sensitivity of
+neurons to temporal patterns.
+
+00:09:02.430 --> 00:09:04.850
+So we can write down the
+firing rate of a neuron
+
+00:09:04.850 --> 00:09:06.600
+as a function of time.
+
+00:09:06.600 --> 00:09:12.980
+It's just a spontaneous firing
+rate plus a filter acting
+
+00:09:12.980 --> 00:09:14.910
+on a time-dependent stimulus.
+
+00:09:14.910 --> 00:09:18.350
+So in this case, this
+filter will be looking for
+
+00:09:18.350 --> 00:09:22.070
+or sensitive to a
+particular temporal pattern.
+
+00:09:22.070 --> 00:09:25.380
+And as you recall, if we have
+a time-dependent stimulus--
+
+00:09:25.380 --> 00:09:29.120
+let's say this is the
+intensity of a spot of light,
+
+00:09:29.120 --> 00:09:30.980
+that you can have
+a neuron that's
+
+00:09:30.980 --> 00:09:33.480
+responsive to a particular
+temporal pattern.
+
+00:09:33.480 --> 00:09:36.710
+Let's say a brief darkening
+of the stimulus followed
+
+00:09:36.710 --> 00:09:41.780
+by a pulse of bright
+high intensity,
+
+00:09:41.780 --> 00:09:46.220
+and then the neuron
+response after it sees
+
+00:09:46.220 --> 00:09:48.260
+that pattern in the stimulus.
+
+00:09:48.260 --> 00:09:52.460
+And the way we think
+about this mathematically
+
+00:09:52.460 --> 00:09:54.980
+is that what's happening
+is that the stimulus
+
+00:09:54.980 --> 00:10:00.200
+is being convolved with
+this linear temporal kernel.
+
+00:10:00.200 --> 00:10:03.110
+And the way we think about
+that is that the kernel
+
+00:10:03.110 --> 00:10:05.360
+is sliding across the stimulus.
+
+00:10:05.360 --> 00:10:07.760
+We're doing that
+same kind of overlap.
+
+00:10:07.760 --> 00:10:11.210
+We're multiplying the
+stimulus times the kernel,
+
+00:10:11.210 --> 00:10:13.430
+integrating over
+time, and asking,
+
+00:10:13.430 --> 00:10:17.270
+where in time does the
+stimulus have a strong overlap
+
+00:10:17.270 --> 00:10:17.960
+with the kernel?
+
+00:10:17.960 --> 00:10:19.830
+And you can see
+that in this case,
+
+00:10:19.830 --> 00:10:21.470
+there's a strong
+overlap at this point.
+
+00:10:21.470 --> 00:10:26.090
+The stimulus looks
+like the kernel.
+
+00:10:26.090 --> 00:10:27.800
+The positive parts
+of the stimulus
+
+00:10:27.800 --> 00:10:30.110
+overlap with positive
+parts of the kernel.
+
+00:10:30.110 --> 00:10:32.887
+Negative parts of the stimulus
+overlap with negative parts
+
+00:10:32.887 --> 00:10:33.470
+of the kernel.
+
+00:10:33.470 --> 00:10:35.730
+So when you multiply
+that all together,
+
+00:10:35.730 --> 00:10:38.640
+you get a big positive response.
+
+00:10:38.640 --> 00:10:42.710
+And if you actually slide that
+across and do that integral
+
+00:10:42.710 --> 00:10:46.190
+as a function of time, you can
+see that this convolution has
+
+00:10:46.190 --> 00:10:49.680
+a peak at the point where
+that kernel overlaps
+
+00:10:49.680 --> 00:10:50.430
+with the stimulus.
+
+00:10:50.430 --> 00:10:52.250
+And right there is
+where the neuron
+
+00:10:52.250 --> 00:10:54.350
+would tend to produce a spike.
+
+00:10:56.880 --> 00:11:01.090
+All right, and so, I think near
+the end of the last lecture,
+
+00:11:01.090 --> 00:11:04.690
+we talked about integrating
+or putting together
+
+00:11:04.690 --> 00:11:13.000
+the spatial and temporal
+parts of a receptive field
+
+00:11:13.000 --> 00:11:18.280
+into sort of a larger concept
+of a spatio-temporal receptive
+
+00:11:18.280 --> 00:11:23.950
+field that combines both spatial
+and temporal information.
+
+00:11:27.140 --> 00:11:30.290
+All right, so here
+are the things
+
+00:11:30.290 --> 00:11:33.270
+that we're going to
+talk about today.
+
+00:11:33.270 --> 00:11:36.950
+We're going to again, take
+a little bit of a detour,
+
+00:11:36.950 --> 00:11:39.050
+and talk about spike
+trains being probabilistic.
+
+00:11:39.050 --> 00:11:41.450
+We'll talk about a
+Poisson process, which
+
+00:11:41.450 --> 00:11:45.710
+is the kind of random process
+that most people think
+
+00:11:45.710 --> 00:11:49.370
+about when you talk about
+spike trains of neurons.
+
+00:11:49.370 --> 00:11:53.480
+We're going to develop a couple
+of measures of spike train
+
+00:11:53.480 --> 00:11:54.170
+variability.
+
+00:11:54.170 --> 00:11:57.680
+So an important thing
+that neuroscientists often
+
+00:11:57.680 --> 00:11:59.510
+think about when you
+measure spike trains
+
+00:11:59.510 --> 00:12:03.050
+is how variable are they,
+how reproducible are they
+
+00:12:03.050 --> 00:12:05.690
+in responding to a stimulus.
+
+00:12:05.690 --> 00:12:09.200
+And a number of different
+statistical measures
+
+00:12:09.200 --> 00:12:12.680
+have been developed to
+quantify spike trains.
+
+00:12:12.680 --> 00:12:14.930
+And we're just going to
+describe those briefly.
+
+00:12:14.930 --> 00:12:16.820
+And I think you'll
+have a problem set
+
+00:12:16.820 --> 00:12:19.200
+problem that deals with those.
+
+00:12:19.200 --> 00:12:24.370
+And then I'm going to come
+back to kind of a broader
+
+00:12:24.370 --> 00:12:26.730
+discussion of convolution.
+
+00:12:26.730 --> 00:12:31.120
+I'll introduce two
+new metrics or methods
+
+00:12:31.120 --> 00:12:39.080
+for analyzing time series data,
+data that's a function of time.
+
+00:12:39.080 --> 00:12:42.490
+Those are cross-correlation
+and autocorrelation functions.
+
+00:12:42.490 --> 00:12:45.070
+And I'm going to relate
+those to the convolution
+
+00:12:45.070 --> 00:12:48.960
+that you've been
+using more often
+
+00:12:48.960 --> 00:12:51.730
+and we've been seeing in class.
+
+00:12:51.730 --> 00:12:55.240
+And then finally we're
+going to jump right
+
+00:12:55.240 --> 00:13:01.210
+into spectral analysis
+of time series, which
+
+00:13:01.210 --> 00:13:06.100
+is a way of pulling out
+periodic signals from data.
+
+00:13:06.100 --> 00:13:11.740
+And what you're going to see is
+that that method of pulling out
+
+00:13:11.740 --> 00:13:14.890
+temporal structure
+out of signals
+
+00:13:14.890 --> 00:13:17.500
+looks a lot like the
+way we've been talking
+
+00:13:17.500 --> 00:13:19.990
+about how neurons
+have sensitivity
+
+00:13:19.990 --> 00:13:23.300
+to temporal
+structure in signals.
+
+00:13:23.300 --> 00:13:27.280
+OK, we're going to use that
+same idea of taking a signal
+
+00:13:27.280 --> 00:13:30.280
+and asking how much
+does it overlap
+
+00:13:30.280 --> 00:13:36.908
+with a linear kernel
+with a filter.
+
+00:13:36.908 --> 00:13:38.950
+And we're going to talk
+about the kind of filters
+
+00:13:38.950 --> 00:13:44.020
+you use to detect periodic
+structure and signal.
+
+00:13:44.020 --> 00:13:48.340
+And not surprisingly, those are
+going to be periodic filters.
+
+00:13:48.340 --> 00:13:52.010
+All right so that's what we're
+going to talk about today.
+
+00:13:52.010 --> 00:13:55.690
+All right, so let's start with
+probabilistic spike trains.
+
+00:13:55.690 --> 00:13:59.740
+So the first thing
+that you discover
+
+00:13:59.740 --> 00:14:02.050
+when you record from
+neurons in the brain
+
+00:14:02.050 --> 00:14:06.670
+and you present a
+stimulus to the animal--
+
+00:14:06.670 --> 00:14:09.700
+let's say you record from
+neurons in visual cortex
+
+00:14:09.700 --> 00:14:11.740
+or auditory cortex,
+and you present
+
+00:14:11.740 --> 00:14:14.590
+a stimulus for some period
+of time, what you find
+
+00:14:14.590 --> 00:14:16.330
+is that the neurons respond.
+
+00:14:16.330 --> 00:14:18.700
+They respond with some
+temporal structure.
+
+00:14:18.700 --> 00:14:21.100
+But each time you
+present the stimulus,
+
+00:14:21.100 --> 00:14:23.380
+the response of the neuron
+is a little bit different.
+
+00:14:23.380 --> 00:14:26.320
+So you can see that this--
+so what I'm showing here
+
+00:14:26.320 --> 00:14:30.570
+is a raster plot.
+
+00:14:30.570 --> 00:14:34.660
+So each row of this shows
+the spiking activity
+
+00:14:34.660 --> 00:14:40.410
+of a neuron during a
+presentation of this stimulus.
+
+00:14:40.410 --> 00:14:46.770
+The stimulus is a bunch of
+dots presented that move
+
+00:14:46.770 --> 00:14:47.970
+across the screen.
+
+00:14:47.970 --> 00:14:52.500
+And this is a part of the brain
+that sensitive to movement
+
+00:14:52.500 --> 00:14:55.590
+of visual stimuli.
+
+00:14:55.590 --> 00:15:00.600
+And what you can see is
+that each time the stimulus
+
+00:15:00.600 --> 00:15:04.500
+is presented, the
+neuron generates spikes.
+
+00:15:04.500 --> 00:15:07.510
+Each row here is a different
+presentation of the stimulus.
+
+00:15:07.510 --> 00:15:10.240
+If you average across
+all of those rows,
+
+00:15:10.240 --> 00:15:13.650
+you can see that there is
+some repeatable structure.
+
+00:15:13.650 --> 00:15:20.480
+So the neuron tends to spike
+most often at certain times
+
+00:15:20.480 --> 00:15:24.000
+after the presentation
+of this stimulus.
+
+00:15:24.000 --> 00:15:26.940
+But each time the
+stimulus is presented,
+
+00:15:26.940 --> 00:15:29.790
+the spikes don't occur in
+exactly the same place.
+
+00:15:29.790 --> 00:15:33.740
+So you have this sense that
+when you present the stimulus,
+
+00:15:33.740 --> 00:15:37.940
+there is some sort of underlying
+modulation of the firing
+
+00:15:37.940 --> 00:15:40.610
+rate of the neuron.
+
+00:15:40.610 --> 00:15:44.390
+But the response isn't
+exactly the same each time.
+
+00:15:44.390 --> 00:15:48.480
+There's some
+randomness about it.
+
+00:15:48.480 --> 00:15:51.300
+So we're going to talk a little
+bit about how you characterize
+
+00:15:51.300 --> 00:15:53.010
+that randomness.
+
+00:15:53.010 --> 00:16:01.430
+And the way that most people
+think about the random spiking
+
+00:16:01.430 --> 00:16:04.250
+of neurons is that there is a--
+
+00:16:04.250 --> 00:16:04.970
+sorry about that.
+
+00:16:04.970 --> 00:16:08.090
+That mu was supposed
+to be up there.
+
+00:16:08.090 --> 00:16:11.150
+So let's go to a very
+simple case, where
+
+00:16:11.150 --> 00:16:12.920
+we turn on a stimulus.
+
+00:16:12.920 --> 00:16:17.270
+And instead of having a
+kind of a time-varying rate,
+
+00:16:17.270 --> 00:16:20.510
+let's imagine that the
+stimulus just comes on,
+
+00:16:20.510 --> 00:16:26.800
+and the neuron starts to spike
+at a constant average rate.
+
+00:16:26.800 --> 00:16:29.830
+And let's call that
+average rate mu.
+
+00:16:29.830 --> 00:16:30.790
+So what does that mean?
+
+00:16:33.710 --> 00:16:35.530
+What that means is
+that if you were
+
+00:16:35.530 --> 00:16:38.950
+to present this stimulus
+many, many times
+
+00:16:38.950 --> 00:16:41.110
+and look at where
+the spikes occur,
+
+00:16:41.110 --> 00:16:44.410
+there would be some uniform
+probability per unit of time
+
+00:16:44.410 --> 00:16:48.580
+that spikes would occur
+anywhere under that stimulus
+
+00:16:48.580 --> 00:16:51.350
+during the presentation
+of that stimulus.
+
+00:16:51.350 --> 00:16:55.710
+So let's break
+that time window up
+
+00:16:55.710 --> 00:16:57.450
+during the presentation
+of the stimulus
+
+00:16:57.450 --> 00:17:04.430
+into little tiny
+bins, delta-T. Now,
+
+00:17:04.430 --> 00:17:08.960
+if these spikes occur
+randomly, then they're
+
+00:17:08.960 --> 00:17:14.290
+generated independently
+of any other spikes,
+
+00:17:14.290 --> 00:17:16.470
+with an equal
+probability in each bin.
+
+00:17:20.140 --> 00:17:23.390
+And what that means is that
+if the bins are small enough,
+
+00:17:23.390 --> 00:17:27.250
+most of the bins will
+have zero spikes.
+
+00:17:27.250 --> 00:17:28.990
+And you can write
+down the probability
+
+00:17:28.990 --> 00:17:34.420
+that a spike occurs in any one
+bin is the number of spikes
+
+00:17:34.420 --> 00:17:38.350
+per unit time, which is
+the average firing rate,
+
+00:17:38.350 --> 00:17:44.150
+times the width of
+that bin in time.
+
+00:17:44.150 --> 00:17:45.500
+Does that make sense?
+
+00:17:45.500 --> 00:17:49.520
+The probability that you have a
+spike in any one of those very
+
+00:17:49.520 --> 00:17:56.110
+tiny bins is just going to be
+the spikes per unit of time
+
+00:17:56.110 --> 00:17:58.930
+times the width of
+the bin in time.
+
+00:18:02.190 --> 00:18:06.660
+Now, that's only true if
+delta-T is very small.
+
+00:18:06.660 --> 00:18:09.870
+Because if delta-T
+gets big, then you
+
+00:18:09.870 --> 00:18:16.460
+have some probability that you
+could have two or three spikes.
+
+00:18:16.460 --> 00:18:20.420
+And so this is only
+true in the case
+
+00:18:20.420 --> 00:18:21.920
+where delta-t is very small.
+
+00:18:24.920 --> 00:18:26.900
+So the probability
+that no spikes
+
+00:18:26.900 --> 00:18:36.000
+occur is 1 minus mu
+delta-T. And we can ask,
+
+00:18:36.000 --> 00:18:41.840
+how many spikes land
+in this interval T?
+
+00:18:41.840 --> 00:18:47.730
+And we're going to call
+that probability P. And it's
+
+00:18:47.730 --> 00:18:53.900
+the probability that n spikes
+land in this interval, T.
+
+00:18:53.900 --> 00:18:59.960
+And we can calculate that
+probability as follows.
+
+00:18:59.960 --> 00:19:02.260
+So that probability
+is just the product
+
+00:19:02.260 --> 00:19:05.200
+of three different things.
+
+00:19:05.200 --> 00:19:09.025
+It's the probability of
+having n bins with a spike.
+
+00:19:12.970 --> 00:19:15.580
+So that's mu delta-T to the n.
+
+00:19:18.260 --> 00:19:28.160
+It's n independent events,
+with probability mu delta-T,
+
+00:19:28.160 --> 00:19:35.000
+times the probability of having
+M minus n beans with no spike.
+
+00:19:35.000 --> 00:19:39.380
+So that's 1 minus mu
+delta-T to the M minus n.
+
+00:19:42.450 --> 00:19:47.010
+And we also have to multiply
+by the number of different ways
+
+00:19:47.010 --> 00:19:51.510
+that you can distribute
+those n spikes in M bins.
+
+00:19:51.510 --> 00:19:56.360
+And that's called M choose n.
+
+00:19:56.360 --> 00:19:57.238
+Yes.
+
+00:19:57.238 --> 00:19:58.867
+AUDIENCE: So when
+we pick delta-T,
+
+00:19:58.867 --> 00:20:00.450
+we still have to
+pick it big enough so
+
+00:20:00.450 --> 00:20:04.830
+that it's not less than how
+long the [INAUDIBLE],, right?
+
+00:20:04.830 --> 00:20:06.080
+Because you can't have--
+
+00:20:06.080 --> 00:20:07.890
+MICHALE FEE: Yeah,
+so, OK, good question.
+
+00:20:07.890 --> 00:20:11.190
+So just to clarify, we're
+kind of imagining that spikes
+
+00:20:11.190 --> 00:20:13.650
+are delta functions now.
+
+00:20:13.650 --> 00:20:18.210
+So we are-- so in
+this case, we're
+
+00:20:18.210 --> 00:20:21.750
+imagining that spikes
+are not like produced
+
+00:20:21.750 --> 00:20:25.980
+by influx of sodium and
+an outflux of potassium,
+
+00:20:25.980 --> 00:20:29.010
+and it takes a millisecond.
+
+00:20:29.010 --> 00:20:33.520
+In general, spikes are, let's
+say, a millisecond across.
+
+00:20:33.520 --> 00:20:35.430
+And we're usually
+thinking of these bins
+
+00:20:35.430 --> 00:20:38.010
+as kind of approaching
+about a millisecond.
+
+00:20:38.010 --> 00:20:40.470
+But if you-- what
+we're about to do,
+
+00:20:40.470 --> 00:20:44.982
+actually, is take the limit
+where delta-T goes to 0.
+
+00:20:44.982 --> 00:20:46.440
+And in that case,
+you have to think
+
+00:20:46.440 --> 00:20:48.460
+of the spikes as
+delta functions.
+
+00:20:51.210 --> 00:20:54.270
+OK, so the probability
+that you have
+
+00:20:54.270 --> 00:20:58.720
+n spikes in this
+interval, T, is just
+
+00:20:58.720 --> 00:21:00.420
+the product of those things.
+
+00:21:00.420 --> 00:21:03.660
+It's the probability
+of having n bins
+
+00:21:03.660 --> 00:21:06.600
+with a spike times the
+number of different ways
+
+00:21:06.600 --> 00:21:10.200
+that you can put n
+spikes into M bins.
+
+00:21:10.200 --> 00:21:12.630
+So you multiply those
+things together,
+
+00:21:12.630 --> 00:21:16.380
+and you take the limit
+that delta-T goes to 0.
+
+00:21:16.380 --> 00:21:21.990
+And it's kind of a
+cute little derivation.
+
+00:21:21.990 --> 00:21:26.130
+I've put the full
+derivation at the end
+
+00:21:26.130 --> 00:21:29.730
+so that we don't have to
+go through it in class.
+
+00:21:29.730 --> 00:21:33.000
+But it's kind of fun
+to look at anyway.
+
+00:21:33.000 --> 00:21:39.030
+And what you find is that in the
+limit, that delta-T goes to 0.
+
+00:21:39.030 --> 00:21:42.990
+Of course as delta-T goes
+to 0, the number of bins
+
+00:21:42.990 --> 00:21:43.920
+goes to infinity.
+
+00:21:43.920 --> 00:21:46.965
+Because the number of
+bins is just capital
+
+00:21:46.965 --> 00:21:50.070
+T divided by delta-T.
+
+00:21:50.070 --> 00:21:53.010
+So you can go through
+each of those terms
+
+00:21:53.010 --> 00:21:55.470
+and calculate what happens
+to them in the limit
+
+00:21:55.470 --> 00:21:57.330
+that delta-T goes to 0.
+
+00:21:57.330 --> 00:21:59.430
+And what you find is
+that the probability
+
+00:21:59.430 --> 00:22:02.190
+of having n spikes
+in that window
+
+00:22:02.190 --> 00:22:06.930
+T just like mu T to the n.
+
+00:22:06.930 --> 00:22:08.190
+What is mu T?
+
+00:22:08.190 --> 00:22:12.670
+mu T is the expected number
+of spikes in that interval.
+
+00:22:12.670 --> 00:22:15.750
+It's just the number of
+spikes per unit time,
+
+00:22:15.750 --> 00:22:24.410
+times the length of the
+window divided by n factorial,
+
+00:22:24.410 --> 00:22:29.540
+times e to the minus
+mu T. And again, mu T
+
+00:22:29.540 --> 00:22:32.660
+is the expected
+number of spikes.
+
+00:22:32.660 --> 00:22:37.280
+And that is the
+Poisson distribution.
+
+00:22:37.280 --> 00:22:41.480
+And it comes from a very
+simple assumption, which
+
+00:22:41.480 --> 00:22:46.550
+is just that spikes occur.
+
+00:22:46.550 --> 00:22:51.170
+The spikes occur
+independently of each other,
+
+00:22:51.170 --> 00:22:58.130
+at a rate mu spikes per second,
+with some constant probability
+
+00:22:58.130 --> 00:23:01.790
+per unit time of having a
+spike in each little time bin.
+
+00:23:07.380 --> 00:23:11.010
+Now notice that if
+you have a rate--
+
+00:23:11.010 --> 00:23:13.890
+there's some tiny probability
+per unit of time of having
+
+00:23:13.890 --> 00:23:16.470
+a spike there, probability
+of having a spike there,
+
+00:23:16.470 --> 00:23:19.750
+probability of having a
+spike there, and so on--
+
+00:23:19.750 --> 00:23:24.880
+you're going to end up sometimes
+with one spike in the window,
+
+00:23:24.880 --> 00:23:27.950
+sometimes with two spikes,
+sometimes with three,
+
+00:23:27.950 --> 00:23:30.850
+sometimes four, sometimes five.
+
+00:23:30.850 --> 00:23:33.310
+If this window's
+really short, you're
+
+00:23:33.310 --> 00:23:39.070
+going to have more cases where
+you have zero or one spikes.
+
+00:23:39.070 --> 00:23:42.190
+If this window is
+really long, then it's
+
+00:23:42.190 --> 00:23:46.030
+going to be pretty rare to
+have just 0 or 1 spikes.
+
+00:23:46.030 --> 00:23:49.300
+And you're going to end
+up with, on average,
+
+00:23:49.300 --> 00:23:51.760
+20 spikes, let's say.
+
+00:23:51.760 --> 00:23:55.740
+So you could see that, first
+of all, the number of spikes
+
+00:23:55.740 --> 00:23:59.100
+you get is random.
+
+00:23:59.100 --> 00:24:02.270
+And it depends on the
+size of the window.
+
+00:24:02.270 --> 00:24:04.300
+And the average number
+of bikes you get
+
+00:24:04.300 --> 00:24:05.920
+depends on the
+size of the window
+
+00:24:05.920 --> 00:24:08.360
+and the average firing
+rate of the neuron.
+
+00:24:08.360 --> 00:24:12.190
+OK, so let's just take a look
+at what this function looks
+
+00:24:12.190 --> 00:24:18.680
+like for different
+expected spike counts.
+
+00:24:18.680 --> 00:24:22.230
+So here's what that looks like.
+
+00:24:22.230 --> 00:24:26.210
+So we can calculate the
+expected number of spikes.
+
+00:24:26.210 --> 00:24:29.780
+And just to convince you, if
+we calculate the average number
+
+00:24:29.780 --> 00:24:32.930
+of spikes using
+that distribution,
+
+00:24:32.930 --> 00:24:37.990
+we just sum, over all
+possible number of spikes,
+
+00:24:37.990 --> 00:24:41.320
+n times the probability
+of having n spikes.
+
+00:24:41.320 --> 00:24:43.120
+And when you do
+that, what you find
+
+00:24:43.120 --> 00:24:49.570
+is that the average
+number is mu times T.
+
+00:24:49.570 --> 00:24:57.460
+So you can see that the
+firing rate, mu, is just
+
+00:24:57.460 --> 00:24:59.890
+the expected number
+of spikes divided
+
+00:24:59.890 --> 00:25:01.630
+by the width of the window.
+
+00:25:01.630 --> 00:25:03.830
+Does that make sense?
+
+00:25:03.830 --> 00:25:04.780
+That's pretty obvious.
+
+00:25:04.780 --> 00:25:07.000
+That's just the spike rate.
+
+00:25:07.000 --> 00:25:10.820
+And we're going to often
+use the variable r for that,
+
+00:25:10.820 --> 00:25:12.990
+for firing rate.
+
+00:25:12.990 --> 00:25:14.230
+OK.
+
+00:25:14.230 --> 00:25:17.490
+And here's what that looks like.
+
+00:25:17.490 --> 00:25:20.900
+You can see that if the
+firing rate is low enough
+
+00:25:20.900 --> 00:25:27.250
+or the window is short enough,
+such that the expected number
+
+00:25:27.250 --> 00:25:31.840
+of spikes is 1, you can
+see that, most of the time,
+
+00:25:31.840 --> 00:25:34.360
+you're going to
+get 0 or 1 spikes,
+
+00:25:34.360 --> 00:25:37.390
+and then occasionally 2,
+and very occasionally 3,
+
+00:25:37.390 --> 00:25:42.580
+and then almost never
+more than 4 or 5.
+
+00:25:42.580 --> 00:25:45.540
+If the expected
+number of spikes is 4,
+
+00:25:45.540 --> 00:25:48.400
+you can see that the
+mode of that-- you
+
+00:25:48.400 --> 00:25:50.830
+can see that that distribution
+moves to the right.
+
+00:25:50.830 --> 00:25:56.170
+You have a higher probability
+of getting 3 or 4 spikes.
+
+00:25:56.170 --> 00:25:58.480
+But again, there's
+still a distribution.
+
+00:25:58.480 --> 00:26:01.210
+So even if the average
+number of spikes is 4,
+
+00:26:01.210 --> 00:26:04.510
+you have quite a wide range
+of actual spike counts
+
+00:26:04.510 --> 00:26:08.630
+that you would get
+on any given trial.
+
+00:26:08.630 --> 00:26:11.300
+As the expected number of
+spikes gets bigger-- let's say,
+
+00:26:11.300 --> 00:26:13.840
+on average, 10--
+
+00:26:13.840 --> 00:26:16.030
+does anyone know what
+this distribution
+
+00:26:16.030 --> 00:26:17.838
+starts turning into?
+
+00:26:17.838 --> 00:26:18.630
+AUDIENCE: Gaussian.
+
+00:26:18.630 --> 00:26:20.400
+MICHALE FEE: Gaussian, good.
+
+00:26:20.400 --> 00:26:22.110
+So what you can see
+is that you end up
+
+00:26:22.110 --> 00:26:26.040
+having a more symmetric
+distribution, where the peak is
+
+00:26:26.040 --> 00:26:30.010
+sitting at the expected number.
+
+00:26:30.010 --> 00:26:33.100
+In that case, the distribution
+becomes more symmetric,
+
+00:26:33.100 --> 00:26:38.520
+and in the limit of infinite
+expected number of spikes,
+
+00:26:38.520 --> 00:26:41.158
+becomes exactly a
+Gaussian distribution.
+
+00:26:45.460 --> 00:26:47.650
+All right, there
+are two measures
+
+00:26:47.650 --> 00:26:51.220
+that we use to characterize
+how variable spike trains are.
+
+00:26:51.220 --> 00:26:54.450
+Le me just go through
+them real quick.
+
+00:26:54.450 --> 00:26:56.440
+And we'll describe--
+and I'll describe to you
+
+00:26:56.440 --> 00:27:03.100
+what we expect those to look
+like for spike trains that
+
+00:27:03.100 --> 00:27:06.015
+have a Poisson distribution.
+
+00:27:06.015 --> 00:27:07.390
+So the first thing
+we can look at
+
+00:27:07.390 --> 00:27:09.400
+is the variance in
+the spike count.
+
+00:27:09.400 --> 00:27:11.590
+So remember, for
+a Poisson process,
+
+00:27:11.590 --> 00:27:13.810
+the average number of
+spikes in the interval
+
+00:27:13.810 --> 00:27:18.620
+is mu times T. We can calculate
+the variance in that, which
+
+00:27:18.620 --> 00:27:23.300
+is basically just some
+measure of the width
+
+00:27:23.300 --> 00:27:27.050
+of this distribution here.
+
+00:27:27.050 --> 00:27:31.270
+So the variance
+is just the number
+
+00:27:31.270 --> 00:27:39.970
+of counts on a given trial minus
+the expected number, squared.
+
+00:27:39.970 --> 00:27:44.080
+n minus average and, squared.
+
+00:27:44.080 --> 00:27:46.450
+And if you multiply
+that out, you get--
+
+00:27:46.450 --> 00:27:51.730
+it's the average n squared
+minus the average squared.
+
+00:27:51.730 --> 00:27:55.120
+And it turns out, for
+the Poisson process,
+
+00:27:55.120 --> 00:28:00.840
+that that variance is also
+mu T. So the variance is--
+
+00:28:00.840 --> 00:28:03.870
+the average spike count
+is mu T, and the variance
+
+00:28:03.870 --> 00:28:10.820
+in the spike count is also mu T.
+
+00:28:10.820 --> 00:28:16.940
+So there is a quantity called
+the Fano factor, which is just
+
+00:28:16.940 --> 00:28:20.240
+defined as the variance
+of the spike count divided
+
+00:28:20.240 --> 00:28:21.870
+by the average spike count.
+
+00:28:21.870 --> 00:28:27.590
+And for a Poisson process,
+the Fano factor is 1.
+
+00:28:27.590 --> 00:28:31.400
+And what you find is that
+for neurons in cortex
+
+00:28:31.400 --> 00:28:35.210
+and other parts of the brain,
+the Fano factor actually
+
+00:28:35.210 --> 00:28:37.970
+can be quite close to one.
+
+00:28:37.970 --> 00:28:42.860
+It's usually between
+1 and 1 and 1/2 or so.
+
+00:28:42.860 --> 00:28:49.040
+So there's been a lot of
+discussion and interest
+
+00:28:49.040 --> 00:28:53.120
+in why it is that spike
+counts in the brain
+
+00:28:53.120 --> 00:29:00.410
+are actually so random, why do
+neurons behave in such a way
+
+00:29:00.410 --> 00:29:04.220
+that their spikes occur
+essentially randomly
+
+00:29:04.220 --> 00:29:07.480
+at some rate.
+
+00:29:07.480 --> 00:29:14.560
+So it's a interesting topic
+of current research interest.
+
+00:29:14.560 --> 00:29:17.860
+OK, let me tell you about
+one other measure, called
+
+00:29:17.860 --> 00:29:20.650
+the interspike
+interval distribution.
+
+00:29:20.650 --> 00:29:23.080
+And basically the inner
+spike interval distribution
+
+00:29:23.080 --> 00:29:27.292
+is the distribution of
+times between spikes.
+
+00:29:27.292 --> 00:29:28.750
+And I'm just going
+to show you what
+
+00:29:28.750 --> 00:29:30.890
+that looks like in
+the Poisson process,
+
+00:29:30.890 --> 00:29:33.040
+and then briefly
+describe what that
+
+00:29:33.040 --> 00:29:34.280
+looks like for real neurons.
+
+00:29:37.070 --> 00:29:39.060
+OK, so let's say
+we have a spike.
+
+00:29:41.820 --> 00:29:43.900
+OK, let's calculate
+the distribution
+
+00:29:43.900 --> 00:29:45.260
+of intervals between spikes.
+
+00:29:45.260 --> 00:29:48.960
+So let's say we have a
+spike at time T-sub-i.
+
+00:29:48.960 --> 00:29:52.660
+We're going to ask what is
+the probability that we have
+
+00:29:52.660 --> 00:29:57.280
+a spike some time, tau, later--
+
+00:29:57.280 --> 00:30:04.180
+tau-sub-i later, within
+some little window, delta-T.
+
+00:30:04.180 --> 00:30:05.630
+So let's calculate that.
+
+00:30:05.630 --> 00:30:11.020
+So tau-sub-i is
+initial spike interval
+
+00:30:11.020 --> 00:30:17.350
+between the i-plus-1
+spike and the i-th spike.
+
+00:30:17.350 --> 00:30:19.630
+So the probability of
+having the next spike
+
+00:30:19.630 --> 00:30:25.150
+land in the interval between
+t of i plus 1 and t of i
+
+00:30:25.150 --> 00:30:28.000
+plus 1 plus delta t in
+this little window here
+
+00:30:28.000 --> 00:30:29.140
+is going to be what?
+
+00:30:29.140 --> 00:30:31.960
+It's going to be the
+probability of having
+
+00:30:31.960 --> 00:30:37.390
+no spike in this interval,
+times the probability of having
+
+00:30:37.390 --> 00:30:39.280
+a spike in that little interval.
+
+00:30:39.280 --> 00:30:40.930
+So what's the
+probability of having
+
+00:30:40.930 --> 00:30:47.890
+no spike in that interval, tau?
+
+00:30:47.890 --> 00:30:52.540
+What distribution can we use
+to calculate that probability?
+
+00:30:57.480 --> 00:31:02.890
+AUDIENCE: [INAUDIBLE]
+
+00:31:02.890 --> 00:31:03.640
+MICHALE FEE: Yeah.
+
+00:31:03.640 --> 00:31:06.170
+So what is the
+Poisson distribution?
+
+00:31:06.170 --> 00:31:10.070
+It tells us the
+probability of having
+
+00:31:10.070 --> 00:31:14.670
+n spikes in an
+interval T-- capital T.
+
+00:31:14.670 --> 00:31:16.950
+So how would we use
+that to calculate
+
+00:31:16.950 --> 00:31:20.818
+the probability of having
+no spike in that interval?
+
+00:31:20.818 --> 00:31:23.125
+AUDIENCE: [INAUDIBLE].
+
+00:31:23.125 --> 00:31:24.000
+MICHALE FEE: Exactly.
+
+00:31:24.000 --> 00:31:26.440
+We just use the
+Poisson distribution,
+
+00:31:26.440 --> 00:31:28.920
+and plug n equals 0 into it.
+
+00:31:28.920 --> 00:31:31.530
+So go to that.
+
+00:31:31.530 --> 00:31:36.880
+There's the Poisson
+distribution.
+
+00:31:36.880 --> 00:31:39.760
+What does this look like
+if we set n equals 0?
+
+00:31:39.760 --> 00:31:42.592
+So what is mu T to the zero?
+
+00:31:42.592 --> 00:31:43.980
+AUDIENCE: [INAUDIBLE]
+
+00:31:43.980 --> 00:31:44.870
+MICHALE FEE: 1.
+
+00:31:44.870 --> 00:31:47.720
+What is 0 factorial?
+
+00:31:47.720 --> 00:31:48.570
+AUDIENCE: 1.
+
+00:31:48.570 --> 00:31:50.240
+MICHALE FEE: 1.
+
+00:31:50.240 --> 00:31:54.380
+And so the probability of
+having zero spikes in a window T
+
+00:31:54.380 --> 00:31:59.890
+is just e to the minus mu T. All
+right, so let's plug that in--
+
+00:31:59.890 --> 00:32:00.640
+good.
+
+00:32:00.640 --> 00:32:04.300
+So the probability of having
+no spikes in that interval
+
+00:32:04.300 --> 00:32:10.690
+is e to the minus mu T, or rT,
+if we're using r for rate now.
+
+00:32:13.410 --> 00:32:15.420
+Now, what is the
+probability of having
+
+00:32:15.420 --> 00:32:17.910
+a spike in that little
+window right there?
+
+00:32:25.720 --> 00:32:28.268
+Any thoughts?
+
+00:32:28.268 --> 00:32:29.977
+AUDIENCE: [INAUDIBLE]
+
+00:32:29.977 --> 00:32:31.019
+MICHALE FEE: What's that?
+
+00:32:31.019 --> 00:32:34.830
+AUDIENCE: [INAUDIBLE]
+
+00:32:34.830 --> 00:32:35.580
+MICHALE FEE: Yeah.
+
+00:32:35.580 --> 00:32:36.970
+You could do that.
+
+00:32:36.970 --> 00:32:39.510
+But we sort of derive
+the Poisson process
+
+00:32:39.510 --> 00:32:42.980
+by using the answer to
+this question already.
+
+00:32:42.980 --> 00:32:44.760
+AUDIENCE: Oh, r delta.
+
+00:32:44.760 --> 00:32:46.890
+MICHALE FEE: r delta-T. Good.
+
+00:32:46.890 --> 00:32:49.820
+OK, so the probability of having
+a spike in that little window
+
+00:32:49.820 --> 00:32:53.510
+is just r delta-T. OK.
+
+00:32:53.510 --> 00:32:54.010
+Yes.
+
+00:32:54.010 --> 00:32:55.718
+AUDIENCE: Stupid
+question-- I just missed
+
+00:32:55.718 --> 00:32:57.790
+the transition between u and r.
+
+00:32:57.790 --> 00:32:59.260
+MICHALE FEE: Yeah,
+I just changed
+
+00:32:59.260 --> 00:33:01.190
+the name of the variable.
+
+00:33:01.190 --> 00:33:03.110
+If you look in the
+statistics literature,
+
+00:33:03.110 --> 00:33:05.680
+they most often use mu.
+
+00:33:05.680 --> 00:33:07.960
+But when we're talking about
+prime rates of neurons,
+
+00:33:07.960 --> 00:33:12.100
+it's more convenient to use R.
+And so they're just the same.
+
+00:33:15.376 --> 00:33:17.250
+AUDIENCE: [INAUDIBLE]
+
+00:33:17.250 --> 00:33:18.360
+MICHALE FEE: Yes.
+
+00:33:18.360 --> 00:33:19.170
+AUDIENCE: Are we
+talking the probability
+
+00:33:19.170 --> 00:33:21.290
+of having the next five
+commands [INAUDIBLE]
+
+00:33:21.290 --> 00:33:24.480
+given that there was no
+spike at the first interval?
+
+00:33:24.480 --> 00:33:26.640
+MICHALE FEE: Well, so
+remember, the probability
+
+00:33:26.640 --> 00:33:30.120
+of having a spike in any
+interval in a process
+
+00:33:30.120 --> 00:33:33.084
+is completely independent of
+what happens at any other time.
+
+00:33:33.084 --> 00:33:34.626
+AUDIENCE: So why
+are we calculating--
+
+00:33:34.626 --> 00:33:37.340
+why did we do that [INAUDIBLE]?
+
+00:33:37.340 --> 00:33:40.130
+MICHALE FEE: OK, because
+in order for this
+
+00:33:40.130 --> 00:33:44.240
+to be the interval between
+one spike and the next spike,
+
+00:33:44.240 --> 00:33:47.128
+we needed to have zero spikes
+in the intervening interval.
+
+00:33:47.128 --> 00:33:48.545
+AUDIENCE: Oh, OK,
+so [INAUDIBLE]..
+
+00:33:48.545 --> 00:33:49.195
+OK.
+
+00:33:49.195 --> 00:33:50.570
+MICHALE FEE:
+Because if there had
+
+00:33:50.570 --> 00:33:52.820
+been another spike
+in here somewhere,
+
+00:33:52.820 --> 00:33:55.460
+this would not be our
+inter-spike interval.
+
+00:33:55.460 --> 00:33:58.970
+The inter-spike interval would
+be between here and wherever
+
+00:33:58.970 --> 00:33:59.840
+that spike occurred.
+
+00:33:59.840 --> 00:34:01.550
+And we'd just be
+back to calculating
+
+00:34:01.550 --> 00:34:04.380
+what's the probability of
+having no spike between there
+
+00:34:04.380 --> 00:34:04.880
+and there.
+
+00:34:10.159 --> 00:34:11.110
+OK, good.
+
+00:34:11.110 --> 00:34:15.210
+So that's the probability
+of having no spike from here
+
+00:34:15.210 --> 00:34:20.159
+to here, and having a spike
+in the next little delta-T.
+
+00:34:20.159 --> 00:34:26.690
+We can now calculate what's
+called the probability density.
+
+00:34:26.690 --> 00:34:29.840
+It's the probability
+per unit time
+
+00:34:29.840 --> 00:34:34.040
+of having inter-spike
+intervals of that duration.
+
+00:34:34.040 --> 00:34:35.600
+And to do that,
+we just calculate
+
+00:34:35.600 --> 00:34:40.159
+the probability divided by
+delta-T. And what you find
+
+00:34:40.159 --> 00:34:45.409
+is that the probability density
+of inter-spike intervals
+
+00:34:45.409 --> 00:34:48.830
+is just re to the
+minus r tau, where
+
+00:34:48.830 --> 00:34:51.260
+tau is the spike interval.
+
+00:34:51.260 --> 00:34:53.889
+And so this is what that looks
+like for a Poisson process.
+
+00:34:58.090 --> 00:35:02.380
+OK, so you can see that
+the highest probability
+
+00:35:02.380 --> 00:35:06.420
+is having very short intervals.
+
+00:35:06.420 --> 00:35:10.470
+And you have exponentially
+lower probabilities
+
+00:35:10.470 --> 00:35:13.283
+of having longer and
+longer intervals.
+
+00:35:16.121 --> 00:35:18.490
+Does that make sense?
+
+00:35:18.490 --> 00:35:21.310
+So it turns out
+that that's actually
+
+00:35:21.310 --> 00:35:24.820
+a lot like what interspike
+intervals of real neurons
+
+00:35:24.820 --> 00:35:25.960
+looks like.
+
+00:35:25.960 --> 00:35:30.730
+They very often have
+this exponential tail.
+
+00:35:30.730 --> 00:35:36.040
+Now, what is
+completely unrealistic
+
+00:35:36.040 --> 00:35:39.470
+about this interspike
+interval distribution?
+
+00:35:39.470 --> 00:35:43.540
+What is it that can't
+be true about this?
+
+00:35:43.540 --> 00:35:45.186
+[INAUDIBLE]
+
+00:35:45.186 --> 00:35:48.614
+AUDIENCE: Intervals,
+like, which are huge.
+
+00:35:51.328 --> 00:35:52.870
+MICHALE FEE: Well,
+so it's actually--
+
+00:35:52.870 --> 00:35:55.287
+the bigger problem is not on
+this end of the distribution.
+
+00:35:55.287 --> 00:35:56.162
+AUDIENCE: [INAUDIBLE]
+
+00:35:56.162 --> 00:35:56.950
+MICHALE FEE: Yeah.
+
+00:35:56.950 --> 00:35:59.842
+What happens here that's wrong?
+
+00:35:59.842 --> 00:36:01.545
+AUDIENCE: [INAUDIBLE]
+
+00:36:01.545 --> 00:36:02.420
+MICHALE FEE: Exactly.
+
+00:36:02.420 --> 00:36:06.115
+So what happens immediately
+after a neuron spikes?
+
+00:36:06.115 --> 00:36:07.490
+AUDIENCE: You
+can't have a spike.
+
+00:36:07.490 --> 00:36:09.698
+MICHALE FEE: You can't have
+another spike right away.
+
+00:36:09.698 --> 00:36:10.485
+Why is that?
+
+00:36:10.485 --> 00:36:11.360
+AUDIENCE: [INAUDIBLE]
+
+00:36:11.360 --> 00:36:13.277
+MICHALE FEE: Because of
+the refractory period,
+
+00:36:13.277 --> 00:36:14.118
+which comes from--
+
+00:36:14.118 --> 00:36:15.552
+AUDIENCE: [INAUDIBLE]
+
+00:36:15.552 --> 00:36:18.310
+MICHALE FEE: Hyperpolarization
+is one of them.
+
+00:36:18.310 --> 00:36:20.290
+Once you have the
+spike, the neuron
+
+00:36:20.290 --> 00:36:23.620
+is actually briefly
+hyperpolarized.
+
+00:36:23.620 --> 00:36:28.170
+You could imagine trying to
+re-polarize it very quickly,
+
+00:36:28.170 --> 00:36:30.128
+but then something
+else is a problem.
+
+00:36:30.128 --> 00:36:31.430
+AUDIENCE: [INAUDIBLE]
+
+00:36:31.430 --> 00:36:33.380
+MICHALE FEE: Sodium
+channel inactivation.
+
+00:36:33.380 --> 00:36:35.660
+So even if you were to
+repolarize the neuron very
+
+00:36:35.660 --> 00:36:37.700
+quickly, it still
+would have a hard time
+
+00:36:37.700 --> 00:36:42.290
+making a spike because of
+sodium channel inactivation.
+
+00:36:42.290 --> 00:36:46.600
+So what does this actually
+look like for real neuron?
+
+00:36:46.600 --> 00:36:48.283
+What do you imagine
+it looks like?
+
+00:36:48.283 --> 00:36:50.450
+AUDIENCE: [INAUDIBLE]
+
+00:36:50.450 --> 00:36:53.080
+MICHALE FEE: Right, so
+immediately after a spike,
+
+00:36:53.080 --> 00:36:56.990
+there is zero probability
+of having another spike.
+
+00:36:56.990 --> 00:37:00.950
+So this starts at
+zero, climbs up here,
+
+00:37:00.950 --> 00:37:02.910
+and then decays exponentially.
+
+00:37:02.910 --> 00:37:07.220
+OK, so that's what most
+inter-spike intervals
+
+00:37:07.220 --> 00:37:09.650
+for real neurons
+actually looks like.
+
+00:37:12.510 --> 00:37:15.620
+So this is probability density.
+
+00:37:15.620 --> 00:37:16.120
+This is tau.
+
+00:37:21.270 --> 00:37:25.990
+And this is the
+refractory period.
+
+00:37:33.350 --> 00:37:37.570
+In fact, when you
+record from neurons
+
+00:37:37.570 --> 00:37:42.153
+with an electrode in the
+brain, you get lots of spikes.
+
+00:37:42.153 --> 00:37:43.570
+One of the first
+things you should
+
+00:37:43.570 --> 00:37:48.400
+do when you set a threshold
+and find those spike times
+
+00:37:48.400 --> 00:37:52.030
+is compute by
+interval distribution.
+
+00:37:52.030 --> 00:37:55.510
+Because if you're recording
+from a single neuron,
+
+00:37:55.510 --> 00:37:57.280
+that interspike
+interval distribution
+
+00:37:57.280 --> 00:38:02.030
+will have this
+refractory period.
+
+00:38:02.030 --> 00:38:04.100
+If you're recording
+from-- it's quite easy
+
+00:38:04.100 --> 00:38:07.140
+to get multiple spikes on
+the end of an electrode.
+
+00:38:07.140 --> 00:38:11.240
+And what happens if you
+have multiple spikes,
+
+00:38:11.240 --> 00:38:13.250
+you can think they're
+coming from one neuron,
+
+00:38:13.250 --> 00:38:15.730
+but in fact they're
+coming from two neurons.
+
+00:38:15.730 --> 00:38:17.480
+And if you compute the
+interspike interval
+
+00:38:17.480 --> 00:38:21.160
+distribution, it won't
+have this dip here.
+
+00:38:21.160 --> 00:38:25.120
+So it's a really important
+tool to use to test
+
+00:38:25.120 --> 00:38:28.990
+whether your signal is clean.
+
+00:38:28.990 --> 00:38:31.300
+You'd be amazed at how few
+people actually do that.
+
+00:38:35.915 --> 00:38:37.540
+All right, I just
+want to introduce you
+
+00:38:37.540 --> 00:38:40.890
+to one important term.
+
+00:38:40.890 --> 00:38:46.420
+And that's called homogeneous
+versus inhomogeneous
+
+00:38:46.420 --> 00:38:48.760
+in the context of
+Poisson process.
+
+00:38:48.760 --> 00:38:53.170
+What that means is that a
+homogeneous Poisson process has
+
+00:38:53.170 --> 00:38:55.540
+a constant rate, mu.
+
+00:38:55.540 --> 00:38:58.180
+Most neurons don't do that.
+
+00:38:58.180 --> 00:39:02.110
+Because in most neurons,
+there's information
+
+00:39:02.110 --> 00:39:05.350
+carried in the fluctuation
+of the firing rate.
+
+00:39:05.350 --> 00:39:08.350
+And so most neurons have
+what's called behave more
+
+00:39:08.350 --> 00:39:12.190
+like an inhomogeneous
+Poisson process,
+
+00:39:12.190 --> 00:39:15.380
+where the rate is actually
+fluctuating in time.
+
+00:39:15.380 --> 00:39:17.710
+And the example we
+were looking at before
+
+00:39:17.710 --> 00:39:20.570
+shows you what an
+inhomogenous Poisson
+
+00:39:20.570 --> 00:39:21.590
+process would look like.
+
+00:39:26.460 --> 00:39:30.090
+So let's see what's next.
+
+00:39:30.090 --> 00:39:32.730
+All right, so
+let's change topics
+
+00:39:32.730 --> 00:39:36.540
+to talk about convolution,
+cross-correlation,
+
+00:39:36.540 --> 00:39:38.880
+and auto-correlation functions.
+
+00:39:38.880 --> 00:39:42.090
+All right, so we've been using
+the notion of a convolution
+
+00:39:42.090 --> 00:39:47.160
+where we have a kernel that
+we multiply by a signal.
+
+00:39:47.160 --> 00:39:49.750
+We multiply that, and
+integrate over time,
+
+00:39:49.750 --> 00:39:53.010
+and then we slide that
+kernel across the signal,
+
+00:39:53.010 --> 00:39:56.700
+and ask, where does the
+signal have structure
+
+00:39:56.700 --> 00:39:58.480
+that looks like the kernel.
+
+00:39:58.480 --> 00:40:02.730
+And that gives you
+an output y of T.
+
+00:40:02.730 --> 00:40:07.020
+So we've used that to model
+the membrane potential
+
+00:40:07.020 --> 00:40:08.980
+of [INAUDIBLE] synaptic input.
+
+00:40:08.980 --> 00:40:10.740
+So in that case, we
+had spikes coming
+
+00:40:10.740 --> 00:40:14.220
+from a presynaptic neuron
+that generate a response
+
+00:40:14.220 --> 00:40:15.960
+in the postsynaptic neuron.
+
+00:40:15.960 --> 00:40:18.840
+And now we can take--
+
+00:40:18.840 --> 00:40:22.050
+the output of that, the response
+in the postsynaptic neuron
+
+00:40:22.050 --> 00:40:24.930
+as a convolution of
+that exponential,
+
+00:40:24.930 --> 00:40:28.850
+with an input spike train.
+
+00:40:28.850 --> 00:40:32.120
+We've used it to model
+the response of neurons
+
+00:40:32.120 --> 00:40:35.550
+to a time-dependent stimulus.
+
+00:40:35.550 --> 00:40:37.680
+And you also used it--
+
+00:40:37.680 --> 00:40:39.930
+I've described how you
+can use that to implement
+
+00:40:39.930 --> 00:40:41.940
+a low-pass filter or
+a high-pass filter.
+
+00:40:41.940 --> 00:40:45.240
+And we talked about
+doing that for extracting
+
+00:40:45.240 --> 00:40:49.560
+either low-frequency signals,
+to get the local field
+
+00:40:49.560 --> 00:40:52.920
+potential out of neurons, or
+doing a high-pass filter to get
+
+00:40:52.920 --> 00:40:58.360
+rid of the low-frequency signals
+so that you can see the spikes.
+
+00:40:58.360 --> 00:41:04.910
+OK, but most generally,
+convolution is--
+
+00:41:04.910 --> 00:41:07.100
+you should think
+about it as allowing
+
+00:41:07.100 --> 00:41:14.610
+you to model how a system
+responds to an input
+
+00:41:14.610 --> 00:41:16.230
+where the response
+of the system is
+
+00:41:16.230 --> 00:41:19.320
+controlled by a linear filter.
+
+00:41:19.320 --> 00:41:24.230
+The system is sensitive
+to particular patterns
+
+00:41:24.230 --> 00:41:25.400
+in the input.
+
+00:41:25.400 --> 00:41:29.330
+Those patterns can be
+detected by a filter.
+
+00:41:29.330 --> 00:41:32.180
+So you apply that
+filter to the input,
+
+00:41:32.180 --> 00:41:34.370
+and you estimate how
+the system responds.
+
+00:41:34.370 --> 00:41:41.600
+And it's very broadly useful
+in engineering and biology
+
+00:41:41.600 --> 00:41:47.030
+and neuroscience to use
+convolutions to model
+
+00:41:47.030 --> 00:41:49.220
+how a system responds
+to its input.
+
+00:41:53.200 --> 00:41:55.910
+All right, so there is a
+different kind of function,
+
+00:41:55.910 --> 00:41:59.570
+called a cross-correlation
+function, that looks like this.
+
+00:41:59.570 --> 00:42:03.140
+And it looks very
+similar to a convolution,
+
+00:42:03.140 --> 00:42:05.000
+but it's used very differently.
+
+00:42:05.000 --> 00:42:08.810
+Now, you might think, OK,
+there's just a sign change.
+
+00:42:08.810 --> 00:42:12.910
+Here I have a T minus tau,
+and here I have a T plus tau.
+
+00:42:12.910 --> 00:42:16.590
+Is that the only
+difference between those?
+
+00:42:16.590 --> 00:42:17.650
+It's not.
+
+00:42:17.650 --> 00:42:21.380
+Because here I'm
+integrating over a d tau,
+
+00:42:21.380 --> 00:42:24.110
+and here I'm
+integrating over dT.
+
+00:42:24.110 --> 00:42:30.740
+Here I'm getting the response
+as a function of time.
+
+00:42:30.740 --> 00:42:35.600
+Here, what I'm doing is I'm
+kind of extracting the kernel.
+
+00:42:35.600 --> 00:42:40.550
+What I'm getting out of
+this is a kernel, tau,
+
+00:42:40.550 --> 00:42:41.990
+as a function of tau.
+
+00:42:41.990 --> 00:42:46.290
+OK, so let me walk
+through how that works.
+
+00:42:46.290 --> 00:42:51.980
+So in this case, we have
+two signals, x and y.
+
+00:42:51.980 --> 00:42:54.230
+And what we're doing is we're
+taking those two signals
+
+00:42:54.230 --> 00:42:58.340
+and we're multiplying them
+by each other, x times y.
+
+00:42:58.340 --> 00:43:01.790
+And what we're doing is
+we're multiplying the signals
+
+00:43:01.790 --> 00:43:04.760
+and then integrating
+over the product.
+
+00:43:07.270 --> 00:43:09.610
+And then we shift
+one of those signals
+
+00:43:09.610 --> 00:43:11.470
+by a little amount, tau.
+
+00:43:11.470 --> 00:43:14.050
+And we repeat that process.
+
+00:43:14.050 --> 00:43:15.670
+So let's see what
+that looks like.
+
+00:43:15.670 --> 00:43:17.200
+So what do you see here?
+
+00:43:17.200 --> 00:43:21.600
+You see two different
+signals, x and [AUDIO OUT]
+
+00:43:21.600 --> 00:43:23.560
+I'm sorry, x and y.
+
+00:43:23.560 --> 00:43:26.360
+They look kind of similar.
+
+00:43:26.360 --> 00:43:29.410
+You can see this
+one has a bump here,
+
+00:43:29.410 --> 00:43:31.570
+and a couple bumps
+there, and a bump there.
+
+00:43:31.570 --> 00:43:34.410
+And you see something pretty
+similar to that here, right?
+
+00:43:34.410 --> 00:43:36.190
+Here's three big bumps.
+
+00:43:36.190 --> 00:43:37.160
+Here's three big bumps.
+
+00:43:37.160 --> 00:43:41.775
+So those signals are actually
+quite similar to each other,
+
+00:43:41.775 --> 00:43:43.150
+but they're not
+exactly the same.
+
+00:43:43.150 --> 00:43:47.800
+Right you can see that these
+fast little fluctuations are
+
+00:43:47.800 --> 00:43:50.380
+different on those two signals.
+
+00:43:50.380 --> 00:43:53.070
+Now, what happens when
+we take this signal--
+
+00:43:53.070 --> 00:43:56.380
+and you can see that
+there's this offset here.
+
+00:43:56.380 --> 00:43:59.320
+So what happens if
+we take x times y,
+
+00:43:59.320 --> 00:44:04.270
+we multiply them together,
+and we integrate the result?
+
+00:44:04.270 --> 00:44:10.300
+Then we shift y a little
+bit, by an amount, tau,
+
+00:44:10.300 --> 00:44:12.550
+and we multiply those
+two signals together,
+
+00:44:12.550 --> 00:44:13.482
+and we integrate.
+
+00:44:13.482 --> 00:44:14.440
+And we keep doing that.
+
+00:44:18.910 --> 00:44:22.210
+And now we're going
+to plot this k
+
+00:44:22.210 --> 00:44:25.295
+as a function of that
+little shift, tau,
+
+00:44:25.295 --> 00:44:26.170
+that we put in there.
+
+00:44:29.350 --> 00:44:31.070
+And here's what that looks like.
+
+00:44:31.070 --> 00:44:36.790
+So k is the cross-correlation--
+sometimes called the lag
+
+00:44:36.790 --> 00:44:39.790
+cross-correlation-- of x and y.
+
+00:44:39.790 --> 00:44:43.330
+So that little
+circle is the symbol
+
+00:44:43.330 --> 00:44:46.070
+for lag cross-correlation.
+
+00:44:46.070 --> 00:44:51.080
+And you can see that,
+at a particular lag,
+
+00:44:51.080 --> 00:44:55.010
+like right here, the positive
+fluctuations in this signal
+
+00:44:55.010 --> 00:44:57.320
+are going to line up with
+the positive fluctuations
+
+00:44:57.320 --> 00:44:58.580
+in that signal.
+
+00:44:58.580 --> 00:45:00.710
+The negative fluctuations
+in this signal
+
+00:45:00.710 --> 00:45:02.840
+are going to line up with
+the negative fluctuations
+
+00:45:02.840 --> 00:45:04.020
+in that signal.
+
+00:45:04.020 --> 00:45:06.380
+And when you multiply
+them together,
+
+00:45:06.380 --> 00:45:10.280
+you're going to get the
+maximum positive contribution.
+
+00:45:10.280 --> 00:45:14.150
+Those signals are going
+to be maximally overlapped
+
+00:45:14.150 --> 00:45:16.460
+at a particular shift, tau.
+
+00:45:20.440 --> 00:45:24.370
+And when you put that
+function, K of tau,
+
+00:45:24.370 --> 00:45:29.360
+you're going to have a
+peak at that lag that
+
+00:45:29.360 --> 00:45:32.180
+corresponds to where those
+signals are maximally
+
+00:45:32.180 --> 00:45:33.320
+overlapped.
+
+00:45:33.320 --> 00:45:39.800
+So a lag cross-correlation
+function is really useful
+
+00:45:39.800 --> 00:45:45.100
+for finding, let's say, the
+time at which two signals--
+
+00:45:45.100 --> 00:45:48.320
+like if one signal is like
+a copy of the other one,
+
+00:45:48.320 --> 00:45:52.250
+but it's shifted in time, a
+lag cross-correlation function
+
+00:45:52.250 --> 00:45:56.900
+is really useful for finding
+that the lag between those two
+
+00:45:56.900 --> 00:45:57.725
+functions.
+
+00:46:00.520 --> 00:46:04.240
+There's another context in
+which this lag cross-correlation
+
+00:46:04.240 --> 00:46:05.410
+function is really useful.
+
+00:46:08.360 --> 00:46:11.650
+So when we did the
+spike-triggered average,
+
+00:46:11.650 --> 00:46:16.120
+when we took spikes
+from a neuron, and we--
+
+00:46:16.120 --> 00:46:18.130
+at the time of those
+spikes, we extracted
+
+00:46:18.130 --> 00:46:19.780
+what the input
+was to the neuron,
+
+00:46:19.780 --> 00:46:22.180
+and we averaged
+that [AUDIO OUT]..
+
+00:46:22.180 --> 00:46:27.040
+What we were really doing was we
+were doing a cross-correlation
+
+00:46:27.040 --> 00:46:31.630
+between the spike train of
+a neuron and the stimulus
+
+00:46:31.630 --> 00:46:34.330
+that drove that neuron,
+the stimulus that
+
+00:46:34.330 --> 00:46:36.940
+was input to that neuron.
+
+00:46:36.940 --> 00:46:40.660
+And that
+cross-correlation was just
+
+00:46:40.660 --> 00:46:43.360
+the kernel that
+described how you
+
+00:46:43.360 --> 00:46:45.610
+get from that
+input to the neuron
+
+00:46:45.610 --> 00:46:46.990
+to the response of the neuron.
+
+00:46:50.680 --> 00:46:54.750
+So spike-triggered average
+is actually sometimes called
+
+00:46:54.750 --> 00:46:55.920
+reverse correlation.
+
+00:46:55.920 --> 00:46:57.390
+And the reverse
+comes from the fact
+
+00:46:57.390 --> 00:47:00.930
+that you have to actually flip
+this over to get the kernel.
+
+00:47:00.930 --> 00:47:02.380
+So let's not worry about that.
+
+00:47:02.380 --> 00:47:06.030
+But it's sometimes referred
+to as the correlation
+
+00:47:06.030 --> 00:47:08.310
+between the spike train
+and the stimulus input.
+
+00:47:08.310 --> 00:47:09.596
+Yes.
+
+00:47:09.596 --> 00:47:12.061
+AUDIENCE: [INAUDIBLE]
+
+00:47:16.850 --> 00:47:19.490
+MICHALE FEE: So there's
+no convolution here.
+
+00:47:19.490 --> 00:47:23.810
+We're doing the lag
+cross-correlation, OK.
+
+00:47:23.810 --> 00:47:28.040
+We're just taking
+those two signals,
+
+00:47:28.040 --> 00:47:32.820
+and shifting one of them,
+multiplying, and integrating.
+
+00:47:32.820 --> 00:47:33.320
+Sorry.
+
+00:47:33.320 --> 00:47:34.070
+Ask your question.
+
+00:47:34.070 --> 00:47:35.510
+I just wanted to
+clarify, there's
+
+00:47:35.510 --> 00:47:37.736
+no convolution being done here.
+
+00:47:37.736 --> 00:47:49.000
+AUDIENCE: So [INAUDIBLE]
+is that y [INAUDIBLE]
+
+00:47:49.000 --> 00:47:51.360
+MICHALE FEE: Ah, OK, great.
+
+00:47:51.360 --> 00:47:53.910
+That's actually one
+of the things that's
+
+00:47:53.910 --> 00:47:57.230
+easiest to get
+mixed up about when
+
+00:47:57.230 --> 00:48:02.090
+you do lag cross-correlation.
+
+00:48:02.090 --> 00:48:09.920
+You have to be careful about
+which side this peak is on.
+
+00:48:09.920 --> 00:48:12.710
+And I personally can
+never keep it straight.
+
+00:48:12.710 --> 00:48:15.320
+So what I do is just
+make two test functions,
+
+00:48:15.320 --> 00:48:16.850
+and stick them in.
+
+00:48:16.850 --> 00:48:20.190
+And make sure that if I
+have one of my functions--
+
+00:48:20.190 --> 00:48:24.770
+so in this case, here
+are two test functions.
+
+00:48:24.770 --> 00:48:27.560
+You can see that x is--
+
+00:48:27.560 --> 00:48:31.710
+sorry, y is before x.
+
+00:48:31.710 --> 00:48:35.870
+And so this peak
+here corresponds
+
+00:48:35.870 --> 00:48:38.670
+to y happening before x.
+
+00:48:38.670 --> 00:48:43.980
+So you just have to make sure
+you know what the sign is.
+
+00:48:43.980 --> 00:48:49.260
+And I recommend doing that
+with just two functions
+
+00:48:49.260 --> 00:48:51.520
+that you know.
+
+00:48:51.520 --> 00:48:54.410
+It's easy to get it backwards.
+
+00:48:54.410 --> 00:48:54.910
+Yes.
+
+00:48:54.910 --> 00:48:57.904
+AUDIENCE: [INAUDIBLE] part
+of y equals [INAUDIBLE]..
+
+00:49:04.890 --> 00:49:06.676
+MICHALE FEE: What do
+you mean, first part?
+
+00:49:06.676 --> 00:49:08.540
+AUDIENCE: The very
+first [INAUDIBLE]..
+
+00:49:08.540 --> 00:49:09.060
+MICHALE FEE: Oh, these?
+
+00:49:09.060 --> 00:49:09.800
+AUDIENCE: Yes.
+
+00:49:09.800 --> 00:49:12.740
+MICHALE FEE: I'm just
+taking copies of this,
+
+00:49:12.740 --> 00:49:15.300
+and placing them on top of
+each other, and shifting them.
+
+00:49:15.300 --> 00:49:17.940
+So you should ignore this
+little part right here.
+
+00:49:17.940 --> 00:49:22.993
+AUDIENCE: [INAUDIBLE]
+
+00:49:22.993 --> 00:49:23.910
+MICHALE FEE: Oh, yeah.
+
+00:49:23.910 --> 00:49:31.170
+So there are Matlab functions
+to do this cross-correlation.
+
+00:49:31.170 --> 00:49:36.700
+And it handles all of
+that stuff for you.
+
+00:49:36.700 --> 00:49:37.676
+Yes.
+
+00:49:37.676 --> 00:49:41.092
+AUDIENCE: [INAUDIBLE]
+
+00:49:43.322 --> 00:49:44.030
+MICHALE FEE: Yes.
+
+00:49:44.030 --> 00:49:46.250
+AUDIENCE: Like,
+is the x-axis tau?
+
+00:49:46.250 --> 00:49:47.653
+MICHALE FEE: The x-axis is tau.
+
+00:49:47.653 --> 00:49:49.070
+I should have
+labeled it on there.
+
+00:49:52.401 --> 00:49:54.526
+AUDIENCE: I just want to
+clarify whether they meet.
+
+00:49:54.526 --> 00:50:00.374
+So how it's kind of flat, and
+then this idea of the flat area
+
+00:50:00.374 --> 00:50:03.226
+that, when you multiply them
+and they're slightly off,
+
+00:50:03.226 --> 00:50:05.170
+this is generally not zero.
+
+00:50:05.170 --> 00:50:07.117
+But you know, they
+cancel each other out.
+
+00:50:07.117 --> 00:50:09.700
+MICHALE FEE: So you can see that
+if these things are shifted--
+
+00:50:09.700 --> 00:50:12.117
+if they're kind of noisy, and
+they're shifted with respect
+
+00:50:12.117 --> 00:50:15.880
+to each other, you can see
+that the positive parts here
+
+00:50:15.880 --> 00:50:17.770
+might line up with the
+negative parts there.
+
+00:50:17.770 --> 00:50:20.350
+And the negative parts here
+line up with the positive parts
+
+00:50:20.350 --> 00:50:20.950
+there.
+
+00:50:20.950 --> 00:50:25.660
+And they're shifted randomly
+at any other time with respect
+
+00:50:25.660 --> 00:50:26.350
+to each other.
+
+00:50:26.350 --> 00:50:30.220
+On average, positive
+times negative,
+
+00:50:30.220 --> 00:50:31.995
+you're going to have
+some parts where
+
+00:50:31.995 --> 00:50:34.120
+it's positive times positive,
+and other parts where
+
+00:50:34.120 --> 00:50:35.380
+it's positive times negative.
+
+00:50:35.380 --> 00:50:38.050
+And it's all going to wash
+out and give you zero.
+
+00:50:38.050 --> 00:50:42.070
+Because those signals are
+uncorrelated with each other
+
+00:50:42.070 --> 00:50:44.715
+at different time lags.
+
+00:50:44.715 --> 00:50:47.446
+AUDIENCE: So only when the
+perfectly overlap and kind
+
+00:50:47.446 --> 00:50:49.600
+of exaggerate each other
+is when they'll be flat.
+
+00:50:49.600 --> 00:50:50.560
+MICHALE FEE: Exactly.
+
+00:50:50.560 --> 00:50:54.940
+It's only when they overlap
+that all of the positive parts
+
+00:50:54.940 --> 00:50:58.493
+here will line up with
+the positive parts here,
+
+00:50:58.493 --> 00:51:00.160
+and the negative parts
+here will line up
+
+00:51:00.160 --> 00:51:01.185
+with the negative parts.
+
+00:51:01.185 --> 00:51:03.005
+AUDIENCE: And since you're
+taking the integral together,
+
+00:51:03.005 --> 00:51:04.830
+it just makes a
+very large positive.
+
+00:51:04.830 --> 00:51:06.130
+MICHALE FEE: Exactly.
+
+00:51:06.130 --> 00:51:08.590
+All of those positive
+times positive
+
+00:51:08.590 --> 00:51:12.430
+add up to the negative times
+negative, which is positive.
+
+00:51:12.430 --> 00:51:15.010
+And all of that
+adds up to give you
+
+00:51:15.010 --> 00:51:16.780
+that positive peak right there.
+
+00:51:16.780 --> 00:51:21.420
+But when they're shifted, all
+of those magical alignments
+
+00:51:21.420 --> 00:51:24.820
+of positive with positive and
+negative with negative go away.
+
+00:51:24.820 --> 00:51:28.330
+And it just becomes, on
+average, just random.
+
+00:51:28.330 --> 00:51:33.430
+And random things have zero
+correlation with each other.
+
+00:51:38.320 --> 00:51:42.320
+So this is actually
+a really powerful way
+
+00:51:42.320 --> 00:51:47.220
+to discover the relation
+between two different signals.
+
+00:51:52.570 --> 00:51:57.070
+And in fact, it
+gives you a kernel
+
+00:51:57.070 --> 00:51:59.110
+that you can actually
+use to predict
+
+00:51:59.110 --> 00:52:01.090
+one signal from another signal.
+
+00:52:01.090 --> 00:52:05.350
+Now, if you were to take
+x and convolve it with k,
+
+00:52:05.350 --> 00:52:07.870
+you would get an estimate of y.
+
+00:52:07.870 --> 00:52:11.050
+We'll talk more
+about that later.
+
+00:52:11.050 --> 00:52:11.920
+Pretty cool, right?
+
+00:52:19.290 --> 00:52:22.350
+So they're mathematically
+very similar.
+
+00:52:22.350 --> 00:52:23.310
+They look similar.
+
+00:52:23.310 --> 00:52:25.960
+But they're used
+in different ways.
+
+00:52:25.960 --> 00:52:28.680
+So the way we think
+about convolution is--
+
+00:52:28.680 --> 00:52:32.670
+what it's used for is to
+take an input signal x,
+
+00:52:32.670 --> 00:52:38.700
+and convolve it with a kernel,
+k, to get an output signal, y.
+
+00:52:38.700 --> 00:52:43.830
+And we usually think of x
+as being very long vectors,
+
+00:52:43.830 --> 00:52:46.130
+long signals.
+
+00:52:46.130 --> 00:52:48.660
+K here, kappa, is a kernel.
+
+00:52:48.660 --> 00:52:51.870
+It's just a short
+little thing in time.
+
+00:52:51.870 --> 00:52:54.510
+And you're going to convolve
+it with a long signal
+
+00:52:54.510 --> 00:52:56.190
+to get another long signal.
+
+00:52:56.190 --> 00:52:59.250
+Does that makes sense?
+
+00:52:59.250 --> 00:53:04.140
+In cross-correlation, we
+have two signals, x and y.
+
+00:53:04.140 --> 00:53:06.660
+x and y are the inputs.
+
+00:53:06.660 --> 00:53:09.810
+And we cross-correlate
+it to extract
+
+00:53:09.810 --> 00:53:14.910
+a short signal that captures
+the temporal relation between x
+
+00:53:14.910 --> 00:53:17.680
+and y.
+
+00:53:17.680 --> 00:53:20.770
+All right, so x and
+y are long signals.
+
+00:53:20.770 --> 00:53:22.550
+K is a short vector.
+
+00:53:22.550 --> 00:53:27.710
+And in this case, we're
+convolving a long signal
+
+00:53:27.710 --> 00:53:31.310
+with a short kernel to get
+another long signal, which
+
+00:53:31.310 --> 00:53:33.540
+is the response of the system.
+
+00:53:33.540 --> 00:53:37.250
+In this case, we take,
+let's say, the input
+
+00:53:37.250 --> 00:53:39.620
+to a system and the
+output of this system,
+
+00:53:39.620 --> 00:53:42.560
+and doing a cross-correlation
+to extract the kernel.
+
+00:53:46.710 --> 00:53:48.830
+All right, any
+questions about that?
+
+00:53:48.830 --> 00:53:51.660
+They're both
+super-powerful methods.
+
+00:53:51.660 --> 00:53:52.620
+Yes, [INAUDIBLE].
+
+00:53:52.620 --> 00:53:54.370
+AUDIENCE: How does the
+cross-correlation--
+
+00:53:54.370 --> 00:53:57.150
+mathematically, how does it
+give a short vector [INAUDIBLE]??
+
+00:53:57.150 --> 00:54:05.740
+MICHALE FEE: You just do this
+for a small number of taus.
+
+00:54:05.740 --> 00:54:08.200
+Because usually
+signals that have
+
+00:54:08.200 --> 00:54:10.300
+some relation between
+them, that relation
+
+00:54:10.300 --> 00:54:12.610
+has a short time extent.
+
+00:54:12.610 --> 00:54:16.240
+This signal here, in a
+real physical system,
+
+00:54:16.240 --> 00:54:21.040
+doesn't depend on what x was
+doing a month ago, or maybe
+
+00:54:21.040 --> 00:54:21.970
+a few seconds ago.
+
+00:54:21.970 --> 00:54:26.020
+These signals might be 10 or 20
+seconds long, or an hour long,
+
+00:54:26.020 --> 00:54:29.320
+but this signal, y,
+doesn't depend on what
+
+00:54:29.320 --> 00:54:31.150
+x was doing an hour ago.
+
+00:54:31.150 --> 00:54:32.980
+It only depends on
+what x was doing
+
+00:54:32.980 --> 00:54:36.340
+maybe a few tens of
+milliseconds or a second ago.
+
+00:54:36.340 --> 00:54:40.210
+So that's why x and y
+can be long signals.
+
+00:54:40.210 --> 00:54:47.770
+K is a short vector that
+represents the kernel.
+
+00:54:47.770 --> 00:54:49.060
+Any more questions about that?
+
+00:54:53.110 --> 00:54:55.580
+OK, these are very
+powerful methods.
+
+00:54:55.580 --> 00:54:57.170
+We use them all the time.
+
+00:55:00.960 --> 00:55:06.140
+I talked about the relation to
+the spike-triggered average.
+
+00:55:06.140 --> 00:55:09.440
+The autocorrelation is nothing
+more than a cross-correlation
+
+00:55:09.440 --> 00:55:10.720
+of a signal with itself.
+
+00:55:15.180 --> 00:55:17.570
+So let's see how that's useful.
+
+00:55:17.570 --> 00:55:19.340
+So an autocorrelation
+is a good way
+
+00:55:19.340 --> 00:55:23.810
+to examine a temporal
+structure within a signal.
+
+00:55:23.810 --> 00:55:28.640
+So if we take a signal,
+x, and we calculate
+
+00:55:28.640 --> 00:55:32.013
+the cross-correlation of
+that signal with itself,
+
+00:55:32.013 --> 00:55:33.180
+here's what that looks like.
+
+00:55:33.180 --> 00:55:36.500
+So let's say we have a
+signal that looks like this.
+
+00:55:36.500 --> 00:55:40.730
+And this signal kind of
+has slowish fluctuations
+
+00:55:40.730 --> 00:55:45.790
+that are, let's say, on a 50
+or 100 millisecond timescale.
+
+00:55:45.790 --> 00:55:49.660
+If we take that signal and
+we multiply it by itself
+
+00:55:49.660 --> 00:55:54.320
+with zero time lag, what do
+you think that will look like?
+
+00:55:54.320 --> 00:55:58.330
+So positive lines up with
+positive, negative lines
+
+00:55:58.330 --> 00:56:00.040
+up with negative.
+
+00:56:00.040 --> 00:56:03.580
+That thing should do what?
+
+00:56:03.580 --> 00:56:05.740
+It should be a maximum, right?
+
+00:56:05.740 --> 00:56:09.760
+Autocorrelations are always
+a maximum at zero lag.
+
+00:56:12.862 --> 00:56:15.320
+And then what we do is we're
+just going to take that signal
+
+00:56:15.320 --> 00:56:16.805
+and shift it a little bit.
+
+00:56:16.805 --> 00:56:18.680
+And we'll shift it
+a little bit more,
+
+00:56:18.680 --> 00:56:21.890
+do that product and
+integral, shift that product
+
+00:56:21.890 --> 00:56:23.150
+and integral.
+
+00:56:23.150 --> 00:56:29.370
+Now what's going to happen as
+we shift one of those signals
+
+00:56:29.370 --> 00:56:31.500
+sideways?
+
+00:56:31.500 --> 00:56:35.960
+And then multiply and integrate.
+
+00:56:35.960 --> 00:56:37.250
+Sammy, you got this one.
+
+00:56:37.250 --> 00:56:41.540
+AUDIENCE: Oh, at first,
+[INAUDIBLE] zero [INAUDIBLE]
+
+00:56:41.540 --> 00:56:44.180
+point where the plus
+and minuses cancel out.
+
+00:56:44.180 --> 00:56:46.195
+[INAUDIBLE] this.
+
+00:56:46.195 --> 00:56:49.165
+If you [INAUDIBLE]
+maybe [INAUDIBLE]
+
+00:56:49.165 --> 00:56:54.115
+where the pluses
+overlap the second time.
+
+00:56:54.115 --> 00:56:55.990
+MICHALE FEE: Yeah, so
+if you shift it enough,
+
+00:56:55.990 --> 00:56:59.240
+it's possible that it might
+overlap again somewhere else.
+
+00:56:59.240 --> 00:57:04.388
+What kind of signal
+would that happen for?
+
+00:57:04.388 --> 00:57:05.430
+AUDIENCE: Like, cyclical.
+
+00:57:05.430 --> 00:57:07.320
+MICHALE FEE: Yeah,
+a periodic signal.
+
+00:57:07.320 --> 00:57:08.400
+Exactly.
+
+00:57:08.400 --> 00:57:15.330
+So an autocorrelation first
+of all has a peak at zero lag.
+
+00:57:15.330 --> 00:57:20.570
+That peak drops off when
+these fluctuations here.
+
+00:57:20.570 --> 00:57:23.750
+So the positive lines up
+with positive, negative lines
+
+00:57:23.750 --> 00:57:24.470
+up with negative.
+
+00:57:24.470 --> 00:57:27.710
+As you shift one of them,
+those positive and negatives
+
+00:57:27.710 --> 00:57:29.280
+no longer overlap
+with each other,
+
+00:57:29.280 --> 00:57:32.270
+and you start getting positives
+lining up with negatives.
+
+00:57:32.270 --> 00:57:34.940
+And so the
+autocorrelation drops off.
+
+00:57:34.940 --> 00:57:40.320
+And then it can actually
+go back and indicate--
+
+00:57:40.320 --> 00:57:42.450
+it can go back up if
+there's periodic structure.
+
+00:57:42.450 --> 00:57:44.200
+So let's look at what
+this one looks like.
+
+00:57:44.200 --> 00:57:46.530
+So in this case,
+it kind of looked
+
+00:57:46.530 --> 00:57:48.180
+like there might be
+periodic structure,
+
+00:57:48.180 --> 00:57:49.597
+but there wasn't,
+because this was
+
+00:57:49.597 --> 00:57:52.380
+just low-pass-filtered noise.
+
+00:57:52.380 --> 00:57:55.260
+And you can see that
+if you compute the--
+
+00:57:55.260 --> 00:57:57.960
+there's that Matlab
+function, xcorr.
+
+00:57:57.960 --> 00:58:00.840
+So you use it to calculate
+the autocorrelation.
+
+00:58:00.840 --> 00:58:02.860
+You can see that that
+autocorrelation is peaked
+
+00:58:02.860 --> 00:58:08.940
+at zero lag, drops off, and
+the lag at which it drops off
+
+00:58:08.940 --> 00:58:12.060
+depends on how smoothly
+varying that function is.
+
+00:58:12.060 --> 00:58:13.800
+If the function varies--
+
+00:58:13.800 --> 00:58:16.568
+if it's changing very
+slowly, the autocorrelation
+
+00:58:16.568 --> 00:58:17.610
+is going to be very wide.
+
+00:58:17.610 --> 00:58:19.890
+Because you have to
+shift it a lot in order
+
+00:58:19.890 --> 00:58:24.630
+to get the positive peaks
+and the negative peaks
+
+00:58:24.630 --> 00:58:27.480
+misaligned from each other.
+
+00:58:27.480 --> 00:58:29.970
+Now, if you have a
+fast signal like this,
+
+00:58:29.970 --> 00:58:33.180
+with fast fluctuations, and
+you do the autocorrelation,
+
+00:58:33.180 --> 00:58:34.870
+what's going to happen?
+
+00:58:34.870 --> 00:58:40.420
+So first of all, at zero
+lag, it's going to be peak.
+
+00:58:40.420 --> 00:58:42.870
+And then what's going to happen?
+
+00:58:42.870 --> 00:58:46.180
+It's going to drop
+off more quickly.
+
+00:58:46.180 --> 00:58:48.100
+So that's exactly what happens.
+
+00:58:48.100 --> 00:58:51.070
+So here's the autocorrelation
+of this slow function.
+
+00:58:51.070 --> 00:58:53.830
+Here's the autocorrelation
+of this fast function.
+
+00:58:53.830 --> 00:58:56.400
+And you can see both of
+these are just noise.
+
+00:58:56.400 --> 00:58:57.780
+But I've smoothed this one.
+
+00:58:57.780 --> 00:58:59.580
+I've low-pass-filtered
+this with kind
+
+00:58:59.580 --> 00:59:03.720
+of a 50-millisecond-wide
+kernel to give
+
+00:59:03.720 --> 00:59:06.220
+very slowly-varying structure.
+
+00:59:06.220 --> 00:59:10.770
+This one I smoothed with
+a very narrow kernel
+
+00:59:10.770 --> 00:59:12.510
+to leave fast fluctuations.
+
+00:59:12.510 --> 00:59:15.630
+And you can see that the
+autocorrelation shows
+
+00:59:15.630 --> 00:59:21.780
+that the width of the smoothing
+of this signal is very narrow.
+
+00:59:21.780 --> 00:59:25.800
+And the width of the smoothing
+for this signal was broad.
+
+00:59:25.800 --> 00:59:28.710
+In fact what you can see
+is that this signal looks
+
+00:59:28.710 --> 00:59:32.040
+like noise that's been
+convolved with this,
+
+00:59:32.040 --> 00:59:33.780
+and this signal looks
+like noise that's
+
+00:59:33.780 --> 00:59:35.130
+been convolved with that.
+
+00:59:38.860 --> 00:59:41.500
+And here is actually
+a demonstration
+
+00:59:41.500 --> 00:59:43.360
+of what Sammy was
+just talking about.
+
+00:59:43.360 --> 00:59:45.110
+If you take a look
+at this signal,
+
+00:59:45.110 --> 00:59:47.620
+so the autocorrelation can
+be a very powerful method.
+
+00:59:50.140 --> 00:59:51.550
+It's actually not that powerful.
+
+00:59:51.550 --> 00:59:55.100
+It's a method for extracting
+periodic structure.
+
+00:59:55.100 --> 00:59:57.310
+And we're going to
+turn now, very shortly,
+
+00:59:57.310 --> 01:00:00.100
+to a method that really is
+very powerful for extracting
+
+01:00:00.100 --> 01:00:01.240
+periodic structure.
+
+01:00:01.240 --> 01:00:06.440
+But I just want to show you
+how this method can be used.
+
+01:00:06.440 --> 01:00:08.687
+And so if you look at
+that signal right there,
+
+01:00:08.687 --> 01:00:09.520
+it looks like noise.
+
+01:00:13.580 --> 01:00:17.000
+But there's actually
+structure embedded in there
+
+01:00:17.000 --> 01:00:20.810
+that we can see if we do the
+autocorrelation of this signal.
+
+01:00:20.810 --> 01:00:22.500
+And here's what that looks like.
+
+01:00:22.500 --> 01:00:25.450
+So again, autocorrelation
+has peaked.
+
+01:00:25.450 --> 01:00:27.410
+The peak is very
+narrow, because that's
+
+01:00:27.410 --> 01:00:29.390
+a very noisy-looking signal.
+
+01:00:29.390 --> 01:00:32.300
+But you can see that,
+buried under there,
+
+01:00:32.300 --> 01:00:34.910
+is this periodic fluctuation.
+
+01:00:34.910 --> 01:00:37.730
+What that says is that if I
+take a copy of that signal
+
+01:00:37.730 --> 01:00:42.540
+and shift it with respect to
+itself every 100 milliseconds,
+
+01:00:42.540 --> 01:00:45.710
+something in there
+starts lining up again.
+
+01:00:45.710 --> 01:00:48.020
+And that's why you
+have these little peaks
+
+01:00:48.020 --> 01:00:49.710
+in the autocorrelation function.
+
+01:00:49.710 --> 01:00:53.260
+And what do you think
+that is buried in there?
+
+01:00:53.260 --> 01:00:55.340
+The sine wave.
+
+01:00:55.340 --> 01:01:01.400
+So this data is random,
+with a normal distribution,
+
+01:01:01.400 --> 01:01:08.780
+plus 0.1 times cosine that
+gives you a 10 hertz wiggle.
+
+01:01:11.820 --> 01:01:15.743
+So you can't see
+that in the data.
+
+01:01:15.743 --> 01:01:17.160
+But if you do the
+autocorrelation,
+
+01:01:17.160 --> 01:01:19.950
+all of a sudden you can see
+that it's buried in there.
+
+01:01:19.950 --> 01:01:27.260
+All right, so
+cross-correlation is a way
+
+01:01:27.260 --> 01:01:31.940
+to extract the temporal relation
+between different signals.
+
+01:01:31.940 --> 01:01:34.760
+Autocorrelation is a way to
+use the same method essentially
+
+01:01:34.760 --> 01:01:39.020
+to extract the temporal
+relation between a signal
+
+01:01:39.020 --> 01:01:41.200
+and itself at different times.
+
+01:01:46.230 --> 01:01:50.700
+And that method, it's
+actually quite commonly used
+
+01:01:50.700 --> 01:01:52.885
+to extract structure
+and spike trains.
+
+01:01:56.390 --> 01:01:58.730
+But there are much
+more powerful methods
+
+01:01:58.730 --> 01:02:01.610
+for extracting
+periodic structure.
+
+01:02:01.610 --> 01:02:04.850
+And that's what we're going
+to start talking about now.
+
+01:02:04.850 --> 01:02:06.365
+OK, any questions?
+
+01:02:10.460 --> 01:02:14.740
+Let's start on the topic
+of spectral analysis, which
+
+01:02:14.740 --> 01:02:20.600
+is the right way to pull out the
+periodic structure of signals.
+
+01:02:20.600 --> 01:02:22.810
+Here's that the spectrogram
+that I was actually
+
+01:02:22.810 --> 01:02:24.520
+trying to show you last time.
+
+01:02:24.520 --> 01:02:29.530
+So what is a spectrogram?
+
+01:02:29.530 --> 01:02:31.150
+So if we have a sound--
+
+01:02:31.150 --> 01:02:34.530
+we record a sound
+with a microphone,
+
+01:02:34.530 --> 01:02:36.860
+microphones pick up
+pressure fluctuations.
+
+01:02:36.860 --> 01:02:38.960
+So in this case, this
+is a bird singing.
+
+01:02:38.960 --> 01:02:42.790
+The vocal cords are vibrating
+with air flowing through them
+
+01:02:42.790 --> 01:02:45.640
+that produce very large
+pressure fluctuations
+
+01:02:45.640 --> 01:02:47.330
+in the vocal tract.
+
+01:02:47.330 --> 01:02:50.020
+And those are transmitted out
+through the beak, into the air.
+
+01:02:50.020 --> 01:02:52.540
+And that produces
+pressure fluctuations
+
+01:02:52.540 --> 01:02:54.690
+that propagate through
+the air at about
+
+01:02:54.690 --> 01:02:56.440
+a foot per millisecond.
+
+01:02:56.440 --> 01:02:59.050
+They reach your ear, and
+they vibrate your eardrum.
+
+01:03:01.570 --> 01:03:03.820
+And if you have a
+microphone there,
+
+01:03:03.820 --> 01:03:07.060
+you can actually record
+those pressure fluctuations.
+
+01:03:07.060 --> 01:03:10.350
+And if you look at it, it
+just looks like fast wiggles
+
+01:03:10.350 --> 01:03:11.410
+in the pressure.
+
+01:03:11.410 --> 01:03:16.480
+But somehow your ear is able
+to magically transform that
+
+01:03:16.480 --> 01:03:25.470
+into this neural representation
+of what that sound is.
+
+01:03:25.470 --> 01:03:27.310
+And what your ear
+is actually doing
+
+01:03:27.310 --> 01:03:30.520
+is it's doing a spectral
+analysis of the sound.
+
+01:03:30.520 --> 01:03:32.710
+And then your brain is
+doing a bunch of processing
+
+01:03:32.710 --> 01:03:35.260
+that helps you identify
+what that thing is
+
+01:03:35.260 --> 01:03:37.480
+that's making that sound.
+
+01:03:37.480 --> 01:03:43.840
+So this is a spectral
+analysis of this bit
+
+01:03:43.840 --> 01:03:46.600
+of birdsong, canary song.
+
+01:03:46.600 --> 01:03:50.390
+And what it is, it does very
+much what your eardrum does--
+
+01:03:50.390 --> 01:03:51.970
+or what your cochlea does.
+
+01:03:51.970 --> 01:03:52.600
+Sorry.
+
+01:03:52.600 --> 01:03:55.960
+It calculates how
+much power there
+
+01:03:55.960 --> 01:04:00.640
+is at different
+frequencies of the sound
+
+01:04:00.640 --> 01:04:03.640
+and at different times.
+
+01:04:03.640 --> 01:04:05.530
+So what this says
+is that there's
+
+01:04:05.530 --> 01:04:09.410
+a lot of power in this sound
+at 5 kilohertz at this time,
+
+01:04:09.410 --> 01:04:12.340
+but at this time, there's a lot
+of power at 3 kilohertz or a 2
+
+01:04:12.340 --> 01:04:14.230
+kilohertz and so on.
+
+01:04:14.230 --> 01:04:18.460
+So it's a graphical way of
+describing what the sound is.
+
+01:04:18.460 --> 01:04:21.558
+And here's what that looks like.
+
+01:04:21.558 --> 01:04:23.052
+[DESCENDING WHISTLING BIRDSONG]
+
+01:04:23.052 --> 01:04:24.546
+[FULL-THROATED CHIRP]
+
+01:04:24.546 --> 01:04:26.538
+[RAPID CHIRPS]
+
+01:04:28.530 --> 01:04:31.020
+[SIREN-LIKE CHIRPS]
+
+01:04:31.020 --> 01:04:32.514
+[STUDENTS LAUGH]
+
+01:04:34.200 --> 01:04:37.740
+So you can see visually
+what's happening.
+
+01:04:37.740 --> 01:04:40.020
+Even though if you were
+to look at those patterns
+
+01:04:40.020 --> 01:04:42.690
+on an oscilloscope or
+printed out on the computer,
+
+01:04:42.690 --> 01:04:45.190
+it would just be a
+bunch of wiggles.
+
+01:04:45.190 --> 01:04:47.470
+You wouldn't be able
+to see any of that.
+
+01:04:47.470 --> 01:04:49.300
+Here's another example.
+
+01:04:49.300 --> 01:04:51.090
+This is a baby bird babbling.
+
+01:04:51.090 --> 01:04:53.400
+And here's an example of
+what those signals actually
+
+01:04:53.400 --> 01:04:54.570
+look like--
+
+01:04:54.570 --> 01:04:56.550
+just a bunch of wiggles.
+
+01:04:56.550 --> 01:04:59.790
+It's almost completely
+uninterpretable.
+
+01:04:59.790 --> 01:05:02.910
+But again, your brain does
+this spectral analysis.
+
+01:05:02.910 --> 01:05:04.560
+And here I'm showing
+a spectrogram.
+
+01:05:04.560 --> 01:05:06.835
+Again, this is
+frequency versus time.
+
+01:05:06.835 --> 01:05:09.810
+It's much more
+cluttered visually.
+
+01:05:09.810 --> 01:05:13.180
+And it's a little bit
+harder to interpret.
+
+01:05:13.180 --> 01:05:16.542
+But your brain actually does a
+pretty good job figuring out--
+
+01:05:16.542 --> 01:05:19.680
+[RANDOM SQUEAKY CHIRPING]
+
+01:05:19.680 --> 01:05:21.750
+--what's going on there.
+
+01:05:21.750 --> 01:05:24.580
+We can also do spectral
+analysis of neural signals.
+
+01:05:24.580 --> 01:05:27.360
+So one of the really cool things
+that happens in the cortex
+
+01:05:27.360 --> 01:05:30.510
+is that neural circuits
+produce oscillations.
+
+01:05:30.510 --> 01:05:33.150
+And they produce oscillations
+at different frequencies
+
+01:05:33.150 --> 01:05:34.285
+at different times.
+
+01:05:34.285 --> 01:05:35.910
+If you close your
+eyes-- everybody just
+
+01:05:35.910 --> 01:05:37.830
+close your eyes for a second.
+
+01:05:37.830 --> 01:05:42.190
+As soon as you close your
+eyes, the back of your cortex
+
+01:05:42.190 --> 01:05:47.170
+starts generating a big
+10 hertz oscillation.
+
+01:05:47.170 --> 01:05:48.122
+It's wild.
+
+01:05:48.122 --> 01:05:50.080
+You just close your eyes,
+and it starts going--
+
+01:05:50.080 --> 01:05:51.250
+[MAKES OSCILLATING SOUND WITH
+ MOUTH]
+
+01:05:51.250 --> 01:05:51.940
+--at 10 hertz.
+
+01:05:55.580 --> 01:05:58.370
+This is a rhythm that's
+produced by the hippocampus.
+
+01:05:58.370 --> 01:06:03.290
+So whenever you start
+walking, your hippocampus
+
+01:06:03.290 --> 01:06:05.600
+starts generating
+a 10 hertz rhythm.
+
+01:06:05.600 --> 01:06:09.170
+When you stop and you're
+thinking about something
+
+01:06:09.170 --> 01:06:12.150
+or eating something, it stops.
+
+01:06:12.150 --> 01:06:13.400
+As soon as you start walking--
+
+01:06:13.400 --> 01:06:14.942
+[MAKES OSCILLATING SOUND WITH
+ MOUTH]
+
+01:06:14.942 --> 01:06:17.690
+--10 hertz rhythm.
+
+01:06:17.690 --> 01:06:24.710
+And you can see that rhythm
+often in neural signals.
+
+01:06:24.710 --> 01:06:26.910
+Here you can see
+this 10 Hertz rhythm.
+
+01:06:26.910 --> 01:06:29.730
+It has a period of
+about 100 milliseconds.
+
+01:06:29.730 --> 01:06:32.280
+But on top of that, there
+are much faster rhythms.
+
+01:06:32.280 --> 01:06:35.360
+It's not always so obvious in
+the brain what the rhythms are.
+
+01:06:35.360 --> 01:06:39.350
+And you need spectral analysis
+techniques to help pull out
+
+01:06:39.350 --> 01:06:42.800
+that structure.
+
+01:06:42.800 --> 01:06:45.890
+You can see here,
+here is the frequency
+
+01:06:45.890 --> 01:06:47.400
+as a function of time.
+
+01:06:47.400 --> 01:06:48.860
+I haven't labeled the axis here.
+
+01:06:48.860 --> 01:06:52.850
+But this bright band right here
+corresponds to this 10 hertz
+
+01:06:52.850 --> 01:06:55.640
+oscillation.
+
+01:06:55.640 --> 01:06:59.180
+So we're going to take up a
+little bit of a detour into how
+
+01:06:59.180 --> 01:07:03.680
+to actually carry out
+state-of-the-art spectral
+
+01:07:03.680 --> 01:07:10.070
+analysis like this to allow
+you to detect very subtle,
+
+01:07:10.070 --> 01:07:15.560
+small signals in neural
+signals, or sound signals,
+
+01:07:15.560 --> 01:07:19.800
+or any kind of signal that
+you're interested in studying.
+
+01:07:19.800 --> 01:07:20.610
+Jasmine.
+
+01:07:20.610 --> 01:07:22.256
+AUDIENCE: [INAUDIBLE]
+
+01:07:24.750 --> 01:07:29.210
+MICHALE FEE: Yeah, OK, so
+this is called a color map.
+
+01:07:29.210 --> 01:07:32.010
+I didn't put that
+on the side here.
+
+01:07:32.010 --> 01:07:37.070
+But basically dark
+here means no power.
+
+01:07:37.070 --> 01:07:41.930
+And light blue to
+green is more power.
+
+01:07:41.930 --> 01:07:44.270
+Yellow to red is even more.
+
+01:07:44.270 --> 01:07:45.230
+Same here.
+
+01:07:45.230 --> 01:07:47.992
+So red is most power.
+
+01:07:47.992 --> 01:07:49.170
+AUDIENCE: [INAUDIBLE]
+
+01:07:49.170 --> 01:07:49.878
+MICHALE FEE: Yes.
+
+01:07:49.878 --> 01:07:53.280
+So it's how much energy there
+is at different frequencies
+
+01:07:53.280 --> 01:07:55.800
+in the signal as a
+function of time.
+
+01:07:55.800 --> 01:07:57.900
+So you're going to
+know how to do this.
+
+01:07:57.900 --> 01:07:58.410
+Don't worry.
+
+01:08:01.010 --> 01:08:04.190
+you're going to be world
+experts at how to do this right.
+
+01:08:04.190 --> 01:08:05.001
+Yes.
+
+01:08:05.001 --> 01:08:08.022
+AUDIENCE: [INAUDIBLE]
+
+01:08:08.022 --> 01:08:08.730
+MICHALE FEE: Yes.
+
+01:08:08.730 --> 01:08:13.612
+AUDIENCE: This is very
+similar to [INAUDIBLE]..
+
+01:08:13.612 --> 01:08:14.320
+MICHALE FEE: Yes.
+
+01:08:14.320 --> 01:08:14.823
+I'm sorry.
+
+01:08:14.823 --> 01:08:16.240
+I should have been
+clear-- this is
+
+01:08:16.240 --> 01:08:18.850
+recording from an electrode
+in the hippocampus.
+
+01:08:18.850 --> 01:08:21.365
+And these oscillations here
+are the local field potentials.
+
+01:08:21.365 --> 01:08:22.240
+AUDIENCE: [INAUDIBLE]
+
+01:08:22.240 --> 01:08:22.948
+MICHALE FEE: Yes.
+
+01:08:22.948 --> 01:08:24.920
+That's exactly right.
+
+01:08:24.920 --> 01:08:25.420
+Thank you.
+
+01:08:25.420 --> 01:08:27.128
+I should have been
+more clear about that.
+
+01:08:29.890 --> 01:08:34.120
+OK, all right, so in
+order to understand
+
+01:08:34.120 --> 01:08:37.779
+how to really do this,
+you have to understand
+
+01:08:37.779 --> 01:08:40.359
+Fourier decomposition.
+
+01:08:40.359 --> 01:08:44.649
+And once you understand that,
+the rest is pretty easy.
+
+01:08:44.649 --> 01:08:47.819
+So I'm going to take
+you very slowly--
+
+01:08:47.819 --> 01:08:51.930
+and it may feel a little
+grueling at first.
+
+01:08:51.930 --> 01:08:55.859
+But if you understand
+this, the rest is simple.
+
+01:08:55.859 --> 01:08:58.050
+So let's just get started.
+
+01:09:00.729 --> 01:09:03.149
+All right, so Fourier series--
+
+01:09:03.149 --> 01:09:07.490
+it's a way of decomposing
+periodic signals
+
+01:09:07.490 --> 01:09:11.330
+by applying filters to them.
+
+01:09:11.330 --> 01:09:15.710
+We're going to take a signal
+that's a function of time,
+
+01:09:15.710 --> 01:09:20.930
+and we're going to make
+different receptive fields.
+
+01:09:20.930 --> 01:09:24.140
+We're going to make
+neurons that have--
+
+01:09:24.140 --> 01:09:26.990
+sensitive to
+different frequencies.
+
+01:09:26.990 --> 01:09:32.540
+And we're going to apply those
+different filters to extract
+
+01:09:32.540 --> 01:09:36.290
+what different frequencies
+there are in that signal.
+
+01:09:36.290 --> 01:09:39.319
+So we're going to take
+this periodic signal
+
+01:09:39.319 --> 01:09:40.250
+as a function of time.
+
+01:09:40.250 --> 01:09:41.420
+It's a square wave.
+
+01:09:41.420 --> 01:09:46.260
+It has a period capital T.
+And what we're going to do
+
+01:09:46.260 --> 01:09:49.200
+is we're going to
+approximate that square wave
+
+01:09:49.200 --> 01:09:53.350
+as a sum of a bunch of
+different sine waves.
+
+01:09:53.350 --> 01:09:57.135
+So the first thing we can do
+is approximate it as a cosine.
+
+01:09:57.135 --> 01:09:59.010
+You can see the square
+wave has a peak there.
+
+01:09:59.010 --> 01:10:00.270
+It has a valley there.
+
+01:10:00.270 --> 01:10:03.270
+So the sine wave approximation
+is going to have a peak there
+
+01:10:03.270 --> 01:10:04.190
+and a valley there.
+
+01:10:06.960 --> 01:10:09.510
+We're going to approximate
+it as a cosine wave
+
+01:10:09.510 --> 01:10:14.950
+of the same period and
+the same amplitude.
+
+01:10:14.950 --> 01:10:18.820
+Now, we might say, OK, that's
+not a very good approximation.
+
+01:10:18.820 --> 01:10:24.320
+What could we add to it to
+make a better approximation?
+
+01:10:24.320 --> 01:10:26.250
+AUDIENCE: [INAUDIBLE]
+
+01:10:26.250 --> 01:10:29.370
+MICHALE FEE:
+Another cosine wave,
+
+01:10:29.370 --> 01:10:31.865
+which is what we're going
+to do in just a second.
+
+01:10:31.865 --> 01:10:33.240
+Because apparently
+there's more I
+
+01:10:33.240 --> 01:10:34.900
+wanted to tell you about this.
+
+01:10:34.900 --> 01:10:38.640
+So we're going to approximate
+this as a cosine wave that has
+
+01:10:38.640 --> 01:10:40.650
+a coefficient in front of it.
+
+01:10:40.650 --> 01:10:43.110
+We have to approximate
+this is a cosine that
+
+01:10:43.110 --> 01:10:48.900
+has some amplitude a1, and
+it has some frequency, f0.
+
+01:10:52.380 --> 01:10:55.845
+So a cosine wave
+with a frequency f0
+
+01:10:55.845 --> 01:11:03.570
+is this-- cosine 2 pi f0 T,
+where f0 is 1 over the period.
+
+01:11:06.520 --> 01:11:08.580
+And you can also write--
+
+01:11:08.580 --> 01:11:11.130
+so f0 is the
+oscillation frequency.
+
+01:11:11.130 --> 01:11:13.320
+It's cycles per second.
+
+01:11:13.320 --> 01:11:18.370
+There is an important quantity
+called the angular frequency,
+
+01:11:18.370 --> 01:11:23.310
+which is just 2 pi times
+f0, or 2 pi over T.
+
+01:11:23.310 --> 01:11:28.830
+And the reason is because if we
+write this as cosine omega-0 T,
+
+01:11:28.830 --> 01:11:34.550
+then this thing
+just gives us 2 pi
+
+01:11:34.550 --> 01:11:38.730
+change in the phase over
+this interval T, which
+
+01:11:38.730 --> 01:11:42.600
+means that the cosine
+comes back to where it was.
+
+01:11:42.600 --> 01:11:46.430
+So if we want to make
+a better approximation,
+
+01:11:46.430 --> 01:11:49.970
+we can add more sine
+waves or cosine waves.
+
+01:11:53.490 --> 01:11:57.990
+And it turns out that we can
+approximate any periodic signal
+
+01:11:57.990 --> 01:12:02.220
+by adding more cosine
+waves that are multiples
+
+01:12:02.220 --> 01:12:06.330
+of this frequency, omega-0.
+
+01:12:06.330 --> 01:12:07.830
+Why is that?
+
+01:12:07.830 --> 01:12:12.470
+Why can we get away
+with just adding
+
+01:12:12.470 --> 01:12:16.430
+more cosines that are integer
+multiples of this frequency,
+
+01:12:16.430 --> 01:12:18.990
+omega-0?
+
+01:12:18.990 --> 01:12:19.490
+Any idea?
+
+01:12:23.470 --> 01:12:27.130
+Why is it not
+important to consider
+
+01:12:27.130 --> 01:12:34.222
+1.5 times omega-0, or 2.7?
+
+01:12:34.222 --> 01:12:36.597
+AUDIENCE: Does it have something
+to do with [INAUDIBLE]??
+
+01:12:39.700 --> 01:12:42.466
+MICHALE FEE: It's close,
+but too complicated.
+
+01:12:42.466 --> 01:12:46.272
+AUDIENCE: [INAUDIBLE]
+sum just over the period
+
+01:12:46.272 --> 01:12:48.778
+of their natural wave, right?
+
+01:12:48.778 --> 01:12:51.676
+So if you add
+non-integer [INAUDIBLE],,
+
+01:12:51.676 --> 01:12:53.268
+you lose that [INAUDIBLE].
+
+01:12:53.268 --> 01:12:54.060
+MICHALE FEE: Right.
+
+01:12:54.060 --> 01:12:56.340
+This signal that
+we're trying to model
+
+01:12:56.340 --> 01:13:01.790
+is periodic, with
+frequency omega-0.
+
+01:13:01.790 --> 01:13:05.690
+And any integer
+multiple of omega-0
+
+01:13:05.690 --> 01:13:09.350
+is also periodic at
+frequency omega-0.
+
+01:13:09.350 --> 01:13:16.460
+So notice that this signal
+that's cosine 2 omega-0
+
+01:13:16.460 --> 01:13:22.912
+is still periodic
+over this interval, t.
+
+01:13:22.912 --> 01:13:25.650
+Does that make sense?
+
+01:13:25.650 --> 01:13:30.590
+So any integer multiple
+cosine integer omega 0
+
+01:13:30.590 --> 01:13:35.800
+is also periodic
+with period T. OK?
+
+01:13:35.800 --> 01:13:41.490
+And those are the
+only frequencies that
+
+01:13:41.490 --> 01:13:49.310
+are periodic with period T.
+
+01:13:49.310 --> 01:13:52.550
+So we can restrict ourselves to
+including only frequencies that
+
+01:13:52.550 --> 01:13:54.830
+are integer
+multiples of omega-0,
+
+01:13:54.830 --> 01:13:58.160
+because those are the only
+frequencies that are also
+
+01:13:58.160 --> 01:14:05.550
+periodic with period T.
+
+01:14:05.550 --> 01:14:10.200
+We can write down-- we can
+approximate this square wave
+
+01:14:10.200 --> 01:14:16.310
+as a sum of cosine of
+different frequencies.
+
+01:14:16.310 --> 01:14:18.670
+And the frequencies
+that we consider
+
+01:14:18.670 --> 01:14:21.370
+are just the integer
+multiples of omega-0.
+
+01:14:23.928 --> 01:14:24.970
+Any questions about that?
+
+01:14:24.970 --> 01:14:28.370
+That's almost like
+the crux of it.
+
+01:14:28.370 --> 01:14:30.280
+There's just some
+more math to do.
+
+01:14:32.900 --> 01:14:34.470
+So here's why this works.
+
+01:14:34.470 --> 01:14:38.980
+So here's the square wave
+we're trying to approximate.
+
+01:14:38.980 --> 01:14:42.310
+We can approximate that
+square wave as a cosine.
+
+01:14:42.310 --> 01:14:44.980
+And then there's
+the approximation.
+
+01:14:44.980 --> 01:14:49.330
+Now, if we add a component
+that's some constant times
+
+01:14:49.330 --> 01:14:53.770
+cosine 3 omega-0, you can see
+that those two peaks there kind
+
+01:14:53.770 --> 01:14:57.583
+of square out those round
+edges of that cosine.
+
+01:14:57.583 --> 01:14:59.500
+And you can see it starts
+looking a little bit
+
+01:14:59.500 --> 01:15:01.190
+more square.
+
+01:15:01.190 --> 01:15:06.410
+And if you add constant
+times cosine 5 omega-T,
+
+01:15:06.410 --> 01:15:07.710
+it gets even more square.
+
+01:15:07.710 --> 01:15:10.070
+And you keep adding
+more of these things
+
+01:15:10.070 --> 01:15:12.630
+until it almost looks
+just like a square wave.
+
+01:15:16.510 --> 01:15:17.800
+Here's another function.
+
+01:15:17.800 --> 01:15:21.310
+We're going to approximate
+a bunch of pulses
+
+01:15:21.310 --> 01:15:27.400
+that have a period of 1 by
+adding up a bunch of cosines.
+
+01:15:27.400 --> 01:15:29.470
+So here's the first
+approximation--
+
+01:15:29.470 --> 01:15:31.690
+cosine, omega-0.
+
+01:15:31.690 --> 01:15:33.340
+So there's your
+first approximation
+
+01:15:33.340 --> 01:15:35.830
+to this train of pulses.
+
+01:15:35.830 --> 01:15:40.810
+Now we add to that
+a constant times
+
+01:15:40.810 --> 01:15:45.190
+cosine 2 omega-T. See that
+peak gets a little sharper.
+
+01:15:45.190 --> 01:15:49.680
+Add a constant times
+cosine 3 omega-T.
+
+01:15:49.680 --> 01:15:52.142
+And you keep adding
+more and more terms,
+
+01:15:52.142 --> 01:15:54.100
+and it gets sharper and
+sharper, and looks more
+
+01:15:54.100 --> 01:15:56.590
+like a bunch of pulses.
+
+01:15:56.590 --> 01:15:57.920
+Why is that?
+
+01:15:57.920 --> 01:16:01.450
+It's because all of
+those different cosines
+
+01:16:01.450 --> 01:16:07.520
+add up consecutively
+right here at 0.
+
+01:16:07.520 --> 01:16:09.180
+And so those things all add up.
+
+01:16:09.180 --> 01:16:16.440
+And this peak stays, because
+the peak of those cosines
+
+01:16:16.440 --> 01:16:19.740
+is always at 0.
+
+01:16:19.740 --> 01:16:24.270
+Over here, though, right
+next door, all of those,
+
+01:16:24.270 --> 01:16:26.940
+you can see that that cosine
+is canceling that one.
+
+01:16:26.940 --> 01:16:28.470
+It's canceling that one.
+
+01:16:28.470 --> 01:16:30.360
+Those two are canceling.
+
+01:16:30.360 --> 01:16:33.870
+You can see all these peaks
+here are canceling each other.
+
+01:16:33.870 --> 01:16:38.790
+And so that goes to 0 in there.
+
+01:16:38.790 --> 01:16:42.990
+Now of course all these cosines
+are periodic with a period T.
+
+01:16:42.990 --> 01:16:45.990
+So if you go one T
+over, all of those peaks
+
+01:16:45.990 --> 01:16:49.890
+add up again and
+interfere constructively.
+
+01:16:54.310 --> 01:16:55.470
+So that's it.
+
+01:16:55.470 --> 01:16:59.650
+It's basically a way of
+taking any periodic signal
+
+01:16:59.650 --> 01:17:06.040
+and figuring out a bunch of
+cosines such that the parts you
+
+01:17:06.040 --> 01:17:08.500
+want to keep add
+up constructively
+
+01:17:08.500 --> 01:17:13.240
+and the parts that aren't
+there in your signal
+
+01:17:13.240 --> 01:17:16.740
+add up destructively.
+
+01:17:16.740 --> 01:17:21.720
+And there's very simple
+sort of mathematical tools--
+
+01:17:21.720 --> 01:17:25.490
+basically it's a correlation--
+
+01:17:25.490 --> 01:17:29.030
+to extract the coefficients
+that go in front
+
+01:17:29.030 --> 01:17:33.650
+of each one of these cosines.
+
+01:17:33.650 --> 01:17:36.440
+And then one more thing--
+
+01:17:36.440 --> 01:17:41.210
+we use cosines to model or to
+approximate functions that are
+
+01:17:41.210 --> 01:17:42.950
+symmetric around the original.
+
+01:17:42.950 --> 01:17:46.680
+Because the cosine
+function is symmetric.
+
+01:17:46.680 --> 01:17:49.140
+Other functions
+are anti-symmetric.
+
+01:17:49.140 --> 01:17:53.670
+They'll look more
+like a sine wave.
+
+01:17:53.670 --> 01:17:56.430
+They'll be negative
+here, and positive there.
+
+01:17:56.430 --> 01:17:59.970
+And we use sines to model those.
+
+01:17:59.970 --> 01:18:02.940
+And then the one
+last trick we need
+
+01:18:02.940 --> 01:18:09.540
+is we can model arbitrary
+functions by combining
+
+01:18:09.540 --> 01:18:13.080
+sines and cosines into
+complex exponentials.
+
+01:18:13.080 --> 01:18:14.770
+And we'll talk about
+that next time.
+
+01:18:14.770 --> 01:18:17.460
+And once we do that,
+then you can basically
+
+01:18:17.460 --> 01:18:26.190
+model not just periodic
+signals, but arbitrary signals.
+
+01:18:26.190 --> 01:18:30.440
+And then you're
+all set to analyze
+
+01:18:30.440 --> 01:18:38.180
+any kind of periodic signal
+in arbitrary signals.
+
+01:18:38.180 --> 01:18:41.480
+So it's a powerful way of
+extracting periodic structure
+
+01:18:41.480 --> 01:18:43.640
+from any signal.
+
+01:18:43.640 --> 01:18:46.720
+So we'll continue
+that next time.

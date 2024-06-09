@@ -1,0 +1,3952 @@
+WEBVTT
+
+00:00:14.762 --> 00:00:16.470
+DAVID SONTAG: A
+three-part lecture today,
+
+00:00:16.470 --> 00:00:18.720
+and I'm still continuing on
+the theme of reinforcement
+
+00:00:18.720 --> 00:00:20.160
+learning.
+
+00:00:20.160 --> 00:00:22.380
+Part one, I'm going
+to be speaking,
+
+00:00:22.380 --> 00:00:26.212
+and I'll be following up
+on last week's discussion
+
+00:00:26.212 --> 00:00:28.170
+about causal inference
+and Tuesday's discussion
+
+00:00:28.170 --> 00:00:29.820
+on reinforcement learning.
+
+00:00:29.820 --> 00:00:35.160
+And I'll be going into sort
+of one more subtlety that
+
+00:00:35.160 --> 00:00:37.680
+arises there and
+where we can develop
+
+00:00:37.680 --> 00:00:40.650
+some nice mathematical
+methods to help with.
+
+00:00:40.650 --> 00:00:43.140
+And then I'm going
+to turn over the show
+
+00:00:43.140 --> 00:00:47.550
+to Barbra, who I'll formally
+introduce when the time comes.
+
+00:00:47.550 --> 00:00:51.120
+And she's going to both
+talk about some of her work
+
+00:00:51.120 --> 00:00:56.520
+on developing and evaluating
+dynamic treatment regimes,
+
+00:00:56.520 --> 00:00:58.350
+and then she will
+lead a discussion
+
+00:00:58.350 --> 00:01:01.080
+on the sepsis paper,
+which was required
+
+00:01:01.080 --> 00:01:02.650
+reading from today's class.
+
+00:01:02.650 --> 00:01:05.129
+So those are the three
+parts of today's lecture.
+
+00:01:07.920 --> 00:01:11.042
+So I want you to return
+back, put yourself back
+
+00:01:11.042 --> 00:01:12.500
+in the mindset of
+Tuesday's lecture
+
+00:01:12.500 --> 00:01:14.510
+where we talked about
+reinforcement learning.
+
+00:01:14.510 --> 00:01:16.718
+Now, remember that the goal
+of reinforcement learning
+
+00:01:16.718 --> 00:01:18.050
+was to optimize some reward.
+
+00:01:24.930 --> 00:01:30.920
+Specifically, our goal is
+to find some policy, which
+
+00:01:30.920 --> 00:01:36.910
+I can note as pi
+star, which is the arg
+
+00:01:36.910 --> 00:01:45.240
+max over all possible
+policies pi of v of pi,
+
+00:01:45.240 --> 00:01:46.950
+where just to
+remind you, v of pi
+
+00:01:46.950 --> 00:01:49.490
+is the value of the policy pi.
+
+00:01:49.490 --> 00:01:57.930
+Formally, it's defined as
+the expectation of the sum
+
+00:01:57.930 --> 00:02:01.993
+of the rewards across time.
+
+00:02:01.993 --> 00:02:03.410
+So the reason why
+I'm calling this
+
+00:02:03.410 --> 00:02:06.540
+an expectation with like
+the pi is because there's
+
+00:02:06.540 --> 00:02:10.340
+stochasticity both in the
+environment, and possibly pi
+
+00:02:10.340 --> 00:02:12.740
+is going to be a
+stochastic policy.
+
+00:02:12.740 --> 00:02:14.960
+And this is summing
+over the time steps,
+
+00:02:14.960 --> 00:02:18.372
+because this is not just a
+single time step problem.
+
+00:02:18.372 --> 00:02:20.330
+But we're going to be
+considering interventions
+
+00:02:20.330 --> 00:02:23.327
+across time of the reward
+at each point in time.
+
+00:02:23.327 --> 00:02:25.910
+And that reward function could
+either be at each point in time
+
+00:02:25.910 --> 00:02:28.230
+or you might imagine that
+this is 0 for all time steps,
+
+00:02:28.230 --> 00:02:29.480
+except for the last time step.
+
+00:02:32.020 --> 00:02:34.020
+So the first question I
+want us to think about
+
+00:02:34.020 --> 00:02:36.480
+is, well, what are
+the implications
+
+00:02:36.480 --> 00:02:40.560
+of this as a learning paradigm?
+
+00:02:40.560 --> 00:02:43.140
+If we look what's going on
+over here, hidden in my story
+
+00:02:43.140 --> 00:02:47.610
+is also an expectation
+over x, the patient,
+
+00:02:47.610 --> 00:02:50.903
+for example, or
+the initial state.
+
+00:02:50.903 --> 00:02:52.320
+And so this
+intuitively is saying,
+
+00:02:52.320 --> 00:02:56.730
+let's try to find a policy
+that has high expected
+
+00:02:56.730 --> 00:03:01.370
+reward, average [INAUDIBLE]
+over all patients.
+
+00:03:01.370 --> 00:03:04.160
+And I just want you to think
+about whether that is indeed
+
+00:03:04.160 --> 00:03:05.907
+the right goal.
+
+00:03:05.907 --> 00:03:07.490
+Can anyone think
+about a setting where
+
+00:03:07.490 --> 00:03:09.360
+that might not be desirable?
+
+00:03:14.420 --> 00:03:16.090
+Yeah.
+
+00:03:16.090 --> 00:03:18.590
+AUDIENCE: What if the reward
+is the patient living or dying?
+
+00:03:18.590 --> 00:03:20.173
+You don't want it
+to have high ratings
+
+00:03:20.173 --> 00:03:22.360
+like saving two
+patients and [INAUDIBLE]
+
+00:03:22.360 --> 00:03:24.157
+and expect the same [INAUDIBLE].
+
+00:03:24.157 --> 00:03:25.990
+DAVID SONTAG: So what
+happens if this reward
+
+00:03:25.990 --> 00:03:32.230
+is something mission critical
+like a patient dying?
+
+00:03:32.230 --> 00:03:35.350
+You really want to try to
+avoid that from happening
+
+00:03:35.350 --> 00:03:36.262
+as much as possible.
+
+00:03:36.262 --> 00:03:37.720
+Of course, there
+are other criteria
+
+00:03:37.720 --> 00:03:39.430
+that we might be
+interested in as well.
+
+00:03:39.430 --> 00:03:43.600
+And both in Frederick's lecture
+on Tuesday and in the readings,
+
+00:03:43.600 --> 00:03:47.800
+we talked about how there might
+be other aspects about making
+
+00:03:47.800 --> 00:03:51.397
+sure that a patient is not
+just alive but also healthy,
+
+00:03:51.397 --> 00:03:53.230
+which might play into
+your reward functions.
+
+00:03:53.230 --> 00:03:55.438
+And there might be rewards
+associated with those.
+
+00:03:55.438 --> 00:03:56.980
+And if you were to
+just, for example,
+
+00:03:56.980 --> 00:04:00.190
+put a positive or
+negative infinity
+
+00:04:00.190 --> 00:04:03.050
+for a patient dying,
+that's a nonstarter,
+
+00:04:03.050 --> 00:04:07.390
+right, because if you did that,
+unfortunately in this world,
+
+00:04:07.390 --> 00:04:09.863
+we're not always going to be
+able to keep patients alive.
+
+00:04:09.863 --> 00:04:12.280
+And so you're going to get
+into an infeasible optimization
+
+00:04:12.280 --> 00:04:13.460
+problem.
+
+00:04:13.460 --> 00:04:15.130
+So minus infinity
+is not an option.
+
+00:04:15.130 --> 00:04:17.560
+We're going to have to
+put some number to it
+
+00:04:17.560 --> 00:04:20.450
+in this type of approach.
+
+00:04:20.450 --> 00:04:24.730
+But then you're going to start
+trading off between patients.
+
+00:04:24.730 --> 00:04:31.510
+In some cases, you might
+have a very high reward for--
+
+00:04:31.510 --> 00:04:33.670
+there are two
+different solutions
+
+00:04:33.670 --> 00:04:35.560
+that you might
+imagine, one solution
+
+00:04:35.560 --> 00:04:39.210
+where the reward is somewhat
+balanced across patients
+
+00:04:39.210 --> 00:04:41.060
+and another situation
+where you have
+
+00:04:41.060 --> 00:04:43.510
+really small values of
+reward for some patients
+
+00:04:43.510 --> 00:04:45.760
+and a few patients with very
+large values and rewards.
+
+00:04:45.760 --> 00:04:49.200
+And both of them could be
+the same average, obviously.
+
+00:04:49.200 --> 00:04:51.910
+But both are not
+necessarily equally useful.
+
+00:04:51.910 --> 00:04:54.190
+We might want to say
+that we prefer to avoid
+
+00:04:54.190 --> 00:04:56.473
+that worst-case situation.
+
+00:04:56.473 --> 00:04:58.390
+So one could imagine
+other ways of formulating
+
+00:04:58.390 --> 00:05:00.670
+this optimization
+problem, like maybe you
+
+00:05:00.670 --> 00:05:03.460
+want to control the
+worst-case reward instead
+
+00:05:03.460 --> 00:05:05.043
+of the average-case reward.
+
+00:05:05.043 --> 00:05:06.460
+Or maybe you want
+to say something
+
+00:05:06.460 --> 00:05:09.160
+about different quartiles.
+
+00:05:09.160 --> 00:05:11.410
+I just wanted to point that
+out, because really that's
+
+00:05:11.410 --> 00:05:15.813
+the starting place for a lot of
+the work that we're doing here.
+
+00:05:15.813 --> 00:05:17.230
+So now I want us
+to think through,
+
+00:05:17.230 --> 00:05:24.870
+OK, returning back to this goal,
+we've done our policy iteration
+
+00:05:24.870 --> 00:05:27.120
+or we've done our Q
+learning, that is,
+
+00:05:27.120 --> 00:05:29.220
+and we get a policy out.
+
+00:05:29.220 --> 00:05:30.780
+And we might now
+want to know what
+
+00:05:30.780 --> 00:05:32.400
+is the value of that policy?
+
+00:05:32.400 --> 00:05:36.050
+So what is our estimate
+of that quantity?
+
+00:05:36.050 --> 00:05:38.590
+Well, to get that,
+one could just
+
+00:05:38.590 --> 00:05:40.300
+try to read it off
+from the results of Q
+
+00:05:40.300 --> 00:05:43.900
+learning by just
+computing that the pi--
+
+00:05:43.900 --> 00:05:46.300
+what I'm calling v pi
+hat-- the estimate is
+
+00:05:46.300 --> 00:05:50.860
+just equal to now a
+maximum over actions
+
+00:05:50.860 --> 00:05:55.390
+a of your Q function
+evaluated at whatever
+
+00:05:55.390 --> 00:06:03.820
+your initial state is and the
+optimal choice of action a.
+
+00:06:03.820 --> 00:06:07.590
+So all I'm saying here is that
+the last step of the algorithm
+
+00:06:07.590 --> 00:06:09.930
+might be to ask, well,
+what is the expected
+
+00:06:09.930 --> 00:06:11.895
+reward of this policy?
+
+00:06:11.895 --> 00:06:13.770
+And if you remember,
+the Q learning algorithm
+
+00:06:13.770 --> 00:06:15.728
+is, in essence, a dynamic
+programming algorithm
+
+00:06:15.728 --> 00:06:19.410
+working its way from the
+sort of large values of time
+
+00:06:19.410 --> 00:06:21.160
+up to the present.
+
+00:06:21.160 --> 00:06:24.907
+And it is indeed actually
+computing this expected value
+
+00:06:24.907 --> 00:06:25.990
+that you're interested in.
+
+00:06:25.990 --> 00:06:27.948
+So you could just read
+it off from the Q values
+
+00:06:27.948 --> 00:06:30.600
+at the very end.
+
+00:06:30.600 --> 00:06:32.520
+But I want to point
+out that here there's
+
+00:06:32.520 --> 00:06:34.500
+an implicit policy built in.
+
+00:06:34.500 --> 00:06:37.140
+So I'm going to compare this
+in just a second to what
+
+00:06:37.140 --> 00:06:40.540
+happens under the causal
+inference scenario.
+
+00:06:40.540 --> 00:06:42.600
+So just a single time
+step in potential outcomes
+
+00:06:42.600 --> 00:06:45.170
+framework that we're used to.
+
+00:06:45.170 --> 00:06:49.590
+Notice that the value of this
+policy, the reason why it's
+
+00:06:49.590 --> 00:06:53.440
+a function of pi is
+because the value
+
+00:06:53.440 --> 00:06:57.510
+is a function of every
+subsequent action
+
+00:06:57.510 --> 00:06:58.640
+that you're taking as well.
+
+00:06:58.640 --> 00:07:01.770
+And so now let's
+just compare that
+
+00:07:01.770 --> 00:07:04.740
+for a second to what happens
+in the potential outcomes
+
+00:07:04.740 --> 00:07:05.340
+framework.
+
+00:07:08.180 --> 00:07:10.640
+So there, our starting place--
+
+00:07:10.640 --> 00:07:17.560
+so now I'm going to turn
+our attention for just one
+
+00:07:17.560 --> 00:07:22.120
+moment from reinforcement
+learning now back to just
+
+00:07:22.120 --> 00:07:24.240
+causal inference.
+
+00:07:24.240 --> 00:07:26.720
+In reinforcement learning,
+we talked about policies.
+
+00:07:26.720 --> 00:07:29.560
+How do we find
+policies to do well
+
+00:07:29.560 --> 00:07:33.040
+in terms of some expected
+reward of this policy?
+
+00:07:33.040 --> 00:07:37.250
+But yet when we were talking
+about causal inference,
+
+00:07:37.250 --> 00:07:41.420
+we only used words like
+average treatment effect
+
+00:07:41.420 --> 00:07:44.390
+or conditional average
+treatment effect,
+
+00:07:44.390 --> 00:07:47.505
+where for example, to estimate
+the conditional average
+
+00:07:47.505 --> 00:07:49.130
+treatment effect,
+what we said is we're
+
+00:07:49.130 --> 00:07:52.430
+going to first learn, if we
+use a covariate adjustment
+
+00:07:52.430 --> 00:07:55.340
+approach, we learn
+some function f
+
+00:07:55.340 --> 00:07:59.900
+of x comma t, which
+is intended to be
+
+00:07:59.900 --> 00:08:07.520
+an approximation of the expected
+value of your outcome y given
+
+00:08:07.520 --> 00:08:08.380
+x comma--
+
+00:08:12.370 --> 00:08:18.860
+I'll say y of t.
+
+00:08:18.860 --> 00:08:19.360
+There.
+
+00:08:19.360 --> 00:08:20.970
+So that notation.
+
+00:08:20.970 --> 00:08:22.840
+So the goal of
+covariate adjustment
+
+00:08:22.840 --> 00:08:25.030
+was to estimate this quantity.
+
+00:08:25.030 --> 00:08:29.470
+And we could use that then
+to try to construct a policy.
+
+00:08:29.470 --> 00:08:37.690
+For example, you could think
+about the policy pi of x,
+
+00:08:37.690 --> 00:08:42.309
+which simply looks to see is--
+
+00:08:42.309 --> 00:08:50.860
+we'll say it's 1 if CATE or
+your estimate of CATE for x
+
+00:08:50.860 --> 00:08:56.290
+is positive and 0 otherwise.
+
+00:08:56.290 --> 00:09:02.490
+Just remind you, the way that
+we got the estimate of CATE
+
+00:09:02.490 --> 00:09:05.070
+for an individual x
+was just by looking
+
+00:09:05.070 --> 00:09:11.670
+at f of x comma 1
+minus f of x comma 0.
+
+00:09:30.620 --> 00:09:32.690
+So if we have a policy--
+
+00:09:32.690 --> 00:09:34.952
+so now we're going to start
+thinking about policies
+
+00:09:34.952 --> 00:09:36.410
+in the context of
+causal inference,
+
+00:09:36.410 --> 00:09:39.070
+just like we were doing
+in reinforcement learning.
+
+00:09:39.070 --> 00:09:43.610
+And I want us to think through
+what would the analogous value
+
+00:09:43.610 --> 00:09:46.720
+of the policy be?
+
+00:09:46.720 --> 00:09:49.465
+How good is that policy?
+
+00:09:49.465 --> 00:09:51.340
+It could be another
+policy, but right now I'm
+
+00:09:51.340 --> 00:09:53.160
+assuming I'm just going
+to focus on this policy
+
+00:09:53.160 --> 00:09:53.993
+that I show up here.
+
+00:09:56.690 --> 00:09:59.140
+Well, one approach
+to try to evaluate
+
+00:09:59.140 --> 00:10:02.350
+how good that policy is, is
+exactly analogous to what we
+
+00:10:02.350 --> 00:10:03.610
+did in reinforcement learning.
+
+00:10:03.610 --> 00:10:05.068
+In essence, what
+we're going to say
+
+00:10:05.068 --> 00:10:08.470
+is we evaluate the
+quality of the policy
+
+00:10:08.470 --> 00:10:22.420
+by summing over your
+empirical data of pi of xi.
+
+00:10:22.420 --> 00:10:28.460
+So this is going to be 1 if the
+policy says to give treatment 1
+
+00:10:28.460 --> 00:10:31.910
+to individual xi.
+
+00:10:31.910 --> 00:10:37.730
+In that case, we say that
+the value is f of x comma 1.
+
+00:10:37.730 --> 00:10:41.550
+Or if you gave the second--
+
+00:10:41.550 --> 00:10:45.540
+if the policy would
+give treatment 0,
+
+00:10:45.540 --> 00:10:49.260
+the value of the policy on
+that individual is 1 minus pi
+
+00:10:49.260 --> 00:10:53.280
+of x times f of x comma 0.
+
+00:10:57.357 --> 00:11:04.250
+So I'm going to call this
+sort of an empirical estimate
+
+00:11:04.250 --> 00:11:09.680
+of what you should think about
+as the reward for a policy pi.
+
+00:11:14.690 --> 00:11:20.440
+And it's exactly analogous
+to the estimate of v of pie
+
+00:11:20.440 --> 00:11:23.180
+that you would get from a
+reinforcement learning context.
+
+00:11:23.180 --> 00:11:28.090
+But now we're talking
+about policies explicitly.
+
+00:11:28.090 --> 00:11:30.040
+So let's try to dig
+down a little bit deeper
+
+00:11:30.040 --> 00:11:31.915
+and think about what
+this is actually saying.
+
+00:11:34.040 --> 00:11:40.430
+Imagine the story where you
+just have a single covariate x.
+
+00:11:40.430 --> 00:11:45.440
+We'll think about x as being,
+let's say, the patient's age.
+
+00:11:45.440 --> 00:11:50.260
+And unfortunately there's
+just one color here.
+
+00:11:50.260 --> 00:11:52.100
+But I'll do my best with that.
+
+00:11:52.100 --> 00:11:56.410
+And imagine that the
+potential outcome
+
+00:11:56.410 --> 00:12:03.280
+y0 as a function of
+the patient's age x
+
+00:12:03.280 --> 00:12:05.867
+looks like this.
+
+00:12:05.867 --> 00:12:07.700
+Now imagine that the
+other potential outcome
+
+00:12:07.700 --> 00:12:14.060
+y1 looked like that.
+
+00:12:14.060 --> 00:12:16.620
+So I'll call this the
+y1 potential outcome.
+
+00:12:21.610 --> 00:12:25.750
+Suppose now that the policy
+that we're defining is this.
+
+00:12:25.750 --> 00:12:27.550
+So we're going to
+give treatment one
+
+00:12:27.550 --> 00:12:29.800
+if the condition of our
+treatment effect is positive
+
+00:12:29.800 --> 00:12:32.240
+and 0 otherwise.
+
+00:12:32.240 --> 00:12:36.320
+I want everyone to draw what
+the value of that policy
+
+00:12:36.320 --> 00:12:38.940
+is on a piece of paper.
+
+00:12:38.940 --> 00:12:39.800
+It's going to be--
+
+00:12:44.027 --> 00:12:46.360
+I'm sorry-- I want everyone
+to write on a piece of paper
+
+00:12:46.360 --> 00:12:49.630
+what the value of the policy
+would be for each individual.
+
+00:12:49.630 --> 00:12:52.735
+So it's going to
+be a function of x.
+
+00:12:55.650 --> 00:12:57.420
+And now I want it to be--
+
+00:12:57.420 --> 00:13:03.690
+I'm looking for y of pi of x.
+
+00:13:03.690 --> 00:13:06.235
+So I'm looking for
+you to draw that plot.
+
+00:13:08.525 --> 00:13:10.150
+And feel free to talk
+to your neighbor.
+
+00:13:13.190 --> 00:13:15.584
+In fact, I encourage you
+to talk to your neighbor.
+
+00:13:15.584 --> 00:13:17.492
+[SIDE CONVERSATION]
+
+00:13:22.792 --> 00:13:24.750
+Just to try to connect
+this a little bit better
+
+00:13:24.750 --> 00:13:28.304
+to what I have up here, I'm
+going to assume that f--
+
+00:13:28.304 --> 00:13:32.340
+this is f of x1,
+and this is f of x0.
+
+00:13:39.440 --> 00:13:39.940
+All right.
+
+00:13:39.940 --> 00:13:41.005
+Any guesses?
+
+00:13:43.540 --> 00:13:46.613
+What does this plot look like?
+
+00:13:46.613 --> 00:13:49.030
+Someone who hasn't spoken in
+the last one week and a half,
+
+00:13:49.030 --> 00:13:49.600
+if possible.
+
+00:13:58.870 --> 00:13:59.500
+Yeah?
+
+00:13:59.500 --> 00:14:01.860
+AUDIENCE: Does it take like
+the max of the functions
+
+00:14:01.860 --> 00:14:03.780
+at all point, like,
+it would be y0 up
+
+00:14:03.780 --> 00:14:06.200
+until they intersect
+and then y1 afterward?
+
+00:14:06.200 --> 00:14:08.200
+DAVID SONTAG: So it would
+be something like this
+
+00:14:08.200 --> 00:14:09.430
+until the intersection point.
+
+00:14:09.430 --> 00:14:10.210
+AUDIENCE: Yeah.
+
+00:14:10.210 --> 00:14:12.050
+DAVID SONTAG: And then
+like that afterwards.
+
+00:14:12.050 --> 00:14:12.550
+Yeah.
+
+00:14:12.550 --> 00:14:15.310
+That's exactly
+what I'm going for.
+
+00:14:15.310 --> 00:14:17.350
+And let's try to
+think through why is
+
+00:14:17.350 --> 00:14:20.910
+that the value of the policy?
+
+00:14:20.910 --> 00:14:25.260
+Well, here the CATE,
+which is looking
+
+00:14:25.260 --> 00:14:29.190
+at a difference between
+these two lines as negative--
+
+00:14:29.190 --> 00:14:33.600
+so for every x up to
+this crossing point,
+
+00:14:33.600 --> 00:14:36.270
+the policy that we've
+defined over there
+
+00:14:36.270 --> 00:14:39.645
+is going to perform action--
+
+00:14:42.520 --> 00:14:43.050
+wait.
+
+00:14:43.050 --> 00:14:45.460
+Am I drawing this correctly?
+
+00:14:45.460 --> 00:14:47.948
+Maybe it's actually
+the opposite, right?
+
+00:14:47.948 --> 00:14:49.560
+This should be doing action one.
+
+00:14:54.100 --> 00:14:54.600
+Here.
+
+00:14:54.600 --> 00:14:55.100
+OK.
+
+00:14:55.100 --> 00:15:00.250
+So here the CATE is negative.
+
+00:15:00.250 --> 00:15:03.990
+And so by my definition, the
+action performed is action 0.
+
+00:15:03.990 --> 00:15:07.828
+And so the value of the
+policy is actually this one.
+
+00:15:07.828 --> 00:15:10.516
+[INTERPOSING VOICES]
+
+00:15:10.516 --> 00:15:11.340
+DAVID SONTAG: Oh.
+
+00:15:11.340 --> 00:15:11.840
+Wait.
+
+00:15:11.840 --> 00:15:12.470
+Oh, good.
+
+00:15:12.470 --> 00:15:13.925
+[INAUDIBLE]
+
+00:15:13.925 --> 00:15:15.800
+Because this is the
+graph I have in my notes.
+
+00:15:15.800 --> 00:15:16.300
+Oh, good.
+
+00:15:16.300 --> 00:15:18.050
+OK.
+
+00:15:18.050 --> 00:15:19.740
+I was getting worried.
+
+00:15:19.740 --> 00:15:20.240
+OK.
+
+00:15:20.240 --> 00:15:23.690
+So it's this action, all the
+way up until you get over here.
+
+00:15:23.690 --> 00:15:28.890
+And then over here, now the
+CATE suddenly becomes positive.
+
+00:15:28.890 --> 00:15:34.280
+And so the action chosen is 1.
+
+00:15:34.280 --> 00:15:41.570
+And so the value of
+that policy is y1.
+
+00:15:41.570 --> 00:15:44.210
+So one could write this a
+little bit differently for--
+
+00:15:50.260 --> 00:15:52.320
+in the case of just
+two policies, and now
+
+00:15:52.320 --> 00:15:55.020
+I'm going to write this in a
+way that it's really clear.
+
+00:15:55.020 --> 00:15:58.500
+In the case of just
+two actions, one
+
+00:15:58.500 --> 00:16:04.970
+could write this
+equivalently as an average
+
+00:16:04.970 --> 00:16:14.860
+over the data points of
+the maximum of fx comma 0
+
+00:16:14.860 --> 00:16:19.450
+and f of x comma 1.
+
+00:16:19.450 --> 00:16:25.660
+And this simplification turning
+this formula into this formula
+
+00:16:25.660 --> 00:16:28.240
+is making the
+assumption that the pi
+
+00:16:28.240 --> 00:16:31.100
+that we're being evaluated
+on is precisely this pi.
+
+00:16:31.100 --> 00:16:34.453
+So this simplification
+is only for that pi.
+
+00:16:34.453 --> 00:16:37.120
+For another policy, which is not
+looking at CATE or for example,
+
+00:16:37.120 --> 00:16:38.910
+which might threshold
+CATE at a gamma,
+
+00:16:38.910 --> 00:16:40.170
+it wouldn't quite be this.
+
+00:16:40.170 --> 00:16:43.280
+It would be something else.
+
+00:16:43.280 --> 00:16:45.790
+But I've gone a
+step further here.
+
+00:16:45.790 --> 00:16:47.280
+So what I've shown
+you right here
+
+00:16:47.280 --> 00:16:50.270
+is not the average value but
+sort of individual values.
+
+00:16:50.270 --> 00:16:52.920
+I have shown you
+the max function.
+
+00:16:52.920 --> 00:16:54.630
+But what this is
+actually looking
+
+00:16:54.630 --> 00:17:00.390
+at is the expected reward, which
+is now averaging across all x.
+
+00:17:00.390 --> 00:17:04.200
+So to truly draw a connection
+between this plot we're drawing
+
+00:17:04.200 --> 00:17:07.357
+and the average reward
+of that policy, what
+
+00:17:07.357 --> 00:17:08.940
+we should be looking
+at is the average
+
+00:17:08.940 --> 00:17:17.050
+of these two functions, which is
+we'll say something like that.
+
+00:17:17.050 --> 00:17:21.660
+And that value is
+the expected reward.
+
+00:17:21.660 --> 00:17:26.740
+Now, this all goes to show
+that the expected reward
+
+00:17:26.740 --> 00:17:30.550
+of this policy is not a
+quantity that we've considered
+
+00:17:30.550 --> 00:17:32.210
+in the previous
+lectures, at least
+
+00:17:32.210 --> 00:17:34.300
+not in the previous lectures
+in causal inference.
+
+00:17:34.300 --> 00:17:36.482
+This is not the same as
+the average treatment
+
+00:17:36.482 --> 00:17:37.315
+effect, for example.
+
+00:17:45.840 --> 00:17:49.340
+So I've just given you
+one way to think through,
+
+00:17:49.340 --> 00:17:51.770
+number one, what is
+the policy that you
+
+00:17:51.770 --> 00:17:55.190
+might want to derive when
+you're doing causal inference?
+
+00:17:55.190 --> 00:17:58.760
+And number two, what
+is one way to estimate
+
+00:17:58.760 --> 00:18:01.610
+the value of that
+policy, which goes
+
+00:18:01.610 --> 00:18:07.070
+through the process of
+estimating potential outcomes
+
+00:18:07.070 --> 00:18:09.790
+via covariate adjustment?
+
+00:18:09.790 --> 00:18:12.610
+But we might wonder,
+just like when
+
+00:18:12.610 --> 00:18:14.548
+we talked about in
+causal inference
+
+00:18:14.548 --> 00:18:16.840
+where I said there are two
+approaches or more than two,
+
+00:18:16.840 --> 00:18:19.160
+but we focused on two,
+using covariate adjustment
+
+00:18:19.160 --> 00:18:22.210
+and doing inverse
+propensity score weighting,
+
+00:18:22.210 --> 00:18:24.130
+you might wonder is
+there another approach
+
+00:18:24.130 --> 00:18:26.422
+to this problem all together?
+
+00:18:26.422 --> 00:18:27.880
+Is there an approach
+which wouldn't
+
+00:18:27.880 --> 00:18:29.860
+have had to go
+through estimating
+
+00:18:29.860 --> 00:18:32.242
+the potential outcomes?
+
+00:18:32.242 --> 00:18:33.700
+And that's what
+I'll spend the rest
+
+00:18:33.700 --> 00:18:38.960
+of this third of the lecture
+focused talking about.
+
+00:18:38.960 --> 00:18:43.620
+And so to help you
+page this back in,
+
+00:18:43.620 --> 00:18:48.690
+remember that we derived
+in last Thursday's lecture
+
+00:18:48.690 --> 00:18:52.080
+an estimator for the average
+treatment effect, which
+
+00:18:52.080 --> 00:18:58.230
+was 1 over n times the
+sum over data points
+
+00:18:58.230 --> 00:19:09.120
+that got treatment 1 of yi, the
+observed outcome for that data
+
+00:19:09.120 --> 00:19:13.500
+point, divided by
+the propensity score,
+
+00:19:13.500 --> 00:19:15.660
+which I'm just going
+to write as ei.
+
+00:19:15.660 --> 00:19:19.830
+So ei is equal to
+the probability
+
+00:19:19.830 --> 00:19:30.510
+of observing t equals
+1 given the data point
+
+00:19:30.510 --> 00:19:41.510
+xi minus a sum over data
+point i such that ti equals
+
+00:19:41.510 --> 00:19:46.540
+0 of yi divided by 1 minus ei.
+
+00:19:48.812 --> 00:19:51.020
+And by the way, there was
+a lot of confusion in class
+
+00:19:51.020 --> 00:19:53.810
+why do I have a 1 over
+n here, a 1 over n here,
+
+00:19:53.810 --> 00:19:56.210
+but right now I just
+took it out all together,
+
+00:19:56.210 --> 00:19:59.840
+and not 1 over the
+number of positive points
+
+00:19:59.840 --> 00:20:03.470
+and 1 over the number
+of 0 data points.
+
+00:20:03.470 --> 00:20:06.770
+And I expanded the derivation
+that I gave in class,
+
+00:20:06.770 --> 00:20:09.300
+and I posted new slides
+online after class.
+
+00:20:09.300 --> 00:20:11.840
+So if you're curious about
+that, go to those slides
+
+00:20:11.840 --> 00:20:15.450
+and look at the derivation.
+
+00:20:15.450 --> 00:20:17.850
+So in a very
+analogous way now, I'm
+
+00:20:17.850 --> 00:20:19.410
+going to give you
+a new estimator
+
+00:20:19.410 --> 00:20:22.110
+for this same quantity
+that I had over here,
+
+00:20:22.110 --> 00:20:25.180
+the expected reward of a policy.
+
+00:20:25.180 --> 00:20:30.520
+Notice that this estimator here,
+it made sense for any policy.
+
+00:20:30.520 --> 00:20:34.230
+It didn't have to be the
+policy which looked at,
+
+00:20:34.230 --> 00:20:36.150
+is CATE just greater
+than 0 or not?
+
+00:20:36.150 --> 00:20:37.360
+This held for any policy.
+
+00:20:37.360 --> 00:20:39.720
+The simplification
+I gave was only
+
+00:20:39.720 --> 00:20:42.108
+in this particular setting.
+
+00:20:42.108 --> 00:20:43.900
+I'm going to give you
+now another estimator
+
+00:20:43.900 --> 00:20:46.870
+for the average value
+of a policy, which
+
+00:20:46.870 --> 00:20:51.040
+doesn't go through estimating
+potential outcomes at all.
+
+00:20:51.040 --> 00:20:53.590
+Analogous to this is
+just going to make
+
+00:20:53.590 --> 00:20:56.690
+use of the propensity scores.
+
+00:20:56.690 --> 00:21:00.070
+And I'll call it R hat.
+
+00:21:00.070 --> 00:21:02.170
+Now I'm going to put
+a superscript IPW
+
+00:21:02.170 --> 00:21:03.890
+for inverse propensity weighted.
+
+00:21:03.890 --> 00:21:06.595
+And it's a function of
+pi, and it's given to you
+
+00:21:06.595 --> 00:21:08.200
+by the following formula--
+
+00:21:08.200 --> 00:21:14.350
+1 over n sum over the data
+points of an indicator
+
+00:21:14.350 --> 00:21:18.880
+function for if the
+treatment, which was actually
+
+00:21:18.880 --> 00:21:23.140
+given to the i-th
+patient, is equal to what
+
+00:21:23.140 --> 00:21:28.040
+the policy would have done
+before the i-th patient.
+
+00:21:28.040 --> 00:21:30.040
+And by the way, here
+I'm assuming that pi
+
+00:21:30.040 --> 00:21:32.320
+is a deterministic function.
+
+00:21:32.320 --> 00:21:34.450
+So the policy says
+for this patient,
+
+00:21:34.450 --> 00:21:36.760
+you should do this treatment.
+
+00:21:36.760 --> 00:21:39.130
+So we're going to
+look at just the data
+
+00:21:39.130 --> 00:21:41.440
+points for which the
+observed treatment is
+
+00:21:41.440 --> 00:21:45.055
+consistent with what
+the policy would
+
+00:21:45.055 --> 00:21:46.180
+have done for that patient.
+
+00:21:46.180 --> 00:21:48.880
+And this indicator
+function is 0 otherwise.
+
+00:21:48.880 --> 00:22:02.750
+And we're going to divide it by
+the probability of ti given xi.
+
+00:22:02.750 --> 00:22:06.860
+So the way I'm writing this,
+by the way, is very general.
+
+00:22:06.860 --> 00:22:10.653
+So this formula will hold for
+nonbinary treatments as well.
+
+00:22:10.653 --> 00:22:12.320
+And that's one of the
+really nice things
+
+00:22:12.320 --> 00:22:13.850
+about thinking about
+policies, which
+
+00:22:13.850 --> 00:22:19.367
+is whereas when talking about
+average treatment effect,
+
+00:22:19.367 --> 00:22:21.200
+average treatment effect
+sort of makes sense
+
+00:22:21.200 --> 00:22:24.500
+in the comparative sense,
+comparing one to another.
+
+00:22:24.500 --> 00:22:27.590
+But when we talk about
+how good is a policy,
+
+00:22:27.590 --> 00:22:29.935
+it's not a comparative
+statement at all.
+
+00:22:29.935 --> 00:22:31.560
+The policy does
+something for everyone.
+
+00:22:31.560 --> 00:22:34.143
+You could ask, well, what is the
+average value of the outcomes
+
+00:22:34.143 --> 00:22:35.870
+that you get for those
+actions that we're
+
+00:22:35.870 --> 00:22:37.545
+taking for those individuals?
+
+00:22:37.545 --> 00:22:39.920
+So that's why I'm writing a
+slightly more general fashion
+
+00:22:39.920 --> 00:22:41.030
+already here.
+
+00:22:41.030 --> 00:22:44.660
+Times yi obviously.
+
+00:22:44.660 --> 00:22:46.667
+So this is now a new estimator.
+
+00:22:46.667 --> 00:22:48.500
+I'm not going to derive
+it for you in class,
+
+00:22:48.500 --> 00:22:50.250
+but the derivation is
+very similar to what
+
+00:22:50.250 --> 00:22:52.930
+we did last week when we tried
+to drive the average treatment
+
+00:22:52.930 --> 00:22:53.430
+effect.
+
+00:22:53.430 --> 00:22:58.280
+And the critical point is we're
+dividing by that propensity
+
+00:22:58.280 --> 00:23:00.990
+score, just like
+we did over there.
+
+00:23:04.390 --> 00:23:09.890
+So this, if all of the
+assumptions made sense,
+
+00:23:09.890 --> 00:23:12.130
+you had infinite
+data, should give you
+
+00:23:12.130 --> 00:23:16.280
+exactly the same
+estimate as this.
+
+00:23:16.280 --> 00:23:20.900
+But here, you're not estimating
+potential outcomes at all.
+
+00:23:20.900 --> 00:23:24.900
+So you never have to try to
+impute the counterfactuals.
+
+00:23:24.900 --> 00:23:27.260
+Here, all it relies
+on knowing is
+
+00:23:27.260 --> 00:23:30.110
+that you have the
+propensity scores
+
+00:23:30.110 --> 00:23:32.170
+for each of the data
+points in your training set
+
+00:23:32.170 --> 00:23:33.620
+or in a data set.
+
+00:23:33.620 --> 00:23:36.380
+So for example,
+this opens the door
+
+00:23:36.380 --> 00:23:40.280
+to tons of new
+exciting directions.
+
+00:23:40.280 --> 00:23:44.610
+Imagine that you had a very
+large observational data set.
+
+00:23:44.610 --> 00:23:49.420
+And you learned
+a policy from it.
+
+00:23:49.420 --> 00:23:53.250
+For example, you might have
+done covariate adjustment
+
+00:23:53.250 --> 00:23:56.280
+and then said, OK, based
+on covariate adjustment,
+
+00:23:56.280 --> 00:23:58.970
+this is my new policy.
+
+00:23:58.970 --> 00:24:02.270
+So you might have gotten
+it via that approach.
+
+00:24:02.270 --> 00:24:04.260
+Now you want to know
+how good is that.
+
+00:24:04.260 --> 00:24:08.810
+Well, suppose that you then
+run a randomized control trial.
+
+00:24:08.810 --> 00:24:11.030
+And then you run a
+randomized control trial,
+
+00:24:11.030 --> 00:24:15.320
+you have 100 people, maybe 200
+people, and so not that many.
+
+00:24:15.320 --> 00:24:17.090
+So not nearly enough
+people to have
+
+00:24:17.090 --> 00:24:19.593
+actually estimated
+your policy alone.
+
+00:24:19.593 --> 00:24:22.010
+You might have needed thousands
+or millions of individuals
+
+00:24:22.010 --> 00:24:23.197
+to estimate your policy.
+
+00:24:23.197 --> 00:24:25.280
+Now you're only going to
+have a couple individuals
+
+00:24:25.280 --> 00:24:27.655
+that you could actually afford
+to do a randomized control
+
+00:24:27.655 --> 00:24:28.980
+trial on.
+
+00:24:28.980 --> 00:24:31.560
+For those people,
+because you're flipping
+
+00:24:31.560 --> 00:24:36.210
+a coin for which treatment
+they're going to get,
+
+00:24:36.210 --> 00:24:37.800
+suppose that were
+in a binary setting
+
+00:24:37.800 --> 00:24:39.960
+where the only two
+treatments, then this value
+
+00:24:39.960 --> 00:24:42.900
+is always 1/2 1/2.
+
+00:24:42.900 --> 00:24:44.940
+And what I'm giving
+you here is going
+
+00:24:44.940 --> 00:24:51.130
+to be an unbiased estimate
+of how good that policy is,
+
+00:24:51.130 --> 00:24:54.070
+which one can now estimate using
+that randomized control trial.
+
+00:24:57.350 --> 00:25:03.300
+Now, this also might
+lead you to think
+
+00:25:03.300 --> 00:25:06.930
+through the question of,
+well, rather than estimating
+
+00:25:06.930 --> 00:25:10.230
+the policy through--
+
+00:25:10.230 --> 00:25:14.250
+rather than obtaining a policy
+through the lens of optimizing
+
+00:25:14.250 --> 00:25:17.880
+CATE, of figuring
+how to estimate CATE,
+
+00:25:17.880 --> 00:25:21.370
+maybe we could have
+skipped that all together.
+
+00:25:21.370 --> 00:25:26.170
+For example, suppose that we had
+that randomized control trial
+
+00:25:26.170 --> 00:25:26.670
+data.
+
+00:25:26.670 --> 00:25:30.240
+Now imagine that rather
+than 100 individuals,
+
+00:25:30.240 --> 00:25:32.500
+you had a really large
+randomized control trial
+
+00:25:32.500 --> 00:25:35.640
+with 10,000 individuals in it.
+
+00:25:35.640 --> 00:25:41.010
+This now opens the door
+to thinking about directly
+
+00:25:41.010 --> 00:25:43.830
+maximizing or minimizing,
+depending whether you want this
+
+00:25:43.830 --> 00:25:46.590
+to be large or small,
+pi with respect
+
+00:25:46.590 --> 00:25:50.820
+to this quantity, which
+completely bypasses
+
+00:25:50.820 --> 00:25:54.300
+the goal of estimating the
+condition of average treatment
+
+00:25:54.300 --> 00:25:56.190
+effect.
+
+00:25:56.190 --> 00:25:58.530
+And you'll notice how
+this looks exactly
+
+00:25:58.530 --> 00:26:00.390
+like a classification problem.
+
+00:26:00.390 --> 00:26:04.450
+This quantity here looks
+exactly like a 0 1 loss.
+
+00:26:04.450 --> 00:26:06.280
+And the only difference
+is that you're
+
+00:26:06.280 --> 00:26:08.140
+weighting each of
+the data points
+
+00:26:08.140 --> 00:26:12.640
+by this inverse propensity.
+
+00:26:12.640 --> 00:26:17.260
+So one can reduce the
+problem of actually finding
+
+00:26:17.260 --> 00:26:21.250
+an optimal policy here to that
+of a weighted classification
+
+00:26:21.250 --> 00:26:25.256
+problem, in the case of a
+discrete set of treatments.
+
+00:26:28.370 --> 00:26:31.010
+There are two big caveats
+to that line of thinking.
+
+00:26:31.010 --> 00:26:36.790
+The first major
+caveat is that you
+
+00:26:36.790 --> 00:26:38.425
+have to know these
+propensity scores.
+
+00:26:41.720 --> 00:26:46.700
+And so if you have data coming
+from randomized control trial,
+
+00:26:46.700 --> 00:26:48.570
+you will know this
+propensity scores
+
+00:26:48.570 --> 00:26:50.750
+or if you have, for
+example, some control
+
+00:26:50.750 --> 00:26:54.290
+over the data
+generation process.
+
+00:26:54.290 --> 00:26:57.140
+For example, if you
+are an ad company
+
+00:26:57.140 --> 00:27:01.860
+and you get to choose which
+ad to show to your customers,
+
+00:27:01.860 --> 00:27:03.920
+then you look to see
+who clicks on what,
+
+00:27:03.920 --> 00:27:06.740
+you might know what that policy
+was that was showing things.
+
+00:27:06.740 --> 00:27:09.890
+In that case, you might exactly
+know the propensity scores.
+
+00:27:09.890 --> 00:27:12.680
+In health care, other than
+in randomized control trials,
+
+00:27:12.680 --> 00:27:14.390
+we typically don't
+know this value.
+
+00:27:14.390 --> 00:27:17.330
+So we either have to have a
+large enough randomized control
+
+00:27:17.330 --> 00:27:22.010
+trial that we won't over-fit
+by trying to directly minimize
+
+00:27:22.010 --> 00:27:27.740
+this or we have to work within
+an observational data setting.
+
+00:27:27.740 --> 00:27:30.917
+But we have to estimate the
+propensity scores directly.
+
+00:27:30.917 --> 00:27:32.750
+So you would then have
+a two-step procedure,
+
+00:27:32.750 --> 00:27:35.520
+where first you estimate these
+propensity scores, for example,
+
+00:27:35.520 --> 00:27:37.220
+by doing logistic regression.
+
+00:27:37.220 --> 00:27:40.640
+And then you attempt
+to maximize or minimize
+
+00:27:40.640 --> 00:27:43.175
+this quantity in order to
+find the optimal policy.
+
+00:27:45.890 --> 00:27:48.400
+And that has a
+lot of challenges,
+
+00:27:48.400 --> 00:27:51.370
+because this quantity
+shown in the very bottom
+
+00:27:51.370 --> 00:27:54.160
+here could be really
+small or really large
+
+00:27:54.160 --> 00:27:58.480
+in an observational data set
+due to these issues of having
+
+00:27:58.480 --> 00:28:01.990
+very small overlap
+between your treatments.
+
+00:28:01.990 --> 00:28:05.200
+And this being very
+small implies then
+
+00:28:05.200 --> 00:28:10.120
+that the variant of this
+estimator is very, very large.
+
+00:28:10.120 --> 00:28:13.570
+And so when one wants to
+use an approach like this,
+
+00:28:13.570 --> 00:28:16.240
+similar to when one wants to
+use an average treatment effect
+
+00:28:16.240 --> 00:28:19.870
+estimator, and when you're
+estimating these propensities,
+
+00:28:19.870 --> 00:28:21.340
+often you might
+need to do things
+
+00:28:21.340 --> 00:28:23.620
+like clipping of the
+propensity scores
+
+00:28:23.620 --> 00:28:26.110
+in order to prevent the
+variants from being too large.
+
+00:28:26.110 --> 00:28:31.420
+That then, however, leads to
+a biased estimate typically.
+
+00:28:31.420 --> 00:28:33.800
+I wanted to give you a
+couple of references here.
+
+00:28:33.800 --> 00:28:45.530
+So one is Swaminathan
+and Joachims,
+
+00:28:45.530 --> 00:28:55.250
+J-O-A-C-H-I-M-S ACML 2015.
+
+00:28:55.250 --> 00:28:57.915
+In that paper, they
+tackle this question.
+
+00:28:57.915 --> 00:29:00.290
+They focus on the setting
+where the propensity scores are
+
+00:29:00.290 --> 00:29:03.470
+known, such as do it half from
+a randomized controlled trial.
+
+00:29:03.470 --> 00:29:06.380
+And they recognize
+that you might
+
+00:29:06.380 --> 00:29:09.203
+decide that you prefer something
+like a biased estimator because
+
+00:29:09.203 --> 00:29:11.120
+of the fact that these
+propensity scores could
+
+00:29:11.120 --> 00:29:12.650
+be really small.
+
+00:29:12.650 --> 00:29:15.110
+And so they use some
+generalization results
+
+00:29:15.110 --> 00:29:18.320
+from the machine learning
+theory community in order
+
+00:29:18.320 --> 00:29:22.456
+to try to control the
+variants of the estimator
+
+00:29:22.456 --> 00:29:25.440
+as a function of these
+propensity scores.
+
+00:29:25.440 --> 00:29:28.127
+And they then learn,
+directly minimize
+
+00:29:28.127 --> 00:29:30.460
+the policy which is what they
+call counterfactual regret
+
+00:29:30.460 --> 00:29:35.160
+minimization, in
+order to allow one
+
+00:29:35.160 --> 00:29:36.630
+to generalize as
+best as possible
+
+00:29:36.630 --> 00:29:40.030
+from the small amount of data
+you might have available.
+
+00:29:40.030 --> 00:29:42.110
+A second reference that
+I want to give just
+
+00:29:42.110 --> 00:29:43.943
+to point you into this
+literature, if you're
+
+00:29:43.943 --> 00:29:49.030
+interested, is by Nathan
+Kallus and his student,
+
+00:29:49.030 --> 00:29:55.960
+I believe Angela Zhou,
+from NeurIPS 2018.
+
+00:29:55.960 --> 00:29:58.510
+And that was a paper which was
+one of the optional readings
+
+00:29:58.510 --> 00:30:00.403
+for last Thursday's class.
+
+00:30:00.403 --> 00:30:02.320
+Now, that paper they
+also start from something
+
+00:30:02.320 --> 00:30:04.300
+like this, from
+this perspective.
+
+00:30:04.300 --> 00:30:07.300
+And they say that,
+oh, now that we're
+
+00:30:07.300 --> 00:30:09.490
+working in this
+framework, one could
+
+00:30:09.490 --> 00:30:12.340
+think about what happens
+if you have actually
+
+00:30:12.340 --> 00:30:14.820
+unobserved confounding.
+
+00:30:14.820 --> 00:30:17.700
+So there, you might not actually
+know the true propensity
+
+00:30:17.700 --> 00:30:20.720
+scores, because there are
+unobserved confounders
+
+00:30:20.720 --> 00:30:22.650
+that you don't observe.
+
+00:30:22.650 --> 00:30:27.380
+And that you can think about
+trying to bound how wrong
+
+00:30:27.380 --> 00:30:30.170
+your estimator can be as
+a function of how much you
+
+00:30:30.170 --> 00:30:32.180
+don't know this quantity.
+
+00:30:32.180 --> 00:30:34.430
+And they show that
+when you try to--
+
+00:30:34.430 --> 00:30:36.620
+if you think about having
+some backup strategy,
+
+00:30:36.620 --> 00:30:41.480
+like if your goal is to find
+a new policy which performs
+
+00:30:41.480 --> 00:30:46.730
+as best as possible with
+respect to an old policy,
+
+00:30:46.730 --> 00:30:48.620
+then it gives you a
+really elegant framework
+
+00:30:48.620 --> 00:30:51.237
+for trying to think about a
+robust optimization of this,
+
+00:30:51.237 --> 00:30:53.570
+even taking into consideration
+the fact that there might
+
+00:30:53.570 --> 00:30:54.870
+be unobserved confounding.
+
+00:30:54.870 --> 00:30:59.040
+And that works also
+in this framework.
+
+00:30:59.040 --> 00:31:00.210
+So I'm nearly done now.
+
+00:31:03.402 --> 00:31:05.110
+I just want to now
+finish with a thought,
+
+00:31:05.110 --> 00:31:07.570
+can we do the same thing
+for policies learned
+
+00:31:07.570 --> 00:31:09.710
+by reinforcement learning?
+
+00:31:09.710 --> 00:31:12.400
+So now that we've sort
+of built up this language
+
+00:31:12.400 --> 00:31:15.850
+that's returned
+to the RL setting.
+
+00:31:15.850 --> 00:31:19.030
+And there one can
+show that you can
+
+00:31:19.030 --> 00:31:22.900
+get a similar estimate
+for the value of a policy
+
+00:31:22.900 --> 00:31:27.520
+by summing over your
+observed sequences,
+
+00:31:27.520 --> 00:31:35.080
+summing over the time steps
+of that sequence of the reward
+
+00:31:35.080 --> 00:31:42.590
+observed at that time step times
+a ratio of probabilities, which
+
+00:31:42.590 --> 00:31:46.820
+is going from the
+first time step up
+
+00:31:46.820 --> 00:31:53.430
+to time little t
+of the probability
+
+00:31:53.430 --> 00:31:58.350
+that you would actually take
+the observed action t prime,
+
+00:31:58.350 --> 00:32:02.760
+given that you are in the
+observed state t prime, divided
+
+00:32:02.760 --> 00:32:06.370
+by the probability--
+
+00:32:06.370 --> 00:32:08.200
+this is the analogy
+of the propensity
+
+00:32:08.200 --> 00:32:11.500
+score, the probability under
+the data generating process--
+
+00:32:11.500 --> 00:32:21.190
+of seeing action a given that
+you are in state t prime.
+
+00:32:21.190 --> 00:32:23.380
+So if, as we
+discussed there, you
+
+00:32:23.380 --> 00:32:27.940
+had a deterministic
+policy, then this pi,
+
+00:32:27.940 --> 00:32:29.660
+it would just be
+a delta function.
+
+00:32:29.660 --> 00:32:34.030
+And so this would
+just be looking at--
+
+00:32:34.030 --> 00:32:35.680
+this estimator would
+only be looking
+
+00:32:35.680 --> 00:32:40.960
+at sequences where the precise
+sequence of actions taken
+
+00:32:40.960 --> 00:32:44.080
+are identical to the
+precise sequence of actions
+
+00:32:44.080 --> 00:32:47.790
+that the policy
+would have taken.
+
+00:32:47.790 --> 00:32:49.740
+And the difference here
+is that now instead
+
+00:32:49.740 --> 00:32:52.230
+of having a single
+propensity score,
+
+00:32:52.230 --> 00:32:56.010
+one has a product of these
+propensity scores corresponding
+
+00:32:56.010 --> 00:33:00.360
+to the propensity of
+observing that action given
+
+00:33:00.360 --> 00:33:04.240
+the corresponding state at
+each point along the sequence.
+
+00:33:04.240 --> 00:33:06.210
+And so this is nice,
+because this gives you
+
+00:33:06.210 --> 00:33:09.450
+one way to do what's called
+off-policy evaluation.
+
+00:33:15.570 --> 00:33:20.640
+And this is an
+estimator, which is
+
+00:33:20.640 --> 00:33:22.200
+completely analogous
+to the estimator
+
+00:33:22.200 --> 00:33:24.370
+that we got from Q learning.
+
+00:33:24.370 --> 00:33:26.670
+So if all assumptions
+were correct,
+
+00:33:26.670 --> 00:33:29.850
+and you had a lot of
+data, then those two
+
+00:33:29.850 --> 00:33:32.980
+should give you precisely
+the same answer.
+
+00:33:32.980 --> 00:33:35.800
+But here, like in the
+causal inference setting,
+
+00:33:35.800 --> 00:33:38.170
+we are not making the
+assumption that we can
+
+00:33:38.170 --> 00:33:40.232
+do covariate adjustment well.
+
+00:33:40.232 --> 00:33:42.190
+Or said differently,
+we're not assuming that we
+
+00:33:42.190 --> 00:33:45.450
+can fit the Q function well.
+
+00:33:45.450 --> 00:33:48.060
+And this is now,
+just like there,
+
+00:33:48.060 --> 00:33:50.640
+based on the assumption
+that we have the ability
+
+00:33:50.640 --> 00:33:53.730
+to really accurately know what
+the propensity scores are.
+
+00:33:53.730 --> 00:33:55.650
+So it now gives you an
+alternative approach
+
+00:33:55.650 --> 00:33:56.645
+to do evaluation.
+
+00:33:56.645 --> 00:33:58.020
+And you could
+think about looking
+
+00:33:58.020 --> 00:34:00.120
+at the robustness
+of your estimates
+
+00:34:00.120 --> 00:34:04.340
+from these two
+different estimators.
+
+00:34:04.340 --> 00:34:09.290
+And this is the most
+naive of the estimators.
+
+00:34:09.290 --> 00:34:12.260
+There are many ways to try
+to make this better, such as
+
+00:34:12.260 --> 00:34:16.800
+by doing w robust estimators.
+
+00:34:16.800 --> 00:34:18.739
+And if you want to
+learn more, I recommend
+
+00:34:18.739 --> 00:34:30.170
+reading this paper by Thomas
+and Emma Brunskill in ICML 2016.
+
+00:34:30.170 --> 00:34:33.110
+And with that, I want Barbra
+to come up and get set up.
+
+00:34:33.110 --> 00:34:35.693
+And we're going to transition
+to the next part of the lecture.
+
+00:34:38.300 --> 00:34:39.039
+Yes.
+
+00:34:39.039 --> 00:34:42.550
+AUDIENCE: Why do we sum
+over t and take the project
+
+00:34:42.550 --> 00:34:44.083
+across all t?
+
+00:34:44.083 --> 00:34:46.000
+DAVID SONTAG: One easy
+way to think about this
+
+00:34:46.000 --> 00:34:49.770
+is suppose that you only had a
+reward of the last time step.
+
+00:34:49.770 --> 00:34:51.730
+If you only had a reward
+of the last time step,
+
+00:34:51.730 --> 00:34:53.290
+then you wouldn't
+have this sum over t,
+
+00:34:53.290 --> 00:34:55.460
+because the rewards in the
+earlier steps would be 0.
+
+00:34:55.460 --> 00:34:57.460
+You would just have that
+product going from 0 up
+
+00:34:57.460 --> 00:34:59.590
+to capital T of last time step.
+
+00:34:59.590 --> 00:35:03.340
+The reason why you have
+it up to at each time step
+
+00:35:03.340 --> 00:35:05.890
+is because one wants to be
+able to appropriately weigh
+
+00:35:05.890 --> 00:35:11.150
+the likelihood of seeing that
+reward at that point in time.
+
+00:35:11.150 --> 00:35:12.878
+One could rewrite
+this in other ways.
+
+00:35:12.878 --> 00:35:14.920
+I want to hold other
+questions, because this part
+
+00:35:14.920 --> 00:35:17.045
+of the lecture is going to
+be much more interesting
+
+00:35:17.045 --> 00:35:18.730
+than my part of the lecture.
+
+00:35:18.730 --> 00:35:21.900
+And with that, I want
+introduce Barbra.
+
+00:35:21.900 --> 00:35:24.280
+Barbra, I first met her
+when she invited me to give
+
+00:35:24.280 --> 00:35:27.370
+a talk in her class last year.
+
+00:35:27.370 --> 00:35:33.550
+She's an instructor at
+Harvard Medical School--
+
+00:35:33.550 --> 00:35:36.370
+or School of Public Health.
+
+00:35:36.370 --> 00:35:39.530
+She recently finished
+her PhD in 2018.
+
+00:35:39.530 --> 00:35:42.820
+And her PhD looked
+at many questions
+
+00:35:42.820 --> 00:35:45.910
+related to the themes of
+the last couple of weeks.
+
+00:35:45.910 --> 00:35:48.500
+Since that time, in addition
+continuing her research,
+
+00:35:48.500 --> 00:35:52.000
+she's been really leading the
+way in creating data science
+
+00:35:52.000 --> 00:35:54.100
+curriculum over at Harvard.
+
+00:35:54.100 --> 00:35:55.210
+So please take it away.
+
+00:35:55.210 --> 00:35:56.668
+BARBRA DICKERMAN:
+Thank you so much
+
+00:35:56.668 --> 00:35:57.870
+for the introduction, David.
+
+00:35:57.870 --> 00:36:01.180
+I'm very happy to be here
+to share some of my work
+
+00:36:01.180 --> 00:36:04.420
+on evaluating dynamic
+treatment strategies,
+
+00:36:04.420 --> 00:36:08.800
+which you've been talking about
+over the past few lectures.
+
+00:36:08.800 --> 00:36:11.130
+So my goals for
+today, I'm just going
+
+00:36:11.130 --> 00:36:14.500
+to breeze over defining
+dynamic treatment strategies,
+
+00:36:14.500 --> 00:36:16.220
+as you're already
+familiar with it.
+
+00:36:16.220 --> 00:36:18.520
+But I would like
+to touch on when
+
+00:36:18.520 --> 00:36:22.760
+we need a special class of
+methods called g-methods.
+
+00:36:22.760 --> 00:36:25.910
+And then we'll talk about
+two different applications,
+
+00:36:25.910 --> 00:36:28.840
+different analyses, that
+have focused on evaluating
+
+00:36:28.840 --> 00:36:31.250
+dynamic treatment strategies.
+
+00:36:31.250 --> 00:36:33.490
+So the first will
+be an application
+
+00:36:33.490 --> 00:36:36.010
+of the parametric
+g-formula, which
+
+00:36:36.010 --> 00:36:39.890
+is a powerful g-method
+to cancer research.
+
+00:36:39.890 --> 00:36:42.070
+And so the goal
+here is to give you
+
+00:36:42.070 --> 00:36:44.650
+my causal inference
+perspective on how
+
+00:36:44.650 --> 00:36:48.100
+we think about this task of
+sequential decision making
+
+00:36:48.100 --> 00:36:50.140
+and then with
+whatever time remains,
+
+00:36:50.140 --> 00:36:55.030
+we'll be discussing a recent
+publication on the AI clinician
+
+00:36:55.030 --> 00:36:56.890
+to talk through the
+reinforcement learning
+
+00:36:56.890 --> 00:36:57.623
+perspective.
+
+00:36:57.623 --> 00:37:00.040
+So I think it'll be a really
+interesting discussion, where
+
+00:37:00.040 --> 00:37:01.960
+we can share these
+perspectives, talk
+
+00:37:01.960 --> 00:37:06.200
+about the relative strengths
+and limitations as well.
+
+00:37:06.200 --> 00:37:10.310
+And please stop me if
+you have any questions.
+
+00:37:10.310 --> 00:37:11.420
+So you already know this.
+
+00:37:11.420 --> 00:37:13.020
+When it comes to
+treatment strategies,
+
+00:37:13.020 --> 00:37:13.980
+there's three main types.
+
+00:37:13.980 --> 00:37:15.522
+There's point
+interventions happening
+
+00:37:15.522 --> 00:37:16.840
+at a single point in time.
+
+00:37:16.840 --> 00:37:19.895
+There's sustained interventions
+happening over time.
+
+00:37:19.895 --> 00:37:21.770
+When it comes to clinical
+care, this is often
+
+00:37:21.770 --> 00:37:23.960
+what we're most interested in.
+
+00:37:23.960 --> 00:37:25.880
+Within that, there
+are static strategies,
+
+00:37:25.880 --> 00:37:28.050
+which are constant over time.
+
+00:37:28.050 --> 00:37:29.810
+And then there's
+dynamic strategies,
+
+00:37:29.810 --> 00:37:31.910
+which we're going to focus on.
+
+00:37:31.910 --> 00:37:34.970
+And these differ in that
+the intervention over time
+
+00:37:34.970 --> 00:37:38.300
+depends on evolving
+characteristics.
+
+00:37:38.300 --> 00:37:41.330
+So for example, initiate
+treatment at baseline
+
+00:37:41.330 --> 00:37:44.120
+and continue it over follow
+up until a contraindication
+
+00:37:44.120 --> 00:37:47.750
+occurs, at which point
+you may stop treatment
+
+00:37:47.750 --> 00:37:49.520
+and decide with your
+doctor whether you're
+
+00:37:49.520 --> 00:37:52.610
+going to switch to an
+alternate treatment.
+
+00:37:52.610 --> 00:37:54.770
+You would still be
+adhering to that strategy,
+
+00:37:54.770 --> 00:37:56.390
+even though you quit.
+
+00:37:56.390 --> 00:37:59.270
+The comparison here being do
+not initiate treatment over
+
+00:37:59.270 --> 00:38:02.880
+follow up, likewise unless
+an indication occurs,
+
+00:38:02.880 --> 00:38:04.880
+at which point you may
+start treatment and still
+
+00:38:04.880 --> 00:38:06.190
+be adhering to the strategy.
+
+00:38:06.190 --> 00:38:07.940
+So we're focusing on
+these because they're
+
+00:38:07.940 --> 00:38:11.710
+the most clinically relevant.
+
+00:38:11.710 --> 00:38:14.860
+And so clinicians encounter
+these every day in practice.
+
+00:38:14.860 --> 00:38:16.870
+So when they're making
+a recommendation
+
+00:38:16.870 --> 00:38:20.410
+to their patient about a
+prevention intervention,
+
+00:38:20.410 --> 00:38:22.360
+they're going to be
+taking into consideration
+
+00:38:22.360 --> 00:38:24.700
+the patient's evolving
+comorbidities.
+
+00:38:24.700 --> 00:38:27.280
+Or when they're deciding
+the next screening interval,
+
+00:38:27.280 --> 00:38:30.130
+they'll consider the previous
+result from the last screening
+
+00:38:30.130 --> 00:38:32.080
+test when deciding that.
+
+00:38:32.080 --> 00:38:35.140
+Likewise for treatment, deciding
+whether to keep the patient
+
+00:38:35.140 --> 00:38:36.400
+on treatment or not.
+
+00:38:36.400 --> 00:38:38.290
+Is the patient
+having any changes
+
+00:38:38.290 --> 00:38:43.210
+in symptoms or lab values
+that may reflect toxicity?
+
+00:38:43.210 --> 00:38:46.090
+So one thing to note
+is that while many
+
+00:38:46.090 --> 00:38:49.360
+of the strategies that you
+may see in clinical guidelines
+
+00:38:49.360 --> 00:38:53.140
+and in clinical practice
+are dynamic strategies,
+
+00:38:53.140 --> 00:38:56.070
+these may not be the
+optimal strategies.
+
+00:38:56.070 --> 00:38:57.820
+So maybe what we're
+recommending and doing
+
+00:38:57.820 --> 00:38:59.840
+is not optimal for patients.
+
+00:38:59.840 --> 00:39:02.020
+However, the optimal
+strategies will
+
+00:39:02.020 --> 00:39:04.960
+be dynamic in some
+way, in that they
+
+00:39:04.960 --> 00:39:08.860
+will be adapting to
+individuals' unique and evolving
+
+00:39:08.860 --> 00:39:10.310
+characteristics.
+
+00:39:10.310 --> 00:39:13.060
+So that's why we
+care about them.
+
+00:39:13.060 --> 00:39:16.270
+So what's the problem?
+
+00:39:16.270 --> 00:39:18.130
+So one problem
+deals with something
+
+00:39:18.130 --> 00:39:19.990
+called treatment
+confounder feedback,
+
+00:39:19.990 --> 00:39:22.510
+which you may have spoken
+about in this class.
+
+00:39:22.510 --> 00:39:26.710
+So conventional statistical
+methods cannot appropriately
+
+00:39:26.710 --> 00:39:30.490
+compare dynamic treatment
+strategies in the presence
+
+00:39:30.490 --> 00:39:32.320
+of treatment
+confounder feedback.
+
+00:39:32.320 --> 00:39:35.560
+So this is when time
+varying confounders are
+
+00:39:35.560 --> 00:39:38.330
+affected by previous treatment.
+
+00:39:38.330 --> 00:39:41.620
+So if we kind of ground
+this in a concrete example
+
+00:39:41.620 --> 00:39:43.960
+with this causal
+diagram, let's say
+
+00:39:43.960 --> 00:39:47.140
+we're interested in estimating
+the effect of some intervention
+
+00:39:47.140 --> 00:39:52.750
+A, vasopressors or it could be
+IV fluids, on some outcome Y,
+
+00:39:52.750 --> 00:39:55.090
+which we'll call survival here.
+
+00:39:55.090 --> 00:39:58.630
+We know that vasopressors
+affect blood pressure,
+
+00:39:58.630 --> 00:40:02.140
+and blood pressure will
+affect subsequent decisions
+
+00:40:02.140 --> 00:40:04.210
+to treat with vasopressors.
+
+00:40:04.210 --> 00:40:06.340
+We also know that
+hypotension-- so again,
+
+00:40:06.340 --> 00:40:10.570
+blood pressure, L1,
+affects survival, based
+
+00:40:10.570 --> 00:40:12.130
+on our clinical knowledge.
+
+00:40:12.130 --> 00:40:16.180
+And then in this DAG, we
+also have the node U, which
+
+00:40:16.180 --> 00:40:18.560
+represents disease severity.
+
+00:40:18.560 --> 00:40:21.910
+So these could be potentially
+unmeasured markers
+
+00:40:21.910 --> 00:40:25.810
+of disease severity that are
+affecting your blood pressure
+
+00:40:25.810 --> 00:40:30.260
+and also affecting your
+probability of survival.
+
+00:40:30.260 --> 00:40:32.500
+So if we're interested
+in estimating
+
+00:40:32.500 --> 00:40:37.510
+the effect of a sustained
+treatment strategy,
+
+00:40:37.510 --> 00:40:40.140
+then we want to know something
+about the total effect
+
+00:40:40.140 --> 00:40:42.430
+of treatment at all time points.
+
+00:40:42.430 --> 00:40:45.520
+We can see that L1 here is a
+confounder for the effect of A1
+
+00:40:45.520 --> 00:40:48.560
+on Y so we have to do
+something to adjust for that.
+
+00:40:48.560 --> 00:40:50.980
+And if we were to apply a
+conventional statistical
+
+00:40:50.980 --> 00:40:54.970
+method, we would essentially
+be conditioning on a collider
+
+00:40:54.970 --> 00:40:56.780
+and inducing a selection bias.
+
+00:40:56.780 --> 00:41:01.210
+So an open path from
+A0 to L1 to U to Y.
+
+00:41:01.210 --> 00:41:02.750
+What's the consequence of this?
+
+00:41:02.750 --> 00:41:04.270
+If we look in our
+data set, we may
+
+00:41:04.270 --> 00:41:08.040
+see an association
+between A and Y.
+
+00:41:08.040 --> 00:41:11.410
+But that association is not
+because there's necessarily
+
+00:41:11.410 --> 00:41:14.080
+an effect of A on Y.
+It might not be causal.
+
+00:41:14.080 --> 00:41:19.100
+It may be due to this
+selection bias that we created.
+
+00:41:19.100 --> 00:41:20.930
+So this is the problem.
+
+00:41:20.930 --> 00:41:24.910
+And so in these cases, we
+need a special type of method
+
+00:41:24.910 --> 00:41:28.210
+that can handle these settings.
+
+00:41:28.210 --> 00:41:32.260
+And so a class of methods
+that was designed specifically
+
+00:41:32.260 --> 00:41:35.110
+to handle this is g-methods.
+
+00:41:35.110 --> 00:41:38.380
+And so these are sometimes
+referred to as causal methods.
+
+00:41:38.380 --> 00:41:41.530
+They've been developed by
+Jamie Robins and colleagues
+
+00:41:41.530 --> 00:41:43.480
+and collaborators since 1986.
+
+00:41:43.480 --> 00:41:45.970
+And they include the
+parametric g-formula,
+
+00:41:45.970 --> 00:41:48.100
+g-estimation of
+structural nested models,
+
+00:41:48.100 --> 00:41:49.660
+and inverse
+probability weighting
+
+00:41:49.660 --> 00:41:50.935
+of marginal structural models.
+
+00:41:55.140 --> 00:41:57.770
+So in my research,
+what I do is I
+
+00:41:57.770 --> 00:42:02.420
+combine g-methods with
+large longitudinal databases
+
+00:42:02.420 --> 00:42:06.290
+to try to evaluate dynamic
+treatment strategies.
+
+00:42:06.290 --> 00:42:09.320
+So I'm particularly interested
+in bringing these methods
+
+00:42:09.320 --> 00:42:11.180
+to cancer research,
+because they haven't
+
+00:42:11.180 --> 00:42:13.010
+been applied much there.
+
+00:42:13.010 --> 00:42:14.420
+So a lot of my
+research questions
+
+00:42:14.420 --> 00:42:16.950
+are focused on answering
+questions like,
+
+00:42:16.950 --> 00:42:21.740
+how and when can we intervene to
+best prevent, detect, and treat
+
+00:42:21.740 --> 00:42:23.860
+cancer?
+
+00:42:23.860 --> 00:42:28.370
+And so I'd like to share
+one example with you, which
+
+00:42:28.370 --> 00:42:32.480
+focused on evaluating
+the effect of adhering
+
+00:42:32.480 --> 00:42:34.940
+to guideline-based
+physical activity
+
+00:42:34.940 --> 00:42:39.870
+interventions on survival
+among men with prostate cancer.
+
+00:42:39.870 --> 00:42:41.390
+So the motivation
+for this study,
+
+00:42:41.390 --> 00:42:43.910
+there's a large clinical
+organization, ASCO,
+
+00:42:43.910 --> 00:42:46.160
+the American Society
+of Clinical Oncology,
+
+00:42:46.160 --> 00:42:48.680
+that had actually called
+for randomized trials
+
+00:42:48.680 --> 00:42:52.720
+to generate these estimates
+for several cancers.
+
+00:42:52.720 --> 00:42:54.200
+The thing with
+prostate cancer is
+
+00:42:54.200 --> 00:42:56.580
+it's a very slowly
+progressing disease.
+
+00:42:56.580 --> 00:42:59.840
+So the feasibility of doing
+a trial to evaluate this
+
+00:42:59.840 --> 00:43:01.040
+is very limited.
+
+00:43:01.040 --> 00:43:04.370
+The trial would have to
+be 10 years long probably.
+
+00:43:04.370 --> 00:43:08.390
+So given that, given the absence
+of this randomized evidence,
+
+00:43:08.390 --> 00:43:09.920
+we did the next
+best thing that we
+
+00:43:09.920 --> 00:43:12.380
+could do to generate
+this estimate, which
+
+00:43:12.380 --> 00:43:15.230
+was combine high-quality
+observational data
+
+00:43:15.230 --> 00:43:20.090
+with advanced EPI methods, in
+this case parametric g-formula.
+
+00:43:20.090 --> 00:43:22.730
+And so we leveraged data
+from the Health Professionals
+
+00:43:22.730 --> 00:43:25.430
+Follow-up Study, which is a
+well-characterized prospective
+
+00:43:25.430 --> 00:43:26.240
+cohort study.
+
+00:43:29.670 --> 00:43:32.530
+So in these cases, there's
+a three-step process
+
+00:43:32.530 --> 00:43:37.090
+that we take to extract the
+most meaningful and actionable
+
+00:43:37.090 --> 00:43:39.980
+insights from
+observational data.
+
+00:43:39.980 --> 00:43:41.650
+So the first thing
+that we do is we
+
+00:43:41.650 --> 00:43:44.740
+specify the protocol
+of the target trial
+
+00:43:44.740 --> 00:43:49.420
+that we would have liked to
+conduct had it been feasible.
+
+00:43:49.420 --> 00:43:51.340
+The second thing we
+do is we make sure
+
+00:43:51.340 --> 00:43:54.670
+that we measure enough
+covariates to approximately
+
+00:43:54.670 --> 00:43:57.280
+adjust for confounding
+and achieve
+
+00:43:57.280 --> 00:43:59.805
+conditional exchangeability.
+
+00:43:59.805 --> 00:44:01.180
+And then the third
+thing we do is
+
+00:44:01.180 --> 00:44:04.510
+we apply an appropriate method
+to compare the specified
+
+00:44:04.510 --> 00:44:07.360
+treatment strategies
+under this assumption
+
+00:44:07.360 --> 00:44:10.670
+of conditional exchangeability.
+
+00:44:10.670 --> 00:44:13.730
+And so in this case,
+eligible men for this study
+
+00:44:13.730 --> 00:44:17.430
+had been diagnosed with
+non-metastatic prostate cancer.
+
+00:44:17.430 --> 00:44:19.310
+And at baseline,
+they were free of
+
+00:44:19.310 --> 00:44:21.650
+cardiovascular and
+neurologic conditions that
+
+00:44:21.650 --> 00:44:24.320
+may limit physical ability.
+
+00:44:24.320 --> 00:44:26.030
+For the treatment
+strategies, men
+
+00:44:26.030 --> 00:44:29.150
+were to initiate one of
+six physical activity
+
+00:44:29.150 --> 00:44:33.410
+strategies at diagnosis and
+continue it over followup
+
+00:44:33.410 --> 00:44:36.620
+until the development
+of a condition limiting
+
+00:44:36.620 --> 00:44:38.010
+physical activity.
+
+00:44:38.010 --> 00:44:40.900
+So this is what made
+the strategies dynamic.
+
+00:44:40.900 --> 00:44:43.010
+The intervention
+over time depended
+
+00:44:43.010 --> 00:44:45.620
+on these evolving conditions.
+
+00:44:45.620 --> 00:44:48.530
+And so just to note,
+we pre-specified
+
+00:44:48.530 --> 00:44:51.670
+these strategies that
+we were evaluating
+
+00:44:51.670 --> 00:44:54.040
+as well as the conditions.
+
+00:44:54.040 --> 00:44:56.380
+Men were followed
+until diagnosis,
+
+00:44:56.380 --> 00:44:59.793
+until death, and to followup
+10 years after diagnosis
+
+00:44:59.793 --> 00:45:01.210
+or administrative
+end to followup,
+
+00:45:01.210 --> 00:45:02.970
+whichever happened first.
+
+00:45:02.970 --> 00:45:05.140
+Our outcome of interest
+was all cause mortality
+
+00:45:05.140 --> 00:45:07.000
+within 10 years.
+
+00:45:07.000 --> 00:45:10.000
+And we were interested in
+estimating the per protocol
+
+00:45:10.000 --> 00:45:12.670
+effect of not just
+initiating these strategies
+
+00:45:12.670 --> 00:45:15.200
+but adhering to
+them over followup.
+
+00:45:15.200 --> 00:45:19.615
+And again, we applied
+the parametric g-formula.
+
+00:45:19.615 --> 00:45:21.740
+So I think you've already
+heard about the g-formula
+
+00:45:21.740 --> 00:45:24.720
+in a previous lecture, possibly
+in a slightly different way.
+
+00:45:24.720 --> 00:45:26.850
+So I won't spend too
+much time on this.
+
+00:45:26.850 --> 00:45:30.380
+So the g-formula, essentially
+the way I think about it
+
+00:45:30.380 --> 00:45:33.200
+is a generalization
+of standardization
+
+00:45:33.200 --> 00:45:36.380
+to time varying exposures
+and confounders.
+
+00:45:36.380 --> 00:45:38.360
+So it's basically
+a weighted average
+
+00:45:38.360 --> 00:45:41.120
+of risks, where you can
+think of the weights being
+
+00:45:41.120 --> 00:45:43.910
+the probability density
+functions of the time varying
+
+00:45:43.910 --> 00:45:47.390
+confounders, which we estimate
+using parametric regression
+
+00:45:47.390 --> 00:45:48.350
+models.
+
+00:45:48.350 --> 00:45:50.090
+And we approximate
+the weighted average
+
+00:45:50.090 --> 00:45:54.110
+using Monte Carlo simulation.
+
+00:45:54.110 --> 00:45:56.840
+So practically
+how do we do this?
+
+00:45:56.840 --> 00:45:59.560
+So the first thing we do is
+we fit parametric regression
+
+00:45:59.560 --> 00:46:02.020
+models for all of the
+variables that we're
+
+00:46:02.020 --> 00:46:03.460
+going to be studying.
+
+00:46:03.460 --> 00:46:08.690
+So for treatment confounders
+and death at each followup time.
+
+00:46:08.690 --> 00:46:10.810
+The next thing we do is
+Monte Carlo simulation
+
+00:46:10.810 --> 00:46:12.310
+where essentially
+what we want to do
+
+00:46:12.310 --> 00:46:15.880
+is simulate the
+outcome distribution
+
+00:46:15.880 --> 00:46:21.140
+under each treatment strategy
+that we're interested in.
+
+00:46:21.140 --> 00:46:25.100
+And then we bootstrap
+the confidence intervals.
+
+00:46:25.100 --> 00:46:27.495
+So I'd like to show you
+kind of in a schematic what
+
+00:46:27.495 --> 00:46:28.870
+this looks like,
+because it might
+
+00:46:28.870 --> 00:46:31.040
+be a little bit easier to see.
+
+00:46:31.040 --> 00:46:32.490
+So again, the idea
+is we're going
+
+00:46:32.490 --> 00:46:36.730
+to make copies of our data
+set, where in each copy
+
+00:46:36.730 --> 00:46:39.490
+everyone is adhering
+to the strategy
+
+00:46:39.490 --> 00:46:42.070
+that we're focusing
+on in that copy.
+
+00:46:42.070 --> 00:46:45.650
+So how do we construct each of
+these copies of the data set?
+
+00:46:45.650 --> 00:46:48.350
+We have to build them
+each from the ground up,
+
+00:46:48.350 --> 00:46:50.290
+starting with time 0.
+
+00:46:50.290 --> 00:46:54.580
+So the values of all of the time
+varying covariates at time 0
+
+00:46:54.580 --> 00:46:57.320
+are sampled from their
+empirical distribution.
+
+00:46:57.320 --> 00:47:01.780
+So these are actually observed
+values of the covariates.
+
+00:47:01.780 --> 00:47:05.590
+How do we get the values
+at the next time point?
+
+00:47:05.590 --> 00:47:07.900
+We use the parametric
+regression models
+
+00:47:07.900 --> 00:47:12.040
+that I mentioned that
+we fit in step 1.
+
+00:47:12.040 --> 00:47:16.900
+Then what we do is we force
+the level of the intervention
+
+00:47:16.900 --> 00:47:20.920
+variable to be whatever was
+specified by that intervention
+
+00:47:20.920 --> 00:47:23.320
+strategy.
+
+00:47:23.320 --> 00:47:26.260
+And then we estimate
+the risk of the outcome
+
+00:47:26.260 --> 00:47:29.890
+at each time period
+given these variables,
+
+00:47:29.890 --> 00:47:31.540
+again using the
+parametric regression
+
+00:47:31.540 --> 00:47:33.520
+model for the outcome now.
+
+00:47:33.520 --> 00:47:36.070
+And so we repeat this
+over all time periods
+
+00:47:36.070 --> 00:47:41.110
+to estimate a cumulative risk
+under that strategy, which
+
+00:47:41.110 --> 00:47:45.650
+is taken as the average of
+the subject-specific risks.
+
+00:47:45.650 --> 00:47:46.750
+So this is what I'm doing.
+
+00:47:46.750 --> 00:47:48.292
+This is kind of
+under the hood what's
+
+00:47:48.292 --> 00:47:49.630
+going on with this method.
+
+00:47:49.630 --> 00:47:51.130
+DAVID SONTAG: So
+maybe we should try
+
+00:47:51.130 --> 00:47:53.890
+to put that in language of
+what we saw in the class.
+
+00:47:53.890 --> 00:47:57.770
+And let me know if I'm
+getting this wrong.
+
+00:47:57.770 --> 00:48:02.410
+So you first estimate the
+markup decision process,
+
+00:48:02.410 --> 00:48:07.160
+which allows you to simulate
+from the underlying data
+
+00:48:07.160 --> 00:48:08.020
+distribution.
+
+00:48:08.020 --> 00:48:11.350
+So you know that probability
+of this sort of next sequence
+
+00:48:11.350 --> 00:48:15.820
+of observations, given the
+previous sequence and action
+
+00:48:15.820 --> 00:48:18.550
+and previous actions,
+and then with that, then
+
+00:48:18.550 --> 00:48:21.930
+you could then intervene
+and simulate the forms.
+
+00:48:21.930 --> 00:48:23.710
+Because that was,
+if you remember
+
+00:48:23.710 --> 00:48:26.110
+Frederick gave you
+three different buckets
+
+00:48:26.110 --> 00:48:28.040
+of approaches.
+
+00:48:28.040 --> 00:48:29.540
+Then he focused
+on the middle one.
+
+00:48:29.540 --> 00:48:31.180
+This is the left-most bucket.
+
+00:48:31.180 --> 00:48:31.710
+The right?
+
+00:48:31.710 --> 00:48:32.952
+AUDIENCE: Yes.
+
+00:48:32.952 --> 00:48:34.660
+DAVID SONTAG: So we
+didn't talk about it.
+
+00:48:34.660 --> 00:48:36.810
+AUDIENCE: No, [INAUDIBLE]
+model based on relevance.
+
+00:48:36.810 --> 00:48:37.130
+BARBRA DICKERMAN: Yeah.
+
+00:48:37.130 --> 00:48:38.020
+Yes.
+
+00:48:38.020 --> 00:48:40.905
+DAVID SONTAG: But
+it's very sensible.
+
+00:48:40.905 --> 00:48:41.530
+AUDIENCE: Yeah.
+
+00:48:41.530 --> 00:48:43.970
+But it seems very hard.
+
+00:48:43.970 --> 00:48:45.220
+BARBRA DICKERMAN: What's that?
+
+00:48:45.220 --> 00:48:46.080
+AUDIENCE: Sorry.
+
+00:48:46.080 --> 00:48:49.012
+Oh, it seems very hard to
+model this [INAUDIBLE]..
+
+00:48:49.012 --> 00:48:49.970
+BARBRA DICKERMAN: Yeah.
+
+00:48:49.970 --> 00:48:51.150
+So that is a challenge.
+
+00:48:51.150 --> 00:48:53.370
+That is the hardest
+part about this.
+
+00:48:53.370 --> 00:48:55.730
+And it's relying on a
+lot of assumptions, yeah.
+
+00:48:59.530 --> 00:49:02.050
+So the primary
+results that kind of
+
+00:49:02.050 --> 00:49:04.640
+come out after we
+do all of this.
+
+00:49:04.640 --> 00:49:07.720
+So this is the estimated
+risk of all cause mortality
+
+00:49:07.720 --> 00:49:10.780
+under several physical
+activity interventions.
+
+00:49:10.780 --> 00:49:13.390
+So I'm not going to focus
+too much on the results.
+
+00:49:13.390 --> 00:49:17.120
+I want to focus on two main
+takeaways from this slide.
+
+00:49:17.120 --> 00:49:20.680
+One thing to emphasize
+is we pre-specified
+
+00:49:20.680 --> 00:49:23.450
+the weekly duration
+of physical activity.
+
+00:49:23.450 --> 00:49:26.200
+Or you can think of this like
+the dose of the intervention.
+
+00:49:26.200 --> 00:49:27.850
+We pre-specified that.
+
+00:49:27.850 --> 00:49:30.730
+And this was based on
+current guidelines.
+
+00:49:30.730 --> 00:49:32.830
+So the third row
+of each band, we
+
+00:49:32.830 --> 00:49:36.610
+did look at some dose or
+level beyond the guidelines
+
+00:49:36.610 --> 00:49:40.060
+to see if there might be
+additional survival benefits.
+
+00:49:40.060 --> 00:49:41.930
+But these were
+all pre-specified.
+
+00:49:41.930 --> 00:49:45.430
+We also pre-specified all of
+the time varying covariates
+
+00:49:45.430 --> 00:49:47.890
+that made these
+strategies dynamic.
+
+00:49:47.890 --> 00:49:49.780
+So I mentioned that
+men were excused
+
+00:49:49.780 --> 00:49:52.210
+from following the
+recommended physical activity
+
+00:49:52.210 --> 00:49:56.140
+levels if they developed one
+of these listed conditions,
+
+00:49:56.140 --> 00:49:59.470
+metastasis, MI,
+stroke, et cetera.
+
+00:49:59.470 --> 00:50:01.060
+We pre-specified all of those.
+
+00:50:01.060 --> 00:50:04.828
+It's possible that maybe
+a different dependence
+
+00:50:04.828 --> 00:50:06.370
+on a different time
+varying covariate
+
+00:50:06.370 --> 00:50:08.860
+may have led to a
+more optimal strategy.
+
+00:50:08.860 --> 00:50:10.870
+There was a lot that
+remained unexplored.
+
+00:50:13.560 --> 00:50:16.830
+So we did a lot of
+sensitivity analyses
+
+00:50:16.830 --> 00:50:19.500
+as part of this project.
+
+00:50:19.500 --> 00:50:21.930
+I'd like to focus, though,
+on the sensitivity analyses
+
+00:50:21.930 --> 00:50:25.200
+that we did for potential
+unmeasured confounding
+
+00:50:25.200 --> 00:50:28.680
+by chronic disease that
+may be severe enough
+
+00:50:28.680 --> 00:50:33.280
+to affect both physical
+activity and survival.
+
+00:50:33.280 --> 00:50:36.870
+And so the g-formula is
+actually providing a natural way
+
+00:50:36.870 --> 00:50:40.110
+to at least partly
+address this by estimating
+
+00:50:40.110 --> 00:50:44.900
+the risk of these physical
+activity interventions that
+
+00:50:44.900 --> 00:50:47.750
+are at each time
+point t only applied
+
+00:50:47.750 --> 00:50:51.650
+to men who are healthy enough
+to maintain a physical activity
+
+00:50:51.650 --> 00:50:53.653
+level at that time.
+
+00:50:53.653 --> 00:50:55.070
+And so again in
+the main analysis,
+
+00:50:55.070 --> 00:50:58.400
+we excused men from following
+the recommended levels
+
+00:50:58.400 --> 00:51:03.020
+if they developed one of
+these serious conditions.
+
+00:51:03.020 --> 00:51:05.180
+So in sensitivity
+analyses, we then
+
+00:51:05.180 --> 00:51:08.180
+expanded this list
+of serious conditions
+
+00:51:08.180 --> 00:51:12.590
+to also include the conditions
+that are shown in blue text.
+
+00:51:12.590 --> 00:51:14.490
+And so this attenuated
+our estimates
+
+00:51:14.490 --> 00:51:17.120
+but didn't change
+our conclusions.
+
+00:51:17.120 --> 00:51:21.620
+One thing to point out is that
+the validity of this approach
+
+00:51:21.620 --> 00:51:25.070
+rests on the assumption
+that at each time t
+
+00:51:25.070 --> 00:51:30.350
+we had available data
+needed to identify which
+
+00:51:30.350 --> 00:51:32.600
+men were healthy
+at that time enough
+
+00:51:32.600 --> 00:51:33.940
+to do the physical activity.
+
+00:51:33.940 --> 00:51:34.440
+Yeah.
+
+00:51:34.440 --> 00:51:36.023
+AUDIENCE: Sorry,
+just to double-check,
+
+00:51:36.023 --> 00:51:37.735
+does excuse mean
+that you remove them?
+
+00:51:37.735 --> 00:51:39.110
+BARBRA DICKERMAN:
+Great question.
+
+00:51:39.110 --> 00:51:42.980
+So because the strategy
+was pre-specified to say
+
+00:51:42.980 --> 00:51:45.950
+that if you develop one
+of these conditions,
+
+00:51:45.950 --> 00:51:50.090
+you may essentially do whatever
+level of physical activity
+
+00:51:50.090 --> 00:51:51.440
+you're able to do.
+
+00:51:51.440 --> 00:51:53.690
+So importantly-- I'm glad
+you brought this up--
+
+00:51:53.690 --> 00:51:56.420
+we did not censor
+men at that time.
+
+00:51:56.420 --> 00:51:59.000
+They were still followed,
+because they were still
+
+00:51:59.000 --> 00:52:02.330
+adhering to the
+strategy as defined.
+
+00:52:02.330 --> 00:52:05.060
+Thanks for asking.
+
+00:52:05.060 --> 00:52:09.290
+And so given that we don't
+know whether the data contain
+
+00:52:09.290 --> 00:52:13.290
+at each time t the
+information necessary to know,
+
+00:52:13.290 --> 00:52:16.070
+are these men healthy enough
+at that time, we therefore
+
+00:52:16.070 --> 00:52:18.800
+conducted a few alternate
+analyses in which we
+
+00:52:18.800 --> 00:52:22.880
+lagged physical activity and
+covariate data by two years.
+
+00:52:22.880 --> 00:52:25.580
+And we also used a
+negative outcome control
+
+00:52:25.580 --> 00:52:29.810
+to explore potential unmeasured
+confounding by clinical disease
+
+00:52:29.810 --> 00:52:31.940
+or disease severity.
+
+00:52:31.940 --> 00:52:33.440
+So what's the
+rationale behind this?
+
+00:52:33.440 --> 00:52:36.770
+So in the DAGs below for
+the original analysis,
+
+00:52:36.770 --> 00:52:41.120
+we have physical activity
+A. We have survival Y.
+
+00:52:41.120 --> 00:52:45.590
+And this may be confounded
+by disease severity U.
+
+00:52:45.590 --> 00:52:49.250
+So when we see an association
+between A and Y in our data,
+
+00:52:49.250 --> 00:52:51.070
+we want to make sure
+that it's causal,
+
+00:52:51.070 --> 00:52:53.000
+that it's because
+of the blue arrow,
+
+00:52:53.000 --> 00:52:55.280
+and not because of
+this confounding bias,
+
+00:52:55.280 --> 00:52:56.640
+the red arrow.
+
+00:52:56.640 --> 00:52:58.610
+So how can we
+potentially provide
+
+00:52:58.610 --> 00:53:02.480
+evidence for whether that
+red pathway is there?
+
+00:53:02.480 --> 00:53:05.000
+We selected
+questionnaire nonresponse
+
+00:53:05.000 --> 00:53:08.750
+as an alternate outcome,
+instead of survival,
+
+00:53:08.750 --> 00:53:13.940
+that we assumed was not directly
+affected by physical activity,
+
+00:53:13.940 --> 00:53:16.820
+but that we thought would
+be similarly confounded
+
+00:53:16.820 --> 00:53:19.230
+by disease severity.
+
+00:53:19.230 --> 00:53:20.870
+And so when we
+repeated the analysis
+
+00:53:20.870 --> 00:53:23.270
+with a negative
+outcome control, we
+
+00:53:23.270 --> 00:53:26.000
+found that physical activity
+had a nearly null effect
+
+00:53:26.000 --> 00:53:28.940
+on questionnaire nonresponse,
+as we would expect,
+
+00:53:28.940 --> 00:53:34.353
+which provides some support
+that in our original analysis,
+
+00:53:34.353 --> 00:53:36.020
+the effect of physical
+activity on death
+
+00:53:36.020 --> 00:53:39.380
+was not confounded through
+the pathways explored
+
+00:53:39.380 --> 00:53:41.868
+through the negative control.
+
+00:53:41.868 --> 00:53:43.910
+So one thing to highlight
+here is the sensitivity
+
+00:53:43.910 --> 00:53:47.820
+analyses were driven by our
+subject matter knowledge.
+
+00:53:47.820 --> 00:53:51.140
+And there's nothing in the
+data that kind of drove this.
+
+00:53:53.700 --> 00:53:55.980
+And so just to
+recap this portion.
+
+00:53:55.980 --> 00:53:59.160
+So g-methods are a
+useful tool, because they
+
+00:53:59.160 --> 00:54:01.710
+let us validly
+estimate the effect
+
+00:54:01.710 --> 00:54:05.490
+of pre-specified
+dynamic strategies
+
+00:54:05.490 --> 00:54:08.460
+and estimate adjusted absolute
+risks, which are clinically
+
+00:54:08.460 --> 00:54:11.520
+meaningful to us, and
+appropriately adjusted survival
+
+00:54:11.520 --> 00:54:14.370
+curves, even in the presence
+of treatment confounder
+
+00:54:14.370 --> 00:54:19.770
+feedback, which occurs
+often in clinical questions.
+
+00:54:19.770 --> 00:54:23.100
+And of course, this is under
+our typical identifiability
+
+00:54:23.100 --> 00:54:25.020
+assumptions.
+
+00:54:25.020 --> 00:54:26.700
+So this makes it a
+powerful approach
+
+00:54:26.700 --> 00:54:29.070
+to estimate the effects
+of currently recommended
+
+00:54:29.070 --> 00:54:31.320
+or proposed strategies
+that therefore we
+
+00:54:31.320 --> 00:54:36.000
+can specify and write out
+precisely as we did here.
+
+00:54:36.000 --> 00:54:38.280
+However, these
+pre-specified strategies
+
+00:54:38.280 --> 00:54:41.740
+may not be the
+optimal strategies.
+
+00:54:41.740 --> 00:54:44.310
+So again, when I was
+doing this analysis,
+
+00:54:44.310 --> 00:54:47.790
+I was thinking there are so
+many different weekly durations
+
+00:54:47.790 --> 00:54:50.320
+of physical activity that
+we're not looking at.
+
+00:54:50.320 --> 00:54:53.550
+There are so many different
+time-varying covariates
+
+00:54:53.550 --> 00:54:56.430
+where we could have different
+dependencies on those
+
+00:54:56.430 --> 00:54:58.080
+for these strategies over time.
+
+00:54:58.080 --> 00:55:00.960
+And maybe those would have
+led to better survival
+
+00:55:00.960 --> 00:55:05.960
+outcomes among these men, but
+all of that was unexplored.

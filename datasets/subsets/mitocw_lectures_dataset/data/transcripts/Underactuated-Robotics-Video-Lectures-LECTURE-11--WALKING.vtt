@@ -1,0 +1,4847 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.490
+The following content is
+provided under a Creative
+
+00:00:02.490 --> 00:00:03.940
+Commons license.
+
+00:00:03.940 --> 00:00:06.330
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.330 --> 00:00:10.630
+continue to offer high quality
+educational resources for free.
+
+00:00:10.630 --> 00:00:13.320
+To make a donation or
+view additional materials
+
+00:00:13.320 --> 00:00:17.160
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.160 --> 00:00:21.870
+at ocw.mit.edu.
+
+00:00:21.870 --> 00:00:25.278
+RUSS TEDRAKE: OK, welcome back.
+
+00:00:25.278 --> 00:00:26.820
+At the end of last
+time, we said we'd
+
+00:00:26.820 --> 00:00:29.557
+built up a pretty good arsenal
+of optimal control tools.
+
+00:00:29.557 --> 00:00:31.140
+Now, we're going to
+start pushing them
+
+00:00:31.140 --> 00:00:33.270
+in exciting directions, OK?
+
+00:00:33.270 --> 00:00:36.670
+So many of you know I
+work on walking robots.
+
+00:00:36.670 --> 00:00:37.900
+It's one of my passions.
+
+00:00:37.900 --> 00:00:42.795
+I think it's one of clear
+unsolved problems in robotics,
+
+00:00:42.795 --> 00:00:43.650
+right?
+
+00:00:43.650 --> 00:00:47.880
+We have so many things we
+can do with robotic arms.
+
+00:00:47.880 --> 00:00:49.470
+Relatively, we
+have almost nothing
+
+00:00:49.470 --> 00:00:51.660
+that we can do with
+walking robots.
+
+00:00:51.660 --> 00:00:54.690
+Walking down the street
+is still a challenge, OK?
+
+00:00:54.690 --> 00:01:00.015
+So in my mind, one of the
+essential problems in robotics,
+
+00:01:00.015 --> 00:01:02.640
+it also happens to be the thing
+that animals do just incredibly
+
+00:01:02.640 --> 00:01:03.140
+well.
+
+00:01:03.140 --> 00:01:05.760
+And even the really
+dumb animals, you know,
+
+00:01:05.760 --> 00:01:07.520
+locomote very, very, very well.
+
+00:01:07.520 --> 00:01:13.020
+So some people might even argue
+it's a predecessor to higher
+
+00:01:13.020 --> 00:01:14.370
+cognitive function.
+
+00:01:14.370 --> 00:01:15.612
+We'll see.
+
+00:01:15.612 --> 00:01:17.070
+OK, so there's lots
+of good reasons
+
+00:01:17.070 --> 00:01:19.080
+why walking robots are tough.
+
+00:01:19.080 --> 00:01:21.810
+There's mechanical
+problems, of course.
+
+00:01:21.810 --> 00:01:23.540
+Suddenly, if you're
+a walking robot,
+
+00:01:23.540 --> 00:01:25.290
+you have to start
+carrying your actuators.
+
+00:01:25.290 --> 00:01:27.720
+So you didn't have to do
+that as a robotic arm.
+
+00:01:27.720 --> 00:01:30.630
+And that's created lots
+of interesting work
+
+00:01:30.630 --> 00:01:32.650
+in actuator technologies.
+
+00:01:32.650 --> 00:01:35.280
+How do you carry an actuator
+that can produce torque
+
+00:01:35.280 --> 00:01:37.410
+accurately, let's say?
+
+00:01:37.410 --> 00:01:38.910
+If you have to carry
+its own weight,
+
+00:01:38.910 --> 00:01:40.495
+that's been a
+challenging problem.
+
+00:01:40.495 --> 00:01:42.120
+There's lots of
+interesting work there.
+
+00:01:42.120 --> 00:01:43.350
+But I will stand by.
+
+00:01:43.350 --> 00:01:46.950
+I think that the reason we
+don't have walking robots today
+
+00:01:46.950 --> 00:01:49.170
+is not actuators.
+
+00:01:49.170 --> 00:01:51.055
+It's not power density.
+
+00:01:51.055 --> 00:01:53.430
+These are problems, but I
+think the fundamental challenge
+
+00:01:53.430 --> 00:01:54.940
+is in control.
+
+00:01:54.940 --> 00:01:55.440
+OK.
+
+00:01:55.440 --> 00:01:59.910
+And we are now well-suited
+to make progress
+
+00:01:59.910 --> 00:02:02.440
+on that control problem.
+
+00:02:02.440 --> 00:02:02.940
+OK.
+
+00:02:02.940 --> 00:02:07.590
+So based on what
+we've learned so far,
+
+00:02:07.590 --> 00:02:09.570
+walking robots
+aren't that different
+
+00:02:09.570 --> 00:02:12.070
+than the Acrobot
+and the CartPole.
+
+00:02:12.070 --> 00:02:15.120
+There's two things that
+are different dynamically
+
+00:02:15.120 --> 00:02:17.100
+speaking about a walking robot.
+
+00:02:17.100 --> 00:02:20.220
+The first is we have to think
+about limit cycles instead
+
+00:02:20.220 --> 00:02:21.180
+of just trajectories.
+
+00:02:21.180 --> 00:02:26.640
+And we're going to talk
+for some time about that.
+
+00:02:26.640 --> 00:02:28.260
+The first thing
+was limit cycles.
+
+00:02:28.260 --> 00:02:31.470
+The second thing is impacts.
+
+00:02:31.470 --> 00:02:34.770
+Walking robots, every time
+their feet hit the ground,
+
+00:02:34.770 --> 00:02:37.440
+we have to start
+dealing with impact.
+
+00:02:37.440 --> 00:02:40.710
+So dealing with periodic
+motions and dealing with impacts
+
+00:02:40.710 --> 00:02:44.870
+are the two big
+technical hurdles.
+
+00:02:44.870 --> 00:02:46.620
+And they're not even
+that big necessarily,
+
+00:02:46.620 --> 00:02:48.060
+but they're the
+technical hurdles
+
+00:02:48.060 --> 00:02:49.860
+of taking the techniques
+we've already developed
+
+00:02:49.860 --> 00:02:51.360
+and applying them
+to walking robots.
+
+00:03:12.360 --> 00:03:15.390
+And impacts more
+generally might be
+
+00:03:15.390 --> 00:03:22.170
+called sort of hybrid
+dynamics, where
+
+00:03:22.170 --> 00:03:24.730
+you have a mixing of discrete
+time and continuous time
+
+00:03:24.730 --> 00:03:25.230
+dynamics.
+
+00:03:32.700 --> 00:03:33.200
+OK.
+
+00:03:33.200 --> 00:03:35.700
+So before I launch into some
+of the models of walking, which
+
+00:03:35.700 --> 00:03:37.580
+we'll get to pretty
+quick, let's do
+
+00:03:37.580 --> 00:03:41.000
+a toy example to start
+thinking about limit cycles
+
+00:03:41.000 --> 00:03:42.500
+and limit cycle stability.
+
+00:03:42.500 --> 00:03:43.790
+OK.
+
+00:03:43.790 --> 00:03:46.460
+So you can get your head
+around limit cycle stability
+
+00:03:46.460 --> 00:03:48.875
+with some very simple
+oscillator type circuits.
+
+00:03:56.821 --> 00:04:00.774
+My favorite simple oscillator
+is the Van der Pol oscillator.
+
+00:04:10.470 --> 00:04:11.330
+OK.
+
+00:04:11.330 --> 00:04:15.075
+So it's a second order system.
+
+00:04:29.690 --> 00:04:34.010
+These are the standard equations
+for Van der Pol oscillator
+
+00:04:34.010 --> 00:04:36.140
+where mu is some
+parameter you can choose.
+
+00:04:39.470 --> 00:04:41.000
+You can look at
+it pretty quickly
+
+00:04:41.000 --> 00:04:45.530
+and start thinking about it
+almost like a very simple
+
+00:04:45.530 --> 00:04:50.120
+spring mass damper system.
+
+00:04:50.120 --> 00:04:51.830
+The only complicated
+part is it's
+
+00:04:51.830 --> 00:04:55.490
+got state dependent
+nonlinear damping.
+
+00:04:59.120 --> 00:05:01.640
+So think about it almost
+like a spring mass system,
+
+00:05:01.640 --> 00:05:04.970
+but it's got nonlinear damping,
+state dependent damping.
+
+00:05:04.970 --> 00:05:07.980
+And in particular,
+if you look at it,
+
+00:05:07.980 --> 00:05:12.680
+you can think of it as
+having, if the magnitude of x
+
+00:05:12.680 --> 00:05:17.180
+is less than 1, then is
+that positive damping
+
+00:05:17.180 --> 00:05:18.400
+or negative damping?
+
+00:05:18.400 --> 00:05:23.698
+AUDIENCE: [INAUDIBLE]
+
+00:05:23.698 --> 00:05:25.990
+RUSS TEDRAKE: There's a sign
+change in the word damping
+
+00:05:25.990 --> 00:05:26.990
+somewhere in there, too.
+
+00:05:26.990 --> 00:05:34.120
+It's going to add energy to
+the system if x is less than 1,
+
+00:05:34.120 --> 00:05:38.020
+which I think is negative
+damping typically.
+
+00:05:38.020 --> 00:05:43.750
+And if x is greater than 1,
+it's going to remove energy.
+
+00:05:43.750 --> 00:05:53.570
+It's going to dissipate
+energy, right?
+
+00:05:56.190 --> 00:06:00.210
+So it's not too hard to believe
+that you're going to end up
+
+00:06:00.210 --> 00:06:03.120
+with something that oscillates.
+
+00:06:03.120 --> 00:06:07.920
+If it's adding energy for
+small x's and removing energy
+
+00:06:07.920 --> 00:06:09.270
+for large X's.
+
+00:06:09.270 --> 00:06:12.130
+It's not too surprising maybe
+that you get this thing going.
+
+00:06:12.130 --> 00:06:13.350
+And it starts oscillating.
+
+00:06:19.930 --> 00:06:22.660
+I might as well show you
+the real trajectories
+
+00:06:22.660 --> 00:06:24.970
+instead of drawing them badly.
+
+00:07:14.700 --> 00:07:17.130
+So if I do a phase
+plot of this system,
+
+00:07:17.130 --> 00:07:21.300
+which is two-dimensional--
+
+00:07:21.300 --> 00:07:23.010
+it's got a walking
+robot in the middle.
+
+00:07:23.010 --> 00:07:25.030
+Sorry-- close figures.
+
+00:07:27.930 --> 00:07:28.620
+There we go.
+
+00:07:28.620 --> 00:07:29.120
+OK.
+
+00:07:32.910 --> 00:07:35.070
+And yeah, that's good.
+
+00:07:35.070 --> 00:07:36.580
+That's excellent.
+
+00:07:36.580 --> 00:07:37.080
+OK.
+
+00:07:37.080 --> 00:07:40.440
+So these are three plots,
+the three trajectories
+
+00:07:40.440 --> 00:07:42.660
+from three different
+initial conditions, one
+
+00:07:42.660 --> 00:07:45.690
+that started off with some large
+negative initial conditions
+
+00:07:45.690 --> 00:07:49.920
+in both theta and theta
+dot-- or x and x dot, sorry.
+
+00:07:49.920 --> 00:07:53.730
+And damping took the energy
+out and started going
+
+00:07:53.730 --> 00:07:57.180
+to this stable oscillation.
+
+00:07:57.180 --> 00:07:58.980
+From another very
+large trajectory,
+
+00:07:58.980 --> 00:08:00.870
+it did roughly the
+same thing, went
+
+00:08:00.870 --> 00:08:03.030
+to that same basic oscillation.
+
+00:08:03.030 --> 00:08:05.190
+And then even from very
+small initial conditions
+
+00:08:05.190 --> 00:08:09.120
+near the origin, it'll
+swing out and start
+
+00:08:09.120 --> 00:08:13.500
+going to these same
+characteristic oscillation
+
+00:08:13.500 --> 00:08:15.030
+in phase space.
+
+00:08:18.053 --> 00:08:19.470
+So this is exactly
+the picture you
+
+00:08:19.470 --> 00:08:23.700
+want to have in your head of
+a stable limit cycle behavior.
+
+00:08:23.700 --> 00:08:25.380
+It's a periodic motion.
+
+00:08:25.380 --> 00:08:30.720
+When I'm away from that
+motion, I return to it, right?
+
+00:08:30.720 --> 00:08:32.908
+This is exactly what
+we want to capture
+
+00:08:32.908 --> 00:08:34.200
+by saying a stable limit cycle.
+
+00:08:34.200 --> 00:08:38.730
+It turns out it's not sort
+of trivial to write down
+
+00:08:38.730 --> 00:08:42.600
+what you mean by a stability
+in the limit cycle context.
+
+00:08:42.600 --> 00:08:44.497
+We'll see more about
+that in a second.
+
+00:08:44.497 --> 00:08:46.080
+But first, if you
+just sort of-- let's
+
+00:08:46.080 --> 00:08:49.770
+just use our imagine and talk
+about some asymptotic stability
+
+00:08:49.770 --> 00:08:52.878
+to this orbit.
+
+00:08:52.878 --> 00:08:54.420
+Does anybody know
+it from this system
+
+00:08:54.420 --> 00:08:57.270
+whether this system
+is globally stable?
+
+00:09:00.518 --> 00:09:01.825
+Why is it not globally stable?
+
+00:09:01.825 --> 00:09:02.700
+AUDIENCE: [INAUDIBLE]
+
+00:09:02.700 --> 00:09:03.690
+RUSS TEDRAKE: Good.
+
+00:09:03.690 --> 00:09:07.020
+I think it's true that
+it's globally stable
+
+00:09:07.020 --> 00:09:09.795
+except for a set of measures 0
+is the way you say it, right?
+
+00:09:09.795 --> 00:09:11.670
+Because, darn it, if
+you start at the origin,
+
+00:09:11.670 --> 00:09:13.680
+it's not going to get there.
+
+00:09:13.680 --> 00:09:16.870
+It'll never start
+moving from the origin.
+
+00:09:16.870 --> 00:09:20.310
+Any other initial conditions
+will find their way back
+
+00:09:20.310 --> 00:09:24.720
+to that stable limit cycle.
+
+00:09:24.720 --> 00:09:27.990
+So why is it not
+trivial to say what
+
+00:09:27.990 --> 00:09:31.650
+I mean by a stable limit cycle?
+
+00:09:31.650 --> 00:09:39.090
+Well, let's plot
+that same system
+
+00:09:39.090 --> 00:09:43.742
+in the time domain,
+same initial conditions.
+
+00:09:43.742 --> 00:09:44.700
+Everything is the same.
+
+00:09:50.600 --> 00:09:51.190
+Here we go.
+
+00:09:53.870 --> 00:09:56.720
+Same exact trajectories,
+you can see they all
+
+00:09:56.720 --> 00:10:00.380
+go to their characteristic
+oscillation pretty quickly,
+
+00:10:00.380 --> 00:10:02.750
+in fact, right?
+
+00:10:02.750 --> 00:10:04.820
+But you can see it's
+crystal clear here
+
+00:10:04.820 --> 00:10:09.560
+that the trajectories never
+synchronize themselves in time.
+
+00:10:09.560 --> 00:10:12.822
+And that's not too surprising.
+
+00:10:12.822 --> 00:10:14.030
+So you're on the limit cycle.
+
+00:10:17.000 --> 00:10:20.960
+If there's two trajectories that
+are a different place in phase
+
+00:10:20.960 --> 00:10:23.660
+on the limit cycle,
+there's nothing that's
+
+00:10:23.660 --> 00:10:26.070
+forcing them to come together.
+
+00:10:26.070 --> 00:10:29.607
+So they'll continue
+to be apart in time.
+
+00:10:29.607 --> 00:10:31.190
+Such a simple thing,
+but actually that
+
+00:10:31.190 --> 00:10:34.940
+complicates our ability
+to define stability.
+
+00:10:34.940 --> 00:10:37.940
+We can't talk about trajectories
+asymptotically converging
+
+00:10:37.940 --> 00:10:40.100
+anymore because they don't.
+
+00:10:40.100 --> 00:10:43.430
+They asymptotically
+converge to some manifold,
+
+00:10:43.430 --> 00:10:45.830
+but that's harder to describe.
+
+00:10:45.830 --> 00:10:49.220
+As such, we actually have
+relatively few good tools
+
+00:10:49.220 --> 00:10:51.288
+for describing limit
+cycle stability.
+
+00:10:58.720 --> 00:11:00.910
+The standard tool--
+well, actually
+
+00:11:00.910 --> 00:11:05.650
+let me say a few things
+more about limit cycle
+
+00:11:05.650 --> 00:11:07.150
+before I tell you
+the standard tool.
+
+00:11:07.150 --> 00:11:11.480
+But there's actually a few
+things that are interesting,
+
+00:11:11.480 --> 00:11:14.080
+just good general knowledge,
+about limit cycles.
+
+00:11:17.856 --> 00:11:22.780
+It turns out, if you have a
+closed region in state space,
+
+00:11:22.780 --> 00:11:24.880
+meaning trajectories that
+are inside this region
+
+00:11:24.880 --> 00:11:29.860
+never leave this region, and
+if that region of state space
+
+00:11:29.860 --> 00:11:34.230
+has no fixed points, then
+it's got a closed orbit.
+
+00:11:37.920 --> 00:11:39.250
+There's got to be something.
+
+00:11:39.250 --> 00:11:41.380
+It doesn't have to be
+a stable limit cycle,
+
+00:11:41.380 --> 00:11:43.510
+but it has to repeat itself.
+
+00:11:43.510 --> 00:11:46.240
+If you stay inside
+a region forever
+
+00:11:46.240 --> 00:11:47.728
+and you don't go
+to a fixed point,
+
+00:11:47.728 --> 00:11:49.270
+then you have to
+have a closed orbit.
+
+00:11:49.270 --> 00:11:54.610
+That's the Poincaré
+and Bendixon theorem.
+
+00:11:54.610 --> 00:11:56.440
+And it's also
+interesting to note that,
+
+00:11:56.440 --> 00:11:59.680
+if you have a dynamical system
+described by a potential
+
+00:11:59.680 --> 00:12:05.200
+function, like any system that's
+described by Lyapunov function,
+
+00:12:05.200 --> 00:12:08.950
+that cannot have a limit cycle.
+
+00:12:08.950 --> 00:12:12.340
+Anything that's uniformly
+going down a gradient
+
+00:12:12.340 --> 00:12:16.750
+can't have a limit
+cycle dynamic.
+
+00:12:16.750 --> 00:12:18.925
+So a lot of Lyapunov theory
+doesn't apply directly.
+
+00:12:23.620 --> 00:12:29.110
+And another thing is
+that people don't always
+
+00:12:29.110 --> 00:12:30.837
+call any closed
+orbits-- these are just
+
+00:12:30.837 --> 00:12:32.920
+random factoids about limit
+cycle before we go on,
+
+00:12:32.920 --> 00:12:34.900
+but they're good culture here.
+
+00:12:34.900 --> 00:12:41.380
+But if you have a closed orbit
+in state space, if it's stable,
+
+00:12:41.380 --> 00:12:43.690
+people call it a limit cycle.
+
+00:12:43.690 --> 00:12:46.990
+If it's unstable, people
+call it a limit cycle.
+
+00:12:46.990 --> 00:12:49.240
+If it's marginally stable,
+people don't really
+
+00:12:49.240 --> 00:12:51.280
+use the word limit cycle.
+
+00:12:51.280 --> 00:12:58.630
+So for instance, on the undamped
+pendulum, the marginally stable
+
+00:12:58.630 --> 00:13:00.705
+orbits, there's no stability
+properties on these.
+
+00:13:00.705 --> 00:13:02.830
+People would typically not
+use the word limit cycle
+
+00:13:02.830 --> 00:13:08.020
+to describe those closed
+orbits on the phase space.
+
+00:13:08.020 --> 00:13:11.620
+But anything that has the sort
+of converging or diverging
+
+00:13:11.620 --> 00:13:14.450
+property around a
+single trajectory--
+
+00:13:14.450 --> 00:13:17.160
+so what's another
+good way to say it?
+
+00:13:22.670 --> 00:13:26.090
+There's some words that I liked
+about the trajectories have
+
+00:13:26.090 --> 00:13:28.160
+to be isolated in
+space, basically.
+
+00:13:28.160 --> 00:13:30.885
+If these closed orbits
+are not isolated in space,
+
+00:13:30.885 --> 00:13:33.260
+if there's not something sort
+of separating between them,
+
+00:13:33.260 --> 00:13:35.790
+then people don't use the word
+limit cycle to describe it.
+
+00:13:40.230 --> 00:13:42.960
+OK, so we can't talk about
+asymptotic convergence
+
+00:13:42.960 --> 00:13:45.220
+of trajectories on limit cycles.
+
+00:13:45.220 --> 00:13:47.730
+We can't use vanilla
+Lyapunov functions
+
+00:13:47.730 --> 00:13:50.760
+to talk about stability
+on limit cycles.
+
+00:13:50.760 --> 00:13:53.310
+So what do people do, right?
+
+00:13:53.310 --> 00:13:56.670
+There's a standard trick
+that most people play.
+
+00:13:56.670 --> 00:13:59.640
+And that's the idea of Poincaré
+sections and Poincaré maps.
+
+00:13:59.640 --> 00:14:03.240
+How many people have seen
+Poincaré maps before?
+
+00:14:03.240 --> 00:14:04.680
+OK.
+
+00:14:04.680 --> 00:14:07.240
+Here's the idea.
+
+00:14:07.240 --> 00:14:15.240
+So I've got some
+orbit in state space.
+
+00:14:15.240 --> 00:14:22.770
+This is XXed out of my
+Van der Pol oscillator.
+
+00:14:22.770 --> 00:14:26.580
+Instead of talking about
+convergent to some orbit,
+
+00:14:26.580 --> 00:14:31.650
+I'm going to define a particular
+surface in this state space.
+
+00:14:31.650 --> 00:14:34.140
+Let's say I define--
+
+00:14:34.140 --> 00:14:36.780
+that's a bad choice.
+
+00:14:36.780 --> 00:14:39.270
+I've got 40 colors here.
+
+00:14:39.270 --> 00:14:41.190
+I had to pick the one
+that was-- that's not
+
+00:14:41.190 --> 00:14:42.273
+a very good choice either.
+
+00:14:45.540 --> 00:14:47.228
+Green's got to
+work for me, yeah?
+
+00:14:50.520 --> 00:14:54.750
+They're all fairly toned down.
+
+00:14:54.750 --> 00:14:59.780
+OK, let's pick a particular
+section in state space.
+
+00:14:59.780 --> 00:15:01.860
+Instead of talking
+about the convergence
+
+00:15:01.860 --> 00:15:05.310
+in this continuous
+dynamics to this orbit,
+
+00:15:05.310 --> 00:15:08.790
+let's just look at the
+dynamics of that limit cycle
+
+00:15:08.790 --> 00:15:11.740
+every time it
+crosses this section.
+
+00:15:11.740 --> 00:15:12.390
+OK.
+
+00:15:12.390 --> 00:15:22.740
+This is called the
+surface of section,
+
+00:15:22.740 --> 00:15:25.500
+often referred to
+as just some big S.
+
+00:15:25.500 --> 00:15:28.950
+And a surface of
+section, if it's
+
+00:15:28.950 --> 00:15:32.940
+the case that all
+trajectories that leave
+
+00:15:32.940 --> 00:15:35.700
+the surface of
+section eventually
+
+00:15:35.700 --> 00:15:37.170
+return to the
+surface of section--
+
+00:15:41.100 --> 00:15:42.520
+I'm going to write this down--
+
+00:15:42.520 --> 00:15:46.620
+then defining a
+surface of section
+
+00:15:46.620 --> 00:15:51.480
+allows you to convert the
+continuous time stability
+
+00:15:51.480 --> 00:15:54.540
+of a limit cycle into
+the discrete time
+
+00:15:54.540 --> 00:15:55.800
+stability of a fixed point.
+
+00:16:42.700 --> 00:16:46.120
+So we know a lot about defining
+stability for fixed points.
+
+00:16:46.120 --> 00:16:49.510
+The big idea is we're going
+to turn limit cycle stability
+
+00:16:49.510 --> 00:16:51.130
+into fixed point stability.
+
+00:16:58.700 --> 00:17:03.599
+And the name of the technique
+is the Poincaré map technique,
+
+00:17:03.599 --> 00:17:04.099
+let's say.
+
+00:17:24.970 --> 00:17:25.470
+OK.
+
+00:17:25.470 --> 00:17:30.210
+So I've got some continuous
+dynamical system.
+
+00:17:30.210 --> 00:17:32.010
+Let's make it simple.
+
+00:17:32.010 --> 00:17:36.220
+Let's say there's no control to
+speak of, no time dependence.
+
+00:17:36.220 --> 00:17:38.370
+Let's just keep the
+simplest sort of analysis.
+
+00:17:38.370 --> 00:17:40.500
+I've got some continuous
+time dynamical system.
+
+00:17:43.180 --> 00:17:49.960
+Let me call tc the
+time of crossing
+
+00:17:49.960 --> 00:17:51.670
+the surface of section.
+
+00:17:51.670 --> 00:18:11.430
+So I'll say tcn is n-th
+crossing of S. That allows
+
+00:18:11.430 --> 00:18:14.970
+me to define a discrete
+time system, which
+
+00:18:14.970 --> 00:18:19.830
+I'm going to call xp of n.
+
+00:18:19.830 --> 00:18:25.260
+xp of n is x at tc of n.
+
+00:18:28.620 --> 00:18:31.770
+I'm just trying to be very
+careful about my notation.
+
+00:18:31.770 --> 00:18:36.960
+I'm going to use p for any time
+the vector x I'm talking about
+
+00:18:36.960 --> 00:18:38.520
+lives on the Poincaré map.
+
+00:18:38.520 --> 00:18:40.437
+I'm trying to be careful
+about the transition
+
+00:18:40.437 --> 00:18:42.020
+from continuous time
+to discrete time.
+
+00:18:45.660 --> 00:18:54.420
+And the result is a
+discrete time map,
+
+00:18:54.420 --> 00:18:56.490
+which I typically call
+P for Poincaré map.
+
+00:19:02.630 --> 00:19:04.832
+It can be linear or
+non-linear, right?
+
+00:19:04.832 --> 00:19:06.290
+In general, it's
+non-linear for us.
+
+00:19:09.340 --> 00:19:12.560
+Defining that surface of section
+defines for me a map which
+
+00:19:12.560 --> 00:19:15.710
+says, if I cross the
+surface of section
+
+00:19:15.710 --> 00:19:20.030
+at the n-th time at state
+xp, then the next time
+
+00:19:20.030 --> 00:19:23.110
+I cross it's going to
+be xp n plus 1, right?
+
+00:19:27.390 --> 00:19:33.360
+So if I'm on the Van
+der Pol oscillator idea,
+
+00:19:33.360 --> 00:19:38.050
+let's say xpn is something here.
+
+00:19:38.050 --> 00:19:40.290
+I've defined my surface
+of section, in this case,
+
+00:19:40.290 --> 00:19:43.590
+to be the place
+where x equals 0.
+
+00:19:43.590 --> 00:19:48.880
+x dot is greater than 0 just to
+define only half of that line
+
+00:19:48.880 --> 00:19:49.380
+there.
+
+00:19:49.380 --> 00:19:51.990
+It's a line segment.
+
+00:19:51.990 --> 00:19:55.025
+This thing we saw is going
+to go around like this.
+
+00:19:55.025 --> 00:19:56.400
+It's going to get
+a little closer
+
+00:19:56.400 --> 00:19:57.483
+to the nominal trajectory.
+
+00:19:57.483 --> 00:20:00.060
+It's going to come back here.
+
+00:20:00.060 --> 00:20:02.460
+So this mapping is what
+I'm capturing at p.
+
+00:20:05.390 --> 00:20:09.960
+If I go around again,
+I'll come here, yeah?
+
+00:20:09.960 --> 00:20:13.020
+The key idea is
+that, if that map
+
+00:20:13.020 --> 00:20:16.650
+exists for all states for
+any time on this map--
+
+00:20:16.650 --> 00:20:19.890
+I go around, and I can
+get back to the map--
+
+00:20:19.890 --> 00:20:21.690
+then knowing that
+you have stability
+
+00:20:21.690 --> 00:20:27.180
+on this map that points in xp,
+if xp as it evolves in time
+
+00:20:27.180 --> 00:20:30.300
+goes to a fixed point,
+then that must also
+
+00:20:30.300 --> 00:20:32.700
+imply that you go
+to a limit cycle
+
+00:20:32.700 --> 00:20:34.943
+fixed point in
+continuous domain.
+
+00:20:34.943 --> 00:20:36.360
+Nothing else is
+allowed to happen.
+
+00:20:36.360 --> 00:20:39.720
+If I'm on this state in
+my continuous time world,
+
+00:20:39.720 --> 00:20:42.712
+then there's no time
+dependent functions here.
+
+00:20:42.712 --> 00:20:44.670
+There's no other state
+that I'm not looking at.
+
+00:20:44.670 --> 00:20:46.830
+If I'm on this
+trajectory, I'm going
+
+00:20:46.830 --> 00:20:48.330
+to stay on that trajectory.
+
+00:20:48.330 --> 00:20:50.020
+Of course, a disturbance or
+something could knock me off,
+
+00:20:50.020 --> 00:20:52.200
+but we're just looking
+at the nominal system.
+
+00:20:54.960 --> 00:20:56.940
+So fixed point
+stability on the map
+
+00:20:56.940 --> 00:21:03.160
+implies limit cycle stability
+in continuous time, OK?
+
+00:21:03.160 --> 00:21:04.190
+Awesome.
+
+00:21:08.580 --> 00:21:11.940
+Yeah, I don't really
+need that yet.
+
+00:21:11.940 --> 00:21:19.250
+If I work out the map for
+the Van der Pol oscillator,
+
+00:21:19.250 --> 00:21:26.660
+let me draw this map now
+as xp at n-th step going
+
+00:21:26.660 --> 00:21:29.760
+to xp at the n plus 1-th step.
+
+00:21:32.900 --> 00:21:37.290
+At 0, it doesn't go anywhere.
+
+00:21:37.290 --> 00:21:40.340
+So that's an easy point to draw.
+
+00:21:40.340 --> 00:21:41.420
+I know it crosses 0.
+
+00:21:48.630 --> 00:21:50.010
+I'm being a little loose here.
+
+00:21:50.010 --> 00:21:57.990
+So what I really care about is,
+since I know the position is 0,
+
+00:21:57.990 --> 00:22:00.570
+really what I'm drawing is
+sort of the velocity at that,
+
+00:22:00.570 --> 00:22:01.700
+let me call it, xp dot.
+
+00:22:01.700 --> 00:22:02.670
+Should I?
+
+00:22:02.670 --> 00:22:07.860
+Well, xpn has two elements
+the way I've defined it here.
+
+00:22:07.860 --> 00:22:10.480
+Only one of them has anything
+interesting going on.
+
+00:22:10.480 --> 00:22:13.063
+I'm not going to write a dot on
+top of my discrete time system
+
+00:22:13.063 --> 00:22:14.730
+just because I don't
+like that notation.
+
+00:22:14.730 --> 00:22:16.855
+But I'm going to draw the
+only interesting variable
+
+00:22:16.855 --> 00:22:18.360
+of the two-dimensional
+object xn.
+
+00:22:21.780 --> 00:22:25.650
+If I look at my velocity
+at the n-th crossing
+
+00:22:25.650 --> 00:22:28.365
+going to the velocity of
+the n plus 1 crossing,
+
+00:22:28.365 --> 00:22:31.830
+it turns out, if it's in
+here, I know from simulation
+
+00:22:31.830 --> 00:22:35.490
+there that it gets
+bigger every time.
+
+00:22:35.490 --> 00:22:37.800
+Getting bigger on
+this discrete map
+
+00:22:37.800 --> 00:22:42.720
+means that it's greater
+than the line of slope 1.
+
+00:22:47.560 --> 00:22:51.690
+Let me draw the line
+of slope 1 here.
+
+00:23:10.110 --> 00:23:13.890
+On the Van der Pol
+oscillator, it starts off
+
+00:23:13.890 --> 00:23:15.210
+getting bigger, bigger, bigger.
+
+00:23:18.690 --> 00:23:21.270
+And then at some
+point, it crosses here
+
+00:23:21.270 --> 00:23:24.550
+and goes off like this.
+
+00:23:24.550 --> 00:23:27.980
+I think I can even tell
+it to generate that,
+
+00:23:27.980 --> 00:23:32.770
+so you believe me, Poincaré.
+
+00:23:38.290 --> 00:23:40.330
+And I did it on top of
+my other plot again.
+
+00:23:48.340 --> 00:23:55.930
+So that's the Poincaré
+map now of this system.
+
+00:23:55.930 --> 00:24:00.040
+The blue line, this is
+xpk versus xpk plus 1.
+
+00:24:00.040 --> 00:24:01.750
+And that red line is
+the line of slope 1.
+
+00:24:04.660 --> 00:24:08.920
+This is a luxury of the sort of
+low-dimensional systems here.
+
+00:24:08.920 --> 00:24:11.560
+If I have a map from one
+variable to another variable,
+
+00:24:11.560 --> 00:24:13.960
+then just like the
+flows on a line,
+
+00:24:13.960 --> 00:24:15.430
+this is a discrete time map.
+
+00:24:15.430 --> 00:24:18.850
+But I can actually analyze
+everything graphically.
+
+00:24:18.850 --> 00:24:21.250
+So what do I know?
+
+00:24:21.250 --> 00:24:25.600
+I already told you by
+writing that equation that,
+
+00:24:25.600 --> 00:24:28.480
+if I look at my
+Poincaré map there,
+
+00:24:28.480 --> 00:24:32.410
+the place where it crosses the
+line of slope 1 is a special
+
+00:24:32.410 --> 00:24:32.950
+point.
+
+00:24:32.950 --> 00:24:35.253
+What is it?
+
+00:24:35.253 --> 00:24:36.170
+AUDIENCE: Fixed point.
+
+00:24:36.170 --> 00:24:37.795
+RUSS TEDRAKE: It's
+a fixed point, yeah.
+
+00:24:42.640 --> 00:24:48.653
+I've actually got another fixed
+point here at this, the origin.
+
+00:24:48.653 --> 00:24:50.070
+Just by inspection,
+I can tell you
+
+00:24:50.070 --> 00:24:51.737
+about the stability
+of that fixed point.
+
+00:24:54.930 --> 00:24:59.703
+So when I'm over here,
+I'm getting bigger.
+
+00:24:59.703 --> 00:25:01.370
+When I'm over here,
+I'm getting smaller.
+
+00:25:03.907 --> 00:25:05.490
+So I can actually,
+just by inspection,
+
+00:25:05.490 --> 00:25:07.950
+tell you that that's going
+to be a stable fixed point.
+
+00:25:07.950 --> 00:25:09.100
+We have to be a little
+careful about it.
+
+00:25:09.100 --> 00:25:09.660
+I'm going to show you.
+
+00:25:09.660 --> 00:25:11.327
+In fact, the right
+way to think about it
+
+00:25:11.327 --> 00:25:13.120
+is the staircase technique.
+
+00:25:13.120 --> 00:25:14.130
+OK.
+
+00:25:14.130 --> 00:25:18.780
+So if I want to follow the
+dynamics of this iterated map,
+
+00:25:18.780 --> 00:25:22.140
+how many people see
+the staircase pictures?
+
+00:25:22.140 --> 00:25:23.460
+Yeah.
+
+00:25:23.460 --> 00:25:25.290
+OK, so let's say I
+start in my system,
+
+00:25:25.290 --> 00:25:29.190
+and xp is some
+small number here.
+
+00:25:29.190 --> 00:25:31.440
+And the right way
+to think about that
+
+00:25:31.440 --> 00:25:35.640
+is the next time I'm going
+to go to this new value
+
+00:25:35.640 --> 00:25:39.900
+I can sort of graphically
+copy that down to my next xp
+
+00:25:39.900 --> 00:25:42.420
+by drawing a line to
+the line of slope 1.
+
+00:25:45.480 --> 00:25:47.350
+And then I can, from
+there, evaluate where
+
+00:25:47.350 --> 00:25:49.470
+the next xp is going to be.
+
+00:25:53.070 --> 00:25:55.140
+And now it goes right
+into the fixed point.
+
+00:25:55.140 --> 00:25:56.723
+That should have
+been a little flatter
+
+00:25:56.723 --> 00:25:57.810
+than I ended up making it.
+
+00:25:57.810 --> 00:26:00.370
+And then on this
+side, similarly, I
+
+00:26:00.370 --> 00:26:04.530
+can got to here right
+into the fixed point.
+
+00:26:04.530 --> 00:26:05.250
+Yes?
+
+00:26:05.250 --> 00:26:08.070
+AUDIENCE: Could you kind of
+emulate a flow diagram that
+
+00:26:08.070 --> 00:26:10.240
+plotted xpn plus 1 minus xpn?
+
+00:26:13.850 --> 00:26:16.475
+And then instead of
+reaching the line of slope
+
+00:26:16.475 --> 00:26:18.050
+of 1 when it crosses the--
+
+00:26:18.050 --> 00:26:19.610
+RUSS TEDRAKE: Absolutely, sure.
+
+00:26:19.610 --> 00:26:22.070
+Sure, you could subtract
+out xpn from there
+
+00:26:22.070 --> 00:26:24.030
+and get it in terms of 0s.
+
+00:26:24.030 --> 00:26:24.890
+Yeah.
+
+00:26:24.890 --> 00:26:28.040
+The thing that might be
+misleading about that,
+
+00:26:28.040 --> 00:26:29.270
+you have to be careful.
+
+00:26:29.270 --> 00:26:31.187
+Because discrete time
+systems can do something
+
+00:26:31.187 --> 00:26:33.320
+that continuous time
+systems can't do--
+
+00:26:33.320 --> 00:26:36.290
+is they can jump, right?
+
+00:26:36.290 --> 00:26:38.240
+So I could actually
+define something
+
+00:26:38.240 --> 00:26:41.930
+that then looked
+a little benign,
+
+00:26:41.930 --> 00:26:44.030
+but is actually unstable.
+
+00:26:44.030 --> 00:26:54.220
+If I had something that looks
+like this, what does that do?
+
+00:26:54.220 --> 00:26:56.960
+You go here, here.
+
+00:26:56.960 --> 00:26:59.600
+And you know, well, I
+guess it goes down to here.
+
+00:26:59.600 --> 00:27:01.310
+That one might actually catch--
+
+00:27:01.310 --> 00:27:03.045
+shoot, I didn't make my point.
+
+00:27:03.045 --> 00:27:05.420
+You could limit cycle here
+like this or something, right?
+
+00:27:05.420 --> 00:27:10.400
+I did a more dramatic
+plot to make my point.
+
+00:27:14.780 --> 00:27:17.650
+It's pretty funny that
+it's all unitless.
+
+00:27:17.650 --> 00:27:20.240
+So the fact that I gave myself
+that problem is ridiculous.
+
+00:27:25.190 --> 00:27:29.060
+You can imagine starting
+off here, getting
+
+00:27:29.060 --> 00:27:32.690
+bigger and bigger,
+and off you go, right?
+
+00:27:32.690 --> 00:27:36.500
+OK, so what are the conditions
+for stability, local stability
+
+00:27:36.500 --> 00:27:37.940
+on that fixed point?
+
+00:27:37.940 --> 00:27:40.520
+You all know what they
+are, but just now you
+
+00:27:40.520 --> 00:27:44.690
+can maybe see them graphically
+by my exaggerated example.
+
+00:27:44.690 --> 00:27:47.270
+What are the conditions
+on the local stability?
+
+00:27:47.270 --> 00:27:49.882
+What does the slope of
+that line have to be?
+
+00:27:49.882 --> 00:27:53.730
+AUDIENCE: It has
+to be less than 1?
+
+00:27:53.730 --> 00:27:58.680
+RUSS TEDRAKE: The magnitude
+has to be less than 1, right?
+
+00:27:58.680 --> 00:28:03.180
+It could be sloped like
+this, sloped like this.
+
+00:28:03.180 --> 00:28:06.780
+What matters is that it's
+not sloped past the line.
+
+00:28:06.780 --> 00:28:09.118
+The other, the simpler thing,
+to draw for instability
+
+00:28:09.118 --> 00:28:11.160
+would be if my plot had
+gone like this, that it's
+
+00:28:11.160 --> 00:28:13.430
+clearly unstable, right?
+
+00:28:17.880 --> 00:28:20.250
+Because then I'd go
+like this, this, this.
+
+00:28:20.250 --> 00:28:22.950
+Then off I go to infinity.
+
+00:28:22.950 --> 00:28:27.720
+But it also happens if
+I'm unstable like this
+
+00:28:27.720 --> 00:28:31.139
+because I oscillate
+myself off to infinity.
+
+00:28:53.040 --> 00:28:58.110
+If I look at the gradient
+of p with respect
+
+00:28:58.110 --> 00:29:04.440
+to x at some fixed point,
+the eigenvalues of that
+
+00:29:04.440 --> 00:29:09.830
+had better be less than
+1 for it to be stable.
+
+00:29:09.830 --> 00:29:10.330
+Yeah.
+
+00:29:10.330 --> 00:29:11.747
+AUDIENCE: So if
+you're linearized,
+
+00:29:11.747 --> 00:29:13.260
+then you're basically
+at that point.
+
+00:29:13.260 --> 00:29:14.718
+RUSS TEDRAKE: So
+that's a statement
+
+00:29:14.718 --> 00:29:16.603
+about local stability.
+
+00:29:16.603 --> 00:29:18.270
+One of the cool things
+about these maps,
+
+00:29:18.270 --> 00:29:20.460
+actually, is people
+have stronger--
+
+00:29:20.460 --> 00:29:22.710
+certainly, graphically I did
+sort of a stronger thing.
+
+00:29:22.710 --> 00:29:25.260
+I said I could just look at this
+and know that it was stable.
+
+00:29:25.260 --> 00:29:28.260
+People actually know quite
+a bit about the properties
+
+00:29:28.260 --> 00:29:30.330
+of these maps.
+
+00:29:30.330 --> 00:29:33.720
+Just again for
+culture, it turns out,
+
+00:29:33.720 --> 00:29:37.570
+if you have a unimodal
+map like this,
+
+00:29:37.570 --> 00:29:42.420
+if the gradient
+doesn't change same
+
+00:29:42.420 --> 00:29:49.185
+and if it's locally stable, then
+you can infer global stability.
+
+00:29:49.185 --> 00:29:51.060
+There's a citation in
+the notes where you can
+
+00:29:51.060 --> 00:29:53.500
+see the careful result of that.
+
+00:29:53.500 --> 00:29:59.880
+Some of the Koditschek's hopping
+work exploited that result.
+
+00:29:59.880 --> 00:30:03.180
+So people do know some things,
+more strong global properties
+
+00:30:03.180 --> 00:30:05.430
+of these maps.
+
+00:30:05.430 --> 00:30:08.749
+But the trivial one to think
+about is this local stability.
+
+00:30:26.740 --> 00:30:31.530
+OK, so we know a
+bit now about how
+
+00:30:31.530 --> 00:30:35.022
+to talk about whether a
+limit cycle system is stable.
+
+00:30:35.022 --> 00:30:37.230
+It's a little more subtle
+than fixed point stability,
+
+00:30:37.230 --> 00:30:37.897
+but not too bad.
+
+00:30:40.350 --> 00:30:44.100
+The hard part comes if you can't
+find a mapping where it always
+
+00:30:44.100 --> 00:30:44.850
+returns to itself.
+
+00:30:44.850 --> 00:30:47.980
+And then you have
+problems, right?
+
+00:30:47.980 --> 00:30:50.130
+But in this case, you
+can say strong things
+
+00:30:50.130 --> 00:30:52.810
+about the stability.
+
+00:30:52.810 --> 00:30:53.460
+OK.
+
+00:30:53.460 --> 00:30:57.540
+Now, we're set up to talk about
+walking, so my favorite topic
+
+00:30:57.540 --> 00:30:58.350
+here.
+
+00:30:58.350 --> 00:31:03.113
+Let me actually
+say historically,
+
+00:31:03.113 --> 00:31:04.530
+I mean, people
+have obviously been
+
+00:31:04.530 --> 00:31:07.050
+interested in walking
+for a long, long time.
+
+00:31:10.080 --> 00:31:12.120
+Some people say
+that the first sort
+
+00:31:12.120 --> 00:31:16.050
+of serious study of
+legged locomotion
+
+00:31:16.050 --> 00:31:18.570
+was by a photographer.
+
+00:31:18.570 --> 00:31:20.070
+What's his name?
+
+00:31:20.070 --> 00:31:20.970
+AUDIENCE: Muybridge.
+
+00:31:20.970 --> 00:31:22.830
+RUSS TEDRAKE: Muybridge, good.
+
+00:31:22.830 --> 00:31:23.730
+Yeah.
+
+00:31:23.730 --> 00:31:29.160
+So a photographer had a sort
+of a fast shutter speed camera.
+
+00:31:29.160 --> 00:31:34.200
+And he had animals run in front
+of graph paper, basically.
+
+00:31:34.200 --> 00:31:38.190
+And he tried to win a bet,
+I think, was the story.
+
+00:31:38.190 --> 00:31:40.680
+Because people
+weren't sure, when
+
+00:31:40.680 --> 00:31:43.440
+horses were doing their sort
+of certain gait, whether they--
+
+00:31:43.440 --> 00:31:44.490
+I think it was a gallop.
+
+00:31:44.490 --> 00:31:46.230
+They asked, when the
+horse gallops does,
+
+00:31:46.230 --> 00:31:49.560
+he ever actually get all
+four feet off the ground?
+
+00:31:49.560 --> 00:31:51.735
+And the guy who
+sort of proved that
+
+00:31:51.735 --> 00:31:54.360
+was a photographer, that took a
+picture of all four feet coming
+
+00:31:54.360 --> 00:31:55.500
+off the ground.
+
+00:31:55.500 --> 00:31:58.590
+And you can get his books,
+which are these fantastic
+
+00:31:58.590 --> 00:32:01.458
+books of all sorts of
+animals, just pictures
+
+00:32:01.458 --> 00:32:03.750
+and pictures and pictures of
+all sorts of animals, sort
+
+00:32:03.750 --> 00:32:07.020
+of almost stroke photography
+of these animals walking
+
+00:32:07.020 --> 00:32:09.330
+in front of graph paper.
+
+00:32:09.330 --> 00:32:14.580
+You get elephants, and camels,
+and humans, and babies,
+
+00:32:14.580 --> 00:32:17.160
+and horses, and dogs.
+
+00:32:17.160 --> 00:32:18.330
+You name it.
+
+00:32:18.330 --> 00:32:22.155
+So if you ever
+sort of are curious
+
+00:32:22.155 --> 00:32:24.030
+what the gate of a
+certain animal looks like,
+
+00:32:24.030 --> 00:32:25.860
+you can go to Muybridge.
+
+00:32:25.860 --> 00:32:29.160
+And he also sort of started
+defining this language
+
+00:32:29.160 --> 00:32:31.590
+for describing the gaits
+of different animals,
+
+00:32:31.590 --> 00:32:34.020
+like which feet are on
+the ground at which time
+
+00:32:34.020 --> 00:32:35.040
+and stuff like that.
+
+00:32:35.040 --> 00:32:36.960
+So this was in the
+turn of the century,
+
+00:32:36.960 --> 00:32:39.600
+the late 1800s, early 1900s.
+
+00:32:39.600 --> 00:32:43.770
+This photographer sort
+of started our field.
+
+00:32:43.770 --> 00:32:46.170
+More recently,
+though, the first sort
+
+00:32:46.170 --> 00:32:50.580
+of serious modeling,
+which is the impact that
+
+00:32:50.580 --> 00:32:56.260
+sort of remained today, I
+think, was McMahon at Harvard.
+
+00:32:56.260 --> 00:33:01.050
+He was a biomechanicist.
+
+00:33:01.050 --> 00:33:06.672
+And he observed that
+EMG in your leg,
+
+00:33:06.672 --> 00:33:08.130
+if you look at the
+muscle activity,
+
+00:33:08.130 --> 00:33:10.950
+Electromyographic
+activity in your leg,
+
+00:33:10.950 --> 00:33:14.130
+so just the electrical
+signal sent to your muscle,
+
+00:33:14.130 --> 00:33:20.910
+that your stance leg
+has very little EMG--
+
+00:33:20.910 --> 00:33:22.260
+sorry, a lot of EMG.
+
+00:33:22.260 --> 00:33:25.200
+And your swing has
+very little EMG
+
+00:33:25.200 --> 00:33:27.960
+with the exception of,
+right when you begin swing,
+
+00:33:27.960 --> 00:33:29.472
+there's a lot of EMG.
+
+00:33:29.472 --> 00:33:30.930
+And right towards
+the end of swing,
+
+00:33:30.930 --> 00:33:32.230
+there's a lot of EMG activity.
+
+00:33:32.230 --> 00:33:36.090
+So your muscles are doing
+seemingly a lot of work
+
+00:33:36.090 --> 00:33:39.350
+at the beginning and
+end, and your stance leg
+
+00:33:39.350 --> 00:33:40.800
+is doing a lot of work.
+
+00:33:40.800 --> 00:33:44.790
+But the surprising thing
+was that inside of phase
+
+00:33:44.790 --> 00:33:46.230
+your muscles almost turn off.
+
+00:33:49.260 --> 00:33:56.170
+So McMahon produced for the
+world the ballistic walker
+
+00:33:56.170 --> 00:33:56.670
+model.
+
+00:34:05.680 --> 00:34:06.520
+He was at Harvard.
+
+00:34:17.260 --> 00:34:20.290
+And he basically
+did some modeling
+
+00:34:20.290 --> 00:34:27.560
+of a three-link pendulum,
+something like that
+
+00:34:27.560 --> 00:34:33.050
+and showed that, even with a
+straight leg on your stance
+
+00:34:33.050 --> 00:34:36.560
+leg, if you let your
+swing leg just go,
+
+00:34:36.560 --> 00:34:39.449
+that you can get very
+natural gaits coming out,
+
+00:34:39.449 --> 00:34:42.800
+very reasonable kinematic
+descriptions of what
+
+00:34:42.800 --> 00:34:50.340
+human walking looks like, hence
+the name ballistic walker.
+
+00:34:50.340 --> 00:34:52.830
+This is a passive phase.
+
+00:34:52.830 --> 00:34:57.210
+So one of the dominant ideas
+that came out of that work
+
+00:34:57.210 --> 00:35:01.350
+was the sort of notion
+that people talk about now
+
+00:35:01.350 --> 00:35:02.415
+as walking by vaulting.
+
+00:35:11.010 --> 00:35:12.720
+If you want a first
+order approximation
+
+00:35:12.720 --> 00:35:15.840
+of what walking is, they said
+think about your stance leg
+
+00:35:15.840 --> 00:35:16.830
+as a rod.
+
+00:35:16.830 --> 00:35:18.900
+And you just vault
+over your stance leg.
+
+00:35:18.900 --> 00:35:20.460
+And in fact, peoples'
+center of mass
+
+00:35:20.460 --> 00:35:26.370
+do tend to go up over the course
+of a stance and then back down.
+
+00:35:26.370 --> 00:35:28.380
+So the dominant
+theory really was
+
+00:35:28.380 --> 00:35:31.380
+that you could think
+about this as a stiff leg
+
+00:35:31.380 --> 00:35:33.160
+and then an almost
+passive swing phase.
+
+00:35:35.910 --> 00:35:42.300
+Now, I remember last year's
+dynamic walking meeting.
+
+00:35:42.300 --> 00:35:45.660
+Basically, half the
+talks were saying walking
+
+00:35:45.660 --> 00:35:46.840
+is not vaulting anymore.
+
+00:35:46.840 --> 00:35:49.313
+It's just in the last year
+or so people are really,
+
+00:35:49.313 --> 00:35:51.480
+really changing their mind
+about this, including you
+
+00:35:51.480 --> 00:35:53.340
+guys in Media Lab
+are talking a lot
+
+00:35:53.340 --> 00:35:57.660
+about the role of compliance
+in the stance leg in energy
+
+00:35:57.660 --> 00:35:59.700
+storage during walking,
+which was left out
+
+00:35:59.700 --> 00:36:01.590
+of these initial models.
+
+00:36:01.590 --> 00:36:03.390
+But I think, if
+you want a 0 order
+
+00:36:03.390 --> 00:36:06.480
+model of walking, thinking
+about your stance leg
+
+00:36:06.480 --> 00:36:08.400
+as straight is not
+a bad way to start.
+
+00:36:11.730 --> 00:36:15.060
+And the other thing that
+happened because of this work
+
+00:36:15.060 --> 00:36:17.880
+was this idea of
+passive dynamic walking.
+
+00:36:31.020 --> 00:36:32.280
+So this guy Tad McGeer--
+
+00:36:39.655 --> 00:36:42.930
+so McMahon's model was just
+a model of the swing phase.
+
+00:36:42.930 --> 00:36:44.770
+It didn't talk about stability.
+
+00:36:44.770 --> 00:36:46.560
+It didn't even talk
+about ground contact.
+
+00:36:46.560 --> 00:36:48.820
+It wasn't sort of
+a periodic motion.
+
+00:36:48.820 --> 00:36:51.600
+It was saying something about
+the kinematics of swing phase.
+
+00:36:51.600 --> 00:36:54.330
+And this guy Tad McGeer, who's
+actually an aeroengineer,
+
+00:36:54.330 --> 00:37:00.180
+he works on UADs now, came in
+and turned the robotics world
+
+00:37:00.180 --> 00:37:02.580
+on its head by building
+a bunch of machines
+
+00:37:02.580 --> 00:37:04.500
+that had no motor,
+no controller,
+
+00:37:04.500 --> 00:37:07.290
+and walked down a small
+ramp basically using
+
+00:37:07.290 --> 00:37:08.880
+these ballistic
+walking kind of ideas.
+
+00:37:15.780 --> 00:37:16.830
+So Tad's a good guy.
+
+00:37:20.070 --> 00:37:23.130
+Let him describe.
+
+00:37:23.130 --> 00:37:25.710
+I've got a video of him talking
+about passive walking here.
+
+00:37:30.924 --> 00:37:31.872
+[VIDEO PLAYBACK]
+
+00:37:31.872 --> 00:37:36.300
+- This familiar toy is a
+passive dynamic walker.
+
+00:37:36.300 --> 00:37:39.420
+[INAUDIBLE] all the way.
+
+00:37:39.420 --> 00:37:43.530
+And right at the start, it
+settles into a steady walking
+
+00:37:43.530 --> 00:37:47.160
+cycle sustained by an entirely
+passive interaction of gravity
+
+00:37:47.160 --> 00:37:50.250
+and inertia.
+
+00:37:50.250 --> 00:37:54.450
+This machine is also a
+passive dynamic walker.
+
+00:37:54.450 --> 00:37:56.831
+For that matter, I may be
+a passive dynamic walker.
+
+00:37:56.831 --> 00:38:00.480
+As you'll see, our
+gaits are quite similar.
+
+00:38:00.480 --> 00:38:05.644
+[INAUDIBLE] with the analysis,
+and by intuition [INAUDIBLE]
+
+00:38:05.644 --> 00:38:07.392
+exclusively [INAUDIBLE].
+
+00:38:07.392 --> 00:38:08.707
+[LAUGHTER]
+
+00:38:12.674 --> 00:38:13.764
+God.
+
+00:38:13.764 --> 00:38:18.720
+Once you establish [INAUDIBLE],,
+the reason the machine failed
+
+00:38:18.720 --> 00:38:21.150
+was a problem
+called [INAUDIBLE]..
+
+00:38:21.150 --> 00:38:23.220
+So for later
+experiments, we went
+
+00:38:23.220 --> 00:38:25.620
+to a set of mechanical patches.
+
+00:38:25.620 --> 00:38:28.350
+And the next sequence shows
+our first trial with those.
+
+00:38:42.060 --> 00:38:43.321
+I guess that worked.
+
+00:38:43.321 --> 00:38:45.347
+[END VIDEO PLAYBACK]
+
+00:38:45.347 --> 00:38:46.680
+RUSS TEDRAKE: That's a big deal.
+
+00:38:46.680 --> 00:38:50.130
+That started a lot of research.
+
+00:38:50.130 --> 00:38:51.330
+AUDIENCE: Is that 1990?
+
+00:38:51.330 --> 00:38:58.440
+RUSS TEDRAKE: 1990, exactly.
+
+00:38:58.440 --> 00:38:59.412
+[VIDEO PLAYBACK]
+
+00:38:59.412 --> 00:39:00.390
+- This familiar toy--
+
+00:39:00.390 --> 00:39:01.840
+RUSS TEDRAKE: Whoops, sorry.
+
+00:39:01.840 --> 00:39:06.078
+- [INAUDIBLE] today is that
+we have all four debouncers
+
+00:39:06.078 --> 00:39:07.987
+[INAUDIBLE].
+
+00:39:07.987 --> 00:39:09.820
+RUSS TEDRAKE: The knee
+latches the last time
+
+00:39:09.820 --> 00:39:12.463
+are the debouncers of today.
+
+00:39:12.463 --> 00:39:25.727
+- [INAUDIBLE]
+
+00:39:25.727 --> 00:39:27.310
+RUSS TEDRAKE: No
+motor, no controller,
+
+00:39:27.310 --> 00:39:28.643
+that's just falling down a ramp.
+
+00:39:28.643 --> 00:39:29.380
+That's beautiful.
+
+00:39:32.692 --> 00:39:34.150
+I love this video,
+because it shows
+
+00:39:34.150 --> 00:39:40.852
+you sort of the honest
+capabilities of these things.
+
+00:39:40.852 --> 00:39:41.810
+There's a few outtakes.
+
+00:39:44.798 --> 00:39:46.393
+[LAUGHTER]
+
+00:39:46.393 --> 00:39:48.060
+That's what it's like
+working with them.
+
+00:39:51.950 --> 00:39:52.910
+That was pretty benign.
+
+00:40:01.185 --> 00:40:02.810
+It's a pretty robust
+phenomenon, right?
+
+00:40:02.810 --> 00:40:03.380
+So this is--
+
+00:40:03.380 --> 00:40:05.270
+[LAUGHTER]
+
+00:40:05.270 --> 00:40:07.430
+--he's changing the
+ramp angle quite a bit
+
+00:40:07.430 --> 00:40:12.770
+and getting these really
+graceful motions out.
+
+00:40:25.593 --> 00:40:27.260
+This guy walks sideways
+for some reason.
+
+00:40:42.770 --> 00:40:45.258
+It's really good, yeah?
+
+00:40:45.258 --> 00:40:52.828
+[END VIDEO PLAYBACK]
+
+00:40:52.828 --> 00:40:54.370
+You got to realize
+this was at a time
+
+00:40:54.370 --> 00:40:59.020
+when the walking robots of the
+world were going like this,
+
+00:40:59.020 --> 00:41:01.810
+moving like that.
+
+00:41:01.810 --> 00:41:04.390
+This guy says, I got a robot
+with no motor, no controller.
+
+00:41:04.390 --> 00:41:06.340
+Look what it can do, yeah?
+
+00:41:06.340 --> 00:41:10.630
+Really amazing-- and he was an
+aerospace engineer, go figure.
+
+00:41:10.630 --> 00:41:13.277
+This is stealing the show.
+
+00:41:13.277 --> 00:41:14.110
+That's the next bit.
+
+00:41:19.330 --> 00:41:22.630
+So these passive walking ideas
+have really had a big impact
+
+00:41:22.630 --> 00:41:25.240
+on the world of walking robots.
+
+00:41:25.240 --> 00:41:28.960
+They had it in two
+waves, I guess.
+
+00:41:28.960 --> 00:41:32.020
+Everybody knew that a
+purely passive walker
+
+00:41:32.020 --> 00:41:33.670
+could walk down a small slope.
+
+00:41:33.670 --> 00:41:37.550
+And then people have
+been working for--
+
+00:41:37.550 --> 00:41:39.628
+the second part of
+that video was a video.
+
+00:41:39.628 --> 00:41:41.170
+Finally, someone
+had put motors on it
+
+00:41:41.170 --> 00:41:44.470
+to make it walk on the flat
+because it took a surprisingly
+
+00:41:44.470 --> 00:41:47.260
+long time to make that leap.
+
+00:41:47.260 --> 00:41:48.850
+So now, people, I
+think, don't just
+
+00:41:48.850 --> 00:41:49.870
+think they're a
+nice party trick,
+
+00:41:49.870 --> 00:41:52.480
+but they actually may be useful
+for designer of real walking
+
+00:41:52.480 --> 00:41:55.071
+machines.
+
+00:41:55.071 --> 00:41:56.860
+AUDIENCE: Why [INAUDIBLE]?
+
+00:41:56.860 --> 00:41:58.652
+RUSS TEDRAKE: Well,
+because they don't know
+
+00:41:58.652 --> 00:42:00.910
+how to underactuate a control.
+
+00:42:00.910 --> 00:42:03.110
+I think, quite honestly,
+that's my answer.
+
+00:42:03.110 --> 00:42:03.610
+Yeah.
+
+00:42:07.430 --> 00:42:09.790
+We don't have any
+good control ideas.
+
+00:42:09.790 --> 00:42:11.757
+I mean, what you want
+to do here is just push
+
+00:42:11.757 --> 00:42:14.090
+a little bit of energy into
+the system in the right way.
+
+00:42:14.090 --> 00:42:15.520
+We don't know how to formulate
+those control problems when
+
+00:42:15.520 --> 00:42:17.920
+the systems are so
+non-linear and discontinuous
+
+00:42:17.920 --> 00:42:20.115
+and everything.
+
+00:42:20.115 --> 00:42:21.490
+Plus, I think the
+people that are
+
+00:42:21.490 --> 00:42:22.770
+good at building
+those things maybe
+
+00:42:22.770 --> 00:42:24.853
+are not the same people
+that are going at control.
+
+00:42:24.853 --> 00:42:29.380
+It takes a special talent
+to turn enough screws.
+
+00:42:29.380 --> 00:42:33.930
+So you should know that the way
+that the knee stayed attached--
+
+00:42:33.930 --> 00:42:36.490
+how do you think the knee
+state attached in that?
+
+00:42:36.490 --> 00:42:39.631
+Why did the knee not bend
+during the stance phase?
+
+00:42:39.631 --> 00:42:41.122
+AUDIENCE: Magnetic or something?
+
+00:42:41.122 --> 00:42:43.810
+RUSS TEDRAKE: It wasn't
+magnetic, but that's close.
+
+00:42:43.810 --> 00:42:46.268
+You can imagine, maybe, the
+curvature of the foot doing it,
+
+00:42:46.268 --> 00:42:47.110
+but that's not it.
+
+00:42:47.110 --> 00:42:49.000
+They're suction cups, yeah?
+
+00:42:49.000 --> 00:42:50.470
+It goes.
+
+00:42:50.470 --> 00:42:52.540
+And the suction cups
+don't just stick.
+
+00:42:52.540 --> 00:42:54.610
+You poke a hole in the
+back of the suction cup.
+
+00:42:54.610 --> 00:42:57.730
+And you tune the leakage
+of the suction, right?
+
+00:42:57.730 --> 00:43:01.090
+So that at the right time, it
+pops off and goes like this.
+
+00:43:01.090 --> 00:43:04.270
+This is not for
+the weak of heart.
+
+00:43:04.270 --> 00:43:07.190
+There's a lot of tuning
+that goes into these things.
+
+00:43:07.190 --> 00:43:10.060
+So our most dramatic
+failure, I think,
+
+00:43:10.060 --> 00:43:15.370
+was we were doing a point foot
+version of McGeer's walker.
+
+00:43:15.370 --> 00:43:18.550
+And for the point foot to
+work and get this nice swing
+
+00:43:18.550 --> 00:43:21.130
+without the curved feet,
+we had to put a lot of mass
+
+00:43:21.130 --> 00:43:24.100
+on the upper leg, not
+a lot on the lower leg.
+
+00:43:24.100 --> 00:43:26.650
+So we had these little
+fiberglass lower legs
+
+00:43:26.650 --> 00:43:28.540
+and big heavy upper legs.
+
+00:43:28.540 --> 00:43:30.890
+And our failure was not
+just sort of falling down.
+
+00:43:30.890 --> 00:43:33.145
+It was exploding the
+lower leg into pieces--
+
+00:43:33.145 --> 00:43:34.270
+[LAUGHTER]
+
+00:43:34.270 --> 00:43:36.370
+--right, and
+completely crashing.
+
+00:43:36.370 --> 00:43:38.140
+John, you remember that?
+
+00:43:38.140 --> 00:43:39.710
+Vanessa's walker just kind of--
+
+00:43:39.710 --> 00:43:41.560
+I'm the one that pushed it, too.
+
+00:43:41.560 --> 00:43:43.510
+I had a reputation in
+lab for a little while.
+
+00:43:43.510 --> 00:43:44.980
+I had just broken
+Rick's airplane.
+
+00:43:44.980 --> 00:43:46.490
+And I went around
+and turned around
+
+00:43:46.490 --> 00:43:48.210
+and broke Vanessa's walker.
+
+00:43:48.210 --> 00:43:49.210
+And they're all on tape.
+
+00:43:49.210 --> 00:43:50.186
+[LAUGHTER]
+
+00:43:54.580 --> 00:43:57.490
+So McGeer, apart from building
+these beautiful machines,
+
+00:43:57.490 --> 00:44:00.550
+gave us this beautiful
+model to think
+
+00:44:00.550 --> 00:44:02.860
+about the essential
+dynamics of walking.
+
+00:44:02.860 --> 00:44:06.850
+The ballistic walker told
+us about the swing phase,
+
+00:44:06.850 --> 00:44:09.220
+but that's actually
+sort of secondary.
+
+00:44:09.220 --> 00:44:12.610
+What really matters is
+this passive interaction
+
+00:44:12.610 --> 00:44:14.890
+between inertia and
+gravity, as Tad said.
+
+00:44:17.770 --> 00:44:22.667
+And it turns out you can
+understand that if you just
+
+00:44:22.667 --> 00:44:25.000
+think about this little system
+called the rimless wheel.
+
+00:44:36.530 --> 00:44:44.180
+So I'm going to put it on
+a slope of angle gamma.
+
+00:44:44.180 --> 00:44:50.450
+The model is going to be a
+simple pendulum with a mass
+
+00:44:50.450 --> 00:44:54.020
+at the end, but a massless leg.
+
+00:44:54.020 --> 00:45:01.190
+We'll define theta to be
+this, the angle from vertical.
+
+00:45:01.190 --> 00:45:06.530
+Now, I sort of despise
+the fact that my thetas--
+
+00:45:06.530 --> 00:45:08.370
+I'm not using the
+right-hand rule here.
+
+00:45:08.370 --> 00:45:10.340
+But otherwise, you end
+up walking backwards
+
+00:45:10.340 --> 00:45:12.330
+with negative velocity.
+
+00:45:12.330 --> 00:45:13.610
+So this is the way it is.
+
+00:45:13.610 --> 00:45:15.310
+So it's almost like
+the simple pendulum
+
+00:45:15.310 --> 00:45:17.060
+except my coordinate
+system's from the top
+
+00:45:17.060 --> 00:45:19.700
+and theta's sort of reversed.
+
+00:45:19.700 --> 00:45:22.700
+And in addition to
+this simple pendulum,
+
+00:45:22.700 --> 00:45:31.370
+I've got a few extra legs
+that are all massless.
+
+00:45:31.370 --> 00:45:36.742
+And they're separated by 2
+alpha, an angle of 2 alpha.
+
+00:45:36.742 --> 00:45:38.450
+There's actually
+reasonably good pictures
+
+00:45:38.450 --> 00:45:42.500
+of this, cartoons of
+this, in the notes.
+
+00:45:42.500 --> 00:45:46.430
+So you can think about
+this as a bicycle wheel
+
+00:45:46.430 --> 00:45:51.330
+where somebody took the rim
+off and just left the spokes.
+
+00:45:51.330 --> 00:45:54.422
+So what happens if you
+take this bicycle wheel
+
+00:45:54.422 --> 00:45:56.130
+and you put it at the
+top of a small ramp
+
+00:45:56.130 --> 00:45:58.742
+and you give it a push?
+
+00:45:58.742 --> 00:46:00.146
+AUDIENCE: It falls over.
+
+00:46:00.146 --> 00:46:01.313
+RUSS TEDRAKE: It falls over.
+
+00:46:01.313 --> 00:46:02.000
+OK.
+
+00:46:02.000 --> 00:46:04.490
+Let's say it's constrained
+to be in the plane.
+
+00:46:04.490 --> 00:46:06.242
+Yeah, that was a fair answer.
+
+00:46:06.242 --> 00:46:07.700
+So we made an
+additional assumption
+
+00:46:07.700 --> 00:46:09.860
+that it stays upright.
+
+00:46:09.860 --> 00:46:12.008
+Then what happens?
+
+00:46:12.008 --> 00:46:13.440
+AUDIENCE: It starts
+rolling down.
+
+00:46:13.440 --> 00:46:14.270
+RUSS TEDRAKE: Starts
+rolling down--
+
+00:46:14.270 --> 00:46:14.890
+OK.
+
+00:46:14.890 --> 00:46:17.440
+Is it going to roll
+faster and faster forever?
+
+00:46:17.440 --> 00:46:18.202
+AUDIENCE: No.
+
+00:46:18.202 --> 00:46:19.660
+RUSS TEDRAKE: At
+some point, losses
+
+00:46:19.660 --> 00:46:21.048
+are going to catch up with it.
+
+00:46:21.048 --> 00:46:22.840
+In the bicycle wheel,
+you might think of it
+
+00:46:22.840 --> 00:46:25.750
+as rolling friction.
+
+00:46:25.750 --> 00:46:28.480
+In this model,
+we're going to do it
+
+00:46:28.480 --> 00:46:34.818
+by just a bit of impact,
+which are very real.
+
+00:46:34.818 --> 00:46:36.610
+But that's actually
+the only thing we need.
+
+00:46:36.610 --> 00:46:39.830
+We're not going to model
+any damping in the system.
+
+00:46:39.830 --> 00:46:43.555
+So we can really think
+about this system as--
+
+00:46:43.555 --> 00:46:45.850
+let me list all my
+assumptions carefully here.
+
+00:46:48.740 --> 00:46:54.380
+We're going to assume that
+the foot, so to speak,
+
+00:46:54.380 --> 00:47:00.620
+the stance foot is a pin joint.
+
+00:47:00.620 --> 00:47:04.280
+So I'm going to artificially
+assume that that foot doesn't
+
+00:47:04.280 --> 00:47:05.120
+come off the ground.
+
+00:47:05.120 --> 00:47:06.818
+As soon as it
+catches the ground,
+
+00:47:06.818 --> 00:47:08.485
+it turns into a pin
+joint on the ground.
+
+00:47:12.410 --> 00:47:14.390
+Instantaneous
+transfer for support--
+
+00:47:29.115 --> 00:47:31.740
+which means, as soon as this leg
+comes around, hits the ground,
+
+00:47:31.740 --> 00:47:32.782
+it becomes the pin joint.
+
+00:47:32.782 --> 00:47:34.130
+And this guy is free.
+
+00:47:34.130 --> 00:47:36.200
+I only think about one
+ground contact at a time.
+
+00:47:36.200 --> 00:47:40.700
+I assume that is an
+instantaneous transfer support.
+
+00:47:40.700 --> 00:47:42.770
+The limit of
+standing on two legs
+
+00:47:42.770 --> 00:47:45.590
+is just model that's switching
+back and forth really fast
+
+00:47:45.590 --> 00:47:46.340
+between those two.
+
+00:47:46.340 --> 00:47:47.173
+And it works out OK.
+
+00:47:50.160 --> 00:47:52.160
+And then I'm going to
+assume that the collisions
+
+00:47:52.160 --> 00:48:01.070
+with the ground are
+inelastic and impulsive.
+
+00:48:06.290 --> 00:48:09.020
+Impulsive means instantaneous.
+
+00:48:09.020 --> 00:48:12.170
+Inelastic means that all
+energy going into the ground
+
+00:48:12.170 --> 00:48:13.140
+is lost to the ground.
+
+00:48:13.140 --> 00:48:15.110
+There's no bouncing.
+
+00:48:15.110 --> 00:48:18.080
+And I need that, so to make
+sure that there's always
+
+00:48:18.080 --> 00:48:23.540
+exactly one foot on the
+ground in this model.
+
+00:48:23.540 --> 00:48:26.450
+As soon as the thing bounces,
+we built rimless wheels
+
+00:48:26.450 --> 00:48:27.440
+with two wheels.
+
+00:48:27.440 --> 00:48:32.360
+That way they don't fall down
+in practice, just like McGeer's
+
+00:48:32.360 --> 00:48:34.250
+biped had four legs.
+
+00:48:34.250 --> 00:48:36.327
+They call it a
+four-legged biped.
+
+00:48:36.327 --> 00:48:37.241
+[LAUGHTER]
+
+00:48:37.550 --> 00:48:39.050
+But that way you
+don't have to worry
+
+00:48:39.050 --> 00:48:41.420
+about falling over sideways.
+
+00:48:41.420 --> 00:48:43.830
+And on the real rimless
+wheel, you put it on a ramp.
+
+00:48:43.830 --> 00:48:45.120
+It bounces like crazy.
+
+00:48:45.120 --> 00:48:48.067
+So this is just a
+model, but it actually
+
+00:48:48.067 --> 00:48:49.400
+captures the essential dynamics.
+
+00:48:54.370 --> 00:48:54.870
+OK.
+
+00:48:54.870 --> 00:48:58.823
+So now, you see why it was
+good to know everything
+
+00:48:58.823 --> 00:48:59.740
+we know about pendula.
+
+00:49:02.670 --> 00:49:04.020
+How is this thing going to work?
+
+00:49:16.430 --> 00:49:17.930
+I'll show you the
+answer real quick.
+
+00:49:47.530 --> 00:49:49.013
+So here's my rimless wheel.
+
+00:49:49.013 --> 00:49:49.930
+That was a simulation.
+
+00:49:49.930 --> 00:49:50.972
+So I'm going to start it.
+
+00:49:50.972 --> 00:49:53.320
+Every time I hit Go,
+it's going to start it
+
+00:49:53.320 --> 00:49:55.030
+with some random
+initial velocity
+
+00:49:55.030 --> 00:49:57.100
+forward uphill or downhill.
+
+00:49:57.100 --> 00:50:00.050
+You name it.
+
+00:50:00.050 --> 00:50:03.470
+That's going up hill,
+just enough energy,
+
+00:50:03.470 --> 00:50:06.290
+turned around and came
+back down the hill.
+
+00:50:06.290 --> 00:50:09.680
+Start speeding up a little bit--
+
+00:50:09.680 --> 00:50:11.210
+but actually
+quickly settles into
+
+00:50:11.210 --> 00:50:17.240
+a stable forward rolling speed
+where the losses from collision
+
+00:50:17.240 --> 00:50:19.048
+exactly balance
+the energy that's
+
+00:50:19.048 --> 00:50:20.840
+gained from converting
+potential to kinetic
+
+00:50:20.840 --> 00:50:21.840
+as you go down the hill.
+
+00:50:24.890 --> 00:50:28.850
+That is the essential
+idea in walking,
+
+00:50:28.850 --> 00:50:30.980
+in certainly passive
+walking, the conversion
+
+00:50:30.980 --> 00:50:35.120
+of potential energy and the
+balance with dissipation
+
+00:50:35.120 --> 00:50:36.800
+in the ground.
+
+00:50:36.800 --> 00:50:39.650
+So this is starting with
+a slow initial speed.
+
+00:50:39.650 --> 00:50:42.470
+And it speeds up a little bit,
+goes to that rolling speed.
+
+00:50:47.990 --> 00:50:49.282
+You started really fast.
+
+00:50:49.282 --> 00:50:50.740
+It actually slows
+down pretty quick
+
+00:50:50.740 --> 00:50:54.197
+and goes to that
+same rolling speed.
+
+00:50:54.197 --> 00:50:55.780
+Can you see where
+I'm going with this?
+
+00:50:55.780 --> 00:50:57.780
+We've got a stable limit cycle.
+
+00:50:57.780 --> 00:51:00.953
+It's periodic, clearly.
+
+00:51:00.953 --> 00:51:03.120
+It's not going to be stable
+in the trajectory sense,
+
+00:51:03.120 --> 00:51:05.928
+but it's going to be stable
+in the limit cycle since.
+
+00:51:05.928 --> 00:51:08.220
+Just I want to see the one
+other thing that can happen.
+
+00:51:10.913 --> 00:51:12.830
+The cool thing about
+simulating rimless wheels
+
+00:51:12.830 --> 00:51:15.122
+is you get all these aliasing
+effects and stuff, right?
+
+00:51:15.122 --> 00:51:17.570
+So if it's going
+uphill too fast,
+
+00:51:17.570 --> 00:51:19.925
+it looks like it's
+going downhill.
+
+00:51:19.925 --> 00:51:21.140
+There you go, uphill, uphill.
+
+00:51:21.140 --> 00:51:22.580
+OK, see what happens.
+
+00:51:22.580 --> 00:51:23.150
+Yeah, OK.
+
+00:51:23.150 --> 00:51:25.317
+So that one just ran out
+of energy and stayed still.
+
+00:51:25.317 --> 00:51:27.650
+That's still my instantaneous
+transfer of support.
+
+00:51:27.650 --> 00:51:30.410
+The simulation is going da, da,
+da, da, da, da, changing ground
+
+00:51:30.410 --> 00:51:33.470
+contacts infinitely fast.
+
+00:51:33.470 --> 00:51:35.600
+There are serious
+simulation people that say
+
+00:51:35.600 --> 00:51:40.010
+that's the right
+way to handle even--
+
+00:51:40.010 --> 00:51:43.630
+some say that you should
+simulate your rigid body--
+
+00:51:43.630 --> 00:51:47.690
+you should simulate a pin joint
+by constantly modeling impacts
+
+00:51:47.690 --> 00:51:48.290
+at the joints.
+
+00:51:50.960 --> 00:51:55.730
+This guy Brian Mirtich, who
+was at MERL for a while,
+
+00:51:55.730 --> 00:51:58.950
+did some pretty convincing
+work in that world.
+
+00:51:58.950 --> 00:52:01.100
+So that's the answer
+we're going to get.
+
+00:52:01.100 --> 00:52:04.670
+Now, can we see how that
+works on the phase portrait?
+
+00:52:14.240 --> 00:52:22.720
+If I look at theta and
+theta dot, my robot here,
+
+00:52:22.720 --> 00:52:25.030
+there's a couple key angles.
+
+00:52:27.970 --> 00:52:32.560
+Theta is only going
+to live between--
+
+00:52:32.560 --> 00:52:37.810
+so it turns out to be gamma
+minus alpha and gamma plus
+
+00:52:37.810 --> 00:52:38.660
+alpha.
+
+00:52:38.660 --> 00:52:40.410
+See if you can work
+that out for yourself.
+
+00:52:40.410 --> 00:52:42.790
+So this angle is 2 alpha.
+
+00:52:42.790 --> 00:52:47.170
+When this leg hits
+the ground, that angle
+
+00:52:47.170 --> 00:52:49.810
+has to be alpha plus gamma.
+
+00:52:53.080 --> 00:52:56.080
+And in the other direction,
+it's gamma minus alpha.
+
+00:52:56.080 --> 00:52:58.060
+Those are the conditions
+where this leg
+
+00:52:58.060 --> 00:53:01.090
+is about to change into a
+different coordinate system.
+
+00:53:01.090 --> 00:53:03.340
+And I forgot to say,
+when this foot changes
+
+00:53:03.340 --> 00:53:05.020
+and it hits the
+ground, I quickly
+
+00:53:05.020 --> 00:53:09.910
+redefine theta to be the theta
+around the new pin joint.
+
+00:53:09.910 --> 00:53:12.880
+I just reset my
+coordinate system.
+
+00:53:12.880 --> 00:53:19.720
+So there's a couple of
+key places in this plot.
+
+00:53:19.720 --> 00:53:21.910
+Somewhere there's
+some small gamma,
+
+00:53:21.910 --> 00:53:26.270
+and that bisects two very
+important lines here,
+
+00:53:26.270 --> 00:53:38.340
+which are theta equals gamma
+minus alpha and theta equals
+
+00:53:38.340 --> 00:53:39.400
+gamma plus alpha.
+
+00:53:43.110 --> 00:53:45.667
+My coordinate system is 0
+around the unstable fixed point.
+
+00:53:45.667 --> 00:53:48.000
+That's what happened when I
+flipped my coordinate system
+
+00:53:48.000 --> 00:53:50.230
+to the top.
+
+00:53:50.230 --> 00:53:55.860
+So if I want to superimpose the
+phase portrait of the pendulum,
+
+00:53:55.860 --> 00:54:00.738
+I said 0 is going to be
+the unstable fixed point.
+
+00:54:00.738 --> 00:54:02.280
+So I get the i is
+going out this way.
+
+00:54:05.310 --> 00:54:08.100
+That's the homoclinic
+orbits if you remember.
+
+00:54:08.100 --> 00:54:10.710
+And the smaller orbits
+come in and do this.
+
+00:54:17.570 --> 00:54:21.980
+And the ones up here do this.
+
+00:54:27.700 --> 00:54:32.680
+Does anybody have the foresight
+to sort of jump ahead and tell
+
+00:54:32.680 --> 00:54:36.402
+me where my limit cycle is going
+to live on my picture here?
+
+00:54:36.402 --> 00:54:37.350
+AUDIENCE: Above.
+
+00:54:37.350 --> 00:54:39.120
+RUSS TEDRAKE: Above, OK.
+
+00:54:39.120 --> 00:54:41.790
+What's it going to do?
+
+00:54:41.790 --> 00:54:45.220
+AUDIENCE: It's going to withdraw
+from the same place in each
+
+00:54:45.220 --> 00:54:45.720
+[INAUDIBLE].
+
+00:54:45.720 --> 00:54:47.095
+RUSS TEDRAKE:
+Awesome, very good.
+
+00:54:47.095 --> 00:54:48.810
+Yeah, very good.
+
+00:54:48.810 --> 00:54:50.310
+OK.
+
+00:54:50.310 --> 00:54:55.980
+So here's everything we just
+saw in the rimless wheel.
+
+00:54:55.980 --> 00:54:59.010
+If I'm rolling fast, if I start
+with some initial velocity
+
+00:54:59.010 --> 00:55:02.070
+rolling fast, say, I'm
+high up on this line, then
+
+00:55:02.070 --> 00:55:03.600
+what happens?
+
+00:55:03.600 --> 00:55:06.000
+I'm going to ride
+this guy over here.
+
+00:55:09.615 --> 00:55:10.990
+It turns out the
+collision model,
+
+00:55:10.990 --> 00:55:12.940
+I'll tell you the collision
+model in a second.
+
+00:55:12.940 --> 00:55:19.630
+But the inelastic
+collision at the base
+
+00:55:19.630 --> 00:55:23.860
+essentially takes out a fraction
+of your velocity at every step.
+
+00:55:23.860 --> 00:55:26.830
+It's a linear fraction of
+your velocity at every step.
+
+00:55:30.610 --> 00:55:34.630
+So I take my coordinates
+over to here.
+
+00:55:34.630 --> 00:55:38.200
+And then it's going to reset
+to a velocity over here,
+
+00:55:38.200 --> 00:55:43.810
+but with some fraction of
+that velocity dissipated.
+
+00:55:43.810 --> 00:55:46.920
+And I get a new
+trajectory like this.
+
+00:55:46.920 --> 00:55:50.180
+It comes over to
+something like this.
+
+00:55:50.180 --> 00:55:55.720
+And at some point, that
+fraction exactly balances.
+
+00:55:55.720 --> 00:56:01.870
+So because this thing is not
+symmetric, when I start here,
+
+00:56:01.870 --> 00:56:05.560
+I end up a little bit higher
+with a little bit more velocity
+
+00:56:05.560 --> 00:56:08.560
+at the end than when I started.
+
+00:56:08.560 --> 00:56:11.990
+And I lose a little bit
+of velocity in my impact.
+
+00:56:11.990 --> 00:56:14.380
+And at some point, those
+things exactly balance.
+
+00:56:14.380 --> 00:56:18.260
+And I end up with a stable limit
+cycle that looks like that,
+
+00:56:18.260 --> 00:56:18.760
+right?
+
+00:56:22.370 --> 00:56:23.300
+What else can happen?
+
+00:56:27.740 --> 00:56:29.210
+If I start with
+too little energy,
+
+00:56:29.210 --> 00:56:34.290
+the whole thing runs out
+of energy and stands still.
+
+00:56:34.290 --> 00:56:37.415
+What's the critical
+energy level?
+
+00:56:37.415 --> 00:56:38.540
+AUDIENCE: Homoclinic orbit?
+
+00:56:38.540 --> 00:56:42.050
+RUSS TEDRAKE: The
+homoclinic orbit, right?
+
+00:56:42.050 --> 00:56:44.360
+If I'm just above
+the homoclinic orbit,
+
+00:56:44.360 --> 00:56:46.760
+it actually speeds up and goes
+to that same nominal limit
+
+00:56:46.760 --> 00:56:48.080
+cycle.
+
+00:56:48.080 --> 00:56:51.140
+But if I'm just below
+the homoclinic orbit,
+
+00:56:51.140 --> 00:56:54.410
+then I never actually make
+it across to this thing.
+
+00:56:54.410 --> 00:56:56.537
+I just end up going,
+bonk, over to here.
+
+00:56:56.537 --> 00:56:59.120
+And then it actually comes in--
+if you have to think about it,
+
+00:56:59.120 --> 00:57:00.290
+trust me--
+
+00:57:00.290 --> 00:57:03.080
+like this bonk,
+like this, and just
+
+00:57:03.080 --> 00:57:06.050
+ends up running out of
+energy and standing still.
+
+00:57:11.573 --> 00:57:13.240
+AUDIENCE: Could you
+start just above it,
+
+00:57:13.240 --> 00:57:17.562
+but then the collision
+knocks it down [INAUDIBLE]??
+
+00:57:20.860 --> 00:57:23.600
+RUSS TEDRAKE: It depends
+on the parameters.
+
+00:57:23.600 --> 00:57:28.630
+But in the parameter
+regime I'm in,
+
+00:57:28.630 --> 00:57:30.310
+which I think is
+the standard one you
+
+00:57:30.310 --> 00:57:34.055
+want to think about, in order
+for it to have some stable--
+
+00:57:34.055 --> 00:57:35.680
+so basically, what
+you're talking about
+
+00:57:35.680 --> 00:57:40.030
+is a parameter regime where
+you have no stable fixed point,
+
+00:57:40.030 --> 00:57:43.450
+no stable rolling limit cycle.
+
+00:57:43.450 --> 00:57:45.220
+AUDIENCE: Assuming
+your velocity--
+
+00:57:45.220 --> 00:57:47.740
+RUSS TEDRAKE: If I'm
+just epsilon above here
+
+00:57:47.740 --> 00:57:50.470
+and I go down, then I'm
+only going to stand still.
+
+00:57:53.210 --> 00:57:54.770
+AUDIENCE: If your
+collision model
+
+00:57:54.770 --> 00:57:57.770
+was that you always lose
+a particular fraction
+
+00:57:57.770 --> 00:57:58.510
+of your velocity?
+
+00:57:58.510 --> 00:57:59.260
+RUSS TEDRAKE: Yes.
+
+00:57:59.260 --> 00:57:59.802
+AUDIENCE: OK.
+
+00:58:02.343 --> 00:58:03.760
+RUSS TEDRAKE: So
+in the case where
+
+00:58:03.760 --> 00:58:05.470
+we have a rolling
+fixed point, it
+
+00:58:05.470 --> 00:58:07.120
+has to be that
+epsilon above here
+
+00:58:07.120 --> 00:58:08.720
+actually gets you
+the other thing.
+
+00:58:08.720 --> 00:58:10.270
+The one maybe you're
+thinking about,
+
+00:58:10.270 --> 00:58:16.020
+too, is that there's
+a place over here
+
+00:58:16.020 --> 00:58:17.490
+where, if I start
+with this energy,
+
+00:58:17.490 --> 00:58:20.460
+I actually come out with
+a little less energy.
+
+00:58:20.460 --> 00:58:22.860
+And I can actually
+then go and get
+
+00:58:22.860 --> 00:58:27.510
+caught in either this
+standing fixed point,
+
+00:58:27.510 --> 00:58:32.010
+or I can transition over
+into this fixed point
+
+00:58:32.010 --> 00:58:35.960
+and go up and get caught.
+
+00:58:35.960 --> 00:58:37.627
+OK.
+
+00:58:37.627 --> 00:58:39.210
+There's an easier
+way to see all this.
+
+00:58:39.210 --> 00:58:41.240
+I want you to see it
+in the phase portrait
+
+00:58:41.240 --> 00:58:43.560
+because we thought
+a lot about it.
+
+00:58:43.560 --> 00:58:47.000
+The easier way to see what
+all this stuff is by defining
+
+00:58:47.000 --> 00:58:51.182
+my surface of section and
+looking at the Poincaré map.
+
+00:58:51.182 --> 00:58:51.890
+So let's do that.
+
+00:58:51.890 --> 00:58:53.660
+Now, in the rimless
+wheel, because it
+
+00:58:53.660 --> 00:58:55.200
+can be going in
+either direction,
+
+00:58:55.200 --> 00:58:57.910
+I'm going to define a little
+bit of odd surface of section.
+
+00:58:57.910 --> 00:58:58.910
+I'm going to define it--
+
+00:59:03.095 --> 00:59:05.050
+it sure feels like I
+got a lot of colors,
+
+00:59:05.050 --> 00:59:13.080
+but, I don't know, some
+sort of red and purple mix.
+
+00:59:13.080 --> 00:59:15.760
+Let me just make it
+really thick here.
+
+00:59:15.760 --> 00:59:16.540
+Good lord.
+
+00:59:21.470 --> 00:59:24.172
+Let me define this to be my
+surface of section and this
+
+00:59:24.172 --> 00:59:25.880
+also to be part of my
+surface of section.
+
+00:59:28.840 --> 00:59:33.540
+So any time I have an
+impact with the ground,
+
+00:59:33.540 --> 00:59:35.890
+I'm going to use that
+as my return map.
+
+00:59:59.150 --> 01:00:02.420
+AUDIENCE: So is it just
+before or just after?
+
+01:00:02.420 --> 01:00:04.730
+RUSS TEDRAKE: I do just
+after, but it doesn't matter.
+
+01:00:04.730 --> 01:00:06.730
+As long as you're consistent,
+it doesn't matter.
+
+01:00:10.465 --> 01:00:11.590
+That's a little bit better.
+
+01:00:19.860 --> 01:00:24.860
+Here's the analytical return
+map of the rimless wheel.
+
+01:00:29.091 --> 01:00:32.040
+I should say the rimless
+wheel is the one walking
+
+01:00:32.040 --> 01:00:35.190
+system that we actually
+understand completely.
+
+01:00:35.190 --> 01:00:38.712
+And I mean, when I talk
+about these Poincaré maps,
+
+01:00:38.712 --> 01:00:40.170
+I can write them
+down analytically.
+
+01:00:40.170 --> 01:00:42.510
+Because I can tell you,
+if I'm in this velocity,
+
+01:00:42.510 --> 01:00:44.218
+where am I going to
+end up because I just
+
+01:00:44.218 --> 01:00:46.470
+have to do a first integral
+on the pendulum dynamics.
+
+01:00:46.470 --> 01:00:47.820
+It's energy conserving.
+
+01:00:47.820 --> 01:00:49.830
+We're all happy.
+
+01:00:49.830 --> 01:00:52.230
+So I can tell you everything
+about the rimless wheel.
+
+01:00:52.230 --> 01:00:54.405
+I could tell you about
+where it's fixed points lie.
+
+01:00:54.405 --> 01:00:56.280
+The gray is actually
+the basins of attraction
+
+01:00:56.280 --> 01:00:57.330
+of the fixed points.
+
+01:00:57.330 --> 01:00:59.348
+I can tell you everything.
+
+01:00:59.348 --> 01:01:01.140
+There is no other
+walking model that I know
+
+01:01:01.140 --> 01:01:02.967
+of that I can say that about.
+
+01:01:02.967 --> 01:01:05.550
+This is what you should aspire
+to get with all of your walking
+
+01:01:05.550 --> 01:01:06.050
+machines.
+
+01:01:08.790 --> 01:01:11.790
+So the red line is
+the line of slope 1.
+
+01:01:11.790 --> 01:01:14.940
+The blue line is the
+analytical solution
+
+01:01:14.940 --> 01:01:17.580
+to the first return map
+with the surface of section
+
+01:01:17.580 --> 01:01:19.800
+defined the way I did.
+
+01:01:19.800 --> 01:01:22.890
+This is post-collision,
+all right?
+
+01:01:22.890 --> 01:01:25.710
+So it turns out my lines
+just got thick enough
+
+01:01:25.710 --> 01:01:28.920
+that it's a little hard to see,
+but there's a blue line here.
+
+01:01:28.920 --> 01:01:31.200
+It says, if I'm going too
+fast, I'm slowing down.
+
+01:01:33.870 --> 01:01:37.440
+And it'll do its little
+staircase right down to this
+
+01:01:37.440 --> 01:01:43.180
+black fixed point just
+above this green line,
+
+01:01:43.180 --> 01:01:46.560
+which is the rolling fixed
+point on the Poincaré map.
+
+01:01:46.560 --> 01:01:48.990
+This is theta dot at the
+n-th step versus theta
+
+01:01:48.990 --> 01:01:51.420
+dot at the n plus 1-th step.
+
+01:01:51.420 --> 01:01:52.860
+So there's a
+rolling fixed point.
+
+01:01:52.860 --> 01:01:54.800
+And it's actually stable.
+
+01:01:54.800 --> 01:01:56.550
+The blue line goes
+just above the red line
+
+01:01:56.550 --> 01:01:59.700
+before it goes down.
+
+01:01:59.700 --> 01:02:01.860
+There's also a
+standing fixed point
+
+01:02:01.860 --> 01:02:05.700
+with a velocity at 0, which
+is the standing on two legs
+
+01:02:05.700 --> 01:02:07.590
+oscillating back and forth.
+
+01:02:07.590 --> 01:02:10.950
+That one's stable, too.
+
+01:02:10.950 --> 01:02:13.438
+And then when you're
+rolling backwards uphill,
+
+01:02:13.438 --> 01:02:14.730
+it always says I'm speeding up.
+
+01:02:14.730 --> 01:02:16.740
+Every time when I'm
+rolling up the hill,
+
+01:02:16.740 --> 01:02:19.342
+this is negative
+initial velocities.
+
+01:02:19.342 --> 01:02:21.300
+Every time, I'm going to
+have a little bit more
+
+01:02:21.300 --> 01:02:24.630
+forward velocity on every step.
+
+01:02:24.630 --> 01:02:26.700
+But because this thing
+jumps discontinuously
+
+01:02:26.700 --> 01:02:29.483
+in that staircase fashion, it's
+actually a little non-trivial
+
+01:02:29.483 --> 01:02:30.900
+about whether it's
+going to end up
+
+01:02:30.900 --> 01:02:34.200
+in the rolling fixed point
+or the standing fixed point.
+
+01:02:34.200 --> 01:02:37.515
+Those gray stripes are actually
+the basin of attraction
+
+01:02:37.515 --> 01:02:38.640
+of the rolling fixed point.
+
+01:02:41.600 --> 01:02:46.040
+So it turns out, if you roll
+uphill and you stop with just
+
+01:02:46.040 --> 01:02:48.230
+enough energy-- you don't
+quite get to the top,
+
+01:02:48.230 --> 01:02:49.760
+and then you roll back down--
+
+01:02:49.760 --> 01:02:52.730
+then you go into the
+other fixed point.
+
+01:02:52.730 --> 01:02:54.420
+But if you end up at
+the top of the hill
+
+01:02:54.420 --> 01:02:56.007
+pretty much losing
+energy like this,
+
+01:02:56.007 --> 01:02:57.090
+then you're going to stop.
+
+01:02:59.630 --> 01:03:04.310
+But I can tell you everything
+about this return map.
+
+01:03:04.310 --> 01:03:06.230
+What's the green dashed lines?
+
+01:03:12.325 --> 01:03:13.950
+The green dashed
+lines are places where
+
+01:03:13.950 --> 01:03:15.283
+my return map are ill-defined.
+
+01:03:15.283 --> 01:03:16.450
+What could that possibly be?
+
+01:03:20.170 --> 01:03:21.570
+AUDIENCE: You need balance.
+
+01:03:21.570 --> 01:03:23.790
+RUSS TEDRAKE: Yes,
+very good, right?
+
+01:03:23.790 --> 01:03:29.310
+There is some initial
+velocity for which I never
+
+01:03:29.310 --> 01:03:31.510
+return to my return map.
+
+01:03:31.510 --> 01:03:34.510
+What's that?
+
+01:03:34.510 --> 01:03:36.310
+It's if I'm on the
+homoclinic orbit, right?
+
+01:03:36.310 --> 01:03:38.765
+It never happens
+practice, no big deal.
+
+01:03:38.765 --> 01:03:40.765
+But there is a set of
+measure 0, if you start it
+
+01:03:40.765 --> 01:03:43.540
+with just the wrong velocity,
+it'll go up and sit like this
+
+01:03:43.540 --> 01:03:45.130
+and never come back.
+
+01:03:45.130 --> 01:03:48.490
+So those are ill-defined
+points in the Poincaré map,
+
+01:03:48.490 --> 01:03:51.010
+but everything else
+we completely know.
+
+01:04:00.806 --> 01:04:02.770
+AUDIENCE: [INAUDIBLE]
+
+01:04:02.770 --> 01:04:04.240
+RUSS TEDRAKE: Sorry.
+
+01:04:04.240 --> 01:04:05.065
+What's that?
+
+01:04:05.065 --> 01:04:08.710
+AUDIENCE: We said, like, if you
+[INAUDIBLE] a velocity of 0,
+
+01:04:08.710 --> 01:04:11.050
+then it would stand still there.
+
+01:04:11.050 --> 01:04:12.070
+RUSS TEDRAKE: Yes?
+
+01:04:12.070 --> 01:04:15.520
+AUDIENCE: Why would
+there be that line?
+
+01:04:15.520 --> 01:04:17.410
+RUSS TEDRAKE: Oh.
+
+01:04:17.410 --> 01:04:19.390
+Why is there a green line on 0?
+
+01:04:19.390 --> 01:04:23.430
+AUDIENCE: It's on one stripe.
+
+01:04:23.430 --> 01:04:27.740
+AUDIENCE: It's a green line
+at theta 0, not theta dot 0.
+
+01:04:27.740 --> 01:04:30.410
+RUSS TEDRAKE: It's theta dot 0.
+
+01:04:30.410 --> 01:04:32.725
+So why do I have to
+draw a green line there?
+
+01:04:32.725 --> 01:04:34.850
+I don't know why I have to
+draw a green line there.
+
+01:04:34.850 --> 01:04:37.280
+I don't remember that
+green line being there.
+
+01:04:37.280 --> 01:04:39.172
+AUDIENCE: [INAUDIBLE]
+
+01:04:39.172 --> 01:04:41.630
+RUSS TEDRAKE: Yeah, but I don't
+think I should have drawn--
+
+01:04:41.630 --> 01:04:44.600
+I think that's actually
+just a MATLAB typo.
+
+01:04:44.600 --> 01:04:46.860
+There's no reason why
+that should be there.
+
+01:04:46.860 --> 01:04:48.110
+I don't know why that's there.
+
+01:04:50.230 --> 01:04:51.828
+It's not in the notes.
+
+01:04:51.828 --> 01:04:53.620
+There's no reason why
+that should be there.
+
+01:04:53.620 --> 01:04:54.490
+I don't know why that's there.
+
+01:04:54.490 --> 01:04:55.070
+Yeah, John?
+
+01:04:55.070 --> 01:04:58.630
+AUDIENCE: Homoclinic orbit
+doesn't separate the rolling
+
+01:04:58.630 --> 01:05:03.721
+ones on the right side of the
+upper right and the base plot.
+
+01:05:03.721 --> 01:05:06.815
+Your homoclinic orbit is the
+boundary on the left side,
+
+01:05:06.815 --> 01:05:08.190
+but not on the
+right side, right?
+
+01:05:08.190 --> 01:05:09.220
+This is a--
+
+01:05:09.220 --> 01:05:10.690
+RUSS TEDRAKE: That's not true.
+
+01:05:10.690 --> 01:05:13.190
+AUDIENCE: The ones on the right
+side roll when they go back.
+
+01:05:13.190 --> 01:05:17.458
+But they're inside, but they
+bounce across to the left.
+
+01:05:17.458 --> 01:05:19.152
+[INAUDIBLE], right?
+
+01:05:19.152 --> 01:05:20.110
+RUSS TEDRAKE: OK, good.
+
+01:05:20.110 --> 01:05:23.775
+So there's actually green lines
+every fraction of the way.
+
+01:05:23.775 --> 01:05:25.150
+Is that what you're
+asking about?
+
+01:05:25.150 --> 01:05:25.600
+AUDIENCE: I was actually--
+
+01:05:25.600 --> 01:05:27.595
+RUSS TEDRAKE: Even the
+first one, this one?
+
+01:05:27.595 --> 01:05:30.530
+AUDIENCE: Because the homoclinic
+orbit is not the boundary
+
+01:05:30.530 --> 01:05:33.910
+or what marks the stable rolling
+gates in the [INAUDIBLE] plot,
+
+01:05:33.910 --> 01:05:34.630
+right?
+
+01:05:34.630 --> 01:05:36.820
+It is on left side maybe,
+but on the right side
+
+01:05:36.820 --> 01:05:38.065
+you can be inside
+the homoclinic orbit.
+
+01:05:38.065 --> 01:05:39.130
+RUSS TEDRAKE: Oh,
+that's correct.
+
+01:05:39.130 --> 01:05:39.755
+That's correct.
+
+01:05:39.755 --> 01:05:43.778
+So I can end up here with
+enough energy to transfer over.
+
+01:05:43.778 --> 01:05:44.320
+That's right.
+
+01:05:44.320 --> 01:05:45.490
+AUDIENCE: [INAUDIBLE]
+
+01:05:45.490 --> 01:05:47.060
+RUSS TEDRAKE: Only
+here is at the--
+
+01:05:47.060 --> 01:05:47.430
+AUDIENCE: Yeah.
+
+01:05:47.430 --> 01:05:48.513
+RUSS TEDRAKE: That's good.
+
+01:05:48.513 --> 01:05:49.450
+Yes, that's true.
+
+01:05:49.450 --> 01:05:51.970
+This is the only place where
+it's the defining part.
+
+01:05:51.970 --> 01:05:53.560
+The transition
+across from over here
+
+01:05:53.560 --> 01:05:55.352
+is more complicated,
+which is why we end up
+
+01:05:55.352 --> 01:05:58.600
+with these
+trajectories, which get
+
+01:05:58.600 --> 01:06:00.940
+started up going the other way.
+
+01:06:00.940 --> 01:06:01.870
+Yeah.
+
+01:06:01.870 --> 01:06:06.500
+And it's also the case that
+there's actually stripes
+
+01:06:06.500 --> 01:06:07.750
+of these green lines going up.
+
+01:06:07.750 --> 01:06:10.450
+At every boundary between
+the gray and the white,
+
+01:06:10.450 --> 01:06:13.060
+there's a place where I
+could have rolled 10 steps
+
+01:06:13.060 --> 01:06:16.830
+and ended up balanced
+perfectly and then go back.
+
+01:06:19.587 --> 01:06:21.170
+So I skipped over
+the impact dynamics.
+
+01:06:21.170 --> 01:06:27.160
+The impact dynamics are good
+to know, but we can avoid them.
+
+01:06:27.160 --> 01:06:33.010
+But just to give
+you the intuition,
+
+01:06:33.010 --> 01:06:37.510
+you can define the
+energy loss at impact
+
+01:06:37.510 --> 01:06:39.370
+by just looking at
+this rimless wheel
+
+01:06:39.370 --> 01:06:42.100
+immediately before
+the impact here.
+
+01:06:42.100 --> 01:06:47.680
+And it's got some
+momentum that it's
+
+01:06:47.680 --> 01:06:49.420
+moving along this pin joint.
+
+01:06:49.420 --> 01:06:52.780
+So it's got to have
+some momentum like that.
+
+01:06:52.780 --> 01:06:54.940
+Immediately after
+the collision, it's
+
+01:06:54.940 --> 01:06:59.350
+going to have a momentum that's
+orthogonal to this new pin
+
+01:06:59.350 --> 01:07:01.240
+joint.
+
+01:07:01.240 --> 01:07:06.260
+So any energy that's going
+into the ground is lost.
+
+01:07:06.260 --> 01:07:09.490
+So if you model an angular
+momentum conservation
+
+01:07:09.490 --> 01:07:12.590
+around this point, the
+angular momentum around this,
+
+01:07:12.590 --> 01:07:18.460
+which is the component
+of this, here remains.
+
+01:07:18.460 --> 01:07:20.980
+And the other part is lost.
+
+01:07:20.980 --> 01:07:24.340
+It turns out that,
+in the rimless wheel,
+
+01:07:24.340 --> 01:07:26.140
+you get that as a
+simple mapping saying,
+
+01:07:26.140 --> 01:07:29.260
+theta dot after a collision,
+if I use that notation,
+
+01:07:29.260 --> 01:07:33.875
+turns out to be cosine of 2
+alpha times theta dot just
+
+01:07:33.875 --> 01:07:34.750
+before the collision.
+
+01:07:34.750 --> 01:07:36.292
+It turns out to be
+a trivial mapping.
+
+01:07:45.930 --> 01:07:48.245
+So you now know the essential
+dynamics of walking.
+
+01:07:48.245 --> 01:07:49.620
+This is actually
+most of what you
+
+01:07:49.620 --> 01:07:52.560
+need to know if you think
+about a walking robot.
+
+01:07:52.560 --> 01:07:54.390
+The dominant source
+of energy loss
+
+01:07:54.390 --> 01:07:56.170
+is not friction in the joints.
+
+01:07:56.170 --> 01:07:58.680
+So that's pretty small.
+
+01:07:58.680 --> 01:08:01.320
+I mean, you could make a robot
+with friction in the joints.
+
+01:08:01.320 --> 01:08:04.950
+But the dominant
+dynamics of our walking
+
+01:08:04.950 --> 01:08:08.280
+are dominated by impact at the
+ground even for human walking,
+
+01:08:08.280 --> 01:08:09.030
+right?
+
+01:08:09.030 --> 01:08:13.140
+So most people think
+that the places
+
+01:08:13.140 --> 01:08:16.950
+you spend the most energy
+to recover from the ground
+
+01:08:16.950 --> 01:08:20.729
+collision are push
+off with the toe.
+
+01:08:20.729 --> 01:08:22.380
+And then you're mostly
+passive through.
+
+01:08:22.380 --> 01:08:24.729
+Ernesto, correct me if
+the theories have changed.
+
+01:08:24.729 --> 01:08:25.979
+You're mostly passive through.
+
+01:08:25.979 --> 01:08:27.600
+And then there's
+one other time where
+
+01:08:27.600 --> 01:08:30.930
+you spend a lot of energy,
+not a lot, but some energy.
+
+01:08:30.930 --> 01:08:33.937
+We actually decelerate
+your leg before knee strike
+
+01:08:33.937 --> 01:08:35.979
+maybe just to protect your
+kneecaps or maybe just
+
+01:08:35.979 --> 01:08:37.470
+to not walk like
+this or something.
+
+01:08:37.470 --> 01:08:37.770
+I don't know.
+
+01:08:37.770 --> 01:08:39.359
+But you actually
+spend a little bit
+
+01:08:39.359 --> 01:08:43.170
+of energy doing negative
+work to slow down that swing
+
+01:08:43.170 --> 01:08:45.930
+leg before it collides
+with the kneecap.
+
+01:08:45.930 --> 01:08:46.560
+And that's it.
+
+01:08:49.740 --> 01:08:51.689
+And the collision
+dominates so much
+
+01:08:51.689 --> 01:08:54.029
+to the point where, if
+you want to make an energy
+
+01:08:54.029 --> 01:08:56.413
+efficient robot,
+Andy Ruina says, you
+
+01:08:56.413 --> 01:08:58.830
+can make it four times more
+efficient if you put this push
+
+01:08:58.830 --> 01:09:02.450
+off just before the collision.
+
+01:09:02.450 --> 01:09:04.950
+Because if you're coming down
+and you suddenly use your push
+
+01:09:04.950 --> 01:09:07.649
+off to redirect your energy
+just before that collision,
+
+01:09:07.649 --> 01:09:09.660
+you can reduce the
+velocity at collision.
+
+01:09:09.660 --> 01:09:12.160
+And he says that makes a four
+time improvement in the energy
+
+01:09:12.160 --> 01:09:13.325
+efficiency of your robot.
+
+01:09:13.325 --> 01:09:15.450
+So they've been trying to
+build walking robots that
+
+01:09:15.450 --> 01:09:18.779
+sense the ground just before
+by having a little limit switch
+
+01:09:18.779 --> 01:09:21.020
+sticking down in
+front of the foot
+
+01:09:21.020 --> 01:09:23.182
+and push off right
+before ground contact.
+
+01:09:23.182 --> 01:09:25.140
+That collision dynamics,
+what the rimless wheel
+
+01:09:25.140 --> 01:09:29.819
+tells us about, is the dominant
+essential dynamics of walking.
+
+01:09:29.819 --> 01:09:32.340
+It's the only loss
+in the system,
+
+01:09:32.340 --> 01:09:36.472
+but it's enough to get us
+to stable limit cycle out.
+
+01:09:36.472 --> 01:09:37.680
+The mathematicians like this.
+
+01:09:37.680 --> 01:09:41.340
+Phil Holmes like this because
+he was surprised initially
+
+01:09:41.340 --> 01:09:44.880
+that and that these piecewise--
+
+01:09:44.880 --> 01:09:52.479
+this is a energy conserving
+system inside each cycle.
+
+01:09:52.479 --> 01:09:55.260
+It's a piecewise holonomic
+system they call it.
+
+01:09:55.260 --> 01:09:58.020
+And it can have
+stable limit cycles.
+
+01:10:00.840 --> 01:10:02.820
+So people have gone
+further than this now.
+
+01:10:02.820 --> 01:10:05.010
+We can do a little bit
+better than a rimless wheel.
+
+01:10:05.010 --> 01:10:06.468
+If you understand
+the rimless wheel
+
+01:10:06.468 --> 01:10:08.610
+and now you want to
+make it a walking robot,
+
+01:10:08.610 --> 01:10:14.460
+all you have to do is take away
+the rigid joined at the hip,
+
+01:10:14.460 --> 01:10:17.070
+make it a pin joint.
+
+01:10:17.070 --> 01:10:19.350
+To model the swing
+leg dynamics, you
+
+01:10:19.350 --> 01:10:22.140
+can add some smaller
+masses in the leg.
+
+01:10:22.140 --> 01:10:27.900
+So it's now exactly
+the Acrobot dynamics.
+
+01:10:27.900 --> 01:10:31.740
+You can imagine putting
+a torque at the hip.
+
+01:10:31.740 --> 01:10:37.020
+And that's called the compass
+gait model for obvious reasons.
+
+01:10:42.728 --> 01:10:43.770
+And wouldn't you know it?
+
+01:10:43.770 --> 01:10:48.550
+If you take a compass gait,
+put it on top of a small hill,
+
+01:10:48.550 --> 01:10:54.443
+give it a push, only
+losses come from collisions
+
+01:10:54.443 --> 01:10:55.110
+with the ground.
+
+01:10:55.110 --> 01:10:59.310
+Otherwise, it's a, even if
+I have no torque at the hip,
+
+01:10:59.310 --> 01:11:04.020
+passive stance phase.
+
+01:11:04.020 --> 01:11:07.320
+This thing walks stably
+down a small hill.
+
+01:11:14.168 --> 01:11:15.585
+AUDIENCE: Are you
+wanting the legs
+
+01:11:15.585 --> 01:11:18.710
+to swing free
+between [INAUDIBLE]??
+
+01:11:18.710 --> 01:11:21.000
+RUSS TEDRAKE: Everything
+is just 0 torque.
+
+01:11:21.000 --> 01:11:23.690
+The only trick I'm playing
+is that I'm ignoring the foot
+
+01:11:23.690 --> 01:11:27.105
+scuff here, which, if you
+want to build the robot,
+
+01:11:27.105 --> 01:11:28.730
+you've got to build
+a little retracting
+
+01:11:28.730 --> 01:11:30.740
+toe to make your leg a
+little bit shorter when
+
+01:11:30.740 --> 01:11:31.250
+it goes through.
+
+01:11:31.250 --> 01:11:32.420
+But, otherwise, you can do this.
+
+01:11:32.420 --> 01:11:33.212
+And we built these.
+
+01:11:36.390 --> 01:11:39.780
+Now, this guy has the
+rimless wheel actually.
+
+01:11:39.780 --> 01:11:41.627
+I showed you the
+basins of attraction.
+
+01:11:41.627 --> 01:11:43.710
+The two fixed points, the
+rolling and the standing
+
+01:11:43.710 --> 01:11:46.200
+together, are
+globally attractive
+
+01:11:46.200 --> 01:11:48.540
+except for those
+sets of measure 0
+
+01:11:48.540 --> 01:11:51.848
+where you end up
+standing on your toes.
+
+01:11:51.848 --> 01:11:53.640
+That's not at all true
+of the compass gait.
+
+01:11:53.640 --> 01:11:55.350
+The compass gait's pretty frail.
+
+01:11:55.350 --> 01:11:57.030
+You have to find
+initial conditions that
+
+01:11:57.030 --> 01:11:58.530
+put it into this walking gait.
+
+01:11:58.530 --> 01:12:01.590
+I can show you many
+simulations of it falling down
+
+01:12:01.590 --> 01:12:04.200
+catastrophically.
+
+01:12:04.200 --> 01:12:07.320
+But within some
+initial conditions,
+
+01:12:07.320 --> 01:12:10.560
+you get a nice stable
+limit cycle out.
+
+01:12:10.560 --> 01:12:12.960
+And not surprisingly,
+you can go farther.
+
+01:12:22.120 --> 01:12:25.880
+Put one more set
+of links in there.
+
+01:12:25.880 --> 01:12:29.230
+This is point feet
+walking with knees.
+
+01:12:29.230 --> 01:12:33.250
+We modeled a collision at the
+kneecap and with the ground,
+
+01:12:33.250 --> 01:12:37.210
+but the dynamics are the same.
+
+01:12:37.210 --> 01:12:40.150
+The limit cycles that
+you see in these guys
+
+01:12:40.150 --> 01:12:41.937
+look a little bit
+more appealing.
+
+01:12:52.374 --> 01:12:54.933
+AUDIENCE: [INAUDIBLE]
+of the knee [INAUDIBLE]..
+
+01:12:57.820 --> 01:13:01.060
+RUSS TEDRAKE: It does not
+work if the knees have--
+
+01:13:01.060 --> 01:13:04.275
+you need something that
+keeps it a stance leg.
+
+01:13:04.275 --> 01:13:06.400
+I mean, you might get a
+totally different gait out.
+
+01:13:06.400 --> 01:13:07.270
+But that could be--
+
+01:13:07.270 --> 01:13:09.320
+AUDIENCE: Well, I meant
+just during the swing.
+
+01:13:09.320 --> 01:13:12.463
+But I guess you have to--
+
+01:13:12.463 --> 01:13:15.005
+RUSS TEDRAKE: Somehow you have
+to end up with a straight leg.
+
+01:13:15.005 --> 01:13:16.682
+So if it went past
+and came back,
+
+01:13:16.682 --> 01:13:18.640
+if you were exceptionally
+lucky in that regard,
+
+01:13:18.640 --> 01:13:20.260
+you might do it.
+
+01:13:20.260 --> 01:13:21.810
+But kneecaps are a
+good thing, yeah?
+
+01:13:25.438 --> 01:13:27.480
+You'd feel a little silly
+walking down the street
+
+01:13:27.480 --> 01:13:28.188
+without kneecaps.
+
+01:13:37.800 --> 01:13:40.050
+So the dynamics of this,
+if you sort of project it
+
+01:13:40.050 --> 01:13:47.110
+onto a single plane, you
+get this nice long limit
+
+01:13:47.110 --> 01:13:49.080
+cycle of the stance leg.
+
+01:13:49.080 --> 01:13:52.770
+You got an impact,
+which instantaneously
+
+01:13:52.770 --> 01:13:54.360
+decreases your velocity.
+
+01:13:54.360 --> 01:13:56.250
+Then you get your
+stance leg cycle
+
+01:13:56.250 --> 01:14:00.240
+which is actually basically a
+snapshot of your rimless wheel
+
+01:14:00.240 --> 01:14:01.260
+cycle.
+
+01:14:01.260 --> 01:14:03.690
+And then you get another
+discrete impact which
+
+01:14:03.690 --> 01:14:05.920
+loses energy on the other side.
+
+01:14:05.920 --> 01:14:10.088
+And you get this nice limit
+cycle for the compass gait.
+
+01:14:15.950 --> 01:14:18.620
+This is the theta of leg one.
+
+01:14:24.990 --> 01:14:29.040
+And it's the stance leg here,
+and it's the swing leg here.
+
+01:14:29.040 --> 01:14:32.280
+And trajectories the
+neighbor this converge to it
+
+01:14:32.280 --> 01:14:33.547
+just like you'd expect.
+
+01:14:33.547 --> 01:14:35.130
+The kneed walker has
+another collision
+
+01:14:35.130 --> 01:14:39.085
+that happens somewhere in
+the middle of your swing,
+
+01:14:39.085 --> 01:14:39.960
+but it all works out.
+
+01:14:43.290 --> 01:14:50.462
+OK, so I've given
+you enough sort of,
+
+01:14:50.462 --> 01:14:52.670
+I think, to understand the
+basic limit cycle dynamics
+
+01:14:52.670 --> 01:14:57.530
+and the basic stability
+property of these things.
+
+01:14:57.530 --> 01:15:00.800
+Next time, we'll talk a bit
+about how you'd actually
+
+01:15:00.800 --> 01:15:02.300
+apply some of our
+previous methods,
+
+01:15:02.300 --> 01:15:05.570
+for instance, to this now
+that we've got a limit cycle
+
+01:15:05.570 --> 01:15:08.450
+and you've got hybrid
+dynamics with these switching
+
+01:15:08.450 --> 01:15:12.140
+if you want to do things like
+compute the gradients to do
+
+01:15:12.140 --> 01:15:13.113
+optimization.
+
+01:15:13.113 --> 01:15:15.530
+And so you have to be a little
+careful about those impacts
+
+01:15:15.530 --> 01:15:19.640
+and how they affect things,
+but it's not too hard.
+
+01:15:19.640 --> 01:15:21.830
+And we'll tell you a
+bit about the state
+
+01:15:21.830 --> 01:15:23.660
+of the art and walking control.
+
+01:15:23.660 --> 01:15:26.520
+They're all sort of
+based on this model.
+
+01:15:26.520 --> 01:15:28.310
+And then Thursday's the midterm.
+
+01:15:28.310 --> 01:15:30.110
+I promise to have a
+practice exam for you.
+
+01:15:30.110 --> 01:15:31.735
+It might not be
+tonight, unfortunately.
+
+01:15:31.735 --> 01:15:35.210
+But it'll be very soon, tomorrow
+or early Saturday morning, I
+
+01:15:35.210 --> 01:15:36.150
+promise.
+
+01:15:36.150 --> 01:15:36.800
+Yeah.
+
+01:15:36.800 --> 01:15:37.440
+OK.
+
+01:15:37.440 --> 01:15:39.023
+And feel free to ask
+me any questions.
+
+01:15:39.023 --> 01:15:42.080
+Some of you are finding me
+to run project ideas by.
+
+01:15:42.080 --> 01:15:43.310
+That's a great idea.
+
+01:15:43.310 --> 01:15:44.810
+If you want to talk about
+your project, let me know.
+
+01:15:44.810 --> 01:15:45.470
+Let John know.
+
+01:15:48.140 --> 01:15:50.080
+See you next time.

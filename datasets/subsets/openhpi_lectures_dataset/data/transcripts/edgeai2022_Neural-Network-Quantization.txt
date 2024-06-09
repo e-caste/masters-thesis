@@ -1,0 +1,421 @@
+WEBVTT
+
+1
+00:00:00.940 --> 00:00:03.549 
+Hello and welcome. From this video,
+
+2
+00:00:03.940 --> 00:00:08.349 
+we will start to discuss quantization techniques for deep neural networks.
+
+3
+00:00:11.210 --> 00:00:16.750 
+As we know, a neural network consists of floating point operations and parameters.
+
+4
+00:00:17.440 --> 00:00:28.559 
+For example using the FP32, which is 32 bit with this value range, the number of possible value is about 2 to the power 32.
+
+5
+00:00:29.440 --> 00:00:39.710 
+Quantization in digital signal processing refers to approximating the continuous value of the signal to a finite number
+
+6
+00:00:39.719 --> 00:00:41.759 
+of discrete value.
+
+7
+00:00:42.240 --> 00:00:51.310 
+Furthermore, neural network quantization refers to the use of low bit values and operations instead of the full precision
+
+8
+00:00:51.320 --> 00:00:52.460 
+counterparts.
+
+9
+00:00:53.740 --> 00:01:03.679 
+For instance, we can use a fixed point of expression like integer8 with only eight bits with a much smaller value range
+
+10
+00:01:03.689 --> 00:01:07.859 
+and the number of possible values is reduced to 2 to the power 8.
+
+11
+00:01:09.340 --> 00:01:17.150 
+Note that the neural network quantization will introduce quantization errors just like quantization in the digital signal
+
+12
+00:01:17.150 --> 00:01:27.959 
+processing as shown in the figure below. The quantization error generally increases at the number of bits using decreases.
+
+13
+00:01:28.439 --> 00:01:34.379 
+And therefore the low bit quantization of neural network is very challenging problem.
+
+14
+00:01:34.379 --> 00:01:34.959 
+
+
+15
+00:01:38.239 --> 00:01:40.959 
+Why neural networks work parameterization works?
+
+16
+00:01:41.739 --> 00:01:44.549 
+Deep neural networks are likely over parametererized
+
+17
+00:01:44.549 --> 00:01:54.150 
+with redundant information and trimming the redundant information will not cause a significant decrease in accuracy.
+
+18
+00:01:55.040 --> 00:02:05.739 
+The relevant evidence maybe there's accurary the gap between the FP 32 network and the quantized network for given quantization
+
+19
+00:02:05.739 --> 00:02:16.159 
+method is smaller for large networks because large network most of the time have a higher degree of over parameterization.
+
+20
+00:02:16.840 --> 00:02:21.389 
+But there is still no relevant theory about this.
+
+21
+00:02:22.139 --> 00:02:32.610 
+Researchers analyzed the ways of numerous classical neural networks and found that the deep networks weights have a narrow
+
+22
+00:02:32.610 --> 00:02:35.659 
+distribution range very close to zero.
+
+23
+00:02:37.039 --> 00:02:41.300 
+The advantage of neural network quantization are mainly two folds.
+
+24
+00:02:41.560 --> 00:02:49.949 
+It can significantly save memory and improve the inference speed of the model and thus can support more application of low
+
+25
+00:02:49.949 --> 00:02:51.050 
+power devices.
+
+26
+00:02:51.840 --> 00:02:59.659 
+And there are two commonly used network quantization types, post training and quantization aware training.
+
+27
+00:03:03.740 --> 00:03:07.439 
+Assume that we already have a deeper model well trained.
+
+28
+00:03:07.449 --> 00:03:12.759 
+Let's first take a look at how to quantize the parameters in the neural network.
+
+29
+00:03:14.240 --> 00:03:15.879 
+So integrate post training
+
+30
+00:03:15.879 --> 00:03:24.699 
+quantization is the most popular quantized method and in the industry supported by most deep learning frameworks such as
+
+31
+00:03:24.699 --> 00:03:26.259 
+tensorflow or pytorch.
+
+32
+00:03:27.240 --> 00:03:33.280 
+It applies linear mapping of the numerical range from 32 bit to 8 bit.
+
+33
+00:03:33.740 --> 00:03:37.969 
+The quantization algorithm is shown by the following equations
+
+34
+00:03:37.979 --> 00:03:42.639 
+where q_max and q_min, r_max and r_min,
+
+35
+00:03:42.949 --> 00:03:46.280 
+they are the maximum and minimum value of the quantized
+
+36
+00:03:46.289 --> 00:03:54.099 
+real value parameters. r represent full precision
+
+37
+00:03:54.110 --> 00:03:56.080 
+FP 32 parameter.
+
+38
+00:03:56.150 --> 00:04:01.259 
+q represents the quantized INT8 parameters.
+
+39
+00:04:01.639 --> 00:04:10.680 
+And here S is the scaling factor and Z represents the quantized integral number corresponding to zero in the real value
+
+40
+00:04:10.680 --> 00:04:11.259 
+numbers.
+
+41
+00:04:11.740 --> 00:04:20.459 
+So the zero point that of a fixed point integer represents zero of a floating point real value number.
+
+42
+00:04:20.939 --> 00:04:27.060 
+And we can see no significant loss of information in the conversion process.
+
+43
+00:04:30.540 --> 00:04:35.959 
+The most fundamental operation in the deep neural networks is matrix multiplication.
+
+44
+00:04:36.439 --> 00:04:41.360 
+So let's take a look at how to quantize this operation into INT8.
+
+45
+00:04:42.839 --> 00:04:46.600 
+r1, r2 and r3 here represents the real valued
+
+46
+00:04:46.600 --> 00:04:54.170 
+matrix, Sn is the scaling factor and Zn is the quantized zero point.
+
+47
+00:04:54.170 --> 00:04:56.160 
+Similar to the previous slides.
+
+48
+00:04:56.639 --> 00:05:00.560 
+We can calculate the matrix multiplication result r3.
+
+49
+00:05:01.040 --> 00:05:02.980 
+Now we replace the real valued
+
+50
+00:05:02.980 --> 00:05:05.750 
+matrix r by using quantized version.
+
+51
+00:05:06.540 --> 00:05:11.350 
+So this conversion form we already introduced in the last slides.
+
+52
+00:05:12.639 --> 00:05:22.519 
+Then we transform the equation, we have this formula, we can see that except the part in the red color so s1 multiplied by
+
+53
+00:05:22.610 --> 00:05:25.470 
+s2 divided by s3,
+
+54
+00:05:25.480 --> 00:05:29.060 
+everything else is fixed point integer arithmatic.
+
+55
+00:05:29.740 --> 00:05:31.649 
+So how to turn this
+
+56
+00:05:31.660 --> 00:05:36.160 
+part into also into the fixed point computation?
+
+57
+00:05:36.939 --> 00:05:48.199 
+A trick is used here, assume that the M equals s1 multiplied by s2 divided by s3.
+
+58
+00:05:48.209 --> 00:05:53.040 
+Since M is really a real number between zero and one.
+
+59
+00:05:53.050 --> 00:05:56.560 
+This is calculated through a large number of experiments.
+
+60
+00:05:57.339 --> 00:06:02.370 
+It can be expressed as M equals to 2 to the power -n,
+
+61
+00:06:02.379 --> 00:06:04.449 
+multiplied by M0,
+
+62
+00:06:04.939 --> 00:06:08.449 
+where M0 here is a fixed point real number.
+
+63
+00:06:08.939 --> 00:06:11.720 
+Then we put em into the equation seven.
+
+64
+00:06:11.970 --> 00:06:21.069 
+We can have the final formula. Note that the fixed point numbers are not necessarily to be integers.
+
+65
+00:06:21.079 --> 00:06:28.209 
+So the so called fixed point means that the precision of the decimal number is fixed.
+
+66
+00:06:28.220 --> 00:06:31.550 
+That is the number of decimal places is fixed.
+
+67
+00:06:31.939 --> 00:06:40.899 
+Therefore, if there is M equals 2 to the power -n multiplied by M0 then we can implement in this formula
+
+68
+00:06:40.910 --> 00:06:44.259 
+through a bit shifting operation of M0.
+
+69
+00:06:44.939 --> 00:06:49.649 
+Then the whole process is calculated using fixed point arithmatic.
+
+70
+00:06:53.240 --> 00:07:02.089 
+Let's take a simple example to understand how do we approximate the M P where M still replies on the full precision
+
+71
+00:07:02.089 --> 00:07:04.550 
+operations that we want to avoid.
+
+72
+00:07:05.339 --> 00:07:09.879 
+P here is an integral number calculated in fixed point domain.
+
+73
+00:07:09.889 --> 00:07:12.519 
+M is what we want to approximate.
+
+74
+00:07:12.529 --> 00:07:15.939 
+So let's look at the code on the left hand side.
+
+75
+00:07:15.949 --> 00:07:26.870 
+I have just arbitrarily defined the value of M and P. Here in the function multiply_approx,
+
+76
+00:07:27.129 --> 00:07:35.399 
+we use the equation from the above to do the approximation and print out the results. In the for loop
+
+77
+00:07:35.410 --> 00:07:39.920 
+we just execute the function up to n times. From the output,
+
+78
+00:07:39.930 --> 00:07:46.279 
+it can be seen that when n equals 13 and M0 equals 289
+
+79
+00:07:46.290 --> 00:07:48.250 
+the error is already within one.
+
+80
+00:07:49.139 --> 00:08:00.720 
+Therefore MP can be approximated by right shifting and zero times P by n bits and the error itself is within an acceptable
+
+81
+00:08:00.720 --> 00:08:09.259 
+range. In this way equation Eight can be entirely recalculated by using the fixed point arithmetic.
+
+82
+00:08:09.540 --> 00:08:19.639 
+That is, we have realized the quantization of floating point matrix multiplication.
+
+83
+00:08:19.639 --> 00:08:20.779 
+Through examples,
+
+84
+00:08:20.779 --> 00:08:26.959 
+we can see that the entire neural network calculations are implemented using fixed point operations.
+
+85
+00:08:27.540 --> 00:08:35.960 
+After we get the full precision model, we need to calculate the min and max of each weight and the activation feature maps.
+
+86
+00:08:36.840 --> 00:08:41.309 
+And use this to calculate the scale factor and zero point,
+
+87
+00:08:41.320 --> 00:08:45.259 
+then quantized the weights and activations to INT8.
+
+88
+00:08:46.240 --> 00:08:54.669 
+Now you can perform quantized inference based on the above process for computing the scale factor for ways is relatively
+
+89
+00:08:54.669 --> 00:08:57.470 
+easy. For intermediate feature maps,
+
+90
+00:08:57.480 --> 00:09:06.860 
+a common way is to use a small representative collaboration data set, which could be a subset of the validation set during
+
+91
+00:09:06.860 --> 00:09:07.629 
+inference,
+
+92
+00:09:07.639 --> 00:09:17.860 
+because all the computations were conducted seamlessly using integer operations, the inference performance is always faster.
+
+93
+00:09:18.940 --> 00:09:24.039 
+The only shortcoming is that we have to prepare this calibration data set.
+
+94
+00:09:24.179 --> 00:09:32.990 
+If the data is not representative enough, the scales and zero points computed might not reflect the actual scenario during
+
+95
+00:09:32.990 --> 00:09:36.759 
+inference and the inference accuracy will be harmed.
+
+96
+00:09:40.139 --> 00:09:40.929 
+Quantization
+
+97
+00:09:40.929 --> 00:09:49.570 
+using neural networks introduce information loss and therefore the inference accuracy from the quantized integral models
+
+98
+00:09:49.570 --> 00:09:52.879 
+are lower than that from the floating point models.
+
+99
+00:09:52.889 --> 00:10:00.659 
+Such information losses because floating points after quantization and dequantization are not exactly recovered.
+
+100
+00:10:01.440 --> 00:10:09.860 
+The idea of quantization aware training is to ask neural networks to take the effect of such information loss into account
+
+101
+00:10:09.870 --> 00:10:10.759 
+during training.
+
+102
+00:10:11.440 --> 00:10:20.980 
+Therefore, during training, the model will have less sacrifice to the inference accuracy. In the upcoming video, we will
+
+103
+00:10:20.980 --> 00:10:27.559 
+show you how we train a neural network only using one bit for both activations and weights.
+
+104
+00:10:28.440 --> 00:10:31.559 
+It is also known as binary neural networks.
+
+105
+00:10:33.740 --> 00:10:34.360 
+Thank you.

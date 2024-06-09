@@ -1,0 +1,510 @@
+WEBVTT
+
+00:00:00.229 --> 00:00:05.140
+One of the most useful abstractions provided
+by high-level languages is the notion of a
+
+00:00:05.140 --> 00:00:10.169
+procedure or subroutine, which is a sequence
+of instructions that perform a specific task.
+
+00:00:10.169 --> 00:00:15.210
+A procedure has a single named entry point,
+which can be used to refer to the procedure
+
+00:00:15.210 --> 00:00:17.190
+in other parts of the program.
+
+00:00:17.190 --> 00:00:22.650
+In the example here, this code is defining
+the GCD procedure, which is declared to return
+
+00:00:22.650 --> 00:00:25.810
+an integer value.
+
+00:00:25.810 --> 00:00:30.689
+Procedures have zero or more formal parameters,
+which are the names the code inside the procedure
+
+00:00:30.689 --> 00:00:34.772
+will use to refer the values supplied when
+the procedure is invoked by a "procedure call".
+
+00:00:34.772 --> 00:00:41.000
+A procedure call is an expression that has
+the name of the procedure followed by parenthesized
+
+00:00:41.000 --> 00:00:46.809
+list of values called "arguments" that will
+be matched up with the formal parameters.
+
+00:00:46.809 --> 00:00:50.990
+For example, the value of the first argument
+will become the value of the first formal
+
+00:00:50.990 --> 00:00:53.519
+parameter while the procedure is executing.
+
+00:00:53.519 --> 00:00:57.840
+The body of the procedure may define additional
+variables, called "local variables", since
+
+00:00:57.840 --> 00:01:02.019
+they can only be accessed by statements in
+the procedure body.
+
+00:01:02.019 --> 00:01:07.790
+Conceptually, the storage for local variables
+only exists while the procedure is executing.
+
+00:01:07.790 --> 00:01:12.890
+They are allocated when the procedure is invoked
+and deallocated when the procedure returns.
+
+00:01:12.890 --> 00:01:17.750
+The procedure may return a value that's the
+result of the procedure's computation.
+
+00:01:17.750 --> 00:01:22.220
+It's legal to have procedures that do not
+return a value, in which case the procedures
+
+00:01:22.220 --> 00:01:27.500
+would only be executed for their "side effects",
+e.g., changes they make to shared data.
+
+00:01:27.500 --> 00:01:32.860
+Here we see another procedure, COPRIMES, that
+invokes the GCD procedure to compute the greatest
+
+00:01:32.860 --> 00:01:36.130
+common divisor of two numbers.
+
+00:01:36.130 --> 00:01:43.060
+To use GCD, the programmer of COPRIMES only
+needed to know the input/output behavior of
+
+00:01:43.060 --> 00:01:48.280
+GCD, i.e., the number and types of the arguments
+and what type of value is returned as a result.
+
+00:01:48.280 --> 00:01:52.640
+The procedural abstraction has hidden the
+implementation of GCD, while still making
+
+00:01:52.640 --> 00:01:56.590
+its functionality available as a "black box".
+
+00:01:56.590 --> 00:02:02.320
+This is a very powerful idea: encapsulating
+a complex computation so that it can be used
+
+00:02:02.320 --> 00:02:04.110
+by others.
+
+00:02:04.110 --> 00:02:09.410
+Every high-level language comes with a collection
+of pre-built procedures, called "libraries",
+
+00:02:09.410 --> 00:02:14.319
+which can be used to perform arithmetic functions
+(e.g., square root or cosine),
+
+00:02:14.319 --> 00:02:21.500
+manipulate collections of data (e.g., lists
+or dictionaries), read data from files, and
+
+00:02:21.500 --> 00:02:24.590
+so on - the list is nearly endless!
+
+00:02:24.590 --> 00:02:29.019
+Much of the expressive power and ease-of-use
+provided by high-level languages comes from
+
+00:02:29.019 --> 00:02:32.609
+their libraries of "black boxes".
+
+00:02:32.609 --> 00:02:37.540
+The procedural abstraction is at the heart
+of object-oriented languages, which encapsulate
+
+00:02:37.540 --> 00:02:42.999
+data and procedures as black boxes called
+objects that support specific operations on
+
+00:02:42.999 --> 00:02:44.920
+their internal data.
+
+00:02:44.920 --> 00:02:50.909
+For example, a LIST object has procedures
+(called "methods" in this context) for indexing
+
+00:02:50.909 --> 00:02:56.340
+into the list to read or change a value, adding
+new elements to the list, inquiring about
+
+00:02:56.340 --> 00:02:58.909
+the length of the list, and so on.
+
+00:02:58.909 --> 00:03:03.569
+The internal representation of the data and
+the algorithms used to implement the methods
+
+00:03:03.569 --> 00:03:06.500
+are hidden by the object abstraction.
+
+00:03:06.500 --> 00:03:10.959
+Indeed, there may be several different LIST
+implementations to choose from depending on
+
+00:03:10.959 --> 00:03:14.349
+which operations you need to be particularly
+efficient.
+
+00:03:14.349 --> 00:03:18.909
+Okay, enough about the virtues of the procedural
+abstraction!
+
+00:03:18.909 --> 00:03:23.959
+Let's turn our attention to how to implement
+procedures using the Beta ISA.
+
+00:03:23.959 --> 00:03:29.049
+A possible implementation is to "inline" the
+procedure, where we replace the procedure
+
+00:03:29.049 --> 00:03:34.049
+call with a copy of the statements in the
+procedure's body, substituting argument values
+
+00:03:34.049 --> 00:03:36.819
+for references to the formal parameters.
+
+00:03:36.819 --> 00:03:42.379
+In this approach we're treating procedures
+very much like UASM macros, i.e., a simple
+
+00:03:42.379 --> 00:03:46.579
+notational shorthand for making a copy of
+the procedure's body.
+
+00:03:46.579 --> 00:03:49.860
+Are there any problems with this approach?
+
+00:03:49.860 --> 00:03:53.819
+One obvious issue is the potential increase
+in the code size.
+
+00:03:53.819 --> 00:03:59.349
+For example, if we had a lengthy procedure
+that was called many times, the final expanded
+
+00:03:59.349 --> 00:04:01.609
+code would be huge!
+
+00:04:01.609 --> 00:04:06.769
+Enough so that inlining isn't a practical
+solution except in the case of short procedures
+
+00:04:06.769 --> 00:04:11.540
+where optimizing compilers do sometimes decide
+to inline the code.
+
+00:04:11.540 --> 00:04:18.089
+A bigger difficulty is apparent when we consider
+a recursive procedure where there's a nested
+
+00:04:18.089 --> 00:04:20.690
+call to the procedure itself.
+
+00:04:20.690 --> 00:04:25.530
+During execution the recursion will terminate
+for some values of the arguments and the recursive
+
+00:04:25.530 --> 00:04:28.170
+procedure will eventually return answer.
+
+00:04:28.170 --> 00:04:34.670
+But at compile time, the inlining process
+would not terminate and so the inlining scheme
+
+00:04:34.670 --> 00:04:38.510
+fails if the language allows recursion.
+
+00:04:38.510 --> 00:04:41.380
+The second option is to "link" to the procedure.
+
+00:04:41.380 --> 00:04:45.230
+In this approach there is a single copy of
+the procedure code which we arrange to be
+
+00:04:45.230 --> 00:04:52.530
+run for each procedure call - all the procedure
+calls are said to link to the procedure code.
+
+00:04:52.530 --> 00:04:56.920
+Here the body of the procedure is translated
+once into Beta instructions and the first
+
+00:04:56.920 --> 00:05:00.410
+instruction is identified as the procedure's
+entry point.
+
+00:05:00.410 --> 00:05:04.190
+The procedure call is compiled into a set
+of instructions that evaluate the argument
+
+00:05:04.190 --> 00:05:08.720
+expressions and save the values in an agreed-upon
+location.
+
+00:05:08.720 --> 00:05:14.220
+Then we'll use a BR instruction to transfer
+control to the entry point of the procedure.
+
+00:05:14.220 --> 00:05:20.160
+Recall that the BR instruction not only changes
+the PC but saves the address of the instruction
+
+00:05:20.160 --> 00:05:23.690
+following the branch in a specified register.
+
+00:05:23.690 --> 00:05:28.760
+This saved address is the "return address"
+where we want execution to resume when procedure
+
+00:05:28.760 --> 00:05:31.680
+execution is complete.
+
+00:05:31.680 --> 00:05:36.490
+After branching to the entry point, the procedure
+code runs, stores the result in an agreed-upon
+
+00:05:36.490 --> 00:05:41.390
+location and then resumes execution of the
+calling program by jumping to the supplied
+
+00:05:41.390 --> 00:05:44.000
+return address.
+
+00:05:44.000 --> 00:05:48.830
+To complete this implementation plan we need
+a "calling convention" that specifies where
+
+00:05:48.830 --> 00:05:52.900
+to store the argument values during procedure
+calls and where the procedure should store
+
+00:05:52.900 --> 00:05:54.300
+the return value.
+
+00:05:54.300 --> 00:05:59.220
+It's tempting to simply allocate specific
+memory locations for the job.
+
+00:05:59.220 --> 00:06:01.360
+How about using registers?
+
+00:06:01.360 --> 00:06:06.210
+We could pass the argument value in registers
+starting, say, with R1.
+
+00:06:06.210 --> 00:06:10.460
+The return address could be stored in another
+register, say R28.
+
+00:06:10.460 --> 00:06:14.900
+As we can see, with this convention the BR
+and JMP instructions are just what we need
+
+00:06:14.900 --> 00:06:17.490
+to implement procedure call and return.
+
+00:06:17.490 --> 00:06:22.060
+It's usual to call the register holding the
+return address the "linkage pointer".
+
+00:06:22.060 --> 00:06:27.180
+And finally the procedure can use, say, R0
+to hold the return value.
+
+00:06:27.180 --> 00:06:30.550
+Let's see how this would work when executing
+the procedure call fact(3).
+
+00:06:30.550 --> 00:06:36.810
+As shown on the right, fact(3) requires a
+recursive call to compute fact(2), and so
+
+00:06:36.810 --> 00:06:37.810
+on.
+
+00:06:37.810 --> 00:06:43.440
+Our goal is to have a uniform calling convention
+where all procedure calls and procedure bodies
+
+00:06:43.440 --> 00:06:48.100
+use the same convention for storing arguments,
+return addresses and return values.
+
+00:06:48.100 --> 00:06:54.740
+In particular, we'll use the same convention
+when compiling the recursive call fact(n-1)
+
+00:06:54.740 --> 00:06:57.780
+as we did for the initial call to fact(3).
+
+00:06:57.780 --> 00:06:59.220
+Okay.
+
+00:06:59.220 --> 00:07:03.240
+In the code shown on the right we've used
+our proposed convention when compiling the
+
+00:07:03.240 --> 00:07:05.210
+Beta code for fact().
+
+00:07:05.210 --> 00:07:07.580
+Let's take a quick tour.
+
+00:07:07.580 --> 00:07:13.410
+To compile the initial call fact(3) the compiler
+generated a CMOVE instruction to put the argument
+
+00:07:13.410 --> 00:07:19.470
+value in R1 and then a BR instruction to transfer
+control to fact's entry point while remembering
+
+00:07:19.470 --> 00:07:22.890
+the return address in R28.
+
+00:07:22.890 --> 00:07:29.461
+The first statement in the body of fact tests
+the value of the argument using CMPLEC and
+
+00:07:29.461 --> 00:07:32.290
+BT instructions.
+
+00:07:32.290 --> 00:07:37.550
+When n is greater than 0, the code performs
+a recursive call to fact, saving the value
+
+00:07:37.550 --> 00:07:43.960
+of the recursive argument n-1 in R1 as our
+convention requires.
+
+00:07:43.960 --> 00:07:47.680
+Note that we had to first save the value of
+the original argument n because we'll need
+
+00:07:47.680 --> 00:07:54.220
+it for the multiplication after the recursive
+call returns its value in R0.
+
+00:07:54.220 --> 00:07:59.720
+If n is not greater than 0, the value 1 is
+placed in R0.
+
+00:07:59.720 --> 00:08:05.030
+Then the two possible execution paths merge,
+each having generated the appropriate return
+
+00:08:05.030 --> 00:08:10.770
+value in R0, and finally there's a JMP to
+return control to the caller.
+
+00:08:10.770 --> 00:08:15.990
+The JMP instruction knows to find the return
+address in R28, just where the BR put it as
+
+00:08:15.990 --> 00:08:20.460
+part of the original procedure call.
+
+00:08:20.460 --> 00:08:25.830
+Some of you may have noticed that there are
+some difficulties with this particular implementation.
+
+00:08:25.830 --> 00:08:30.420
+The code is correct in the sense that it faithfully
+implements procedure call and return using
+
+00:08:30.420 --> 00:08:32.969
+our proposed convention.
+
+00:08:32.969 --> 00:08:37.860
+The problem is that during recursive calls
+we'll be overwriting register values we need
+
+00:08:37.860 --> 00:08:39.860
+later.
+
+00:08:39.860 --> 00:08:46.230
+For example, note that following our calling
+convention, the recursive call also uses R28
+
+00:08:46.230 --> 00:08:47.959
+to store the return address.
+
+00:08:47.959 --> 00:08:52.670
+When executed, the code for the original call
+stored the address of the HALT instruction
+
+00:08:52.670 --> 00:08:54.730
+in R28.
+
+00:08:54.730 --> 00:08:59.730
+Inside the procedure, the recursive call will
+store the address of the MUL instruction in
+
+00:08:59.730 --> 00:09:01.060
+R28.
+
+00:09:01.060 --> 00:09:05.110
+Unfortunately that overwrites the original
+return address.
+
+00:09:05.110 --> 00:09:10.610
+Even the attempt to save the value of the
+argument N in R2 is doomed to fail since during
+
+00:09:10.610 --> 00:09:15.910
+the execution of the recursive call R2 will
+be overwritten.
+
+00:09:15.910 --> 00:09:20.879
+The crux of the problem is that each recursive
+call needs to remember the value of its argument
+
+00:09:20.879 --> 00:09:27.810
+and return address, i.e., we need two storage
+locations for each active call to fact().
+
+00:09:27.810 --> 00:09:33.939
+And while executing fact(3), when we finally
+get to calling fact(0) there are four nested
+
+00:09:33.939 --> 00:09:38.649
+active calls, so we'll need 4*2 = 8 storage
+locations.
+
+00:09:38.649 --> 00:09:44.860
+In fact, the amount of storage needed varies
+with the depth of the recursion.
+
+00:09:44.860 --> 00:09:49.889
+Obviously we can't use just two registers
+(R2 and R28) to hold all the values we need
+
+00:09:49.889 --> 00:09:51.949
+to save.
+
+00:09:51.949 --> 00:09:54.259
+One fix is to disallow recursion!
+
+00:09:54.259 --> 00:10:00.050
+And, in fact, some of the early programming
+languages such as FORTRAN did just that.
+
+00:10:00.050 --> 00:10:02.429
+But let's see if we can solve the problem
+another way.

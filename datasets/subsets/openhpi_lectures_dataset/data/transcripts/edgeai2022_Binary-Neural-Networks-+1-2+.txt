@@ -1,0 +1,273 @@
+WEBVTT
+
+1
+00:00:00.440 --> 00:00:02.940 
+Hello and welcome. In this video,
+
+2
+00:00:02.950 --> 00:00:11.640 
+we will introduce a binary neural network which is an extreme case of network quantization.
+
+3
+00:00:11.640 --> 00:00:20.559 
+Quantization using neural networks introduced information loss and therefore the inference accuracy from the quantized integer
+
+4
+00:00:20.559 --> 00:00:25.550 
+models are necessarily lower than that from the floating point models.
+
+5
+00:00:26.039 --> 00:00:34.149 
+The idea of quantization aware training is to make the neural network take the effect of such information loss into account
+
+6
+00:00:34.159 --> 00:00:35.060 
+during the training.
+
+7
+00:00:35.840 --> 00:00:46.320 
+Therefore during inference the model will have less sacrifice to the inference accuracy. During neural network training
+
+8
+00:00:46.329 --> 00:00:58.090 
+all the activation output tensors and weight tensors are variables and therefore we add a quantized layer for each variable tensor
+
+9
+00:00:58.100 --> 00:01:06.969 
+in the quantization awareness training. The central problem of the quantization aware training is that such quantization
+
+10
+00:01:06.969 --> 00:01:16.719 
+functions are not differentiable and we cannot apply loss back propagation for all the training. In practice straight through
+
+11
+00:01:16.719 --> 00:01:25.780 
+estimation derivative approximation works well for the quantization aware training, it treats
+
+12
+00:01:25.780 --> 00:01:35.189 
+the quantization function as an identity function in the clipping range from minus one to plus one and constant function
+
+13
+00:01:35.200 --> 00:01:37.060 
+outside of the clipping range.
+
+14
+00:01:37.900 --> 00:01:45.849 
+Therefore the resulting derivatives are one in the clipping range and zero outside the Clipping range.
+
+15
+00:01:47.840 --> 00:01:53.870 
+Binary neural networks show promising progress in reducing computational and memory costs.
+
+16
+00:01:54.840 --> 00:02:04.099 
+The theory behind it is quite intuitive. We convert the parameters of a neural network from a full precision 32 bit value
+
+17
+00:02:04.109 --> 00:02:12.620 
+to binary value with only one bit. For instance, we may have this vector of one bit values.
+
+18
+00:02:13.240 --> 00:02:22.449 
+Then by applying bit parking we can save 32 1 bit values in a single and sign it integer container.
+
+19
+00:02:23.539 --> 00:02:35.449 
+In this way, we can easily achieve a 32 times smaller model which means 32 times less memory access and much less energy consumption.
+
+20
+00:02:36.240 --> 00:02:45.000 
+First of all, we can apply bit wise operators like XNOR and bitcount instead of arithmatic operations for neural network
+
+21
+00:02:45.000 --> 00:02:48.460 
+computation, which also increases efficiency.
+
+22
+00:02:49.039 --> 00:02:52.360 
+So literature introduced that
+
+23
+00:02:53.039 --> 00:03:04.509 
+it is possible to achieve with a dedicated hardware we could possibly achieve over 1000 times energy saving. By using by BNNs.
+
+24
+00:03:04.509 --> 00:03:05.159 
+
+
+25
+00:03:05.539 --> 00:03:14.159 
+How are the binary neural networks trained? The commonly used way is to use the sign function to binarise weight and activation
+
+26
+00:03:14.159 --> 00:03:19.259 
+parameters before feeding into a convolutional or fully connected layer.
+
+27
+00:03:19.939 --> 00:03:23.360 
+So the parameter becomes either -1 or +1.
+
+28
+00:03:24.039 --> 00:03:28.560 
+But as already mentioned it differentiating the sign function
+
+29
+00:03:28.569 --> 00:03:34.750 
+does not help for the back of publication, we got zero gradient almost everywhere from this function.
+
+30
+00:03:35.139 --> 00:03:40.259 
+So we also apply the straight through estimator to overcome this issue.
+
+31
+00:03:40.939 --> 00:03:45.460 
+We use the derivative function of the clipping function in the back propagation.
+
+32
+00:03:46.139 --> 00:03:51.650 
+So within the range -1 and +1, the derivative equals one.
+
+33
+00:03:51.659 --> 00:03:53.360 
+Otherwise it's zero.
+
+34
+00:03:54.939 --> 00:04:00.250 
+Now, I would like to show you how we implement the inference of a binary neural network.
+
+35
+00:04:00.740 --> 00:04:05.659 
+This figure shows the conventional workflow for convolutional operators.
+
+36
+00:04:06.039 --> 00:04:16.189 
+We can see that the feature map from the previous operator output will be prepared and patch2column or we also call it
+
+37
+00:04:16.189 --> 00:04:18.360 
+image2column will be performed.
+
+38
+00:04:18.740 --> 00:04:25.060 
+Then the dot product will be executed between full precision weights and the input activation.
+
+39
+00:04:25.639 --> 00:04:29.519 
+After post processing it will be forwarded to the next layer.
+
+40
+00:04:32.339 --> 00:04:39.829 
+While for binary neural networks we will first use a model converter to obtain the binarised weights.
+
+41
+00:04:39.839 --> 00:04:50.980 
+We only need to do this once before the forward propagation and then in the forward path we need to
+
+42
+00:04:50.980 --> 00:05:02.139 
+binarise the layer input the activations. After that we can apply XNOR based GEMM operation for convolution.
+
+43
+00:05:02.139 --> 00:05:04.230 
+So binarising the input,
+
+44
+00:05:04.240 --> 00:05:13.220 
+we will do the row wise bit packing. For example, here we use the four bit parameters as a simple defined example we pack
+
+45
+00:05:13.220 --> 00:05:17.240 
+them into one bit.
+
+46
+00:05:17.240 --> 00:05:26.860 
+For ways we use the column wise bit packing . Column wise packing has low efficiency because the memory is not accessed sequentially.
+
+47
+00:05:27.540 --> 00:05:33.560 
+But as I already mentioned it we only need to perform weight packing in our case just once.
+
+48
+00:05:35.040 --> 00:05:35.990 
+And for the XNOR
+
+49
+00:05:35.990 --> 00:05:40.250 
+based dot product we apply bit wise operators XNOR
+
+50
+00:05:40.250 --> 00:05:51.069 
+and popcount. In this example we need four times multiply and three times addition for the standard dot product. For
+
+51
+00:05:51.069 --> 00:05:57.949 
+xNOR based the dot product we only execute XNOR and popcount once for each data entry.
+
+52
+00:06:04.240 --> 00:06:09.939 
+This piece of code implements at baseline XNOR GEMM, so M N
+
+53
+00:06:09.949 --> 00:06:12.470 
+are the input metrics and K
+
+54
+00:06:12.480 --> 00:06:17.060 
+are the output metrics. In the middle of the 4 loops
+
+55
+00:06:17.439 --> 00:06:18.350 
+We use XNOR, NOT
+
+56
+00:06:18.350 --> 00:06:23.759 
+and popcount to implement the boundary dot product.
+
+57
+00:06:24.240 --> 00:06:34.329 
+We see that based on the limitation of the existing hardware, we cannot completely avoid addition and a small amount of addition
+
+58
+00:06:34.339 --> 00:06:35.560 
+is still needed.
+
+59
+00:06:39.439 --> 00:06:41.579 
+By looking at the assembly code,
+
+60
+00:06:41.589 --> 00:06:47.149 
+we can see that using a 64 bit unsigned integer as a container,
+
+61
+00:06:47.160 --> 00:06:53.660 
+we have successfully implemented binary inference using XNOR and popcount.
+
+62
+00:06:57.139 --> 00:07:05.259 
+In this video, I introduced the basic idea of quantization aware neural network training and the fundamentals of binary
+
+63
+00:07:05.259 --> 00:07:07.490 
+neural networks, training and inference.
+
+64
+00:07:08.639 --> 00:07:09.970 
+In the upcoming session,
+
+65
+00:07:09.980 --> 00:07:13.110 
+I will present the main challenges of BNN
+
+66
+00:07:13.110 --> 00:07:13.660 
+
+
+67
+00:07:13.670 --> 00:07:15.750 
+and introduce BNN frameworks.
+
+68
+00:07:16.839 --> 00:07:18.360 
+Thank you for watching the video.

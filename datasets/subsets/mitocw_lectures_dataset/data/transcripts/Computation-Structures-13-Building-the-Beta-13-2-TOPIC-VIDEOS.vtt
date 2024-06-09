@@ -1,0 +1,802 @@
+WEBVTT
+
+00:00:00.500 --> 00:00:03.770
+Today we’re going to describe
+the datapath and control logic
+
+00:00:03.770 --> 00:00:06.380
+needed to execute
+Beta instructions.
+
+00:00:06.380 --> 00:00:09.050
+In an upcoming lab assignment,
+we’ll ask you to build
+
+00:00:09.050 --> 00:00:12.560
+a working implementation using
+our standard cell library.
+
+00:00:12.560 --> 00:00:15.940
+When you’re done, you’ll have
+designed and debugged a 32-bit
+
+00:00:15.940 --> 00:00:17.940
+reduced-instruction
+set computer!
+
+00:00:17.940 --> 00:00:20.260
+Not bad…
+
+00:00:20.260 --> 00:00:23.550
+Before tackling a design task,
+it’s useful to understand
+
+00:00:23.550 --> 00:00:25.420
+the goals for the design.
+
+00:00:25.420 --> 00:00:27.580
+Functionality, of
+course; in our case
+
+00:00:27.580 --> 00:00:30.780
+the correct execution of
+instructions from the Beta ISA.
+
+00:00:30.780 --> 00:00:35.550
+But there are other goals
+we should think about.
+
+00:00:35.550 --> 00:00:38.280
+An obvious goal is to
+maximize performance,
+
+00:00:38.280 --> 00:00:40.360
+as measured by the
+number of instructions
+
+00:00:40.360 --> 00:00:42.540
+executed per second.
+
+00:00:42.540 --> 00:00:44.640
+This is usually
+expressed in MIPS,
+
+00:00:44.640 --> 00:00:48.140
+an acronym for “Millions of
+Instructions Per Second”.
+
+00:00:48.140 --> 00:00:51.530
+When the Intel 8080
+was introduced in 1974,
+
+00:00:51.530 --> 00:00:57.330
+it executed instructions at 0.29
+MIPS or 290,000 instructions
+
+00:00:57.330 --> 00:01:01.520
+per second as measured by
+the Dhrystone benchmark.
+
+00:01:01.520 --> 00:01:04.150
+Modern multi-core processors
+are rated between 10,000
+
+00:01:04.150 --> 00:01:08.290
+and 100,000 MIPS.
+
+00:01:08.290 --> 00:01:10.880
+Another goal might be to
+minimize the manufacturing
+
+00:01:10.880 --> 00:01:13.840
+cost, which in integrated
+circuit manufacturing
+
+00:01:13.840 --> 00:01:17.820
+is proportional to the
+size of the circuit.
+
+00:01:17.820 --> 00:01:22.400
+Or we might want have the best
+performance for a given price.
+
+00:01:22.400 --> 00:01:24.060
+In our increasingly
+mobile world,
+
+00:01:24.060 --> 00:01:28.570
+the best performance per watt
+might be an important goal.
+
+00:01:28.570 --> 00:01:30.160
+One of the
+interesting challenges
+
+00:01:30.160 --> 00:01:31.860
+in computer
+engineering is deciding
+
+00:01:31.860 --> 00:01:34.660
+exactly how to balance
+performance against cost
+
+00:01:34.660 --> 00:01:36.110
+and power efficiency.
+
+00:01:36.110 --> 00:01:37.940
+Clearly the designers
+of the Apple Watch
+
+00:01:37.940 --> 00:01:39.890
+have a different
+set of design goals
+
+00:01:39.890 --> 00:01:44.040
+then the designers of
+high-end desktop computers.
+
+00:01:44.040 --> 00:01:46.320
+The performance of a
+processor is inversely
+
+00:01:46.320 --> 00:01:50.080
+proportional to the length of
+time it takes to run a program.
+
+00:01:50.080 --> 00:01:53.970
+The shorter the execution time,
+the higher the performance.
+
+00:01:53.970 --> 00:01:56.960
+The execution time is
+determined by three factors.
+
+00:01:56.960 --> 00:02:00.430
+First, the number of
+instructions in the program.
+
+00:02:00.430 --> 00:02:03.570
+Second, the number of clock
+cycles our sequential circuit
+
+00:02:03.570 --> 00:02:06.950
+requires to execute a
+particular instruction.
+
+00:02:06.950 --> 00:02:09.820
+Complex instructions,
+e.g., adding two values
+
+00:02:09.820 --> 00:02:12.910
+from main memory, may
+make a program shorter,
+
+00:02:12.910 --> 00:02:15.370
+but may also require
+many clock cycles
+
+00:02:15.370 --> 00:02:19.720
+to perform the necessary
+memory and datapath operations.
+
+00:02:19.720 --> 00:02:23.000
+Third, the amount of time
+needed for each clock cycle,
+
+00:02:23.000 --> 00:02:26.180
+as determined by the propagation
+delay of the digital logic
+
+00:02:26.180 --> 00:02:28.340
+in the datapath.
+
+00:02:28.340 --> 00:02:30.370
+So to increase
+the performance we
+
+00:02:30.370 --> 00:02:33.620
+could reduce the number of
+instructions to be executed.
+
+00:02:33.620 --> 00:02:36.900
+Or we can try to minimize the
+number of clock cycles needed
+
+00:02:36.900 --> 00:02:40.210
+on the average to
+execute our instructions.
+
+00:02:40.210 --> 00:02:42.800
+There’s obviously a bit of a
+tradeoff between these first
+
+00:02:42.800 --> 00:02:44.060
+two options:
+
+00:02:44.060 --> 00:02:46.500
+more computation per
+instruction usually
+
+00:02:46.500 --> 00:02:50.060
+means it will take more time
+to execute the instruction.
+
+00:02:50.060 --> 00:02:53.020
+Or we can try to keep our
+logic simple, minimizing
+
+00:02:53.020 --> 00:02:56.310
+its propagation delay in the
+hopes of having a short clock
+
+00:02:56.310 --> 00:02:58.350
+period.
+
+00:02:58.350 --> 00:03:02.210
+Today we’ll focus on an
+implementation for the Beta ISA
+
+00:03:02.210 --> 00:03:06.230
+that executes one instruction
+every clock cycle.
+
+00:03:06.230 --> 00:03:09.000
+The combinational paths in our
+circuit will be fairly long,
+
+00:03:09.000 --> 00:03:11.450
+but, as we learned in
+Part 1 of the course,
+
+00:03:11.450 --> 00:03:15.260
+this gives us the opportunity
+to use pipelining to increase
+
+00:03:15.260 --> 00:03:17.620
+our implementation’s throughput.
+
+00:03:17.620 --> 00:03:19.950
+We’ll talk about the
+implementation of a pipelined
+
+00:03:19.950 --> 00:03:23.040
+processor in some
+upcoming lectures.
+
+00:03:23.040 --> 00:03:26.090
+Here’s a quick refresher
+on the Beta ISA.
+
+00:03:26.090 --> 00:03:28.600
+The Beta has thirty-two
+32-bit registers
+
+00:03:28.600 --> 00:03:31.400
+that hold values for
+use by the datapath.
+
+00:03:31.400 --> 00:03:33.340
+The first class of
+ALU instructions,
+
+00:03:33.340 --> 00:03:37.560
+which have 0b10 as the top
+2 bits of the opcode field,
+
+00:03:37.560 --> 00:03:41.610
+perform an operation on two
+register operands (Ra and Rb),
+
+00:03:41.610 --> 00:03:44.460
+storing the result back
+into a specified destination
+
+00:03:44.460 --> 00:03:46.690
+register (Rc).
+
+00:03:46.690 --> 00:03:50.820
+There’s a 6-bit opcode field to
+specify the operation and three
+
+00:03:50.820 --> 00:03:54.530
+5-bit register fields to specify
+the registers to use as source
+
+00:03:54.530 --> 00:03:56.490
+and destination.
+
+00:03:56.490 --> 00:03:58.540
+The second class of
+ALU instructions,
+
+00:03:58.540 --> 00:04:01.660
+which have 0b11 in the
+top 2 bits of the opcode,
+
+00:04:01.660 --> 00:04:04.920
+perform the same set of
+operations where the second
+
+00:04:04.920 --> 00:04:09.110
+operand is a constant in
+the range -32768 to +32767.
+
+00:04:09.110 --> 00:04:14.940
+The operations include
+arithmetic operations,
+
+00:04:14.940 --> 00:04:19.260
+comparisons, boolean
+operations, and shifts.
+
+00:04:19.260 --> 00:04:22.010
+In assembly language, we
+use a “C” suffix added
+
+00:04:22.010 --> 00:04:24.720
+to the mnemonics shown here
+to indicate that the second
+
+00:04:24.720 --> 00:04:27.720
+operand is a constant.
+
+00:04:27.720 --> 00:04:29.910
+This second instruction
+format is also
+
+00:04:29.910 --> 00:04:33.090
+used by the instructions
+that access memory and change
+
+00:04:33.090 --> 00:04:35.990
+the normally sequential
+execution order.
+
+00:04:35.990 --> 00:04:38.010
+The use of just two
+instruction formats
+
+00:04:38.010 --> 00:04:40.100
+will make it very easy
+to build the logic
+
+00:04:40.100 --> 00:04:43.330
+responsible for translating
+the encoded instructions
+
+00:04:43.330 --> 00:04:45.530
+into the signals
+needed to control
+
+00:04:45.530 --> 00:04:47.800
+the operation of the datapath.
+
+00:04:47.800 --> 00:04:51.180
+In fact, we’ll be able to use
+many of the instruction bits
+
+00:04:51.180 --> 00:04:52.820
+as-is!
+
+00:04:52.820 --> 00:04:54.830
+We’ll build our
+datapath incrementally,
+
+00:04:54.830 --> 00:04:57.460
+starting with the logic
+needed to perform the ALU
+
+00:04:57.460 --> 00:05:00.610
+instructions, then add
+additional logic to execute
+
+00:05:00.610 --> 00:05:02.990
+the memory and
+branch instructions.
+
+00:05:02.990 --> 00:05:06.400
+Finally, we’ll need to add logic
+to handle what happens when
+
+00:05:06.400 --> 00:05:09.740
+an exception occurs and
+execution has to be suspended
+
+00:05:09.740 --> 00:05:14.310
+because the current instruction
+cannot be executed correctly.
+
+00:05:14.310 --> 00:05:17.220
+We’ll be using the digital logic
+gates we learned about in Part
+
+00:05:17.220 --> 00:05:18.640
+1 of the course.
+
+00:05:18.640 --> 00:05:21.300
+In particular, we’ll need
+multi-bit registers to hold
+
+00:05:21.300 --> 00:05:25.150
+state information from one
+instruction to the next.
+
+00:05:25.150 --> 00:05:26.880
+Recall that these
+memory elements
+
+00:05:26.880 --> 00:05:29.590
+load new values at the rising
+edge of the clock signal,
+
+00:05:29.590 --> 00:05:33.840
+then store that value until
+the next rising clock edge.
+
+00:05:33.840 --> 00:05:37.100
+We’ll use a lot of multiplexers
+in our design to select between
+
+00:05:37.100 --> 00:05:40.720
+alternative values
+in the datapath.
+
+00:05:40.720 --> 00:05:42.810
+The actual computations
+will be performed
+
+00:05:42.810 --> 00:05:44.570
+by the arithmetic
+and logic unit (ALU)
+
+00:05:44.570 --> 00:05:47.530
+that we designed at
+the end of Part 1.
+
+00:05:47.530 --> 00:05:51.250
+It has logic to perform the
+arithmetic, comparison, boolean
+
+00:05:51.250 --> 00:05:54.640
+and shift operations listed
+on the previous slide.
+
+00:05:54.640 --> 00:06:00.240
+It takes in two 32-bit operands
+and produces a 32-bit result.
+
+00:06:00.240 --> 00:06:03.080
+And, finally, we’ll use several
+different memory components
+
+00:06:03.080 --> 00:06:07.040
+to implement register storage in
+the datapath and also for main
+
+00:06:07.040 --> 00:06:10.570
+memory, where instructions
+and data are stored.
+
+00:06:10.570 --> 00:06:12.790
+You might find it useful
+to review the chapters
+
+00:06:12.790 --> 00:06:16.760
+on combinational and sequential
+logic in Part 1 of the course.
+
+00:06:16.760 --> 00:06:20.460
+The Beta ISA specifies
+thirty-two 32-bit registers
+
+00:06:20.460 --> 00:06:22.420
+as part of the datapath.
+
+00:06:22.420 --> 00:06:25.280
+These are shown as the magenta
+rectangles in the diagram
+
+00:06:25.280 --> 00:06:26.810
+below.
+
+00:06:26.810 --> 00:06:29.520
+These are implemented as
+load-enabled registers, which
+
+00:06:29.520 --> 00:06:32.920
+have an EN signal that
+controls when the register is
+
+00:06:32.920 --> 00:06:35.030
+loaded with a new value.
+
+00:06:35.030 --> 00:06:38.440
+If EN is 1, the register will
+be loaded from the D input
+
+00:06:38.440 --> 00:06:41.020
+at the next rising clock edge.
+
+00:06:41.020 --> 00:06:45.010
+If EN is 0, the register is
+reloaded with its current value
+
+00:06:45.010 --> 00:06:46.880
+and hence its
+value is unchanged.
+
+00:06:46.880 --> 00:06:50.870
+It might seem easier to add
+enabling logic to the clock
+
+00:06:50.870 --> 00:06:53.890
+signal, but this is
+almost never a good idea
+
+00:06:53.890 --> 00:06:57.320
+since any glitches in that logic
+might generate false edges that
+
+00:06:57.320 --> 00:07:01.400
+would cause the register to load
+a new value at the wrong time.
+
+00:07:01.400 --> 00:07:05.400
+Always remember the
+mantra: NO GATED CLOCKS!
+
+00:07:05.400 --> 00:07:07.960
+There are multiplexers (shown
+underneath the registers)
+
+00:07:07.960 --> 00:07:12.140
+that let us select a value
+from any of the 32 registers.
+
+00:07:12.140 --> 00:07:14.930
+Since we need two operands
+for the datapath logic,
+
+00:07:14.930 --> 00:07:17.520
+there are two such multiplexers.
+
+00:07:17.520 --> 00:07:20.460
+Their select inputs
+(RA1 and RA2)
+
+00:07:20.460 --> 00:07:23.280
+function as
+addresses, determining
+
+00:07:23.280 --> 00:07:27.170
+which register values will
+be selected as operands.
+
+00:07:27.170 --> 00:07:30.990
+And, finally, there’s a decoder
+that determines which of the 32
+
+00:07:30.990 --> 00:07:37.200
+register load enables will be
+1 based on the 5-bit WA input.
+
+00:07:37.200 --> 00:07:39.920
+For convenience, we’ll package
+all this functionality up
+
+00:07:39.920 --> 00:07:43.430
+into a single component
+called a “register file”.
+
+00:07:43.430 --> 00:07:45.730
+The register file
+has two read ports,
+
+00:07:45.730 --> 00:07:48.190
+which, given a
+5-bit address input,
+
+00:07:48.190 --> 00:07:53.490
+deliver the selected register
+value on the read-data ports.
+
+00:07:53.490 --> 00:07:56.417
+The two read ports
+operate independently.
+
+00:07:56.417 --> 00:07:58.000
+They can read from
+different registers
+
+00:07:58.000 --> 00:08:00.040
+or, if the addresses
+are the same,
+
+00:08:00.040 --> 00:08:03.340
+read from the same register.
+
+00:08:03.340 --> 00:08:05.260
+The signals on the left
+of the register file
+
+00:08:05.260 --> 00:08:08.300
+include a 5-bit value (WA)
+that selects a register
+
+00:08:08.300 --> 00:08:12.990
+to be written with the specified
+32-bit write data (WD).
+
+00:08:12.990 --> 00:08:15.190
+If the write enable
+signal (WE) is
+
+00:08:15.190 --> 00:08:17.360
+1 at the rising edge of
+the clock (CLK) signal,
+
+00:08:17.360 --> 00:08:20.400
+the selected register will be
+loaded with the supplied write
+
+00:08:20.400 --> 00:08:22.140
+data.
+
+00:08:22.140 --> 00:08:25.640
+Note that in the BETA ISA,
+reading from register address
+
+00:08:25.640 --> 00:08:28.360
+31 should always
+produce a zero value.
+
+00:08:28.360 --> 00:08:32.390
+The register file has internal
+logic to ensure that happens.
+
+00:08:32.390 --> 00:08:35.049
+Here’s a timing diagram
+that shows the register file
+
+00:08:35.049 --> 00:08:36.760
+in operation.
+
+00:08:36.760 --> 00:08:38.230
+To read a value
+from the register
+
+00:08:38.230 --> 00:08:41.360
+file, supply a stable
+address input (RA)
+
+00:08:41.360 --> 00:08:43.429
+on one of read ports.
+
+00:08:43.429 --> 00:08:46.050
+After the register
+file’s propagation delay,
+
+00:08:46.050 --> 00:08:48.590
+the value of the selected
+register will appear
+
+00:08:48.590 --> 00:08:50.760
+on the corresponding
+read data port (RD).
+
+00:08:50.760 --> 00:08:51.910
+[CLICK]
+
+00:08:51.910 --> 00:08:53.790
+Not surprisingly,
+the register file
+
+00:08:53.790 --> 00:08:56.000
+write operation is
+very similar to writing
+
+00:08:56.000 --> 00:08:57.980
+an ordinary D-register.
+
+00:08:57.980 --> 00:09:01.740
+The write address
+(WA), write data (WD)
+
+00:09:01.740 --> 00:09:05.750
+and write enable (WE) signals
+must all be valid and stable
+
+00:09:05.750 --> 00:09:08.530
+for some specified setup
+time before the rising
+
+00:09:08.530 --> 00:09:10.310
+edge of the clock.
+
+00:09:10.310 --> 00:09:14.380
+And must remain stable and valid
+for the specified hold time
+
+00:09:14.380 --> 00:09:17.410
+after the rising clock edge.
+
+00:09:17.410 --> 00:09:19.130
+If those timing
+constraints are met,
+
+00:09:19.130 --> 00:09:21.990
+the register file will
+reliably update the value
+
+00:09:21.990 --> 00:09:24.080
+of the selected register.
+
+00:09:24.080 --> 00:09:25.120
+[CLICK]
+
+00:09:25.120 --> 00:09:28.710
+When a register value is written
+at the rising clock edge,
+
+00:09:28.710 --> 00:09:31.200
+if that value is selected
+by a read address,
+
+00:09:31.200 --> 00:09:34.040
+the new data will appear
+after the propagation delay
+
+00:09:34.040 --> 00:09:36.540
+on the corresponding data port.
+
+00:09:36.540 --> 00:09:38.480
+In other words,
+the read data value
+
+00:09:38.480 --> 00:09:42.320
+changes if either the read
+address changes or the value
+
+00:09:42.320 --> 00:09:46.170
+of the selected
+register changes.
+
+00:09:46.170 --> 00:09:48.250
+Can we read and write
+the same register
+
+00:09:48.250 --> 00:09:50.480
+in a single clock cycle?
+
+00:09:50.480 --> 00:09:51.240
+Yes!
+
+00:09:51.240 --> 00:09:53.820
+If the read address becomes
+valid at the beginning
+
+00:09:53.820 --> 00:09:56.490
+of the cycle, the old
+value of the register
+
+00:09:56.490 --> 00:10:00.110
+will be appear on the data
+port for the rest of the cycle.
+
+00:10:00.110 --> 00:10:04.090
+Then, the write occurs at the
+*end* of the cycle and the new
+
+00:10:04.090 --> 00:10:08.120
+register value will be available
+in the next clock cycle.
+
+00:10:08.120 --> 00:10:10.740
+Okay, that’s a brief run-though
+of the components we’ll be
+
+00:10:10.740 --> 00:10:11.470
+using.
+
+00:10:11.470 --> 00:10:13.970
+Let’s get started on the design!

@@ -1,0 +1,1296 @@
+WEBVTT
+
+1
+00:00:24.000 --> 00:00:34.000 
+Remember we started we want to bring together
+OLTP and OLAP. Despite from the database perspective
+
+2
+00:00:34.000 --> 00:00:45.000 
+they do not look so different, they are fundamentally
+different from the end user perspective. End
+
+3
+00:00:45.000 --> 00:00:56.000 
+users are today used that applications are
+extremely fast. And application which is not
+
+4
+00:00:56.000 --> 00:01:06.000 
+fast enough on the Internet will die. The
+main reason that Google passed Yahoo within
+
+5
+00:01:06.000 --> 00:01:13.000 
+less than a year was speed. The Google query
+is so much faster than the Yahoo query. Two
+
+6
+00:01:13.000 --> 00:01:21.000 
+different ideas - Yahoo wanted to get a classification
+tree first and then issue the query and in
+
+7
+00:01:21.000 --> 00:01:28.000 
+Google you could issue the query, free query,
+and through massive parallelism they could
+
+8
+00:01:28.000 --> 00:01:34.000 
+guarantee a relatively short response time.
+They won, within a year.
+
+9
+00:01:34.000 --> 00:01:41.000 
+So we want to have now transactional workloads
+with a requirement of relatively short response
+
+10
+00:01:41.000 --> 00:01:43.000 
+times.
+
+11
+00:01:43.000 --> 00:01:51.000 
+40 years ago when I started to give speeches
+about response times I said: ,,3 second is
+
+12
+00:01:51.000 --> 00:01:57.000 
+the absolute maximum response time.’’
+Not mean response time, maximum response time
+
+13
+00:01:57.000 --> 00:02:08.000 
+- 1, 2, 3 - this is where we start already,
+nodding, pushing, making noise, moving the
+
+14
+00:02:08.000 --> 00:02:15.000 
+mouse, anything beyond that we might lose
+concentration completely and do something
+
+15
+00:02:15.000 --> 00:02:30.000 
+else. The physiologist can measure that, they
+know how long we can keep attention, this
+
+16
+00:02:30.000 --> 00:02:37.000 
+is up to 3 seconds, then we lose the concentration
+and we have to re-concentrate. So nothing
+
+17
+00:02:37.000 --> 00:02:43.000 
+is worse than sitting in front of the screen
+and to move from one screen to the next between
+
+18
+00:02:43.000 --> 00:02:48.000 
+1 and 5 seconds and we do not know whether
+it is 5 seconds or 1 second, we hit the enter
+
+19
+00:02:48.000 --> 00:02:57.000 
+button and it does not come.. now it comes!
+So this is like a computer, when the computer
+
+20
+00:02:57.000 --> 00:03:04.000 
+has already given up on the application and
+went into sleep mode and has to wake up again.
+
+21
+00:03:04.000 --> 00:03:13.000 
+This is extremely energy consuming for humans.
+People who thought they can live with average
+
+22
+00:03:13.000 --> 00:03:21.000 
+3 seconds response times really did harm to
+their users. They can be a company using a
+
+23
+00:03:21.000 --> 00:03:33.000 
+software, they can be a manufacture of software,
+not taking this into account. SAP has gained
+
+24
+00:03:33.000 --> 00:03:40.000 
+a lot of experience with ByDesign, which was
+because of some software design concepts not
+
+25
+00:03:40.000 --> 00:03:46.000 
+in a range of a proper response time, despite
+it was a system only build in the last 8 years.
+
+26
+00:03:46.000 --> 00:03:52.000 
+It had to be re-programed because of that.
+
+27
+00:03:52.000 --> 00:03:59.000 
+So we have to have a guaranteed response time
+and this for peek loads, it does not help
+
+28
+00:03:59.000 --> 00:04:05.000 
+that the response time on the average over
+24 hours is very good. What counts is the
+
+29
+00:04:05.000 --> 00:04:15.000 
+response time between 10 and 11 o´clock.
+So people show up between 8 and 9, they do
+
+30
+00:04:15.000 --> 00:04:23.000 
+some work, probably a few phone calls, they
+read e-mails, this is relatively slow, and
+
+31
+00:04:23.000 --> 00:04:31.000 
+all of a sudden they start working. And now
+since everybody does that simultaneously and
+
+32
+00:04:31.000 --> 00:04:37.000 
+we are in a company with thousands of people
+we get traffic in the OLTP system, so we have
+
+33
+00:04:37.000 --> 00:04:44.000 
+to look at a peak of the traffic, typically
+it is between 10:00 and 11:00 and then there
+
+34
+00:04:44.000 --> 00:04:55.000 
+is another one probably between 14:30 and
+15:30. So we can measure the distribution
+
+35
+00:04:55.000 --> 00:05:02.000 
+of the workload of transactions, to the OLTP
+we want to bring the OLAP, the analytical
+
+36
+00:05:02.000 --> 00:05:15.000 
+transactions as well , and they have a different
+profile. I said we do not want to take data
+
+37
+00:05:15.000 --> 00:05:24.000 
+out and then work on a different computer,
+with different programs and so called data
+
+38
+00:05:24.000 --> 00:05:32.000 
+marts. We want to bring even data mart functionality
+back into the system, because it is faster
+
+39
+00:05:32.000 --> 00:05:38.000 
+to execute on the original database for many
+applications, especially when we need the
+
+40
+00:05:38.000 --> 00:05:43.000 
+full data set again. So we do not gain much
+to take the full data set out, replicate it
+
+41
+00:05:43.000 --> 00:05:48.000 
+and then work on that. We can discuss this
+later.
+
+42
+00:05:48.000 --> 00:05:58.000 
+We clash here between long lasting transactions
+and very short transactions but many of those.
+
+43
+00:05:58.000 --> 00:06:08.000 
+I tell you how the current management in the
+SAP system HANA works, because we had just
+
+44
+00:06:08.000 --> 00:06:22.000 
+a discussion about this, it is probably a
+pretty good optimization for workload management.
+
+45
+00:06:22.000 --> 00:06:30.000 
+We have learned that long lasting queries
+can be parallelized so a scan of a table can
+
+46
+00:06:30.000 --> 00:06:39.000 
+be parallelized. We consider now all the work
+which is taking place inside one node, so
+
+47
+00:06:39.000 --> 00:06:47.000 
+we sit inside one node, we get a query we
+see at the database that the query is addressing
+
+48
+00:06:47.000 --> 00:06:58.000 
+a relatively large table, more than 10 000
+tuples, the query optimizer thinks that this
+
+49
+00:06:58.000 --> 00:07:11.000 
+table could be processed in parallel, sets
+up multiple sub-queries for a partition of
+
+50
+00:07:11.000 --> 00:07:30.000 
+the table and puts those issues and they go
+into an SQL-queue. And then
+with help of the operating system the database
+
+51
+00:07:30.000 --> 00:07:38.000 
+schedules the next sub-query goes to node
+number 7, the next one node number 10, next
+
+52
+00:07:38.000 --> 00:07:45.000 
+one node number 11, and whatever the scheduling
+algorithm does when nodes are busy, it has
+
+53
+00:07:45.000 --> 00:07:51.000 
+to wait till the node is free again and the
+node goes back and picks up the next sub-query
+
+54
+00:07:51.000 --> 00:07:53.000 
+from this queue.
+
+55
+00:07:53.000 --> 00:08:03.000 
+In order to mix this analytic workload, highly
+parallelized with incoming transactional workload
+
+56
+00:08:03.000 --> 00:08:12.000 
+there are two queues, there is one queue for
+transactional queries and one for transactional
+
+57
+00:08:12.000 --> 00:08:18.000 
+parallel queries. If queries are so small
+that they do not need to be parallelized they
+
+58
+00:08:18.000 --> 00:08:25.000 
+are treated like normal transactional queries,
+so they go in the same queue.
+
+59
+00:08:25.000 --> 00:08:29.000 
+Picture:
+
+60
+00:08:29.000 --> 00:08:51.000 
+If we have our cores here, we have two queues
+and we have an OLAP query coming in for a
+
+61
+00:08:51.000 --> 00:09:04.000 
+larger table, then we can split those in multiple,
+they all belong to X, Y, Z 1 to n, and we
+
+62
+00:09:04.000 --> 00:09:18.000 
+have OLTP queries - a, b, c, we have multiple
+ones of the same type, so these are looking
+
+63
+00:09:18.000 --> 00:09:25.000 
+from the database up to the application SQL-queries.
+And now we can schedule and there is preferential
+
+64
+00:09:25.000 --> 00:09:37.000 
+treatment for the OLTP types. If an OLAP query
+is not being split, parallelized then OLAP
+
+65
+00:09:37.000 --> 00:09:52.000 
+queries also go here. So this is OLAP non
+parallel. This algorithm is relatively easy.
+
+66
+00:09:52.000 --> 00:10:02.000 
+And as long as something is in this queue
+we assign it to the nodes and if nothing is
+
+67
+00:10:02.000 --> 00:10:08.000 
+in this queue anymore then we take from this
+queue. So there is preferential treatment
+
+68
+00:10:08.000 --> 00:10:16.000 
+for the supposedly faster to be executed SQL
+statements.
+
+69
+00:10:16.000 --> 00:10:30.000 
+With this, there is good hope that we can
+treat both OLAP and OLTP applications in a
+
+70
+00:10:30.000 --> 00:10:40.000 
+fair manner. Why do we prefer the short ones?
+First of all we have to guarantee that they
+
+71
+00:10:40.000 --> 00:10:46.000 
+go through. Otherwise we run into this response
+time problem from transactions and users will
+
+72
+00:10:46.000 --> 00:10:57.000 
+complain. And users, especially professional
+users working several hours a day on a computer,
+
+73
+00:10:57.000 --> 00:11:03.000 
+are used that the response time has to be
+sub-second today. This is what you do, what
+
+74
+00:11:03.000 --> 00:11:10.000 
+you expect when you work on PC and if you
+work on a simple system if that does not behave
+
+75
+00:11:10.000 --> 00:11:16.000 
+like a PC people will start asking the question:
+,,Can´t I get my data out and I work a locally
+
+76
+00:11:16.000 --> 00:11:21.000 
+on a PC ‘‘ and later you can do it with
+the data or whatever you want, but I want
+
+77
+00:11:21.000 --> 00:11:32.000 
+to do my job independently, which was actually
+the concept of 20 years ago.
+
+78
+00:11:32.000 --> 00:11:40.000 
+So here we have the OLAPs. I do this here
+for parallel. These are the ones which are
+
+79
+00:11:40.000 --> 00:11:49.000 
+parallelized and those ones we can assume
+that they run a little bit longer and if something
+
+80
+00:11:49.000 --> 00:11:55.000 
+runs a second it does not matter whether it
+runs a second and hundred milliseconds or
+
+81
+00:11:55.000 --> 00:12:02.000 
+even runs two seconds. It should not run 10
+minutes.
+
+82
+00:12:02.000 --> 00:12:10.000 
+So now we have to start thinking a little
+bit. I said before we do not want to block
+
+83
+00:12:10.000 --> 00:12:16.000 
+people from exploiting the computer. On a
+PC you can work as hard as you want on a PC
+
+84
+00:12:16.000 --> 00:12:21.000 
+you can not really beat a PC. Ever since Microsoft
+solved the problem that the PC can work and
+
+85
+00:12:21.000 --> 00:12:27.000 
+print simultaneously, that was before your
+time, so that was for more stupid thing ever
+
+86
+00:12:27.000 --> 00:12:33.000 
+invented that you could either work on Word
+or print, they solved this a while ago. So
+
+87
+00:12:33.000 --> 00:12:41.000 
+we do not want to block users at all. On the
+other hand, I said and I repeat this, we want
+
+88
+00:12:41.000 --> 00:12:48.000 
+to let users exploit data as much as possible
+if this makes sense, users are not doing silly
+
+89
+00:12:48.000 --> 00:12:57.000 
+things. So we can not tell at this age anymore
+or we have to tell users what they should
+
+90
+00:12:57.000 --> 00:13:06.000 
+do and what not. After 40 years of enterprise
+computing they know exactly what they want
+
+91
+00:13:06.000 --> 00:13:13.000 
+and they do not want to be blocked anymore.
+So if we give them freedom to analyse data
+
+92
+00:13:13.000 --> 00:13:20.000 
+in a very easy fashion, very fast, they will
+pick up on that and use that. I said that
+
+93
+00:13:20.000 --> 00:13:28.000 
+several times we will get more load here,
+we will get an increase in load here.
+
+94
+00:13:28.000 --> 00:13:37.000 
+This means we have to build bigger computers,
+when SAP will start soon, probably within
+
+95
+00:13:37.000 --> 00:13:47.000 
+a year to migrate ERP systems from current
+databases to HANA and the customers will then
+
+96
+00:13:47.000 --> 00:13:57.000 
+move the analytical applications back into
+this system, then somebody has to do a calculation
+
+97
+00:13:57.000 --> 00:14:04.000 
+of the capacity here. And the capacity is
+not just take the capacity of todays warehouse
+
+98
+00:14:04.000 --> 00:14:11.000 
+and todays OLTP system, add this up and this
+is the new system. I expect that we need a
+
+99
+00:14:11.000 --> 00:14:17.000 
+significantly higher capacity. Good news is,
+the higher capacity is cheaper than todays
+
+100
+00:14:17.000 --> 00:14:19.000 
+computer.
+
+101
+00:14:19.000 --> 00:14:28.000 
+We have to think like Google. Nobody thought
+10 years ago this is possible to link one
+
+102
+00:14:28.000 --> 00:14:36.000 
+million computers together and do this for
+world wide search. I knew that the breakthrough
+
+103
+00:14:36.000 --> 00:14:42.000 
+of Google happened when Google started the
+project Google Earth. When Google spend an
+
+104
+00:14:42.000 --> 00:14:51.000 
+enormous amount of money, put large data centers
+and place that we all can graphically look
+
+105
+00:14:51.000 --> 00:14:59.000 
+at the world top down from satellites, that
+we can match this with maps, that we can even
+
+106
+00:14:59.000 --> 00:15:07.000 
+look at the photos Google view drive through,
+that we can this combine with all kinds of
+
+107
+00:15:07.000 --> 00:15:15.000 
+other data which can be correlated to locations.
+And Google did this basically for free. In
+
+108
+00:15:15.000 --> 00:15:25.000 
+anticipation of traffic, in anticipation of
+users coming to Google. Companies who are
+
+109
+00:15:25.000 --> 00:15:31.000 
+moving in this direction have to have the
+same boldness, they have to think users will
+
+110
+00:15:31.000 --> 00:15:35.000 
+exploit the system much more dramatically
+than in the past so they have to be prepared
+
+111
+00:15:35.000 --> 00:15:36.000 
+for that.
+
+112
+00:15:36.000 --> 00:15:47.000 
+So this is scheduling inside one node. The
+next increase of capacity is obviously multiple
+
+113
+00:15:47.000 --> 00:15:53.000 
+nodes. The easy one is the multiple nodes
+will have a separate set of tables so that
+
+114
+00:15:53.000 --> 00:15:59.000 
+transactions are going here and there and
+are disjunct, this is very easy everybody
+
+115
+00:15:59.000 --> 00:16:05.000 
+can do this. It becomes more difficult when
+the tables are not totally disjunct then we
+
+116
+00:16:05.000 --> 00:16:11.000 
+have a lot of joins going across nodes, which
+is obviously a little bit slower, we will
+
+117
+00:16:11.000 --> 00:16:19.000 
+see this when we look at this later. And therefore
+I think we have to very early think about
+
+118
+00:16:19.000 --> 00:16:31.000 
+a completely different capacity increase and
+this is redundant data and replication. I
+
+119
+00:16:31.000 --> 00:16:40.000 
+want to mention this here because whatever
+we do in workload optimization we can not
+
+120
+00:16:40.000 --> 00:16:49.000 
+make a digital resource based on clock speed
+and number of processes faster. With scheduling
+
+121
+00:16:49.000 --> 00:16:55.000 
+we can only make it slower, whatever we do
+in scheduling we take a little bit away from
+
+122
+00:16:55.000 --> 00:17:02.000 
+the capacity and we can distribute by some
+rules the capacity in a way that it hurts
+
+123
+00:17:02.000 --> 00:17:18.000 
+people less, but it hurts. But we can combine
+necessity for capacity with the necessity
+
+124
+00:17:18.000 --> 00:17:22.000 
+for availability.
+
+125
+00:17:22.000 --> 00:17:30.000 
+We started the whole project with data that
+is completely in memory. If data is completely
+
+126
+00:17:30.000 --> 00:17:42.000 
+in memory and we switch off the power supply
+data is gone. We have to reload the data from
+
+127
+00:17:42.000 --> 00:17:50.000 
+the storage management system (SSD, disk),
+it will take time and we have to reload the
+
+128
+00:17:50.000 --> 00:17:59.000 
+system. Reloading a table in row structure
+and reloading a table in column structure,
+
+129
+00:17:59.000 --> 00:18:06.000 
+what the difference in load time is. It could
+be that this is not much of a difference,
+
+130
+00:18:06.000 --> 00:18:12.000 
+we have to load the same number of bytes in
+the end, since the column store is better
+
+131
+00:18:12.000 --> 00:18:19.000 
+compressed, we could overcome the disadvantage
+that we have for each table to load multiple
+
+132
+00:18:19.000 --> 00:18:31.000 
+columns.But it takes time and the only answer
+is that we have redundancy. So if we have
+
+133
+00:18:31.000 --> 00:18:43.000 
+redundancy then we have a second system again
+[picture] with 1 to 40 cores and we have the
+
+134
+00:18:43.000 --> 00:19:01.000 
+data in memory, we can replicate the data,
+then we have to synchronize those, but this
+
+135
+00:19:01.000 --> 00:19:07.000 
+is what we do now already for quite some time,
+more than a year, replicate one system into
+
+136
+00:19:07.000 --> 00:19:14.000 
+another system and now we can think about
+whether we let the OLTP system dominate this
+
+137
+00:19:14.000 --> 00:19:21.000 
+system and let the OLAP applications dominate
+this system.
+
+138
+00:19:21.000 --> 00:19:26.000 
+This is an approach which is the most likely
+one at least for the next couple of years,
+
+139
+00:19:26.000 --> 00:19:34.000 
+gives double capacity, since one system has
+to be lead system, we can not run OLTP on
+
+140
+00:19:34.000 --> 00:19:44.000 
+both because that is the system which originates
+the changes. But queries of the OLAP type
+
+141
+00:19:44.000 --> 00:19:55.000 
+can run against both systems. So we have flexibility
+how do we schedule the workload and for high
+
+142
+00:19:55.000 --> 00:20:04.000 
+availability it is most likely necessary to
+have a separate system which sits on a different
+
+143
+00:20:04.000 --> 00:20:20.000 
+power cord. [picture]
+
+144
+00:20:20.000 --> 00:20:34.000 
+So that as an overview when we look into some
+details of scheduling, then our workload management
+
+145
+00:20:34.000 --> 00:20:44.000 
+should ensure that the service agreements
+with user communities are being kept.
+
+146
+00:20:44.000 --> 00:20:51.000 
+I am not so much a fan of really separating
+users in users who need high response times
+
+147
+00:20:51.000 --> 00:20:57.000 
+and the users who can live with lower response
+times. This is already an indication that
+
+148
+00:20:57.000 --> 00:21:02.000 
+the system is in a stress situation. And the
+most stupid thing is to give the highest priority
+
+149
+00:21:02.000 --> 00:21:12.000 
+to the CEO because he is never using the system
+anyway, at least the older ones.
+
+150
+00:21:12.000 --> 00:21:22.000 
+So I think the answer is that we provide enough
+hardware because in the whole project and
+
+151
+00:21:22.000 --> 00:21:28.000 
+the whole system - hardware, software, people,
+management, the hardware is not the dominating
+
+152
+00:21:28.000 --> 00:21:37.000 
+factor. It is only the one we can judge best
+because there is a price tag on a machine.
+
+153
+00:21:37.000 --> 00:21:43.000 
+There is not really a price tag on a software
+... purchase the software, the maintenance
+
+154
+00:21:43.000 --> 00:21:47.000 
+for the software, there is implementation
+cost for the software ... that is so much
+
+155
+00:21:47.000 --> 00:21:55.000 
+higher than hardware, you just install the
+hardware and then it is done.
+
+156
+00:21:55.000 --> 00:22:10.000 
+We schedule using some criteria. In this proposed
+case we schedule by a type of query, whether
+
+157
+00:22:10.000 --> 00:22:21.000 
+it is a sub-query coming from parallelized,
+longer lasting query or whether it is a individual
+
+158
+00:22:21.000 --> 00:22:30.000 
+short query like a select single. We try to
+adjust as much as possible dynamically, the
+
+159
+00:22:30.000 --> 00:22:43.000 
+model does that. If the OLTP queue is empty
+then the system fully concentrates on running
+
+160
+00:22:43.000 --> 00:22:52.000 
+on all cylinders in parallel which helps to
+make the longer lasting OLAP transactions
+
+161
+00:22:52.000 --> 00:23:03.000 
+run very quickly, which is good. If something
+runs very quickly, it is done and it is outside
+
+162
+00:23:03.000 --> 00:23:10.000 
+of the system, now think time starts. Think
+about what the user does when he gets an answer
+
+163
+00:23:10.000 --> 00:23:18.000 
+set of 100 to 500 tuples in the something
+with the result, it takes time. So the user
+
+164
+00:23:18.000 --> 00:23:25.000 
+is doing something, probably changing views
+and looking at the information from different
+
+165
+00:23:25.000 --> 00:23:37.000 
+angles until he or she issues a new query.
+The sooner something is out of the system,
+
+166
+00:23:37.000 --> 00:23:42.000 
+the less management overhead we have. The
+longer something is inside the system and
+
+167
+00:23:42.000 --> 00:23:52.000 
+runs, the more problematic the overhead is
+and human interference.
+
+168
+00:23:52.000 --> 00:24:02.000 
+This is not really well researched, but when
+SAP recently switched from BW on DB2 to business
+
+169
+00:24:02.000 --> 00:24:10.000 
+warehouses, business warehouse were only OLAP
+queries are running in, from DB2 to HANA and
+
+170
+00:24:10.000 --> 00:24:22.000 
+the load time into this system, BW on HANA,
+was accelerated by factor 16, the management
+
+171
+00:24:22.000 --> 00:24:30.000 
+cost for this process were dramatically reduced.
+Because if everything runs very short not
+
+172
+00:24:30.000 --> 00:24:36.000 
+much can happen if everything runs relatively
+long we have only 8 hours in the night to
+
+173
+00:24:36.000 --> 00:24:46.000 
+do something and it runs already 4 hours there
+is a probability that something might happen.
+
+174
+00:24:46.000 --> 00:24:54.000 
+So as much as possible dynamic scheduling.
+If something runs short we can schedule dynamically,
+
+175
+00:24:54.000 --> 00:25:01.000 
+if it runs 4 hours in an 8 hour window there
+is not much scheduling possible, actually
+
+176
+00:25:01.000 --> 00:25:11.000 
+it is human scheduling in most cases, which
+is expensive.
+
+177
+00:25:11.000 --> 00:25:17.000 
+I do not believe it helps much to give transactions,
+priorities over others transactions, we were
+
+178
+00:25:17.000 --> 00:25:24.000 
+testing and trying everything in the last
+40 years. Why is somebody you think might
+
+179
+00:25:24.000 --> 00:25:37.000 
+not be as high in the priority working on
+the loading station and making boxes ready
+
+180
+00:25:37.000 --> 00:25:43.000 
+that they can be taken by the truck drivers
+or by the people who come with the forklift
+
+181
+00:25:43.000 --> 00:25:48.000 
+and put it on trucks and may have to enter
+here that this shipment is now done and the
+
+182
+00:25:48.000 --> 00:25:55.000 
+next one comes and the next one comes. This
+is a low priority job and the chief financial
+
+183
+00:25:55.000 --> 00:26:01.000 
+analyst probably needs a higher priority?
+- it is not true, this person has the highest
+
+184
+00:26:01.000 --> 00:26:08.000 
+priority because if the truck driver starts
+getting nervous this is an issue.
+
+185
+00:26:08.000 --> 00:26:22.000 
+Have you ever seen truck drivers? One short
+story, how stupid programmers can be.
+
+186
+00:26:22.000 --> 00:26:32.000 
+The early days of us 3 we installed a system
+at Hutschenreuther, that is a porcelain manufacturer,
+
+187
+00:26:32.000 --> 00:26:38.000 
+and they ship at night, so they take all the
+packages and then they put it on a truck,
+
+188
+00:26:38.000 --> 00:26:50.000 
+that truck is going to Berlin, to Hamburg,
+to Mannheim. My colleagues wife, buys a complete
+
+189
+00:26:50.000 --> 00:26:57.000 
+set from Hutschenreuther and delivery for
+the birthday or whatever it is, so the delivery
+
+190
+00:26:57.000 --> 00:27:02.000 
+is announced next Wednesday. It is Wednesday
+and it is not there, it is Thursday and it
+
+191
+00:27:02.000 --> 00:27:10.000 
+is not there, it is Friday and it is not there
+and she is getting nervous and is investigating.
+
+192
+00:27:10.000 --> 00:27:15.000 
+Parallel to that the company observes that
+shipments are getting slower and slower and
+
+193
+00:27:15.000 --> 00:27:21.000 
+slower and they cannot make it anymore despite
+they introduce that brand new SAP system which
+
+194
+00:27:21.000 --> 00:27:27.000 
+should make everything better. Finally the
+CEO of the company calls and says this is
+
+195
+00:27:27.000 --> 00:27:35.000 
+an absolute emergency. I was late in the company
+then took pick up the phone and I said that
+
+196
+00:27:35.000 --> 00:27:41.000 
+I fully understand the situation, he was yelling
+and screaming at me, the trucks are standing
+
+197
+00:27:41.000 --> 00:27:47.000 
+there probably twenty trucks and they all
+had to get the parcels and the parcels are
+
+198
+00:27:47.000 --> 00:27:55.000 
+not coming out of the warehouse. Why? Because
+the guys who are checking them out have a
+
+199
+00:27:55.000 --> 00:28:02.000 
+response time in the minutes. So the night
+was not long enough to load the truck, the
+
+200
+00:28:02.000 --> 00:28:09.000 
+trucks could not drive over night to the cities
+where the service from Hutschenreuther should
+
+201
+00:28:09.000 --> 00:28:16.000 
+be delivered, so Anne-lee Hopp did not get
+her Hutschenreuther service and complained.
+
+202
+00:28:16.000 --> 00:28:22.000 
+The CEO complained and I sent somebody there
+and said: ‘You have to look what this is’.
+
+203
+00:28:22.000 --> 00:28:29.000 
+They reported when the night starts, so in
+the early evening: ‘Everything is good,
+
+204
+00:28:29.000 --> 00:28:36.000 
+it is fast,’ and the more the evening progresses
+system get slower and slower and slower and
+
+205
+00:28:36.000 --> 00:28:41.000 
+slower and in the end it does not work at
+all anymore.
+
+206
+00:28:41.000 --> 00:28:58.000 
+What can this be? ‘Batch jobs overnight.’
+No,okay, very funny story. Think about this
+
+207
+00:28:58.000 --> 00:29:05.000 
+company has a loading dock and all the trucks
+and every single truck has the station where
+
+208
+00:29:05.000 --> 00:29:11.000 
+somebody is checking the staff out and the
+truck driver cannot start without a bill of
+
+209
+00:29:11.000 --> 00:29:17.000 
+loading, he needs a list what is on the truck
+and then he needs to sign this off and then
+
+210
+00:29:17.000 --> 00:29:24.000 
+he jumps in his car and starts driving. And
+then when he checks off the deliveries then
+
+211
+00:29:24.000 --> 00:29:32.000 
+he is done. This is a printer. Printers are
+really slow, they are much slower than the
+
+212
+00:29:32.000 --> 00:29:40.000 
+rusty discs. And somebody wrote a fabulous
+printing utility, how do we print everything
+
+213
+00:29:40.000 --> 00:29:49.000 
+worked. But the guy said: ‘When somebody
+switches off a printer, then you get an interrupt,
+
+214
+00:29:49.000 --> 00:29:56.000 
+you get notified, then I know that the printer
+is not on anymore, but probably I should check
+
+215
+00:29:56.000 --> 00:30:06.000 
+after a while, whether the printer is on again
+and then I could use the printer again. This
+
+216
+00:30:06.000 --> 00:30:17.000 
+parameter is set to one second. So they had
+100 printers, people start going home at 6,
+
+217
+00:30:17.000 --> 00:30:31.000 
+first printer switched off, there are 10 people
+to be gone, there are 10 printers to be checked.
+
+218
+00:30:31.000 --> 00:30:49.000 
+The printers´ checking is not absolutely
+instant, so when 15 printers were off, the
+
+219
+00:30:49.000 --> 00:30:59.000 
+print utility did only check printers. You
+change the one second to ten seconds and all
+
+220
+00:30:59.000 --> 00:31:05.000 
+queueing problems are already gone you check
+to 60 seconds, so after a minute so after
+
+221
+00:31:05.000 --> 00:31:13.000 
+printer was switched off it can be on again
+from a perspective of a program and all scheduling
+
+222
+00:31:13.000 --> 00:31:22.000 
+problem was gone. That was Hutschenreuther
+in 1994 and next week Anne-lee Hopp have got
+
+223
+00:31:22.000 --> 00:31:29.000 
+her shipment from Hutschenreuther and was
+happy ever after.
+
+224
+00:31:29.000 --> 00:31:38.000 
+Things like this can happen, I just ... the
+topic Scheduling and Workload Management reminded
+
+225
+00:31:38.000 --> 00:31:52.000 
+me - Do not do silly things and do not do
+them in a loop. We have a new software which
+
+226
+00:31:52.000 --> 00:32:00.000 
+can look at code, he looks at code of large
+area, for example in material management,
+
+227
+00:32:00.000 --> 00:32:07.000 
+and he analyzed every single block of code
+and has a graphic representation where in
+
+228
+00:32:07.000 --> 00:32:12.000 
+a block of code we find a loop. Then it starts
+to get an colour and if we find a loop in
+
+229
+00:32:12.000 --> 00:32:18.000 
+a loop it gets a little bit more red and if
+we find a loop in a loop then it gets red
+
+230
+00:32:18.000 --> 00:32:23.000 
+and a loop in a loop in a loop then it is
+dark red. And one click, then you see this
+
+231
+00:32:23.000 --> 00:32:29.000 
+what we just saw, then we see there is 456
+statements withing a nested in a loop.
+
+232
+00:32:29.000 --> 00:32:42.000 
+I would say, management should learn to operate
+this analytic tool and read the statements.
+
+233
+00:32:42.000 --> 00:32:50.000 
+There is a high probability that this is a
+problematic area. It was very interesting.
+
+234
+00:32:50.000 --> 00:32:56.000 
+So loops in loops that starts with and three
+times nested it is high probability, four
+
+235
+00:32:56.000 --> 00:33:04.000 
+times that is an issue. Especially when you
+could have done a join and the loop equivalent
+
+236
+00:33:04.000 --> 00:33:07.000 
+could have taken place inside the database.
+
+237
+00:33:07.000 --> 00:33:11.000 
+Let me start that there we will have built
+in a benchmarking system and the benchmark
+
+238
+00:33:11.000 --> 00:33:16.000 
+has to be different than todays benchmarks.
+The benchmark, the old credit debit benchmark
+
+239
+00:33:16.000 --> 00:33:25.000 
+invented 40 years ago is not good enough anymore
+for judging systems of that type. SAP has
+
+240
+00:33:25.000 --> 00:33:30.000 
+built 20 years ago a benchmark called sales
+benchmark, this is everything around sales
+
+241
+00:33:30.000 --> 00:33:37.000 
+and process as many sales orders as possible
+within an hour. Typically something about
+
+242
+00:33:37.000 --> 00:33:44.000 
+10 000 or something. This is also not really
+representative anymore. We needed new benchmark
+
+243
+00:33:44.000 --> 00:33:49.000 
+then we have built new benchmarks for mixed
+workloads of OLTP and OLAP because 20 years
+
+244
+00:33:49.000 --> 00:33:56.000 
+ago this systems split in OLTP system and
+OLAP system, so we have to rethink how we
+
+245
+00:33:56.000 --> 00:34:06.000 
+come back and the three things guarantee transactional
+query throughput, maximize overall query throughput
+
+246
+00:34:06.000 --> 00:34:13.000 
+and minimize response-times for ad-hoc analytical
+queries despite there is mixed workload on
+
+247
+00:34:13.000 --> 00:34:14.000 
+the system.
+
+248
+00:34:14.000 --> 00:34:20.000 
+For new programs it is easy, you can optimize
+them, you understand this now how to find
+
+249
+00:34:20.000 --> 00:34:27.000 
+an optimum algorithm even if it is a little
+bit trial and error and you have different
+
+250
+00:34:27.000 --> 00:34:34.000 
+approaches and you measure the different approaches
+against each other for existing programs there
+
+251
+00:34:34.000 --> 00:34:40.000 
+is typically work to do. The older the programs
+more work, the younger the programs less work.
+
+252
+00:34:40.000 --> 00:34:51.000 
+Experience of HANA, moving Oracle programs
+from Oracle database to HANA, very high success
+
+253
+00:34:51.000 --> 00:35:02.000 
+rate, not much manual work because the users
+of oracle are using relatively good SQL and
+
+254
+00:35:02.000 --> 00:35:11.000 
+it can be highly optimized. The experience
+with older SAP programs is reprogramming of
+
+255
+00:35:11.000 --> 00:35:13.000 
+the data acquisition part.
+
+256
+00:35:13.000 --> 00:35:20.000 
+There are some observations. If we try to
+tackle the problem with admission controls,
+
+257
+00:35:20.000 --> 00:35:30.000 
+so we do not let queries coming in the system
+when we are under stress and let them wait
+
+258
+00:35:30.000 --> 00:35:40.000 
+outside the database system it is not very
+efficient, because when we let them in, we
+
+259
+00:35:40.000 --> 00:35:47.000 
+cannot control them anymore. So the better
+thing is, what I proposed before, we parallelize
+
+260
+00:35:47.000 --> 00:35:54.000 
+them hack them into small pieces and then
+we treat the small pieces in two different
+
+261
+00:35:54.000 --> 00:37:54.000 
+manners: the parallelized ones and non parallelized
+ones.

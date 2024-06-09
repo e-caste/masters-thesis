@@ -1,0 +1,541 @@
+WEBVTT
+
+1
+00:00:00.380 --> 00:00:04.540 
+Hello my name is Vitor Piro,
+I'm a postdoctoral researcher
+
+2
+00:00:04.750 --> 00:00:09.180 
+at the Hasso Plattner Institute in the Data
+Analytics and Computational Statistics group
+
+3
+00:00:09.720 --> 00:00:13.010 
+and I want to present a bit of my
+work on Scalable and Efficient
+
+4
+00:00:13.010 --> 00:00:16.820 
+DNA classification against large
+sets of reference sequences.
+
+5
+00:00:18.590 --> 00:00:24.330 
+This is related to the CleanIT topic in the
+sense that for doing DNA classification
+
+6
+00:00:24.640 --> 00:00:28.690 
+you really have to be efficient
+and that's the focus of my work.
+
+7
+00:00:31.430 --> 00:00:36.110 
+Why one has to be efficient while
+having a DNA classification?
+
+8
+00:00:36.730 --> 00:00:38.900 
+Basically because of
+the amount of data,
+
+9
+00:00:40.560 --> 00:00:45.590 
+DNA has been generated at a
+very high pace since the last
+
+10
+00:00:46.290 --> 00:00:49.980 
+15 years and there's
+been a decrease in
+
+11
+00:00:49.980 --> 00:00:52.780 
+sequencing costs due to
+advances in technology.
+
+12
+00:00:54.210 --> 00:00:56.510 
+With that more genomic
+data is available
+
+13
+00:00:57.130 --> 00:01:00.560 
+and more resources are needed
+to evaluate and to use them,
+
+14
+00:01:00.970 --> 00:01:04.390 
+and directly related there's
+higher energy consumption.
+
+15
+00:01:05.930 --> 00:01:10.190 
+But how does that apply in the
+real scientific scenario
+
+16
+00:01:10.290 --> 00:01:15.510 
+on DNA based studies? Let's take a look
+at the microbiome study example,
+
+17
+00:01:16.500 --> 00:01:19.020 
+where one has
+to sequence
+
+18
+00:01:19.650 --> 00:01:24.500 
+several hundreds or thousands of samples
+of subjects at different point in times
+
+19
+00:01:24.650 --> 00:01:27.940 
+of treatment, controls, and
+replicates so on so forth.
+
+20
+00:01:28.790 --> 00:01:34.570 
+This data is sequenced in a high
+redundancy to cover many of the
+
+21
+00:01:35.170 --> 00:01:38.510 
+technical errors of the sequencing
+machines and also to give
+
+22
+00:01:38.590 --> 00:01:40.510 
+a higher confidence
+of the results.
+
+23
+00:01:41.280 --> 00:01:44.550 
+And the goal here of the microbiome
+study is to discover the
+
+24
+00:01:44.550 --> 00:01:48.590 
+contents of each one of those
+samples. For that one of the ways
+
+25
+00:01:49.280 --> 00:01:54.980 
+of doing so is to compare with the previously
+generated reference genome sequences.
+
+26
+00:01:56.080 --> 00:01:58.950 
+In this case, the more sequences
+were compared to, the better
+
+27
+00:01:59.370 --> 00:02:01.790 
+and if possible to
+compare with everything
+
+28
+00:02:02.210 --> 00:02:04.120 
+that is known so far.
+
+29
+00:02:05.650 --> 00:02:08.880 
+Another characteristic of this
+data is that it grows every
+
+30
+00:02:08.880 --> 00:02:12.290 
+day. Since more data has been generated
+more reference genomes have
+
+31
+00:02:12.520 --> 00:02:14.040 
+been available
+every single day.
+
+32
+00:02:15.660 --> 00:02:20.020 
+As a real example, we could look
+at the gut microbiome study.
+
+33
+00:02:20.450 --> 00:02:24.140 
+These are the numbers from the last
+study I participated in, which is
+
+34
+00:02:24.500 --> 00:02:30.070 
+low to medium size where we
+had only from our samples
+
+35
+00:02:30.900 --> 00:02:35.030 
+a billion three hundred base
+pairs to be analyzed and one of
+
+36
+00:02:35.040 --> 00:02:39.190 
+the common reference sets for
+reference genomes has seven hundred
+
+37
+00:02:39.570 --> 00:02:44.680 
+times more base pairs of DNA bases
+to be compared to. So, just
+
+38
+00:02:44.680 --> 00:02:46.320 
+so you have an
+idea of the
+
+39
+00:02:47.970 --> 00:02:49.360 
+complexity of
+this data.
+
+40
+00:02:49.970 --> 00:02:55.140 
+In addition, this reference set doubles
+in size every eighteen months so
+
+41
+00:02:55.330 --> 00:02:59.140 
+it's a huge problem and efficiency
+is needed for computational
+
+42
+00:02:59.140 --> 00:03:00.150 
+tools to deal with it.
+
+43
+00:03:03.680 --> 00:03:09.870 
+One way to solve this problem is to
+index such large reference sets
+
+44
+00:03:10.100 --> 00:03:14.810 
+and indexing them is basically organizing
+and compressing them in data structures.
+
+45
+00:03:15.170 --> 00:03:19.640 
+And the objective here is that we are
+able to search for new data against
+
+46
+00:03:19.820 --> 00:03:23.960 
+these huge sets of reference
+sequences and with that reduce
+
+47
+00:03:24.440 --> 00:03:25.560 
+the computational time.
+
+48
+00:03:26.510 --> 00:03:29.350 
+We also have to keep in mind
+that the DNA search is not
+
+49
+00:03:29.780 --> 00:03:34.990 
+simple, it has its complexities
+due to sequencing
+
+50
+00:03:34.990 --> 00:03:39.490 
+errors, mutations on the DNA molecule,
+so on and so forth. So, especially
+
+51
+00:03:40.360 --> 00:03:44.980 
+special data structures were
+developed for it, and algorithms I
+
+52
+00:03:44.980 --> 00:03:49.150 
+listed some here and they are usually
+specialized to solve specific problems.
+
+53
+00:03:50.430 --> 00:03:54.500 
+I want to focus here on the Bloom filter
+which is the data structure I used
+
+54
+00:03:54.650 --> 00:03:59.620 
+in my project, it is a data structure
+that provides certain membership.
+
+55
+00:04:01.510 --> 00:04:07.150 
+Superficially explaining what you're going to
+do is to go through your reference sequences
+
+56
+00:04:07.360 --> 00:04:11.620 
+and compress them and organize them
+into this Bloom filter which is this
+
+57
+00:04:11.920 --> 00:04:14.530 
+array of one 's and zero
+'s, a bit vector array,
+
+58
+00:04:15.060 --> 00:04:18.180 
+and with that, you're going to
+have a compressed a structure
+
+59
+00:04:18.180 --> 00:04:22.550 
+with some trade-offs on size
+and memory consumption,
+
+60
+00:04:23.430 --> 00:04:27.700 
+and with that, we're gonna have
+a way quicker way to access
+
+61
+00:04:27.700 --> 00:04:31.320 
+if some new sequence was already
+discovered before or not.
+
+62
+00:04:33.040 --> 00:04:36.750 
+However, for the
+microbiome profiling
+
+63
+00:04:37.380 --> 00:04:40.990 
+problem we have hundreds and
+thousands of species inside
+
+64
+00:04:41.540 --> 00:04:46.340 
+our samples and we want to discover
+what's in the sample and how much.
+
+65
+00:04:47.180 --> 00:04:49.390 
+For that, the Bloom filter wouldn't
+be enough because the Bloom
+
+66
+00:04:49.390 --> 00:04:53.140 
+filter would just say if our sequences
+were present before or not.
+
+67
+00:04:53.440 --> 00:04:57.990 
+For such we use the interleaved
+computer, which was also published
+
+68
+00:04:57.990 --> 00:05:02.780 
+by colleagues and I some time ago,
+where several computers are used
+
+69
+00:05:02.790 --> 00:05:04.960 
+interleaved, as you can see
+in this picture here.
+
+70
+00:05:05.820 --> 00:05:10.280 
+And the idea here is you have a set
+membership for multiple groups, not only
+
+71
+00:05:10.380 --> 00:05:16.500 
+one big set membership but multiple groups
+which would be representative of our species.
+
+72
+00:05:18.320 --> 00:05:21.100 
+And Ganon which I am
+presenting today
+
+73
+00:05:21.840 --> 00:05:27.050 
+is the implementation of these interleaved
+computers for microbiome profile
+
+74
+00:05:27.460 --> 00:05:30.140 
+and this was also
+published recently.
+
+75
+00:05:31.110 --> 00:05:36.640 
+And Ganon can use way more reference
+sequences due to the characteristics
+
+76
+00:05:36.690 --> 00:05:38.010 
+of this data structure.
+
+77
+00:05:39.610 --> 00:05:42.900 
+Why is Ganon efficient? First of
+all, because it usually uses
+
+78
+00:05:42.900 --> 00:05:46.960 
+the interleaved computer which
+allows fast indexing of very large
+
+79
+00:05:47.190 --> 00:05:51.930 
+sets of reference sequences and also
+allows a first searching although
+
+80
+00:05:52.100 --> 00:05:52.570 
+indices.
+
+81
+00:05:54.130 --> 00:05:59.210 
+It is also efficient because it
+uses C++ and second which is an
+
+82
+00:05:59.810 --> 00:06:04.440 
+efficient library for DNA
+analysis in C++ and also
+
+83
+00:06:04.450 --> 00:06:06.300 
+does heavy use of
+multi-threading.
+
+84
+00:06:07.960 --> 00:06:11.710 
+For other characteristics of Ganon
+that makes it efficient is the
+
+85
+00:06:11.970 --> 00:06:16.540 
+ability to update those indices,
+since we are having lots
+
+86
+00:06:16.540 --> 00:06:19.410 
+of sequence inside of them and they
+are being generated very quickly
+
+87
+00:06:19.720 --> 00:06:24.880 
+on a daily basis, it is important to be
+able to keep up with this new data
+
+88
+00:06:25.240 --> 00:06:28.950 
+and incrementally grow
+this index over time.
+
+89
+00:06:29.810 --> 00:06:32.250 
+Here have a little table
+from Ganon publication,
+
+90
+00:06:32.980 --> 00:06:37.650 
+having some comparisons of its performance
+against the state of the art methods
+
+91
+00:06:38.530 --> 00:06:42.210 
+and here those reference sets
+you can see as a small, large,
+
+92
+00:06:42.210 --> 00:06:46.770 
+and very large reference set containing
+lots of reference genome sequences.
+
+93
+00:06:47.620 --> 00:06:51.610 
+And as you can see compared to the
+other methods Ganon can be up to
+
+94
+00:06:51.890 --> 00:06:55.670 
+75% faster on indexing
+those reference sets
+
+95
+00:06:55.820 --> 00:06:57.820 
+which saves a lot of
+computational time.
+
+96
+00:06:58.680 --> 00:07:03.410 
+Also, it allows using more data. For
+example, in this very large set here
+
+97
+00:07:03.660 --> 00:07:07.220 
+again on is listed since the
+other tools took days to finish
+
+98
+00:07:07.220 --> 00:07:10.660 
+and could not be included
+in the evaluation.
+
+99
+00:07:11.510 --> 00:07:15.380 
+And Ganon is the only among the others
+which allow updates, not shown
+
+100
+00:07:15.380 --> 00:07:20.560 
+here to numbers but to date any of those
+indices with small sets of sequences
+
+101
+00:07:20.760 --> 00:07:23.250 
+just takes the fraction of
+time needed to build.
+
+102
+00:07:26.210 --> 00:07:32.020 
+In conclusion, DNA sequencing is a
+great technology but it provides
+
+103
+00:07:32.470 --> 00:07:36.570 
+lots of data and the data is growing
+very fast. For microbiome analysis
+
+104
+00:07:36.940 --> 00:07:41.590 
+we need to do huge data comparisons and
+the more data the better the results.
+
+105
+00:07:42.050 --> 00:07:47.390 
+Efficient solutions are necessary and
+super-efficient indexing and searching
+
+106
+00:07:48.010 --> 00:07:51.730 
+is required to be able to do
+this analysis in doable time.
+
+107
+00:07:52.370 --> 00:07:56.210 
+I presented Ganon an interleaved
+computer which provides these indexing
+
+108
+00:07:56.700 --> 00:08:03.050 
+speeds and also allow updatable indices
+to avoid redundant reenacting of data
+
+109
+00:08:03.500 --> 00:08:07.280 
+and this translates to fewer
+computations and better results.

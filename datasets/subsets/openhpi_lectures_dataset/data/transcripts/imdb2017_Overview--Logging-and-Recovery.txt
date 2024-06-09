@@ -1,0 +1,230 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.200 
+So this talk is about
+logging and recovery for
+
+2
+00:00:02.200 --> 00:00:06.600 
+in-memory databases.
+The concepts
+
+3
+00:00:06.600 --> 00:00:10.100 
+are similar to disk
+space database systems so
+
+4
+00:00:10.100 --> 00:00:14.140 
+maybe you are familiar with
+some of the techniques.
+
+5
+00:00:14.140 --> 00:00:17.170 
+The structure of this
+talk is that we start
+
+6
+00:00:17.170 --> 00:00:20.200 
+with the definition of
+terms logging and recovery.
+
+7
+00:00:20.200 --> 00:00:24.240 
+Then I will classify
+different logging approaches
+
+8
+00:00:24.240 --> 00:00:27.270 
+and then I will
+go into detail
+
+9
+00:00:27.270 --> 00:00:30.300 
+what is specific for
+in-memory databases
+
+10
+00:00:31.310 --> 00:00:35.350 
+and last but not least we
+will talk about checkpointing.
+
+11
+00:00:35.350 --> 00:00:41.410 
+Shorter motivation
+for logging recovery.
+
+12
+00:00:41.410 --> 00:00:45.450 
+Both are overhead so normally
+we just want to ask queries
+
+13
+00:00:45.450 --> 00:00:49.490 
+for database but there
+are some cases, failures,
+
+14
+00:00:49.490 --> 00:00:53.530 
+there are basically three
+cases of failures which
+
+15
+00:00:53.530 --> 00:00:56.560 
+can happen and we still
+want to be able to use
+
+16
+00:00:56.560 --> 00:01:00.600 
+our database after
+this. The first case
+
+17
+00:01:00.600 --> 00:01:02.620 
+what can happen is a
+transaction failure,
+
+18
+00:01:02.620 --> 00:01:05.650 
+so a board of a
+transaction from the user
+
+19
+00:01:06.660 --> 00:01:09.690 
+which enters a board command
+or from the database itself
+
+20
+00:01:09.690 --> 00:01:13.730 
+because there is a conflict
+in transaction handling.
+
+21
+00:01:13.730 --> 00:01:17.770 
+The second class of
+failure is system failure
+
+22
+00:01:17.770 --> 00:01:20.800 
+caused by a bug in a
+database management system
+
+23
+00:01:20.800 --> 00:01:23.830 
+or in the OS or a
+hardware failure,
+
+24
+00:01:23.830 --> 00:01:26.860 
+in this case we need
+logging and recovery.
+
+25
+00:01:26.860 --> 00:01:30.900 
+The third class of failures are
+media failures so think about
+
+26
+00:01:30.900 --> 00:01:34.940 
+a corrupted hardware,
+specifically
+
+27
+00:01:34.940 --> 00:01:36.960 
+your persistent storage
+and in this case
+
+28
+00:01:36.960 --> 00:01:40.100 
+you can't do
+much with logging
+
+29
+00:01:40.100 --> 00:01:44.104 
+and recovery alone so
+you also need replicated
+
+30
+00:01:44.104 --> 00:01:50.110 
+persistency. Logging is a
+process of writing information
+
+31
+00:01:50.110 --> 00:01:54.114 
+to persistent storage
+to enable recovery
+
+32
+00:01:55.115 --> 00:01:59.119 
+and recovery is a process of
+bringing back your database in
+
+33
+00:01:59.119 --> 00:02:03.123 
+a state where you can
+operate and query it
+
+34
+00:02:03.123 --> 00:02:07.127 
+again. Again said,
+this is all overhead so
+
+35
+00:02:07.127 --> 00:02:11.131 
+we want to do this as fast as
+possible, so recovery to minimum
+
+36
+00:02:11.131 --> 00:02:15.135 
+down time and logging to
+
+37
+00:02:16.136 --> 00:02:20.140 
+not have lower
+throughput or latency.
+
+38
+00:02:21.141 --> 00:02:25.145 
+How does it fit in a
+visualization of our in-memory
+
+39
+00:02:25.145 --> 00:02:29.149 
+database? Logging is
+the writing to the
+
+40
+00:02:29.149 --> 00:02:33.153 
+persistency and recovery
+is reading from persistency
+
+41
+00:02:33.153 --> 00:02:37.157 
+and bringing back our
+in-memory database structures
+
+42
+00:02:37.157 --> 00:02:40.160 
+to a consistent
+state where we can
+
+43
+00:02:40.160 --> 00:02:44.164 
+do quering again and
+here maybe a nice
+
+44
+00:02:44.164 --> 00:02:48.168 
+feature or what we can use
+forlogging is NVRAM because
+
+45
+00:02:48.168 --> 00:02:52.172 
+it has a lower write
+latency so we can
+
+46
+00:02:52.172 --> 00:02:54.174 
+speed up the
+logging process.

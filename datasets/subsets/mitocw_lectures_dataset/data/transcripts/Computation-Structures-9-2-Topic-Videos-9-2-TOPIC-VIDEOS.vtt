@@ -1,0 +1,760 @@
+WEBVTT
+
+00:00:00.989 --> 00:00:06.029
+Having talked about the storage resources
+provided by the Beta ISA, let's design the
+
+00:00:06.029 --> 00:00:08.580
+Beta instructions themselves.
+
+00:00:08.580 --> 00:00:12.809
+This might be a good time to print a copy
+of the handout called the "Summary of Beta
+
+00:00:12.809 --> 00:00:17.480
+Instruction Formats" so you'll have it for
+handy reference.
+
+00:00:17.480 --> 00:00:21.590
+The Beta has three types of instructions:
+compute instructions that perform arithmetic
+
+00:00:21.590 --> 00:00:26.960
+and logic operations on register values, load
+and store instructions that access values
+
+00:00:26.960 --> 00:00:32.830
+in main memory, and branch instructions that
+change the value of the program counter.
+
+00:00:32.830 --> 00:00:37.320
+We'll discuss each class of instructions in
+turn.
+
+00:00:37.320 --> 00:00:43.640
+In the Beta ISA, all the instruction encodings
+are the same size: each instruction is encoded
+
+00:00:43.640 --> 00:00:49.320
+in 32 bits and hence occupies exactly one
+32-bit word in main memory.
+
+00:00:49.320 --> 00:00:54.620
+This instruction encoding leads to simpler
+control-unit logic for decoding instructions.
+
+00:00:54.620 --> 00:00:58.260
+And computing the next value of the program
+counter is very simple:
+
+00:00:58.260 --> 00:01:03.510
+for most instructions, the next instruction
+can be found in the following memory location.
+
+00:01:03.510 --> 00:01:07.770
+We just need to add 4 to the current value
+of program counter to advance to the next
+
+00:01:07.770 --> 00:01:09.280
+instruction.
+
+00:01:09.280 --> 00:01:14.000
+As we saw in Part 1 of the course, fixed-length
+encodings are often inefficient in the sense
+
+00:01:14.000 --> 00:01:19.609
+that the same information content (in this
+case, the encoded program) can be encoded
+
+00:01:19.609 --> 00:01:21.770
+using fewer bits.
+
+00:01:21.770 --> 00:01:26.408
+To do better we would need a variable-length
+encoding for instructions, where frequently-occurring
+
+00:01:26.408 --> 00:01:29.819
+instructions would use a shorter encoding.
+
+00:01:29.819 --> 00:01:35.090
+But hardware to decode variable-length instructions
+is complex since there may be several instructions
+
+00:01:35.090 --> 00:01:40.679
+packed into one memory word, while other instructions
+might require loading several memory words.
+
+00:01:40.679 --> 00:01:44.880
+The details can be worked out, but there's
+a performance and energy cost associated with
+
+00:01:44.880 --> 00:01:47.229
+the more efficient encoding.
+
+00:01:47.229 --> 00:01:52.520
+Nowadays, advances in memory technology have
+made memory size less of an issue and the
+
+00:01:52.520 --> 00:01:57.700
+focus is on the higher-performance needed
+by today's applications.
+
+00:01:57.700 --> 00:02:02.590
+Our choice of a fixed-length encoding leads
+to larger code size, but keeps the hardware
+
+00:02:02.590 --> 00:02:06.030
+execution engine small and fast.
+
+00:02:06.030 --> 00:02:11.540
+The computation performed by the Beta datapath
+happens in the arithmetic-and-logic unit (ALU).
+
+00:02:11.540 --> 00:02:16.290
+We'll be using the ALU designed in Part 1
+of the course.
+
+00:02:16.290 --> 00:02:19.950
+The Beta ALU instructions have 4 instruction
+fields.
+
+00:02:19.950 --> 00:02:25.940
+There's a 6-bit field specifying the ALU operation
+to be performed - this field is called the
+
+00:02:25.940 --> 00:02:27.110
+opcode.
+
+00:02:27.110 --> 00:02:32.329
+The two source operands come from registers
+whose numbers are specified by the 5-bit "ra"
+
+00:02:32.329 --> 00:02:33.700
+and "rb" fields.
+
+00:02:33.700 --> 00:02:39.030
+So we can specify any register from R0 to
+R31 as a source operand.
+
+00:02:39.030 --> 00:02:44.020
+The destination register is specified by the
+5-bit "rc" field.
+
+00:02:44.020 --> 00:02:49.120
+This instruction format uses 21 bits of the
+32-bit word, the remaining bits are unused
+
+00:02:49.120 --> 00:02:51.540
+and should be set to 0.
+
+00:02:51.540 --> 00:02:55.510
+The diagram shows how the fields are positioned
+in the 32-bit word.
+
+00:02:55.510 --> 00:03:00.360
+The choice of position for each field is somewhat
+arbitrary, but to keep the hardware simple,
+
+00:03:00.360 --> 00:03:05.980
+when we can we'll want to use the same field
+positions for similar fields in the other
+
+00:03:05.980 --> 00:03:07.360
+instruction encodings.
+
+00:03:07.360 --> 00:03:14.470
+For example, the opcode will always be found
+in bits [31:26] of the instruction.
+
+00:03:14.470 --> 00:03:17.400
+Here's the binary encoding of an ADD instruction.
+
+00:03:17.400 --> 00:03:24.940
+The opcode for ADD is the 6-bit binary value
+0b100000 - you can find the binary for each
+
+00:03:24.940 --> 00:03:28.870
+opcode in the Opcode Table in the handout
+mentioned before.
+
+00:03:28.870 --> 00:03:34.790
+The "rc" field specifies that the result of
+the ADD will be written into R3.
+
+00:03:34.790 --> 00:03:40.260
+And the "ra" and "rb" fields specify that
+the first and second source operands are R1
+
+00:03:40.260 --> 00:03:42.620
+and R2 respectively.
+
+00:03:42.620 --> 00:03:48.660
+So this instruction adds the 32-bit values
+found in R1 and R2, writing the 32-bit sum
+
+00:03:48.660 --> 00:03:51.270
+into R3.
+
+00:03:51.270 --> 00:03:56.320
+Note that it's permissible to refer to a particular
+register several times in the same instruction.
+
+00:03:56.320 --> 00:04:02.090
+So, for example, we could specify R1 as the
+register for both source operands AND also
+
+00:04:02.090 --> 00:04:04.470
+as the destination register.
+
+00:04:04.470 --> 00:04:10.380
+If we did, we'd be adding R1 to R1 and writing
+the result back into R1, which would effectively
+
+00:04:10.380 --> 00:04:14.860
+multiply the value in R1 by 2.
+
+00:04:14.860 --> 00:04:20.969
+Since it's tedious and error-prone to transcribe
+32-bit binary values, we'll often use hexadecimal
+
+00:04:20.969 --> 00:04:25.830
+notation for the binary representation of
+an instruction.
+
+00:04:25.830 --> 00:04:32.240
+In this example, the hexadecimal notation
+for the encoded instruction is 0x80611000.
+
+00:04:32.240 --> 00:04:40.300
+However, it's *much* easier if we describe
+the instructions using a functional notation,
+
+00:04:40.300 --> 00:04:44.080
+e.g., "ADD(r1,r2,r3)".
+
+00:04:44.080 --> 00:04:47.560
+Here we use a symbolic name for each operation,
+called a mnemonic.
+
+00:04:47.560 --> 00:04:52.749
+For this instruction the mnemonic is "ADD",
+followed by a parenthesized list of operands,
+
+00:04:52.749 --> 00:04:59.460
+in this case the two source operands (r1 and
+r2), then the destination (r3).
+
+00:04:59.460 --> 00:05:05.199
+So we'll understand that ADD(ra,rb,rc) is
+shorthand for asking the Beta to compute the
+
+00:05:05.199 --> 00:05:10.629
+sum of the values in registers ra and rb,
+writing the result as the new value of register
+
+00:05:10.629 --> 00:05:12.569
+rc.
+
+00:05:12.569 --> 00:05:17.039
+Here's the list of the mnemonics for all the
+operations supported by the Beta.
+
+00:05:17.039 --> 00:05:21.650
+There is a detailed description of what each
+instruction does in the Beta Documentation
+
+00:05:21.650 --> 00:05:22.810
+handout.
+
+00:05:22.810 --> 00:05:27.301
+Note that all these instructions use same
+4-field template, differing only in the value
+
+00:05:27.301 --> 00:05:29.719
+of the opcode field.
+
+00:05:29.719 --> 00:05:33.650
+This first step was pretty straightforward
+- we simply provided instruction encodings
+
+00:05:33.650 --> 00:05:38.159
+for the basic operations provided by the ALU.
+
+00:05:38.159 --> 00:05:42.800
+Now that we have our first group of instructions,
+we can create a more concrete implementation
+
+00:05:42.800 --> 00:05:44.319
+sketch.
+
+00:05:44.319 --> 00:05:46.430
+Here we see our proposed datapath.
+
+00:05:46.430 --> 00:05:51.639
+The 5-bit "ra" and "rb" fields from the instruction
+are used to select which of the 32 registers
+
+00:05:51.639 --> 00:05:55.060
+will be used for the two operands.
+
+00:05:55.060 --> 00:06:01.650
+Note that register 31 isn't actually a read/write
+register, it's just the 32-bit constant 0,
+
+00:06:01.650 --> 00:06:06.800
+so that selecting R31 as an operand results
+in using the value 0.
+
+00:06:06.800 --> 00:06:11.219
+The 5-bit "rc" field from the instruction
+selects which register will be written with
+
+00:06:11.219 --> 00:06:14.069
+the result from the ALU.
+
+00:06:14.069 --> 00:06:19.020
+Not shown is the hardware needed to translate
+the instruction opcode to the appropriate
+
+00:06:19.020 --> 00:06:24.270
+ALU function code - perhaps a 64-location
+ROM could be used to perform the translation
+
+00:06:24.270 --> 00:06:25.979
+by table lookup.
+
+00:06:25.979 --> 00:06:30.430
+The program counter logic supports simple
+sequential execution of instructions.
+
+00:06:30.430 --> 00:06:35.729
+It's a 32-bit register whose value is updated
+at the end of each instruction by adding 4
+
+00:06:35.729 --> 00:06:37.409
+to its current value.
+
+00:06:37.409 --> 00:06:40.860
+This means the next instruction will come
+from the memory location following the one
+
+00:06:40.860 --> 00:06:43.789
+that holds the current instruction.
+
+00:06:43.789 --> 00:06:47.069
+In this diagram we see one of the benefits
+of a RISC architecture:
+
+00:06:47.069 --> 00:06:51.330
+there's not much logic needed to decode the
+instruction to produce the signals needed
+
+00:06:51.330 --> 00:06:52.750
+to control the datapath.
+
+00:06:52.750 --> 00:06:56.389
+In fact, many of the instruction fields are
+used as-is!90 --> 00:05:46.000
+involves the steps shown here:
+
+00:05:46.000 --> 00:05:48.250
+the instruction is
+loaded from the memory
+
+00:05:48.250 --> 00:05:50.930
+location whose address is
+specified by the program
+
+00:05:50.930 --> 00:05:52.080
+counter.
+
+00:05:52.080 --> 00:05:54.610
+When the requested data
+is returned by the memory,
+
+00:05:54.610 --> 00:05:56.460
+the instruction
+fields are converted
+
+00:05:56.460 --> 00:05:59.310
+to the appropriate control
+signals for the datapath,
+
+00:05:59.310 --> 00:06:02.610
+selecting the source operands
+from the specified registers,
+
+00:06:02.610 --> 00:06:05.680
+directing the ALU to perform
+the specified operation,
+
+00:06:05.680 --> 00:06:10.090
+and storing the result in the
+specified destination register.
+
+00:06:10.090 --> 00:06:12.120
+The final step in
+executing an instruction
+
+00:06:12.120 --> 00:06:13.940
+is updating the
+value of the program
+
+00:06:13.940 --> 00:06:17.650
+counter to be the address
+of the next instruction.
+
+00:06:17.650 --> 00:06:21.140
+This execution loop is
+performed again and again.
+
+00:06:21.140 --> 00:06:23.380
+Modern machines can execute
+up more than a billion
+
+00:06:23.380 --> 00:06:25.700
+instructions per second!
+
+00:06:25.700 --> 00:06:28.690
+The discussion so far
+has been a bit abstract.
+
+00:06:28.690 --> 00:06:31.100
+Now it’s time to roll up our
+sleeves and figure out what
+
+00:06:31.100 --> 00:06:34.090
+instructions we want
+our system to support.
+
+00:06:34.090 --> 00:06:36.920
+The specification of instruction
+fields and their meaning
+
+00:06:36.920 --> 00:06:39.290
+along with the details
+of the datapath design
+
+00:06:39.290 --> 00:06:42.540
+are collectively called the
+instruction set architecture
+
+00:06:42.540 --> 00:06:45.010
+(ISA) of the system.
+
+00:06:45.010 --> 00:06:48.390
+The ISA is a detailed functional
+specification of the operations
+
+00:06:48.390 --> 00:06:50.470
+and storage
+mechanisms and serves
+
+00:06:50.470 --> 00:06:52.430
+as a contract
+between the designers
+
+00:06:52.430 --> 00:06:54.850
+of the digital hardware
+and the programmers who
+
+00:06:54.850 --> 00:06:57.170
+will write the programs.
+
+00:06:57.170 --> 00:06:59.880
+Since the programs are stored
+in main memory and can hence be
+
+00:06:59.880 --> 00:07:02.130
+changed, we’ll
+call them software,
+
+00:07:02.130 --> 00:07:04.450
+to distinguish them from
+the digital logic which,
+
+00:07:04.450 --> 00:07:06.900
+once implemented,
+doesn’t change.
+
+00:07:06.900 --> 00:07:10.190
+It’s the combination of hardware
+and software that determine
+
+00:07:10.190 --> 00:07:12.950
+the behavior of our system.
+
+00:07:12.950 --> 00:07:15.670
+The ISA is a new
+layer of abstraction:
+
+00:07:15.670 --> 00:07:17.753
+we can write programs
+for the system
+
+00:07:17.753 --> 00:07:19.170
+without knowing
+the implementation
+
+00:07:19.170 --> 00:07:21.460
+details of the hardware.
+
+00:07:21.460 --> 00:07:23.940
+As hardware
+technology improves we
+
+00:07:23.940 --> 00:07:28.180
+can build faster systems without
+having to change the software.
+
+00:07:28.180 --> 00:07:31.840
+You can see here that over
+a fifteen year timespan,
+
+00:07:31.840 --> 00:07:35.530
+the hardware for executing
+the Intel x86 instruction set
+
+00:07:35.530 --> 00:07:38.750
+went from executing 300,000
+instructions per second
+
+00:07:38.750 --> 00:07:42.400
+to executing 5 billion
+instructions per second.
+
+00:07:42.400 --> 00:07:46.280
+Same software as before, we’ve
+just taken advantage of smaller
+
+00:07:46.280 --> 00:07:50.150
+and faster MOSFETs to build
+more complex circuits and faster
+
+00:07:50.150 --> 00:07:52.330
+execution engines.
+
+00:07:52.330 --> 00:07:54.780
+But a word of
+caution is in order!
+
+00:07:54.780 --> 00:07:58.130
+It’s tempting to make choices
+in the ISA that reflect
+
+00:07:58.130 --> 00:08:00.970
+the constraints of current
+technologies, e.g.,
+
+00:08:00.970 --> 00:08:02.890
+the number of
+internal registers,
+
+00:08:02.890 --> 00:08:05.590
+the width of the operands,
+or the maximum size of main
+
+00:08:05.590 --> 00:08:07.180
+memory.
+
+00:08:07.180 --> 00:08:10.150
+But it will be hard to change
+the ISA when technology
+
+00:08:10.150 --> 00:08:13.440
+improves since there’s a
+powerful economic incentive
+
+00:08:13.440 --> 00:08:16.890
+to ensure that old software
+can run on new machines,
+
+00:08:16.890 --> 00:08:20.520
+which means that a particular
+ISA can live for decades
+
+00:08:20.520 --> 00:08:23.700
+and span many generations
+of technology.
+
+00:08:23.700 --> 00:08:26.550
+If your ISA is successful,
+you’ll have to live with any
+
+00:08:26.550 --> 00:08:30.320
+bad choices you made
+for a very long time.
+
+00:08:30.320 --> 00:08:32.860
+Designing an ISA is hard!
+
+00:08:32.860 --> 00:08:35.350
+What are the operations
+that should be supported?
+
+00:08:35.350 --> 00:08:37.030
+How many internal registers?
+
+00:08:37.030 --> 00:08:38.659
+How much main memory?
+
+00:08:38.659 --> 00:08:40.390
+Should we design the
+instruction encoding
+
+00:08:40.390 --> 00:08:44.110
+to minimize program size or to
+keep the logic in the control
+
+00:08:44.110 --> 00:08:45.970
+unit as simple as possible?
+
+00:08:45.970 --> 00:08:47.450
+Looking into our
+crystal ball, what
+
+00:08:47.450 --> 00:08:50.320
+can we say about the computation
+and storage capabilities
+
+00:08:50.320 --> 00:08:53.070
+of future technologies?
+
+00:08:53.070 --> 00:08:56.580
+We’ll answer these questions by
+taking a quantitative approach.
+
+00:08:56.580 --> 00:08:59.060
+First we’ll choose a set
+of benchmark programs,
+
+00:08:59.060 --> 00:09:02.310
+chosen as representative of
+the many types of programs we
+
+00:09:02.310 --> 00:09:04.750
+expect to run on our system.
+
+00:09:04.750 --> 00:09:06.440
+So some of benchmark
+programs will
+
+00:09:06.440 --> 00:09:09.170
+perform scientific and
+engineering computations,
+
+00:09:09.170 --> 00:09:11.470
+some will manipulate
+large data sets
+
+00:09:11.470 --> 00:09:13.910
+or perform database
+operations, some
+
+00:09:13.910 --> 00:09:16.860
+will require specialized
+computations for graphics
+
+00:09:16.860 --> 00:09:19.500
+or communications, and so on.
+
+00:09:19.500 --> 00:09:21.970
+Happily, after many
+decades of computer use,
+
+00:09:21.970 --> 00:09:24.070
+several standardized
+benchmark suites
+
+00:09:24.070 --> 00:09:26.200
+are available for us to use.
+
+00:09:26.200 --> 00:09:28.550
+We’ll then implement the
+benchmark programs using
+
+00:09:28.550 --> 00:09:32.210
+our instruction set and simulate
+their execution on our proposed
+
+00:09:32.210 --> 00:09:33.610
+datapath.
+
+00:09:33.610 --> 00:09:36.690
+We’ll evaluate the results to
+measure how well the system
+
+00:09:36.690 --> 00:09:38.120
+performs.
+
+00:09:38.120 --> 00:09:40.550
+But what do we mean by “well”?
+
+00:09:40.550 --> 00:09:42.100
+That’s where it
+gets interesting:
+
+00:09:42.100 --> 00:09:45.500
+“well” could refer to execution
+speed, energy consumption,
+
+00:09:45.500 --> 00:09:49.170
+circuit size, system cost, etc.
+
+00:09:49.170 --> 00:09:50.720
+If you’re designing
+a smart watch,
+
+00:09:50.720 --> 00:09:53.090
+you’ll make different choices
+than if you’re designing
+
+00:09:53.090 --> 00:09:57.260
+a high-performance graphics
+card or a data-center server.
+
+00:09:57.260 --> 00:10:00.340
+Whatever metric you choose to
+evaluate your proposed system,
+
+00:10:00.340 --> 00:10:03.170
+there’s an important design
+principle we can follow:
+
+00:10:03.170 --> 00:10:06.060
+identify the common
+operations and focus on them
+
+00:10:06.060 --> 00:10:08.190
+as you optimize your design.
+
+00:10:08.190 --> 00:10:10.240
+For example, in
+general-purpose computing,
+
+00:10:10.240 --> 00:10:12.840
+almost all programs
+spend a lot of their time
+
+00:10:12.840 --> 00:10:15.960
+on simple arithmetic
+operations and accessing values
+
+00:10:15.960 --> 00:10:17.320
+in main memory.
+
+00:10:17.320 --> 00:10:19.780
+So those operations
+should be made as fast
+
+00:10:19.780 --> 00:10:22.370
+and energy efficient
+as possible.
+
+00:10:22.370 --> 00:10:25.120
+Now, let’s get to work designing
+our own instruction set
+
+00:10:25.120 --> 00:10:29.210
+and execution engine, a
+system we’ll call the Beta.

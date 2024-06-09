@@ -1,0 +1,772 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.400 
+Welcome again, so this talk is
+about a database replication
+
+2
+00:00:04.400 --> 00:00:08.800 
+which means that we want
+to duplicate data items
+
+3
+00:00:08.800 --> 00:00:12.120 
+as a means to scale out.
+
+4
+00:00:12.120 --> 00:00:16.160 
+Again, I want to motivate
+why we need replication
+
+5
+00:00:16.160 --> 00:00:20.200 
+in a database setup and I,
+again, speak about classification
+
+6
+00:00:20.200 --> 00:00:24.240 
+of different approaches
+and we will focus on
+
+7
+00:00:24.240 --> 00:00:28.280 
+partial replication
+and master replication
+
+8
+00:00:28.280 --> 00:00:32.320 
+which we think are suitable
+for enterprise applications
+
+9
+00:00:33.330 --> 00:00:36.360 
+and last I want to
+motivate a distributed log
+
+10
+00:00:36.360 --> 00:00:40.400 
+as a single source of
+truth as persistency.
+
+11
+00:00:42.420 --> 00:00:45.450 
+As Hasso showed
+you already
+
+12
+00:00:46.460 --> 00:00:49.490 
+when we look at and analyze
+enterprise workloads
+
+13
+00:00:49.490 --> 00:00:54.540 
+it's most read dominant so
+we see here some measurements
+
+14
+00:00:54.540 --> 00:00:59.590 
+we did, this is one of
+the standardized benchmark
+
+15
+00:00:59.590 --> 00:01:02.620 
+but if you look at
+real work benchmarks
+
+16
+00:01:02.620 --> 00:01:07.670 
+the read part is really dominating.
+Then again what is special
+
+17
+00:01:07.670 --> 00:01:11.710 
+about enterprise workloads,
+it's a mix of a transactional
+
+18
+00:01:11.710 --> 00:01:14.740 
+workload and an
+analytical workload
+
+19
+00:01:14.740 --> 00:01:17.770 
+and analytical workload
+can be quite complex
+
+20
+00:01:18.780 --> 00:01:21.810 
+and specific for enterprise
+databases which get
+
+21
+00:01:21.810 --> 00:01:24.840 
+or databases which
+get rid of aggregates,
+
+22
+00:01:24.840 --> 00:01:28.880 
+so we have to do a
+lot of column scans,
+
+23
+00:01:28.880 --> 00:01:30.900 
+so heavy analytics.
+
+24
+00:01:33.930 --> 00:01:38.980 
+What we mentioned or what we
+saw in the last years is that
+
+25
+00:01:38.980 --> 00:01:42.102 
+there are new enterprise
+applications coming up which use
+
+26
+00:01:42.102 --> 00:01:46.106 
+the capabilities of in memory
+databases so doing analytics
+
+27
+00:01:46.106 --> 00:01:52.112 
+on the fly and some users
+also enter ad-hoc queries and
+
+28
+00:01:52.112 --> 00:01:56.116 
+you can't answer these with fixed
+aggregates so we get rid of these but
+
+29
+00:01:57.117 --> 00:02:00.120 
+it's a strong or heavy
+analytical workload
+
+30
+00:02:00.120 --> 00:02:04.124 
+and in some cases you are
+not able to handle this case,
+
+31
+00:02:04.124 --> 00:02:08.128 
+these queries with a single
+machine and then you have two
+
+32
+00:02:08.128 --> 00:02:13.133 
+possibilities to scale. One is
+to buy bigger machine or put
+
+33
+00:02:13.133 --> 00:02:16.136 
+more memory or more
+CPUs in this machine,
+
+34
+00:02:16.136 --> 00:02:20.140 
+this approach is called
+scale-up but the approach
+
+35
+00:02:20.140 --> 00:02:24.144 
+or means which is much
+more scalable is scale-out.
+
+36
+00:02:25.145 --> 00:02:27.147 
+This means that
+add another machine
+
+37
+00:02:28.148 --> 00:02:33.153 
+for your database and offload
+queries to this additional machine.
+
+38
+00:02:33.153 --> 00:02:37.157 
+When we talk
+about scale-out
+
+39
+00:02:38.158 --> 00:02:40.160 
+there are two schemes
+which we can apply,
+
+40
+00:02:40.160 --> 00:02:45.165 
+one is replication so that
+you duplicate data from your
+
+41
+00:02:45.165 --> 00:02:48.168 
+original machine to
+the other machine
+
+42
+00:02:48.168 --> 00:02:52.172 
+and another concept which you
+can apply is partitioning so you
+
+43
+00:02:52.172 --> 00:02:56.176 
+can apply horizontal, vertical,
+or some mix of partitioning
+
+44
+00:02:56.176 --> 00:02:59.179 
+and put the
+single fragments
+
+45
+00:02:59.179 --> 00:03:03.183 
+of the data to
+different machines.
+
+46
+00:03:04.184 --> 00:03:08.188 
+During this talk we will
+focus on the replication
+
+47
+00:03:08.188 --> 00:03:10.190 
+and scale-out part.
+
+48
+00:03:13.193 --> 00:03:15.195 
+First of all,
+
+49
+00:03:15.195 --> 00:03:18.198 
+maybe you have heard about
+active and passive replication,
+
+50
+00:03:19.199 --> 00:03:23.203 
+they are two different
+concepts. Passive replication
+
+51
+00:03:23.203 --> 00:03:29.209 
+is a means to increase availability
+so in this case you replicate
+
+52
+00:03:29.209 --> 00:03:33.213 
+data to a second system but
+you don't use the second system
+
+53
+00:03:33.213 --> 00:03:38.218 
+for query processing. What we
+propose or what Hasso proposes
+
+54
+00:03:38.218 --> 00:03:42.222 
+is active master replication
+so we have a copy or
+
+55
+00:03:42.222 --> 00:03:47.227 
+duplicate of your master node
+and you also use this for query
+
+56
+00:03:47.227 --> 00:03:51.231 
+processing, I mean this is a
+smart way to do if you have some
+
+57
+00:03:51.231 --> 00:03:55.235 
+machine anyway. Master
+replication means that you have
+
+58
+00:03:55.235 --> 00:04:00.240 
+still a dedicated node so the replica
+isn't used for transaction handling.
+
+59
+00:04:03.243 --> 00:04:09.249 
+Lets get a deeper into
+classification of replication
+
+60
+00:04:09.249 --> 00:04:13.253 
+approaches and I will talk
+about these in more detail now.
+
+61
+00:04:14.254 --> 00:04:18.258 
+The first differentiation
+is between eager
+
+62
+00:04:18.258 --> 00:04:23.263 
+and lazy replication. When
+you think about replication
+
+63
+00:04:23.263 --> 00:04:27.267 
+you have to think about how you
+synchronize your replica nodes and
+
+64
+00:04:28.268 --> 00:04:30.270 
+in eager replication or
+with eager approaches
+
+65
+00:04:31.000 --> 00:04:34.274 
+you synchronize your
+replicas in the transaction
+
+66
+00:04:34.274 --> 00:04:38.278 
+context which means that
+when you commit a transaction
+
+67
+00:04:39.279 --> 00:04:43.283 
+you must have replicated all
+the changes to the replica
+
+68
+00:04:43.283 --> 00:04:46.286 
+nodes and this is
+good for availability
+
+69
+00:04:47.287 --> 00:04:50.290 
+but bad for transaction latency
+because you have to wait
+
+70
+00:04:50.290 --> 00:04:53.293 
+until all nodes acknowledge
+that they have received
+
+71
+00:04:54.294 --> 00:04:59.299 
+the changes. The other
+approach which is often better
+
+72
+00:04:59.299 --> 00:05:02.302 
+for, which is better for
+transaction latencies
+
+73
+00:05:03.303 --> 00:05:07.307 
+is lazy replication where you
+postpone the synchronization
+
+74
+00:05:07.307 --> 00:05:11.311 
+of the updates
+of the replicas.
+
+75
+00:05:11.311 --> 00:05:16.316 
+But in this case you have
+to sacrifice availability,
+
+76
+00:05:16.316 --> 00:05:20.320 
+so in this case if the
+master node crashes
+
+77
+00:05:20.320 --> 00:05:24.324 
+it could be the case that the
+last transactional changes
+
+78
+00:05:24.324 --> 00:05:29.329 
+are not replicated to the
+replicas, in this case you have
+
+79
+00:05:29.329 --> 00:05:33.333 
+to go to disk or some persistent
+storage and read the last
+
+80
+00:05:33.333 --> 00:05:39.339 
+transactional changes. What
+is also good about lazy
+
+81
+00:05:39.339 --> 00:05:43.343 
+replication is that
+you can optimize
+
+82
+00:05:43.343 --> 00:05:47.347 
+messages or log messages
+to synchronize the replicas
+
+83
+00:05:47.347 --> 00:05:51.351 
+so usually the way to
+keep replicas in synch
+
+84
+00:05:52.352 --> 00:05:55.355 
+is with logging information
+and I talked about this before.
+
+85
+00:06:00.360 --> 00:06:04.364 
+Another dimension where
+we can differentiate
+
+86
+00:06:04.364 --> 00:06:05.365 
+different replication
+approaches
+
+87
+00:06:06.366 --> 00:06:09.369 
+are master and
+group replication.
+
+88
+00:06:10.370 --> 00:06:13.373 
+Group replication means
+that you are allowed to
+
+89
+00:06:13.373 --> 00:06:17.377 
+issue or submit a transaction
+on every node so it's an
+
+90
+00:06:18.378 --> 00:06:21.381 
+update everywhere strategy
+and because of this it's
+
+91
+00:06:21.381 --> 00:06:25.385 
+much more scalable
+because if you have a good
+
+92
+00:06:25.385 --> 00:06:29.389 
+partitioning of your data, you
+can parallelize your transaction
+
+93
+00:06:29.389 --> 00:06:33.393 
+but on the other hand you have
+the problem that the replicas
+
+94
+00:06:33.393 --> 00:06:38.398 
+have to synchronize to,
+in terms of consistency.
+
+95
+00:06:38.398 --> 00:06:42.402 
+You have to do
+some kind of
+
+96
+00:06:42.402 --> 00:06:45.405 
+distributed commit
+protocol which
+
+97
+00:06:46.406 --> 00:06:51.411 
+is a bit of overhead. Usually
+for enterprise databases
+
+98
+00:06:51.411 --> 00:06:55.415 
+or what Hasso says is master
+replcation is much more suitable
+
+99
+00:06:55.415 --> 00:07:00.420 
+case because you have just a
+small part of a transaction which
+
+100
+00:07:00.420 --> 00:07:04.424 
+really change data and the idea
+is here that we have a dedicated
+
+101
+00:07:04.424 --> 00:07:07.427 
+node which is responsible for
+all the transaction handling
+
+102
+00:07:07.427 --> 00:07:10.430 
+and then we can use
+the replica nodes
+
+103
+00:07:10.430 --> 00:07:16.436 
+for read only scale out. In this
+case we avoid inter-node coordination
+
+104
+00:07:16.436 --> 00:07:17.437 
+for transaction
+handling.
+
+105
+00:07:19.439 --> 00:07:24.444 
+Just to mention it, we
+can differentiate between
+
+106
+00:07:24.444 --> 00:07:27.447 
+logical and physical
+synchronization.
+
+107
+00:07:27.447 --> 00:07:30.450 
+This is like the
+talk before about
+
+108
+00:07:30.450 --> 00:07:35.455 
+how to communicate
+the changes and it's
+
+109
+00:07:35.455 --> 00:07:39.459 
+a similar to the logging
+approach. Usually you use
+
+110
+00:07:39.459 --> 00:07:43.463 
+your log entries as
+information to update
+
+111
+00:07:43.463 --> 00:07:44.000 
+the replicas.
+
+112
+00:07:47.467 --> 00:07:50.470 
+The last dimension I want
+to talk about and mention
+
+113
+00:07:50.470 --> 00:07:56.476 
+is how replicas are organised
+so in the simplest case
+
+114
+00:07:56.476 --> 00:08:00.480 
+all replicas look or
+are exact mirrors of
+
+115
+00:08:00.480 --> 00:08:06.486 
+the master. It's just a
+means of load balancing,
+
+116
+00:08:06.486 --> 00:08:10.490 
+so it uses the same database,
+the same database structures.
+
+117
+00:08:11.491 --> 00:08:14.494 
+Yes, quite
+straightforward approach
+
+118
+00:08:14.494 --> 00:08:18.498 
+with a disadvantage that
+you need the same amount
+
+119
+00:08:18.498 --> 00:08:21.501 
+of memory for
+all your nodes.
+
+120
+00:08:21.501 --> 00:08:26.506 
+A way to be a
+bit smarter,
+
+121
+00:08:26.506 --> 00:08:28.508 
+you could use
+heterogenous
+
+122
+00:08:29.509 --> 00:08:33.513 
+replication, I mean this
+comes with a cost of more,
+
+123
+00:08:34.514 --> 00:08:37.517 
+it's a bit more complicated
+because the system isn't
+
+124
+00:08:38.518 --> 00:08:42.522 
+homogenous, but you can
+optimize your replicas
+
+125
+00:08:42.522 --> 00:08:46.526 
+in several ways. One way is
+that you store only a portion
+
+126
+00:08:47.527 --> 00:08:50.530 
+of the data and this
+would be the data which is
+
+127
+00:08:50.530 --> 00:08:55.535 
+accessed most often.
+Another possibility
+
+128
+00:08:55.535 --> 00:08:57.537 
+for replicas is that you
+use different systems
+
+129
+00:08:58.538 --> 00:09:02.542 
+which can extend the
+functionality of a database,
+
+130
+00:09:02.542 --> 00:09:07.547 
+think about a spatial
+component or a database version
+
+131
+00:09:07.547 --> 00:09:11.551 
+which supports windowing
+functions and so on.
+
+132
+00:09:11.551 --> 00:09:16.556 
+Another possibility is
+also to optimize your
+
+133
+00:09:16.556 --> 00:09:19.559 
+in-memory data structures,
+so have a different
+
+134
+00:09:19.559 --> 00:09:25.565 
+in-memory data layout and
+in this category, there
+
+135
+00:09:25.565 --> 00:09:28.568 
+also belong indices or
+
+136
+00:09:29.569 --> 00:09:33.573 
+structures which help you to
+process queries more efficiently.
+
+137
+00:09:35.575 --> 00:09:38.578 
+All these things
+come with complexity.
+
+138
+00:09:41.581 --> 00:09:43.583 
+I already talked about
+
+139
+00:09:44.584 --> 00:09:47.587 
+the possibilities
+for heterogenous
+
+140
+00:09:47.587 --> 00:09:51.591 
+replicas, what
+I am focusing on
+
+141
+00:09:51.591 --> 00:09:55.595 
+in my research and a phd
+student is partial replication.
+
+142
+00:09:56.596 --> 00:09:58.598 
+The case where you only
+store a subset of your
+
+143
+00:09:59.599 --> 00:10:04.000 
+data structures at
+replica nodes and we
+
+144
+00:10:04.000 --> 00:10:08.608 
+try to optimize replicas
+in this way that we
+
+145
+00:10:08.608 --> 00:10:12.612 
+have the lowest footprint
+possible for the
+
+146
+00:10:12.612 --> 00:10:17.617 
+replica nodes. Also our
+scope, as said, is master
+
+147
+00:10:17.617 --> 00:10:21.621 
+replication and again
+motivation why this is feasible
+
+148
+00:10:21.621 --> 00:10:26.626 
+and does memory fit on
+a single node and there
+
+149
+00:10:26.626 --> 00:10:28.628 
+was some analysis
+some years ago.
+
+150
+00:10:28.628 --> 00:10:32.632 
+When you look at a classical
+ERP system on the DB2
+
+151
+00:10:32.632 --> 00:10:35.635 
+we can compress this
+in HANA. Even more
+
+152
+00:10:36.636 --> 00:10:40.640 
+with a new simplified
+a data model
+
+153
+00:10:40.640 --> 00:10:45.645 
+in S4HANA. There is an estimation
+so it depends which customer
+
+154
+00:10:45.645 --> 00:10:49.649 
+you ask but usually one
+
+155
+00:10:49.649 --> 00:10:55.655 
+system or one node has enough memory
+to handle all the transactional
+
+156
+00:10:55.655 --> 00:10:56.656 
+level workload.

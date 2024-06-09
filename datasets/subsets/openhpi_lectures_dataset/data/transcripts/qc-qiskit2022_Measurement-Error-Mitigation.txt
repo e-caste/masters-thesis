@@ -1,0 +1,582 @@
+WEBVTT
+
+0
+00:00:00.120 --> 00:00:04.400 
+Hi everyone! Welcome back to this very last video of our course.
+
+1
+00:00:04.940 --> 00:00:07.160 
+So, in this video I'm gonna talk about
+
+2
+00:00:07.170 --> 00:00:10.170 
+measurement error mitigation and as the name suggests,
+
+3
+00:00:10.180 --> 00:00:12.880 
+the goal is to mitigate some measurement errors.
+
+4
+00:00:12.890 --> 00:00:15.790 
+So, to correct for errors that happened during the measurement,
+
+5
+00:00:16.630 --> 00:00:19.300 
+I will show you how to do so with Qiskit by actually
+
+6
+00:00:19.300 --> 00:00:23.140 
+going through the examples that we have been running in before,
+
+7
+00:00:23.150 --> 00:00:23.760 
+like the
+
+8
+00:00:24.420 --> 00:00:27.700 
+circuit the Grover's, a circuit, all the measurement outcomes that we got there.
+
+9
+00:00:27.710 --> 00:00:31.570 
+I will show you how we can improve them when correcting for these errors.
+
+10
+00:00:32.250 --> 00:00:35.720 
+So, first of all we import our standard Qiskit libraries
+
+11
+00:00:37.990 --> 00:00:41.450 
+and then we actually have to, especially have
+
+12
+00:00:41.450 --> 00:00:44.200 
+to create what we call the calibration job.
+
+13
+00:00:44.830 --> 00:00:47.100 
+So, for that there's a premade Qiskit function which is
+
+14
+00:00:47.100 --> 00:00:50.500 
+called complete measurement collaboration where we feed the number of qubits
+
+15
+00:00:51.050 --> 00:00:55.400 
+and we also when run that, we need to give our layout,
+
+16
+00:00:55.410 --> 00:00:56.720 
+the layout that we have used.
+
+17
+00:00:56.730 --> 00:00:58.470 
+Or ideally we don't have to give it but we
+
+18
+00:00:58.470 --> 00:01:01.350 
+get much better results if we feed the layout that we
+
+19
+00:01:01.350 --> 00:01:03.740 
+have used when we run a specific job, so that we
+
+20
+00:01:03.740 --> 00:01:08.120 
+can also correct for errors that are correlated and stuff.
+
+21
+00:01:08.950 --> 00:01:10.240 
+So,
+
+22
+00:01:10.250 --> 00:01:13.640 
+the way the function works is we prepare all
+
+23
+00:01:13.640 --> 00:01:16.510 
+basis states, so all 2^n different states
+
+24
+00:01:17.190 --> 00:01:18.790 
+and then we measure them all.
+
+25
+00:01:18.800 --> 00:01:21.800 
+And ideally of course it would just measure whatever we have prepared.
+
+26
+00:01:21.810 --> 00:01:24.010 
+However, due to our noise,
+
+27
+00:01:24.020 --> 00:01:27.090 
+we will not always measure exactly the state with
+
+28
+00:01:27.090 --> 00:01:31.090 
+probability one but we might have a probability of 99%
+
+29
+00:01:31.090 --> 00:01:33.190 
+to measure the state that we have prepared and
+
+30
+00:01:33.190 --> 00:01:35.760 
+some very small probabilities to measure some other states.
+
+31
+00:01:36.390 --> 00:01:39.060 
+However, all these smaller probabilities add up.
+
+32
+00:01:39.070 --> 00:01:40.930 
+So, that's why we want to correct for them.
+
+33
+00:01:40.940 --> 00:01:42.990 
+And so what we do is we create this matrix,
+
+34
+00:01:42.990 --> 00:01:46.870 
+the so called calibration matrix, in which we
+
+35
+00:01:46.880 --> 00:01:50.510 
+note all these, in which we denote all
+
+36
+00:01:50.510 --> 00:01:54.210 
+these probabilities to then be able to correct for them.
+
+37
+00:01:54.750 --> 00:01:57.990 
+So, let us prepare the calibration shop.
+
+38
+00:01:58.000 --> 00:02:01.620 
+We again as always give our provider
+
+39
+00:02:01.630 --> 00:02:05.200 
+and now we executed this function measurement calibrations
+
+40
+00:02:05.210 --> 00:02:08.090 
+using the complete measurement calibration function from Qiskit
+
+41
+00:02:08.100 --> 00:02:10.289 
+with our backend which is well,
+
+42
+00:02:10.289 --> 00:02:11.710 
+the one here used the
+
+43
+00:02:11.850 --> 00:02:14.490 
+Hanoi device, because that's the one I've used for running Grover
+and Deutsch-Jozsa
+
+44
+00:02:15.390 --> 00:02:19.470 
+before. We feed the layout and determine the number of shots.
+
+45
+00:02:22.650 --> 00:02:25.910 
+Now, of course I ran it before so we don't have to wait again
+
+46
+00:02:26.520 --> 00:02:27.930 
+and here we can see.
+
+47
+00:02:28.580 --> 00:02:30.780 
+So, we will get from these calibration results.
+
+48
+00:02:30.780 --> 00:02:35.470 
+We will apply the complete measurement fitter function on that, on these results.
+
+49
+00:02:35.480 --> 00:02:38.890 
+And given the state labels which is just which states have prepared.
+
+50
+00:02:38.890 --> 00:02:44.300 
+So, in the case of three qubits, it's 000 001 010 and so on.
+
+51
+00:02:45.080 --> 00:02:49.640 
+We apply the filter, for we create the filter function then to filter later on
+
+52
+00:02:49.650 --> 00:02:54.140 
+the noisy measurement results and I will show you how the matrix looks like now.
+
+53
+00:02:55.590 --> 00:03:00.200 
+So, this is the matrix we got for the Hanoi device and we can see for example
+
+54
+00:03:00.200 --> 00:03:03.540 
+if I've prepared the state 000 there's a 91
+
+55
+00:03:03.540 --> 00:03:06.380 
+or 92% chance to actually measure that state.
+
+56
+00:03:07.030 --> 00:03:09.370 
+Well, they're smaller probabilities to measure other states.
+
+57
+00:03:09.370 --> 00:03:13.210 
+So, on the diagonal elements here are those that
+
+58
+00:03:13.210 --> 00:03:16.200 
+should ideally be as close as possible to one.
+
+59
+00:03:16.210 --> 00:03:20.710 
+But for example on this diagonal that would mean that all bits flipped.
+
+60
+00:03:21.500 --> 00:03:23.470 
+And of course that probability is actually the smallest.
+
+61
+00:03:23.470 --> 00:03:25.640 
+So, here you have the smallest number even in zero.
+
+62
+00:03:27.430 --> 00:03:32.340 
+Now what we can do is we can look at how
+
+63
+00:03:33.100 --> 00:03:37.490 
+this matrix looks like in a more illustrative way here
+
+64
+00:03:37.490 --> 00:03:39.720 
+you can see the prepared state and the measured state.
+
+65
+00:03:39.730 --> 00:03:43.000 
+So, as before you can see the probabilities of the dark
+
+66
+00:03:43.000 --> 00:03:45.560 
+head is the closer it is to one, looks now as
+
+67
+00:03:45.560 --> 00:03:48.010 
+if it would be almost one and well it is almost
+
+68
+00:03:48.010 --> 00:03:54.280 
+one is like what 90 between 91 and 94% or something.
+
+69
+00:03:54.820 --> 00:03:59.150 
+But then we also see here there's some higher probability that for example the
+
+70
+00:03:59.150 --> 00:04:03.990 
+second qubit flips rather than that the first qubit or last qubit flips
+
+71
+00:04:04.860 --> 00:04:07.140 
+and so on. So this is just an illustrative way of seeing it.
+
+72
+00:04:07.940 --> 00:04:10.740 
+But one thing I actually want to notice now here, we see there's
+
+73
+00:04:10.740 --> 00:04:13.370 
+a warning which is deprecation warning, because
+
+74
+00:04:13.370 --> 00:04:15.760 
+the Qiskit Ignis package is deprecated.
+
+75
+00:04:16.470 --> 00:04:19.149 
+So, the function that I've used just for this illustration
+
+76
+00:04:19.149 --> 00:04:23.110 
+now might not be available anymore in a few weeks.
+
+77
+00:04:23.120 --> 00:04:25.810 
+So, this just reminds me that I wanted to give you
+
+78
+00:04:25.810 --> 00:04:30.540 
+this general warning that of course Qiskit, it's being continuously developed.
+
+79
+00:04:30.550 --> 00:04:32.880 
+So, all the functions that you see now hopefully
+
+80
+00:04:32.880 --> 00:04:35.090 
+they will still be available in a few weeks,
+
+81
+00:04:35.090 --> 00:04:36.130 
+months, years.
+
+82
+00:04:36.140 --> 00:04:39.890 
+But sometimes they change a bit they might need or they might have
+
+83
+00:04:39.900 --> 00:04:43.760 
+additional functionalities and then you might need to give them another argument.
+
+84
+00:04:43.760 --> 00:04:45.680 
+They might require one more argument or something.
+
+85
+00:04:45.830 --> 00:04:49.590 
+So, if you try to run these functions one by one and something doesn't work maybe just
+
+86
+00:04:49.590 --> 00:04:52.160 
+check whether, checking the documentation of Qiskit, whether by
+
+87
+00:04:52.160 --> 00:04:54.700 
+now it needs one additional argument for example.
+
+88
+00:04:57.400 --> 00:05:00.460 
+So, now we can have a look at the Grover's job that I ran
+
+89
+00:05:00.460 --> 00:05:05.950 
+before and see then how we how the measurement error mitigation affects that.
+
+90
+00:05:06.560 --> 00:05:12.230 
+So, we call our backend and the old job by good that I saved the job ID
+
+91
+00:05:12.230 --> 00:05:15.900 
+here, then we look at the counts which are now called the
+
+92
+00:05:15.900 --> 00:05:20.170 
+noise counts which are the counts we got before, that I showed you before
+
+93
+00:05:20.180 --> 00:05:23.440 
+and we can now, once we are given the noise counts we can
+
+94
+00:05:23.440 --> 00:05:27.160 
+just calculate the mitigated counts, mitigated results
+
+95
+00:05:27.160 --> 00:05:31.580 
+by applying the measure the measurement filter.
+
+96
+00:05:32.590 --> 00:05:35.740 
+This way, so we apply the measurement filter and then get these mitigated
+
+97
+00:05:35.740 --> 00:05:39.460 
+counts and now we can plot both the noise counts and the mitigated counts
+
+98
+00:05:40.180 --> 00:05:41.840 
+and let's see how that looks like.
+
+99
+00:05:43.350 --> 00:05:47.060 
+So, here we can see it's not a huge advantage.
+
+100
+00:05:47.060 --> 00:05:51.650 
+It's not going from like 29% to 50% which would be the theoretical result.
+
+101
+00:05:51.660 --> 00:05:55.510 
+But we can still see that the two elements that we're looking for
+
+102
+00:05:55.510 --> 00:06:01.400 
+in the grover algorithm 001 and 010 those to get a small,
+
+103
+00:06:01.410 --> 00:06:05.000 
+we get a higher chance now, while all the others, here's a
+
+104
+00:06:05.000 --> 00:06:08.590 
+small exception, but in general they all have a lower probability.
+
+105
+00:06:08.600 --> 00:06:10.740 
+So, the red ones are the mitigated results.
+
+106
+00:06:11.890 --> 00:06:16.050 
+So, for the Deutsch-Jozsa algorithm that we ran before, let us look how they
+
+107
+00:06:17.050 --> 00:06:18.820 
+mitigated results look in that case.
+
+108
+00:06:20.420 --> 00:06:24.870 
+So, first here we can see the results of the very last job that we ran on Deutsch-Jozsa.
+
+109
+00:06:24.870 --> 00:06:29.530 
+So, the one where we created our oracle ourselves with all the CNOT gates.
+
+110
+00:06:29.540 --> 00:06:36.010 
+So, we only only had this 58% chance probability to get the correct result.
+
+111
+00:06:36.020 --> 00:06:37.720 
+Now we get 62%.
+
+112
+00:06:38.260 --> 00:06:40.560 
+So, again it's still not going up to one.
+
+113
+00:06:40.570 --> 00:06:43.680 
+But of course the problem is that most of the errors here
+
+114
+00:06:43.680 --> 00:06:46.380 
+came from the CNOT rates, from the
+
+115
+00:06:46.380 --> 00:06:50.010 
+CNOT error rates and not from the measurement.
+
+116
+00:06:50.020 --> 00:06:52.990 
+That's why we, so we only correct and correct for the measurement of course.
+
+117
+00:06:53.640 --> 00:06:57.290 
+And then we can see still all the other errors decrease.
+
+118
+00:06:57.860 --> 00:07:03.640 
+But so, what happens if we look at one of the results where we had a constant oracle.
+
+119
+00:07:05.170 --> 00:07:07.460 
+In this case for the constant oracle,
+
+120
+00:07:07.460 --> 00:07:11.740 
+we did not have to apply any CNOT gates and the circuit depth was very short.
+
+121
+00:07:11.750 --> 00:07:15.370 
+So, in the end we basically have no other errors but almost all
+
+122
+00:07:15.370 --> 00:07:19.450 
+errors just that we had just came from the measurement error mitigation.
+
+123
+00:07:20.200 --> 00:07:23.650 
+So, in this case here we can see that from 96%,
+
+124
+00:07:23.660 --> 00:07:27.000 
+our measurement error mitigation brings us to 100%.
+
+125
+00:07:28.140 --> 00:07:31.160 
+And all these blue small errors that are here,
+
+126
+00:07:31.670 --> 00:07:34.670 
+they all disappear in the mitigated version or at least they
+
+127
+00:07:34.670 --> 00:07:37.130 
+become so small that we can't see them anymore on the Histogram.
+
+128
+00:07:38.310 --> 00:07:42.450 
+You can also check for the other oracles, because that oracle was now
+
+129
+00:07:44.150 --> 00:07:44.950 
+constant.
+
+130
+00:07:47.010 --> 00:07:49.650 
+Now we have another mitigated one, but the two,
+
+131
+00:07:49.660 --> 00:07:52.100 
+now we can look at the other two oracles that were given by Qiskit
+
+132
+00:07:52.610 --> 00:07:57.710 
+or at least we have a higher probability before. So, here we can see from 84 it goes to 91.
+
+133
+00:07:58.950 --> 00:08:00.270 
+And in the very last one,
+
+134
+00:08:04.620 --> 00:08:07.770 
+we can see that it goes from 92-99.
+
+135
+00:08:07.780 --> 00:08:09.310 
+So you can see this,
+
+136
+00:08:09.320 --> 00:08:13.270 
+this oracle was also implemented in a way that probably
+
+137
+00:08:13.270 --> 00:08:16.920 
+did not require a lot of gates but was quite efficient in
+
+138
+00:08:17.510 --> 00:08:19.390 
+or efficient, well as we want to call,
+
+139
+00:08:19.390 --> 00:08:24.890 
+it would definitely be just easier implemented to create this balanced function.
+
+140
+00:08:26.650 --> 00:08:27.160 
+Yes,
+
+141
+00:08:27.170 --> 00:08:30.390 
+so with this was actually the last video of our
+
+142
+00:08:30.390 --> 00:08:34.510 
+course, so I really hope you have enjoyed all these videos.
+
+143
+00:08:34.520 --> 00:08:37.929 
+I wish you good luck for your final exam and I hope to see you in
+
+144
+00:08:37.929 --> 00:08:43.419 
+future videos from IBM, where they talk about getting more insights on how to use Qiskit.

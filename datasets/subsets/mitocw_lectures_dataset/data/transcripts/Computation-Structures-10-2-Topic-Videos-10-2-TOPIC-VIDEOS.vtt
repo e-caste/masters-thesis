@@ -1,0 +1,452 @@
+WEBVTT
+
+00:00:00.550 --> 00:00:04.240
+Let's follow along as the
+assembler processes our source
+
+00:00:04.240 --> 00:00:04.740
+file.
+
+00:00:04.740 --> 00:00:07.101
+The assembler maintains
+a symbol table
+
+00:00:07.101 --> 00:00:10.250
+that maps symbols names
+to their numeric values.
+
+00:00:10.250 --> 00:00:13.333
+Initially the symbol table
+is loaded with mappings
+
+00:00:13.333 --> 00:00:15.260
+for all the register symbols.
+
+00:00:15.260 --> 00:00:18.431
+The assembler reads the
+source file line-by-line,
+
+00:00:18.431 --> 00:00:22.012
+defining symbols and labels,
+expanding macros, or evaluating
+
+00:00:22.012 --> 00:00:25.460
+expressions to generate
+bytes for the output array.
+
+00:00:25.460 --> 00:00:28.350
+Whenever the assembler
+encounters a use of a symbol
+
+00:00:28.350 --> 00:00:31.593
+or label, it's replaced by the
+corresponding numeric value
+
+00:00:31.593 --> 00:00:34.080
+found in the symbol table.
+
+00:00:34.080 --> 00:00:38.280
+The first line, N = 12, defines
+the value of the symbol N
+
+00:00:38.280 --> 00:00:40.613
+to be 12, so the
+appropriate entry
+
+00:00:40.613 --> 00:00:42.980
+is made in the symbol table.
+
+00:00:42.980 --> 00:00:45.480
+Advancing to the next
+line, the assembler
+
+00:00:45.480 --> 00:00:47.980
+encounters an invocation
+of the ADDC macro
+
+00:00:47.980 --> 00:00:52.329
+with the arguments
+"r31", "N", and "r1".
+
+00:00:52.329 --> 00:00:54.786
+As we'll see in a
+couple of slides,
+
+00:00:54.786 --> 00:00:57.244
+this triggers a series of
+nested macro expansions
+
+00:00:57.244 --> 00:01:00.422
+that eventually lead to
+generating a 32-bit binary
+
+00:01:00.422 --> 00:01:03.840
+value to be placed
+in memory location 0.
+
+00:01:03.840 --> 00:01:05.897
+The 32-bit value
+is formatted here
+
+00:01:05.897 --> 00:01:09.274
+to show the instruction fields
+and the destination address
+
+00:01:09.274 --> 00:01:11.810
+is shown in brackets.
+
+00:01:11.810 --> 00:01:15.538
+The next instruction is
+processed in the same way,
+
+00:01:15.538 --> 00:01:17.610
+generating a second 32-bit word.
+
+00:01:17.610 --> 00:01:19.387
+On the fourth line,
+the label loop
+
+00:01:19.387 --> 00:01:22.180
+is defined to have the value
+of the location in memory
+
+00:01:22.180 --> 00:01:26.600
+that's about to filled,
+in this case, location 8.
+
+00:01:26.600 --> 00:01:29.477
+So the appropriate entry
+is made in the symbol table
+
+00:01:29.477 --> 00:01:32.725
+and the MUL macro is
+expanded into the 32-bit word
+
+00:01:32.725 --> 00:01:35.560
+to be placed in location 8.
+
+00:01:35.560 --> 00:01:38.045
+The assembler processes
+the file line-by-line
+
+00:01:38.045 --> 00:01:41.345
+until it reaches
+the end of the file.
+
+00:01:41.345 --> 00:01:43.720
+Actually the assembler makes
+two passes through the file.
+
+00:01:43.720 --> 00:01:46.526
+On the first pass it loads the
+symbol table with the values
+
+00:01:46.526 --> 00:01:48.930
+from all the symbol
+and label definitions.
+
+00:01:48.930 --> 00:01:53.199
+Then, on the second pass, it
+generates the binary output.
+
+00:01:53.199 --> 00:01:55.235
+The two-pass approach
+allows a statement
+
+00:01:55.235 --> 00:01:58.603
+to refer to symbol or
+label that is defined later
+
+00:01:58.603 --> 00:02:01.119
+in the file, e.g., a
+forward branch instruction
+
+00:02:01.119 --> 00:02:03.820
+could refer to the
+label for an instruction
+
+00:02:03.820 --> 00:02:05.820
+later in the program.
+
+00:02:05.820 --> 00:02:08.225
+As we saw in the
+previous slide, there's
+
+00:02:08.225 --> 00:02:10.030
+nothing magic about
+the register symbols.
+
+00:02:10.030 --> 00:02:14.570
+They are just symbolic names
+for the values 0 through 31.
+
+00:02:14.570 --> 00:02:16.893
+So when processing
+ADDC(r31,N,r1),
+
+00:02:16.893 --> 00:02:22.120
+UASM replaces the symbols
+with their values and actually
+
+00:02:22.120 --> 00:02:24.470
+expands ADDC(31,12,1).
+
+00:02:24.470 --> 00:02:28.890
+UASM is very simple.
+
+00:02:28.890 --> 00:02:32.215
+It simply replaces
+symbols with their values,
+
+00:02:32.215 --> 00:02:34.590
+expands macros and
+evaluates expressions.
+
+00:02:34.590 --> 00:02:37.770
+So if you use a register
+symbol where a numeric value is
+
+00:02:37.770 --> 00:02:39.361
+expected, the
+value of the symbol
+
+00:02:39.361 --> 00:02:42.020
+is used as the numeric constant.
+
+00:02:42.020 --> 00:02:44.460
+Probably not what the
+programmer intended.
+
+00:02:44.460 --> 00:02:48.468
+Similarly, if you use a symbol
+or expression where a register
+
+00:02:48.468 --> 00:02:51.884
+number is expected, the
+low-order 5 bits of the value
+
+00:02:51.884 --> 00:02:54.754
+is used as the register
+number, in this example,
+
+00:02:54.754 --> 00:02:57.030
+as the Rb register number.
+
+00:02:57.030 --> 00:03:00.740
+Again probably not what
+the programmer intended.
+
+00:03:00.740 --> 00:03:04.084
+The moral of the story is that
+when writing UASM assembly
+
+00:03:04.084 --> 00:03:07.130
+language programs, you have
+to keep your wits about you
+
+00:03:07.130 --> 00:03:09.570
+and recognize that the
+interpretation of an operand
+
+00:03:09.570 --> 00:03:13.640
+is determined by the opcode
+macro, not by the way
+
+00:03:13.640 --> 00:03:15.370
+you wrote the operand.
+
+00:03:15.370 --> 00:03:18.067
+Recall from Lecture 9
+that branch instructions
+
+00:03:18.067 --> 00:03:21.150
+use the 16-bit constant
+field of the instruction
+
+00:03:21.150 --> 00:03:23.394
+to encode the address
+of the branch target
+
+00:03:23.394 --> 00:03:26.800
+as a word offset from the
+location of the branch
+
+00:03:26.800 --> 00:03:27.680
+instruction.
+
+00:03:27.680 --> 00:03:31.700
+Well, actually the offset is
+calculated from the instruction
+
+00:03:31.700 --> 00:03:35.645
+immediately following the
+branch, so an offset of -1
+
+00:03:35.645 --> 00:03:38.250
+would refer to
+the branch itself.
+
+00:03:38.250 --> 00:03:41.752
+The calculation of the offset
+is a bit tedious to do by hand
+
+00:03:41.752 --> 00:03:45.088
+and would, of course, change
+if we added or removed
+
+00:03:45.088 --> 00:03:48.270
+instructions between the branch
+instruction and branch target.
+
+00:03:48.270 --> 00:03:50.745
+Happily macros for the
+branch instructions
+
+00:03:50.745 --> 00:03:52.395
+incorporate the
+necessary formula
+
+00:03:52.395 --> 00:03:55.944
+to compute the offset from
+the address of the branch
+
+00:03:55.944 --> 00:03:58.329
+and the address of
+the branch target.
+
+00:03:58.329 --> 00:04:01.341
+So we just specify the
+address of the branch target,
+
+00:04:01.341 --> 00:04:06.030
+usually with a label, and let
+UASM do the heavy lifting.
+
+00:04:06.030 --> 00:04:09.650
+Here we see that BNE branches
+backwards by three instructions
+
+00:04:09.650 --> 00:04:12.787
+(remember to count from
+the instruction following
+
+00:04:12.787 --> 00:04:16.728
+the branch) so the offset is -3.
+
+00:04:16.728 --> 00:04:19.178
+The 16-bit two's complement
+representation of -3
+
+00:04:19.178 --> 00:04:22.989
+is the value placed in the
+constant field of the BNE
+
+00:04:22.989 --> 00:04:24.239
+instruction.80 --> 00:05:32.590
+All the macro definitions for the Beta ISA
+are provided in the beta.uasm file, which
+
+00:05:32.590 --> 00:05:37.319
+is included in each of the assembly language
+lab assignments.
+
+00:05:37.319 --> 00:05:42.099
+Note that we include some convenience macros
+to define shorthand representations that provide
+
+00:05:42.099 --> 00:05:45.330
+common default values for certain operands.
+
+00:05:45.330 --> 00:05:51.110
+For example, except for procedure calls, we
+don't care about the PC+4 value saved in the
+
+00:05:51.110 --> 00:05:58.090
+destination register by branch instructions,
+so almost always would specify R31 as the
+
+00:05:58.090 --> 00:06:04.389
+Rc register, effectively discarding the PC+4
+value saved by branches.
+
+00:06:04.389 --> 00:06:09.780
+So we define two-argument branch macros that
+automatically provide R31 as the destination
+
+00:06:09.780 --> 00:06:10.780
+register.
+
+00:06:10.780 --> 00:06:16.060
+Saves some typing, and, more importantly,
+it makes it easier to understand the assembly
+
+00:06:16.060 --> 00:06:18.449
+language program.
+
+00:06:18.449 --> 00:06:23.300
+Here are a whole set of convenience macros
+intended to make programs more readable.
+
+00:06:23.300 --> 00:06:28.340
+For example, unconditional branches can be
+written using the BR() macro rather than the
+
+00:06:28.340 --> 00:06:32.449
+more cumbersome BEQ(R31,...).
+
+00:06:32.449 --> 00:06:36.930
+And it's more readable to use branch-false
+(BF) and branch-true (BT) macros when testing
+
+00:06:36.930 --> 00:06:40.120
+the results of a compare instruction.
+
+00:06:40.120 --> 00:06:43.669
+And note the PUSH and POP macros at the bottom
+of page.
+
+00:06:43.669 --> 00:06:48.979
+These expand into multi-instruction sequences,
+in this case to add and remove values from
+
+00:06:48.979 --> 00:06:54.020
+a stack data structure pointed to by the SP
+register.
+
+00:06:54.020 --> 00:06:58.560
+We call these macros "pseudo instructions"
+since they let us provide the programmer with
+
+00:06:58.560 --> 00:07:03.249
+what appears a larger instruction set,
+although underneath the covers we've just
+
+00:07:03.249 --> 00:07:08.680
+using the same small instruction repertoire
+developed in Lecture 9.
+
+00:07:08.680 --> 00:07:13.960
+In this example we've rewritten the original
+code we had for the factorial computation
+
+00:07:13.960 --> 00:07:15.960
+using pseudo instructions.
+
+00:07:15.960 --> 00:07:22.009
+For example, CMOVE is a pseudo instruction
+for moving small constants into a register.
+
+00:07:22.009 --> 00:07:27.080
+It's easier for us to read and understand
+the intent of a "constant move" operation
+
+00:07:27.080 --> 00:07:33.599
+than an "add a value to 0" operation provided
+by the ADDC expansion of CMOVE.
+
+00:07:33.599 --> 00:07:38.060
+Anything we can do to remove the cognitive
+clutter will be very beneficial in the long
+
+00:07:38.060 --> 00:07:38.330
+run.

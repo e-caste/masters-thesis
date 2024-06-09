@@ -1,0 +1,1783 @@
+WEBVTT
+
+00:00:04.870 --> 00:00:08.279
+[MUSIC PLAYING]
+
+00:00:10.720 --> 00:00:13.680
+AUDACE NAKESHIMANA: Hi, my
+name is Audace Nakeshimana.
+
+00:00:13.680 --> 00:00:16.900
+I am an undergraduate student
+and researcher at MIT.
+
+00:00:16.900 --> 00:00:19.180
+In this video, we'll
+continue exploring fairness
+
+00:00:19.180 --> 00:00:22.270
+in machine learning by looking
+at techniques for mitigating
+
+00:00:22.270 --> 00:00:23.380
+bias.
+
+00:00:23.380 --> 00:00:25.900
+Throughout the course, we'll
+start by illustrating bias
+
+00:00:25.900 --> 00:00:27.190
+in machine learning.
+
+00:00:27.190 --> 00:00:29.720
+Then we'll look at techniques
+for mitigating bias,
+
+00:00:29.720 --> 00:00:32.860
+specifically we'll explore
+two types of techniques--
+
+00:00:32.860 --> 00:00:35.110
+the database
+techniques, where we'll
+
+00:00:35.110 --> 00:00:37.360
+look at how to
+calibrate and augment
+
+00:00:37.360 --> 00:00:40.453
+our data set to mitigate
+bias in machine learning.
+
+00:00:40.453 --> 00:00:42.370
+And then we'll look at
+model-based techniques,
+
+00:00:42.370 --> 00:00:44.600
+in which you explore
+different model types
+
+00:00:44.600 --> 00:00:49.150
+and architectures that help us
+to get to a less biased model.
+
+00:00:49.150 --> 00:00:51.430
+And we'll do this by
+applying these techniques
+
+00:00:51.430 --> 00:00:55.050
+on the UCI Adult Data Set.
+
+00:00:55.050 --> 00:00:58.170
+In this module, we'll explore
+different steps and principles
+
+00:00:58.170 --> 00:01:01.890
+involved in building less biased
+machine learning applications.
+
+00:01:01.890 --> 00:01:04.830
+We look at two main classes
+of techniques, specifically
+
+00:01:04.830 --> 00:01:07.710
+data and model-based
+techniques, for mitigating bias
+
+00:01:07.710 --> 00:01:08.920
+in machine learning.
+
+00:01:08.920 --> 00:01:11.510
+We will be applying these
+techniques on the UCI Adult
+
+00:01:11.510 --> 00:01:14.490
+Data Set with the purpose
+of mitigating gender bias
+
+00:01:14.490 --> 00:01:17.130
+in predicting income category.
+
+00:01:17.130 --> 00:01:20.370
+This module is comprised
+of seven main parts.
+
+00:01:20.370 --> 00:01:22.830
+In part 1, we're going
+to look at an overview
+
+00:01:22.830 --> 00:01:24.330
+of algorithmic bias.
+
+00:01:24.330 --> 00:01:28.520
+In the second part, we will
+explore the UCI Adult Data Set.
+
+00:01:28.520 --> 00:01:31.470
+In the third part, we look
+at different data preparation
+
+00:01:31.470 --> 00:01:33.330
+steps for machine learning.
+
+00:01:33.330 --> 00:01:37.560
+In part 4, we're going to look
+at an example of gender bias.
+
+00:01:37.560 --> 00:01:39.420
+And in part 5,
+we're going to look
+
+00:01:39.420 --> 00:01:41.580
+at different
+data-based approaches
+
+00:01:41.580 --> 00:01:43.650
+for mitigating gender bias.
+
+00:01:43.650 --> 00:01:45.240
+And in part 6,
+we're going to look
+
+00:01:45.240 --> 00:01:47.460
+at different
+model-based approaches.
+
+00:01:47.460 --> 00:01:49.080
+And in the last
+part, we'll conclude
+
+00:01:49.080 --> 00:01:52.140
+by looking at the
+possible next steps.
+
+00:01:52.140 --> 00:01:54.410
+Recommended prerequisites
+for this module
+
+00:01:54.410 --> 00:01:57.720
+are familiarity with the fields
+of data science, statistics,
+
+00:01:57.720 --> 00:01:59.940
+or machine learning
+and familiarity
+
+00:01:59.940 --> 00:02:02.370
+with the programming
+tools that we'll be using.
+
+00:02:02.370 --> 00:02:07.710
+These are Python, Pandas,
+and the Scikit-Learn Library.
+
+00:02:07.710 --> 00:02:09.630
+In part 1 of this
+module, we will
+
+00:02:09.630 --> 00:02:12.180
+start by understanding
+algorithmic bias.
+
+00:02:12.180 --> 00:02:17.600
+We will define it and look at
+its sources and implications.
+
+00:02:17.600 --> 00:02:20.540
+Throughout the module, we
+will use the term bias,
+
+00:02:20.540 --> 00:02:24.590
+algorithmic bias, or model bias
+to describe systematic errors
+
+00:02:24.590 --> 00:02:27.170
+in algorithms or
+models that could lead
+
+00:02:27.170 --> 00:02:29.570
+to potentially unfair outcomes.
+
+00:02:29.570 --> 00:02:31.880
+We will identify
+bias qualitatively
+
+00:02:31.880 --> 00:02:35.390
+and quantitatively by looking
+at model errors, disparities
+
+00:02:35.390 --> 00:02:37.970
+across different
+gender demographics.
+
+00:02:37.970 --> 00:02:40.010
+And notice that,
+throughout the module,
+
+00:02:40.010 --> 00:02:43.080
+we will use gender to describe
+biological sex at birth.
+
+00:02:45.910 --> 00:02:49.140
+So what are some potential
+sources of algorithmic bias?
+
+00:02:49.140 --> 00:02:52.230
+First, bias can come
+during direct collection.
+
+00:02:52.230 --> 00:02:54.840
+And this could happen when the
+data that you collect already
+
+00:02:54.840 --> 00:02:57.630
+contains some systematic
+biases or stereotypes
+
+00:02:57.630 --> 00:02:59.550
+about some demographics.
+
+00:02:59.550 --> 00:03:02.130
+This could also happen
+if different demographics
+
+00:03:02.130 --> 00:03:05.010
+in our data set are not
+equally represented.
+
+00:03:05.010 --> 00:03:08.700
+The second example of how bias
+could come in machine learning
+
+00:03:08.700 --> 00:03:11.550
+is in the training process,
+when our models are not
+
+00:03:11.550 --> 00:03:13.020
+penalized for being biased.
+
+00:03:15.580 --> 00:03:19.130
+Algorithmic bias is a problem
+because of different reasons.
+
+00:03:19.130 --> 00:03:21.610
+It leads to unfair outcomes
+toward some individuals
+
+00:03:21.610 --> 00:03:24.970
+or demographics and it leads
+to further bias propagation,
+
+00:03:24.970 --> 00:03:29.040
+creating a feedback
+cycle of bias.
+
+00:03:29.040 --> 00:03:31.180
+In the second part
+of this module,
+
+00:03:31.180 --> 00:03:33.630
+we'll explore the
+UCI Adult Data Set
+
+00:03:33.630 --> 00:03:36.030
+by establishing familiarity
+with the data set
+
+00:03:36.030 --> 00:03:39.570
+and looking at different
+distributions in the data set.
+
+00:03:39.570 --> 00:03:43.050
+The UCI Adult Data Set is one
+of the most popular machine
+
+00:03:43.050 --> 00:03:44.520
+learning data sets.
+
+00:03:44.520 --> 00:03:47.280
+It is available on the internet
+on the UCI Machine Learning
+
+00:03:47.280 --> 00:03:48.540
+Repository.
+
+00:03:48.540 --> 00:03:51.810
+The data set is comprised
+of more than 48,000 data
+
+00:03:51.810 --> 00:03:55.950
+points that were extracted
+from the 1994 Census database
+
+00:03:55.950 --> 00:03:59.160
+in the United States.
+
+00:03:59.160 --> 00:04:03.030
+Each data point in the data set
+it is comprised of 15 features.
+
+00:04:03.030 --> 00:04:07.170
+These include age, work class,
+education, relationship, race,
+
+00:04:07.170 --> 00:04:10.320
+sex, salary, and others.
+
+00:04:10.320 --> 00:04:13.650
+If you look at the gender
+distribution in the data set,
+
+00:04:13.650 --> 00:04:18.019
+you can see that about 16,000
+individuals identify as female.
+
+00:04:18.019 --> 00:04:21.930
+And about 32,000 individuals
+identify as male.
+
+00:04:21.930 --> 00:04:24.210
+If you look at the
+race distribution,
+
+00:04:24.210 --> 00:04:26.850
+you can see that slightly
+more than 40,000 individuals
+
+00:04:26.850 --> 00:04:28.890
+identify as white.
+
+00:04:28.890 --> 00:04:33.300
+And about 4,000 to 5,000
+individuals identify as black.
+
+00:04:33.300 --> 00:04:37.540
+The rest is other minorities.
+
+00:04:37.540 --> 00:04:40.300
+If we look at the distribution
+of income category
+
+00:04:40.300 --> 00:04:42.310
+in the general
+population, we can
+
+00:04:42.310 --> 00:04:45.400
+see that about
+37,000 individuals
+
+00:04:45.400 --> 00:04:48.220
+earn less or equal to $50,000.
+
+00:04:48.220 --> 00:04:52.630
+And only about between
+12,000 and 13,000 individuals
+
+00:04:52.630 --> 00:04:56.910
+earn more than $50,000.
+
+00:04:56.910 --> 00:04:59.020
+By looking at the income
+level distribution
+
+00:04:59.020 --> 00:05:01.058
+across different
+levels, we can see
+
+00:05:01.058 --> 00:05:03.100
+that the ratio of male
+individuals that make more
+
+00:05:03.100 --> 00:05:06.220
+than $50,000 is about a third.
+
+00:05:06.220 --> 00:05:10.030
+But for the female demographic,
+this ratio drops to about 20%.
+
+00:05:13.390 --> 00:05:16.510
+An important observation
+from what we've seen so far
+
+00:05:16.510 --> 00:05:19.210
+is that the number of data
+points in the male population
+
+00:05:19.210 --> 00:05:21.460
+is significantly higher than
+the number of data points
+
+00:05:21.460 --> 00:05:23.650
+in the female
+population, exceeding it
+
+00:05:23.650 --> 00:05:26.680
+by more than three times in
+the higher income category.
+
+00:05:26.680 --> 00:05:28.570
+Therefore, it is very
+important to think
+
+00:05:28.570 --> 00:05:31.510
+about how this representation
+disparity might
+
+00:05:31.510 --> 00:05:34.750
+affect predictions of a
+model trained from this data.
+
+00:05:37.290 --> 00:05:39.280
+In the third part
+of this module,
+
+00:05:39.280 --> 00:05:41.430
+we are going to explore
+different steps involved
+
+00:05:41.430 --> 00:05:44.040
+in transforming our data
+from raw representation
+
+00:05:44.040 --> 00:05:47.360
+to appropriate numerical or
+categorical representation
+
+00:05:47.360 --> 00:05:50.700
+in order to be able to perform
+machine learning tasks.
+
+00:05:50.700 --> 00:05:53.220
+An example of
+transformation to be made
+
+00:05:53.220 --> 00:05:56.310
+is the conversion of native
+country from raw representation
+
+00:05:56.310 --> 00:05:57.570
+to binary.
+
+00:05:57.570 --> 00:06:01.140
+In this example, we decided
+to assign a binary label
+
+00:06:01.140 --> 00:06:03.300
+to individuals who
+come from the United
+
+00:06:03.300 --> 00:06:07.350
+States and another binary label
+to individuals who come outside
+
+00:06:07.350 --> 00:06:10.340
+of the United States.
+
+00:06:10.340 --> 00:06:11.990
+We applied the
+same transformation
+
+00:06:11.990 --> 00:06:15.020
+to the sex and salary
+attribute, since each one
+
+00:06:15.020 --> 00:06:18.020
+of these attributes has to
+possible values in the data
+
+00:06:18.020 --> 00:06:23.390
+set, therefore making binary
+representation appropriate.
+
+00:06:23.390 --> 00:06:25.160
+There are more than
+two possible values
+
+00:06:25.160 --> 00:06:27.920
+that the relationship
+attribute can take.
+
+00:06:27.920 --> 00:06:30.110
+Therefore, for
+this attribute, we
+
+00:06:30.110 --> 00:06:33.620
+use one-hot encoding, which
+is more powerful than binary
+
+00:06:33.620 --> 00:06:36.830
+encoding because it can encode
+an alphabet of any size.
+
+00:06:39.410 --> 00:06:40.940
+We applied the
+same transformation
+
+00:06:40.940 --> 00:06:43.400
+from raw representation
+to binary or one-hot
+
+00:06:43.400 --> 00:06:45.740
+to all other
+categorical attributes.
+
+00:06:45.740 --> 00:06:48.920
+In most cases, we chose binary
+encoding for simplicity.
+
+00:06:48.920 --> 00:06:50.780
+But this is often
+a decision that
+
+00:06:50.780 --> 00:06:52.920
+has to be made on a
+case-by-case basis,
+
+00:06:52.920 --> 00:06:54.722
+depending on the application.
+
+00:06:54.722 --> 00:06:56.930
+It is also important to note
+that converting features
+
+00:06:56.930 --> 00:06:59.510
+like work class to
+binary can be problematic
+
+00:06:59.510 --> 00:07:01.250
+if individuals from
+different categories
+
+00:07:01.250 --> 00:07:03.800
+have systematically
+different levels of income.
+
+00:07:03.800 --> 00:07:05.570
+On the other hand,
+not doing this
+
+00:07:05.570 --> 00:07:07.280
+might be a problem
+if one category
+
+00:07:07.280 --> 00:07:11.000
+has very few people in it
+that we can generalize from.
+
+00:07:11.000 --> 00:07:13.440
+In the fourth part
+of this module,
+
+00:07:13.440 --> 00:07:15.200
+we are going to
+illustrate gender bias.
+
+00:07:15.200 --> 00:07:17.630
+We will apply the standard
+machine learning approach
+
+00:07:17.630 --> 00:07:20.540
+to our data and then
+evaluate the bias in the task
+
+00:07:20.540 --> 00:07:24.050
+of predicting income category.
+
+00:07:24.050 --> 00:07:27.140
+We start by splitting the data
+set into the training and test
+
+00:07:27.140 --> 00:07:28.340
+data.
+
+00:07:28.340 --> 00:07:31.430
+We then feed MLPClassifier
+on training data,
+
+00:07:31.430 --> 00:07:35.810
+then use the model to make
+prediction on the test data.
+
+00:07:35.810 --> 00:07:38.370
+In case you're not familiar
+with the multi-layer perceptron
+
+00:07:38.370 --> 00:07:41.630
+or MLPClassifier, this
+model belongs to the class
+
+00:07:41.630 --> 00:07:43.740
+of feedforward neural networks.
+
+00:07:43.740 --> 00:07:46.370
+Each node uses a non-linear
+activation function,
+
+00:07:46.370 --> 00:07:49.160
+giving the model ability to
+separate non-linear data.
+
+00:07:49.160 --> 00:07:52.700
+The model is trained using
+backpropagation technique.
+
+00:07:52.700 --> 00:07:56.630
+However, a few downsides is that
+the model suffers overfitting,
+
+00:07:56.630 --> 00:08:00.200
+and it is not easily
+interpretable.
+
+00:08:00.200 --> 00:08:02.480
+Before we evaluate
+our model, let's
+
+00:08:02.480 --> 00:08:05.420
+start by establishing
+some terminology.
+
+00:08:05.420 --> 00:08:07.210
+Throughout the
+rest of the module,
+
+00:08:07.210 --> 00:08:09.200
+we will refer to the
+positive category
+
+00:08:09.200 --> 00:08:12.940
+as the group of individuals that
+earn more than $50,000 a year,
+
+00:08:12.940 --> 00:08:14.990
+or the high-income category.
+
+00:08:14.990 --> 00:08:17.330
+And we will refer to
+the negative category
+
+00:08:17.330 --> 00:08:21.170
+as the group of individuals that
+earn $50,000 a year or less.
+
+00:08:21.170 --> 00:08:26.470
+We will also refer to it
+as the low-income category.
+
+00:08:26.470 --> 00:08:28.870
+Now that we've established
+important terminology,
+
+00:08:28.870 --> 00:08:31.420
+let's look at different error
+rate metrics for the model
+
+00:08:31.420 --> 00:08:33.700
+that we trained previously
+across different gender
+
+00:08:33.700 --> 00:08:35.080
+demographics.
+
+00:08:35.080 --> 00:08:36.929
+If you look at
+accuracy, you can see
+
+00:08:36.929 --> 00:08:40.495
+that the accuracy for the
+male demographic is about 0.8,
+
+00:08:40.495 --> 00:08:42.370
+while the accuracy for
+the female demographic
+
+00:08:42.370 --> 00:08:45.190
+is about 90%, or 0.9.
+
+00:08:45.190 --> 00:08:47.770
+If you look at the positive
+rate and the true positive rate,
+
+00:08:47.770 --> 00:08:50.353
+you can see that both of these
+metrics are higher for the male
+
+00:08:50.353 --> 00:08:52.810
+demographic than for
+the female demographic.
+
+00:08:52.810 --> 00:08:55.000
+However, if you look
+at the negative rate
+
+00:08:55.000 --> 00:08:56.650
+and the true negative
+rate, you can
+
+00:08:56.650 --> 00:08:58.750
+see that these metrics
+are higher for the female
+
+00:08:58.750 --> 00:09:01.120
+demographic than for the
+male demographic instead.
+
+00:09:04.220 --> 00:09:06.995
+The metrics that we just saw
+indicate consistent disparity
+
+00:09:06.995 --> 00:09:10.460
+in error rate between the male
+and the female demographic.
+
+00:09:10.460 --> 00:09:12.980
+This is what will
+define as gender bias.
+
+00:09:12.980 --> 00:09:14.810
+Mitigating gender
+bias, in this case,
+
+00:09:14.810 --> 00:09:16.670
+is equivalent to using
+different techniques
+
+00:09:16.670 --> 00:09:18.362
+to minimize this disparity.
+
+00:09:18.362 --> 00:09:20.570
+And this will be the focus
+of the rest of the module.
+
+00:09:23.320 --> 00:09:25.750
+In part 5 of our
+module, we are going
+
+00:09:25.750 --> 00:09:29.140
+to explore different database
+debiasing techniques.
+
+00:09:29.140 --> 00:09:31.660
+More specifically, we will
+look at different ways
+
+00:09:31.660 --> 00:09:34.780
+we can recalibrate or augment
+our data set in a way that
+
+00:09:34.780 --> 00:09:38.680
+makes predictions less biased.
+
+00:09:38.680 --> 00:09:41.360
+The motivation behind this
+is from our hypothesis
+
+00:09:41.360 --> 00:09:44.390
+that the gender bias could come
+from unequal representation
+
+00:09:44.390 --> 00:09:47.480
+of male and female
+demographics in our data set.
+
+00:09:47.480 --> 00:09:50.240
+We therefore make an attempt
+to recalibrate or augment
+
+00:09:50.240 --> 00:09:52.400
+the data set with
+the aim of equalizing
+
+00:09:52.400 --> 00:09:56.330
+gender representation
+in our training data.
+
+00:09:56.330 --> 00:09:58.850
+The first database technique
+that you're going to explore
+
+00:09:58.850 --> 00:10:01.160
+is called debiasing
+by unawareness.
+
+00:10:01.160 --> 00:10:03.530
+And in this technique,
+we mitigate gender bias
+
+00:10:03.530 --> 00:10:06.530
+by removing gender from the
+attributes that we train on.
+
+00:10:06.530 --> 00:10:09.860
+The code snippet shows
+our implementation.
+
+00:10:09.860 --> 00:10:11.720
+By looking at the
+results for our debiasing
+
+00:10:11.720 --> 00:10:13.700
+by unawareness
+technique, we can see
+
+00:10:13.700 --> 00:10:16.070
+that, although there was
+not significant improvement
+
+00:10:16.070 --> 00:10:18.318
+in reducing the
+gap for accuracy,
+
+00:10:18.318 --> 00:10:20.360
+we were able to reduce
+the gap for other metrics,
+
+00:10:20.360 --> 00:10:22.360
+like the positive rate,
+the negative rate,
+
+00:10:22.360 --> 00:10:25.160
+the true positive rate,
+and the true negative rate.
+
+00:10:25.160 --> 00:10:28.040
+And this is an example of how
+a debasing technique might not
+
+00:10:28.040 --> 00:10:30.860
+be able to achieve an
+improvement in all the metrics,
+
+00:10:30.860 --> 00:10:32.930
+although it might see
+a significant reduction
+
+00:10:32.930 --> 00:10:36.680
+in the gap for other
+metrics of interest.
+
+00:10:36.680 --> 00:10:38.780
+Debiasing by unawareness
+can be one approach
+
+00:10:38.780 --> 00:10:40.790
+to mitigate gender
+bias to some extent,
+
+00:10:40.790 --> 00:10:42.620
+as we saw in our results.
+
+00:10:42.620 --> 00:10:46.520
+However, studies have shown that
+this method can be ineffective,
+
+00:10:46.520 --> 00:10:48.770
+especially if there are other
+features in the data set
+
+00:10:48.770 --> 00:10:51.620
+that have some correlation
+with the protected attributes
+
+00:10:51.620 --> 00:10:53.300
+that we are dropping.
+
+00:10:53.300 --> 00:10:58.800
+These type of attributes are
+referred to as proxy variables.
+
+00:10:58.800 --> 00:11:01.340
+The second database technique
+that you're going to explore
+
+00:11:01.340 --> 00:11:03.940
+is equalizing the
+number of data points.
+
+00:11:03.940 --> 00:11:06.020
+And in this approach,
+we will attempt
+
+00:11:06.020 --> 00:11:09.320
+to equalize representation
+by using equal number
+
+00:11:09.320 --> 00:11:12.220
+or equal ratio of male
+and female individuals
+
+00:11:12.220 --> 00:11:15.050
+in our data set or within
+each income category.
+
+00:11:18.180 --> 00:11:20.980
+We will start by attempting
+to equalize the number of data
+
+00:11:20.980 --> 00:11:22.705
+points per gender category.
+
+00:11:22.705 --> 00:11:24.080
+And in this
+approach, we're going
+
+00:11:24.080 --> 00:11:26.940
+to draw a sample in which
+there is equal number of data
+
+00:11:26.940 --> 00:11:28.830
+points from the
+male demographic and
+
+00:11:28.830 --> 00:11:30.810
+from the female demographic.
+
+00:11:30.810 --> 00:11:33.870
+Feel free to pause the video to
+understand the implementation.
+
+00:11:36.520 --> 00:11:38.050
+These are the
+results that we got
+
+00:11:38.050 --> 00:11:41.170
+from training an
+MLPClassifier on a data set
+
+00:11:41.170 --> 00:11:42.900
+in which there is an
+equal number of data
+
+00:11:42.900 --> 00:11:45.120
+points per gender category.
+
+00:11:45.120 --> 00:11:47.410
+Feel free to pause the
+video to understand
+
+00:11:47.410 --> 00:11:50.730
+the results in more detail.
+
+00:11:50.730 --> 00:11:53.010
+The next attempt
+will be to equalize
+
+00:11:53.010 --> 00:11:55.080
+the number of data
+points per income level
+
+00:11:55.080 --> 00:11:56.790
+in each gender category.
+
+00:11:56.790 --> 00:11:58.650
+And what this means
+is that the number
+
+00:11:58.650 --> 00:12:00.990
+of high-income and
+low-income earners
+
+00:12:00.990 --> 00:12:03.060
+is the same in the
+male and the female
+
+00:12:03.060 --> 00:12:06.270
+demographic for the sample that
+you're going to use to train.
+
+00:12:09.920 --> 00:12:11.660
+Here are the key
+metrics from a model
+
+00:12:11.660 --> 00:12:14.570
+that was trained on a sample
+of the data set in which there
+
+00:12:14.570 --> 00:12:16.550
+is an equal number of
+data points per income
+
+00:12:16.550 --> 00:12:18.440
+level in each gender category.
+
+00:12:21.060 --> 00:12:23.850
+One downside to this
+methodology of equalizing
+
+00:12:23.850 --> 00:12:26.040
+the number of data
+points per demographic
+
+00:12:26.040 --> 00:12:28.200
+is that the size of
+the resulting data set
+
+00:12:28.200 --> 00:12:31.560
+depends on the size of
+the smallest demographic.
+
+00:12:31.560 --> 00:12:33.510
+Therefore, if the
+smallest demographic
+
+00:12:33.510 --> 00:12:36.270
+has a very small
+number of data points,
+
+00:12:36.270 --> 00:12:39.180
+you're going to end up with
+a very small training set.
+
+00:12:39.180 --> 00:12:40.860
+Therefore, in some
+cases, you might
+
+00:12:40.860 --> 00:12:43.830
+find that equalizing the ratio
+instead of the number of data
+
+00:12:43.830 --> 00:12:46.950
+points by demographic can lead
+to a higher resulting sample
+
+00:12:46.950 --> 00:12:47.920
+size.
+
+00:12:47.920 --> 00:12:52.470
+And that's what we're going to
+look at in the next approach.
+
+00:12:52.470 --> 00:12:54.210
+In this methodology
+of equalizing
+
+00:12:54.210 --> 00:12:56.970
+the ratio of the number of
+data points per income level
+
+00:12:56.970 --> 00:12:59.220
+in each category, we
+equalize the ratio
+
+00:12:59.220 --> 00:13:01.110
+of male individuals
+with high income
+
+00:13:01.110 --> 00:13:03.510
+to male individuals
+with low income.
+
+00:13:03.510 --> 00:13:06.150
+And we do this for the
+female demographic, as well.
+
+00:13:06.150 --> 00:13:08.400
+This results into a
+higher sample size.
+
+00:13:08.400 --> 00:13:10.080
+And to see how
+this is the case, I
+
+00:13:10.080 --> 00:13:12.870
+encourage you to look at
+the notebook for this work.
+
+00:13:16.040 --> 00:13:19.940
+This is the plot for the
+results of this methodology.
+
+00:13:19.940 --> 00:13:21.520
+And you can see
+that, although there
+
+00:13:21.520 --> 00:13:25.580
+is some gap for the accuracy
+and true positive rate,
+
+00:13:25.580 --> 00:13:28.600
+the gap is way smaller for
+positive rate and negative rate
+
+00:13:28.600 --> 00:13:29.860
+or true negative rate.
+
+00:13:34.170 --> 00:13:36.240
+The next technique that
+you're going to look at
+
+00:13:36.240 --> 00:13:38.510
+is counterfactual augmentation.
+
+00:13:38.510 --> 00:13:41.910
+And in this approach, for each
+data point Xi with a given
+
+00:13:41.910 --> 00:13:44.070
+gender, we generate
+a new data point
+
+00:13:44.070 --> 00:13:48.060
+Yi that differs with Xi only
+at the gender attribute.
+
+00:13:48.060 --> 00:13:50.430
+And we add Yi to our
+training data set.
+
+00:13:53.590 --> 00:13:55.270
+I encourage you to
+pause a little bit
+
+00:13:55.270 --> 00:13:57.520
+and convince yourself that
+the resulting data set
+
+00:13:57.520 --> 00:13:59.530
+from counterfactual
+augmentation will
+
+00:13:59.530 --> 00:14:02.230
+satisfy all the following
+constraints shown here.
+
+00:14:06.420 --> 00:14:09.180
+The code snippet shown here
+shows our implementation
+
+00:14:09.180 --> 00:14:11.730
+of counterfactual
+augmentation on the data set.
+
+00:14:15.130 --> 00:14:17.860
+By looking at the results of
+counterfactual augmentation
+
+00:14:17.860 --> 00:14:20.230
+on our data set, you can
+see that the gap for all
+
+00:14:20.230 --> 00:14:22.300
+the metrics that you're
+looking at for the male
+
+00:14:22.300 --> 00:14:24.830
+and female demographic
+is pretty much gone.
+
+00:14:24.830 --> 00:14:26.800
+And this is what
+we want and expect
+
+00:14:26.800 --> 00:14:28.810
+from a fair machine
+learning model.
+
+00:14:32.070 --> 00:14:34.700
+So let's compare all
+the metrics of interest
+
+00:14:34.700 --> 00:14:37.240
+on all the approaches that
+we've carried out so far.
+
+00:14:41.270 --> 00:14:43.605
+By looking at the metric
+of overall accuracy,
+
+00:14:43.605 --> 00:14:44.980
+you can see that
+some techniques,
+
+00:14:44.980 --> 00:14:47.830
+like equal number of data points
+per gender or counterfactual
+
+00:14:47.830 --> 00:14:51.550
+augmentation, leads to
+higher degrees of accuracy.
+
+00:14:51.550 --> 00:14:53.230
+But you can see that
+some techniques,
+
+00:14:53.230 --> 00:14:55.540
+like gender unawareness,
+do not always
+
+00:14:55.540 --> 00:14:59.520
+guarantee higher accuracy.
+
+00:14:59.520 --> 00:15:01.770
+By looking at accuracy
+across gender,
+
+00:15:01.770 --> 00:15:03.960
+you can see that the
+counterfactual augmentation
+
+00:15:03.960 --> 00:15:07.370
+technique still has the smallest
+gap between male and female.
+
+00:15:07.370 --> 00:15:09.370
+But you can see that some
+techniques like gender
+
+00:15:09.370 --> 00:15:12.150
+unawareness still have a
+significantly higher gap
+
+00:15:12.150 --> 00:15:18.740
+between the accuracy in male
+versus female demographics.
+
+00:15:18.740 --> 00:15:20.940
+The plots shown
+showed the comparison
+
+00:15:20.940 --> 00:15:23.250
+between the positive
+rates across gender
+
+00:15:23.250 --> 00:15:26.130
+and the comparison between the
+negative rates across gender.
+
+00:15:30.640 --> 00:15:32.800
+The plots shown here
+show the comparison
+
+00:15:32.800 --> 00:15:35.230
+between true positive
+rate across gender
+
+00:15:35.230 --> 00:15:37.420
+and the comparison between
+true negative rates
+
+00:15:37.420 --> 00:15:39.430
+across gender for
+all the techniques
+
+00:15:39.430 --> 00:15:40.840
+that we covered so far.
+
+00:15:44.380 --> 00:15:47.320
+In this part, we are going to
+explore model-based debiasing
+
+00:15:47.320 --> 00:15:48.400
+techniques.
+
+00:15:48.400 --> 00:15:51.320
+And specifically, we will
+look at different model types
+
+00:15:51.320 --> 00:15:54.550
+and architectures and
+examine how each one of them
+
+00:15:54.550 --> 00:15:57.760
+performs for the male
+versus female demographic.
+
+00:16:00.430 --> 00:16:02.020
+The motivation for
+this is that we
+
+00:16:02.020 --> 00:16:03.760
+should expect different
+models to have
+
+00:16:03.760 --> 00:16:05.680
+different degrees of bias.
+
+00:16:05.680 --> 00:16:08.590
+Therefore, by changing the
+model type or architecture,
+
+00:16:08.590 --> 00:16:11.813
+we can observe which ones tend
+to be inherently less biased.
+
+00:16:11.813 --> 00:16:13.480
+And these are the
+ones that we are going
+
+00:16:13.480 --> 00:16:17.230
+to choose in our application.
+
+00:16:17.230 --> 00:16:20.260
+We start by examining
+single-model architectures.
+
+00:16:20.260 --> 00:16:22.510
+And for each of the model
+families shown here,
+
+00:16:22.510 --> 00:16:25.720
+we picked one model and trained
+it on the data that we have.
+
+00:16:29.170 --> 00:16:32.110
+This code snippet shows
+different models and parameters
+
+00:16:32.110 --> 00:16:33.460
+that we used.
+
+00:16:33.460 --> 00:16:35.590
+For simplicity, we used
+different parameters
+
+00:16:35.590 --> 00:16:37.240
+for different models.
+
+00:16:37.240 --> 00:16:39.040
+But in a practical
+setting, we would
+
+00:16:39.040 --> 00:16:41.830
+have to use a technique
+like cross-validation
+
+00:16:41.830 --> 00:16:44.560
+or hyperparameter search
+to find the best parameter
+
+00:16:44.560 --> 00:16:45.750
+to use for each model.
+
+00:16:48.450 --> 00:16:51.240
+We also examined
+multi-model architectures.
+
+00:16:51.240 --> 00:16:52.800
+In this approach,
+we trained a group
+
+00:16:52.800 --> 00:16:55.080
+of different models
+on the same data
+
+00:16:55.080 --> 00:16:58.470
+and then make a final
+prediction based on consensus.
+
+00:16:58.470 --> 00:17:01.040
+We compared two
+types of consensus.
+
+00:17:01.040 --> 00:17:03.210
+The hard voting
+consensus is the one
+
+00:17:03.210 --> 00:17:05.430
+in which the final
+prediction is the majority
+
+00:17:05.430 --> 00:17:07.950
+prediction among all models.
+
+00:17:07.950 --> 00:17:10.079
+And in the soft
+voting consensus,
+
+00:17:10.079 --> 00:17:12.450
+the final prediction is
+the average prediction
+
+00:17:12.450 --> 00:17:14.640
+across all models
+in consideration.
+
+00:17:17.240 --> 00:17:19.430
+We use Scikit-Learn
+VotingClassifier
+
+00:17:19.430 --> 00:17:22.510
+to combine single models
+and train them all at once.
+
+00:17:22.510 --> 00:17:25.670
+The code snippet shown here
+shows the models that we used
+
+00:17:25.670 --> 00:17:28.840
+and how we trained the
+VotingClassifiers on our data.
+
+00:17:32.090 --> 00:17:35.010
+Let us now evaluate and
+compare the metrics of interest
+
+00:17:35.010 --> 00:17:36.860
+on all model types
+and architectures
+
+00:17:36.860 --> 00:17:38.550
+that we've trained on so far.
+
+00:17:41.660 --> 00:17:44.833
+This plot shows the results
+for overall accuracy.
+
+00:17:44.833 --> 00:17:46.250
+You can see that
+the random forest
+
+00:17:46.250 --> 00:17:49.050
+classifier has the highest
+degree of accuracy,
+
+00:17:49.050 --> 00:17:50.990
+which is about 94%.
+
+00:17:50.990 --> 00:17:53.630
+You can also see that the
+Gaussian Naive Bayes model
+
+00:17:53.630 --> 00:17:56.540
+has about 72% of accuracy.
+
+00:17:56.540 --> 00:17:58.490
+And you can also see
+that all the other models
+
+00:17:58.490 --> 00:18:01.530
+fall in between.
+
+00:18:01.530 --> 00:18:04.372
+This plot shows
+accuracy across gender.
+
+00:18:04.372 --> 00:18:06.330
+And you can see that
+there are different levels
+
+00:18:06.330 --> 00:18:09.300
+of the gap between the male
+and female demographic,
+
+00:18:09.300 --> 00:18:11.070
+depending on the model type.
+
+00:18:11.070 --> 00:18:13.470
+And this is an
+example that indicates
+
+00:18:13.470 --> 00:18:16.710
+that different models inherently
+have different levels of bias.
+
+00:18:19.840 --> 00:18:22.090
+These plots show the
+positive and negative rates
+
+00:18:22.090 --> 00:18:23.470
+across gender.
+
+00:18:23.470 --> 00:18:25.720
+If you look at the plot
+for the positive rate,
+
+00:18:25.720 --> 00:18:27.190
+you observe that
+the positive rate
+
+00:18:27.190 --> 00:18:29.050
+is always higher for
+the male demographic
+
+00:18:29.050 --> 00:18:31.660
+than the female demographic
+for all the models
+
+00:18:31.660 --> 00:18:33.090
+that we've looked that.
+
+00:18:33.090 --> 00:18:34.600
+And this can be
+problematic if we
+
+00:18:34.600 --> 00:18:37.277
+deploy any of these
+models in the real world,
+
+00:18:37.277 --> 00:18:39.610
+because you end up in a
+scenario in which the model just
+
+00:18:39.610 --> 00:18:41.920
+systematically predicts
+more favorable outcome
+
+00:18:41.920 --> 00:18:44.620
+for the male demographic
+than the female demographic.
+
+00:18:47.290 --> 00:18:49.330
+These plots show the
+true positive and true
+
+00:18:49.330 --> 00:18:51.550
+negative rates across gender.
+
+00:18:51.550 --> 00:18:54.010
+If you look at the plot
+for the true positive rate,
+
+00:18:54.010 --> 00:18:56.080
+you observe that the true
+positive rate is always
+
+00:18:56.080 --> 00:18:59.860
+higher for the male individuals
+than female individuals.
+
+00:18:59.860 --> 00:19:02.450
+And if you look at the plot
+for the true negative rate,
+
+00:19:02.450 --> 00:19:03.700
+it's the other way around.
+
+00:19:03.700 --> 00:19:05.950
+The true negative rate is
+always higher for the female
+
+00:19:05.950 --> 00:19:08.380
+demographic than for
+the male demographic.
+
+00:19:08.380 --> 00:19:10.330
+And this can especially
+be problematic,
+
+00:19:10.330 --> 00:19:12.940
+because it shows that our models
+have learned how to better
+
+00:19:12.940 --> 00:19:15.220
+classify high-income
+male earners
+
+00:19:15.220 --> 00:19:18.130
+than high-income female
+earners and to classify
+
+00:19:18.130 --> 00:19:21.760
+low-income female earners than
+low-income male earners, which
+
+00:19:21.760 --> 00:19:25.240
+means they could be widening
+the gap between the male earners
+
+00:19:25.240 --> 00:19:27.530
+and the female earners.
+
+00:19:27.530 --> 00:19:30.690
+To account for randomness, we
+ran the previous experiment
+
+00:19:30.690 --> 00:19:33.060
+five more times in order
+to get a better idea
+
+00:19:33.060 --> 00:19:35.900
+of the average model behavior.
+
+00:19:35.900 --> 00:19:39.120
+To compare the metrics across
+multiple training sessions,
+
+00:19:39.120 --> 00:19:41.830
+we created five instances
+of each model type.
+
+00:19:41.830 --> 00:19:44.310
+And we trained each one
+of them on the data.
+
+00:19:44.310 --> 00:19:46.440
+Then, for each one
+of these instances,
+
+00:19:46.440 --> 00:19:48.750
+we evaluated the absolute
+value of the difference
+
+00:19:48.750 --> 00:19:50.790
+in each metric of
+interest between the male
+
+00:19:50.790 --> 00:19:53.220
+and the female demographics
+from the test data.
+
+00:19:56.830 --> 00:20:00.090
+If you look at the plot for the
+accuracy disparity comparison,
+
+00:20:00.090 --> 00:20:02.400
+you can see that models
+like logistic regression
+
+00:20:02.400 --> 00:20:06.450
+or hard voting or SVC have a
+significantly lower accuracy
+
+00:20:06.450 --> 00:20:09.465
+disparity than Gaussian
+Naive Bayes or random forest.
+
+00:20:12.030 --> 00:20:13.500
+We see a similar
+trend by looking
+
+00:20:13.500 --> 00:20:16.350
+at the positive and
+negative rate disparity.
+
+00:20:16.350 --> 00:20:19.680
+If you look at models like
+logistic regression or SVC
+
+00:20:19.680 --> 00:20:23.010
+or had voting, you can see that
+they have significantly lower
+
+00:20:23.010 --> 00:20:26.700
+disparity than GNB.
+
+00:20:26.700 --> 00:20:29.550
+Surprisingly, we see a
+significantly different result
+
+00:20:29.550 --> 00:20:33.090
+by looking at the true positive
+and negative rate disparity.
+
+00:20:33.090 --> 00:20:35.310
+If you look at the true
+positive rate disparity,
+
+00:20:35.310 --> 00:20:38.760
+you can see that models like
+logistic regression or SVC
+
+00:20:38.760 --> 00:20:41.280
+now have higher disparity
+and higher variability
+
+00:20:41.280 --> 00:20:43.440
+than models like GNB.
+
+00:20:43.440 --> 00:20:46.020
+But if you look at the plot
+for the true negative rate,
+
+00:20:46.020 --> 00:20:48.830
+you can see that it tends to
+follow the previous trend,
+
+00:20:48.830 --> 00:20:52.560
+where logistic regression and
+SVC have lower variability
+
+00:20:52.560 --> 00:20:54.870
+and lower disparity than GNB.
+
+00:20:54.870 --> 00:20:57.090
+It is therefore very
+important to see
+
+00:20:57.090 --> 00:21:00.780
+that these models have different
+inherent behaviors when
+
+00:21:00.780 --> 00:21:04.160
+it comes to bias.
+
+00:21:04.160 --> 00:21:06.260
+In the last part, we
+conclude by looking
+
+00:21:06.260 --> 00:21:09.050
+at the possible next steps that
+will allow us to strengthen
+
+00:21:09.050 --> 00:21:11.780
+our understanding and
+application of ethics
+
+00:21:11.780 --> 00:21:16.010
+in machine learning from
+the technical perspective.
+
+00:21:16.010 --> 00:21:18.290
+Now that you've gone
+through the entire module,
+
+00:21:18.290 --> 00:21:21.530
+we invite you to check
+out our GitHub repository.
+
+00:21:21.530 --> 00:21:23.450
+This will help you
+deepen your understanding
+
+00:21:23.450 --> 00:21:25.580
+of the work that's being done.
+
+00:21:25.580 --> 00:21:27.410
+In addition, we
+also encourage you
+
+00:21:27.410 --> 00:21:30.530
+to explore more advanced
+debiasing techniques.
+
+00:21:30.530 --> 00:21:33.080
+And we also recommend
+sharing and discussing these
+
+00:21:33.080 --> 00:21:36.260
+across your team,
+organization, or community.
+
+00:21:36.260 --> 00:21:38.720
+And of course, we all
+need to take action
+
+00:21:38.720 --> 00:21:44.010
+by applying what we learned
+in what we do every day.
+
+00:21:44.010 --> 00:21:46.700
+Finally, here are the
+references to the materials
+
+00:21:46.700 --> 00:21:51.220
+that we consulted while
+making the module.
+
+00:21:51.220 --> 00:21:53.770
+Thank you for following this
+course on mitigating bias
+
+00:21:53.770 --> 00:21:54.910
+in machine learning.
+
+00:21:54.910 --> 00:21:57.390
+And I hope that this helps
+you build less biased machine
+
+00:21:57.390 --> 00:22:00.330
+learning applications
+in the future.
+
+00:22:00.330 --> 00:22:03.680
+[MUSIC PLAYING]

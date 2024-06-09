@@ -1,0 +1,5356 @@
+WEBVTT
+
+00:00:14.790 --> 00:00:17.270
+PETER SZOLOVITS: OK.
+
+00:00:17.270 --> 00:00:21.320
+So today and next
+Tuesday, we're talking
+
+00:00:21.320 --> 00:00:24.590
+about the role of natural
+language processing in machine
+
+00:00:24.590 --> 00:00:26.670
+learning in health care.
+
+00:00:26.670 --> 00:00:29.960
+And this is going to
+be a heterogeneous kind
+
+00:00:29.960 --> 00:00:32.150
+of presentation.
+
+00:00:32.150 --> 00:00:36.650
+Mainly today, I'm going to
+talk about stuff that happened
+
+00:00:36.650 --> 00:00:38.690
+or that takes
+advantage of methods
+
+00:00:38.690 --> 00:00:44.030
+that are not based on neural
+network representations.
+
+00:00:44.030 --> 00:00:46.220
+And on Tuesday, I'm
+going to speak mostly
+
+00:00:46.220 --> 00:00:50.690
+about stuff that does depend on
+neural network representations,
+
+00:00:50.690 --> 00:00:54.620
+but I'm not sure where the
+boundary is going to fall.
+
+00:00:54.620 --> 00:00:58.190
+I've also invited
+Dr. Katherine Liao
+
+00:00:58.190 --> 00:01:00.950
+over there, who will
+join me in a question
+
+00:01:00.950 --> 00:01:04.459
+and answer session and interview
+like we did a couple of weeks
+
+00:01:04.459 --> 00:01:06.830
+ago with David.
+
+00:01:06.830 --> 00:01:14.690
+Kat is a rheumatologist in the
+Partners HealthCare system.
+
+00:01:14.690 --> 00:01:17.750
+And you'll actually be
+hearing about some of the work
+
+00:01:17.750 --> 00:01:19.730
+that we've done
+together in the past
+
+00:01:19.730 --> 00:01:22.790
+before we go to the interview.
+
+00:01:22.790 --> 00:01:27.080
+So roughly, the outline
+of these two lectures
+
+00:01:27.080 --> 00:01:30.680
+is that I want to talk
+a little bit about why
+
+00:01:30.680 --> 00:01:35.600
+we care about clinical text.
+
+00:01:35.600 --> 00:01:41.080
+And then I'm going to talk
+about some conceptually very
+
+00:01:41.080 --> 00:01:44.770
+appealing, but practically
+not very feasible
+
+00:01:44.770 --> 00:01:49.150
+methods that involve
+analyzing these narrative
+
+00:01:49.150 --> 00:01:54.340
+texts as linguistic entities,
+as linguistic objects
+
+00:01:54.340 --> 00:01:57.220
+in the way that a linguist
+might approach them.
+
+00:01:57.220 --> 00:02:00.460
+And then we're going to talk
+about what is very often done,
+
+00:02:00.460 --> 00:02:03.970
+which is a kind of term
+spotting approach that says,
+
+00:02:03.970 --> 00:02:08.350
+well, we may not be able to
+understand exactly everything
+
+00:02:08.350 --> 00:02:11.170
+that goes on in the
+narratives, but we
+
+00:02:11.170 --> 00:02:14.980
+can identify certain words
+and certain phrases that
+
+00:02:14.980 --> 00:02:18.090
+are very highly indicative
+that the patient has
+
+00:02:18.090 --> 00:02:20.110
+a certain disease,
+a certain symptom,
+
+00:02:20.110 --> 00:02:23.510
+that some particular
+thing was done to them.
+
+00:02:23.510 --> 00:02:26.080
+And so this is a lot
+of the bread and butter
+
+00:02:26.080 --> 00:02:31.540
+of how clinical research
+is done nowadays.
+
+00:02:31.540 --> 00:02:35.630
+And then I'll go on to
+some other techniques.
+
+00:02:35.630 --> 00:02:36.970
+So here's an example.
+
+00:02:36.970 --> 00:02:42.550
+This is a discharge
+summary from MIMIC.
+
+00:02:42.550 --> 00:02:46.240
+When you played with MIMIC, you
+notice that it's de-identified.
+
+00:02:46.240 --> 00:02:48.610
+And so names and
+things are replaced
+
+00:02:48.610 --> 00:02:53.350
+with square brackets, star,
+star, star kinds of things.
+
+00:02:53.350 --> 00:02:57.700
+And here I have replaced--
+we replaced those
+
+00:02:57.700 --> 00:02:59.980
+with synthetic names.
+
+00:02:59.980 --> 00:03:05.110
+So Mr. Blind isn't
+really Mr. Blind,
+
+00:03:05.110 --> 00:03:10.330
+and November 15 probably really
+isn't November 15, et cetera.
+
+00:03:10.330 --> 00:03:14.720
+But I wanted something
+that read like real text.
+
+00:03:14.720 --> 00:03:19.060
+So if you look at something
+like this, you see that Mr.
+
+00:03:19.060 --> 00:03:22.990
+Blind is a 79-year-old
+white white male--
+
+00:03:22.990 --> 00:03:25.300
+so somebody repeated a word--
+
+00:03:25.300 --> 00:03:30.010
+with a history of diabetes
+mellitus and inferior MI,
+
+00:03:30.010 --> 00:03:33.790
+who underwent open repair of
+his increased diverticulum
+
+00:03:33.790 --> 00:03:36.490
+on November 13 at some--
+
+00:03:36.490 --> 00:03:40.210
+again, that's not the
+name of the actual place--
+
+00:03:40.210 --> 00:03:41.770
+medical center.
+
+00:03:41.770 --> 00:03:44.260
+And then he developed
+hematemesis,
+
+00:03:44.260 --> 00:03:47.620
+so he was spitting up
+blood, and was intubated
+
+00:03:47.620 --> 00:03:49.045
+for respiratory distress.
+
+00:03:49.045 --> 00:03:51.230
+So he wasn't breathing well.
+
+00:03:51.230 --> 00:03:54.280
+So these are all really
+important things about what
+
+00:03:54.280 --> 00:03:57.200
+happened to Mr. Blind.
+
+00:03:57.200 --> 00:04:02.110
+And so we'd like to be able
+to take advantage of this.
+
+00:04:02.110 --> 00:04:04.990
+And in fact, to give
+you a slightly more
+
+00:04:04.990 --> 00:04:10.390
+quantitative version of this,
+Kat and I worked on a project
+
+00:04:10.390 --> 00:04:14.620
+back around 2010
+where we were looking
+
+00:04:14.620 --> 00:04:20.140
+at trying to understand what
+are the genetic correlates
+
+00:04:20.140 --> 00:04:23.180
+of rheumatoid arthritis.
+
+00:04:23.180 --> 00:04:27.700
+And so we went to the research
+patient data repository
+
+00:04:27.700 --> 00:04:33.280
+of Mass General and the
+Brigham Partners HealthCare,
+
+00:04:33.280 --> 00:04:37.000
+and we said, OK, who
+are the patients who
+
+00:04:37.000 --> 00:04:41.360
+have been billed for a
+rheumatoid arthritis visit?
+
+00:04:41.360 --> 00:04:45.160
+And there are many thousands
+of those people, OK?
+
+00:04:45.160 --> 00:04:49.390
+And then we selected
+a random set of I
+
+00:04:49.390 --> 00:04:52.360
+think 400 of those patients.
+
+00:04:52.360 --> 00:04:55.840
+We gave them to
+rheumatologists, and we said,
+
+00:04:55.840 --> 00:05:01.330
+which of these people actually
+have rheumatoid arthritis?
+
+00:05:01.330 --> 00:05:03.950
+So these were based
+on billing codes.
+
+00:05:03.950 --> 00:05:08.770
+So what would you guess is
+the positive predictive value
+
+00:05:08.770 --> 00:05:11.502
+of having a billing code
+for rheumatoid arthritis
+
+00:05:11.502 --> 00:05:12.210
+in this data set?
+
+00:05:16.280 --> 00:05:21.040
+I mean, how many people
+think it's more than 50%?
+
+00:05:21.040 --> 00:05:24.970
+OK, that would be
+nice, but it's not.
+
+00:05:24.970 --> 00:05:26.805
+How many people think
+it's more than 25%?
+
+00:05:30.410 --> 00:05:33.920
+God, you guys are getting
+really pessimistic.
+
+00:05:33.920 --> 00:05:35.060
+Well, it also isn't.
+
+00:05:38.430 --> 00:05:44.250
+It turned out to be something
+like 19% in this cohort.
+
+00:05:44.250 --> 00:05:47.570
+Now, before you
+start calling, you
+
+00:05:47.570 --> 00:05:51.040
+know, the fraud
+investigators, you
+
+00:05:51.040 --> 00:05:56.330
+have to ask yourself why is
+it that this data is so lousy,
+
+00:05:56.330 --> 00:05:58.030
+right?
+
+00:05:58.030 --> 00:06:02.380
+And there's a systematic reason,
+because those billing codes
+
+00:06:02.380 --> 00:06:05.230
+were not created
+in order to specify
+
+00:06:05.230 --> 00:06:07.330
+what's wrong with the patient.
+
+00:06:07.330 --> 00:06:09.490
+They were created
+in order to tell
+
+00:06:09.490 --> 00:06:12.640
+an insurance company
+or Medicare or somebody
+
+00:06:12.640 --> 00:06:15.910
+how much of a payment is
+deserved by the doctors
+
+00:06:15.910 --> 00:06:17.990
+taking care of them.
+
+00:06:17.990 --> 00:06:21.340
+And so what this means is
+that, for example, if I
+
+00:06:21.340 --> 00:06:26.320
+clutch my chest and go, uh,
+and an ambulance rushes me over
+
+00:06:26.320 --> 00:06:29.710
+to Mass General and they
+do a whole bunch of tests
+
+00:06:29.710 --> 00:06:34.190
+and they decide that I'm
+not having a heart attack,
+
+00:06:34.190 --> 00:06:36.640
+the correct billing
+code for that visit
+
+00:06:36.640 --> 00:06:39.650
+is myocardial infarction.
+
+00:06:39.650 --> 00:06:41.360
+Because of course
+the work that they
+
+00:06:41.360 --> 00:06:45.230
+have to do in order to figure
+out that I'm not having a heart
+
+00:06:45.230 --> 00:06:47.450
+attack is the same
+as the work they
+
+00:06:47.450 --> 00:06:50.180
+would have had to do to figure
+out that I was having a heart
+
+00:06:50.180 --> 00:06:52.040
+attack.
+
+00:06:52.040 --> 00:06:54.610
+And so the billing codes--
+
+00:06:54.610 --> 00:06:56.140
+we've talked about
+this a little bit
+
+00:06:56.140 --> 00:06:59.350
+before-- but they are a very
+imperfect representation
+
+00:06:59.350 --> 00:07:00.760
+of reality.
+
+00:07:00.760 --> 00:07:03.430
+So we said, well, OK.
+
+00:07:03.430 --> 00:07:06.580
+What if we insisted
+that you have
+
+00:07:06.580 --> 00:07:09.640
+three billing codes for
+rheumatoid arthritis
+
+00:07:09.640 --> 00:07:11.560
+rather than just one.
+
+00:07:11.560 --> 00:07:14.710
+And that turned out to raise
+the positive predictive value
+
+00:07:14.710 --> 00:07:15.810
+all the way up to 27%.
+
+00:07:18.910 --> 00:07:20.490
+So we go, really?
+
+00:07:20.490 --> 00:07:23.440
+How could you get
+billed three times?
+
+00:07:23.440 --> 00:07:24.330
+Right?
+
+00:07:24.330 --> 00:07:27.990
+Well, the answer is that you
+get billed for, you know,
+
+00:07:27.990 --> 00:07:31.470
+every aspirin you
+take at the hospital.
+
+00:07:31.470 --> 00:07:34.950
+And so for example,
+it's very easy
+
+00:07:34.950 --> 00:07:38.490
+to accumulate three billing
+codes for the same thing
+
+00:07:38.490 --> 00:07:42.360
+because you go see a
+doctor, the doctor bills you
+
+00:07:42.360 --> 00:07:45.470
+for a rheumatoid
+arthritis visit,
+
+00:07:45.470 --> 00:07:49.620
+he or she sends you
+to a radiologist
+
+00:07:49.620 --> 00:07:53.700
+to take an X-ray of your
+fingers and your joints.
+
+00:07:53.700 --> 00:07:57.340
+That bill is another
+billing code for RA.
+
+00:07:57.340 --> 00:07:59.820
+The doctor also
+sends you to the lab
+
+00:07:59.820 --> 00:08:01.920
+to have a blood
+draw so that they
+
+00:08:01.920 --> 00:08:04.860
+can check your anti-CCP titer.
+
+00:08:04.860 --> 00:08:08.100
+That's another billing code
+for rheumatoid arthritis.
+
+00:08:08.100 --> 00:08:10.680
+And it may be that all
+of this is negative
+
+00:08:10.680 --> 00:08:13.950
+and you don't actually
+have the disease.
+
+00:08:13.950 --> 00:08:19.230
+So this is something that's
+really important to think about
+
+00:08:19.230 --> 00:08:23.280
+and to remember when you're
+analyzing these data.
+
+00:08:23.280 --> 00:08:26.070
+And so we started off
+in this project saying,
+
+00:08:26.070 --> 00:08:31.800
+well, we need to get a
+positive predictive value
+
+00:08:31.800 --> 00:08:36.210
+more on the order of 95%,
+because we wanted a very
+
+00:08:36.210 --> 00:08:40.590
+pure sample of people who really
+did have the disease because we
+
+00:08:40.590 --> 00:08:44.039
+were going to take blood
+samples from those patients,
+
+00:08:44.039 --> 00:08:48.780
+pay a bunch of money to
+the Broad to analyze them,
+
+00:08:48.780 --> 00:08:51.030
+and then hopefully
+come up with a better
+
+00:08:51.030 --> 00:08:53.370
+understanding of
+the relationship
+
+00:08:53.370 --> 00:08:56.790
+between their genetics
+and their disease.
+
+00:08:56.790 --> 00:09:02.700
+And of course, if you talk to
+a biostatistician, as we did,
+
+00:09:02.700 --> 00:09:08.040
+they told us that if we have
+more than about 5% corruption
+
+00:09:08.040 --> 00:09:10.620
+of that database, then
+we're going to get
+
+00:09:10.620 --> 00:09:13.240
+meaningless results from it.
+
+00:09:13.240 --> 00:09:15.720
+So that's the goal here.
+
+00:09:15.720 --> 00:09:20.730
+So what we did is
+to say, well, if you
+
+00:09:20.730 --> 00:09:26.340
+train a data set that tries
+to tell you whether somebody
+
+00:09:26.340 --> 00:09:29.010
+really has rheumatoid
+arthritis or not
+
+00:09:29.010 --> 00:09:31.790
+based on just codified data.
+
+00:09:31.790 --> 00:09:35.970
+So codified data are things like
+lab values and prescriptions
+
+00:09:35.970 --> 00:09:41.700
+and demographics and stuff
+that is in tabular form.
+
+00:09:41.700 --> 00:09:47.955
+Then we were getting a positive
+predictive value of about 88%.
+
+00:09:47.955 --> 00:09:52.470
+We said, well, how
+well could we do
+
+00:09:52.470 --> 00:09:56.460
+by, instead of looking
+at that codified data,
+
+00:09:56.460 --> 00:10:01.680
+looking at the narrative text in
+nursing notes, doctor's notes,
+
+00:10:01.680 --> 00:10:04.620
+discharge summaries,
+various other sources.
+
+00:10:04.620 --> 00:10:07.020
+Could we do as well or better?
+
+00:10:07.020 --> 00:10:14.160
+And the answer turned out
+that we were getting about 89%
+
+00:10:14.160 --> 00:10:18.810
+using only the natural language
+processing on these notes.
+
+00:10:18.810 --> 00:10:21.900
+And not surprisingly, when
+you put them together,
+
+00:10:21.900 --> 00:10:27.460
+the joint model
+gave us about 94%.
+
+00:10:27.460 --> 00:10:30.910
+So that was definitely
+an improvement.
+
+00:10:30.910 --> 00:10:36.970
+So this was published in 2010,
+and so this is not the latest
+
+00:10:36.970 --> 00:10:41.920
+hot off the bench results.
+
+00:10:41.920 --> 00:10:45.130
+But to me, it's a
+very compelling story
+
+00:10:45.130 --> 00:10:49.310
+that says there is real value
+in these clinical narratives.
+
+00:10:54.700 --> 00:10:56.900
+OK, so how did we do this?
+
+00:10:56.900 --> 00:11:01.060
+Well, we took about four
+million patients in the EMR.
+
+00:11:01.060 --> 00:11:09.580
+We selected about 29,000
+of them by requiring
+
+00:11:09.580 --> 00:11:11.980
+that they have at
+least one ICD-9
+
+00:11:11.980 --> 00:11:15.310
+code for rheumatoid
+arthritis, or that they've
+
+00:11:15.310 --> 00:11:20.180
+had an anti-CCP titer
+done in the lab.
+
+00:11:20.180 --> 00:11:25.080
+And then we-- oh,
+it was 500, not 400.
+
+00:11:25.080 --> 00:11:31.170
+So we looked at
+500 cases, which we
+
+00:11:31.170 --> 00:11:33.480
+got gold standard readings on.
+
+00:11:33.480 --> 00:11:37.380
+And then we trained
+an algorithm that
+
+00:11:37.380 --> 00:11:41.430
+predicted whether this
+patient really had RA or not.
+
+00:11:41.430 --> 00:11:44.220
+And that predicted about 35--
+
+00:11:44.220 --> 00:11:47.010
+well, 3,585 cases.
+
+00:11:47.010 --> 00:11:51.630
+We then sampled a validation
+set of 400 of those.
+
+00:11:51.630 --> 00:11:54.360
+We threatened our
+rheumatologists
+
+00:11:54.360 --> 00:11:59.220
+with bodily harm if they
+didn't read all those cases
+
+00:11:59.220 --> 00:12:01.830
+and give us a gold
+standard judgment.
+
+00:12:01.830 --> 00:12:03.210
+No, I'm kidding.
+
+00:12:03.210 --> 00:12:05.130
+They were actually
+really cooperative.
+
+00:12:07.920 --> 00:12:11.130
+And there are some
+details here that you
+
+00:12:11.130 --> 00:12:13.560
+can look at in the
+slide, and I had
+
+00:12:13.560 --> 00:12:15.570
+a pointer to the
+original paper if you're
+
+00:12:15.570 --> 00:12:18.400
+interested in the details.
+
+00:12:18.400 --> 00:12:21.750
+But we were looking
+at ICD-9 codes
+
+00:12:21.750 --> 00:12:25.440
+for rheumatoid arthritis
+and related diseases.
+
+00:12:25.440 --> 00:12:28.680
+We excluded some
+ICD-9 codes that
+
+00:12:28.680 --> 00:12:34.200
+fall under the general
+category of rheumatoid diseases
+
+00:12:34.200 --> 00:12:38.850
+because they're not
+correct for the sample
+
+00:12:38.850 --> 00:12:41.520
+that we were interested in.
+
+00:12:41.520 --> 00:12:43.710
+We dealt with this
+multiple coding
+
+00:12:43.710 --> 00:12:48.450
+by ignoring codes that happened
+within a week of each other
+
+00:12:48.450 --> 00:12:53.190
+so that we didn't get this
+problem of multiple bills
+
+00:12:53.190 --> 00:12:54.810
+from the same visit.
+
+00:12:54.810 --> 00:12:59.250
+And then we looked for
+electronic prescriptions
+
+00:12:59.250 --> 00:13:00.780
+of various sorts.
+
+00:13:00.780 --> 00:13:04.830
+We looked for lab tests,
+mainly RF, rheumatoid factor,
+
+00:13:04.830 --> 00:13:08.490
+and anti-cyclic
+citrullinated peptide,
+
+00:13:08.490 --> 00:13:11.010
+if I pronounced that correctly.
+
+00:13:11.010 --> 00:13:14.010
+And another thing we found,
+not only in this study
+
+00:13:14.010 --> 00:13:17.010
+but in a number of others,
+is it's very helpful
+
+00:13:17.010 --> 00:13:19.080
+just to count up
+how many facts are
+
+00:13:19.080 --> 00:13:22.350
+on the database about
+a particular patient.
+
+00:13:22.350 --> 00:13:26.340
+That's not a bad proxy for
+how sick they are, right?
+
+00:13:26.340 --> 00:13:28.260
+If you're not very
+sick, you tend
+
+00:13:28.260 --> 00:13:30.280
+to have a little bit of data.
+
+00:13:30.280 --> 00:13:33.580
+And if you're sicker, you
+tend to have more data.
+
+00:13:33.580 --> 00:13:37.710
+So these were the
+cohort selection.
+
+00:13:37.710 --> 00:13:41.820
+And then for the
+narrative text, we
+
+00:13:41.820 --> 00:13:48.120
+used a system that was built
+by Qing Zeng and her colleagues
+
+00:13:48.120 --> 00:13:51.030
+at the time-- it
+was called HITex.
+
+00:13:51.030 --> 00:13:54.690
+It's definitely not
+state of the art today.
+
+00:13:54.690 --> 00:13:59.070
+But this was a system
+that extracted entities
+
+00:13:59.070 --> 00:14:06.280
+from narrative text and did
+a capable job for its era.
+
+00:14:06.280 --> 00:14:09.880
+And we did this from health
+care provider notes, radiology
+
+00:14:09.880 --> 00:14:15.010
+and pathology reports, discharge
+summaries, operative reports.
+
+00:14:15.010 --> 00:14:20.440
+And we also extracted
+disease diagnosis notes,
+
+00:14:20.440 --> 00:14:23.500
+mentions from the same
+data, medications,
+
+00:14:23.500 --> 00:14:27.640
+lab data, radiology
+findings, et cetera.
+
+00:14:27.640 --> 00:14:32.710
+And then we had augmented the
+list that came with that tool
+
+00:14:32.710 --> 00:14:37.060
+with the sort of hand-curated
+list of alternative ways
+
+00:14:37.060 --> 00:14:41.290
+of saying the same thing in
+order to expand our coverage.
+
+00:14:41.290 --> 00:14:43.900
+And we played with
+negation detection
+
+00:14:43.900 --> 00:14:47.290
+because, of course, if a note
+says the patient does not
+
+00:14:47.290 --> 00:14:52.360
+have x, then you don't want to
+say the patient had x because x
+
+00:14:52.360 --> 00:14:53.410
+was mentioned.
+
+00:14:53.410 --> 00:14:57.320
+And I'll say a few more
+words about that in a minute.
+
+00:14:57.320 --> 00:15:00.690
+So if you look at
+the model we built
+
+00:15:00.690 --> 00:15:05.310
+using logistic regression, which
+is a very common method, what
+
+00:15:05.310 --> 00:15:08.220
+you find is that there
+are positive and negative
+
+00:15:08.220 --> 00:15:12.180
+predictors, and the
+predictors actually
+
+00:15:12.180 --> 00:15:14.850
+are an interesting
+mix of ones based
+
+00:15:14.850 --> 00:15:19.210
+on natural language processing
+and ones that are codified.
+
+00:15:19.210 --> 00:15:23.160
+So for example, you have
+rheumatoid arthritis.
+
+00:15:23.160 --> 00:15:26.940
+If a note says the patient
+has rheumatoid arthritis,
+
+00:15:26.940 --> 00:15:31.470
+that's pretty good
+evidence that they do.
+
+00:15:31.470 --> 00:15:36.270
+If somebody is characterized
+as being seropositive,
+
+00:15:36.270 --> 00:15:38.730
+that's again good evidence.
+
+00:15:38.730 --> 00:15:41.450
+And then erosions and so on.
+
+00:15:41.450 --> 00:15:43.680
+But they're also
+codified things,
+
+00:15:43.680 --> 00:15:48.540
+like if you see that the
+rheumatoid factor in a lab test
+
+00:15:48.540 --> 00:15:52.890
+was negative, then--
+
+00:15:52.890 --> 00:15:55.540
+actually, I don't
+know why that's--
+
+00:15:55.540 --> 00:15:56.850
+oh, no, that counts against--
+
+00:15:56.850 --> 00:15:58.050
+OK.
+
+00:15:58.050 --> 00:15:59.950
+And then various exclusions.
+
+00:15:59.950 --> 00:16:02.520
+So these were the
+things selected
+
+00:16:02.520 --> 00:16:07.790
+by our regularized logistic
+regression algorithm.
+
+00:16:07.790 --> 00:16:14.740
+And I showed you
+the results before.
+
+00:16:14.740 --> 00:16:18.090
+So we were able to get a
+positive predictive value
+
+00:16:18.090 --> 00:16:19.160
+of about 0.94.
+
+00:16:19.160 --> 00:16:19.660
+Yeah?
+
+00:16:19.660 --> 00:16:21.077
+AUDIENCE: In a the
+previous slide,
+
+00:16:21.077 --> 00:16:23.940
+you said standardized
+regression coefficients.
+
+00:16:23.940 --> 00:16:28.350
+So why did you standardize?
+
+00:16:28.350 --> 00:16:29.680
+Maybe I got the words wrong.
+
+00:16:29.680 --> 00:16:31.345
+Just on the previous
+slide, the--
+
+00:16:42.500 --> 00:16:43.910
+PETER SZOLOVITS: I think--
+
+00:16:43.910 --> 00:16:47.970
+so the regression coefficients
+in a logistic regression
+
+00:16:47.970 --> 00:16:52.640
+are typically just
+odds ratios, right?
+
+00:16:52.640 --> 00:16:56.920
+So they tell you whether
+something makes a diagnosis
+
+00:16:56.920 --> 00:16:59.440
+more or less likely.
+
+00:16:59.440 --> 00:17:02.810
+And where does it
+say standardized?
+
+00:17:02.810 --> 00:17:04.575
+AUDIENCE: [INAUDIBLE].
+
+00:17:04.575 --> 00:17:07.300
+PETER SZOLOVITS: Oh,
+regression standardized.
+
+00:17:07.300 --> 00:17:08.980
+I don't know why it
+says standardized.
+
+00:17:08.980 --> 00:17:11.035
+Do you know why it
+says standardized?
+
+00:17:11.035 --> 00:17:12.410
+KATHERINE LIAO:
+Couple of things.
+
+00:17:12.410 --> 00:17:15.210
+One is, when you
+run an algorithm
+
+00:17:15.210 --> 00:17:17.560
+right on your data
+set, you can't
+
+00:17:17.560 --> 00:17:20.062
+port it using the same
+coefficients because it's going
+
+00:17:20.062 --> 00:17:21.270
+to be different for each one.
+
+00:17:21.270 --> 00:17:23.871
+So we didn't want people to feel
+like they can just add it on.
+
+00:17:23.871 --> 00:17:25.579
+The other thing, when
+you standardize it,
+
+00:17:25.579 --> 00:17:29.040
+is you can see the relative
+weight of each coefficient.
+
+00:17:29.040 --> 00:17:30.410
+So it's kind of a measure.
+
+00:17:30.410 --> 00:17:33.380
+Not exactly of how important
+each coefficient was.
+
+00:17:33.380 --> 00:17:34.940
+That's our way of--
+if you can see,
+
+00:17:34.940 --> 00:17:39.320
+we ranked it by the standardized
+regression coefficient.
+
+00:17:39.320 --> 00:17:41.910
+So NL PRA is up top at 1.11.
+
+00:17:41.910 --> 00:17:46.600
+So that has the highest weight.
+
+00:17:46.600 --> 00:17:50.710
+Whereas the other DMARDs lend
+it only a little bit more.
+
+00:17:50.710 --> 00:17:53.240
+PETER SZOLOVITS: OK.
+
+00:17:53.240 --> 00:17:53.740
+Yes?
+
+00:17:53.740 --> 00:17:56.730
+AUDIENCE: The variables
+where NL PRA, where
+
+00:17:56.730 --> 00:17:58.730
+it says rheumatoid
+arthritis in the test,
+
+00:17:58.730 --> 00:18:01.220
+were these presence of
+or if they're count?
+
+00:18:01.220 --> 00:18:02.770
+PETER SZOLOVITS: Yeah.
+
+00:18:02.770 --> 00:18:03.880
+Assuming it's present.
+
+00:18:03.880 --> 00:18:06.760
+So the negation
+algorithm hopefully
+
+00:18:06.760 --> 00:18:09.760
+would have picked up
+if it said it's absent
+
+00:18:09.760 --> 00:18:11.530
+and you wouldn't
+get that feature.
+
+00:18:14.850 --> 00:18:16.020
+All right?
+
+00:18:16.020 --> 00:18:19.470
+So here's an interesting thing.
+
+00:18:19.470 --> 00:18:24.750
+This group, I was not involved
+in this particular project,
+
+00:18:24.750 --> 00:18:27.990
+said, well, could we replicate
+the study at Vanderbilt
+
+00:18:27.990 --> 00:18:29.550
+and at Northwestern University?
+
+00:18:29.550 --> 00:18:31.830
+So we have colleagues
+in those places.
+
+00:18:31.830 --> 00:18:34.740
+They also have electronic
+medical record systems.
+
+00:18:34.740 --> 00:18:38.430
+They also are interested
+in identifying people
+
+00:18:38.430 --> 00:18:40.960
+with rheumatoid arthritis.
+
+00:18:40.960 --> 00:18:43.950
+And so Partners had
+about 4 million patients,
+
+00:18:43.950 --> 00:18:49.200
+Northwestern had 2.2,
+Vanderbilt had 1.7.
+
+00:18:49.200 --> 00:18:53.610
+And we couldn't run exactly the
+same stuff because, of course,
+
+00:18:53.610 --> 00:18:56.620
+these are different systems.
+
+00:18:56.620 --> 00:19:00.030
+And so the medications,
+for example,
+
+00:19:00.030 --> 00:19:06.300
+were extracted from their local
+EMR in very different ways.
+
+00:19:06.300 --> 00:19:10.170
+And the natural language
+queries were also
+
+00:19:10.170 --> 00:19:12.750
+extracted in different
+ways because Vanderbilt,
+
+00:19:12.750 --> 00:19:16.170
+for example, already
+had a tool in place
+
+00:19:16.170 --> 00:19:18.720
+where they would
+try to translate
+
+00:19:18.720 --> 00:19:22.040
+any text in their
+notes into UMLS
+
+00:19:22.040 --> 00:19:27.250
+less concepts, which we'll talk
+about again in a little while.
+
+00:19:27.250 --> 00:19:30.090
+So my expectation, when
+I heard about this study,
+
+00:19:30.090 --> 00:19:32.880
+is that this would
+be a disaster.
+
+00:19:32.880 --> 00:19:37.230
+That it would simply
+not work because there
+
+00:19:37.230 --> 00:19:40.050
+are local effects,
+local factors,
+
+00:19:40.050 --> 00:19:44.280
+local ways that people
+have of describing patients
+
+00:19:44.280 --> 00:19:51.030
+that I thought would be very
+different between Nashville,
+
+00:19:51.030 --> 00:19:53.590
+Chicago, and Boston.
+
+00:19:53.590 --> 00:19:58.400
+And much to my surprise, what
+they found was that, in fact,
+
+00:19:58.400 --> 00:20:00.140
+it kind of worked.
+
+00:20:00.140 --> 00:20:04.785
+So the model performance,
+even taking into account
+
+00:20:04.785 --> 00:20:07.470
+that the way the data
+was extracted out
+
+00:20:07.470 --> 00:20:12.600
+of the notes and clinical
+systems was different,
+
+00:20:12.600 --> 00:20:14.430
+was fairly similar.
+
+00:20:14.430 --> 00:20:17.250
+Now, one thing that
+is worrisome is
+
+00:20:17.250 --> 00:20:22.140
+that the PPV of our
+algorithm on our data,
+
+00:20:22.140 --> 00:20:30.720
+the way we calculated PPV, they
+calculated PPV in this study,
+
+00:20:30.720 --> 00:20:36.040
+came in lower than the way we
+had done it when we found it.
+
+00:20:36.040 --> 00:20:38.980
+And so there is a
+technical reason for it,
+
+00:20:38.980 --> 00:20:40.860
+but it's still
+disturbing that we're
+
+00:20:40.860 --> 00:20:42.850
+getting a different result.
+
+00:20:42.850 --> 00:20:46.320
+The technical reason
+is described here.
+
+00:20:46.320 --> 00:20:51.480
+Here, the PPV is estimated from
+a five-fold cross validation
+
+00:20:51.480 --> 00:20:54.150
+of the data, whereas
+in our study,
+
+00:20:54.150 --> 00:20:58.500
+we had a held out data set
+from which we were calculating
+
+00:20:58.500 --> 00:21:00.490
+the positive predictive value.
+
+00:21:00.490 --> 00:21:02.700
+So it's a different analysis.
+
+00:21:02.700 --> 00:21:06.270
+It's not that we made
+some arithmetic mistake.
+
+00:21:06.270 --> 00:21:08.490
+But this is interesting.
+
+00:21:08.490 --> 00:21:12.220
+And what you see is that if
+you plot the areas under--
+
+00:21:12.220 --> 00:21:15.870
+or if you plot the ROC
+curves, what you see
+
+00:21:15.870 --> 00:21:21.810
+is that training on
+Northwestern data
+
+00:21:21.810 --> 00:21:25.830
+and testing on either
+Partners or Vanderbilt data
+
+00:21:25.830 --> 00:21:27.870
+was not so good.
+
+00:21:27.870 --> 00:21:32.550
+But training on either
+Partners or Vanderbilt data
+
+00:21:32.550 --> 00:21:38.280
+and testing on any of the others
+turned out to be quite decent.
+
+00:21:38.280 --> 00:21:39.000
+Right?
+
+00:21:39.000 --> 00:21:43.010
+So there is some generality
+to the algorithm.
+
+00:21:43.010 --> 00:21:46.730
+All right, I'm going to
+switch gears for a minute.
+
+00:21:46.730 --> 00:21:53.510
+So this was from an old paper
+by Barrows from 19 years ago.
+
+00:21:53.510 --> 00:22:00.170
+And he was reading nursing
+notes in an electronic medical
+
+00:22:00.170 --> 00:22:01.760
+records system.
+
+00:22:01.760 --> 00:22:04.940
+And he came up with
+a note which has
+
+00:22:04.940 --> 00:22:09.790
+exactly that text on the left
+hand side in the nursing note.
+
+00:22:13.340 --> 00:22:16.580
+Except it wasn't nicely
+separated into separate lines.
+
+00:22:16.580 --> 00:22:18.802
+It was all run together.
+
+00:22:18.802 --> 00:22:19.760
+So what does that mean?
+
+00:22:24.510 --> 00:22:25.650
+Anybody have a clue?
+
+00:22:28.530 --> 00:22:32.450
+I didn't when I
+was looking at it.
+
+00:22:32.450 --> 00:22:35.000
+So here's the interpretation.
+
+00:22:37.820 --> 00:22:38.770
+So that's a date.
+
+00:22:38.770 --> 00:22:42.380
+IPN stands for
+intern progress note.
+
+00:22:42.380 --> 00:22:46.610
+SOB, that's not what
+you think it means.
+
+00:22:46.610 --> 00:22:49.510
+It's shortness of breath.
+
+00:22:49.510 --> 00:22:52.850
+And DOE is dyspnea on exertion.
+
+00:22:52.850 --> 00:22:57.220
+So this is difficulty breathing
+when you're exerting yourself,
+
+00:22:57.220 --> 00:23:00.430
+but that has
+decreased, presumably
+
+00:23:00.430 --> 00:23:02.830
+from some previous assessment.
+
+00:23:02.830 --> 00:23:07.210
+And the patient's vital
+signs are stable, so VSS.
+
+00:23:07.210 --> 00:23:11.179
+And the patient is afebrile, AF.
+
+00:23:11.179 --> 00:23:12.630
+OK?
+
+00:23:12.630 --> 00:23:15.670
+Et cetera.
+
+00:23:15.670 --> 00:23:21.100
+So this is harder than reading
+the Wall Street Journal
+
+00:23:21.100 --> 00:23:24.070
+because the Wall
+Street Journal is
+
+00:23:24.070 --> 00:23:27.970
+meant to be readable by
+anybody who speaks English.
+
+00:23:27.970 --> 00:23:31.210
+And this is probably not meant
+to be readable by anybody
+
+00:23:31.210 --> 00:23:34.090
+except the person
+who wrote it or maybe
+
+00:23:34.090 --> 00:23:36.760
+their immediate
+friends and colleagues.
+
+00:23:36.760 --> 00:23:40.750
+So this is a real issue
+and one that we don't have
+
+00:23:40.750 --> 00:23:43.890
+a very good solution for yet.
+
+00:23:43.890 --> 00:23:45.610
+Now, what do you use NLP for?
+
+00:23:45.610 --> 00:23:52.980
+Well, I had mentioned that one
+of the things we want to do
+
+00:23:52.980 --> 00:23:57.210
+is to codify things
+that appear in a note.
+
+00:23:57.210 --> 00:23:59.340
+So if it says
+rheumatoid arthritis,
+
+00:23:59.340 --> 00:24:01.500
+we want to say, well,
+that's equivalent
+
+00:24:01.500 --> 00:24:05.970
+to a particular ICD-9 code.
+
+00:24:05.970 --> 00:24:08.670
+We might want to use
+natural language processing
+
+00:24:08.670 --> 00:24:11.160
+for de-identification of data.
+
+00:24:11.160 --> 00:24:12.960
+I mentioned that before.
+
+00:24:12.960 --> 00:24:16.710
+You don't, MIMIC, the only way
+that Roger Mark's group got
+
+00:24:16.710 --> 00:24:19.710
+permission to release
+that data and make
+
+00:24:19.710 --> 00:24:22.730
+it available for
+people like you to use
+
+00:24:22.730 --> 00:24:25.860
+is by persuading
+the IRB that we had
+
+00:24:25.860 --> 00:24:27.660
+done a good enough
+job of getting
+
+00:24:27.660 --> 00:24:31.410
+rid of all the identifying
+information in all
+
+00:24:31.410 --> 00:24:35.190
+of those records so that
+it's probably not technically
+
+00:24:35.190 --> 00:24:37.650
+impossible, but
+it's very difficult
+
+00:24:37.650 --> 00:24:42.490
+to figure out who the patients
+actually were in that cohort,
+
+00:24:42.490 --> 00:24:44.250
+in that database.
+
+00:24:44.250 --> 00:24:48.150
+And the reason we ask you
+to sign a data use agreement
+
+00:24:48.150 --> 00:24:51.520
+is to deal with
+that residual, you
+
+00:24:51.520 --> 00:24:55.980
+know, difficult but not
+necessarily impossible
+
+00:24:55.980 --> 00:24:59.130
+because of correlations
+with other data.
+
+00:24:59.130 --> 00:25:00.570
+And then you have
+little problems
+
+00:25:00.570 --> 00:25:04.530
+like Mr. Huntington suffers from
+Huntington's disease, in which
+
+00:25:04.530 --> 00:25:08.550
+the first Huntington is
+protected health information
+
+00:25:08.550 --> 00:25:10.320
+because it's a patient's name.
+
+00:25:10.320 --> 00:25:12.030
+The second Huntington
+is actually
+
+00:25:12.030 --> 00:25:14.730
+an important medical fact.
+
+00:25:14.730 --> 00:25:19.200
+And so you wouldn't want
+to get rid of that one.
+
+00:25:19.200 --> 00:25:21.480
+You want to determine
+aspects of each entity.
+
+00:25:21.480 --> 00:25:26.430
+Its time, its location,
+its degree of certainty.
+
+00:25:26.430 --> 00:25:28.260
+You want to look
+for relationships
+
+00:25:28.260 --> 00:25:32.310
+between different entities that
+are identified in the text.
+
+00:25:32.310 --> 00:25:35.580
+For example, does one precede
+another, does it cause it,
+
+00:25:35.580 --> 00:25:39.550
+does it treat it, prevent
+it, indicate it, et cetera?
+
+00:25:39.550 --> 00:25:42.380
+So there are a whole bunch
+of relationships like that
+
+00:25:42.380 --> 00:25:44.320
+that we're interested in.
+
+00:25:44.320 --> 00:25:48.580
+And then also, for certain
+kinds of applications,
+
+00:25:48.580 --> 00:25:53.340
+what you'd really like
+to do is to identify
+
+00:25:53.340 --> 00:25:58.870
+what part of a textual record
+addresses a certain question.
+
+00:25:58.870 --> 00:26:02.070
+So even if you can't
+tell what the answer is,
+
+00:26:02.070 --> 00:26:04.770
+you should able to point
+to a piece of the record
+
+00:26:04.770 --> 00:26:07.440
+and say, oh, this
+tells me about,
+
+00:26:07.440 --> 00:26:11.130
+in this case, the
+patient's exercise regimen.
+
+00:26:11.130 --> 00:26:14.370
+And then summarization
+is a very real challenge
+
+00:26:14.370 --> 00:26:18.420
+as well, especially because
+of the cut and paste that
+
+00:26:18.420 --> 00:26:22.840
+has come about as a result of
+these electronic medical record
+
+00:26:22.840 --> 00:26:26.850
+systems where, when a nurse
+is writing a new note,
+
+00:26:26.850 --> 00:26:30.180
+it's tempting and
+supported by the system
+
+00:26:30.180 --> 00:26:33.570
+for him or her to just
+take the old note,
+
+00:26:33.570 --> 00:26:37.650
+copy it over to a new note, and
+then maybe make a few changes.
+
+00:26:37.650 --> 00:26:39.690
+But that means that
+it's very repetitive.
+
+00:26:39.690 --> 00:26:43.350
+The same stuff is recorded
+over and over again.
+
+00:26:43.350 --> 00:26:45.450
+And sometimes that's
+not even appropriate
+
+00:26:45.450 --> 00:26:47.752
+because they may not
+have changed everything
+
+00:26:47.752 --> 00:26:48.835
+that needed to be changed.
+
+00:26:52.140 --> 00:26:54.110
+The other thing to keep
+in mind is that there
+
+00:26:54.110 --> 00:26:56.610
+are two very different tasks.
+
+00:26:56.610 --> 00:27:00.710
+So for example, if I'm
+doing de-identification,
+
+00:27:00.710 --> 00:27:04.970
+essentially I have to look
+at every word in a narrative
+
+00:27:04.970 --> 00:27:09.010
+in order to see whether it's
+protected health information.
+
+00:27:09.010 --> 00:27:12.500
+But there are often aggregate
+judgments that I need to make,
+
+00:27:12.500 --> 00:27:16.500
+where many of the words
+don't make any difference.
+
+00:27:16.500 --> 00:27:20.480
+And so for example, one
+of the first challenges
+
+00:27:20.480 --> 00:27:24.500
+that we ran back
+in 2006 was where
+
+00:27:24.500 --> 00:27:28.040
+we gave people medical
+records, narrative text
+
+00:27:28.040 --> 00:27:32.550
+records from a bunch
+of patients and said,
+
+00:27:32.550 --> 00:27:33.590
+is this person a smoker?
+
+00:27:38.050 --> 00:27:41.260
+Well, you can imagine that
+there are certain words that
+
+00:27:41.260 --> 00:27:47.910
+are very helpful like
+smoker or tobacco user
+
+00:27:47.910 --> 00:27:50.240
+or something like that.
+
+00:27:50.240 --> 00:27:53.090
+But even those are
+sometimes misleading.
+
+00:27:53.090 --> 00:27:56.380
+So for example, we
+saw somebody who
+
+00:27:56.380 --> 00:28:02.140
+happened to be a researcher
+working on tobacco mosaic virus
+
+00:28:02.140 --> 00:28:05.380
+who was not a smoker.
+
+00:28:05.380 --> 00:28:09.340
+And then you have
+interesting cases
+
+00:28:09.340 --> 00:28:13.920
+like the patient quit
+smoking two days ago.
+
+00:28:17.440 --> 00:28:19.570
+Really?
+
+00:28:19.570 --> 00:28:20.920
+Are they a smoker or not?
+
+00:28:23.540 --> 00:28:27.610
+And also, aggregate judgment is
+things like cohort selection,
+
+00:28:27.610 --> 00:28:29.800
+where it's not every
+single thing that you need
+
+00:28:29.800 --> 00:28:31.810
+to know about this patient.
+
+00:28:31.810 --> 00:28:36.250
+You just need to know if
+they fit a certain pattern.
+
+00:28:36.250 --> 00:28:39.190
+So let me give you a
+little historical note.
+
+00:28:39.190 --> 00:28:42.790
+So this happened to be work
+that was done by my PhD thesis
+
+00:28:42.790 --> 00:28:48.550
+advisor, the gentleman whose
+picture is on the slide there.
+
+00:28:48.550 --> 00:28:51.640
+And he published
+this paper in 1966
+
+00:28:51.640 --> 00:28:55.810
+called English for the Computer
+in the Proceedings of the Fall
+
+00:28:55.810 --> 00:28:57.130
+Joint Computer Conference.
+
+00:28:57.130 --> 00:29:02.710
+This was the big computer
+conference of the 1960s.
+
+00:29:02.710 --> 00:29:06.640
+And his idea was that the
+way to do English, the way
+
+00:29:06.640 --> 00:29:12.230
+to process English is to
+assume that there is a grammar,
+
+00:29:12.230 --> 00:29:15.470
+and any English text
+that you run across,
+
+00:29:15.470 --> 00:29:18.560
+you parse according
+to this grammar.
+
+00:29:18.560 --> 00:29:21.710
+And that each parsing
+rule corresponds
+
+00:29:21.710 --> 00:29:24.910
+to some semantic function.
+
+00:29:24.910 --> 00:29:29.790
+And so the picture that
+emerges is one like this.
+
+00:29:29.790 --> 00:29:32.310
+Where if you have
+two phrases and they
+
+00:29:32.310 --> 00:29:36.780
+have some syntactic relationship
+between them, then you can
+
+00:29:36.780 --> 00:29:40.110
+map each phrase to its meaning.
+
+00:29:40.110 --> 00:29:44.610
+And the semantic relationship
+between those two meanings
+
+00:29:44.610 --> 00:29:50.520
+is determined by the syntactic
+relationship in the language.
+
+00:29:50.520 --> 00:29:54.120
+So this seems like a
+fairly obvious idea,
+
+00:29:54.120 --> 00:29:58.500
+but apparently nobody had tried
+this on a computer before.
+
+00:29:58.500 --> 00:30:04.240
+And so Fred built, over the
+next 20 years, computer systems,
+
+00:30:04.240 --> 00:30:09.450
+some of which I worked on that
+tried to follow this method.
+
+00:30:09.450 --> 00:30:13.500
+And he was, in fact,
+able to build systems
+
+00:30:13.500 --> 00:30:18.090
+that were used by researchers
+in areas like anthropology,
+
+00:30:18.090 --> 00:30:22.230
+where you don't have nice coded
+data and where a lot of stuff
+
+00:30:22.230 --> 00:30:24.450
+is in narrative text.
+
+00:30:24.450 --> 00:30:28.390
+And yet he was able to
+help one anthropologist
+
+00:30:28.390 --> 00:30:33.620
+that I worked with at Caltech
+to analyze a database of about
+
+00:30:33.620 --> 00:30:39.390
+80,000 interviews that he had
+done with members of the Gwembe
+
+00:30:39.390 --> 00:30:43.350
+Tonga tribe, who lived in the
+valley that is now flooded
+
+00:30:43.350 --> 00:30:48.300
+by the Zambezi River Reservoir
+on the border of Zambia
+
+00:30:48.300 --> 00:30:50.280
+and Zimbabwe.
+
+00:30:50.280 --> 00:30:51.540
+That was fascinating.
+
+00:30:51.540 --> 00:30:54.240
+Again, he became very well
+known for some of that research.
+
+00:30:58.480 --> 00:31:04.360
+In the 1980s I was
+amused to see that SRI--
+
+00:31:04.360 --> 00:31:05.950
+which doesn't
+stand for anything,
+
+00:31:05.950 --> 00:31:10.840
+but used to stand for
+Stanford Research Institute--
+
+00:31:10.840 --> 00:31:14.290
+built a system called
+Diamond Diagram,
+
+00:31:14.290 --> 00:31:22.000
+which was intended
+to help people
+
+00:31:22.000 --> 00:31:24.250
+interact with the
+computer system
+
+00:31:24.250 --> 00:31:27.790
+when they didn't know a command
+language for the computer.
+
+00:31:27.790 --> 00:31:30.880
+So they could express what
+they wanted to do in English
+
+00:31:30.880 --> 00:31:32.710
+and the English
+would be translated
+
+00:31:32.710 --> 00:31:35.260
+into some semantic
+representation.
+
+00:31:35.260 --> 00:31:38.815
+And from that, the right thing
+was triggered in the computer.
+
+00:31:41.540 --> 00:31:47.420
+So these guys, Walker
+and Hobbs, said, well,
+
+00:31:47.420 --> 00:31:50.710
+why don't we apply this idea
+to natural language access
+
+00:31:50.710 --> 00:31:52.780
+to medical text?
+
+00:31:52.780 --> 00:31:57.310
+And so they built a system
+that didn't work very well,
+
+00:31:57.310 --> 00:32:01.600
+but it tried to do this
+by essentially translating
+
+00:32:01.600 --> 00:32:05.680
+the English that it was reading
+into some formal predicate
+
+00:32:05.680 --> 00:32:12.760
+calculus representation
+of what they saw, and then
+
+00:32:12.760 --> 00:32:15.040
+a process for that system.
+
+00:32:18.580 --> 00:32:22.960
+The original Diamond
+Diagram system
+
+00:32:22.960 --> 00:32:26.710
+that was built for people
+who were naive computer users
+
+00:32:26.710 --> 00:32:29.230
+and didn't know
+command languages
+
+00:32:29.230 --> 00:32:32.420
+actually had a
+very rigid syntax.
+
+00:32:32.420 --> 00:32:36.400
+And so what they
+discovered is that people
+
+00:32:36.400 --> 00:32:39.490
+are more adaptable
+than computers
+
+00:32:39.490 --> 00:32:46.000
+and that they could adapt
+to this rigid syntax.
+
+00:32:46.000 --> 00:32:52.240
+How many of you have
+Google Home or Amazon Echo
+
+00:32:52.240 --> 00:32:56.300
+or Apple something or
+other that you deal with?
+
+00:32:56.300 --> 00:33:00.070
+Well, so it's
+training you, right?
+
+00:33:00.070 --> 00:33:04.550
+Because it's not very good
+at letting you train it,
+
+00:33:04.550 --> 00:33:06.790
+but you're more adaptable.
+
+00:33:06.790 --> 00:33:10.810
+And so you quickly learn that
+if you phrase things one way,
+
+00:33:10.810 --> 00:33:13.600
+it understands you, and if you
+phrase things a different way,
+
+00:33:13.600 --> 00:33:15.160
+it doesn't understand you.
+
+00:33:15.160 --> 00:33:17.500
+And you learn how to phrase it.
+
+00:33:17.500 --> 00:33:20.590
+So that's what these
+guys are relying on,
+
+00:33:20.590 --> 00:33:24.970
+is that they can
+get people to adopt
+
+00:33:24.970 --> 00:33:29.140
+the conventions that the
+computer is able to understand.
+
+00:33:29.140 --> 00:33:32.080
+The most radical
+version of this was
+
+00:33:32.080 --> 00:33:37.540
+a guy named de Heaulme,
+who I met in 1983 in Paris.
+
+00:33:37.540 --> 00:33:40.530
+He was a doctor Le
+Pitie Salpetriere,
+
+00:33:40.530 --> 00:33:45.360
+which is one of these
+medieval hospitals in Paris.
+
+00:33:45.360 --> 00:33:48.190
+And it's wonderful place,
+although when they built it,
+
+00:33:48.190 --> 00:33:51.670
+it was just a place to
+die because they really
+
+00:33:51.670 --> 00:33:53.830
+couldn't do much for you.
+
+00:33:53.830 --> 00:33:59.890
+So de Heaulme convinced
+the chief of cardiology
+
+00:33:59.890 --> 00:34:04.450
+at that hospital that he would
+develop an artificial language
+
+00:34:04.450 --> 00:34:08.110
+for taking notes about
+cardiac patients.
+
+00:34:08.110 --> 00:34:11.440
+He would teach this
+to all of the fellows
+
+00:34:11.440 --> 00:34:15.790
+and junior doctors in
+the cardiology department
+
+00:34:15.790 --> 00:34:17.230
+at the hospital.
+
+00:34:17.230 --> 00:34:20.995
+And they would be required
+by the chief, which
+
+00:34:20.995 --> 00:34:25.600
+is very powerful in France, to
+use this artificial language
+
+00:34:25.600 --> 00:34:30.820
+to write notes instead of
+using French to write notes.
+
+00:34:30.820 --> 00:34:33.980
+And they actually
+did this for a month.
+
+00:34:33.980 --> 00:34:35.800
+And when I met de
+Heaulme, he was
+
+00:34:35.800 --> 00:34:39.820
+in the middle of analyzing the
+data that he had collected.
+
+00:34:39.820 --> 00:34:44.860
+And what he found was
+that the language was not
+
+00:34:44.860 --> 00:34:46.300
+expressive enough.
+
+00:34:46.300 --> 00:34:48.429
+There were things
+that people wanted
+
+00:34:48.429 --> 00:34:52.239
+to say that they couldn't say
+in this artificial language he
+
+00:34:52.239 --> 00:34:53.770
+had created.
+
+00:34:53.770 --> 00:34:57.350
+And so he went back
+to create version two,
+
+00:34:57.350 --> 00:34:59.960
+and then he went back to
+the cardiologist and said,
+
+00:34:59.960 --> 00:35:01.588
+well, let's do this again.
+
+00:35:01.588 --> 00:35:03.130
+And then they
+threatened to kill him.
+
+00:35:06.200 --> 00:35:11.680
+So the experiment
+was not repeated.
+
+00:35:11.680 --> 00:35:13.940
+OK, so back to term spotting.
+
+00:35:18.480 --> 00:35:20.790
+Traditionally, if
+you were trying
+
+00:35:20.790 --> 00:35:23.400
+to do this, what you would
+do is you would sit down
+
+00:35:23.400 --> 00:35:27.600
+with a bunch of medical experts
+and you would say, all right,
+
+00:35:27.600 --> 00:35:30.120
+tell me all the
+words that you think
+
+00:35:30.120 --> 00:35:33.930
+might appear in a note that are
+indicative of some condition
+
+00:35:33.930 --> 00:35:35.670
+that I'm interested in.
+
+00:35:35.670 --> 00:35:37.830
+And they would give
+you a long list.
+
+00:35:37.830 --> 00:35:40.950
+And then you'd do grep, you'd
+search through the notes
+
+00:35:40.950 --> 00:35:42.810
+for those terms.
+
+00:35:42.810 --> 00:35:43.590
+OK?
+
+00:35:43.590 --> 00:35:46.560
+And if you want it to
+be really sophisticated,
+
+00:35:46.560 --> 00:35:49.110
+you would use an
+algorithm like NegEx,
+
+00:35:49.110 --> 00:35:55.200
+which is a negation expression
+detector that helps get rid
+
+00:35:55.200 --> 00:35:58.470
+of things that are not true.
+
+00:35:58.470 --> 00:36:04.500
+And then, as people
+did this, they
+
+00:36:04.500 --> 00:36:07.650
+said, well, there must be
+more sophisticated ways
+
+00:36:07.650 --> 00:36:09.100
+of doing this.
+
+00:36:09.100 --> 00:36:12.210
+And so a whole industry
+developed of people
+
+00:36:12.210 --> 00:36:17.870
+saying that not only
+should we use the terms
+
+00:36:17.870 --> 00:36:20.450
+that we got originally
+from the doctors who
+
+00:36:20.450 --> 00:36:22.970
+were interested in
+doing these queries,
+
+00:36:22.970 --> 00:36:26.800
+but we can define a machine
+learning problem, which
+
+00:36:26.800 --> 00:36:29.980
+is how do we learn
+the set of terms
+
+00:36:29.980 --> 00:36:33.160
+that we should actually
+use that will give us
+
+00:36:33.160 --> 00:36:36.820
+better results than just
+the terms we started with?
+
+00:36:36.820 --> 00:36:42.210
+And so I'm going to talk about
+a little bit of that approach.
+
+00:36:42.210 --> 00:36:47.700
+First of all, for negation,
+Wendy Chapman, now at Utah,
+
+00:36:47.700 --> 00:36:52.620
+but at the time at Pittsburgh,
+published this paper in 2001
+
+00:36:52.620 --> 00:36:55.590
+called A Simple
+Algorithm for Identifying
+
+00:36:55.590 --> 00:36:59.070
+the Gated Findings of Diseases
+in Discharge Summaries.
+
+00:36:59.070 --> 00:37:02.340
+And it is indeed a
+very simple algorithm.
+
+00:37:02.340 --> 00:37:04.470
+And here's how it works.
+
+00:37:04.470 --> 00:37:07.710
+You find all the UMLS
+terms in each sentence
+
+00:37:07.710 --> 00:37:09.320
+of a discharge summary.
+
+00:37:09.320 --> 00:37:11.980
+So I'll talk a little
+bit about that.
+
+00:37:11.980 --> 00:37:15.420
+But basically, it's
+a dictionary look up.
+
+00:37:15.420 --> 00:37:19.950
+You look up in this very large
+database of medical terms
+
+00:37:19.950 --> 00:37:23.940
+and translate them into
+some kind of expression
+
+00:37:23.940 --> 00:37:28.390
+that represents what
+that term means.
+
+00:37:28.390 --> 00:37:31.870
+And then you find two
+kinds of patterns.
+
+00:37:31.870 --> 00:37:36.720
+One pattern is a negation phrase
+followed within five words
+
+00:37:36.720 --> 00:37:39.910
+by one of these UMLS terms.
+
+00:37:39.910 --> 00:37:45.340
+And the other is a UMLS term
+followed within five words
+
+00:37:45.340 --> 00:37:49.400
+by a negation phrase, different
+set of negation phrases.
+
+00:37:49.400 --> 00:37:53.200
+So if you see no
+sign of something,
+
+00:37:53.200 --> 00:37:55.180
+that means it's not present.
+
+00:37:55.180 --> 00:37:58.990
+Or if you see ruled out,
+unlikely something, then it's
+
+00:37:58.990 --> 00:38:00.160
+not present.
+
+00:38:00.160 --> 00:38:04.150
+Absence of, not demonstrated,
+denies, et cetera.
+
+00:38:04.150 --> 00:38:08.500
+And post modifiers if you say
+something declined or something
+
+00:38:08.500 --> 00:38:12.130
+unlikely, that also indicates
+that it's not present.
+
+00:38:15.360 --> 00:38:20.750
+And then they hacked up a
+bunch of exceptions where,
+
+00:38:20.750 --> 00:38:24.790
+for example, if you
+say gram negative, that
+
+00:38:24.790 --> 00:38:28.570
+doesn't mean that it's negative
+for whatever follows it
+
+00:38:28.570 --> 00:38:32.160
+or whatever precedes it, right?
+
+00:38:32.160 --> 00:38:32.740
+Et cetera.
+
+00:38:32.740 --> 00:38:35.260
+So there are a
+bunch of exceptions.
+
+00:38:35.260 --> 00:38:38.140
+And what they found
+is that this actually,
+
+00:38:38.140 --> 00:38:41.680
+considering how
+incredibly simple it is,
+
+00:38:41.680 --> 00:38:43.760
+does reasonably well.
+
+00:38:43.760 --> 00:38:49.630
+So if you look at sentences
+that do not contain a negation
+
+00:38:49.630 --> 00:38:53.450
+phrase and looked
+at 500 of them,
+
+00:38:53.450 --> 00:38:56.620
+you find that you get a
+sensitivity and specificity
+
+00:38:56.620 --> 00:39:01.000
+of 88% and 52% for
+those that don't
+
+00:39:01.000 --> 00:39:03.370
+contain one of these phrases.
+
+00:39:03.370 --> 00:39:06.880
+Of course, the sensitivity
+is 0 and the specificity
+
+00:39:06.880 --> 00:39:11.300
+is 100% on the baseline.
+
+00:39:11.300 --> 00:39:13.900
+And if you use
+NegEx, what you find
+
+00:39:13.900 --> 00:39:18.910
+is that you can significantly
+improve the specificity
+
+00:39:18.910 --> 00:39:21.000
+over the baseline.
+
+00:39:21.000 --> 00:39:22.880
+All right?
+
+00:39:22.880 --> 00:39:29.210
+And you wind up with
+a better result,
+
+00:39:29.210 --> 00:39:31.310
+although not in all schemes.
+
+00:39:31.310 --> 00:39:35.240
+So what this means is that
+very simplistic techniques
+
+00:39:35.240 --> 00:39:37.460
+can actually work
+reasonably well at times.
+
+00:39:40.410 --> 00:39:42.920
+So how do we do
+this generalization?
+
+00:39:42.920 --> 00:39:46.940
+One way is to take advantage
+of related terms like hypo-
+
+00:39:46.940 --> 00:39:50.120
+or hypernyms, things
+that are subcategories
+
+00:39:50.120 --> 00:39:51.920
+or super categories of a word.
+
+00:39:51.920 --> 00:39:55.650
+You might look for those
+other associated terms.
+
+00:39:55.650 --> 00:39:59.390
+For example, if you're looking
+to see whether a patient has
+
+00:39:59.390 --> 00:40:01.790
+a certain disease,
+then you can do
+
+00:40:01.790 --> 00:40:04.610
+a little bit of diagnostic
+reasoning and say,
+
+00:40:04.610 --> 00:40:08.000
+if I see a lot of symptoms
+of that disease mentioned,
+
+00:40:08.000 --> 00:40:12.200
+then maybe the disease
+is present as well.
+
+00:40:12.200 --> 00:40:15.980
+So the recursive
+machine learning problem
+
+00:40:15.980 --> 00:40:19.850
+is how best to identify
+the things associated
+
+00:40:19.850 --> 00:40:20.690
+with the term.
+
+00:40:20.690 --> 00:40:23.655
+And this is generally
+known as phenotyping.
+
+00:40:26.840 --> 00:40:33.780
+Now, how many of you
+have used the UMLS?
+
+00:40:33.780 --> 00:40:35.610
+Just a few.
+
+00:40:35.610 --> 00:40:43.440
+So in 1985 or '84, the
+newly appointed director
+
+00:40:43.440 --> 00:40:44.970
+of the National
+Library of Medicine,
+
+00:40:44.970 --> 00:40:47.490
+which is one of
+the NIH institutes,
+
+00:40:47.490 --> 00:40:51.210
+decided to make a big
+investment in creating
+
+00:40:51.210 --> 00:40:55.140
+this unified medical language
+system, which was an attempt
+
+00:40:55.140 --> 00:40:59.400
+to take all of the terminologies
+that various medical
+
+00:40:59.400 --> 00:41:02.040
+professional societies
+had developed
+
+00:41:02.040 --> 00:41:04.560
+and unify them
+into a single, what
+
+00:41:04.560 --> 00:41:07.450
+they called a meta-thesaurus.
+
+00:41:07.450 --> 00:41:11.860
+So it's not really a
+thesaurus because it's not
+
+00:41:11.860 --> 00:41:14.770
+completely well integrated,
+but it does include
+
+00:41:14.770 --> 00:41:16.810
+all of this terminology.
+
+00:41:16.810 --> 00:41:19.780
+And then they spent a lot
+of both human and machine
+
+00:41:19.780 --> 00:41:23.590
+resources in order
+to identify cases
+
+00:41:23.590 --> 00:41:25.930
+in which two
+different expressions
+
+00:41:25.930 --> 00:41:30.230
+from different terminologies
+really meant the same thing.
+
+00:41:30.230 --> 00:41:34.030
+So for example, myocardial
+infarction and heart attack
+
+00:41:34.030 --> 00:41:36.560
+really mean exactly
+the same thing.
+
+00:41:36.560 --> 00:41:38.470
+And in some
+terminologies, it's called
+
+00:41:38.470 --> 00:41:43.480
+acute myocardial
+infarction or acute infarct
+
+00:41:43.480 --> 00:41:46.240
+or acute, you know, whatever.
+
+00:41:46.240 --> 00:41:50.560
+And they paid people
+and they paid machines
+
+00:41:50.560 --> 00:41:55.060
+to scour those entire
+databases and come up
+
+00:41:55.060 --> 00:41:57.580
+with the mapping
+that said, OK, we're
+
+00:41:57.580 --> 00:42:03.310
+going to have some concept,
+you know, see 398752--
+
+00:42:03.310 --> 00:42:05.680
+I just made that up--
+which corresponds
+
+00:42:05.680 --> 00:42:08.690
+to that particular concept.
+
+00:42:08.690 --> 00:42:11.060
+And then they mapped
+all those together.
+
+00:42:11.060 --> 00:42:13.240
+So that's an enormous
+help in two ways.
+
+00:42:13.240 --> 00:42:20.140
+It helps you normalize databases
+that come from different places
+
+00:42:20.140 --> 00:42:22.570
+and that are
+described differently.
+
+00:42:22.570 --> 00:42:26.620
+It also tells you, for
+natural language processing,
+
+00:42:26.620 --> 00:42:27.700
+how it is--
+
+00:42:27.700 --> 00:42:31.600
+it gives you a treasure
+trove of ways of expressing
+
+00:42:31.600 --> 00:42:34.030
+the same conceptual idea.
+
+00:42:34.030 --> 00:42:36.100
+And then you can
+use those in order
+
+00:42:36.100 --> 00:42:40.790
+to expand the kinds of phrases
+that you're looking for.
+
+00:42:40.790 --> 00:42:45.580
+So there are, as of
+the current moment,
+
+00:42:45.580 --> 00:42:49.870
+there are about 3.7
+million distinct concepts
+
+00:42:49.870 --> 00:42:54.790
+in this concept base.
+
+00:42:54.790 --> 00:42:58.900
+There are also hierarchies
+and relationships
+
+00:42:58.900 --> 00:43:02.560
+that are imported from all
+these different sources
+
+00:43:02.560 --> 00:43:07.840
+of terminology, but those
+are a pretty jumbled mess.
+
+00:43:07.840 --> 00:43:12.390
+And then over the whole thing,
+they created a semantic network
+
+00:43:12.390 --> 00:43:18.270
+that says there are 54
+relations and 127 types,
+
+00:43:18.270 --> 00:43:21.300
+and every concept
+unique identifier
+
+00:43:21.300 --> 00:43:24.060
+is assigned at least
+one semantic type.
+
+00:43:24.060 --> 00:43:28.560
+So this is very useful for
+looking through this stuff.
+
+00:43:28.560 --> 00:43:37.320
+Here are the UMLS semantic
+concepts of various--
+
+00:43:37.320 --> 00:43:39.300
+or the semantic types.
+
+00:43:39.300 --> 00:43:43.080
+So you see that the most
+common semantic type
+
+00:43:43.080 --> 00:43:47.280
+is this T061, which stands
+for therapeutic or preventive
+
+00:43:47.280 --> 00:43:48.610
+procedure.
+
+00:43:48.610 --> 00:43:55.800
+And there are 260,000 of those
+concepts in the meta-thesaurus.
+
+00:43:55.800 --> 00:44:02.400
+There are 233,000
+findings, 172,000 drugs,
+
+00:44:02.400 --> 00:44:06.270
+organic chemicals,
+pharmacological substances,
+
+00:44:06.270 --> 00:44:09.960
+amino acid peptide or
+protein, invertebrate.
+
+00:44:09.960 --> 00:44:14.070
+So the data does not come
+only from human medicine
+
+00:44:14.070 --> 00:44:17.880
+but also from veterinary
+medicine and bioinformatics
+
+00:44:17.880 --> 00:44:20.310
+research and all over the place.
+
+00:44:20.310 --> 00:44:23.640
+But you see that these
+are a useful listing
+
+00:44:23.640 --> 00:44:31.650
+of appropriate semantic
+types that you can then
+
+00:44:31.650 --> 00:44:34.950
+look for in such a database.
+
+00:44:34.950 --> 00:44:38.820
+And the types are
+hierarchically organized.
+
+00:44:38.820 --> 00:44:42.720
+So for example,
+the relations are
+
+00:44:42.720 --> 00:44:45.780
+organized so there's an
+effects relation which
+
+00:44:45.780 --> 00:44:50.070
+has sub-relations, manages,
+treats, disrupts, complicates,
+
+00:44:50.070 --> 00:44:52.980
+interacts with, or prevents.
+
+00:44:52.980 --> 00:44:55.020
+Something like
+biological function
+
+00:44:55.020 --> 00:44:59.560
+can be a physiologic function
+or a pathologic function.
+
+00:44:59.560 --> 00:45:02.890
+And again, each of
+these has subcategories.
+
+00:45:02.890 --> 00:45:06.750
+So the idea is that each
+concept, each unique concept
+
+00:45:06.750 --> 00:45:10.500
+is labeled with at least
+one of these semantic types,
+
+00:45:10.500 --> 00:45:13.410
+and that helps to identify
+things when you're
+
+00:45:13.410 --> 00:45:16.650
+looking through the data.
+
+00:45:16.650 --> 00:45:19.380
+There are also some
+tools that deal
+
+00:45:19.380 --> 00:45:21.540
+with the typical
+linguistic problems,
+
+00:45:21.540 --> 00:45:28.410
+that if I want to say
+bleeds or bleed or bleeding,
+
+00:45:28.410 --> 00:45:30.600
+those are really all
+the same concept.
+
+00:45:30.600 --> 00:45:34.020
+And so there are these
+lexical variant generator
+
+00:45:34.020 --> 00:45:36.150
+that helps us normalize that.
+
+00:45:36.150 --> 00:45:39.300
+And then there is the
+normalization function
+
+00:45:39.300 --> 00:45:44.100
+that takes some statement like
+Mr. Huntington was admitted,
+
+00:45:44.100 --> 00:45:46.740
+blah, blah, blah,
+and normalizes it
+
+00:45:46.740 --> 00:45:54.450
+into lowercase alphabetized
+versions of the text, where
+
+00:45:54.450 --> 00:46:01.960
+things are translated into
+other potential meanings,
+
+00:46:01.960 --> 00:46:03.930
+linguistic meanings
+of that text.
+
+00:46:03.930 --> 00:46:07.480
+So for example, notice
+this one says was,
+
+00:46:07.480 --> 00:46:11.470
+but one of its translations
+is be because was
+
+00:46:11.470 --> 00:46:14.500
+is just a form of be.
+
+00:46:14.500 --> 00:46:16.750
+This can also get
+you in trouble.
+
+00:46:16.750 --> 00:46:20.830
+I ran into a problem where
+I was finding beryllium
+
+00:46:20.830 --> 00:46:25.120
+in everybody's medical
+records because it also
+
+00:46:25.120 --> 00:46:30.120
+knows that b-e is an
+abbreviation for beryllium.
+
+00:46:30.120 --> 00:46:32.650
+And so you have to
+be a little careful
+
+00:46:32.650 --> 00:46:34.860
+about how you use this stuff.
+
+00:46:34.860 --> 00:46:39.130
+There is an online tool where
+you can type in something
+
+00:46:39.130 --> 00:46:42.350
+and it says weakness of
+the upper extremities.
+
+00:46:42.350 --> 00:46:45.670
+And it says, oh, you
+mean the concept proximal
+
+00:46:45.670 --> 00:46:48.640
+weakness, upper extremities.
+
+00:46:48.640 --> 00:46:52.800
+And then it has a relationship
+to various contexts
+
+00:46:52.800 --> 00:46:56.460
+and it has siblings and it
+has all kinds of other things
+
+00:46:56.460 --> 00:46:59.530
+that one can look up.
+
+00:46:59.530 --> 00:47:02.380
+I built a tool a
+few years ago where
+
+00:47:02.380 --> 00:47:07.320
+if you populated with one
+of the short summaries,
+
+00:47:07.320 --> 00:47:11.490
+it tries to color code
+the types of things
+
+00:47:11.490 --> 00:47:14.040
+that it found in that summary.
+
+00:47:14.040 --> 00:47:16.110
+And so this is
+using a tool called
+
+00:47:16.110 --> 00:47:21.120
+MetaMap, which again
+comes from the National
+
+00:47:21.120 --> 00:47:26.160
+Library of Medicine,
+and a locally built UMLS
+
+00:47:26.160 --> 00:47:29.070
+look up tool that in
+this particular case
+
+00:47:29.070 --> 00:47:34.210
+finds exactly the same
+mappings from the text.
+
+00:47:34.210 --> 00:47:37.680
+And so you can look through
+the text and say, ah, OK,
+
+00:47:37.680 --> 00:47:41.430
+so no indicates negation
+and urine output
+
+00:47:41.430 --> 00:47:44.400
+is a kind of one
+of these concepts.
+
+00:47:44.400 --> 00:47:48.550
+If you moused over
+it, it would show you.
+
+00:47:48.550 --> 00:47:53.790
+OK, I think what I'm going
+to do is stop there today
+
+00:47:53.790 --> 00:48:00.750
+so that I can invite Kat to
+join us and talk about A, what's
+
+00:48:00.750 --> 00:48:05.820
+happened since 2010, and B,
+how is this stuff actually used
+
+00:48:05.820 --> 00:48:09.370
+by clinicians and
+clinician researchers.
+
+00:48:09.370 --> 00:48:10.630
+Kat?
+
+00:48:10.630 --> 00:48:12.447
+OK, well, welcome, Kat.
+
+00:48:12.447 --> 00:48:13.530
+KATHERINE LIAO: Thank you.
+
+00:48:13.530 --> 00:48:15.810
+PETER SZOLOVITS: Nice
+to see you again.
+
+00:48:15.810 --> 00:48:20.640
+So are the techniques
+that were represented
+
+00:48:20.640 --> 00:48:23.010
+in that paper from
+nine years ago
+
+00:48:23.010 --> 00:48:26.365
+still being used today
+in research settings?
+
+00:48:26.365 --> 00:48:27.240
+KATHERINE LIAO: Yeah.
+
+00:48:27.240 --> 00:48:31.690
+So I'd say yes, the
+bare bones of platform--
+
+00:48:31.690 --> 00:48:32.950
+that pipeline is being used.
+
+00:48:32.950 --> 00:48:35.850
+But now I'd say we're
+in version five.
+
+00:48:35.850 --> 00:48:38.700
+Actually, you were on
+that revision list.
+
+00:48:38.700 --> 00:48:41.310
+But we've done a
+lot of improvements
+
+00:48:41.310 --> 00:48:43.200
+to actually automate
+things a little more.
+
+00:48:43.200 --> 00:48:45.660
+So the rate limiting
+factor in phenotyping
+
+00:48:45.660 --> 00:48:46.890
+is always the clinician.
+
+00:48:46.890 --> 00:48:49.120
+Always getting that label,
+doing the chart review,
+
+00:48:49.120 --> 00:48:50.648
+coming up with that term list.
+
+00:48:50.648 --> 00:48:53.190
+So I don't know if you want me
+to go into some of the details
+
+00:48:53.190 --> 00:48:54.400
+on what we've been doing.
+
+00:48:54.400 --> 00:48:55.900
+PETER SZOLOVITS:
+Yeah, if you would.
+
+00:48:55.900 --> 00:48:57.460
+KATHERINE LIAO:
+Kind of plugs it in.
+
+00:48:57.460 --> 00:48:59.430
+So if you recall
+that diagram, there
+
+00:48:59.430 --> 00:49:01.710
+were several steps, where
+you started with the EMR.
+
+00:49:01.710 --> 00:49:04.440
+There was that filter
+with the ICD codes.
+
+00:49:04.440 --> 00:49:09.720
+Then you get this data mart,
+and then you start training.
+
+00:49:09.720 --> 00:49:13.530
+You had to select a random
+500, which is a lot.
+
+00:49:13.530 --> 00:49:16.300
+It's a lot of
+chart review to do.
+
+00:49:16.300 --> 00:49:17.060
+It is a lot.
+
+00:49:17.060 --> 00:49:20.230
+So our goal was to reduce
+that amount of chart review.
+
+00:49:20.230 --> 00:49:22.630
+And part of the
+way to reduce that
+
+00:49:22.630 --> 00:49:24.130
+is reducing the feature space.
+
+00:49:24.130 --> 00:49:26.380
+So one of the things that
+we didn't know when we first
+
+00:49:26.380 --> 00:49:29.740
+started out was how many gold
+standard labels did we need
+
+00:49:29.740 --> 00:49:31.332
+and how many
+features did we need
+
+00:49:31.332 --> 00:49:33.290
+and which of those features
+would be important.
+
+00:49:33.290 --> 00:49:36.640
+So by features, I mean ICD
+codes, a diagnosis code,
+
+00:49:36.640 --> 00:49:39.940
+medications, and all
+that list of NLP terms
+
+00:49:39.940 --> 00:49:42.210
+that might be related
+to the condition.
+
+00:49:42.210 --> 00:49:44.710
+And so now we have ways to
+try to whittle down that list
+
+00:49:44.710 --> 00:49:48.130
+before we even use those
+gold standard labels.
+
+00:49:48.130 --> 00:49:50.770
+And so let me think about--
+
+00:49:50.770 --> 00:49:51.550
+this is NLP.
+
+00:49:51.550 --> 00:49:52.780
+The focus here is on NLP.
+
+00:49:52.780 --> 00:49:54.738
+So there are a couple of
+ways we're doing this.
+
+00:49:54.738 --> 00:49:58.270
+So one rate limiting step
+was getting the clinicians
+
+00:49:58.270 --> 00:50:00.190
+to come up with a
+list of terms that
+
+00:50:00.190 --> 00:50:02.290
+are important for a
+certain condition.
+
+00:50:02.290 --> 00:50:05.080
+You can imagine if you
+get five doctors in a room
+
+00:50:05.080 --> 00:50:08.360
+to try to agree on a
+list, it takes forever.
+
+00:50:08.360 --> 00:50:10.250
+And so we tried to get
+that out of the way.
+
+00:50:10.250 --> 00:50:11.830
+So one thing we
+started doing was we
+
+00:50:11.830 --> 00:50:16.690
+took just common things that
+are freely available on the web.
+
+00:50:16.690 --> 00:50:20.380
+Wikipedia, Medline,
+the Merck Manual
+
+00:50:20.380 --> 00:50:22.150
+that have medical information.
+
+00:50:22.150 --> 00:50:25.510
+And we actually now
+process those articles,
+
+00:50:25.510 --> 00:50:27.750
+look for medical
+terms, pull those out,
+
+00:50:27.750 --> 00:50:30.760
+map them to concepts, and
+that becomes that term list.
+
+00:50:30.760 --> 00:50:31.690
+Now, that goes into--
+
+00:50:31.690 --> 00:50:34.550
+so now instead of, if you
+think about in the old days,
+
+00:50:34.550 --> 00:50:37.690
+we came up with the list, we
+had ICD lists and term lists,
+
+00:50:37.690 --> 00:50:39.370
+which got mapped to a concept.
+
+00:50:39.370 --> 00:50:41.630
+Now we go straight
+to the article.
+
+00:50:41.630 --> 00:50:43.630
+We kind of do majority
+voting with the articles.
+
+00:50:43.630 --> 00:50:45.490
+We take five articles,
+if three out of five
+
+00:50:45.490 --> 00:50:47.548
+mention it more than
+x amount of time,
+
+00:50:47.548 --> 00:50:49.340
+we say that could
+potentially be important.
+
+00:50:49.340 --> 00:50:50.530
+So that's the term list.
+
+00:50:50.530 --> 00:50:53.950
+Get the clinicians
+out of that step.
+
+00:50:53.950 --> 00:50:55.570
+Well, actually, we
+don't train yet.
+
+00:50:55.570 --> 00:50:57.220
+So now instead of
+training right away
+
+00:50:57.220 --> 00:50:58.990
+in the gold standard
+labels, we train
+
+00:50:58.990 --> 00:51:02.320
+on a silver standard label.
+
+00:51:02.320 --> 00:51:05.070
+Most of the time, we
+use the main ICD code,
+
+00:51:05.070 --> 00:51:08.890
+but sometimes we use
+the main NLP [INAUDIBLE]
+
+00:51:08.890 --> 00:51:11.260
+Because sometimes there is
+no code for the phenotype
+
+00:51:11.260 --> 00:51:12.700
+we're interested in.
+
+00:51:12.700 --> 00:51:15.490
+So that's kind of
+some of the steps
+
+00:51:15.490 --> 00:51:18.070
+that we've done to automate
+things a little bit more
+
+00:51:18.070 --> 00:51:19.930
+and formalize that pipeline.
+
+00:51:19.930 --> 00:51:23.890
+So in fact, the
+pipeline is now part
+
+00:51:23.890 --> 00:51:27.640
+of the Partners Biobank, which
+is a Partner's Healthcare.
+
+00:51:27.640 --> 00:51:30.430
+As Pete mentioned, it's Mass
+General and Brigham Women's
+
+00:51:30.430 --> 00:51:31.570
+Hospital.
+
+00:51:31.570 --> 00:51:36.130
+They are recruiting patients
+to come in and get the blood
+
+00:51:36.130 --> 00:51:39.250
+sample, link it with their
+notes so people can do research
+
+00:51:39.250 --> 00:51:42.230
+on linked EHR data
+and blood sample.
+
+00:51:42.230 --> 00:51:45.640
+So this is the pipeline
+they used for phenotyping.
+
+00:51:45.640 --> 00:51:48.720
+Now I'm over at the Boston
+VA along with Tianxi.
+
+00:51:48.720 --> 00:51:50.470
+And this is the pipeline
+we're laying down
+
+00:51:50.470 --> 00:51:53.470
+for also the Million Veterans
+program, which is even bigger.
+
+00:51:53.470 --> 00:51:55.870
+It's a million
+vets and they have
+
+00:51:55.870 --> 00:51:58.300
+EHR data going back decades.
+
+00:51:58.300 --> 00:52:01.120
+So it's pretty exciting.
+
+00:52:01.120 --> 00:52:03.880
+PETER SZOLOVITS: So
+what are the kinds of--
+
+00:52:03.880 --> 00:52:07.370
+I mean, this study that we
+were talking about today
+
+00:52:07.370 --> 00:52:09.360
+was for rheumatoid arthritis.
+
+00:52:09.360 --> 00:52:13.330
+What other diseases are being
+targeted by this phenotyping
+
+00:52:13.330 --> 00:52:13.830
+approach?
+
+00:52:13.830 --> 00:52:17.410
+KATHERINE LIAO: So
+all kinds of diseases.
+
+00:52:17.410 --> 00:52:19.130
+There's a lot of things
+we learn, though.
+
+00:52:19.130 --> 00:52:23.090
+The phenotyping approach is
+best suited, the pipeline
+
+00:52:23.090 --> 00:52:25.370
+that we-- the base
+pipeline is best
+
+00:52:25.370 --> 00:52:29.128
+suited for conditions that have
+a prevalence of 1% or higher.
+
+00:52:29.128 --> 00:52:31.420
+So rheumatoid arthritis is
+kind of at that lower bound.
+
+00:52:31.420 --> 00:52:34.470
+Rheumatoid arthritis is a
+chronic inflammatory joint
+
+00:52:34.470 --> 00:52:34.970
+disease.
+
+00:52:34.970 --> 00:52:37.700
+It affects 1% of the population.
+
+00:52:37.700 --> 00:52:41.030
+But it is the most common
+autoimmune joint disease.
+
+00:52:41.030 --> 00:52:43.550
+Once you go to rare
+diseases that are
+
+00:52:43.550 --> 00:52:46.890
+episodic that don't happen--
+
+00:52:46.890 --> 00:52:48.800
+you know, not only
+is it below 1%,
+
+00:52:48.800 --> 00:52:50.840
+but only happens
+once in a while--
+
+00:52:50.840 --> 00:52:55.130
+this type of approach
+is not as robust.
+
+00:52:55.130 --> 00:52:57.320
+But most diseases are above 1%.
+
+00:52:57.320 --> 00:53:01.520
+So at the VA, we've kind
+of laid down this pipeline
+
+00:53:01.520 --> 00:53:02.420
+for a phonemic score.
+
+00:53:02.420 --> 00:53:05.310
+And they're running
+through acute stroke,
+
+00:53:05.310 --> 00:53:10.350
+myocardial infarction, all
+kinds of these-- diabetes--
+
+00:53:10.350 --> 00:53:13.130
+just really a lot of
+all the common diseases
+
+00:53:13.130 --> 00:53:14.652
+that we want to study.
+
+00:53:14.652 --> 00:53:16.360
+PETER SZOLOVITS: Now,
+you were mentioning
+
+00:53:16.360 --> 00:53:18.980
+that when you identify
+such a patient,
+
+00:53:18.980 --> 00:53:21.530
+you then try to get a
+blood sample so that you
+
+00:53:21.530 --> 00:53:23.420
+can do genotyping on them.
+
+00:53:23.420 --> 00:53:26.060
+Is that also common
+across all these diseases
+
+00:53:26.060 --> 00:53:27.520
+or are there
+different approaches?
+
+00:53:27.520 --> 00:53:29.270
+KATHERINE LIAO: Yeah,
+so it's interesting.
+
+00:53:29.270 --> 00:53:31.220
+10 years ago, it
+was very different.
+
+00:53:31.220 --> 00:53:33.720
+It was very expensive
+to genotype a patient.
+
+00:53:33.720 --> 00:53:37.007
+It was anywhere between
+$500 to $700 per patient.
+
+00:53:37.007 --> 00:53:39.340
+PETER SZOLOVITS: And that was
+just for single nucleotide
+
+00:53:39.340 --> 00:53:39.882
+polymorphism.
+
+00:53:39.882 --> 00:53:41.660
+KATHERINE LIAO: Yes,
+just for a snip.
+
+00:53:41.660 --> 00:53:43.980
+So we had to be very careful
+about who we selected.
+
+00:53:43.980 --> 00:53:47.100
+So 10 years ago, what
+we did is we said,
+
+00:53:47.100 --> 00:53:50.420
+OK, we have 4 million
+patients and partners.
+
+00:53:50.420 --> 00:53:52.560
+Who has already
+with good certainty?
+
+00:53:52.560 --> 00:53:55.220
+Then we select those patients
+and we genotype them.
+
+00:53:55.220 --> 00:53:56.720
+Because it costs
+so much, you didn't
+
+00:53:56.720 --> 00:53:59.600
+want to genotype someone
+who didn't have RA.
+
+00:53:59.600 --> 00:54:02.000
+Not only would it alter the--
+
+00:54:02.000 --> 00:54:04.750
+it would reduce the power
+of our association study,
+
+00:54:04.750 --> 00:54:08.100
+it would just be
+like wasted dollars.
+
+00:54:08.100 --> 00:54:11.090
+The interesting thing is
+that the change has happened.
+
+00:54:11.090 --> 00:54:13.760
+And we can completely
+think of a different way
+
+00:54:13.760 --> 00:54:15.170
+of approaching things.
+
+00:54:15.170 --> 00:54:16.730
+Now you have these biobanks.
+
+00:54:16.730 --> 00:54:21.180
+You have something like
+the VA MVP or UK Biobank.
+
+00:54:21.180 --> 00:54:25.000
+They are being
+systematically recruited,
+
+00:54:25.000 --> 00:54:26.750
+blood samples are
+taken, they're genotyped
+
+00:54:26.750 --> 00:54:28.640
+with no study in mind.
+
+00:54:28.640 --> 00:54:30.020
+Linked with the EHR.
+
+00:54:30.020 --> 00:54:33.200
+So now I walk into the VA, it's
+a completely different story.
+
+00:54:33.200 --> 00:54:36.620
+10 years later, I'm
+at the VA and I'm
+
+00:54:36.620 --> 00:54:39.170
+interested in identifying
+rheumatoid arthritis.
+
+00:54:39.170 --> 00:54:40.940
+Interesting enough,
+this algorithm
+
+00:54:40.940 --> 00:54:42.560
+ports well over there, too.
+
+00:54:42.560 --> 00:54:46.010
+But now we tested our
+new method on there.
+
+00:54:46.010 --> 00:54:49.340
+But now, instead of saying, I
+need to identify these patients
+
+00:54:49.340 --> 00:54:52.920
+and get the genotype, all the
+genotypes are already there.
+
+00:54:52.920 --> 00:54:56.435
+So it's a completely different
+approach to research now.
+
+00:54:56.435 --> 00:54:57.970
+PETER SZOLOVITS: Interesting.
+
+00:54:57.970 --> 00:55:01.180
+So the other question
+that I wanted
+
+00:55:01.180 --> 00:55:02.890
+to ask you before
+we turn it over
+
+00:55:02.890 --> 00:55:05.050
+to questions from
+the audience is,
+
+00:55:05.050 --> 00:55:10.030
+so this is all focused on
+research uses of the data.
+
+00:55:10.030 --> 00:55:12.580
+Are there clinical
+uses that people
+
+00:55:12.580 --> 00:55:15.220
+have adopted that use
+this kind of approach
+
+00:55:15.220 --> 00:55:18.610
+to trying to read the note?
+
+00:55:18.610 --> 00:55:22.390
+We had fantasized
+decades ago that,
+
+00:55:22.390 --> 00:55:27.970
+you know, when you get a
+report from a pathologist,
+
+00:55:27.970 --> 00:55:31.660
+that somehow or other, a
+machine learning algorithm
+
+00:55:31.660 --> 00:55:33.550
+using natural
+language processing
+
+00:55:33.550 --> 00:55:37.150
+would grovel over it, identify
+the important things that
+
+00:55:37.150 --> 00:55:40.390
+came out, and then
+either incorporate
+
+00:55:40.390 --> 00:55:46.390
+that in decision support or in
+some kind of warning systems
+
+00:55:46.390 --> 00:55:50.050
+that drew people's attention
+to the important results as
+
+00:55:50.050 --> 00:55:52.570
+opposed to the unimportant ones.
+
+00:55:52.570 --> 00:55:54.037
+Has any of that happened?
+
+00:55:54.037 --> 00:55:55.870
+KATHERINE LIAO: I think
+we're not there yet,
+
+00:55:55.870 --> 00:55:59.690
+but I feel like we're so much
+closer than we were before.
+
+00:55:59.690 --> 00:56:03.490
+That's probably how you
+felt a few decades ago.
+
+00:56:03.490 --> 00:56:07.720
+One of the challenges
+is, as you know,
+
+00:56:07.720 --> 00:56:11.290
+EHR weren't really widely
+adopted until the HITEx Act
+
+00:56:11.290 --> 00:56:12.400
+in 2010.
+
+00:56:12.400 --> 00:56:16.120
+So a lot of systems are actually
+now just getting their EHR.
+
+00:56:16.120 --> 00:56:18.610
+And the reason that we've had
+the luxury of playing around
+
+00:56:18.610 --> 00:56:20.943
+with the data is because
+Partners was ahead of the curve
+
+00:56:20.943 --> 00:56:22.180
+and had developed an EHR.
+
+00:56:22.180 --> 00:56:25.800
+The VA happened to have an EHR.
+
+00:56:25.800 --> 00:56:26.830
+But I think first--
+
+00:56:26.830 --> 00:56:30.460
+because research and clinical
+medicine is very different.
+
+00:56:30.460 --> 00:56:32.970
+Research, if you mess up
+and you misclassify someone
+
+00:56:32.970 --> 00:56:34.730
+with a disease, it's OK, right?
+
+00:56:34.730 --> 00:56:37.570
+You just lose power
+in your study.
+
+00:56:37.570 --> 00:56:39.880
+But in the clinical
+setting, if you mess up,
+
+00:56:39.880 --> 00:56:41.150
+it's a really big deal.
+
+00:56:41.150 --> 00:56:43.180
+So I think the bar
+is much higher.
+
+00:56:43.180 --> 00:56:46.510
+And so one of our goals
+with all this phenotyping
+
+00:56:46.510 --> 00:56:50.168
+is to get it to that point
+where we feel pretty confident.
+
+00:56:50.168 --> 00:56:52.460
+We're not going to say someone
+has or hasn't a disease,
+
+00:56:52.460 --> 00:56:55.540
+but we are, you
+know, Tianxi and I
+
+00:56:55.540 --> 00:56:57.830
+have been planning
+this grant where,
+
+00:56:57.830 --> 00:56:59.870
+what's outputted
+from this algorithm
+
+00:56:59.870 --> 00:57:01.400
+is a probability of disease.
+
+00:57:01.400 --> 00:57:04.640
+And some of our phenotype
+algorithms are pretty good.
+
+00:57:04.640 --> 00:57:06.795
+And so what we want to
+test is what threshold
+
+00:57:06.795 --> 00:57:08.420
+is that probability
+that you would want
+
+00:57:08.420 --> 00:57:10.820
+to tell a clinician
+that, hey, if you're not
+
+00:57:10.820 --> 00:57:14.010
+thinking about rheumatoid
+arthritis in this patient--
+
+00:57:14.010 --> 00:57:16.280
+this is particularly
+helpful in places
+
+00:57:16.280 --> 00:57:19.355
+where they're in
+remote locations
+
+00:57:19.355 --> 00:57:20.730
+where there aren't
+rheumatologist
+
+00:57:20.730 --> 00:57:22.522
+available-- you should
+be thinking about it
+
+00:57:22.522 --> 00:57:25.550
+and maybe, you know,
+considering referring them
+
+00:57:25.550 --> 00:57:29.290
+or speaking to a rheumatologist
+through telehealth,
+
+00:57:29.290 --> 00:57:30.290
+which is also something.
+
+00:57:30.290 --> 00:57:31.998
+There's a lot of things
+that are changing
+
+00:57:31.998 --> 00:57:35.600
+that are making
+something like this fit
+
+00:57:35.600 --> 00:57:38.280
+much more into the workflow.
+
+00:57:38.280 --> 00:57:39.920
+PETER SZOLOVITS: Yeah.
+
+00:57:39.920 --> 00:57:43.797
+So you're as optimistic
+as I was in the 1990s.
+
+00:57:43.797 --> 00:57:44.630
+KATHERINE LIAO: Yes.
+
+00:57:44.630 --> 00:57:46.000
+I think we're getting--
+
+00:57:46.000 --> 00:57:49.060
+we'll see.
+
+00:57:49.060 --> 00:57:52.610
+PETER SZOLOVITS: Well,
+you know, it will surely
+
+00:57:52.610 --> 00:57:55.040
+happen at some point.
+
+00:57:55.040 --> 00:57:57.200
+Did any of you go
+to the festivities
+
+00:57:57.200 --> 00:57:58.880
+around the opening
+of the Schwarzman
+
+00:57:58.880 --> 00:58:00.710
+College of Computing?
+
+00:58:00.710 --> 00:58:02.570
+So they've had a
+lot of discussions.
+
+00:58:02.570 --> 00:58:06.200
+And health care does keep
+coming up over and over again
+
+00:58:06.200 --> 00:58:08.750
+as one of the great
+opportunities.
+
+00:58:08.750 --> 00:58:11.130
+I profoundly believe that.
+
+00:58:11.130 --> 00:58:13.760
+But on the other hand, I've
+learned over many decades
+
+00:58:13.760 --> 00:58:18.290
+not to be quite as optimistic
+as my natural proclivities are.
+
+00:58:18.290 --> 00:58:21.740
+And I think some of the
+speakers here have not yet
+
+00:58:21.740 --> 00:58:23.600
+learned that same lesson.
+
+00:58:23.600 --> 00:58:26.610
+So things may take
+a little bit longer.
+
+00:58:26.610 --> 00:58:30.860
+So let me open up the
+floor to questions.
+
+00:58:33.307 --> 00:58:34.140
+KATHERINE LIAO: Yes?
+
+00:58:34.140 --> 00:58:36.450
+AUDIENCE: So the mapping
+that you did to concepts,
+
+00:58:36.450 --> 00:58:38.990
+is that within the
+Partners system
+
+00:58:38.990 --> 00:58:40.865
+or is that something
+like publicly available?
+
+00:58:40.865 --> 00:58:43.040
+And can you just
+transfer that to the VA?
+
+00:58:43.040 --> 00:58:47.310
+Or like, when you do work
+like, how much is proprietary
+
+00:58:47.310 --> 00:58:49.075
+and how much gets expanded up?
+
+00:58:49.075 --> 00:58:49.950
+KATHERINE LIAO: Yeah.
+
+00:58:49.950 --> 00:58:51.660
+So you're speaking about
+when we were trying
+
+00:58:51.660 --> 00:58:53.100
+to create that term
+list and we mapped
+
+00:58:53.100 --> 00:58:53.995
+the terms to the concepts?
+
+00:58:53.995 --> 00:58:55.500
+AUDIENCE: And you
+were using Wikipedia
+
+00:58:55.500 --> 00:58:56.515
+and three other sources.
+
+00:58:56.515 --> 00:58:57.390
+KATHERINE LIAO: Yeah.
+
+00:58:57.390 --> 00:58:58.110
+Yeah.
+
+00:58:58.110 --> 00:59:00.140
+So that's all out there.
+
+00:59:00.140 --> 00:59:03.870
+So as an academic group, we try
+to publish everything we do.
+
+00:59:03.870 --> 00:59:07.650
+We put our codes up on GitHub
+or CRAN for other people
+
+00:59:07.650 --> 00:59:11.640
+to play out and tests and break.
+
+00:59:11.640 --> 00:59:15.803
+So yeah, the terms are
+really similar in UMLS.
+
+00:59:15.803 --> 00:59:17.970
+I don't know if you had a
+chance to look through it.
+
+00:59:17.970 --> 00:59:19.710
+They have a lot of keywords.
+
+00:59:19.710 --> 00:59:24.390
+So there is a general way to map
+keywords to terms to concepts.
+
+00:59:24.390 --> 00:59:26.023
+So that's the basis
+of what we do.
+
+00:59:26.023 --> 00:59:27.690
+There may maybe a
+little bit more there,
+
+00:59:27.690 --> 00:59:29.730
+but there's nothing
+fancy behind it.
+
+00:59:29.730 --> 00:59:32.280
+And as you can
+imagine, because we're
+
+00:59:32.280 --> 00:59:33.780
+trying to go across
+many phenotypes,
+
+00:59:33.780 --> 00:59:37.380
+when we think about mapping,
+it always has to be automated.
+
+00:59:37.380 --> 00:59:41.400
+Our first round was very
+manual, incredibly manual.
+
+00:59:41.400 --> 00:59:44.380
+But now we try to use
+systems that are available
+
+00:59:44.380 --> 00:59:47.565
+such as UMLS and
+other mapping methods.
+
+00:59:47.565 --> 00:59:48.960
+PETER SZOLOVITS: So what map--
+
+00:59:48.960 --> 00:59:51.030
+presumably, you don't
+use HITex today.
+
+00:59:51.030 --> 00:59:52.510
+KATHERINE LIAO: No.
+
+00:59:52.510 --> 00:59:54.960
+PETER SZOLOVITS: So
+which tools do you use?
+
+00:59:54.960 --> 00:59:57.540
+KATHERINE LIAO: Just thinking
+I had a two hour conversation
+
+00:59:57.540 --> 01:00:00.130
+with Oakridge about this.
+
+01:00:00.130 --> 01:00:03.390
+We're using a system that
+Cheng developed called NIAL.
+
+01:00:03.390 --> 01:00:06.180
+And it had to do with the
+fact that cTAKES, which
+
+01:00:06.180 --> 01:00:12.120
+is a really robust system,
+was just too computationally
+
+01:00:12.120 --> 01:00:13.480
+intensive.
+
+01:00:13.480 --> 01:00:15.960
+And for the purposes
+of phenotyping,
+
+01:00:15.960 --> 01:00:18.870
+we didn't need that
+level of detail.
+
+01:00:18.870 --> 01:00:21.170
+What we really needed
+was, was it mentioned,
+
+01:00:21.170 --> 01:00:23.100
+what's the concept,
+and the negation.
+
+01:00:23.100 --> 01:00:25.230
+And so NIAL is something
+that we've been using
+
+01:00:25.230 --> 01:00:28.980
+and have kind of validated over
+time with the different methods
+
+01:00:28.980 --> 01:00:30.210
+we've been testing.
+
+01:00:30.210 --> 01:00:33.420
+PETER SZOLOVITS:
+So Tuesday, I'll
+
+01:00:33.420 --> 01:00:35.910
+talk a little bit
+about that system
+
+01:00:35.910 --> 01:00:37.500
+and some of its successors.
+
+01:00:37.500 --> 01:00:42.300
+So you'll get a sense
+of how that works.
+
+01:00:42.300 --> 01:00:45.270
+I should mention also that
+one of the papers that
+
+01:00:45.270 --> 01:00:48.270
+was on your reading
+list is a paper out
+
+01:00:48.270 --> 01:00:53.760
+of David Sontag's group, which
+uses this anchorous concept.
+
+01:00:53.760 --> 01:00:56.640
+And that's very much
+along the same lines.
+
+01:00:56.640 --> 01:01:00.030
+That it's a way of
+trying to automate,
+
+01:01:00.030 --> 01:01:01.650
+just as Kat was
+saying, you know,
+
+01:01:01.650 --> 01:01:05.340
+if the doctor's
+mention some term
+
+01:01:05.340 --> 01:01:09.300
+and you discover that that
+term is very often used
+
+01:01:09.300 --> 01:01:12.240
+with certain other
+terms by looking
+
+01:01:12.240 --> 01:01:14.940
+at Wikipedia or at
+the Mayo Clinic data
+
+01:01:14.940 --> 01:01:18.750
+or wherever your
+sources are, then
+
+01:01:18.750 --> 01:01:21.330
+that's a good clue that
+that other term might also
+
+01:01:21.330 --> 01:01:22.620
+be useful.
+
+01:01:22.620 --> 01:01:25.170
+So this is a
+formalization of that idea
+
+01:01:25.170 --> 01:01:27.250
+as a machine learning problem.
+
+01:01:27.250 --> 01:01:30.120
+So basically, that
+paper talks about how
+
+01:01:30.120 --> 01:01:33.060
+to take some very
+certain terms that
+
+01:01:33.060 --> 01:01:35.820
+are highly indicative
+of a disease
+
+01:01:35.820 --> 01:01:39.300
+and then use those
+as anchors in order
+
+01:01:39.300 --> 01:01:41.700
+to train a machine
+learning model
+
+01:01:41.700 --> 01:01:46.320
+that identifies more terms that
+are also likely to be useful.
+
+01:01:46.320 --> 01:01:47.980
+So this notion of--
+
+01:01:47.980 --> 01:01:53.190
+and David talked about a similar
+idea in a previous lecture,
+
+01:01:53.190 --> 01:01:57.350
+where you get a silver standard
+instead of a gold standard.
+
+01:01:57.350 --> 01:02:00.510
+And the silver
+standard can be derived
+
+01:02:00.510 --> 01:02:04.170
+from a smaller gold
+standard using some machine
+
+01:02:04.170 --> 01:02:05.490
+learning algorithm.
+
+01:02:05.490 --> 01:02:10.895
+And then you can use that in
+your further computations.
+
+01:02:10.895 --> 01:02:12.270
+AUDIENCE: So what
+was the process
+
+01:02:12.270 --> 01:02:15.160
+like for partnering with
+academics and machine learning?
+
+01:02:15.160 --> 01:02:17.390
+So did you seek them out,
+did they seek you out?
+
+01:02:17.390 --> 01:02:20.400
+Did you run into each
+other at the bus stop?
+
+01:02:20.400 --> 01:02:21.290
+How does that work?
+
+01:02:21.290 --> 01:02:23.160
+KATHERINE LIAO: Well,
+I was really lucky.
+
+01:02:23.160 --> 01:02:25.860
+There was a big study called
+The Informatics for Integrating
+
+01:02:25.860 --> 01:02:29.580
+Biology and the Bedside Project
+called i2B2 led by Zak Kohane
+
+01:02:29.580 --> 01:02:31.170
+And so that was
+already in place.
+
+01:02:31.170 --> 01:02:33.240
+And Pete had already been
+pulled in and Tianxi.
+
+01:02:33.240 --> 01:02:35.670
+So what they basically
+did was locked all us
+
+01:02:35.670 --> 01:02:38.320
+in a room for three
+hours every Friday.
+
+01:02:38.320 --> 01:02:40.830
+And it was like, what's the
+problem, what's the question,
+
+01:02:40.830 --> 01:02:42.300
+and how do we get there.
+
+01:02:42.300 --> 01:02:44.940
+And so I think that
+infrastructure was so helpful
+
+01:02:44.940 --> 01:02:47.340
+in bringing everyone
+to the table,
+
+01:02:47.340 --> 01:02:49.080
+because it's not easy
+because you're not
+
+01:02:49.080 --> 01:02:50.490
+rotating in the same space.
+
+01:02:50.490 --> 01:02:52.270
+And the way you think
+is very different.
+
+01:02:52.270 --> 01:02:54.420
+So that's how we did it.
+
+01:02:57.320 --> 01:02:58.380
+Now it's more mainstream.
+
+01:02:58.380 --> 01:03:00.540
+I think when we first
+started, everyone was--
+
+01:03:00.540 --> 01:03:02.165
+my colleagues joked with me.
+
+01:03:02.165 --> 01:03:03.540
+They're like, what
+are you doing?
+
+01:03:03.540 --> 01:03:04.710
+R2D2?
+
+01:03:04.710 --> 01:03:06.230
+What's going on?
+
+01:03:06.230 --> 01:03:07.980
+Are you going off the
+deep end over there?
+
+01:03:07.980 --> 01:03:09.813
+Because you know, the
+type of research we do
+
+01:03:09.813 --> 01:03:12.850
+was more along the ways of
+clinical trials and clin-epi
+
+01:03:12.850 --> 01:03:14.130
+projects.
+
+01:03:14.130 --> 01:03:15.720
+But now, you know, we have--
+
+01:03:15.720 --> 01:03:18.000
+I run a core at Brigham.
+
+01:03:18.000 --> 01:03:20.460
+So it's run out of the
+rheumatology division.
+
+01:03:20.460 --> 01:03:24.330
+And so we kind of try to
+connect people together.
+
+01:03:24.330 --> 01:03:30.270
+I did post to our core the
+consulting session here.
+
+01:03:30.270 --> 01:03:32.820
+But you know, if
+there is interest,
+
+01:03:32.820 --> 01:03:34.990
+there's probably more
+groups that are doing this,
+
+01:03:34.990 --> 01:03:38.370
+where we can kind of more
+formally have joint talks
+
+01:03:38.370 --> 01:03:43.490
+or connect people together.
+
+01:03:43.490 --> 01:03:44.040
+Yeah.
+
+01:03:44.040 --> 01:03:45.950
+But it's not easy.
+
+01:03:45.950 --> 01:03:48.550
+I have to say, it
+takes a lot of time.
+
+01:03:48.550 --> 01:03:51.220
+Because when Pete put
+up that thing in what
+
+01:03:51.220 --> 01:03:53.520
+looked like a different
+language, I mean,
+
+01:03:53.520 --> 01:03:56.640
+it didn't even occur to me that
+it was hard to read, right?
+
+01:03:56.640 --> 01:03:58.620
+So it's like, you know,
+you're into these two
+
+01:03:58.620 --> 01:03:59.370
+different worlds.
+
+01:03:59.370 --> 01:04:02.820
+And so you have to work
+to meet in the middle,
+
+01:04:02.820 --> 01:04:04.986
+and it takes time.
+
+01:04:04.986 --> 01:04:07.220
+PETER SZOLOVITS: It also
+takes the right people.
+
+01:04:07.220 --> 01:04:12.260
+So I have to say
+that Zak was probably
+
+01:04:12.260 --> 01:04:15.260
+very clever in bringing the
+right people to the table
+
+01:04:15.260 --> 01:04:19.580
+and locking those into that
+room for three hours at a time
+
+01:04:19.580 --> 01:04:23.510
+because, for example,
+our biostatistician,
+
+01:04:23.510 --> 01:04:29.200
+Tianxi Cai just, you
+know, she speaks AI
+
+01:04:29.200 --> 01:04:31.730
+or she has learned to speak AI.
+
+01:04:31.730 --> 01:04:35.080
+And there are still
+plenty of statisticians
+
+01:04:35.080 --> 01:04:38.170
+who just have allergic
+reactions to the kinds
+
+01:04:38.170 --> 01:04:41.020
+just things that we do,
+and it would be very
+
+01:04:41.020 --> 01:04:42.880
+difficult to work with them.
+
+01:04:42.880 --> 01:04:45.400
+So having the right
+combination of people
+
+01:04:45.400 --> 01:04:47.670
+is also really I think critical.
+
+01:04:47.670 --> 01:04:49.420
+KATHERINE LIAO: As one
+of my mentors said,
+
+01:04:49.420 --> 01:04:50.753
+you have to kiss a lot of frogs.
+
+01:04:55.482 --> 01:04:57.940
+AUDIENCE: I wondering if you
+could say a bit more about how
+
+01:04:57.940 --> 01:05:00.250
+you approached the
+alarm fatigue with how
+
+01:05:00.250 --> 01:05:04.780
+you balance [INAUDIBLE] question
+around how certain you are
+
+01:05:04.780 --> 01:05:07.870
+versus clinical questions of how
+important this is versus even
+
+01:05:07.870 --> 01:05:10.985
+psychological questions
+of, I said is too often
+
+01:05:10.985 --> 01:05:12.235
+to a certain amount of people.
+
+01:05:12.235 --> 01:05:14.645
+They're going to
+start [INAUDIBLE]??
+
+01:05:14.645 --> 01:05:16.270
+KATHERINE LIAO: Yeah,
+you've definitely
+
+01:05:16.270 --> 01:05:19.590
+hit the nail on the head of
+one of the major barriers,
+
+01:05:19.590 --> 01:05:20.500
+or several things.
+
+01:05:20.500 --> 01:05:22.300
+The alarm fatigue
+is one of them.
+
+01:05:22.300 --> 01:05:27.610
+So EMRs became more
+prominent in 2010.
+
+01:05:27.610 --> 01:05:29.680
+But now, along with
+EMRs came a lot
+
+01:05:29.680 --> 01:05:33.280
+of regulations on physicians.
+
+01:05:33.280 --> 01:05:36.557
+And then came getting
+rid of our old systems
+
+01:05:36.557 --> 01:05:38.890
+for these new systems that
+are now government compliant.
+
+01:05:38.890 --> 01:05:41.620
+So Epic is this
+big monster system
+
+01:05:41.620 --> 01:05:44.320
+that's being rolled out
+across the country, where
+
+01:05:44.320 --> 01:05:45.940
+you literally have--
+
+01:05:45.940 --> 01:05:49.240
+it's so complicated
+in places like Mayo.
+
+01:05:49.240 --> 01:05:51.010
+They hire scribes.
+
+01:05:51.010 --> 01:05:52.540
+The physicians
+sits in the office
+
+01:05:52.540 --> 01:05:54.280
+and there's another person
+who actually listens in
+
+01:05:54.280 --> 01:05:55.460
+and types and then
+clicks all the buttons
+
+01:05:55.460 --> 01:05:57.520
+that you need to get
+the information there.
+
+01:05:57.520 --> 01:06:01.425
+So alarm fatigue is definitely
+one of the barriers.
+
+01:06:01.425 --> 01:06:02.800
+But the other
+barrier is the fact
+
+01:06:02.800 --> 01:06:06.130
+that the EMRs are so
+user-unfriendly now.
+
+01:06:06.130 --> 01:06:08.260
+They're not built
+for clinical care.
+
+01:06:08.260 --> 01:06:10.060
+They're built for billing.
+
+01:06:10.060 --> 01:06:12.430
+We have to be careful
+about how we roll this out.
+
+01:06:12.430 --> 01:06:16.530
+And that's one reason why I
+think things have been held up,
+
+01:06:16.530 --> 01:06:18.130
+actually.
+
+01:06:18.130 --> 01:06:19.600
+Not necessarily the science.
+
+01:06:19.600 --> 01:06:22.462
+It's the implementation part
+is going to be very hard.
+
+01:06:22.462 --> 01:06:24.420
+PETER SZOLOVITS: So that
+isn't new, by the way.
+
+01:06:24.420 --> 01:06:28.810
+I remember a class I taught
+in biomedical computing
+
+01:06:28.810 --> 01:06:29.990
+about 15 years ago.
+
+01:06:29.990 --> 01:06:33.730
+David Bates, who's the chief
+of general internal medicine
+
+01:06:33.730 --> 01:06:38.740
+or something at the
+Brigham, came in
+
+01:06:38.740 --> 01:06:40.640
+and gave a guest lecture.
+
+01:06:40.640 --> 01:06:43.660
+And he was describing
+their experience
+
+01:06:43.660 --> 01:06:47.140
+with a drug-drug
+interaction system
+
+01:06:47.140 --> 01:06:49.690
+that they had implemented.
+
+01:06:49.690 --> 01:06:53.500
+And they purchased a data
+set from a vendor called
+
+01:06:53.500 --> 01:06:56.890
+First Databank that had
+scoured the literature
+
+01:06:56.890 --> 01:07:01.240
+and found all the instances
+where people had reported cases
+
+01:07:01.240 --> 01:07:05.710
+where a patient taking both this
+medication and that medication
+
+01:07:05.710 --> 01:07:07.450
+had an apparent adverse event.
+
+01:07:07.450 --> 01:07:10.620
+So there was some
+interaction between them.
+
+01:07:10.620 --> 01:07:13.980
+And they bought this
+thing, they implemented it,
+
+01:07:13.980 --> 01:07:18.270
+and they discovered that, on
+the majority of drug orders
+
+01:07:18.270 --> 01:07:21.750
+that they were making through
+their pharmacy system,
+
+01:07:21.750 --> 01:07:26.010
+a big red alert would pop up
+saying, you know, are you aware
+
+01:07:26.010 --> 01:07:28.920
+of the fact that there is
+a potential interaction
+
+01:07:28.920 --> 01:07:30.870
+between this drug
+and some other drug
+
+01:07:30.870 --> 01:07:33.480
+that this patient is taking.
+
+01:07:33.480 --> 01:07:38.060
+And the problem is that the
+incentives for the company that
+
+01:07:38.060 --> 01:07:40.650
+curated this
+database were to make
+
+01:07:40.650 --> 01:07:42.840
+sure they didn't miss
+anything, because they
+
+01:07:42.840 --> 01:07:46.800
+didn't want to be responsible
+for failing to alarm.
+
+01:07:46.800 --> 01:07:48.630
+But of course,
+there's no pushback
+
+01:07:48.630 --> 01:07:53.490
+saying that if you warn
+on every second order,
+
+01:07:53.490 --> 01:07:56.920
+then no one's going to pay
+any attention to any of them.
+
+01:07:56.920 --> 01:07:58.800
+And so David's
+solution was to get
+
+01:07:58.800 --> 01:08:01.440
+a bunch of the senior
+doctors together
+
+01:08:01.440 --> 01:08:05.970
+and they did some study of what
+actual adverse events had they
+
+01:08:05.970 --> 01:08:08.490
+experienced at the hospital.
+
+01:08:08.490 --> 01:08:12.030
+And they cut this list of
+thousands of drug interactions
+
+01:08:12.030 --> 01:08:14.550
+down to 20.
+
+01:08:14.550 --> 01:08:16.590
+And they said, OK,
+those are the only ones
+
+01:08:16.590 --> 01:08:17.984
+we're going to alarm on.
+
+01:08:17.984 --> 01:08:19.651
+KATHERINE LIAO: And
+then they threw that
+
+01:08:19.651 --> 01:08:20.649
+out when Epic came in.
+
+01:08:20.649 --> 01:08:23.220
+So now I put in an order,
+I get like a list of 10
+
+01:08:23.220 --> 01:08:25.272
+and I just click them all.
+
+01:08:25.272 --> 01:08:26.189
+So that's the problem.
+
+01:08:26.189 --> 01:08:27.606
+And the threshold
+is going to be--
+
+01:08:27.606 --> 01:08:29.330
+so there's going
+to be an entire--
+
+01:08:29.330 --> 01:08:30.660
+I think there's going
+to be entire methods
+
+01:08:30.660 --> 01:08:33.285
+development that's going to have
+to happen between figuring out
+
+01:08:33.285 --> 01:08:36.352
+where that threshold is and
+the fatigue from the alarms.
+
+01:08:39.523 --> 01:08:41.340
+AUDIENCE: I have two questions.
+
+01:08:41.340 --> 01:08:45.660
+One is about [INAUDIBLE].
+
+01:08:45.660 --> 01:08:48.450
+Like how did you approach that
+because we talk about this
+
+01:08:48.450 --> 01:08:51.029
+in other contexts in class?
+
+01:08:51.029 --> 01:08:53.760
+And the other one
+is, like, how can you
+
+01:08:53.760 --> 01:08:57.569
+inform other countries
+[INAUDIBLE] done here?
+
+01:08:57.569 --> 01:08:59.620
+Because, I mean, at
+the end of the day,
+
+01:08:59.620 --> 01:09:02.310
+it's a global health issue.
+
+01:09:02.310 --> 01:09:04.724
+And also drug
+systems are different
+
+01:09:04.724 --> 01:09:07.080
+even between the US and the UK.
+
+01:09:07.080 --> 01:09:11.546
+So all the mapping
+we're doing here,
+
+01:09:11.546 --> 01:09:14.440
+how could that inform
+EHR or elsewhere?
+
+01:09:14.440 --> 01:09:15.548
+KATHERINE LIAO: Yeah.
+
+01:09:15.548 --> 01:09:16.840
+So let me answer the first one.
+
+01:09:16.840 --> 01:09:18.890
+The second one is
+a work in progress.
+
+01:09:18.890 --> 01:09:23.550
+So ICD-10 came to the
+US on October 1, 2015.
+
+01:09:23.550 --> 01:09:24.740
+I remember.
+
+01:09:24.740 --> 01:09:27.029
+It hurt us all.
+
+01:09:27.029 --> 01:09:31.830
+So we actually don't have that
+much information on ICD-10 yet.
+
+01:09:31.830 --> 01:09:34.569
+But it's definitely
+impacted our work.
+
+01:09:34.569 --> 01:09:37.020
+So if you think about
+when Pete was pointing
+
+01:09:37.020 --> 01:09:40.479
+to the number of ICD counts
+for ICD-9, for those of you who
+
+01:09:40.479 --> 01:09:43.830
+don't know, ICD-9 was
+developed decades ago.
+
+01:09:43.830 --> 01:09:45.630
+ICD-10 maybe two decades ago.
+
+01:09:45.630 --> 01:09:49.152
+But what ICD-10 did was
+it added more granularity.
+
+01:09:49.152 --> 01:09:50.819
+So for rheumatoid
+arthritis, I mentioned
+
+01:09:50.819 --> 01:09:54.720
+it's a systemic chronic
+inflammatory joint disease.
+
+01:09:54.720 --> 01:09:57.960
+We used to have a code that
+said rheumatoid arthritis.
+
+01:09:57.960 --> 01:10:00.790
+In ICD-10, it now says
+rheumatoid arthritis,
+
+01:10:00.790 --> 01:10:03.340
+rheumatoid factor positive,
+rheumatoid arthritis,
+
+01:10:03.340 --> 01:10:04.800
+rheumatoid factor negative.
+
+01:10:04.800 --> 01:10:07.680
+And under each category
+is RA of the right wrist,
+
+01:10:07.680 --> 01:10:09.930
+RA of the left wrist, RA of
+the right knee, left knee.
+
+01:10:09.930 --> 01:10:10.597
+Can you imagine?
+
+01:10:10.597 --> 01:10:12.540
+So we're clicking
+off all of these.
+
+01:10:12.540 --> 01:10:18.060
+And so, as it turns
+out, surprisingly--
+
+01:10:18.060 --> 01:10:21.810
+we're about to publish
+a small study now,
+
+01:10:21.810 --> 01:10:25.350
+is RA any more accurate now
+they have all these granular--
+
+01:10:25.350 --> 01:10:26.850
+it turns out, I
+think we got annoyed
+
+01:10:26.850 --> 01:10:30.850
+because it's actually less
+accurate now than the ICD-9.
+
+01:10:30.850 --> 01:10:32.020
+So that's one thing.
+
+01:10:32.020 --> 01:10:35.272
+But that's, you know, only
+two or three years of data.
+
+01:10:35.272 --> 01:10:37.230
+I think it's going to
+become pretty equivalent.
+
+01:10:37.230 --> 01:10:39.360
+The other thing is,
+you'll see an explosion
+
+01:10:39.360 --> 01:10:41.850
+in the number of ICD codes.
+
+01:10:41.850 --> 01:10:48.980
+So you have to think about how
+do you deal with back October
+
+01:10:48.980 --> 01:10:50.990
+1, 2015 when you
+had one RA code,
+
+01:10:50.990 --> 01:10:54.860
+but after 2015, it depends
+on when the patient comes in.
+
+01:10:54.860 --> 01:10:57.740
+They may have RA of the
+right wrist on one day,
+
+01:10:57.740 --> 01:10:59.240
+then on the left
+knee the other day.
+
+01:10:59.240 --> 01:11:00.960
+That looks like
+a different code.
+
+01:11:00.960 --> 01:11:03.990
+So right now, we have to
+think of systematic systems
+
+01:11:03.990 --> 01:11:06.440
+to roll up.
+
+01:11:06.440 --> 01:11:10.170
+I think the biggest challenge
+right now is the mapping.
+
+01:11:10.170 --> 01:11:15.592
+So ICD-9, you know, doesn't
+map directly to ICD-10 or back
+
+01:11:15.592 --> 01:11:17.050
+because there were
+diseases that we
+
+01:11:17.050 --> 01:11:20.430
+didn't know when they developed
+ICD-9 that exist in ICD-10.
+
+01:11:20.430 --> 01:11:24.040
+In ICD-10, they talk about
+diseases in ways that
+
+01:11:24.040 --> 01:11:26.050
+weren't described in ICD-9.
+
+01:11:26.050 --> 01:11:28.090
+So when you're trying
+to harmonize the data,
+
+01:11:28.090 --> 01:11:31.930
+and this is actively something
+we're dealing with right now
+
+01:11:31.930 --> 01:11:36.410
+at the VA, how do you
+now count the ICD codes?
+
+01:11:36.410 --> 01:11:40.572
+How do you consider that
+someone has an ICD code for RA?
+
+01:11:40.572 --> 01:11:42.780
+So those are all things that
+are being developed now.
+
+01:11:42.780 --> 01:11:45.910
+CMS, Center for
+Medicaid and Medicare,
+
+01:11:45.910 --> 01:11:47.410
+again, this is for
+billing purposes,
+
+01:11:47.410 --> 01:11:49.570
+has come up with a mapping
+system that many of us
+
+01:11:49.570 --> 01:11:53.066
+are using now,
+given what we have.
+
+01:11:53.066 --> 01:11:55.150
+PETER SZOLOVITS: And by
+the way, the committee
+
+01:11:55.150 --> 01:12:00.890
+that is designing ICD-11 has
+been very active for years.
+
+01:12:00.890 --> 01:12:03.940
+And so there is another
+one coming down the pike.
+
+01:12:03.940 --> 01:12:05.380
+Although, from
+what I understand--
+
+01:12:05.380 --> 01:12:07.172
+KATHERINE LIAO: Are
+you involved with that?
+
+01:12:07.172 --> 01:12:08.740
+PETER SZOLOVITS: No.
+
+01:12:08.740 --> 01:12:11.360
+But Chris Chute is or was.
+
+01:12:11.360 --> 01:12:12.490
+KATHERINE LIAO: Yes, I saw.
+
+01:12:12.490 --> 01:12:13.323
+I said, don't do it.
+
+01:12:13.323 --> 01:12:14.920
+PETER SZOLOVITS:
+Well, but actually,
+
+01:12:14.920 --> 01:12:16.720
+I'm a little bit
+optimistic because
+
+01:12:16.720 --> 01:12:20.260
+unlike the traditional
+ICD system,
+
+01:12:20.260 --> 01:12:23.260
+this one is based on SNOMED,
+which has a much more
+
+01:12:23.260 --> 01:12:25.330
+logical structure.
+
+01:12:25.330 --> 01:12:27.850
+So you know, my
+favorite ICD-10 code
+
+01:12:27.850 --> 01:12:34.640
+is closed fracture
+of the left femur
+
+01:12:34.640 --> 01:12:36.215
+due to spacecraft accident.
+
+01:12:38.815 --> 01:12:42.343
+KATHERINE LIAO: I didn't
+even know that existed.
+
+01:12:42.343 --> 01:12:43.760
+PETER SZOLOVITS:
+As far as I know,
+
+01:12:43.760 --> 01:12:47.090
+that code has never
+been applied to anybody.
+
+01:12:47.090 --> 01:12:50.600
+But it's there just in case.
+
+01:12:50.600 --> 01:12:51.100
+Yeah.
+
+01:12:51.100 --> 01:12:53.010
+AUDIENCE: So wait,
+for the ICD-11
+
+01:12:53.010 --> 01:12:55.770
+you don't think take that
+long to exist because it's
+
+01:12:55.770 --> 01:12:56.693
+a more logical system?
+
+01:12:56.693 --> 01:12:57.860
+PETER SZOLOVITS: So ICD-11--
+
+01:12:57.860 --> 01:12:59.100
+well, I don't know
+what it's going
+
+01:12:59.100 --> 01:13:00.980
+to be because they
+haven't defined it yet.
+
+01:13:00.980 --> 01:13:04.220
+But the idea behind
+SNOMED is that it's more
+
+01:13:04.220 --> 01:13:05.750
+a combinatorial system.
+
+01:13:05.750 --> 01:13:09.020
+So it's more like a
+grammar of descriptions
+
+01:13:09.020 --> 01:13:13.370
+that you can assemble according
+to certain rules of what
+
+01:13:13.370 --> 01:13:15.770
+assemblies make sense.
+
+01:13:15.770 --> 01:13:18.020
+And so that means
+that you don't have
+
+01:13:18.020 --> 01:13:23.360
+to explicitly mention something
+like the spacecraft accident
+
+01:13:23.360 --> 01:13:24.110
+one.
+
+01:13:24.110 --> 01:13:27.260
+But if that ever
+arises, then there
+
+01:13:27.260 --> 01:13:29.750
+is a way to construct
+something that
+
+01:13:29.750 --> 01:13:33.575
+would describe that situation.
+
+01:13:33.575 --> 01:13:35.450
+KATHERINE LIAO: I ran
+into Chris at a meeting
+
+01:13:35.450 --> 01:13:36.992
+and he said something
+along the lines
+
+01:13:36.992 --> 01:13:40.818
+that he thinks it's going
+to be more NLP-based, even.
+
+01:13:40.818 --> 01:13:41.360
+I don't know.
+
+01:13:41.360 --> 01:13:42.860
+Is it going to be
+more like a language?
+
+01:13:42.860 --> 01:13:44.300
+PETER SZOLOVITS: Well,
+you need to ask him.
+
+01:13:44.300 --> 01:13:45.080
+KATHERINE LIAO:
+Yeah, I don't know.
+
+01:13:45.080 --> 01:13:46.205
+He hints at it [INAUDIBLE].
+
+01:13:46.205 --> 01:13:47.913
+I was like, OK, this
+will be interesting.
+
+01:13:47.913 --> 01:13:49.790
+PETER SZOLOVITS: I
+think it's definitely
+
+01:13:49.790 --> 01:13:51.710
+more like a language,
+but it'll be more
+
+01:13:51.710 --> 01:13:57.410
+like the old Fred Thompson
+or the Diamond Diagram
+
+01:13:57.410 --> 01:13:58.760
+kind of language.
+
+01:13:58.760 --> 01:14:01.280
+It's a designed
+language that you're
+
+01:14:01.280 --> 01:14:04.720
+going to have to learn in order
+to figure out how to describe
+
+01:14:04.720 --> 01:14:06.260
+things appropriately.
+
+01:14:06.260 --> 01:14:10.070
+Or at least your billing
+clerk will have to learn it.
+
+01:14:10.070 --> 01:14:10.663
+Yeah?
+
+01:14:10.663 --> 01:14:12.288
+AUDIENCE: I know
+we're towards the end.
+
+01:14:12.288 --> 01:14:16.310
+But I had a question about
+when a clinician is trying
+
+01:14:16.310 --> 01:14:19.360
+to label data, for
+example, training data,
+
+01:14:19.360 --> 01:14:22.640
+are there any ambiguities
+ever, where sometimes this
+
+01:14:22.640 --> 01:14:24.530
+is definitely--
+this person has RA.
+
+01:14:24.530 --> 01:14:27.925
+This person, I'm
+not really sure.
+
+01:14:27.925 --> 01:14:29.300
+How do you take
+that into account
+
+01:14:29.300 --> 01:14:30.800
+when you're actually
+training a [INAUDIBLE]??
+
+01:14:30.800 --> 01:14:31.520
+KATHERINE LIAO: Yeah.
+
+01:14:31.520 --> 01:14:33.520
+So we actually have three
+categories-- definite,
+
+01:14:33.520 --> 01:14:35.240
+possible, and no.
+
+01:14:35.240 --> 01:14:36.650
+So there is always ambiguity.
+
+01:14:36.650 --> 01:14:39.020
+And then you always want to
+have more than one reviewer.
+
+01:14:39.020 --> 01:14:42.050
+So in clinical trials
+when you have outcomes,
+
+01:14:42.050 --> 01:14:44.280
+you have what we
+call adjudication.
+
+01:14:44.280 --> 01:14:45.920
+So you have some
+kind of system where
+
+01:14:45.920 --> 01:14:48.920
+you have the first sit down, you
+have to define the phenotype.
+
+01:14:48.920 --> 01:14:50.930
+Because not everybody
+is going to agree, even
+
+01:14:50.930 --> 01:14:53.960
+for a really clear disease,
+how do you define the disease.
+
+01:14:53.960 --> 01:14:56.420
+What are the components
+that has to happen.
+
+01:14:56.420 --> 01:14:59.750
+For that, they're usually for
+societies or classification
+
+01:14:59.750 --> 01:15:00.780
+criteria for research.
+
+01:15:00.780 --> 01:15:02.570
+So there actually
+is one for RA, you
+
+01:15:02.570 --> 01:15:04.770
+know, for coronary
+artery disease.
+
+01:15:04.770 --> 01:15:06.770
+And then it is having
+those different categories
+
+01:15:06.770 --> 01:15:09.170
+in a very structured
+system for adjudicating.
+
+01:15:09.170 --> 01:15:13.060
+You know, blindly having two
+reviewers review 20, you know,
+
+01:15:13.060 --> 01:15:15.110
+let's say 20 of the
+same notes and look
+
+01:15:15.110 --> 01:15:17.040
+at the integrated reliability.
+
+01:15:17.040 --> 01:15:17.540
+Yeah.
+
+01:15:17.540 --> 01:15:20.555
+That's a big issue.
+
+01:15:20.555 --> 01:15:21.680
+PETER SZOLOVITS: All right.
+
+01:15:21.680 --> 01:15:24.930
+I think we have expired.
+
+01:15:24.930 --> 01:15:26.910
+So Kat, thank you very much.
+
+01:15:26.910 --> 01:15:29.390
+KATHERINE LIAO: Yes,
+thank you, everybody.

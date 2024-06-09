@@ -1,0 +1,350 @@
+WEBVTT
+
+00:00:00.320 --> 00:00:05.400
+In this lecture we return to the memory system
+that we last discussed in Lecture 14 of Part
+
+00:00:05.400 --> 00:00:06.760
+2.
+
+00:00:06.760 --> 00:00:11.480
+There we learned about the fundamental tradeoff
+in current memory technologies: as the memory's
+
+00:00:11.480 --> 00:00:15.580
+capacity increases, so does it access time.
+
+00:00:15.580 --> 00:00:19.720
+It takes some architectural cleverness to
+build a memory system that has a large capacity
+
+00:00:19.720 --> 00:00:22.960
+and a small average access time.
+
+00:00:22.960 --> 00:00:27.570
+The cleverness is embodied in the cache, a
+hardware subsystem that lives between the
+
+00:00:27.570 --> 00:00:29.880
+CPU and main memory.
+
+00:00:29.880 --> 00:00:35.760
+Modern CPUs have several levels of cache,
+where the modest-capacity first level has
+
+00:00:35.760 --> 00:00:41.010
+an access time close to that of the CPU, and
+higher levels of cache have slower access
+
+00:00:41.010 --> 00:00:44.790
+times but larger capacities.
+
+00:00:44.790 --> 00:00:50.199
+Caches give fast access to a small number
+of memory locations, using associative addressing
+
+00:00:50.199 --> 00:00:55.320
+so that the cache has the ability to hold
+the contents of the memory locations the CPU
+
+00:00:55.320 --> 00:00:57.960
+is accessing most frequently.
+
+00:00:57.960 --> 00:01:02.770
+The current contents of the cache are managed
+automatically by the hardware.
+
+00:01:02.770 --> 00:01:07.960
+Caches work well because of the principle
+of locality: if the CPU accesses location
+
+00:01:07.960 --> 00:01:14.850
+X at time T, it's likely to access nearby
+locations in the not-too-distant future.
+
+00:01:14.850 --> 00:01:20.560
+The cache is organized so that nearby locations
+can all reside in the cache simultaneously,
+
+00:01:20.560 --> 00:01:25.850
+using a simple indexing scheme to choose which
+cache location should be checked for a matching
+
+00:01:25.850 --> 00:01:27.380
+address.
+
+00:01:27.380 --> 00:01:34.020
+If the address requested by the CPU resides
+in the cache, access time is quite fast.
+
+00:01:34.020 --> 00:01:39.080
+In order to increase the probability that
+requested addresses reside in the cache, we
+
+00:01:39.080 --> 00:01:43.969
+introduced the notion of "associativity",
+which increased the number of cache locations
+
+00:01:43.969 --> 00:01:48.658
+checked on each access and
+solved the problem of having, say, instructions
+
+00:01:48.658 --> 00:01:52.420
+and data compete for the same cache locations..
+
+00:01:52.420 --> 00:01:58.520
+We also discussed appropriate choices for
+block size (the number of words in a cache
+
+00:01:58.520 --> 00:02:02.369
+line),
+replacement policy (how to choose which cache
+
+00:02:02.369 --> 00:02:08.060
+line to reuse on a cache miss),
+and write policy (deciding when to write changed
+
+00:02:08.060 --> 00:02:09.850
+data back to main memory).
+
+00:02:09.850 --> 00:02:16.010
+We'll see these same choices again in this
+lecture as we work to expand the memory hierarchy
+
+00:02:16.010 --> 00:02:18.670
+beyond main memory.
+
+00:02:18.670 --> 00:02:23.910
+We never discussed where the data in main
+memory comes from and how the process of filling
+
+00:02:23.910 --> 00:02:25.970
+main memory is managed.
+
+00:02:25.970 --> 00:02:28.890
+That's the topic of today's lecture..
+
+00:02:28.890 --> 00:02:33.950
+Flash drives and hard disks provide storage
+options that have more capacity than main
+
+00:02:33.950 --> 00:02:40.579
+memory, with the added benefit of being non-volatile,
+i.e., they continue to store data even when
+
+00:02:40.579 --> 00:02:42.360
+turned off.
+
+00:02:42.360 --> 00:02:47.340
+The generic name for these new devices is
+"secondary storage", where data will reside
+
+00:02:47.340 --> 00:02:53.310
+until it's moved to "primary storage", i.e.,
+main memory, for use.
+
+00:02:53.310 --> 00:02:57.970
+So when we first turn on a computer system,
+all of its data will be found in secondary
+
+00:02:57.970 --> 00:03:03.340
+storage, which we'll think of as the final
+level of our memory hierarchy.
+
+00:03:03.340 --> 00:03:07.810
+As we think about the right memory architecture,
+we'll build on the ideas from our previous
+
+00:03:07.810 --> 00:03:13.790
+discussion of caches, and, indeed, think of
+main memory as another level of cache for
+
+00:03:13.790 --> 00:03:16.650
+the permanent, high-capacity secondary storage.
+
+00:03:16.650 --> 00:03:22.840
+We'll be building what we call a virtual memory
+system, which, like caches, will automatically
+
+00:03:22.840 --> 00:03:27.650
+move data from secondary storage into main
+memory as needed.
+
+00:03:27.650 --> 00:03:32.970
+The virtual memory system will also let us
+control what data can be accessed by the program,
+
+00:03:32.970 --> 00:03:38.130
+serving as a stepping stone to building a
+system that can securely run many programs
+
+00:03:38.130 --> 00:03:39.810
+on a single CPU.
+
+00:03:39.810 --> 00:03:42.950
+Let's get started!
+
+00:03:42.950 --> 00:03:47.620
+Here we see the cache and main memory, the
+two components of our memory system as developed
+
+00:03:47.620 --> 00:03:49.650
+in Lecture 14.
+
+00:03:49.650 --> 00:03:52.500
+And here's our new secondary storage layer.
+
+00:03:52.500 --> 00:03:57.120
+The good news: the capacity of secondary storage
+is huge!
+
+00:03:57.120 --> 00:04:01.280
+Even the most modest modern computer system
+will have 100's of gigabytes of secondary
+
+00:04:01.280 --> 00:04:08.130
+storage and having a terabyte or two is not
+uncommon on medium-size desktop computers.
+
+00:04:08.130 --> 00:04:13.830
+Secondary storage for the cloud can grow to
+many petabytes (a petabyte is 10^15 bytes
+
+00:04:13.830 --> 00:04:16.548
+or a million gigabytes).
+
+00:04:16.548 --> 00:04:23.260
+The bad news: disk access times are 100,000
+times longer that those of DRAM.
+
+00:04:23.260 --> 00:04:28.430
+So the change in access time from DRAM to
+disk is much, much larger than the change
+
+00:04:28.430 --> 00:04:31.780
+from caches to DRAM.
+
+00:04:31.780 --> 00:04:36.070
+When looking at DRAM timing, we discovered
+that the additional access time for retrieving
+
+00:04:36.070 --> 00:04:41.560
+a contiguous block of words was small compared
+to the access time for the first word,
+
+00:04:41.560 --> 00:04:47.310
+so fetching a block was the right plan assuming
+we'd eventually access the additional words.
+
+00:04:47.310 --> 00:04:52.340
+For disks, the access time difference between
+the first word and successive words is even
+
+00:04:52.340 --> 00:04:53.670
+more dramatic.
+
+00:04:53.670 --> 00:04:59.760
+So, not surprisingly, we'll be reading fairly
+large blocks of data from disk.
+
+00:04:59.760 --> 00:05:06.400
+The consequence of the much, much larger secondary-storage
+access time is that it will be very time consuming
+
+00:05:06.400 --> 00:05:10.790
+to access disk if the data we need is not
+in main memory.
+
+00:05:10.790 --> 00:05:16.960
+So we need to design our virtual memory system
+to minimize misses when accessing main memory.
+
+00:05:16.960 --> 00:05:23.710
+A miss, and the subsequent disk access, will
+have a huge impact on the average memory access
+
+00:05:23.710 --> 00:05:29.530
+time, so the miss rate will need to be very,
+very small compared to, say, the rate of executing
+
+00:05:29.530 --> 00:05:31.620
+instructions.
+
+00:05:31.620 --> 00:05:36.580
+Given the enormous miss penalties of secondary
+storage, what does that tell us about how
+
+00:05:36.580 --> 00:05:39.640
+it should be used as part of our memory hierarchy?
+
+00:05:39.640 --> 00:05:44.450
+We will need high associativity, i.e., we
+need a great deal of flexibility on how data
+
+00:05:44.450 --> 00:05:47.770
+from disk can be located in main memory.
+
+00:05:47.770 --> 00:05:52.990
+In other words, if our working set of memory
+accesses fit in main memory, our virtual memory
+
+00:05:52.990 --> 00:05:59.030
+system should make that possible, avoiding
+unnecessary collisions between accesses to
+
+00:05:59.030 --> 00:06:02.160
+one block of data and another.
+
+00:06:02.160 --> 00:06:06.490
+We'll want to use a large block size to take
+advantage of the low incremental cost of reading
+
+00:06:06.490 --> 00:06:08.610
+successive words from disk.
+
+00:06:08.610 --> 00:06:13.340
+And, given the principle of locality, we'd
+expect to be accessing other words of the
+
+00:06:13.340 --> 00:06:18.780
+block, thus amortizing the cost of the miss
+over many future hits.
+
+00:06:18.780 --> 00:06:25.190
+Finally, we'll want to use a write-back strategy
+where we'll only update the contents of disk
+
+00:06:25.190 --> 00:06:30.880
+when data that's changed in main memory needs
+to be replaced by data from other blocks of
+
+00:06:30.880 --> 00:06:32.150
+secondary storage.
+
+00:06:32.150 --> 00:06:36.020
+There is upside to misses having such long
+latencies.
+
+00:06:36.020 --> 00:06:44.070
+We can manage the organization of main memory
+and the accesses to secondary storage in software.
+
+00:06:44.070 --> 00:06:48.820
+Even it takes 1000's of instructions to deal
+with the consequences of a miss, executing
+
+00:06:48.820 --> 00:06:52.970
+those instructions is quick compared to the
+access time of a disk.
+
+00:06:52.970 --> 00:06:58.639
+So our strategy will be to handle hits in
+hardware and misses in software.
+
+00:06:58.639 --> 00:07:03.210
+This will lead to simple memory management
+hardware and the possibility of using very
+
+00:07:03.210 --> 00:07:07.860
+clever strategies implemented in software
+to figure out what to do on misses.

@@ -1,0 +1,6002 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT OpenCourseWare
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:17.915
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.915 --> 00:00:18.540
+at ocw.mit.edu.
+
+00:00:25.270 --> 00:00:28.280
+CHARLES E. LEISERSON:
+OK, let's get started.
+
+00:00:28.280 --> 00:00:32.990
+On Thursday, we are
+really privileged to have
+
+00:00:32.990 --> 00:00:39.740
+Jon Bentley, who is one of
+the masters of performance
+
+00:00:39.740 --> 00:00:43.790
+engineering, come and
+give us a guest lecture.
+
+00:00:43.790 --> 00:00:47.000
+In 1982, he wrote this
+wonderful little book
+
+00:00:47.000 --> 00:00:49.070
+from which we
+adapted the Bentley
+
+00:00:49.070 --> 00:00:51.600
+rules that you folks have seen.
+
+00:00:51.600 --> 00:00:54.140
+And he's also famous for
+things like kd-trees.
+
+00:00:54.140 --> 00:00:56.160
+Who's seen kd-trees. trees?
+
+00:00:56.160 --> 00:00:58.340
+Yeah, so he invented kd-trees.
+
+00:00:58.340 --> 00:01:01.700
+And who's ever used the master
+method of recurrence solving?
+
+00:01:01.700 --> 00:01:04.640
+He invented the master
+method of recurrence solving.
+
+00:01:04.640 --> 00:01:09.290
+And so he's just a
+wonderful, wonderful fellow,
+
+00:01:09.290 --> 00:01:16.310
+with lots and lots of insights,
+and just a superior performance
+
+00:01:16.310 --> 00:01:17.070
+engineer.
+
+00:01:17.070 --> 00:01:21.020
+And he's going to give a
+guest lecture on Thursday.
+
+00:01:21.020 --> 00:01:25.520
+And so I would encourage
+you to bring your friends.
+
+00:01:25.520 --> 00:01:30.800
+Bring friends maybe
+who dropped the class,
+
+00:01:30.800 --> 00:01:35.120
+and others who if any of
+you have UROPS, other people
+
+00:01:35.120 --> 00:01:37.560
+in your research group, whether
+they're graduate students,
+
+00:01:37.560 --> 00:01:39.920
+they're all welcome to come.
+
+00:01:39.920 --> 00:01:42.230
+Because this is really
+one of the opportunities
+
+00:01:42.230 --> 00:01:47.550
+you get to actually meet one
+of the legends of the field,
+
+00:01:47.550 --> 00:01:48.690
+if you will.
+
+00:01:48.690 --> 00:01:54.090
+And you'll see he's
+very approachable.
+
+00:01:54.090 --> 00:01:56.190
+He's very approachable.
+
+00:01:56.190 --> 00:02:00.000
+So anyway, my advertisement
+for Jon Bentley.
+
+00:02:00.000 --> 00:02:00.500
+Good.
+
+00:02:00.500 --> 00:02:01.730
+So let's start.
+
+00:02:01.730 --> 00:02:05.120
+I want to talk about speculative
+parallelism for a little bit,
+
+00:02:05.120 --> 00:02:09.500
+because that's kind of what you
+need to make the code go fast.
+
+00:02:09.500 --> 00:02:12.140
+So if you look at
+code like alpha beta,
+
+00:02:12.140 --> 00:02:16.550
+it turns out that it's
+inherently serial.
+
+00:02:16.550 --> 00:02:22.550
+That is, if you try to
+do things in parallel,
+
+00:02:22.550 --> 00:02:25.040
+then you missed the cutoffs.
+
+00:02:25.040 --> 00:02:29.843
+And if you missed
+the cutoffs, then you
+
+00:02:29.843 --> 00:02:31.760
+start doing work that
+you wouldn't necessarily
+
+00:02:31.760 --> 00:02:33.810
+need to do.
+
+00:02:33.810 --> 00:02:39.500
+And so the only way to sort
+of make this type of code run
+
+00:02:39.500 --> 00:02:42.110
+fast is to use speculation.
+
+00:02:42.110 --> 00:02:44.740
+Which is to say,
+that you're going
+
+00:02:44.740 --> 00:02:48.050
+to guess that you can
+do stuff in parallel
+
+00:02:48.050 --> 00:02:51.410
+and it'll be worthwhile, and
+then, occasionally, you're
+
+00:02:51.410 --> 00:02:53.240
+going to be wrong.
+
+00:02:53.240 --> 00:02:57.020
+But the trick is, well, how do
+you minimize the wasted effort
+
+00:02:57.020 --> 00:02:59.280
+when things go wrong?
+
+00:02:59.280 --> 00:03:02.780
+So let's just take a look
+at a very simple example
+
+00:03:02.780 --> 00:03:10.700
+of speculative parallelism,
+which is thresholding a sum.
+
+00:03:10.700 --> 00:03:16.100
+So here we have a little program
+that is returning a boolean.
+
+00:03:16.100 --> 00:03:19.820
+It takes as input
+an array of size n.
+
+00:03:19.820 --> 00:03:22.190
+So thresholding a
+sum-- we have an array
+
+00:03:22.190 --> 00:03:23.930
+of length n and a limit.
+
+00:03:23.930 --> 00:03:27.110
+And these are all
+unsigned integers, say.
+
+00:03:27.110 --> 00:03:31.310
+And I start out the sum at
+0, and what I'm going to do
+
+00:03:31.310 --> 00:03:34.940
+is add up all the
+elements of the array.
+
+00:03:34.940 --> 00:03:41.420
+And if it exceeds the limit,
+then I'm going to return.
+
+00:03:41.420 --> 00:03:47.640
+And so how might I optimize
+this code a little bit?
+
+00:03:51.559 --> 00:03:52.059
+Yeah.
+
+00:03:55.987 --> 00:04:02.370
+AUDIENCE: Split up [INAUDIBLE]
+four processes, [INAUDIBLE]
+
+00:04:02.370 --> 00:04:04.340
+split up an array [INAUDIBLE].
+
+00:04:04.340 --> 00:04:07.610
+CHARLES E. LEISERSON: No,
+let's say on processor.
+
+00:04:07.610 --> 00:04:09.110
+On one processor,
+what might you do?
+
+00:04:09.110 --> 00:04:10.686
+AUDIENCE: In the
+middle of the loop,
+
+00:04:10.686 --> 00:04:12.740
+you can check [INAUDIBLE].
+
+00:04:12.740 --> 00:04:14.240
+CHARLES E. LEISERSON:
+Yeah, once you
+
+00:04:14.240 --> 00:04:16.790
+check so that once
+you would exceed it,
+
+00:04:16.790 --> 00:04:20.899
+why keep adding
+the other numbers?
+
+00:04:20.899 --> 00:04:23.000
+So here's a code that
+does that-- quit early
+
+00:04:23.000 --> 00:04:25.410
+if the partial product
+ever exceeds the threshold.
+
+00:04:25.410 --> 00:04:27.035
+This isn't necessarily
+an optimization.
+
+00:04:27.035 --> 00:04:29.600
+Because notice that now
+in the optimization,
+
+00:04:29.600 --> 00:04:34.620
+not only do I have a memory
+reference and an addition,
+
+00:04:34.620 --> 00:04:44.510
+I also now have an
+unpredictable branch.
+
+00:04:44.510 --> 00:04:46.250
+Actually, it's
+predictable branch--
+
+00:04:46.250 --> 00:04:47.120
+predictable branch.
+
+00:04:47.120 --> 00:04:50.673
+But it's still one more
+step, because it's always
+
+00:04:50.673 --> 00:04:53.090
+going to predict that it's not
+exceeding until it actually
+
+00:04:53.090 --> 00:04:54.145
+does exceed.
+
+00:04:54.145 --> 00:04:55.520
+So that'll be
+pretty predictable.
+
+00:04:58.430 --> 00:05:00.770
+But still, I've added
+something into the loop
+
+00:05:00.770 --> 00:05:01.880
+so that maybe slower.
+
+00:05:01.880 --> 00:05:03.540
+How might I mitigate
+that problem?
+
+00:05:07.380 --> 00:05:13.332
+So I don't want to add too
+much into the inner loop.
+
+00:05:13.332 --> 00:05:14.318
+Yeah.
+
+00:05:14.318 --> 00:05:16.536
+AUDIENCE: It could
+have an inner loop
+
+00:05:16.536 --> 00:05:20.485
+that goes [INAUDIBLE] them.
+
+00:05:20.485 --> 00:05:21.610
+CHARLES E. LEISERSON: Yeah.
+
+00:05:21.610 --> 00:05:25.040
+So basically, I can do
+what's called strip mining.
+
+00:05:25.040 --> 00:05:29.990
+I replace the loop of n
+iterations with a loop of,
+
+00:05:29.990 --> 00:05:32.960
+let's say, n over
+four iterations,
+
+00:05:32.960 --> 00:05:36.230
+with an inner loop
+of four iterations.
+
+00:05:36.230 --> 00:05:38.840
+And every fourth
+iteration, I check
+
+00:05:38.840 --> 00:05:42.410
+to see whether or
+not I've exceeded,
+
+00:05:42.410 --> 00:05:46.940
+so that the cost of the check
+is going to be relatively
+
+00:05:46.940 --> 00:05:49.160
+small at that point.
+
+00:05:49.160 --> 00:05:53.240
+So are there ways of making
+this sort of go fast.
+
+00:05:53.240 --> 00:06:00.910
+So now, we want to make
+this operate in parallel.
+
+00:06:03.950 --> 00:06:07.130
+And the problem when
+I operate in parallel
+
+00:06:07.130 --> 00:06:13.560
+is that as I'm adding
+stuff up, I want to do it.
+
+00:06:13.560 --> 00:06:18.470
+So I'm going to do this
+here with a reducer.
+
+00:06:18.470 --> 00:06:21.230
+And so, basically,
+I'm going to add up
+
+00:06:21.230 --> 00:06:23.930
+the values in the reducer.
+
+00:06:23.930 --> 00:06:25.670
+But now, I'd like
+to do the same thing
+
+00:06:25.670 --> 00:06:27.775
+of being able to quit early.
+
+00:06:27.775 --> 00:06:29.150
+And so the question
+is, well, how
+
+00:06:29.150 --> 00:06:33.290
+can we parallelize a
+short-circuited loop?
+
+00:06:35.960 --> 00:06:38.150
+And so, the way I'm going
+to do this-- and this
+
+00:06:38.150 --> 00:06:40.455
+is sort of by hand
+here, but it's
+
+00:06:40.455 --> 00:06:42.080
+going to give you--
+so actually, as you
+
+00:06:42.080 --> 00:06:44.090
+know, underneath the
+loop is really a divide
+
+00:06:44.090 --> 00:06:45.890
+and conquer loop.
+
+00:06:45.890 --> 00:06:51.950
+And so I could write
+it as a parallel loop.
+
+00:06:51.950 --> 00:06:55.100
+And now, it becomes, I
+think, a little bit clearer
+
+00:06:55.100 --> 00:06:57.020
+how I could, in
+this case, what I'm
+
+00:06:57.020 --> 00:07:02.210
+going to do is return
+the value of the sum.
+
+00:07:02.210 --> 00:07:03.650
+And now the question
+is, well, how
+
+00:07:03.650 --> 00:07:07.415
+can I quit early and save the
+work if I exceed the threshold?
+
+00:07:10.850 --> 00:07:12.830
+Understanding that
+when I'm executing
+
+00:07:12.830 --> 00:07:15.200
+this and something
+like Cilk, it's
+
+00:07:15.200 --> 00:07:18.470
+going to tend to
+go down one path.
+
+00:07:18.470 --> 00:07:21.140
+And often, it's going to
+be a serial execution.
+
+00:07:21.140 --> 00:07:23.750
+So I'd like if it's possible.
+
+00:07:23.750 --> 00:07:27.080
+So here's one way
+of doing it, which
+
+00:07:27.080 --> 00:07:34.580
+is that I add an abort
+flag to the code, which
+
+00:07:34.580 --> 00:07:36.590
+is going to say whether
+I should keep going
+
+00:07:36.590 --> 00:07:40.020
+or whether I've actually
+exceeded at that point.
+
+00:07:40.020 --> 00:07:43.190
+And so I'm going to
+use that recursively.
+
+00:07:43.190 --> 00:07:49.430
+And now, I take a look, for
+each time through the loop--
+
+00:07:49.430 --> 00:07:51.650
+or through the
+divide and conquer--
+
+00:07:51.650 --> 00:07:54.560
+to see whether the sum
+is greater than a limit.
+
+00:07:54.560 --> 00:07:59.350
+And I haven't you know
+already aborted the flag,
+
+00:07:59.350 --> 00:08:03.620
+then I set the abort
+flag to be true.
+
+00:08:03.620 --> 00:08:05.630
+Why do I bother
+testing the abort flag
+
+00:08:05.630 --> 00:08:06.890
+before I set it to true?
+
+00:08:10.620 --> 00:08:14.120
+So notice that setting
+the abort flag is a race,
+
+00:08:14.120 --> 00:08:15.710
+isn't it-- a determinancy race.
+
+00:08:19.140 --> 00:08:22.020
+Because-- great.
+
+00:08:22.020 --> 00:08:22.520
+Thank you.
+
+00:08:22.520 --> 00:08:26.790
+It's because I have the
+stuff operating in parallel
+
+00:08:26.790 --> 00:08:29.910
+is all trying to set the abort
+flag whenever something aborts.
+
+00:08:29.910 --> 00:08:32.039
+I can have two guys who
+are in parallel setting
+
+00:08:32.039 --> 00:08:32.700
+the abort flag.
+
+00:08:32.700 --> 00:08:34.117
+But if they're
+setting it, they're
+
+00:08:34.117 --> 00:08:36.190
+setting it to the same value.
+
+00:08:36.190 --> 00:08:41.250
+So it's a benign race, assuming
+your memory model is such
+
+00:08:41.250 --> 00:08:44.700
+that you can actually
+set the values.
+
+00:08:44.700 --> 00:08:48.330
+So what happens here when--
+
+00:08:48.330 --> 00:08:50.880
+why do I why do you
+bother checking this?
+
+00:08:58.010 --> 00:09:00.070
+So what happens when
+several guys in parallel
+
+00:09:00.070 --> 00:09:02.170
+want to write to
+the same variable?
+
+00:09:06.570 --> 00:09:08.540
+This is quiz 1 stuff.
+
+00:09:08.540 --> 00:09:09.216
+Yeah.
+
+00:09:09.216 --> 00:09:10.258
+AUDIENCE: Cache bouncing.
+
+00:09:10.258 --> 00:09:11.383
+CHARLES E. LEISERSON: Yeah.
+
+00:09:11.383 --> 00:09:13.110
+You can have it bouncing
+along the cache.
+
+00:09:13.110 --> 00:09:15.600
+It will serialize it.
+
+00:09:15.600 --> 00:09:19.830
+Because if they're
+all trying to write,
+
+00:09:19.830 --> 00:09:22.800
+then they have to get
+exclusive access for it
+
+00:09:22.800 --> 00:09:25.470
+to write and modify it.
+
+00:09:25.470 --> 00:09:28.680
+And so that happens-- boom,
+boom, boom-- one at a time.
+
+00:09:28.680 --> 00:09:32.040
+And so by checking it first,
+it can be in a shared state,
+
+00:09:32.040 --> 00:09:35.543
+and then one guy
+clobbers it, and then
+
+00:09:35.543 --> 00:09:36.960
+it will update all
+the other ones.
+
+00:09:36.960 --> 00:09:38.940
+So it makes it so
+we don't continually
+
+00:09:38.940 --> 00:09:41.700
+have a true sharing race.
+
+00:09:41.700 --> 00:09:46.710
+And then in checking
+to see if it exceeds,
+
+00:09:46.710 --> 00:09:49.200
+we basically just check to see--
+
+00:09:54.960 --> 00:09:59.050
+we basically call this function.
+we set the abort flag to false,
+
+00:09:59.050 --> 00:10:03.300
+and then we return the
+sum of all the values.
+
+00:10:03.300 --> 00:10:07.410
+And if it aborts, then
+it just returns early.
+
+00:10:07.410 --> 00:10:11.348
+So it doesn't have to keep
+going through the computation.
+
+00:10:11.348 --> 00:10:13.140
+And, of course, once
+again, you can coarsen
+
+00:10:13.140 --> 00:10:16.500
+the leaves and so forth.
+
+00:10:16.500 --> 00:10:19.800
+So this is nondeterministic
+code, which we should never
+
+00:10:19.800 --> 00:10:23.400
+write unless we have to.
+
+00:10:23.400 --> 00:10:26.240
+Because that's the only
+way of getting performance.
+
+00:10:26.240 --> 00:10:30.510
+And you have to make sure you,
+of course, reset the abort flag
+
+00:10:30.510 --> 00:10:31.230
+after the use.
+
+00:10:34.380 --> 00:10:37.380
+And then, actually, do
+you need a memory fence
+
+00:10:37.380 --> 00:10:41.330
+here on the abort flag?
+
+00:10:41.330 --> 00:10:43.020
+Do you need to set--
+
+00:10:43.020 --> 00:10:46.410
+where would you
+put an abort flag
+
+00:10:46.410 --> 00:10:48.300
+to make sure that
+the value was--
+
+00:10:53.480 --> 00:10:53.980
+yeah.
+
+00:10:53.980 --> 00:10:57.445
+AUDIENCE: Maybe do it by
+setting default [INAUDIBLE]..
+
+00:10:57.445 --> 00:10:58.570
+CHARLES E. LEISERSON: Yeah.
+
+00:10:58.570 --> 00:11:01.280
+So what would you have to do?
+
+00:11:01.280 --> 00:11:09.058
+AUDIENCE: Put a [INAUDIBLE].
+
+00:11:09.058 --> 00:11:10.100
+CHARLES E. LEISERSON: OK.
+
+00:11:10.100 --> 00:11:18.040
+So indeed, it turns out you
+don't need a memory fence here.
+
+00:11:18.040 --> 00:11:20.790
+And the reason is because
+the code is correct,
+
+00:11:20.790 --> 00:11:22.800
+whether it's the
+initial value false
+
+00:11:22.800 --> 00:11:25.480
+or whether it's become true.
+
+00:11:25.480 --> 00:11:28.230
+So it doesn't matter
+when it becomes true.
+
+00:11:28.230 --> 00:11:31.620
+And so there's an issue of,
+if you put in the fence,
+
+00:11:31.620 --> 00:11:36.450
+then you know that it
+becomes true earlier,
+
+00:11:36.450 --> 00:11:38.715
+rather than waiting
+for the computation.
+
+00:11:38.715 --> 00:11:40.410
+But that may actually
+slow things down,
+
+00:11:40.410 --> 00:11:42.480
+because memory
+fences are expensive.
+
+00:11:42.480 --> 00:11:44.340
+But because the
+transition is always
+
+00:11:44.340 --> 00:11:47.820
+from false to true
+during the execution,
+
+00:11:47.820 --> 00:11:51.780
+you don't actually need
+a memory fence there
+
+00:11:51.780 --> 00:11:55.190
+in order to make sure that
+you've got the correct value.
+
+00:11:55.190 --> 00:11:57.810
+Does that makes sense?
+
+00:11:57.810 --> 00:12:01.170
+So you don't need
+a memory fence.
+
+00:12:01.170 --> 00:12:06.310
+So that's a classic instance
+of speculative parallelism.
+
+00:12:06.310 --> 00:12:08.100
+It occurs when
+our program spawns
+
+00:12:08.100 --> 00:12:10.830
+some parallel work that
+might not be performed
+
+00:12:10.830 --> 00:12:13.030
+in a serial execution.
+
+00:12:13.030 --> 00:12:15.450
+So you're performing
+it, anticipating
+
+00:12:15.450 --> 00:12:18.810
+that you're probably
+going to need to do it.
+
+00:12:18.810 --> 00:12:20.670
+And then, typically,
+what you want to do
+
+00:12:20.670 --> 00:12:27.900
+is have some way of backing
+out if you discover that you
+
+00:12:27.900 --> 00:12:29.190
+didn't need to do it that way.
+
+00:12:29.190 --> 00:12:33.330
+Have some way of making sure
+that you don't do any more.
+
+00:12:33.330 --> 00:12:40.570
+So basic rule of speculation
+is, don't spawn speculative work
+
+00:12:40.570 --> 00:12:43.750
+unless there's little other
+opportunity for parallelism
+
+00:12:43.750 --> 00:12:47.060
+and there's a good
+chance it will be needed.
+
+00:12:47.060 --> 00:12:50.050
+So one of the things I've seen,
+in research papers, no less,
+
+00:12:50.050 --> 00:12:59.350
+is people who say, oh, I'm going
+to have a calculation where
+
+00:12:59.350 --> 00:13:03.310
+I'm trying to find, say, the
+minimum of a bunch of values.
+
+00:13:03.310 --> 00:13:10.000
+And so I'm going to spawn
+off n things, each of which
+
+00:13:10.000 --> 00:13:11.230
+is looking for the minimum.
+
+00:13:11.230 --> 00:13:13.670
+As soon as the minimum
+one comes back,
+
+00:13:13.670 --> 00:13:17.710
+I'm going to retract all
+the other computations.
+
+00:13:17.710 --> 00:13:20.890
+And I'm going to get super
+linear speed up that way.
+
+00:13:20.890 --> 00:13:24.220
+Because in the
+serial execution, I
+
+00:13:24.220 --> 00:13:26.980
+might have done the
+longer one first.
+
+00:13:26.980 --> 00:13:31.630
+And maybe the minimum is not
+the first one or whatever.
+
+00:13:31.630 --> 00:13:33.940
+And so they claim
+super linear speedup
+
+00:13:33.940 --> 00:13:36.370
+by doing speculative
+parallelism.
+
+00:13:36.370 --> 00:13:41.560
+But that's not really
+a good example,
+
+00:13:41.560 --> 00:13:43.810
+because there was a
+better serial code.
+
+00:13:43.810 --> 00:13:46.240
+If that was really a
+good way of doing it,
+
+00:13:46.240 --> 00:13:47.950
+they should have
+been doing what's
+
+00:13:47.950 --> 00:13:49.840
+called dovetailing,
+which is doing
+
+00:13:49.840 --> 00:13:51.310
+a little bit of
+this computation,
+
+00:13:51.310 --> 00:13:53.230
+a little bit of this,
+a little bit of this,
+
+00:13:53.230 --> 00:13:55.840
+a little bit of this, et
+cetera, and then going back.
+
+00:13:55.840 --> 00:13:58.840
+That would have been a better
+algorithm for which you
+
+00:13:58.840 --> 00:14:00.100
+would then use it.
+
+00:14:00.100 --> 00:14:03.100
+And the risk they have is
+that they're spawning off
+
+00:14:03.100 --> 00:14:06.710
+n things, of which most
+of them may not be needed,
+
+00:14:06.710 --> 00:14:08.770
+and now they don't
+get any speed up,
+
+00:14:08.770 --> 00:14:12.310
+even though they've just
+used a lot more work.
+
+00:14:12.310 --> 00:14:16.120
+And that often is a bad choice.
+
+00:14:16.120 --> 00:14:18.130
+So usually, you don't
+want to speculative work
+
+00:14:18.130 --> 00:14:20.410
+unless there's little
+other opportunity
+
+00:14:20.410 --> 00:14:22.240
+and there's a good
+chance it'll be needed.
+
+00:14:25.330 --> 00:14:30.170
+My experience is, what
+kind of chance do you need?
+
+00:14:30.170 --> 00:14:35.690
+You need to have
+certainly less than--
+
+00:14:35.690 --> 00:14:40.510
+for parallelism, if the chance
+that you're going to need
+
+00:14:40.510 --> 00:14:43.210
+the work-- if you
+have p processors,
+
+00:14:43.210 --> 00:14:49.728
+if the chance that it could
+be not needed is less than--
+
+00:14:49.728 --> 00:14:51.520
+actually, I have a
+theorem at the end which
+
+00:14:51.520 --> 00:14:53.837
+all which I've
+I'll refer you to,
+
+00:14:53.837 --> 00:14:55.420
+because it's a little
+bit hard to say,
+
+00:14:55.420 --> 00:14:56.837
+because I didn't
+put on the slide.
+
+00:14:56.837 --> 00:14:59.380
+But there's a final
+slide for this,
+
+00:14:59.380 --> 00:15:01.900
+which gives a nice
+little theorem about when
+
+00:15:01.900 --> 00:15:03.800
+you should do this.
+
+00:15:03.800 --> 00:15:06.010
+So now, let's talk about
+parallel alpha-beta search,
+
+00:15:06.010 --> 00:15:07.427
+because that's
+kind of what you're
+
+00:15:07.427 --> 00:15:09.805
+doing with your principal
+variation search.
+
+00:15:13.840 --> 00:15:21.700
+So if you remember the analysis
+done by Knuth and Morris,
+
+00:15:21.700 --> 00:15:23.710
+they basically showed
+that for a game
+
+00:15:23.710 --> 00:15:27.390
+tree with the branching
+factor b and depth d,
+
+00:15:27.390 --> 00:15:29.440
+and alpha-beta search
+with moves searched
+
+00:15:29.440 --> 00:15:33.220
+in best-first order
+examines it exactly
+
+00:15:33.220 --> 00:15:37.180
+b to the ceiling of d over
+2 plus b to the floor of d
+
+00:15:37.180 --> 00:15:40.620
+over 2 minus 1 nodes at ply d.
+
+00:15:40.620 --> 00:15:48.760
+So that's basically square
+rooting the amount of work
+
+00:15:48.760 --> 00:15:51.850
+that you would need if
+you did a full depth ply.
+
+00:15:51.850 --> 00:15:54.340
+That's with alpha-beta.
+
+00:15:54.340 --> 00:16:00.130
+So naive algorithm looks at
+b to the d nodes at depth d.
+
+00:16:00.130 --> 00:16:02.080
+And so for the same
+work, the search depth
+
+00:16:02.080 --> 00:16:05.710
+has effectively doubled, or
+the work is square rooted.
+
+00:16:05.710 --> 00:16:09.190
+So that we solved last
+time in Helen's lecture.
+
+00:16:12.760 --> 00:16:17.320
+So the key optimization here
+is pruning the game tree.
+
+00:16:17.320 --> 00:16:21.100
+And as I mentioned at
+the beginning of this,
+
+00:16:21.100 --> 00:16:22.690
+when you prune the
+game tree, you've
+
+00:16:22.690 --> 00:16:25.090
+got what's effectively
+a serial thing.
+
+00:16:25.090 --> 00:16:27.100
+And if you let
+something go ahead,
+
+00:16:27.100 --> 00:16:30.178
+you may be working on
+something that would be pruned.
+
+00:16:30.178 --> 00:16:32.470
+So then how does the parallelism
+really help you there?
+
+00:16:32.470 --> 00:16:34.660
+You're just wasting processors
+that could be better
+
+00:16:34.660 --> 00:16:36.380
+spent perhaps elsewhere.
+
+00:16:36.380 --> 00:16:37.880
+Except, where else
+can you spend it?
+
+00:16:37.880 --> 00:16:40.935
+Because there's no other
+parallelism in the code.
+
+00:16:40.935 --> 00:16:42.310
+So we want to find
+some solution.
+
+00:16:45.010 --> 00:16:50.410
+So the solution
+comes from an idea
+
+00:16:50.410 --> 00:16:54.940
+from a very nice paper
+by Burkhard Monien
+
+00:16:54.940 --> 00:16:58.660
+and some of his
+students in Germany.
+
+00:16:58.660 --> 00:17:02.980
+And they made the observation
+that in a best-ordered tree,
+
+00:17:02.980 --> 00:17:07.210
+the degree of every node
+is either 1 or maximal.
+
+00:17:07.210 --> 00:17:11.319
+This is not their
+observation, this
+
+00:17:11.319 --> 00:17:16.180
+is actually the observation
+in the Knuth paper.
+
+00:17:16.180 --> 00:17:18.280
+So when you have a
+best-ordered tree,
+
+00:17:18.280 --> 00:17:22.960
+if you can get all the moves
+ordered in their true order,
+
+00:17:22.960 --> 00:17:26.619
+then it turns out
+that either you're
+
+00:17:26.619 --> 00:17:33.160
+exploring all the children
+or you are refuting something
+
+00:17:33.160 --> 00:17:36.850
+and you get a cutoff
+from the very first one
+
+00:17:36.850 --> 00:17:39.820
+that you look at.
+
+00:17:39.820 --> 00:17:42.640
+And so in this case, for
+example, it turns out,
+
+00:17:42.640 --> 00:17:47.960
+on the principal variation,
+those are all full-width--
+
+00:17:47.960 --> 00:17:51.280
+sorry, you have to
+explore all the children.
+
+00:17:51.280 --> 00:17:54.010
+And then from there
+on it alternates.
+
+00:17:54.010 --> 00:17:57.897
+One level, you have
+just a single child
+
+00:17:57.897 --> 00:17:58.980
+that needs to be explored.
+
+00:17:58.980 --> 00:18:01.030
+And when you explore it,
+if it's best-ordered,
+
+00:18:01.030 --> 00:18:04.240
+you will get a beta
+cutoff for the others.
+
+00:18:04.240 --> 00:18:07.400
+And then it alternates,
+and then it's full-width.
+
+00:18:07.400 --> 00:18:10.130
+And so their idea
+was to say, well,
+
+00:18:10.130 --> 00:18:14.530
+if the first child fails
+to generate a beta cutoff,
+
+00:18:14.530 --> 00:18:17.950
+speculate that in fact
+you have the best one,
+
+00:18:17.950 --> 00:18:20.440
+and the remaining children
+can be searched in parallel
+
+00:18:20.440 --> 00:18:23.710
+without wasting any work.
+
+00:18:23.710 --> 00:18:25.210
+So if it fails,
+you're going to say,
+
+00:18:25.210 --> 00:18:26.710
+oh, I'm going to
+speculate that this
+
+00:18:26.710 --> 00:18:28.750
+is in fact a full-width thing.
+
+00:18:28.750 --> 00:18:30.850
+Now, in practice,
+you don't necessarily
+
+00:18:30.850 --> 00:18:32.980
+get things
+best-ordered, but there
+
+00:18:32.980 --> 00:18:35.410
+are a bunch of heuristics
+in the code we've given you
+
+00:18:35.410 --> 00:18:39.430
+in chess code to make it so
+that you tend to do things
+
+00:18:39.430 --> 00:18:41.950
+in the proper order.
+
+00:18:41.950 --> 00:18:47.050
+The most important of those is,
+if you've seen the movie before
+
+00:18:47.050 --> 00:18:49.150
+and it's in the
+transposition table,
+
+00:18:49.150 --> 00:18:51.160
+you use the move that
+you've seen before, even
+
+00:18:51.160 --> 00:18:53.350
+if it's to a shallower depth.
+
+00:18:53.350 --> 00:18:56.140
+You guess that that's going
+to be their best move still,
+
+00:18:56.140 --> 00:18:57.490
+even if you search deeper.
+
+00:18:57.490 --> 00:18:59.020
+And that's pretty good.
+
+00:18:59.020 --> 00:19:03.207
+And so they call that the young
+siblings weight algorithm.
+
+00:19:03.207 --> 00:19:05.290
+They actually called it
+the young brothers weight,
+
+00:19:05.290 --> 00:19:11.100
+but in the modern era, we
+call it young siblings weight.
+
+00:19:11.100 --> 00:19:17.495
+And we abort subcomputations
+that proved to be unnecessary.
+
+00:19:17.495 --> 00:19:19.120
+So you're going to
+start out searching,
+
+00:19:19.120 --> 00:19:22.300
+but then you want
+to get rid of things
+
+00:19:22.300 --> 00:19:26.448
+that you discover, oops, I did
+get a cutoff from searching
+
+00:19:26.448 --> 00:19:27.490
+from one of these things.
+
+00:19:27.490 --> 00:19:29.050
+I don't need to do this.
+
+00:19:29.050 --> 00:19:32.570
+Let's not have it keep
+spawning and generating
+
+00:19:32.570 --> 00:19:35.830
+work and some other
+thing, let's abort it.
+
+00:19:35.830 --> 00:19:38.950
+And here's the idea for
+the abort mechanism.
+
+00:19:38.950 --> 00:19:41.080
+So what you do is--
+
+00:19:41.080 --> 00:19:44.970
+the abort can occur
+at any given node.
+
+00:19:44.970 --> 00:19:46.180
+You get a beta cutoff--
+
+00:19:46.180 --> 00:19:48.940
+you want to abort all the
+children that wouldn't
+
+00:19:48.940 --> 00:19:50.560
+have been searched anyway.
+
+00:19:50.560 --> 00:19:52.740
+But they may have
+already been spawned off.
+
+00:19:52.740 --> 00:19:57.730
+So they have a record in
+each node that tells you
+
+00:19:57.730 --> 00:20:00.510
+whether or not you've aborted.
+
+00:20:00.510 --> 00:20:05.910
+And what you do is you just
+simply climb up the tree
+
+00:20:05.910 --> 00:20:09.360
+to see, periodically,
+whether or not
+
+00:20:09.360 --> 00:20:11.845
+you have an ancestor
+who is aborted.
+
+00:20:11.845 --> 00:20:13.470
+If you have an ancestor
+that's aborted,
+
+00:20:13.470 --> 00:20:19.890
+it says I'm aborting
+the side computations,
+
+00:20:19.890 --> 00:20:24.110
+then you say, oh, I'm done,
+and I just have to return.
+
+00:20:24.110 --> 00:20:26.445
+And so you check that
+on a regular basis.
+
+00:20:29.520 --> 00:20:32.580
+So do people follow
+what that mechanism is?
+
+00:20:32.580 --> 00:20:34.080
+And so, that's
+basically what you're
+
+00:20:34.080 --> 00:20:39.480
+going to be implementing
+for the parallelization,
+
+00:20:39.480 --> 00:20:41.130
+is this thing of climbing up.
+
+00:20:41.130 --> 00:20:45.300
+You're going to guess, after
+you've searched one child,
+
+00:20:45.300 --> 00:20:46.377
+that it's good.
+
+00:20:46.377 --> 00:20:48.210
+Hey, actually some
+people say, why don't you
+
+00:20:48.210 --> 00:20:55.740
+check two before you
+search the others,
+
+00:20:55.740 --> 00:20:57.690
+so that you're even
+more sure that you
+
+00:20:57.690 --> 00:21:00.030
+don't have a cutoff, because
+neither of the first two
+
+00:21:00.030 --> 00:21:01.380
+aborted.
+
+00:21:01.380 --> 00:21:04.740
+Because, in practice,
+of course, the game tree
+
+00:21:04.740 --> 00:21:06.480
+is not best-ordered.
+
+00:21:06.480 --> 00:21:08.460
+And so you're going
+to waste some work.
+
+00:21:11.160 --> 00:21:13.255
+But the idea is, you're
+going to pull up the tree
+
+00:21:13.255 --> 00:21:14.880
+to see whether or
+not-- and, of course,
+
+00:21:14.880 --> 00:21:18.150
+you don't want to pull on
+every evaluation that you do,
+
+00:21:18.150 --> 00:21:20.200
+you want to just
+pull frequently.
+
+00:21:20.200 --> 00:21:21.840
+So you may have a
+counter in there
+
+00:21:21.840 --> 00:21:26.520
+that says, OK, every 10th time,
+I'm going to pull up the tree.
+
+00:21:26.520 --> 00:21:28.530
+You put a voodoo
+parameter there that says
+
+00:21:28.530 --> 00:21:31.530
+how often it makes sense to
+actually check, because there's
+
+00:21:31.530 --> 00:21:35.832
+cost to going up and
+checking versus exploring
+
+00:21:35.832 --> 00:21:36.540
+more of the tree.
+
+00:21:39.990 --> 00:21:42.580
+And so, I have an example here.
+
+00:21:42.580 --> 00:21:45.300
+And I think this is where
+I'm going to cut this short.
+
+00:21:45.300 --> 00:21:50.100
+So there's an example, which
+I suggest you take a look at.
+
+00:21:50.100 --> 00:21:53.610
+I want to, as I say, spend
+time doing Q&A, and talking
+
+00:21:53.610 --> 00:21:55.560
+about the other
+parts of the program,
+
+00:21:55.560 --> 00:21:58.470
+and give you folks some
+good ideas for the thing.
+
+00:21:58.470 --> 00:22:01.200
+So this is sort of
+the theory thing,
+
+00:22:01.200 --> 00:22:06.030
+and then I have some slides
+that will explain this
+
+00:22:06.030 --> 00:22:07.350
+with examples in more depth.
+
+00:22:07.350 --> 00:22:08.892
+Because I don't
+expect that everybody
+
+00:22:08.892 --> 00:22:11.760
+got every detail of this.
+
+00:22:11.760 --> 00:22:15.870
+So I have some examples
+and so forth in here
+
+00:22:15.870 --> 00:22:19.800
+that I'm going to let you
+guys look at on your own.
+
+00:22:19.800 --> 00:22:22.860
+Now, if you parallelization
+the spawning
+
+00:22:22.860 --> 00:22:29.760
+off loop of the
+younger siblings,
+
+00:22:29.760 --> 00:22:32.670
+you will get a code with races.
+
+00:22:32.670 --> 00:22:35.130
+And the reason you get races
+is because there are several--
+
+00:22:35.130 --> 00:22:38.970
+the are three data structures--
+
+00:22:38.970 --> 00:22:43.170
+that the search is employing
+that are kind of global.
+
+00:22:43.170 --> 00:22:46.260
+The first is the
+transposition table--
+
+00:22:46.260 --> 00:22:49.650
+looking things up to see whether
+or not you've seen them before.
+
+00:22:49.650 --> 00:22:51.400
+That's a major optimization.
+
+00:22:51.400 --> 00:22:53.940
+You don't want to get rid
+of the transposition table.
+
+00:22:53.940 --> 00:22:56.220
+And so you have a choice
+with the transposition table.
+
+00:22:56.220 --> 00:22:57.730
+What are you going
+to do with it?
+
+00:22:57.730 --> 00:23:02.480
+Are you going to lock it
+so that the races become--
+
+00:23:02.480 --> 00:23:05.850
+at least your data-- race-free
+and updated atomically.
+
+00:23:05.850 --> 00:23:07.290
+Or you could replicate it.
+
+00:23:07.290 --> 00:23:12.840
+For example, you could have a
+worker local copy of the data
+
+00:23:12.840 --> 00:23:19.560
+structure, and each worker
+that is working on it
+
+00:23:19.560 --> 00:23:21.945
+only accesses their
+own local copies.
+
+00:23:27.040 --> 00:23:37.440
+Or you can make a copy
+when things are stolen
+
+00:23:37.440 --> 00:23:41.430
+or you can make just one
+where you maintain it locally.
+
+00:23:41.430 --> 00:23:45.360
+Or you can decide that, well,
+even if there's a race there,
+
+00:23:45.360 --> 00:23:48.450
+the odds that it's going to
+affect how I play in the game
+
+00:23:48.450 --> 00:23:53.460
+are not that high, so
+I'll run with the race.
+
+00:23:53.460 --> 00:24:00.740
+Because any other solution is
+going to be more expensive.
+
+00:24:00.740 --> 00:24:04.650
+And then maybe you
+get funny answers.
+
+00:24:04.650 --> 00:24:11.100
+So one thing for that
+kind of data structure,
+
+00:24:11.100 --> 00:24:15.090
+let me just recommend
+that you have
+
+00:24:15.090 --> 00:24:17.085
+some way of turning
+of the data structure
+
+00:24:17.085 --> 00:24:19.710
+so that you can actually
+do the parallel search
+
+00:24:19.710 --> 00:24:24.960
+and get deterministic,
+repeatable results.
+
+00:24:24.960 --> 00:24:26.715
+So even though it
+may be aborting
+
+00:24:26.715 --> 00:24:28.710
+and some things may
+not be aborting,
+
+00:24:28.710 --> 00:24:31.362
+you want to have some
+way of executing.
+
+00:24:31.362 --> 00:24:32.820
+And so, for example,
+you want to be
+
+00:24:32.820 --> 00:24:36.330
+able to turn off even the
+speculation in your code,
+
+00:24:36.330 --> 00:24:38.190
+so you can test all
+the other things
+
+00:24:38.190 --> 00:24:42.600
+in your code that don't
+depend on the speculation.
+
+00:24:42.600 --> 00:24:45.090
+Because if you have something
+that's not deterministic,
+
+00:24:45.090 --> 00:24:48.780
+as I say, it's a
+nightmare to debug.
+
+00:24:48.780 --> 00:24:52.980
+So you're going to do
+the evaluation function.
+
+00:24:52.980 --> 00:24:57.780
+Hey, if you're testing it,
+turn off the speculation.
+
+00:24:57.780 --> 00:25:00.570
+You should be able to find
+out whether you've got bugs
+
+00:25:00.570 --> 00:25:01.920
+in your evaluation function.
+
+00:25:01.920 --> 00:25:04.450
+There's no point in
+discovering you of a bug,
+
+00:25:04.450 --> 00:25:06.973
+and it's like, well, where
+did it come from or whatever.
+
+00:25:06.973 --> 00:25:08.890
+So you want to have
+things you're turning out.
+
+00:25:08.890 --> 00:25:10.890
+And also, want to have
+ways of turning off,
+
+00:25:10.890 --> 00:25:12.900
+for example, access to
+the transposition table.
+
+00:25:12.900 --> 00:25:15.000
+Yes, I'm going to
+speculate, but no, I'm
+
+00:25:15.000 --> 00:25:16.710
+not going to access
+the transposition
+
+00:25:16.710 --> 00:25:20.130
+table in parallel,
+because I may get
+
+00:25:20.130 --> 00:25:22.590
+a race on the entry in
+the transposition table.
+
+00:25:25.500 --> 00:25:27.990
+The hint that I will
+give you for that
+
+00:25:27.990 --> 00:25:35.370
+is that in the code
+for our program
+
+00:25:35.370 --> 00:25:39.960
+that took second prize in
+the world computer chess
+
+00:25:39.960 --> 00:25:42.990
+championship many years ago--
+
+00:25:42.990 --> 00:25:47.970
+I think it was in 1999--
+
+00:25:47.970 --> 00:25:55.800
+where we actually almost
+won the tournament,
+
+00:25:55.800 --> 00:25:59.340
+and we lost in the playoff.
+
+00:25:59.340 --> 00:26:00.900
+We would have won
+the tournament,
+
+00:26:00.900 --> 00:26:03.932
+except that our programmer
+suggested a rule
+
+00:26:03.932 --> 00:26:05.640
+change at the beginning
+of the tournament
+
+00:26:05.640 --> 00:26:07.980
+that everybody agreed
+to, and then we
+
+00:26:07.980 --> 00:26:09.320
+were on the short end of that.
+
+00:26:09.320 --> 00:26:11.360
+Otherwise, we would have
+been world champions.
+
+00:26:11.360 --> 00:26:13.730
+And that was the
+last competition
+
+00:26:13.730 --> 00:26:17.810
+against computers that Deep
+Blue, the IBM computer that
+
+00:26:17.810 --> 00:26:21.560
+beat Kasparov, the
+human [INAUDIBLE],,
+
+00:26:21.560 --> 00:26:23.270
+just a few months later.
+
+00:26:23.270 --> 00:26:24.020
+They performed it.
+
+00:26:24.020 --> 00:26:26.990
+And they placed third
+in the tournament.
+
+00:26:26.990 --> 00:26:28.910
+We tied for first.
+
+00:26:28.910 --> 00:26:32.420
+Our only loss was to Deep Blue.
+
+00:26:32.420 --> 00:26:36.800
+And we were running on an
+1,824 node supercomputer
+
+00:26:36.800 --> 00:26:41.540
+at Sandia National Labs, a
+computer that probably is today
+
+00:26:41.540 --> 00:26:42.770
+less powerful than this.
+
+00:26:47.060 --> 00:26:50.480
+But it was very big
+type of computation.
+
+00:26:54.230 --> 00:26:56.210
+They basically said,
+if there's a tie,
+
+00:26:56.210 --> 00:27:01.190
+they're going to base who
+wins on strength of opponents.
+
+00:27:01.190 --> 00:27:03.613
+So you take a look at
+your opponent's records,
+
+00:27:03.613 --> 00:27:05.030
+and if you had
+stronger opponents,
+
+00:27:05.030 --> 00:27:06.410
+you'll win against somebody.
+
+00:27:06.410 --> 00:27:07.785
+And we said, you
+know, if there's
+
+00:27:07.785 --> 00:27:10.460
+a tie just between
+two programs, we
+
+00:27:10.460 --> 00:27:15.590
+should really have them
+face-off against each other
+
+00:27:15.590 --> 00:27:16.835
+as an extra round.
+
+00:27:16.835 --> 00:27:18.710
+And everybody said,
+yeah, that's a good idea.
+
+00:27:18.710 --> 00:27:20.377
+And then, wouldn't
+you know, at the end,
+
+00:27:20.377 --> 00:27:25.040
+we had the strongest
+opponents, and we
+
+00:27:25.040 --> 00:27:26.630
+were tied with
+another program called
+
+00:27:26.630 --> 00:27:28.820
+Fritz-- an excellent program.
+
+00:27:28.820 --> 00:27:34.490
+And we were outsearching
+Fritz in the playoff game.
+
+00:27:34.490 --> 00:27:39.320
+And then we saw a
+move that afterwards,
+
+00:27:39.320 --> 00:27:43.070
+when we were able to do
+offline searches deeper,
+
+00:27:43.070 --> 00:27:45.190
+we were outsearching
+them by like 2 ply.
+
+00:27:48.020 --> 00:27:49.820
+But then there's
+a move that looks
+
+00:27:49.820 --> 00:27:53.180
+like it's a good move for the
+depth we were looking at it--
+
+00:27:53.180 --> 00:27:54.800
+doesn't look like
+a good move if you
+
+00:27:54.800 --> 00:27:58.353
+search much deeper, or frankly,
+if you search much shallower.
+
+00:27:58.353 --> 00:28:00.020
+It was one of these
+things where it just
+
+00:28:00.020 --> 00:28:01.700
+looked like a good
+move for the ply
+
+00:28:01.700 --> 00:28:03.020
+we happened to be searching.
+
+00:28:03.020 --> 00:28:04.400
+Because there's no guarantee--
+
+00:28:04.400 --> 00:28:06.652
+because you can't see
+the end of the game--
+
+00:28:06.652 --> 00:28:08.360
+that if you search
+deeper you're actually
+
+00:28:08.360 --> 00:28:11.270
+going to beat somebody else.
+
+00:28:11.270 --> 00:28:14.000
+Because there's the
+horizon effect of you just
+
+00:28:14.000 --> 00:28:16.540
+simply can't see what's
+coming up in the future.
+
+00:28:16.540 --> 00:28:18.230
+You can only see
+sort of on average.
+
+00:28:18.230 --> 00:28:20.060
+So we made this bad move.
+
+00:28:20.060 --> 00:28:21.350
+We almost recovered.
+
+00:28:21.350 --> 00:28:22.460
+We almost tied.
+
+00:28:22.460 --> 00:28:24.710
+Had we tied, we would
+have been world champions,
+
+00:28:24.710 --> 00:28:26.000
+because we had the stronger--
+
+00:28:26.000 --> 00:28:27.650
+we won the tiebreaker.
+
+00:28:27.650 --> 00:28:32.270
+And we weren't able to
+recover from the error.
+
+00:28:32.270 --> 00:28:33.620
+And so we took second prize.
+
+00:28:33.620 --> 00:28:34.930
+It was like--
+
+00:28:34.930 --> 00:28:36.770
+[LAUGHTER]
+
+00:28:36.770 --> 00:28:40.020
+Anyway, in that
+program, we decided
+
+00:28:40.020 --> 00:28:41.720
+that we were just
+going to let there
+
+00:28:41.720 --> 00:28:45.690
+be a race on the
+transposition table.
+
+00:28:45.690 --> 00:28:47.210
+And the reason
+was, we calculated,
+
+00:28:47.210 --> 00:28:53.180
+what are the odds
+that the race actually
+
+00:28:53.180 --> 00:28:57.403
+affects the value that you
+would actually pick that value?
+
+00:28:57.403 --> 00:28:58.820
+And if it affected
+the value, what
+
+00:28:58.820 --> 00:29:01.700
+are the odds that it affects the
+move that you're going to make?
+
+00:29:01.700 --> 00:29:03.700
+And if it affects the
+move you're going to make,
+
+00:29:03.700 --> 00:29:06.963
+what are the odds
+it affects the game?
+
+00:29:06.963 --> 00:29:09.380
+And if it affects the game,
+what are the odds that affects
+
+00:29:09.380 --> 00:29:11.495
+your result in the tournament?
+
+00:29:11.495 --> 00:29:13.370
+And when you've figured
+all these things out,
+
+00:29:13.370 --> 00:29:18.290
+it was like, eh, we would
+slow the program down more
+
+00:29:18.290 --> 00:29:20.270
+by putting in, for
+example, locking--
+
+00:29:23.060 --> 00:29:24.980
+because that would slow
+down every access--
+
+00:29:24.980 --> 00:29:28.370
+than we would if we
+just ran the thing.
+
+00:29:28.370 --> 00:29:32.030
+Because one of the things
+that happens in alpha-beta
+
+00:29:32.030 --> 00:29:37.100
+is if you get an extreme value,
+usually those are lopped off.
+
+00:29:37.100 --> 00:29:38.960
+Because if it's such
+a good move for you,
+
+00:29:38.960 --> 00:29:41.630
+your opponent's not
+going to let you play it.
+
+00:29:41.630 --> 00:29:44.690
+So if you ended up with
+a score that was extreme
+
+00:29:44.690 --> 00:29:50.810
+because it was based on a
+value that you were racing on,
+
+00:29:50.810 --> 00:29:52.850
+usually it's going to
+not even propagate up
+
+00:29:52.850 --> 00:29:54.830
+to the root of the tree.
+
+00:29:54.830 --> 00:29:58.640
+So anyway, we just ran
+naked, so to speak.
+
+00:30:02.100 --> 00:30:04.440
+So there are two
+other data structures
+
+00:30:04.440 --> 00:30:06.860
+you going to have to worry
+about to make decision about.
+
+00:30:06.860 --> 00:30:13.750
+Another one is the
+killer data structure.
+
+00:30:13.750 --> 00:30:17.170
+So the killer data
+structure is a heuristic
+
+00:30:17.170 --> 00:30:22.600
+that says, at a
+given depth of code,
+
+00:30:22.600 --> 00:30:25.850
+you tend to see the same
+moves that are good.
+
+00:30:25.850 --> 00:30:29.660
+And a move that is good for
+one thing at a given depth,
+
+00:30:29.660 --> 00:30:31.160
+tends to be good
+for something else.
+
+00:30:31.160 --> 00:30:36.820
+So for example, it may be that
+you play bishop takes queen.
+
+00:30:36.820 --> 00:30:39.430
+So you've won the
+other players queen.
+
+00:30:39.430 --> 00:30:48.770
+And then their response is
+to do something irrelevant.
+
+00:30:48.770 --> 00:30:53.350
+Well, now you mate them.
+
+00:30:53.350 --> 00:30:55.660
+Well, there's a
+lot of other moves
+
+00:30:55.660 --> 00:31:01.060
+where you could make them on
+that move, for which they're
+
+00:31:01.060 --> 00:31:04.310
+playing things on the
+board that are irrelevant.
+
+00:31:04.310 --> 00:31:04.810
+and.
+
+00:31:04.810 --> 00:31:08.020
+So the same type of move
+tends to be a killer--
+
+00:31:08.020 --> 00:31:16.180
+always, you're able to, at
+that depth in that position,
+
+00:31:16.180 --> 00:31:17.260
+make the same move.
+
+00:31:17.260 --> 00:31:20.110
+And if they don't
+address the issue,
+
+00:31:20.110 --> 00:31:22.480
+that's always a
+good move to check.
+
+00:31:22.480 --> 00:31:24.900
+And so that ends up being
+ordered near the front.
+
+00:31:24.900 --> 00:31:27.370
+So the killer table
+keeps track of that.
+
+00:31:27.370 --> 00:31:29.710
+And I think, in our code,
+we have two killers.
+
+00:31:29.710 --> 00:31:31.330
+Is that right, Helen?
+
+00:31:31.330 --> 00:31:34.730
+I think it's set up to allow you
+to do for up to four killers,
+
+00:31:34.730 --> 00:31:37.540
+but we only do two in the
+code that we gave you.
+
+00:31:37.540 --> 00:31:40.180
+And you can enable it and
+see whether four killers--
+
+00:31:40.180 --> 00:31:42.390
+but that's a shared
+data structure.
+
+00:31:42.390 --> 00:31:44.140
+And so one of the
+questions is, should you
+
+00:31:44.140 --> 00:31:47.050
+be keeping a local copy
+of that or should you
+
+00:31:47.050 --> 00:31:53.200
+be you using a global one that
+they all share and updating it?
+
+00:31:55.880 --> 00:32:00.010
+The third one is
+the best move table,
+
+00:32:00.010 --> 00:32:03.350
+which is used to order
+all the low order thing.
+
+00:32:03.350 --> 00:32:05.350
+So the first thing
+that's most important
+
+00:32:05.350 --> 00:32:08.500
+is, did you get a move out
+of the transposition table?
+
+00:32:08.500 --> 00:32:09.850
+That tends to be quite accurate.
+
+00:32:09.850 --> 00:32:16.820
+And the second is, did you get
+a move out of the killer table?
+
+00:32:16.820 --> 00:32:19.600
+And finally, it's,
+statistically,
+
+00:32:19.600 --> 00:32:21.640
+how good are these moves?
+
+00:32:21.640 --> 00:32:23.235
+Have you seen
+these a lot before?
+
+00:32:23.235 --> 00:32:24.610
+If you've seen
+them a lot before,
+
+00:32:24.610 --> 00:32:26.650
+that's how the other
+moves get ordered.
+
+00:32:26.650 --> 00:32:28.880
+And that's kept in
+the best move table.
+
+00:32:28.880 --> 00:32:30.960
+And once again,
+that's a shared table.
+
+00:32:30.960 --> 00:32:33.043
+In the search, you're going
+to have to figure out,
+
+00:32:33.043 --> 00:32:35.290
+do you want to do a
+thread worker local copy,
+
+00:32:35.290 --> 00:32:40.600
+or do you want to
+synchronize it,
+
+00:32:40.600 --> 00:32:44.860
+or how are you going to
+manage that data structure?
+
+00:32:44.860 --> 00:32:47.350
+And the answer, I
+would say, is different
+
+00:32:47.350 --> 00:32:49.850
+compared to what you do
+with a transposition table.
+
+00:32:49.850 --> 00:32:52.930
+The transposition
+table, generally, it's
+
+00:32:52.930 --> 00:32:55.470
+not worth locking or whatever.
+
+00:32:55.470 --> 00:32:57.200
+And it is good to share.
+
+00:32:57.200 --> 00:32:59.020
+Because if you have
+seen that move before,
+
+00:32:59.020 --> 00:33:01.420
+that saved you a huge
+amount of computation
+
+00:33:01.420 --> 00:33:05.290
+to be able to look
+it up and not do it.
+
+00:33:05.290 --> 00:33:08.300
+So those are some of the tips
+for parallelization, which
+
+00:33:08.300 --> 00:33:10.930
+we'll get to in the beta 2.
+
+00:33:10.930 --> 00:33:13.868
+But now, I want to
+talk about, for most
+
+00:33:13.868 --> 00:33:15.910
+of the rest of the time,
+some of the other things
+
+00:33:15.910 --> 00:33:19.930
+that you can do with the
+code you've currently got.
+
+00:33:19.930 --> 00:33:27.010
+And let me take
+these in some order,
+
+00:33:27.010 --> 00:33:28.550
+and then we can ask questions.
+
+00:33:28.550 --> 00:33:31.630
+So opening-- who's contemplating
+doing an opening book?
+
+00:33:31.630 --> 00:33:32.680
+Anybody?
+
+00:33:32.680 --> 00:33:34.030
+For beta 1?
+
+00:33:34.030 --> 00:33:37.570
+Are you going to do an opening
+book for beta 1 or beta 2?
+
+00:33:37.570 --> 00:33:39.670
+For beta 1, let me see.
+
+00:33:39.670 --> 00:33:40.180
+OK.
+
+00:33:40.180 --> 00:33:41.592
+Beta 2?
+
+00:33:41.592 --> 00:33:43.300
+Who wants to do an
+opening book better 2?
+
+00:33:43.300 --> 00:33:45.080
+Final?
+
+00:33:45.080 --> 00:33:45.690
+OK.
+
+00:33:45.690 --> 00:33:46.930
+Yeah, OK.
+
+00:33:46.930 --> 00:33:51.010
+So the idea here is to
+precompute best moves
+
+00:33:51.010 --> 00:33:53.770
+at the beginning of the game.
+
+00:33:53.770 --> 00:33:57.470
+So, well, we know what
+the starting position is.
+
+00:33:57.470 --> 00:34:01.990
+So why don't I spend $1,000
+or whatever on Amazon,
+
+00:34:01.990 --> 00:34:07.870
+and compute things
+to some ungodly ply,
+
+00:34:07.870 --> 00:34:10.690
+and see what the best moves are
+at the beginning of the game,
+
+00:34:10.690 --> 00:34:13.449
+and put that into a book so
+I don't have to search those?
+
+00:34:18.190 --> 00:34:20.830
+So that's the idea.
+
+00:34:20.830 --> 00:34:24.190
+I think, to begin with,
+there are lower hanging fruit
+
+00:34:24.190 --> 00:34:28.420
+than the opening book.
+
+00:34:28.420 --> 00:34:30.639
+If you look at it, you're
+going to be an opening
+
+00:34:30.639 --> 00:34:37.300
+book, if you're lucky,
+for six or eight moves.
+
+00:34:37.300 --> 00:34:39.310
+And the games tend
+to last-- have
+
+00:34:39.310 --> 00:34:42.070
+you looked to see how
+long games tend to last?
+
+00:34:45.010 --> 00:34:45.520
+What is it?
+
+00:34:45.520 --> 00:34:46.933
+AUDIENCE: [INAUDIBLE]
+
+00:34:46.933 --> 00:34:49.100
+CHARLES E. LEISERSON: No,
+most games don't go 4,096.
+
+00:34:49.100 --> 00:34:52.600
+We don't let them
+go that long anyway.
+
+00:34:52.600 --> 00:34:55.090
+So did anybody take a
+look, statistically,
+
+00:34:55.090 --> 00:34:58.570
+to see how long games are?
+
+00:34:58.570 --> 00:35:00.445
+I think they tend to
+be like 40 or 50 moves.
+
+00:35:03.810 --> 00:35:06.220
+I mean, this year is
+different from other years,
+
+00:35:06.220 --> 00:35:07.570
+because we have different rules.
+
+00:35:07.570 --> 00:35:10.570
+But I think it's
+like 40 or 50 moves.
+
+00:35:10.570 --> 00:35:13.840
+So you're not spending--
+
+00:35:13.840 --> 00:35:17.360
+you're doing something that will
+help you in 10% of the game.
+
+00:35:17.360 --> 00:35:18.820
+Whereas there are
+other places you
+
+00:35:18.820 --> 00:35:21.237
+could do it which are going
+to help you in the whole game.
+
+00:35:23.110 --> 00:35:25.090
+Nevertheless, we've
+had teams that
+
+00:35:25.090 --> 00:35:28.030
+did a great job on opening
+books and clobbered people
+
+00:35:28.030 --> 00:35:34.480
+by having a fantastic
+opening book.
+
+00:35:34.480 --> 00:35:37.720
+It's actually cheaper to
+keep separate opening books
+
+00:35:37.720 --> 00:35:43.240
+for each side than to keep one
+opening book for both sides.
+
+00:35:43.240 --> 00:35:45.460
+And in this game, it's
+actually fairly easy
+
+00:35:45.460 --> 00:35:48.760
+to keep a symmetry
+thing and basically
+
+00:35:48.760 --> 00:35:55.000
+have one opening book that
+works for the side on move.
+
+00:35:55.000 --> 00:35:57.130
+And that allows you to store.
+
+00:35:57.130 --> 00:35:58.900
+You don't have to store--
+
+00:35:58.900 --> 00:36:03.640
+if I make a given move, if
+I have a given position,
+
+00:36:03.640 --> 00:36:05.110
+I only need, in
+principle, to store
+
+00:36:05.110 --> 00:36:09.760
+one answer for that position.
+
+00:36:09.760 --> 00:36:13.120
+Whereas, then, my opponent
+may make any number
+
+00:36:13.120 --> 00:36:16.360
+of moves for which then I only
+need to know one move-- what's
+
+00:36:16.360 --> 00:36:18.320
+my best move in that position.
+
+00:36:18.320 --> 00:36:21.610
+So you can see that
+you have, once again,
+
+00:36:21.610 --> 00:36:24.220
+this property, that
+on my move, I only
+
+00:36:24.220 --> 00:36:26.980
+need to have one move stored.
+
+00:36:26.980 --> 00:36:31.193
+My opponent's moves, I need
+to have all the moves stored.
+
+00:36:31.193 --> 00:36:32.860
+And then my move, I
+have one move store.
+
+00:36:32.860 --> 00:36:35.260
+And that basically means
+that you're effectively
+
+00:36:35.260 --> 00:36:39.160
+going twice the depth, as
+if you kept all my moves,
+
+00:36:39.160 --> 00:36:41.260
+and then all of
+the other opponents
+
+00:36:41.260 --> 00:36:42.683
+moves, and then all of those.
+
+00:36:42.683 --> 00:36:44.350
+Because when I do
+that, it's like, well,
+
+00:36:44.350 --> 00:36:49.960
+why do I need to
+know the best move.
+
+00:36:49.960 --> 00:36:51.940
+So it's better to
+keep them separate.
+
+00:36:51.940 --> 00:36:56.073
+When you build the opening
+book, you'll store a lot less.
+
+00:36:56.073 --> 00:36:57.490
+You'll have a lot
+smaller storage.
+
+00:36:57.490 --> 00:37:01.450
+You'll be able to store a lot
+more moves if you do that.
+
+00:37:01.450 --> 00:37:05.622
+But I would say, not
+necessarily the first thing
+
+00:37:05.622 --> 00:37:06.580
+I would go to optimize.
+
+00:37:09.270 --> 00:37:12.700
+But it's also the
+case that this is
+
+00:37:12.700 --> 00:37:16.690
+a place where one of the
+teams built a fabulous opening
+
+00:37:16.690 --> 00:37:17.610
+book one year.
+
+00:37:17.610 --> 00:37:21.820
+And one of the things
+about the opening book
+
+00:37:21.820 --> 00:37:24.790
+is it allows you also
+to sort of threshold
+
+00:37:24.790 --> 00:37:26.560
+and say, in a given
+move, I don't just
+
+00:37:26.560 --> 00:37:27.520
+have to have one move.
+
+00:37:27.520 --> 00:37:31.360
+Let me have three moves and
+pick randomly among them,
+
+00:37:31.360 --> 00:37:33.910
+so that I'm not predictable.
+
+00:37:33.910 --> 00:37:36.850
+What the team did that used
+the opening book is they
+
+00:37:36.850 --> 00:37:40.420
+observed that everybody was
+searching from the beginning.
+
+00:37:40.420 --> 00:37:43.840
+So they were all finding
+exactly the same moves
+
+00:37:43.840 --> 00:37:45.550
+at the beginning of the game.
+
+00:37:45.550 --> 00:37:47.560
+And so they knew
+exactly what the path
+
+00:37:47.560 --> 00:37:51.220
+was that all the other
+programs were going to follow.
+
+00:37:51.220 --> 00:37:54.800
+And so they could make the
+best move on their move.
+
+00:37:54.800 --> 00:37:57.970
+But if you have something that's
+got some randomness to it--
+
+00:37:57.970 --> 00:37:59.380
+and there is a jitter in there.
+
+00:37:59.380 --> 00:38:02.200
+Who found the randomness--
+
+00:38:02.200 --> 00:38:06.040
+the place we insert
+randomness in the code?
+
+00:38:06.040 --> 00:38:10.870
+So I think Zach had a
+comment on Piazza about that.
+
+00:38:10.870 --> 00:38:12.370
+So there's a place
+in the code where
+
+00:38:12.370 --> 00:38:16.060
+we dither the amount so that you
+will get unpredictable results.
+
+00:38:16.060 --> 00:38:20.050
+And that way, you won't always
+play the same move, just
+
+00:38:20.050 --> 00:38:20.890
+by changing things.
+
+00:38:20.890 --> 00:38:26.250
+Because a hundredth of a
+pawn value is not very big.
+
+00:38:26.250 --> 00:38:29.080
+And who cares whether
+or not we have--
+
+00:38:33.563 --> 00:38:35.230
+these heuristics
+aren't measuring things
+
+00:38:35.230 --> 00:38:39.220
+so closely that we care
+about a hundredth of a pawn.
+
+00:38:39.220 --> 00:38:40.660
+So you can dither
+things and have
+
+00:38:40.660 --> 00:38:44.080
+one move be better than
+another and not really affect
+
+00:38:44.080 --> 00:38:47.500
+the quality of the playing.
+
+00:38:47.500 --> 00:38:49.540
+So it is a good
+idea to do something
+
+00:38:49.540 --> 00:38:52.750
+to not be so predictable.
+
+00:38:52.750 --> 00:38:56.290
+But to build a full
+opening book, that's
+
+00:38:56.290 --> 00:38:59.680
+a lot of work for beta 1.
+
+00:38:59.680 --> 00:39:03.250
+For beta 2 and the final,
+yeah, you'll get to that point.
+
+00:39:06.550 --> 00:39:10.870
+The next thing is
+iterative deepening.
+
+00:39:10.870 --> 00:39:15.440
+Do people understand how this
+part of the search code works?
+
+00:39:15.440 --> 00:39:15.940
+Yeah?
+
+00:39:15.940 --> 00:39:16.600
+No?
+
+00:39:16.600 --> 00:39:18.700
+Let me go over it.
+
+00:39:18.700 --> 00:39:22.960
+So you can imagine, say, I'm
+going to search to depth d.
+
+00:39:22.960 --> 00:39:26.290
+And in fact, instead of
+just searching depth d,
+
+00:39:26.290 --> 00:39:27.940
+we do a depth 1 search.
+
+00:39:27.940 --> 00:39:30.940
+If you look at the code there,
+there's a depth 1 search.
+
+00:39:30.940 --> 00:39:32.680
+And then we do a depth 2 search.
+
+00:39:32.680 --> 00:39:34.120
+Then we do a depth 3 search.
+
+00:39:34.120 --> 00:39:35.320
+Then we do a depth 4 search.
+
+00:39:35.320 --> 00:39:39.610
+And we keep doing that until
+our time control expires.
+
+00:39:39.610 --> 00:39:44.670
+Why is that a good
+strategy, generally?
+
+00:39:44.670 --> 00:39:47.900
+Well, first of all, the
+amount of work with each depth
+
+00:39:47.900 --> 00:39:50.530
+is growing exponentially.
+
+00:39:50.530 --> 00:39:52.230
+So you're only
+spending, in principle,
+
+00:39:52.230 --> 00:39:56.640
+a constant factor more work
+than you would if you searched
+
+00:39:56.640 --> 00:39:58.840
+to depth d right off the bat.
+
+00:40:02.220 --> 00:40:05.820
+But the important
+thing is that you
+
+00:40:05.820 --> 00:40:07.950
+can keep move
+ordering information
+
+00:40:07.950 --> 00:40:11.280
+as you search deeper.
+
+00:40:11.280 --> 00:40:12.700
+And the move
+ordering information,
+
+00:40:12.700 --> 00:40:17.370
+remember, we want our searchers
+to use best-first move ordering
+
+00:40:17.370 --> 00:40:19.560
+so that we get all the
+cutoffs we can possibly
+
+00:40:19.560 --> 00:40:22.740
+get for pruning.
+
+00:40:22.740 --> 00:40:25.440
+And so by searching it
+easier, actually you
+
+00:40:25.440 --> 00:40:29.010
+end up with better
+move ordering.
+
+00:40:29.010 --> 00:40:32.138
+Because when you find that same
+position in the transposition
+
+00:40:32.138 --> 00:40:33.180
+table, you say, oh, well.
+
+00:40:33.180 --> 00:40:36.240
+I didn't search it as deep
+as I need to search it now.
+
+00:40:36.240 --> 00:40:39.060
+So I can't use the value
+that's in the transposition
+
+00:40:39.060 --> 00:40:43.770
+table for the position, because
+maybe I've searched something
+
+00:40:43.770 --> 00:40:47.220
+that's ply 8 in the
+transposition table,
+
+00:40:47.220 --> 00:40:49.080
+but I've got it
+searched to ply 9--
+
+00:40:49.080 --> 00:40:50.850
+not good enough a search.
+
+00:40:50.850 --> 00:40:54.330
+But the value-- the move
+that you've found at 8--
+
+00:40:54.330 --> 00:40:57.240
+that's probably a
+pretty good first move--
+
+00:40:57.240 --> 00:40:59.340
+pretty good guess at best move.
+
+00:41:01.860 --> 00:41:04.320
+So by doing iterative
+deepening, you actually
+
+00:41:04.320 --> 00:41:08.430
+get the move ordering for all
+those intermediate positions
+
+00:41:08.430 --> 00:41:11.220
+really really, really strongly.
+
+00:41:11.220 --> 00:41:15.090
+Because that transposition table
+is the very best information
+
+00:41:15.090 --> 00:41:18.770
+you've got for what
+the your best move is.
+
+00:41:22.035 --> 00:41:23.910
+And also, as I mentioned,
+is a good mechanism
+
+00:41:23.910 --> 00:41:24.690
+for time control.
+
+00:41:24.690 --> 00:41:26.410
+Is that clear?
+
+00:41:26.410 --> 00:41:27.817
+So that's why you bother.
+
+00:41:27.817 --> 00:41:30.150
+It's one of these things that
+looks like it's redundant.
+
+00:41:30.150 --> 00:41:31.525
+Why are you
+searching-- if you're
+
+00:41:31.525 --> 00:41:34.430
+going to search to depth d,
+why search to depth d minus 1?
+
+00:41:34.430 --> 00:41:36.300
+You're going to that
+as part of depth d.
+
+00:41:36.300 --> 00:41:39.005
+Well, no, because you're
+going to get move ordering
+
+00:41:39.005 --> 00:41:41.130
+information that's going
+to be really valuable when
+
+00:41:41.130 --> 00:41:42.798
+you search to depth d minus 1.
+
+00:41:42.798 --> 00:41:44.340
+So when you search
+to depth d, you've
+
+00:41:44.340 --> 00:41:46.890
+got much better pruning
+than if you just
+
+00:41:46.890 --> 00:41:50.040
+went straight to depth
+d and had no information
+
+00:41:50.040 --> 00:41:52.023
+about the move ordering.
+
+00:41:52.023 --> 00:41:52.940
+Does that makes sense?
+
+00:41:57.870 --> 00:42:01.077
+Endgame database--
+so here's the idea.
+
+00:42:01.077 --> 00:42:02.910
+If there's a few enough
+pieces on the board,
+
+00:42:02.910 --> 00:42:05.670
+you can precompute the outcomes
+and store them in a database.
+
+00:42:08.310 --> 00:42:12.540
+So for example, the most
+common database to come up with
+
+00:42:12.540 --> 00:42:14.130
+is the king versus
+king database.
+
+00:42:18.060 --> 00:42:19.680
+So if you do King
+versus King, that
+
+00:42:19.680 --> 00:42:23.070
+means that it's not that you
+expect the game will end up
+
+00:42:23.070 --> 00:42:24.720
+as king versus king,
+it's that you're
+
+00:42:24.720 --> 00:42:26.670
+going to encounter
+that in the search.
+
+00:42:26.670 --> 00:42:30.870
+It'd be nice to know who has the
+win if you're King versus King.
+
+00:42:30.870 --> 00:42:35.790
+Now, the code actually plays
+optimally for king versus king.
+
+00:42:35.790 --> 00:42:44.280
+The code we gave you will play
+the king versus king perfectly
+
+00:42:44.280 --> 00:42:44.942
+well.
+
+00:42:44.942 --> 00:42:46.650
+And, in fact, there's
+just two heuristics
+
+00:42:46.650 --> 00:42:48.180
+that are responsible for that.
+
+00:42:48.180 --> 00:42:57.660
+One is called k
+aggressive heuristic,
+
+00:42:57.660 --> 00:43:00.750
+which basically makes you
+move towards your opponent.
+
+00:43:00.750 --> 00:43:05.290
+And the other one is
+the k face heuristic,
+
+00:43:05.290 --> 00:43:07.710
+which makes you point
+towards your opponent.
+
+00:43:07.710 --> 00:43:12.000
+And those two things turn out
+to do a pretty good job of when
+
+00:43:12.000 --> 00:43:14.010
+there's one there's
+two kings and playing,
+
+00:43:14.010 --> 00:43:15.510
+they go through
+this little endgame.
+
+00:43:15.510 --> 00:43:17.270
+Did everybody do that
+by hand, by the way?
+
+00:43:17.270 --> 00:43:20.220
+Did you play king versus king?
+
+00:43:20.220 --> 00:43:22.680
+A really good idea if you
+want to understand the game
+
+00:43:22.680 --> 00:43:28.020
+is just go and do a king versus
+king version of the game.
+
+00:43:28.020 --> 00:43:31.080
+Get an eight by eight
+chessboard and just put down
+
+00:43:31.080 --> 00:43:37.710
+two tokens kings that have
+orientations, and then just
+
+00:43:37.710 --> 00:43:42.120
+you and a friend, just try to
+see if one can mate the other.
+
+00:43:42.120 --> 00:43:44.610
+And you'll see that it goes
+through a very ritualistic type
+
+00:43:44.610 --> 00:43:48.592
+of behavior which ends up with
+one of the Kings being mated.
+
+00:43:48.592 --> 00:43:50.300
+So it's nice to know
+which one it's going
+
+00:43:50.300 --> 00:43:52.480
+to be so if you encounter that.
+
+00:43:52.480 --> 00:43:54.300
+But here's the
+question, how many games
+
+00:43:54.300 --> 00:43:57.120
+actually make it to an endgame?
+
+00:43:57.120 --> 00:43:59.640
+Once again, you have to look
+at what the odds are there.
+
+00:43:59.640 --> 00:44:02.790
+Because if games are
+ending in the middle game,
+
+00:44:02.790 --> 00:44:04.620
+there may not be
+any need to search
+
+00:44:04.620 --> 00:44:06.750
+all the way to the endgame.
+
+00:44:06.750 --> 00:44:11.790
+So that's something
+that you need to weigh.
+
+00:44:11.790 --> 00:44:13.770
+Now, if you do an
+endgame database,
+
+00:44:13.770 --> 00:44:17.040
+it doesn't suffice to just
+store win, loss, or draw
+
+00:44:17.040 --> 00:44:18.810
+for a position.
+
+00:44:18.810 --> 00:44:22.920
+And the reason is because
+you can get into a situation
+
+00:44:22.920 --> 00:44:24.763
+where you've got a
+winning position,
+
+00:44:24.763 --> 00:44:27.180
+and then you say, OK, well,
+let me move to another winning
+
+00:44:27.180 --> 00:44:29.810
+position, and another
+winning position,
+
+00:44:29.810 --> 00:44:31.020
+and another winning position.
+
+00:44:31.020 --> 00:44:35.350
+Oh, and I'm back at my
+original winning position.
+
+00:44:35.350 --> 00:44:37.320
+And I just keep going
+around in a circle,
+
+00:44:37.320 --> 00:44:42.690
+always in a winning position,
+never moving towards the win.
+
+00:44:42.690 --> 00:44:46.030
+And that, of course,
+will end up in a draw.
+
+00:44:46.030 --> 00:44:47.970
+So you need to know
+which direction do you
+
+00:44:47.970 --> 00:44:49.770
+go for the winning position.
+
+00:44:49.770 --> 00:44:51.780
+So the typical thing
+you do there is you
+
+00:44:51.780 --> 00:44:55.140
+keep the distance to
+mate to avoid cycling.
+
+00:44:55.140 --> 00:44:59.010
+So instead of keeping
+just a boolean value,
+
+00:44:59.010 --> 00:45:03.390
+you say, here's my
+distance to winning.
+
+00:45:03.390 --> 00:45:05.238
+My distance to winning is 6.
+
+00:45:05.238 --> 00:45:06.780
+Now, when I'm
+searching, I don't want
+
+00:45:06.780 --> 00:45:09.942
+to go a distance to
+winning that 7 or 6,
+
+00:45:09.942 --> 00:45:11.400
+I want to go to
+distance to winning
+
+00:45:11.400 --> 00:45:15.060
+that's 5 when I make my move.
+
+00:45:15.060 --> 00:45:17.610
+So it's very
+important to make sure
+
+00:45:17.610 --> 00:45:21.330
+that you maintain the distance
+in order to avoid cycling.
+
+00:45:25.470 --> 00:45:28.350
+Quiescence search-- we
+talk about quiescence,
+
+00:45:28.350 --> 00:45:31.920
+which is to make sure that when
+you're doing the evaluation
+
+00:45:31.920 --> 00:45:34.800
+you're not in the
+middle of an exchange.
+
+00:45:34.800 --> 00:45:39.660
+So you zap their pawn, they're
+going to zap your pawn,
+
+00:45:39.660 --> 00:45:42.720
+or maybe even zap your King.
+
+00:45:42.720 --> 00:45:44.910
+And you don't want evaluate
+in the middle there.
+
+00:45:44.910 --> 00:45:47.160
+And so the idea of
+quiescence is that when
+
+00:45:47.160 --> 00:45:48.660
+you're done with
+the regular search,
+
+00:45:48.660 --> 00:45:52.020
+you just play off moves
+that involve captures,
+
+00:45:52.020 --> 00:45:53.640
+and then you evaluate
+the position.
+
+00:45:56.970 --> 00:46:00.310
+So that's quieting the position.
+
+00:46:00.310 --> 00:46:00.810
+Make sense?
+
+00:46:03.720 --> 00:46:07.650
+Another heuristic there
+is null-move pruning.
+
+00:46:07.650 --> 00:46:09.690
+In most positions,
+there's always something
+
+00:46:09.690 --> 00:46:12.450
+better to do than nothing.
+
+00:46:12.450 --> 00:46:14.610
+So sitting still
+is usually not as
+
+00:46:14.610 --> 00:46:17.430
+good as actually making a move.
+
+00:46:17.430 --> 00:46:24.810
+And so, the idea is, suppose
+that I can forfeit my move,
+
+00:46:24.810 --> 00:46:28.730
+and search a shallower
+depth, and I still
+
+00:46:28.730 --> 00:46:29.730
+have the best position--
+
+00:46:32.570 --> 00:46:35.500
+then I still am winning.
+
+00:46:35.500 --> 00:46:36.690
+And it generates a cutoff.
+
+00:46:36.690 --> 00:46:39.270
+Then why bother exploring
+any other moves?
+
+00:46:39.270 --> 00:46:42.110
+I probably am in a really
+good position here.
+
+00:46:42.110 --> 00:46:46.680
+OK And if I don't manage to get
+a cutoff from the null-move,
+
+00:46:46.680 --> 00:46:55.320
+then I do the full depth search.
+
+00:46:55.320 --> 00:47:00.570
+So the place this is
+dangerous is in Zugzwang.
+
+00:47:00.570 --> 00:47:03.440
+In chess, it's called
+Zugzwang situations.
+
+00:47:03.440 --> 00:47:07.750
+So Zugzwang is a situation
+where everything is fine,
+
+00:47:07.750 --> 00:47:10.680
+but if you have to
+make a move, you lose.
+
+00:47:10.680 --> 00:47:13.590
+So usually, having the
+advantage of a move,
+
+00:47:13.590 --> 00:47:17.140
+that's called the initiative in
+chess, and that's a good thing.
+
+00:47:17.140 --> 00:47:18.180
+You want the initiative.
+
+00:47:18.180 --> 00:47:21.690
+You want to have the extra
+move over your opponent.
+
+00:47:21.690 --> 00:47:25.327
+But there are some situations
+where if you move, you lose.
+
+00:47:25.327 --> 00:47:26.910
+And so you want to
+make sure you don't
+
+00:47:26.910 --> 00:47:28.118
+have a Zugzwang situation.
+
+00:47:28.118 --> 00:47:29.910
+I don't actually know
+if there's a Zugzwang
+
+00:47:29.910 --> 00:47:32.550
+situation in Leiserchess.
+
+00:47:32.550 --> 00:47:34.740
+So if somebody
+comes up with one,
+
+00:47:34.740 --> 00:47:37.500
+I'd be interested to see
+that, where if I had to move,
+
+00:47:37.500 --> 00:47:38.370
+I lose--
+
+00:47:38.370 --> 00:47:39.300
+but if I sit there.
+
+00:47:39.300 --> 00:47:42.010
+So in chess, what they
+do, is in the end game--
+
+00:47:42.010 --> 00:47:43.470
+that's when Zugzwangs come up--
+
+00:47:43.470 --> 00:47:45.600
+they turn off the
+null-move pruning.
+
+00:47:48.840 --> 00:47:51.120
+So is this clear what
+null-move does for you?
+
+00:47:51.120 --> 00:47:52.500
+What's going on there?
+
+00:47:52.500 --> 00:47:54.030
+I see some people
+who are quizzical.
+
+00:47:54.030 --> 00:47:56.850
+Anybody want to ask a question?
+
+00:47:56.850 --> 00:47:59.760
+I see some people with sort of
+quizzical looks on their faces.
+
+00:48:02.575 --> 00:48:04.800
+So the idea is for
+null-move, my position
+
+00:48:04.800 --> 00:48:11.202
+is so good, that even if
+I do nothing, I still win.
+
+00:48:11.202 --> 00:48:13.410
+So I don't want to search
+anymore in this part of it,
+
+00:48:13.410 --> 00:48:15.810
+because I get a
+beta cutoff, you're
+
+00:48:15.810 --> 00:48:18.040
+not going to let
+me make this move--
+
+00:48:18.040 --> 00:48:19.380
+the move that got me here.
+
+00:48:19.380 --> 00:48:22.150
+Yeah, question?
+
+00:48:22.150 --> 00:48:23.330
+AUDIENCE: That was it.
+
+00:48:23.330 --> 00:48:23.550
+CHARLES E. LEISERSON: OK.
+
+00:48:23.550 --> 00:48:24.050
+That was it.
+
+00:48:24.050 --> 00:48:25.500
+OK, good.
+
+00:48:25.500 --> 00:48:30.270
+My move is so good, I can
+do nothing, and I still win.
+
+00:48:30.270 --> 00:48:32.640
+And so why bother?
+
+00:48:32.640 --> 00:48:34.410
+Let me verify that
+without necessarily
+
+00:48:34.410 --> 00:48:35.940
+doing as deep a search.
+
+00:48:35.940 --> 00:48:38.340
+So null-move is
+fairly cheap to do,
+
+00:48:38.340 --> 00:48:44.173
+and it often results, in a
+lot of positions, for cutoff.
+
+00:48:44.173 --> 00:48:45.840
+And if I don't get a
+cutoff, then I just
+
+00:48:45.840 --> 00:48:46.800
+do the normal search.
+
+00:48:49.632 --> 00:48:51.840
+This is a pretty complicated
+piece of code, isn't it?
+
+00:48:54.423 --> 00:48:55.215
+Pretty complicated.
+
+00:48:58.320 --> 00:48:59.850
+There are other situations.
+
+00:48:59.850 --> 00:49:02.610
+We mentioned killers.
+
+00:49:02.610 --> 00:49:06.120
+There's also move extensions.
+
+00:49:06.120 --> 00:49:08.370
+So typical move extensions
+that people look at
+
+00:49:08.370 --> 00:49:10.860
+is you grant an
+extra ply in chess
+
+00:49:10.860 --> 00:49:13.980
+if the king is in check,
+or for certain captures,
+
+00:49:13.980 --> 00:49:15.582
+or if you have a forced move.
+
+00:49:15.582 --> 00:49:17.040
+So suppose you have
+a move and it's
+
+00:49:17.040 --> 00:49:24.480
+the only move you can make,
+then don't count that as ply.
+
+00:49:24.480 --> 00:49:26.460
+So you can search
+deeper along lines
+
+00:49:26.460 --> 00:49:27.750
+where there are forced moves.
+
+00:49:27.750 --> 00:49:28.958
+That's what they do in chess.
+
+00:49:28.958 --> 00:49:32.970
+In Leiserchess, not quite
+so clear what you do--
+
+00:49:32.970 --> 00:49:34.800
+which ones you would
+do extensions for.
+
+00:49:41.380 --> 00:49:43.210
+Because it's rare
+that you have just one
+
+00:49:43.210 --> 00:49:47.982
+move in Leiserchess,
+compared to an in chess.
+
+00:49:47.982 --> 00:49:49.940
+By force move, it's like,
+if you don't do this,
+
+00:49:49.940 --> 00:49:54.940
+you're going to get captured,
+or mated, or what have you.
+
+00:49:54.940 --> 00:49:56.560
+So that may come
+up in Leiserchess.
+
+00:49:56.560 --> 00:50:01.760
+But anyway, it's
+something to think about.
+
+00:50:01.760 --> 00:50:04.060
+So the transposition
+table, we talk
+
+00:50:04.060 --> 00:50:06.250
+about this as a search
+tree, but it's really a dag,
+
+00:50:06.250 --> 00:50:11.080
+because I can get to the same
+position by transposing moves.
+
+00:50:11.080 --> 00:50:14.470
+This guy does a, this guy
+does b, this guy just c,
+
+00:50:14.470 --> 00:50:17.030
+this guy does d.
+
+00:50:17.030 --> 00:50:23.860
+It's the same thing
+by doing a, d, c, b.
+
+00:50:23.860 --> 00:50:26.190
+I transpose those
+two moves, and I get
+
+00:50:26.190 --> 00:50:28.720
+to exactly the same position.
+
+00:50:28.720 --> 00:50:31.110
+And so I'd like not to
+search that position again
+
+00:50:31.110 --> 00:50:32.880
+if I've seen it.
+
+00:50:32.880 --> 00:50:36.300
+And that's what the
+transposition does.
+
+00:50:36.300 --> 00:50:39.660
+There's a quality score that is
+in the transposition table that
+
+00:50:39.660 --> 00:50:41.610
+tells you how good
+to move you've made.
+
+00:50:41.610 --> 00:50:43.290
+And the quality is
+essentially the depth
+
+00:50:43.290 --> 00:50:46.410
+that you had to search
+in order to establish
+
+00:50:46.410 --> 00:50:49.170
+the value that stored in
+the transposition table.
+
+00:50:49.170 --> 00:50:52.123
+And so you don't want to use
+something of too low quality
+
+00:50:52.123 --> 00:50:53.040
+when you're searching.
+
+00:50:53.040 --> 00:50:54.600
+If you have to
+search the depth d,
+
+00:50:54.600 --> 00:50:58.560
+something of quality d
+minus 1 is not good enough.
+
+00:50:58.560 --> 00:51:02.550
+Because, otherwise, you'll not
+be searching the full tree.
+
+00:51:02.550 --> 00:51:06.870
+But something typically
+that is deeper--
+
+00:51:06.870 --> 00:51:09.990
+if I'm looking at depth
+d and I find something
+
+00:51:09.990 --> 00:51:13.500
+in the transposition table
+that's d plus 1 or d plus 2,
+
+00:51:13.500 --> 00:51:15.200
+that's great to use.
+
+00:51:15.200 --> 00:51:17.520
+That just gave me
+an even deeper view
+
+00:51:17.520 --> 00:51:20.977
+of what's behind that move.
+
+00:51:20.977 --> 00:51:22.560
+And so if you look
+at the logic there,
+
+00:51:22.560 --> 00:51:24.360
+you'll see that
+that's how they do it.
+
+00:51:24.360 --> 00:51:25.830
+It's very tricky.
+
+00:51:25.830 --> 00:51:27.630
+One of the things
+that's tricky is
+
+00:51:27.630 --> 00:51:30.630
+when you find a mate, how you
+store that in the transposition
+
+00:51:30.630 --> 00:51:31.330
+table.
+
+00:51:31.330 --> 00:51:32.830
+And you'll see,
+there's special code
+
+00:51:32.830 --> 00:51:34.780
+for handling mate positions.
+
+00:51:34.780 --> 00:51:37.170
+And the reason is
+because what you're
+
+00:51:37.170 --> 00:51:39.060
+interested in doing
+when you find a mate is
+
+00:51:39.060 --> 00:51:41.100
+knowing your distance to mate.
+
+00:51:41.100 --> 00:51:42.570
+But not from that position--
+
+00:51:42.570 --> 00:51:46.710
+the distance to mate from
+the root of your search.
+
+00:51:46.710 --> 00:51:54.900
+So, for example, let's say
+this is the root of my search,
+
+00:51:54.900 --> 00:51:57.480
+and I search down
+to a given point.
+
+00:51:57.480 --> 00:52:00.720
+And now, I do a lookup in
+the transposition table,
+
+00:52:00.720 --> 00:52:02.880
+and I discover that
+there's a mate in 5 here.
+
+00:52:06.270 --> 00:52:12.120
+And this, let's say I've
+searched 9 ply or something.
+
+00:52:12.120 --> 00:52:14.880
+Well, if I store that
+this is a mate in 5,
+
+00:52:14.880 --> 00:52:18.000
+and I store the
+value for mate in 5,
+
+00:52:18.000 --> 00:52:21.090
+then if it makes it
+up to the top here,
+
+00:52:21.090 --> 00:52:23.250
+it thinks there's a mate and 5.
+
+00:52:23.250 --> 00:52:25.455
+But there isn't a mate in
+5, there's a mate in 14.
+
+00:52:28.350 --> 00:52:30.000
+So when you look it
+up and you discover
+
+00:52:30.000 --> 00:52:31.920
+there's a mate and
+5 in the table,
+
+00:52:31.920 --> 00:52:34.800
+you have to do a little bit of
+a calculation to translate that
+
+00:52:34.800 --> 00:52:40.140
+into being a mate
+in 14 as the value
+
+00:52:40.140 --> 00:52:42.985
+that's going to be used here,
+rather than a mate in 5.
+
+00:52:42.985 --> 00:52:44.490
+Does that makes sense?
+
+00:52:44.490 --> 00:52:47.190
+So you'll see, that's the logic
+that's in there for dealing
+
+00:52:47.190 --> 00:52:48.690
+with mates.
+
+00:52:48.690 --> 00:52:51.810
+So a mate basically takes
+a very large number--
+
+00:52:51.810 --> 00:52:54.450
+way larger than all the
+material on the board--
+
+00:52:54.450 --> 00:52:58.230
+and then it subtracts
+what your number of ply
+
+00:52:58.230 --> 00:53:01.620
+is to get to mate.
+
+00:53:01.620 --> 00:53:04.560
+So some big number--
+
+00:53:04.560 --> 00:53:07.440
+I don't know, 32,000
+or something--
+
+00:53:07.440 --> 00:53:14.850
+minus the depth to mate is
+how you represent a mate.
+
+00:53:14.850 --> 00:53:17.800
+So it's some very,
+very big number
+
+00:53:17.800 --> 00:53:20.700
+and then minus the depth.
+
+00:53:20.700 --> 00:53:22.530
+And that way, you can
+make sure that you're
+
+00:53:22.530 --> 00:53:26.040
+going for a mate in 13
+instead of a mate in 14,
+
+00:53:26.040 --> 00:53:30.970
+for example, preferring that
+you take the shorter path.
+
+00:53:30.970 --> 00:53:32.460
+Makes sense?
+
+00:53:32.460 --> 00:53:34.780
+So that's one of the
+things to look at in there.
+
+00:53:34.780 --> 00:53:38.970
+And there's also a
+lot of stuff in there.
+
+00:53:38.970 --> 00:53:42.800
+The transposition table has--
+
+00:53:42.800 --> 00:53:44.010
+we talked about caching--
+
+00:53:44.010 --> 00:53:49.800
+it's actually a k-way
+associative cache.
+
+00:53:49.800 --> 00:53:52.920
+And so you can vary
+k to see what's
+
+00:53:52.920 --> 00:53:59.040
+the best choice of how many
+entries you should have.
+
+00:53:59.040 --> 00:54:01.510
+The more entries
+you have, the longer
+
+00:54:01.510 --> 00:54:03.720
+it'll take you to search them.
+
+00:54:03.720 --> 00:54:05.400
+On the other hand,
+the more likely
+
+00:54:05.400 --> 00:54:09.060
+it is that good move
+stay in the cache.
+
+00:54:09.060 --> 00:54:13.650
+So you can decide what's
+the right trade-off there.
+
+00:54:13.650 --> 00:54:16.260
+So there's a good tuning
+optimization there.
+
+00:54:18.870 --> 00:54:20.130
+Questions?
+
+00:54:20.130 --> 00:54:22.580
+Any questions about
+transposition table?
+
+00:54:22.580 --> 00:54:26.020
+Transposition table is
+a major optimization.
+
+00:54:26.020 --> 00:54:32.540
+So Zobrist hashing--
+so most of these, Helen
+
+00:54:32.540 --> 00:54:33.710
+talked about at some level.
+
+00:54:33.710 --> 00:54:36.770
+But I wanted to give a chance
+to have people ask questions.
+
+00:54:36.770 --> 00:54:37.940
+Nobody's asking questions.
+
+00:54:37.940 --> 00:54:41.606
+I came here for Q&A.
+All you're getting is A.
+
+00:54:41.606 --> 00:54:45.740
+[LAUGHTER]
+
+00:54:45.740 --> 00:54:49.000
+So let me explain Zobrist
+hashing again a little bit.
+
+00:54:52.700 --> 00:54:55.970
+So Zobrist hashing--
+very clever idea.
+
+00:54:55.970 --> 00:55:06.200
+So we have our board with
+a bunch of pieces on it.
+
+00:55:09.695 --> 00:55:11.820
+That's probably the wrong
+number of squares, right?
+
+00:55:11.820 --> 00:55:13.880
+That's seven by six.
+
+00:55:13.880 --> 00:55:14.810
+OK, who cares.
+
+00:55:18.080 --> 00:55:20.150
+So the idea is that
+what I'm going to do
+
+00:55:20.150 --> 00:55:23.286
+is have a table
+of random numbers
+
+00:55:23.286 --> 00:55:26.540
+that I'm going to
+compute in advance.
+
+00:55:26.540 --> 00:55:33.170
+And this is going to be indexed
+by my row, my column, my piece
+
+00:55:33.170 --> 00:55:37.730
+type, and my orientation.
+
+00:55:42.290 --> 00:55:45.530
+And every different combination
+of row, column, type,
+
+00:55:45.530 --> 00:55:48.950
+and orientation corresponds
+to a different random number
+
+00:55:48.950 --> 00:55:51.150
+in the table.
+
+00:55:51.150 --> 00:55:53.070
+So we have some sort
+of random number there.
+
+00:55:59.750 --> 00:56:02.360
+And what my hash
+function is is it's
+
+00:56:02.360 --> 00:56:08.240
+the XOR of all of the
+values of all the pieces
+
+00:56:08.240 --> 00:56:11.550
+that are on this table
+with their orientations.
+
+00:56:11.550 --> 00:56:15.920
+OK so if I have a king
+here, that's a white king--
+
+00:56:15.920 --> 00:56:20.180
+I guess I need to
+know not just what
+
+00:56:20.180 --> 00:56:23.450
+the type is, I also need to know
+whether it's white or black--
+
+00:56:23.450 --> 00:56:24.665
+so the side.
+
+00:56:27.605 --> 00:56:29.480
+I think, actually, that
+gets encoded somehow.
+
+00:56:29.480 --> 00:56:32.480
+But in any case, I
+think maybe in the type
+
+00:56:32.480 --> 00:56:35.390
+we actually keep whether it's
+a white pawn or black pawn.
+
+00:56:35.390 --> 00:56:37.860
+Yeah, it's in the type, I
+think, is the way we actually
+
+00:56:37.860 --> 00:56:40.190
+implemented that.
+
+00:56:40.190 --> 00:56:45.560
+So there's white king, black
+king, white pawn, black pawn,
+
+00:56:45.560 --> 00:56:47.940
+or space.
+
+00:56:47.940 --> 00:56:51.410
+So if I have a king there, that
+corresponds to a certain value.
+
+00:56:51.410 --> 00:56:53.780
+If I end up with a pawn here--
+
+00:56:53.780 --> 00:56:55.520
+let's say, a white pawn--
+
+00:56:55.520 --> 00:56:58.730
+then that will be another
+one, and I XOR those together.
+
+00:56:58.730 --> 00:57:02.990
+And I take the
+black king and I XOR
+
+00:57:02.990 --> 00:57:09.320
+his position is, and the
+black pawn, XOR that in.
+
+00:57:09.320 --> 00:57:11.630
+So I XOR all these four values.
+
+00:57:11.630 --> 00:57:13.610
+That's the hash
+function that I use
+
+00:57:13.610 --> 00:57:17.990
+to do things like look up things
+in the transposition table.
+
+00:57:17.990 --> 00:57:21.800
+Now, if I had to
+compute this every time
+
+00:57:21.800 --> 00:57:26.220
+I changed the position, that's
+if I have a lot of pieces--
+
+00:57:26.220 --> 00:57:34.670
+how many pieces I've
+got, 7, 8, 16 pieces?
+
+00:57:34.670 --> 00:57:37.130
+Each side has seven
+pawns and a King.
+
+00:57:37.130 --> 00:57:40.670
+So 16 pieces-- I have
+to do 16 XORs in order
+
+00:57:40.670 --> 00:57:42.470
+to compute my hash function.
+
+00:57:42.470 --> 00:57:45.830
+So Zobrist hashing
+is really clever.
+
+00:57:45.830 --> 00:57:47.690
+It takes advantage
+of that XOR trick
+
+00:57:47.690 --> 00:57:49.760
+that I taught you in the first--
+
+00:57:49.760 --> 00:57:55.470
+no, it wasn't the first, it
+was in the second lecture?
+
+00:57:55.470 --> 00:57:59.970
+Yeah, the bit tricks lecture.
+
+00:57:59.970 --> 00:58:03.930
+And that is that XOR
+is its own inverse.
+
+00:58:03.930 --> 00:58:06.030
+So if I want to
+remove a piece-- let's
+
+00:58:06.030 --> 00:58:11.130
+say I'm going to move this
+pawn from here to here.
+
+00:58:11.130 --> 00:58:14.160
+So I remove this piece.
+
+00:58:14.160 --> 00:58:19.290
+What do I do to my hash
+function to remove a piece?
+
+00:58:19.290 --> 00:58:24.030
+I look up the value for
+that pawn in the hash table
+
+00:58:24.030 --> 00:58:27.510
+and I XOR that into
+my hash for the table.
+
+00:58:27.510 --> 00:58:31.696
+And I now have a hash for
+those three pieces left.
+
+00:58:31.696 --> 00:58:34.370
+Does that make sense?
+
+00:58:34.370 --> 00:58:35.930
+So I have my hash
+function, which
+
+00:58:35.930 --> 00:58:38.180
+is a hash of the four things.
+
+00:58:38.180 --> 00:58:40.430
+I'm not sure you guys
+can see very well there.
+
+00:58:40.430 --> 00:58:45.650
+And I simply XOR it with
+the hash of the pawn
+
+00:58:45.650 --> 00:58:51.010
+that I removed in this case.
+
+00:58:51.010 --> 00:58:52.880
+And now, I moved it to here.
+
+00:58:52.880 --> 00:58:54.500
+So what do I do?
+
+00:58:54.500 --> 00:58:59.738
+I look up that one and
+I XOR that value in here
+
+00:58:59.738 --> 00:59:00.655
+for the new position--
+
+00:59:05.190 --> 00:59:07.350
+the new pawn position--
+
+00:59:07.350 --> 00:59:13.800
+and that gives me, now,
+the hash for the new table
+
+00:59:13.800 --> 00:59:15.720
+with the pawn in that position.
+
+00:59:15.720 --> 00:59:18.060
+So any move that I
+make, I can basically
+
+00:59:18.060 --> 00:59:21.030
+update my hash function
+with only two XORs.
+
+00:59:21.030 --> 00:59:22.260
+And XORs are very fast.
+
+00:59:22.260 --> 00:59:24.600
+They're one instruction.
+
+00:59:24.600 --> 00:59:26.690
+And they can do lots
+of XORs and stuff.
+
+00:59:26.690 --> 00:59:29.650
+So this is actually a very,
+very cheap thing to do--
+
+00:59:29.650 --> 00:59:30.840
+a very cheap thing.
+
+00:59:30.840 --> 00:59:35.920
+So that Zobrist hashing, that
+you can keep these things up
+
+00:59:35.920 --> 00:59:36.420
+to date.
+
+00:59:36.420 --> 00:59:38.253
+And that's something
+we implemented for you.
+
+00:59:38.253 --> 00:59:41.250
+That's an optimization
+that was a freebie.
+
+00:59:41.250 --> 00:59:45.930
+We could have given you
+the hash function like this
+
+00:59:45.930 --> 00:59:47.430
+and had you implement
+that, but this
+
+00:59:47.430 --> 00:59:52.037
+is one of the ones we gave you
+as a freebie for optimization.
+
+00:59:52.037 --> 00:59:54.704
+You're not all saying, thank you
+very much, Professor Leiserson?
+
+00:59:54.704 --> 00:59:57.610
+[LAUGHTER]
+
+00:59:59.082 --> 01:00:01.665
+No, in some sense I took away
+an opportunity for optimization,
+
+01:00:01.665 --> 01:00:02.580
+didn't I, there?
+
+01:00:05.840 --> 01:00:08.400
+And so in the
+transposition table,
+
+01:00:08.400 --> 01:00:10.920
+there are records for the
+Zobrist key, the score,
+
+01:00:10.920 --> 01:00:14.310
+the move, the quality,
+also a bound type,
+
+01:00:14.310 --> 01:00:16.480
+whether it's upper,
+lower, or exact.
+
+01:00:16.480 --> 01:00:19.380
+Because when I return
+something from alpha-beta,
+
+01:00:19.380 --> 01:00:24.150
+I only know a bound on it, if
+it's greater than alpha or less
+
+01:00:24.150 --> 01:00:25.250
+than beta.
+
+01:00:25.250 --> 01:00:28.830
+And in some sense, the age
+of how old is this move.
+
+01:00:28.830 --> 01:00:30.360
+Because as things
+get older, I also
+
+01:00:30.360 --> 01:00:32.640
+want to age them
+out of the table.
+
+01:00:32.640 --> 01:00:34.230
+There are several
+aging things there.
+
+01:00:34.230 --> 01:00:36.930
+And you'll see the best
+move table also has
+
+01:00:36.930 --> 01:00:41.880
+an aging process, whereas every
+time it updates the values
+
+01:00:41.880 --> 01:00:44.820
+and gives a new value, it
+ages all the other values
+
+01:00:44.820 --> 01:00:50.460
+so that they gradually
+disappear and aren't relevant.
+
+01:00:50.460 --> 01:00:54.830
+One of the ones that
+people get confused about
+
+01:00:54.830 --> 01:00:56.540
+is the Late Move Reductions--
+
+01:00:56.540 --> 01:00:59.510
+so-called LMR.
+
+01:00:59.510 --> 01:01:03.860
+This is the situation where
+I'm going to do, let's say,
+
+01:01:03.860 --> 01:01:09.590
+my parallel search
+of all my moves.
+
+01:01:09.590 --> 01:01:11.570
+And the question is--
+
+01:01:11.570 --> 01:01:14.300
+once again, you're trying
+to prune everything you can.
+
+01:01:14.300 --> 01:01:18.230
+And so the idea is, which
+are the moves that are more
+
+01:01:18.230 --> 01:01:19.640
+important to search deeper?
+
+01:01:19.640 --> 01:01:21.830
+The ones near the beginning
+of your move list,
+
+01:01:21.830 --> 01:01:24.380
+if it's sorted in
+best-first order?
+
+01:01:24.380 --> 01:01:26.606
+Or the ones towards the
+end of your move list?
+
+01:01:30.890 --> 01:01:35.390
+So where is it most
+important to search deeply?
+
+01:01:35.390 --> 01:01:37.280
+For things that you
+think are possibly
+
+01:01:37.280 --> 01:01:42.101
+the best move or the ones that
+you think are the worst moves?
+
+01:01:42.101 --> 01:01:42.650
+Yeah.
+
+01:01:42.650 --> 01:01:44.210
+AUDIENCE: Search
+for the best move.
+
+01:01:44.210 --> 01:01:45.960
+CHARLES E. LEISERSON:
+Yeah, it makes sense
+
+01:01:45.960 --> 01:01:48.080
+to search the best moves, right?
+
+01:01:48.080 --> 01:01:50.900
+So the idea is,
+well, if something
+
+01:01:50.900 --> 01:01:56.720
+is way down on the move ordering
+list, why search it as deeply?
+
+01:01:56.720 --> 01:01:59.790
+It's probably not
+as good a move.
+
+01:01:59.790 --> 01:02:01.680
+And so, let me search
+it more shallowly?
+
+01:02:01.680 --> 01:02:05.070
+I probably don't lose
+much of an opportunity
+
+01:02:05.070 --> 01:02:11.670
+to discover that that's
+actually is indeed a bad move.
+
+01:02:11.670 --> 01:02:13.800
+There's a reason that got
+it ordered down there.
+
+01:02:13.800 --> 01:02:17.970
+And so that's a
+late move reduction.
+
+01:02:17.970 --> 01:02:20.390
+So with a good move
+ordering, a beta cutoff
+
+01:02:20.390 --> 01:02:22.530
+will either occur right
+away or not at all.
+
+01:02:22.530 --> 01:02:24.750
+So you search the first
+few moves normally,
+
+01:02:24.750 --> 01:02:27.690
+and then you start reducing
+the depth for moves.
+
+01:02:27.690 --> 01:02:29.940
+I believe, in our code,
+we have two numbers where
+
+01:02:29.940 --> 01:02:33.540
+we reduce by depth 1 after
+a certain number of moves
+
+01:02:33.540 --> 01:02:36.780
+and reduce by depth 2 after a
+certain number of other moves.
+
+01:02:36.780 --> 01:02:38.280
+Those are things
+that you can tune.
+
+01:02:38.280 --> 01:02:39.617
+I wouldn't tune them very much.
+
+01:02:39.617 --> 01:02:40.200
+I don't think.
+
+01:02:43.312 --> 01:02:45.270
+And once again, I could
+probably be wrong here,
+
+01:02:45.270 --> 01:02:48.810
+and someone will discover,
+oh, if you tune it like this,
+
+01:02:48.810 --> 01:02:50.790
+it's way better.
+
+01:02:50.790 --> 01:02:53.685
+But that's the idea of
+the late move reductions.
+
+01:02:56.370 --> 01:02:59.820
+Probably one of the most
+important things to think about
+
+01:02:59.820 --> 01:03:03.110
+is the representation
+of the board.
+
+01:03:03.110 --> 01:03:06.570
+Right now, we represent
+the board as it is.
+
+01:03:06.570 --> 01:03:08.460
+That's a terrible
+representation.
+
+01:03:08.460 --> 01:03:10.990
+It's very time-consuming.
+
+01:03:10.990 --> 01:03:15.990
+There's sort of two
+major ways you can do it.
+
+01:03:15.990 --> 01:03:17.580
+Oh, I didn't put
+the other one here.
+
+01:03:17.580 --> 01:03:19.830
+Well, anyway, one of
+them is bitboards.
+
+01:03:19.830 --> 01:03:22.830
+Here, you use a 64-bit to
+represent, for example,
+
+01:03:22.830 --> 01:03:28.880
+where all the pawns are on
+the 64 squares of the board.
+
+01:03:28.880 --> 01:03:31.020
+And then you can use
+POPCOUNT and other bit tricks
+
+01:03:31.020 --> 01:03:35.130
+to do move generation and to
+implement other chess concepts.
+
+01:03:35.130 --> 01:03:36.780
+So if you're looking
+to see what are
+
+01:03:36.780 --> 01:03:41.130
+the possible places a pawn
+can move, and you want to say,
+
+01:03:41.130 --> 01:03:42.150
+can they move right?
+
+01:03:42.150 --> 01:03:44.250
+And let's say it's stored
+in row major order,
+
+01:03:44.250 --> 01:03:46.700
+you can just do a
+right shift by 1,
+
+01:03:46.700 --> 01:03:48.690
+and that tells you
+where all the places
+
+01:03:48.690 --> 01:03:51.120
+that those pawns could move.
+
+01:03:51.120 --> 01:03:53.280
+And now, you can just
+pick them off one bit
+
+01:03:53.280 --> 01:03:58.160
+at a time to generate
+your move list.
+
+01:03:58.160 --> 01:04:00.042
+And then you can do it that way.
+
+01:04:00.042 --> 01:04:01.500
+If you're going to
+move up a thing,
+
+01:04:01.500 --> 01:04:04.300
+well, then you're actually
+doing a shift by or down.
+
+01:04:04.300 --> 01:04:06.360
+You're doing shift by how much?
+
+01:04:09.000 --> 01:04:13.180
+By eight, to move up
+or down, if you're
+
+01:04:13.180 --> 01:04:15.480
+storing things in row major.
+
+01:04:15.480 --> 01:04:16.960
+That makes sense, right?
+
+01:04:16.960 --> 01:04:24.630
+So if it's 8 by 8, and you're
+keeping a bit for each thing,
+
+01:04:24.630 --> 01:04:27.700
+then if I want to generate
+where is this one?
+
+01:04:27.700 --> 01:04:30.850
+If I shift this whole thing
+stored in row major order
+
+01:04:30.850 --> 01:04:36.370
+by 8, if I shift it right,
+it basically puts it there.
+
+01:04:36.370 --> 01:04:41.530
+So I'm moving by 7, 8,
+and 9, that gives you--
+
+01:04:41.530 --> 01:04:45.010
+and then shifting
+it by 1 or minus 1
+
+01:04:45.010 --> 01:04:47.170
+gives you this, or left by 1.
+
+01:04:47.170 --> 01:04:50.350
+And then, similarly,
+you can do by shifting
+
+01:04:50.350 --> 01:04:52.290
+by 7, 8, or 9 that way.
+
+01:04:52.290 --> 01:04:55.260
+And I can generate all
+the possible moves.
+
+01:04:55.260 --> 01:04:58.240
+So that's one way of doing move
+generation is using bitboard.
+
+01:04:58.240 --> 01:05:00.573
+And there are a lot of things,
+for example, that you can
+
+01:05:00.573 --> 01:05:02.050
+do with bitboards in parallel.
+
+01:05:02.050 --> 01:05:05.090
+Because you can say, did
+I make a capture here?
+
+01:05:05.090 --> 01:05:09.010
+Or let me use a bitboard to
+represent where the laser goes.
+
+01:05:09.010 --> 01:05:15.310
+Did I make a move that is going
+to affect the path of laser?
+
+01:05:22.010 --> 01:05:24.890
+Because one of the
+major optimizations
+
+01:05:24.890 --> 01:05:30.038
+you can do is in the evaluations
+in dealing with the laser.
+
+01:05:30.038 --> 01:05:31.580
+Because you're
+spending a lot of time
+
+01:05:31.580 --> 01:05:33.590
+stroking out laser positions.
+
+01:05:33.590 --> 01:05:35.510
+What's the point of doing that--
+
+01:05:35.510 --> 01:05:37.280
+if you made a move
+of something and it
+
+01:05:37.280 --> 01:05:43.070
+didn't affect where the laser
+goes why bother doing it out?
+
+01:05:43.070 --> 01:05:47.000
+You can just cache what
+the value of the laser is.
+
+01:05:47.000 --> 01:05:50.960
+And there are a lot more good
+stuff on the chess programming
+
+01:05:50.960 --> 01:05:52.660
+wiki.
+
+01:05:52.660 --> 01:05:54.080
+So, yeah, question?
+
+01:05:54.080 --> 01:05:57.320
+AUDIENCE: How do you
+[INAUDIBLE] a right shift when
+
+01:05:57.320 --> 01:06:00.143
+the [INAUDIBLE]
+if the shift by 8,
+
+01:06:00.143 --> 01:06:02.060
+and it's clear when it
+falls off [INAUDIBLE]..
+
+01:06:02.060 --> 01:06:02.240
+CHARLES E. LEISERSON: Yeah.
+
+01:06:02.240 --> 01:06:04.100
+You got be careful there, right?
+
+01:06:04.100 --> 01:06:05.780
+Because if I do a
+shift to the right,
+
+01:06:05.780 --> 01:06:08.060
+for example, what'll I do?
+
+01:06:08.060 --> 01:06:12.100
+I'll just do a mask to
+eliminate all the things that
+
+01:06:12.100 --> 01:06:14.740
+got wrapped around.
+
+01:06:14.740 --> 01:06:16.320
+So two instructions or whatever.
+
+01:06:16.320 --> 01:06:17.800
+Yeah, details.
+
+01:06:17.800 --> 01:06:18.550
+Yes.
+
+01:06:18.550 --> 01:06:19.750
+Details are good though.
+
+01:06:19.750 --> 01:06:21.130
+Good question.
+
+01:06:21.130 --> 01:06:23.950
+Good question.
+
+01:06:23.950 --> 01:06:25.240
+Whose timed their program?
+
+01:06:25.240 --> 01:06:28.480
+Where are the
+opportunities that you
+
+01:06:28.480 --> 01:06:32.610
+see for performance
+engineering for a first pass?
+
+01:06:32.610 --> 01:06:33.860
+What are the expensive things?
+
+01:06:33.860 --> 01:06:35.517
+What do you have as
+an expensive thing?
+
+01:06:35.517 --> 01:06:36.858
+AUDIENCE: Add laser paths--
+
+01:06:36.858 --> 01:06:39.100
+[INAUDIBLE]
+
+01:06:39.100 --> 01:06:40.558
+CHARLES E. LEISERSON: Sorry the?
+
+01:06:40.558 --> 01:06:41.933
+AUDIENCE: Marking
+the laser path.
+
+01:06:41.933 --> 01:06:43.880
+CHARLES E. LEISERSON:
+Marking laser path, yep.
+
+01:06:43.880 --> 01:06:44.380
+Good.
+
+01:06:44.380 --> 01:06:46.180
+What else is time expensive?
+
+01:06:46.180 --> 01:06:47.222
+AUDIENCE: Laser coverage.
+
+01:06:47.222 --> 01:06:47.938
+[INAUDIBLE]
+
+01:06:47.938 --> 01:06:49.730
+CHARLES E. LEISERSON:
+Yeah, laser coverage.
+
+01:06:49.730 --> 01:06:53.080
+Boy, that is really expensive.
+
+01:06:53.080 --> 01:06:54.440
+That is really expensive.
+
+01:06:54.440 --> 01:06:56.270
+So where else is expensive?
+
+01:06:59.982 --> 01:07:00.940
+What else is expensive?
+
+01:07:00.940 --> 01:07:04.240
+So I would definitely
+go after l cover.
+
+01:07:04.240 --> 01:07:07.660
+That's a huge one to go after.
+
+01:07:07.660 --> 01:07:12.580
+One of the things, by the way,
+if you are making your changes
+
+01:07:12.580 --> 01:07:17.560
+to the code and you're going
+to change the representation,
+
+01:07:17.560 --> 01:07:20.800
+leave the old
+representation there.
+
+01:07:20.800 --> 01:07:22.720
+Take it out at the end.
+
+01:07:22.720 --> 01:07:24.520
+Add the new
+representation and put
+
+01:07:24.520 --> 01:07:26.770
+in assertions that say
+that things are equivalent
+
+01:07:26.770 --> 01:07:27.970
+or whatever.
+
+01:07:27.970 --> 01:07:30.310
+But don't get rid
+of the old stuff,
+
+01:07:30.310 --> 01:07:32.590
+because you'll end
+up with broken code.
+
+01:07:32.590 --> 01:07:34.840
+And definitely, used
+things like perft
+
+01:07:34.840 --> 01:07:41.230
+to tell you whether or not you
+made any change If you touch
+
+01:07:41.230 --> 01:07:46.240
+anything with move generation.
+
+01:07:46.240 --> 01:07:49.690
+So where else is expensive?
+
+01:07:49.690 --> 01:07:50.313
+Yeah.
+
+01:07:50.313 --> 01:07:52.680
+AUDIENCE: Can you explain
+the laser [INAUDIBLE]??
+
+01:07:52.680 --> 01:07:53.910
+CHARLES E. LEISERSON: Sure.
+
+01:07:53.910 --> 01:07:56.640
+How much detail do you want?
+
+01:07:56.640 --> 01:07:57.690
+How it actually works?
+
+01:07:57.690 --> 01:07:59.438
+AUDIENCE: [INAUDIBLE]
+
+01:07:59.438 --> 01:08:00.480
+CHARLES E. LEISERSON: OK.
+
+01:08:00.480 --> 01:08:10.470
+So what is supposed to do
+is figure out how safe--
+
+01:08:10.470 --> 01:08:16.439
+the idea is, I want my laser
+to get closer to your king,
+
+01:08:16.439 --> 01:08:21.960
+and I want your laser not
+to be close to my king.
+
+01:08:21.960 --> 01:08:24.840
+And if I can move
+into positions where
+
+01:08:24.840 --> 01:08:27.960
+my laser is closer to your
+king but your laser doesn't
+
+01:08:27.960 --> 01:08:30.540
+get closer to my King,
+that's a good sort of thing.
+
+01:08:30.540 --> 01:08:33.210
+But when we say get
+the laser close, what
+
+01:08:33.210 --> 01:08:36.609
+happens when I've got, say--
+
+01:08:36.609 --> 01:08:37.800
+let me do it this way--
+
+01:08:40.890 --> 01:08:42.255
+a position like this.
+
+01:08:44.899 --> 01:08:45.540
+So here's the--
+
+01:08:50.300 --> 01:08:52.250
+OK.
+
+01:08:52.250 --> 01:08:54.649
+Suppose I look at this position.
+
+01:08:54.649 --> 01:08:57.140
+How close does the laser get?
+
+01:08:57.140 --> 01:09:00.620
+Let's say I'm black here,
+and I look at the laser.
+
+01:09:00.620 --> 01:09:05.540
+Well, the path of laser is it
+bounces there and goes across.
+
+01:09:05.540 --> 01:09:09.189
+So I didn't get very
+close to the king there,
+
+01:09:09.189 --> 01:09:13.069
+but I'm one move away from
+getting it pretty close.
+
+01:09:13.069 --> 01:09:15.750
+Because if I just move
+this guy out of the way,
+
+01:09:15.750 --> 01:09:18.920
+now I've got it
+really quite close.
+
+01:09:18.920 --> 01:09:22.279
+So if I compare that to,
+let's say, a situation
+
+01:09:22.279 --> 01:09:26.540
+where instead of
+the pawns are there,
+
+01:09:26.540 --> 01:09:27.950
+let's say a pawn is here.
+
+01:09:32.410 --> 01:09:36.500
+Now, the laser is actually
+closer to the King
+
+01:09:36.500 --> 01:09:38.840
+than it was in the
+first position,
+
+01:09:38.840 --> 01:09:41.630
+but it's a much worse position.
+
+01:09:41.630 --> 01:09:43.100
+The first one was
+much better when
+
+01:09:43.100 --> 01:09:46.220
+I had the pawns here and
+here, because I was simply
+
+01:09:46.220 --> 01:09:50.930
+one move away from
+getting it really close.
+
+01:09:50.930 --> 01:09:53.540
+And so if you use just
+the direct laser thing--
+
+01:09:53.540 --> 01:09:55.460
+and we did some tests on this--
+
+01:09:55.460 --> 01:09:58.170
+this turns out to be not very--
+
+01:09:58.170 --> 01:10:00.320
+it doesn't guide the
+program very well
+
+01:10:00.320 --> 01:10:03.470
+on getting into situations
+where my laser is
+
+01:10:03.470 --> 01:10:05.105
+getting close to your king.
+
+01:10:05.105 --> 01:10:07.220
+Does that make sense?
+
+01:10:07.220 --> 01:10:10.730
+So then we said,
+well, how should we
+
+01:10:10.730 --> 01:10:12.680
+measure how close
+the laser gets?
+
+01:10:12.680 --> 01:10:14.690
+So what we said is,
+well, let's take a look
+
+01:10:14.690 --> 01:10:19.730
+at all the possible moves
+from here of one move
+
+01:10:19.730 --> 01:10:22.850
+and then look to see
+how close we get things.
+
+01:10:22.850 --> 01:10:26.960
+And the way we did
+that is we said--
+
+01:10:26.960 --> 01:10:30.750
+actually, Helen and I
+worked on this really hard,
+
+01:10:30.750 --> 01:10:32.750
+because this is a new
+heuristic that we have not
+
+01:10:32.750 --> 01:10:34.620
+used in previous years.
+
+01:10:34.620 --> 01:10:38.080
+And it works great, it's
+just slow as anything.
+
+01:10:38.080 --> 01:10:40.820
+But it works well, so
+you have to evaluate,
+
+01:10:40.820 --> 01:10:43.670
+is it worth doing something
+if it's really slow?
+
+01:10:43.670 --> 01:10:47.570
+It may be that you'd do better
+to use a simpler heuristic
+
+01:10:47.570 --> 01:10:50.300
+and get deeper search
+than it is spending
+
+01:10:50.300 --> 01:10:51.823
+a lot of time evaluating.
+
+01:10:51.823 --> 01:10:53.990
+But anyway, we gave you
+one, that if you can make it
+
+01:10:53.990 --> 01:10:56.120
+go fast, should be really good.
+
+01:10:56.120 --> 01:10:58.640
+So the idea is
+that what we do is
+
+01:10:58.640 --> 01:11:05.150
+we look at all the different
+paths from moving any one piece
+
+01:11:05.150 --> 01:11:07.460
+and look at the
+paths of the laser.
+
+01:11:07.460 --> 01:11:10.832
+And what we do is we go we
+count 1 for every position
+
+01:11:10.832 --> 01:11:11.540
+that we go away--
+
+01:11:11.540 --> 01:11:16.580
+2, 3, 4, 5, 6, 7, et cetera.
+
+01:11:16.580 --> 01:11:19.490
+We actually add an extra
+value if we bounce off
+
+01:11:19.490 --> 01:11:20.900
+an opponent's--
+
+01:11:20.900 --> 01:11:23.600
+how much do we add, Helen, do
+we add 1 or 2 if we bounce off
+
+01:11:23.600 --> 01:11:24.550
+an opponent?
+
+01:11:24.550 --> 01:11:25.050
+AUDIENCE: 2.
+
+01:11:25.050 --> 01:11:26.425
+CHARLES E. LEISERSON:
+I think, 2.
+
+01:11:26.425 --> 01:11:27.140
+Yeah.
+
+01:11:27.140 --> 01:11:29.210
+So if this is an
+opponent's pawn,
+
+01:11:29.210 --> 01:11:38.120
+we would basically go
+from 3 to 5, 6, 7, 8, 9.
+
+01:11:38.120 --> 01:11:40.580
+And we basically do
+that for all the moves.
+
+01:11:40.580 --> 01:11:42.530
+And the way we
+combine them is we
+
+01:11:42.530 --> 01:11:47.210
+take the minimum number
+that I can get there.
+
+01:11:47.210 --> 01:11:50.690
+What's the what's the cheapest
+way I can get to every square
+
+01:11:50.690 --> 01:11:52.550
+that the laser goes?
+
+01:11:52.550 --> 01:11:55.480
+So we take all the different
+moves, we stroke them out,
+
+01:11:55.480 --> 01:11:56.480
+and we take the minimum.
+
+01:11:56.480 --> 01:12:00.020
+So if I have another
+path, let's say
+
+01:12:00.020 --> 01:12:02.660
+by turning the king
+it will go this way,
+
+01:12:02.660 --> 01:12:05.510
+and there's a you know
+there's another one here
+
+01:12:05.510 --> 01:12:14.240
+that's my pawn, then I may get
+there in 1, 2, 3, 4, 5, 6 7.
+
+01:12:14.240 --> 01:12:18.335
+And so then this would
+become a value of 7 here.
+
+01:12:18.335 --> 01:12:20.210
+so that's the first
+thing is we basically get
+
+01:12:20.210 --> 01:12:22.353
+a map of how close are things.
+
+01:12:22.353 --> 01:12:24.020
+And the second thing
+we do is say, well,
+
+01:12:24.020 --> 01:12:32.120
+how valuable is it to have these
+to be near the particular king?
+
+01:12:32.120 --> 01:12:34.790
+And then what we ended up
+with is something where
+
+01:12:34.790 --> 01:12:44.570
+if I look at the
+distance that I am away--
+
+01:12:44.570 --> 01:12:46.970
+let's say, this one,
+for example, is one row
+
+01:12:46.970 --> 01:12:50.660
+and one column away,
+this is 0 row 0 column--
+
+01:12:50.660 --> 01:12:55.070
+we use, I think, it's
+1 over the row plus 1,
+
+01:12:55.070 --> 01:13:01.400
+times 1 over the column
+plus 1, as a multiplier
+
+01:13:01.400 --> 01:13:06.020
+to weight how good it is that
+we've been close to the king.
+
+01:13:06.020 --> 01:13:13.160
+And we invert these
+values so that it's better
+
+01:13:13.160 --> 01:13:15.830
+to have a smaller number
+there, and then we add them up.
+
+01:13:19.770 --> 01:13:21.290
+We don't quite add them up.
+
+01:13:21.290 --> 01:13:22.480
+No, I'm sorry.
+
+01:13:22.480 --> 01:13:24.290
+What we do is we
+look at these things
+
+01:13:24.290 --> 01:13:27.690
+as a fraction of my
+shortest path distance.
+
+01:13:27.690 --> 01:13:28.850
+Sorry, that's what we did.
+
+01:13:28.850 --> 01:13:29.840
+Yes, I'm sorry.
+
+01:13:29.840 --> 01:13:31.460
+That was a previous heuristic.
+
+01:13:31.460 --> 01:13:35.420
+So here, for example--
+let's say this is the 9--
+
+01:13:35.420 --> 01:13:39.980
+the shortest way of getting
+there is 1, 2, 3 4, 5, 6 7, 8.
+
+01:13:39.980 --> 01:13:42.560
+So this would actually,
+when we do the conversion,
+
+01:13:42.560 --> 01:13:46.847
+would give a value of 8/9
+for being in that square.
+
+01:13:46.847 --> 01:13:47.680
+So we didn't get it.
+
+01:13:47.680 --> 01:13:50.070
+Whereas this one, the
+shortest path distance
+
+01:13:50.070 --> 01:13:53.210
+is 7 because of this path,
+and you can get there in 7.
+
+01:13:53.210 --> 01:13:55.430
+This would have a value of 1.
+
+01:13:55.430 --> 01:13:57.507
+So this is better.
+
+01:13:57.507 --> 01:13:59.090
+And so we do that
+for all the squares.
+
+01:13:59.090 --> 01:14:01.580
+So we get a fraction
+of how much do we do.
+
+01:14:01.580 --> 01:14:03.560
+And then we wait it by
+something like this,
+
+01:14:03.560 --> 01:14:06.020
+which falls away quickly.
+
+01:14:06.020 --> 01:14:08.840
+But it's important, in
+heuristics like this,
+
+01:14:08.840 --> 01:14:12.190
+to have a smooth path, so that
+you can get things closer.
+
+01:14:12.190 --> 01:14:14.690
+If I made all these
+things be 0, it
+
+01:14:14.690 --> 01:14:19.670
+wouldn't know that it could move
+up and get a little bit better
+
+01:14:19.670 --> 01:14:24.530
+in the second or third
+order digit to get closer.
+
+01:14:24.530 --> 01:14:26.390
+And so then we add
+it all up, and that
+
+01:14:26.390 --> 01:14:28.220
+ends up being a
+number, we discovered,
+
+01:14:28.220 --> 01:14:29.750
+that's sort of in the range of--
+
+01:14:34.760 --> 01:14:38.290
+what did we figure
+the range was there?
+
+01:14:38.290 --> 01:14:41.290
+It was up to like
+4, or so, right?
+
+01:14:41.290 --> 01:14:45.403
+Something like 4 would be the
+maximum value it would be.
+
+01:14:45.403 --> 01:14:46.820
+And then we said,
+OK, then we have
+
+01:14:46.820 --> 01:14:50.120
+this magic constant multiplier
+that you can play with,
+
+01:14:50.120 --> 01:14:53.420
+that says, OK, let's represent
+that as a fraction of a pawn.
+
+01:14:53.420 --> 01:14:54.440
+How much is that worth?
+
+01:14:54.440 --> 01:14:57.680
+And we multiplied by that value.
+
+01:14:57.680 --> 01:15:00.020
+So that's what we're doing.
+
+01:15:00.020 --> 01:15:01.970
+So that it makes
+it so that we do
+
+01:15:01.970 --> 01:15:04.340
+tend to move our
+laser closer, we
+
+01:15:04.340 --> 01:15:07.460
+subtract how close the
+opponent can get from us,
+
+01:15:07.460 --> 01:15:09.620
+and then we say
+that's the evaluation.
+
+01:15:09.620 --> 01:15:13.520
+Now, if you have a better way of
+determining whether a laser is
+
+01:15:13.520 --> 01:15:18.680
+getting close than this one,
+that's cheaper to compute,
+
+01:15:18.680 --> 01:15:20.450
+that's good.
+
+01:15:20.450 --> 01:15:22.490
+For first pass, I
+would just simply try
+
+01:15:22.490 --> 01:15:24.770
+to make this go fast.
+
+01:15:24.770 --> 01:15:27.490
+Because for many of the moves
+that you're going to look at,
+
+01:15:27.490 --> 01:15:31.030
+it's going to be moving
+this pawn to there.
+
+01:15:31.030 --> 01:15:32.010
+Nothing changed.
+
+01:15:32.010 --> 01:15:34.490
+There's no point in stroking
+this out, and calculating
+
+01:15:34.490 --> 01:15:36.470
+all the minimum, et
+cetera, because it
+
+01:15:36.470 --> 01:15:38.038
+didn't touch the laser path.
+
+01:15:38.038 --> 01:15:39.830
+Things that are going
+to touch a laser path
+
+01:15:39.830 --> 01:15:42.590
+are things that you
+move on or off the path.
+
+01:15:42.590 --> 01:15:44.660
+So why bother?
+
+01:15:44.660 --> 01:15:50.300
+And so if there's a clever
+way of caching it so that you
+
+01:15:50.300 --> 01:15:55.573
+can do things, that's good too.
+
+01:15:55.573 --> 01:15:57.740
+Any questions about other
+things that could be done?
+
+01:15:57.740 --> 01:16:00.323
+So another place, I'll tell you,
+that's a good idea to look at
+
+01:16:00.323 --> 01:16:01.150
+is--
+
+01:16:01.150 --> 01:16:03.650
+especially once you get this
+heuristic top rate a little bit
+
+01:16:03.650 --> 01:16:04.640
+faster--
+
+01:16:04.640 --> 01:16:10.190
+is the sorting of moves is
+actually pretty expensive.
+
+01:16:12.592 --> 01:16:14.300
+Once you figure out,
+here all the moves--
+
+01:16:14.300 --> 01:16:15.740
+there are a lot of moves--
+
+01:16:15.740 --> 01:16:18.200
+now you go through
+and you do a sort.
+
+01:16:18.200 --> 01:16:25.470
+And if you think about it, in a
+best move order tree, sometimes
+
+01:16:25.470 --> 01:16:27.043
+you only explore one of those.
+
+01:16:27.043 --> 01:16:28.710
+So why'd you bother
+sorting all of them?
+
+01:16:31.920 --> 01:16:36.270
+On the other hand, sometimes
+you do need to sort all of them.
+
+01:16:36.270 --> 01:16:39.303
+So how you optimize
+that sort so that you
+
+01:16:39.303 --> 01:16:41.220
+don't waste time sorting
+stuff that you're not
+
+01:16:41.220 --> 01:16:43.380
+going to actually
+ever explore, that's
+
+01:16:43.380 --> 01:16:47.135
+another opportunity
+for optimization.
+
+01:16:47.135 --> 01:16:47.760
+Yeah, question?
+
+01:16:47.760 --> 01:16:50.143
+AUDIENCE: How do you sort
+the moves [INAUDIBLE]??
+
+01:16:50.143 --> 01:16:52.560
+CHARLES E. LEISERSON: The moves
+are sorted by these things
+
+01:16:52.560 --> 01:16:55.230
+like--
+
+01:16:55.230 --> 01:16:57.900
+there's a sort key in
+there that represents
+
+01:16:57.900 --> 01:17:00.932
+a whole bunch of things,
+like whether it was a killer.
+
+01:17:00.932 --> 01:17:03.140
+If it's a killer or it's a
+transposition table value,
+
+01:17:03.140 --> 01:17:04.890
+it's a very big value.
+
+01:17:04.890 --> 01:17:08.340
+If it's a statistical thing
+that the history table says,
+
+01:17:08.340 --> 01:17:11.220
+historically, this has
+been a pretty good move,
+
+01:17:11.220 --> 01:17:12.850
+then you get another value.
+
+01:17:12.850 --> 01:17:16.030
+And then exchanges get
+ordered and so forth.
+
+01:17:16.030 --> 01:17:17.490
+So there's a bunch
+of things that
+
+01:17:17.490 --> 01:17:20.880
+are where you end
+up with information,
+
+01:17:20.880 --> 01:17:23.130
+and then it sorts those things.
+
+01:17:23.130 --> 01:17:25.980
+So that's actually kind
+of complicated logic
+
+01:17:25.980 --> 01:17:29.680
+in terms of what the actual
+values that are used there.
+
+01:17:29.680 --> 01:17:32.220
+But the idea is, here
+all the moves, now
+
+01:17:32.220 --> 01:17:35.928
+let's figure out what's our
+best guess as to what they are.
+
+01:17:35.928 --> 01:17:37.470
+Most of the good
+moves are coming out
+
+01:17:37.470 --> 01:17:40.230
+of the transposition table.
+
+01:17:40.230 --> 01:17:44.850
+But sometimes, the
+transition table it says it's
+
+01:17:44.850 --> 01:17:48.145
+not a very good move, and
+there may be a better move.
+
+01:17:48.145 --> 01:17:50.520
+So the quality of what you
+get out of transposition table
+
+01:17:50.520 --> 01:17:53.610
+is good, but that doesn't
+mean that that's always
+
+01:17:53.610 --> 01:17:56.730
+the best move.
+
+01:17:56.730 --> 01:17:58.675
+AUDIENCE: [INAUDIBLE]
+
+01:17:58.675 --> 01:17:59.800
+CHARLES E. LEISERSON: Yeah.
+
+01:17:59.800 --> 01:18:03.580
+Any other questions about
+what should be worked on?
+
+01:18:03.580 --> 01:18:05.558
+Let me just make sure I--
+
+01:18:05.558 --> 01:18:06.100
+OK, go ahead.
+
+01:18:06.100 --> 01:18:08.450
+AUDIENCE: Where does
+that sorting happen?
+
+01:18:08.450 --> 01:18:10.473
+I've never [INAUDIBLE].
+
+01:18:10.473 --> 01:18:12.640
+CHARLES E. LEISERSON: Where
+does the sorting happen?
+
+01:18:12.640 --> 01:18:15.900
+That happens, I think,
+at the move generation.
+
+01:18:15.900 --> 01:18:16.800
+Is that where it is?
+
+01:18:16.800 --> 01:18:18.300
+Is it stored in the
+move generation?
+
+01:18:18.300 --> 01:18:19.320
+AUDIENCE: In search.
+
+01:18:19.320 --> 01:18:20.760
+CHARLES E. LEISERSON:
+Or is it in search?
+
+01:18:20.760 --> 01:18:21.600
+I think it's in search.
+
+01:18:21.600 --> 01:18:22.475
+I think you're right.
+
+01:18:22.475 --> 01:18:26.325
+Search calls move generation
+and then sorts it.
+
+01:18:26.325 --> 01:18:27.200
+I think that's right.
+
+01:18:27.200 --> 01:18:28.241
+Yeah, question?
+
+01:18:28.241 --> 01:18:30.040
+AUDIENCE: So one
+of the things we
+
+01:18:30.040 --> 01:18:33.642
+did that we were
+providing [INAUDIBLE],,
+
+01:18:33.642 --> 01:18:35.888
+we have a very tiny
+board implementation.
+
+01:18:35.888 --> 01:18:38.180
+CHARLES E. LEISERSON: A very
+tiny board implementation.
+
+01:18:38.180 --> 01:18:39.260
+AUDIENCE: Yeah, [INAUDIBLE].
+
+01:18:39.260 --> 01:18:40.968
+You can do a lot of
+matrix on it as well.
+
+01:18:40.968 --> 01:18:43.295
+But it's like maybe [INAUDIBLE]
+replace it everywhere.
+
+01:18:43.295 --> 01:18:44.378
+CHARLES E. LEISERSON: Yes.
+
+01:18:44.378 --> 01:18:46.565
+AUDIENCE: So what's
+a good strategy?
+
+01:18:46.565 --> 01:18:49.148
+CHARLES E. LEISERSON: Well, as
+I say, keep the old one around.
+
+01:18:49.148 --> 01:18:51.140
+AUDIENCE: [INAUDIBLE]
+still use [INAUDIBLE]..
+
+01:18:51.140 --> 01:18:53.098
+CHARLES E. LEISERSON:
+Well, you use the old one
+
+01:18:53.098 --> 01:18:56.690
+while you're still
+getting the new one right.
+
+01:18:56.690 --> 01:18:59.660
+It's also good to be able to
+go from old representation
+
+01:18:59.660 --> 01:19:04.250
+to new representation and
+having conversion functions.
+
+01:19:04.250 --> 01:19:10.130
+But, yeah, making representation
+changes, painful, painful.
+
+01:19:10.130 --> 01:19:13.490
+And boy, if there
+was one tool I would
+
+01:19:13.490 --> 01:19:16.910
+love that would automate stuff
+like that, that would be it,
+
+01:19:16.910 --> 01:19:18.980
+to be able to change
+representations of things
+
+01:19:18.980 --> 01:19:20.270
+and still have things go well.
+
+01:19:20.270 --> 01:19:21.770
+I should have
+mentioned, by the way,
+
+01:19:21.770 --> 01:19:24.020
+the other representation
+besides bitboard.
+
+01:19:24.020 --> 01:19:28.820
+Another one is just to
+keep a list of the pieces
+
+01:19:28.820 --> 01:19:31.482
+and their positions.
+
+01:19:31.482 --> 01:19:33.440
+Because that's going to
+be smaller than keeping
+
+01:19:33.440 --> 01:19:36.240
+this great big board.
+
+01:19:36.240 --> 01:19:40.240
+And do you keep this list sorted
+or do you not keep it sorted?
+
+01:19:40.240 --> 01:19:41.990
+But the advantage of
+that is, particularly
+
+01:19:41.990 --> 01:19:46.780
+as the game goes on, that
+list gets shorter and shorter.
+
+01:19:46.780 --> 01:19:51.980
+And so if you're doing less
+in manipulating the board
+
+01:19:51.980 --> 01:19:54.950
+position, that's
+generally a good thing.
+
+01:19:54.950 --> 01:19:57.320
+AUDIENCE: So for the
+board reputation,
+
+01:19:57.320 --> 01:19:59.420
+my recommendation is to
+refactor all the board
+
+01:19:59.420 --> 01:20:01.040
+axes into a function.
+
+01:20:01.040 --> 01:20:03.950
+And then you would still
+use the old representation
+
+01:20:03.950 --> 01:20:04.920
+in the function.
+
+01:20:04.920 --> 01:20:07.640
+Then you can validate that you
+refactor everything correctly.
+
+01:20:07.640 --> 01:20:09.320
+And then you can easily change
+the board representation
+
+01:20:09.320 --> 01:20:11.390
+to whatever you want
+and keep changing it
+
+01:20:11.390 --> 01:20:14.390
+without having to do it a
+lot of refactor after that.
+
+01:20:14.390 --> 01:20:16.940
+So find all the board axes and
+refactor that to a function
+
+01:20:16.940 --> 01:20:18.335
+call before you modify it.
+
+01:20:18.335 --> 01:20:19.460
+CHARLES E. LEISERSON: Yeah.
+
+01:20:19.460 --> 01:20:23.990
+Because the compiler
+will inline that stuff.
+
+01:20:23.990 --> 01:20:28.858
+So putting in a function call
+is not necessarily a bad idea.
+
+01:20:28.858 --> 01:20:30.650
+And if it doesn't, you
+can put it in macro,
+
+01:20:30.650 --> 01:20:33.900
+and it'll be effectively
+the same thing.
+
+01:20:33.900 --> 01:20:36.650
+So great idea.
+
+01:20:36.650 --> 01:20:39.140
+Great idea.
+
+01:20:39.140 --> 01:20:40.690
+Yeah, question?
+
+01:20:40.690 --> 01:20:42.352
+AUDIENCE: Anything
+else that wasn't
+
+01:20:42.352 --> 01:20:44.970
+there that you would highly
+recommend for us to look at?
+
+01:20:44.970 --> 01:20:47.433
+CHARLES E. LEISERSON:
+Testing, testing, testing.
+
+01:20:47.433 --> 01:20:49.600
+If you can test and know
+that when you make a change
+
+01:20:49.600 --> 01:20:53.040
+it's correct and
+that you're not--
+
+01:20:53.040 --> 01:20:55.740
+that's probably the number
+one hole that people go into
+
+01:20:55.740 --> 01:20:57.970
+is they don't test adequately.
+
+01:20:57.970 --> 01:21:02.280
+So having good test
+infrastructure is good.
+
+01:21:02.280 --> 01:21:02.932
+Yeah?
+
+01:21:02.932 --> 01:21:06.240
+AUDIENCE: Some questions
+about codes counts--
+
+01:21:06.240 --> 01:21:09.028
+I saw on Piazza
+there was [INAUDIBLE]
+
+01:21:09.028 --> 01:21:10.945
+if the beta changed the
+[INAUDIBLE] count will
+
+01:21:10.945 --> 01:21:11.550
+stay the same.
+
+01:21:11.550 --> 01:21:12.180
+CHARLES E. LEISERSON:
+As long as you're
+
+01:21:12.180 --> 01:21:13.710
+doing it deterministically, yes?
+
+01:21:13.710 --> 01:21:14.335
+AUDIENCE: Yeah.
+
+01:21:14.335 --> 01:21:16.614
+But even the
+references limitation
+
+01:21:16.614 --> 01:21:18.987
+is nondeterministic
+serially for [INAUDIBLE]..
+
+01:21:18.987 --> 01:21:20.820
+CHARLES E. LEISERSON:
+That's because there's
+
+01:21:20.820 --> 01:21:22.860
+a randomness thing.
+
+01:21:22.860 --> 01:21:25.500
+There's a little variable,
+and you can set the variable
+
+01:21:25.500 --> 01:21:26.857
+to be not random.
+
+01:21:26.857 --> 01:21:27.690
+And then it will be.
+
+01:21:27.690 --> 01:21:29.950
+AUDIENCE: Is that a part
+of the set option RNG?
+
+01:21:29.950 --> 01:21:31.033
+CHARLES E. LEISERSON: Yes.
+
+01:21:31.033 --> 01:21:33.492
+AUDIENCE: When that's set,
+it's still nondeterministic.
+
+01:21:33.492 --> 01:21:34.950
+CHARLES E. LEISERSON:
+Run serially?
+
+01:21:34.950 --> 01:21:35.894
+AUDIENCE: Yeah.
+
+01:21:35.894 --> 01:21:39.644
+I checked the-- is
+there anything else that
+
+01:21:39.644 --> 01:21:40.346
+should be done?
+
+01:21:40.346 --> 01:21:42.217
+Or should it just
+be that seed option?
+
+01:21:42.217 --> 01:21:43.800
+CHARLES E. LEISERSON:
+I think that's--
+
+01:21:43.800 --> 01:21:47.152
+AUDIENCE: [INAUDIBLE]
+
+01:21:47.152 --> 01:21:48.610
+CHARLES E. LEISERSON:
+[INAUDIBLE],,
+
+01:21:48.610 --> 01:21:49.310
+can give to her the mic?
+
+01:21:49.310 --> 01:21:49.730
+AUDIENCE: Yeah.
+
+01:21:49.730 --> 01:21:50.647
+AUDIENCE: [INAUDIBLE].
+
+01:21:53.180 --> 01:21:53.740
+Yeah.
+
+01:21:53.740 --> 01:21:56.400
+Did you try the things
+that [INAUDIBLE] include
+
+01:21:56.400 --> 01:21:57.820
+[INAUDIBLE] like [INAUDIBLE].
+
+01:21:57.820 --> 01:21:58.800
+AUDIENCE: Yeah.
+
+01:21:58.800 --> 01:22:02.873
+I got out of the opening book
+and I set the RNG option.
+
+01:22:02.873 --> 01:22:04.290
+AUDIENCE: OK Let
+me test it again.
+
+01:22:04.290 --> 01:22:06.290
+Because when I tested it
+, it was deterministic.
+
+01:22:06.290 --> 01:22:08.440
+So [INAUDIBLE].
+
+01:22:08.440 --> 01:22:09.167
+AUDIENCE: OK.
+
+01:22:09.167 --> 01:22:10.042
+AUDIENCE: [INAUDIBLE]
+
+01:22:10.042 --> 01:22:11.167
+CHARLES E. LEISERSON: Yeah.
+
+01:22:11.167 --> 01:22:13.120
+It shouldn't be--
+if you run serially,
+
+01:22:13.120 --> 01:22:16.960
+the only things that
+should be doing things is
+
+01:22:16.960 --> 01:22:19.060
+if you're doing--
+
+01:22:19.060 --> 01:22:23.080
+it should be deterministic if
+you turn off the random number
+
+01:22:23.080 --> 01:22:25.060
+generator.
+
+01:22:25.060 --> 01:22:27.100
+So as I say, that's
+put in so that it
+
+01:22:27.100 --> 01:22:28.840
+will behave nonpredictably.
+
+01:22:28.840 --> 01:22:30.340
+But that's exactly
+the kind of thing
+
+01:22:30.340 --> 01:22:32.300
+you want to find right
+at the beginning.
+
+01:22:32.300 --> 01:22:34.000
+So that's exactly
+the thing is find out
+
+01:22:34.000 --> 01:22:36.250
+all the ways of making
+it deterministic,
+
+01:22:36.250 --> 01:22:39.490
+and that would be really
+important for beta 2.
+
+01:22:39.490 --> 01:22:47.800
+So Thursday, we have Jon
+Bentley, legend of the field,
+
+01:22:47.800 --> 01:22:51.070
+opportunity to meet a celebrity.
+
+01:22:51.070 --> 01:22:53.050
+Bring friends.
+
+01:22:53.050 --> 01:22:55.350
+He's going to give
+a great lecture.

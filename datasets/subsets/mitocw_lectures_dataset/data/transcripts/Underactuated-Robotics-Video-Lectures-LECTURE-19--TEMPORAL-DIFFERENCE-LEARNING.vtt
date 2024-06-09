@@ -1,0 +1,4350 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.520
+The following content is
+provided under a Creative
+
+00:00:02.520 --> 00:00:03.950
+Commons license.
+
+00:00:03.950 --> 00:00:06.330
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.330 --> 00:00:10.660
+continue to offer high-quality
+educational resources for free.
+
+00:00:10.660 --> 00:00:13.320
+To make a donation or
+view additional materials
+
+00:00:13.320 --> 00:00:17.190
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.190 --> 00:00:18.370
+at ocw.mit.edu.
+
+00:00:21.760 --> 00:00:23.870
+RUSS TEDRAKE: OK, so
+every once in a while,
+
+00:00:23.870 --> 00:00:25.870
+I stop and try to do a
+little bit of reflection,
+
+00:00:25.870 --> 00:00:26.920
+since we've--
+
+00:00:26.920 --> 00:00:30.700
+have so many methods flying
+through this semester
+
+00:00:30.700 --> 00:00:32.170
+that I want to just--
+
+00:00:32.170 --> 00:00:34.780
+once again, let's
+say where we've been,
+
+00:00:34.780 --> 00:00:37.210
+where we're going, what
+we have, what we can do,
+
+00:00:37.210 --> 00:00:39.610
+what we can't do, and why
+we're going to do something
+
+00:00:39.610 --> 00:00:40.410
+different today--
+
+00:00:43.995 --> 00:00:45.370
+so just a little
+reflection here.
+
+00:00:52.450 --> 00:00:54.820
+We've been talking, obviously,
+about optimal control.
+
+00:00:54.820 --> 00:00:58.030
+There's two major approaches
+to optimal control
+
+00:00:58.030 --> 00:00:59.860
+that we've focused on--
+
+00:00:59.860 --> 00:01:00.910
+well, three, I guess.
+
+00:01:00.910 --> 00:01:03.745
+In some cases, we've done
+analytical optimal control.
+
+00:01:11.750 --> 00:01:13.810
+And I think, by now,
+you appreciate that,
+
+00:01:13.810 --> 00:01:15.490
+although it was often--
+
+00:01:15.490 --> 00:01:17.890
+only works in special cases--
+
+00:01:17.890 --> 00:01:21.280
+linear quadratic regulators
+and things like that--
+
+00:01:21.280 --> 00:01:24.160
+the lessons we
+learned from that help
+
+00:01:24.160 --> 00:01:25.540
+us design better algorithms.
+
+00:01:25.540 --> 00:01:29.200
+And things like LQR can fit
+right into more complicated
+
+00:01:29.200 --> 00:01:33.138
+non-linear algorithms to
+make them click, so I think,
+
+00:01:33.138 --> 00:01:35.680
+absolutely, it's essential to
+understand the things we can do
+
+00:01:35.680 --> 00:01:37.330
+analytically in
+optimal control--
+
+00:01:37.330 --> 00:01:39.850
+even though they
+crap out pretty early
+
+00:01:39.850 --> 00:01:42.852
+in the scale of complexity
+that we care about.
+
+00:01:42.852 --> 00:01:44.560
+So mostly, that's good
+for linear systems
+
+00:01:44.560 --> 00:01:51.610
+and even restricted
+there, linear systems
+
+00:01:51.610 --> 00:01:56.200
+with quadratic costs
+and things like that.
+
+00:01:56.200 --> 00:01:59.230
+And then we talked about
+major direction number
+
+00:01:59.230 --> 00:02:12.600
+two was the dynamic programming
+and value iteration approach.
+
+00:02:12.600 --> 00:02:18.500
+And the big idea there right
+was that, because we've
+
+00:02:18.500 --> 00:02:22.520
+written our cost functions
+over time to be additive,
+
+00:02:22.520 --> 00:02:25.760
+the big idea really was
+that we're going to learn--
+
+00:02:25.760 --> 00:02:28.070
+we're going to figure out
+the cost-to-go function--
+
+00:02:28.070 --> 00:02:31.580
+the value function,
+the value iteration--
+
+00:02:31.580 --> 00:02:33.470
+and from there, we
+can just extract that.
+
+00:02:33.470 --> 00:02:35.360
+That captures all of
+the long-term reasoning
+
+00:02:35.360 --> 00:02:36.890
+we have to do about the system.
+
+00:02:36.890 --> 00:02:41.630
+From that, we can extract the
+optimal control decisions.
+
+00:02:41.630 --> 00:02:44.120
+And it's actually
+very efficient.
+
+00:02:44.120 --> 00:02:50.900
+I hope, by now, you agree with
+me that it's very efficient,
+
+00:02:50.900 --> 00:02:54.200
+because if you think about it,
+it's solving for an entire--
+
+00:02:54.200 --> 00:02:56.780
+solving for the optimal policy
+for every possible initial
+
+00:02:56.780 --> 00:02:59.540
+condition in times that
+are comparable to what
+
+00:02:59.540 --> 00:03:04.520
+we're doing for single initial
+conditions in the loop cases.
+
+00:03:04.520 --> 00:03:07.587
+But it only works
+in low dimensions,
+
+00:03:07.587 --> 00:03:09.170
+and it has some
+discretization issues.
+
+00:03:16.960 --> 00:03:21.290
+And then the third
+major approach--
+
+00:03:21.290 --> 00:03:22.555
+I called it policy search.
+
+00:03:27.070 --> 00:03:33.610
+And we focused mostly,
+in the policy search,
+
+00:03:33.610 --> 00:03:36.659
+on loop trajectory optimization.
+
+00:03:44.650 --> 00:03:46.660
+But I tried to make
+the point early--
+
+00:03:46.660 --> 00:03:50.110
+and I'm going to make the point
+again in a lecture or two--
+
+00:03:50.110 --> 00:03:52.720
+that it's really not
+restricted to thinking
+
+00:03:52.720 --> 00:03:55.402
+about loop trajectories.
+
+00:03:55.402 --> 00:03:56.860
+So when I first
+said policy search,
+
+00:03:56.860 --> 00:03:58.568
+I said we could be
+looking for parameters
+
+00:03:58.568 --> 00:04:00.375
+of a feedback controller of a--
+
+00:04:00.375 --> 00:04:04.300
+the linear gain matrix
+of a linear feedback.
+
+00:04:04.300 --> 00:04:06.280
+We could do a lot of
+things, but we quickly
+
+00:04:06.280 --> 00:04:08.740
+started being specific
+in our algorithms
+
+00:04:08.740 --> 00:04:12.670
+in trying to optimize some loop
+tape with direct colocation
+
+00:04:12.670 --> 00:04:13.660
+with shooting.
+
+00:04:13.660 --> 00:04:15.800
+But the ideas really are
+more general than that,
+
+00:04:15.800 --> 00:04:18.339
+and I'm going to-- we're
+going to have a lecture soon
+
+00:04:18.339 --> 00:04:19.839
+about how to do
+these kind of things
+
+00:04:19.839 --> 00:04:22.900
+with function approximation,
+and do more general feedback
+
+00:04:22.900 --> 00:04:25.090
+controllers.
+
+00:04:25.090 --> 00:04:30.580
+These worked in higher
+dimensional systems,
+
+00:04:30.580 --> 00:04:33.640
+had local minima--
+
+00:04:33.640 --> 00:04:35.100
+all the problems
+you know by now.
+
+00:04:43.080 --> 00:04:48.210
+OK, good-- so for
+our model systems,
+
+00:04:48.210 --> 00:04:49.650
+we got pretty far with that.
+
+00:04:49.650 --> 00:04:52.570
+In the cases where
+we knew the model,
+
+00:04:52.570 --> 00:04:55.950
+we assumed that the
+model was deterministic
+
+00:04:55.950 --> 00:04:58.650
+and sensing was clean--
+
+00:04:58.650 --> 00:04:59.882
+everything like that.
+
+00:04:59.882 --> 00:05:02.340
+We could make our simulations
+do pretty much what we wanted
+
+00:05:02.340 --> 00:05:05.010
+with those bag of tricks.
+
+00:05:05.010 --> 00:05:09.660
+Then I threw in the stochastic
+optimal control case.
+
+00:05:21.370 --> 00:05:27.270
+We said, what happens if the
+models aren't deterministic?
+
+00:05:27.270 --> 00:05:28.727
+Analytical optimal control--
+
+00:05:28.727 --> 00:05:30.810
+I didn't really talk about
+it, but there are still
+
+00:05:30.810 --> 00:05:33.102
+some cases where you can do
+analytical optimal control.
+
+00:05:33.102 --> 00:05:35.340
+The linear quadratic
+Gaussian systems
+
+00:05:35.340 --> 00:05:40.410
+are the clear example of that.
+
+00:05:40.410 --> 00:05:45.060
+We said that value
+iteration for this--
+
+00:05:45.060 --> 00:05:47.280
+although I was quickly
+challenged on it,
+
+00:05:47.280 --> 00:05:49.770
+I said, basically,
+it was no harder
+
+00:05:49.770 --> 00:05:55.470
+to do value iteration
+stochastic optimization, where
+
+00:05:55.470 --> 00:05:59.880
+now our goal is to minimize
+some expected value
+
+00:05:59.880 --> 00:06:01.190
+of a long-term cost.
+
+00:06:05.907 --> 00:06:07.740
+Value iteration we
+basically said and almost
+
+00:06:07.740 --> 00:06:11.830
+no harder to do the case with
+transition probabilities flying
+
+00:06:11.830 --> 00:06:12.330
+around.
+
+00:06:19.380 --> 00:06:26.740
+And in fact, the
+barycentric grids
+
+00:06:26.740 --> 00:06:29.920
+that we used in the value
+duration way back there
+
+00:06:29.920 --> 00:06:33.550
+I told you actually has a
+more clean interpretation
+
+00:06:33.550 --> 00:06:37.480
+as taking a continuous--
+you can think of it as being
+
+00:06:37.480 --> 00:06:44.020
+a continuous
+deterministic system,
+
+00:06:44.020 --> 00:06:48.070
+and converting it
+into a discrete state
+
+00:06:48.070 --> 00:06:49.020
+stochastic system.
+
+00:06:56.130 --> 00:07:01.350
+Remember, the interpolation
+that you do in the barycentric
+
+00:07:01.350 --> 00:07:02.970
+actually takes
+exactly the same form
+
+00:07:02.970 --> 00:07:05.640
+as some transition probabilities
+when you're going from--
+
+00:07:09.060 --> 00:07:10.987
+you've got some
+grid, and you want
+
+00:07:10.987 --> 00:07:13.320
+to know where you're going
+to go from simulating forward
+
+00:07:13.320 --> 00:07:15.840
+from this with some
+action for some dt,
+
+00:07:15.840 --> 00:07:19.590
+you can approximate that
+as being some fraction
+
+00:07:19.590 --> 00:07:21.580
+here, some fraction
+here, some fraction here.
+
+00:07:21.580 --> 00:07:23.732
+And it turns out to be
+exactly equivalent to saying
+
+00:07:23.732 --> 00:07:25.440
+that there's some
+probability I get here,
+
+00:07:25.440 --> 00:07:27.815
+some probability I get here,
+some probability I get here,
+
+00:07:27.815 --> 00:07:30.270
+and the like.
+
+00:07:30.270 --> 00:07:33.210
+So value iteration
+really, in that sense,
+
+00:07:33.210 --> 00:07:37.540
+can solve stochastic
+problems nicely.
+
+00:07:37.540 --> 00:07:45.080
+The other major approach,
+the policy search,
+
+00:07:45.080 --> 00:07:50.390
+can still work for
+stochastic problems.
+
+00:07:50.390 --> 00:07:58.400
+In some cases, you can
+compute the gradient
+
+00:07:58.400 --> 00:08:01.070
+of the expected
+value with respect
+
+00:08:01.070 --> 00:08:05.330
+to your parameters analytically,
+with a [INAUDIBLE] update.
+
+00:08:05.330 --> 00:08:10.460
+In other cases, you
+can do sampling based,
+
+00:08:10.460 --> 00:08:13.820
+Monte Carlo based
+estimates, and I'm
+
+00:08:13.820 --> 00:08:15.080
+going to get more into that.
+
+00:08:26.560 --> 00:08:28.060
+We're going to talk
+more about that,
+
+00:08:28.060 --> 00:08:32.130
+but the takeaway messages,
+when things get stochastic,
+
+00:08:32.130 --> 00:08:35.520
+both of these
+methods still work.
+
+00:08:35.520 --> 00:08:37.260
+And they work in
+slightly different ways,
+
+00:08:37.260 --> 00:08:41.049
+but you can make
+both of those work
+
+00:08:41.049 --> 00:08:46.930
+And then, last week, John threw
+a major wrench into things.
+
+00:08:46.930 --> 00:08:47.430
+Sorry.
+
+00:08:47.430 --> 00:08:50.130
+That wasn't supposed to
+be a statement about John.
+
+00:08:50.130 --> 00:08:55.170
+John made your life
+better by telling you
+
+00:08:55.170 --> 00:08:58.290
+that some of these statements--
+some of these algorithms
+
+00:08:58.290 --> 00:08:59.910
+work even if you
+don't know the model.
+
+00:09:14.730 --> 00:09:20.640
+And he talked about doing
+policy search without a model.
+
+00:09:27.420 --> 00:09:35.940
+And the big idea there was that
+actually fairly simple looking
+
+00:09:35.940 --> 00:09:39.870
+algorithms, which just perturb
+the-- which try different
+
+00:09:39.870 --> 00:09:41.220
+parameters--
+
+00:09:41.220 --> 00:09:43.440
+run a trial, try
+different parameters--
+
+00:09:46.230 --> 00:09:58.010
+simple sampling algorithms
+can estimate the same thing
+
+00:09:58.010 --> 00:10:01.490
+we would do with our policy
+gradient, the gradient
+
+00:10:01.490 --> 00:10:07.820
+of the expected reward with
+respect to the parameters.
+
+00:10:07.820 --> 00:10:10.460
+Even the simplest
+thing is let's change
+
+00:10:10.460 --> 00:10:12.560
+my parameters a little
+bit, see what happened.
+
+00:10:12.560 --> 00:10:17.515
+That gives me a sample
+from this gradient.
+
+00:10:17.515 --> 00:10:19.640
+And if I do it enough times,
+I pull enough samples,
+
+00:10:19.640 --> 00:10:20.420
+and I can--
+
+00:10:20.420 --> 00:10:22.805
+I get a sample of
+the expected returns.
+
+00:10:26.600 --> 00:10:29.750
+If you think back,
+that's why we try
+
+00:10:29.750 --> 00:10:31.400
+to stick in stochastic
+optimal control
+
+00:10:31.400 --> 00:10:33.380
+before we got to that,
+because John also
+
+00:10:33.380 --> 00:10:36.110
+told you the nice interpretation
+of these algorithms
+
+00:10:36.110 --> 00:10:37.444
+in the stochastic--
+
+00:10:46.350 --> 00:10:52.310
+that, even if the plant
+that you're measuring from
+
+00:10:52.310 --> 00:10:55.610
+is stochastic or if the
+sensors are-- there's noise,
+
+00:10:55.610 --> 00:10:58.310
+then actually, still, these
+same sampling algorithms
+
+00:10:58.310 --> 00:11:00.910
+can estimate these
+gradients for you nicely.
+
+00:11:07.450 --> 00:11:09.370
+I think John also
+made the point--
+
+00:11:09.370 --> 00:11:13.067
+and I want to make it again--
+
+00:11:13.067 --> 00:11:15.400
+you would never use these
+algorithms if you had a model.
+
+00:11:18.760 --> 00:11:22.480
+They're beautiful, but
+probably, if you have a model--
+
+00:11:39.370 --> 00:11:41.350
+maybe, if you have
+a model and you're
+
+00:11:41.350 --> 00:11:43.348
+a very patient
+person, but very lazy,
+
+00:11:43.348 --> 00:11:45.640
+then you might try to use
+this, because you can type it
+
+00:11:45.640 --> 00:11:47.098
+in in a few minutes,
+but it's going
+
+00:11:47.098 --> 00:11:49.120
+to take a lot longer to run.
+
+00:11:49.120 --> 00:11:52.630
+And the reason for
+that is it's going
+
+00:11:52.630 --> 00:11:58.260
+to require many [INAUDIBLE]
+requires many more simulations.
+
+00:12:05.260 --> 00:12:07.540
+In fact, it just
+requires many simulations
+
+00:12:07.540 --> 00:12:09.505
+to estimate a single gradient--
+
+00:12:16.280 --> 00:12:17.030
+policy gradient.
+
+00:12:26.510 --> 00:12:29.050
+Now, the next thing I'm
+going to say is a little more
+
+00:12:29.050 --> 00:12:35.410
+controversial, but most people
+would say that the limiting
+
+00:12:35.410 --> 00:12:37.720
+case, the best you could
+possibly do with these
+
+00:12:37.720 --> 00:12:40.345
+reinforce type algorithms-- are
+you raising your hand or just--
+
+00:12:40.345 --> 00:12:41.220
+AUDIENCE: [INAUDIBLE]
+
+00:12:41.220 --> 00:12:42.400
+RUSS TEDRAKE: No-- sorry.
+
+00:12:42.400 --> 00:12:44.858
+The best thing you can do with
+these reinforced algorithms,
+
+00:12:44.858 --> 00:12:46.810
+if you really--
+
+00:12:46.810 --> 00:12:53.363
+the best performance you could
+expect is a shooting algorithm.
+
+00:13:06.700 --> 00:13:13.090
+And it's really, I should say,
+a first-order shooting method.
+
+00:13:13.090 --> 00:13:17.850
+It's really just doing gradient
+descent by doing trials.
+
+00:13:17.850 --> 00:13:19.600
+And when we talked
+about shooting methods,
+
+00:13:19.600 --> 00:13:21.868
+I actually said never do
+first-order shooting methods.
+
+00:13:21.868 --> 00:13:22.660
+I made a big point.
+
+00:13:22.660 --> 00:13:25.270
+I said never do
+this, never do this--
+
+00:13:25.270 --> 00:13:27.460
+because if you go to the
+second-order methods,
+
+00:13:27.460 --> 00:13:28.610
+things converge faster.
+
+00:13:28.610 --> 00:13:30.193
+You don't have to
+pick learning rates.
+
+00:13:30.193 --> 00:13:32.650
+You can handle constraints.
+
+00:13:32.650 --> 00:13:38.572
+So there are people that do a
+bit of more second-order policy
+
+00:13:38.572 --> 00:13:40.780
+gradient algorithms, but
+that's not the standard yet.
+
+00:13:45.095 --> 00:13:47.470
+So you should really think of
+those as cool systems that,
+
+00:13:47.470 --> 00:13:48.550
+if you--
+
+00:13:48.550 --> 00:13:53.140
+cool algorithms that, if
+you don't have a model,
+
+00:13:53.140 --> 00:13:55.150
+you can almost do
+a shooting method.
+
+00:13:57.760 --> 00:13:59.990
+Why do I say that's a
+controversial statement?
+
+00:14:08.290 --> 00:14:10.540
+Could you imagine somebody
+standing up and saying,
+
+00:14:10.540 --> 00:14:12.707
+this is actually better
+than doing gradient descent?
+
+00:14:15.830 --> 00:14:18.260
+AUDIENCE: [INAUDIBLE]
+
+00:14:18.260 --> 00:14:20.690
+RUSS TEDRAKE: Yeah.
+
+00:14:20.690 --> 00:14:23.760
+So the one advantage is that
+it's doing stochastic gradient
+
+00:14:23.760 --> 00:14:24.260
+descent.
+
+00:14:34.372 --> 00:14:35.830
+And there are people
+out there that
+
+00:14:35.830 --> 00:14:39.430
+really believe stochastic
+gradient descent can outperform
+
+00:14:39.430 --> 00:14:43.030
+even higher order
+methods in certain cases,
+
+00:14:43.030 --> 00:14:47.180
+just because of their ability
+to, by virtue of being random--
+
+00:14:47.180 --> 00:14:49.180
+this is not some magical
+property we've endowed.
+
+00:14:49.180 --> 00:14:51.670
+This is [? Because ?] the
+algorithm is a little crazy.
+
+00:14:51.670 --> 00:14:53.946
+It bounces out of local minima.
+
+00:14:58.500 --> 00:15:05.320
+So for that reason, it does
+have all the strong optimization
+
+00:15:05.320 --> 00:15:08.380
+claims that a stochastic
+gradient descent algorithm has.
+
+00:15:16.160 --> 00:15:17.780
+There's another point
+to make, though,
+
+00:15:17.780 --> 00:15:20.180
+and I think John made this too.
+
+00:15:20.180 --> 00:15:21.590
+The performance of this--
+
+00:15:21.590 --> 00:15:23.300
+and John's done nice--
+
+00:15:23.300 --> 00:15:26.030
+written nice paper on this--
+
+00:15:26.030 --> 00:15:27.770
+the performance
+you'd expect, meaning
+
+00:15:27.770 --> 00:15:30.980
+the number of trials it would
+take to learn to optimize
+
+00:15:30.980 --> 00:15:32.510
+your cost function--
+
+00:15:32.510 --> 00:15:35.343
+the performance of these
+reinforced type algorithms--
+
+00:15:42.250 --> 00:15:44.243
+it degrades with a
+number of parameters
+
+00:15:44.243 --> 00:15:45.160
+you're trying to tune.
+
+00:16:09.910 --> 00:16:12.345
+So remember, the
+fundamental idea was--
+
+00:16:12.345 --> 00:16:13.720
+and the way I like
+to think of it
+
+00:16:13.720 --> 00:16:18.835
+is, imagine you're at a mixer
+station in a sound recording
+
+00:16:18.835 --> 00:16:20.710
+studio, and you're
+looking through the glass,
+
+00:16:20.710 --> 00:16:23.470
+and you've got a
+robot over there.
+
+00:16:23.470 --> 00:16:25.380
+You've got all your
+knobs set in some place,
+
+00:16:25.380 --> 00:16:27.520
+and your robot
+does its behavior,
+
+00:16:27.520 --> 00:16:29.715
+and then you give it a score.
+
+00:16:29.715 --> 00:16:31.090
+You turn your
+knobs a little bit,
+
+00:16:31.090 --> 00:16:32.253
+you see how the robot acts.
+
+00:16:32.253 --> 00:16:33.670
+You turn it off a
+little bit more.
+
+00:16:33.670 --> 00:16:36.310
+And your job is to just twist
+these knobs in a way that
+
+00:16:36.310 --> 00:16:39.857
+finds the way down the gradient,
+and gets your robot doing
+
+00:16:39.857 --> 00:16:40.690
+what you want to do.
+
+00:16:43.450 --> 00:16:45.670
+That maybe is a
+demystifying way to think
+
+00:16:45.670 --> 00:16:48.045
+about this everything, which
+is mathematically beautiful,
+
+00:16:48.045 --> 00:16:51.010
+but really, it's
+just turning knobs.
+
+00:16:51.010 --> 00:16:53.470
+If you have a model and you
+can compute the gradient,
+
+00:16:53.470 --> 00:16:55.240
+then you don't have to guess
+the way you turn knobs.
+
+00:16:55.240 --> 00:16:57.323
+You should always use that
+model to turn the knobs
+
+00:16:57.323 --> 00:16:59.980
+in the right direction.
+
+00:16:59.980 --> 00:17:03.322
+And also, if you think about
+that analogy, the number of--
+
+00:17:03.322 --> 00:17:05.530
+the length of time it's
+going to take you to optimize
+
+00:17:05.530 --> 00:17:07.359
+your function is
+going to depend on how
+
+00:17:07.359 --> 00:17:09.460
+many knobs you have to turn.
+
+00:17:09.460 --> 00:17:11.349
+If I have 100 knobs
+in front of me
+
+00:17:11.349 --> 00:17:13.210
+and I change them
+all a little bit--
+
+00:17:13.210 --> 00:17:14.724
+I see how my robot
+acted-- then it's
+
+00:17:14.724 --> 00:17:16.599
+going to be hard for me
+to figure out exactly
+
+00:17:16.599 --> 00:17:19.185
+which knob to assign credit to.
+
+00:17:19.185 --> 00:17:20.560
+The fewer knobs
+I have to change,
+
+00:17:20.560 --> 00:17:23.440
+the faster I can estimate
+which knobs were important,
+
+00:17:23.440 --> 00:17:24.880
+and climb down a gradient.
+
+00:17:32.060 --> 00:17:33.590
+I still say, when
+you have a model,
+
+00:17:33.590 --> 00:17:34.490
+you should always
+use it, because you
+
+00:17:34.490 --> 00:17:35.615
+can estimate the gradients.
+
+00:17:35.615 --> 00:17:37.970
+You can turn the knobs
+in the right way.
+
+00:17:37.970 --> 00:17:43.580
+But in the case where you don't
+have a model, it's actually--
+
+00:17:43.580 --> 00:17:46.100
+they're very nice
+classes of algorithms.
+
+00:17:46.100 --> 00:17:47.880
+This knob tuning thing
+sounds ridiculous.
+
+00:17:47.880 --> 00:17:51.185
+Maybe, if I have
+even an [INAUDIBLE],,
+
+00:17:51.185 --> 00:17:53.190
+if you have a good model
+of the [INAUDIBLE],,
+
+00:17:53.190 --> 00:17:56.540
+then maybe you shouldn't-- you
+should definitely be using it.
+
+00:17:56.540 --> 00:17:59.578
+But if you have a very
+complicated system,
+
+00:17:59.578 --> 00:18:02.120
+and the performance only depends
+on the number of parameters,
+
+00:18:02.120 --> 00:18:03.020
+then it--
+
+00:18:03.020 --> 00:18:06.830
+I just want to make
+the point that it's--
+
+00:18:06.830 --> 00:18:13.445
+they're actually pretty powerful
+for some control problems.
+
+00:18:18.863 --> 00:18:20.780
+And the ones that we're
+working on in my group
+
+00:18:20.780 --> 00:18:24.230
+are fluid dynamics
+control problems,
+
+00:18:24.230 --> 00:18:29.360
+but specifically if you have
+problems where you can get away
+
+00:18:29.360 --> 00:18:43.550
+with the small
+number of parameters,
+
+00:18:43.550 --> 00:18:51.260
+but you have a very
+complicated unknown dynamics.
+
+00:18:55.038 --> 00:18:56.830
+And actually, those
+algorithms are really--
+
+00:18:56.830 --> 00:18:59.680
+make a lot of sense to me.
+
+00:18:59.680 --> 00:19:04.000
+So the performance of these
+randomized policy search
+
+00:19:04.000 --> 00:19:06.173
+algorithms-- it goes with
+the number of parameters
+
+00:19:06.173 --> 00:19:07.090
+you're trying to tune.
+
+00:19:07.090 --> 00:19:10.090
+I could be sitting in
+this mixing station,
+
+00:19:10.090 --> 00:19:11.800
+and I could be twittering
+four parameters
+
+00:19:11.800 --> 00:19:15.850
+and having a simple
+pendulum do its thing,
+
+00:19:15.850 --> 00:19:18.250
+or I could be sitting in
+there turning these four knobs
+
+00:19:18.250 --> 00:19:19.930
+and having a
+Navier-Stokes simulation,
+
+00:19:19.930 --> 00:19:24.547
+with some very complicated
+fluid doing something,
+
+00:19:24.547 --> 00:19:27.130
+and the amount of time it takes
+me to twiddle those parameters
+
+00:19:27.130 --> 00:19:28.725
+is the same.
+
+00:19:28.725 --> 00:19:30.850
+One of the strongest
+properties of these algorithms
+
+00:19:30.850 --> 00:19:33.700
+is that, by virtue of
+ignoring the model,
+
+00:19:33.700 --> 00:19:37.130
+they're actually insensitive
+to the model complexity.
+
+00:19:37.130 --> 00:19:39.460
+So in my group, we're
+really trying to push--
+
+00:19:39.460 --> 00:19:42.070
+in some problems where the
+dynamics are unknown and very
+
+00:19:42.070 --> 00:19:44.740
+complicated and a
+lot of the community
+
+00:19:44.740 --> 00:19:47.050
+is trying to build
+better models of this,
+
+00:19:47.050 --> 00:19:49.750
+we're trying to say, well, maybe
+before you have perfect models,
+
+00:19:49.750 --> 00:19:52.690
+we can do some of these
+model-free search algorithms
+
+00:19:52.690 --> 00:19:55.210
+to build good controllers
+without perfect models.
+
+00:19:59.170 --> 00:20:03.530
+Are people OK with that
+array of techniques?
+
+00:20:03.530 --> 00:20:05.080
+Yeah?
+
+00:20:05.080 --> 00:20:10.962
+You have a good
+arsenal of tools?
+
+00:20:10.962 --> 00:20:12.420
+Can you see the
+obvious place where
+
+00:20:12.420 --> 00:20:15.870
+I'm trying to go next, now
+that I've set it up like this?
+
+00:20:21.960 --> 00:20:24.660
+We did value methods and
+policy search methods
+
+00:20:24.660 --> 00:20:27.570
+for the simple case, then we did
+value methods and policy search
+
+00:20:27.570 --> 00:20:29.520
+methods for the
+stochastic case, then
+
+00:20:29.520 --> 00:20:33.490
+we did policy methods
+for the model-free case.
+
+00:20:33.490 --> 00:20:36.700
+So how about we do model-free
+value methods today?
+
+00:20:57.460 --> 00:20:59.510
+But I know it's a complicated
+web of algorithms,
+
+00:20:59.510 --> 00:21:01.960
+so I want to make sure that I
+stop and say that kind of stuff
+
+00:21:01.960 --> 00:21:02.877
+every once in a while.
+
+00:21:08.250 --> 00:21:10.750
+So what's the difference between
+a policy method and a value
+
+00:21:10.750 --> 00:21:13.100
+method?
+
+00:21:13.100 --> 00:21:19.270
+So value duration-- like I
+said, it's very, very efficient.
+
+00:21:19.270 --> 00:21:25.360
+The way we represented
+value iteration with a grid,
+
+00:21:25.360 --> 00:21:27.040
+and having to solve
+every possible state
+
+00:21:27.040 --> 00:21:32.260
+at every possible time, is
+the extreme form of value--
+
+00:21:32.260 --> 00:21:33.880
+of the value methods.
+
+00:21:33.880 --> 00:21:38.770
+In general, we can try to build
+approximate value methods--
+
+00:21:38.770 --> 00:21:41.920
+estimates of our value
+function that don't
+
+00:21:41.920 --> 00:21:44.423
+require the big discretization.
+
+00:21:44.423 --> 00:21:46.090
+So actually, last
+week, at the meeting--
+
+00:21:46.090 --> 00:21:49.420
+one of the meetings I was
+at, I met Gerry Tesauro.
+
+00:21:49.420 --> 00:21:51.790
+And Gerry Tesauro is the
+guy who did TD-Gammon.
+
+00:21:51.790 --> 00:21:54.080
+Anybody heard of TD-Gammon?
+
+00:21:54.080 --> 00:21:54.580
+Yeah?
+
+00:21:54.580 --> 00:21:55.810
+[INAUDIBLE] knows TD-Gammon.
+
+00:21:59.680 --> 00:22:00.930
+I don't know what year it was.
+
+00:22:00.930 --> 00:22:03.730
+It was 20 years ago now.
+
+00:22:03.730 --> 00:22:06.610
+One of the big success stories
+for reinforcement learning
+
+00:22:06.610 --> 00:22:08.770
+was that they
+built a game player
+
+00:22:08.770 --> 00:22:11.470
+based on reinforcement
+learning that
+
+00:22:11.470 --> 00:22:13.390
+could play backgammon
+with the experts
+
+00:22:13.390 --> 00:22:16.123
+and beat the experts
+at backgammon.
+
+00:22:16.123 --> 00:22:18.040
+Now, backgammon's actually
+not a trivial game.
+
+00:22:18.040 --> 00:22:19.600
+It's got a huge state space--
+
+00:22:19.600 --> 00:22:20.482
+huge state space.
+
+00:22:20.482 --> 00:22:21.940
+I don't play
+backgammon, but I know
+
+00:22:21.940 --> 00:22:24.147
+there's a lot of bits
+going around there.
+
+00:22:24.147 --> 00:22:26.230
+It's stochastic, because
+you roll a die every once
+
+00:22:26.230 --> 00:22:28.510
+in a while.
+
+00:22:28.510 --> 00:22:32.290
+So it's actually not
+some complicated--
+
+00:22:32.290 --> 00:22:33.928
+not some simple game.
+
+00:22:33.928 --> 00:22:35.470
+In some ways, it's
+surprising that it
+
+00:22:35.470 --> 00:22:41.173
+was solved before
+checkers and these others.
+
+00:22:41.173 --> 00:22:43.590
+Maybe it's just because not
+enough people play backgammon,
+
+00:22:43.590 --> 00:22:45.048
+so you can beat
+the experts easier.
+
+00:22:45.048 --> 00:22:47.650
+I don't know.
+
+00:22:47.650 --> 00:22:49.630
+But we were playing
+competition style--
+
+00:22:49.630 --> 00:22:51.790
+beat the best humans
+at backgammon--
+
+00:22:51.790 --> 00:22:58.900
+well before checkers and chess,
+because of a value-based--
+
+00:22:58.900 --> 00:23:04.150
+model-free, value-based
+method for backgammon.
+
+00:23:04.150 --> 00:23:06.940
+So Gerry Tesauro actually
+use neural networks,
+
+00:23:06.940 --> 00:23:09.370
+and he learned, from
+watching the game,
+
+00:23:09.370 --> 00:23:11.690
+a value function for the game.
+
+00:23:11.690 --> 00:23:13.370
+What does that mean?
+
+00:23:13.370 --> 00:23:16.180
+So what do you do when
+you play backgammon--
+
+00:23:16.180 --> 00:23:17.790
+or whatever game you play?
+
+00:23:17.790 --> 00:23:19.290
+I'm not trying to
+dump on that game.
+
+00:23:19.290 --> 00:23:21.040
+I just haven't played it myself.
+
+00:23:21.040 --> 00:23:26.230
+So if you look at a go
+board or a chess board,
+
+00:23:26.230 --> 00:23:29.650
+you don't think about every
+single state that's possibly
+
+00:23:29.650 --> 00:23:33.310
+in there, but you're able
+to quickly look at the board
+
+00:23:33.310 --> 00:23:36.580
+and get a sense of if
+you're winning or losing.
+
+00:23:36.580 --> 00:23:41.565
+If you were to make this move,
+my life should get better.
+
+00:23:41.565 --> 00:23:42.940
+And there are
+serious people that
+
+00:23:42.940 --> 00:23:45.040
+think that the natural
+representation for very
+
+00:23:45.040 --> 00:23:47.590
+complicated physical
+control processes
+
+00:23:47.590 --> 00:23:50.710
+or very complicated
+game playing scenarios
+
+00:23:50.710 --> 00:23:53.740
+is to not learn actually
+the policy directly,
+
+00:23:53.740 --> 00:23:55.450
+but to just learn a
+sense of what's good
+
+00:23:55.450 --> 00:24:01.480
+and what's bad directly, learn
+a value function directly.
+
+00:24:01.480 --> 00:24:04.360
+And then we [INAUDIBLE]
+from value iteration.
+
+00:24:04.360 --> 00:24:06.640
+That captures all
+that's hard about--
+
+00:24:06.640 --> 00:24:09.010
+that captures the
+entire long-term look
+
+00:24:09.010 --> 00:24:11.530
+ahead in the optimal
+control problem.
+
+00:24:11.530 --> 00:24:13.690
+Once I have a value
+function, if I
+
+00:24:13.690 --> 00:24:16.300
+have a value function I believe,
+if I want to make an action,
+
+00:24:16.300 --> 00:24:18.730
+all I have to do is think about,
+well, if I made this action,
+
+00:24:18.730 --> 00:24:20.050
+my value would get
+better by this much.
+
+00:24:20.050 --> 00:24:22.633
+If I made this action, my value
+would get better by this much.
+
+00:24:22.633 --> 00:24:26.390
+And I just pick the action that
+maximizes my expected value.
+
+00:24:29.860 --> 00:24:33.190
+Now, the good thing
+about value-based methods
+
+00:24:33.190 --> 00:24:35.650
+is that they tend to
+be very efficient.
+
+00:24:38.200 --> 00:24:41.440
+You can simultaneously think
+about lots of different states
+
+00:24:41.440 --> 00:24:42.940
+at a time.
+
+00:24:42.940 --> 00:24:45.310
+Just like value duration,
+it's very efficient
+
+00:24:45.310 --> 00:24:48.310
+to learn value methods.
+
+00:24:48.310 --> 00:24:52.120
+And historically, in the
+reinforcement learning world,
+
+00:24:52.120 --> 00:24:54.250
+nobody ever really did
+policy search methods
+
+00:24:54.250 --> 00:24:56.000
+until the early '90s.
+
+00:24:56.000 --> 00:24:59.410
+There was at least
+15 years where
+
+00:24:59.410 --> 00:25:02.885
+people were doing cool things
+with robots, and game playing,
+
+00:25:02.885 --> 00:25:05.260
+and things like that, where
+almost everybody, every paper
+
+00:25:05.260 --> 00:25:07.730
+was talking about, how do
+you learn a value function?
+
+00:25:07.730 --> 00:25:08.720
+How do you learn
+a value function
+
+00:25:08.720 --> 00:25:10.637
+if you have to put in a
+function approximator?
+
+00:25:10.637 --> 00:25:14.045
+Or how do you do a value
+function if this, if this?
+
+00:25:14.045 --> 00:25:15.670
+So really, even though
+I did it second,
+
+00:25:15.670 --> 00:25:17.462
+this was actually the
+core of reinforcement
+
+00:25:17.462 --> 00:25:18.770
+learning for a long time.
+
+00:25:18.770 --> 00:25:20.187
+How do you learn
+a value function?
+
+00:25:20.187 --> 00:25:22.780
+How do you estimate
+the cost-to-go--
+
+00:25:22.780 --> 00:25:25.750
+ideally, the
+optimal cost-to-go--
+
+00:25:25.750 --> 00:25:31.807
+given trial and error
+experience with the robot?
+
+00:25:31.807 --> 00:25:32.890
+So that's today's problem.
+
+00:25:41.620 --> 00:25:44.560
+Good-- so we can make
+it easier by thinking
+
+00:25:44.560 --> 00:25:45.790
+about a sub-problem first.
+
+00:25:50.200 --> 00:26:01.410
+And that's really
+policy evaluation,
+
+00:26:01.410 --> 00:26:03.635
+which is the problem
+of, given I have--
+
+00:26:07.070 --> 00:26:20.460
+I have my dynamics, of
+course, and some policy pi,
+
+00:26:20.460 --> 00:26:30.400
+I want to estimate
+or compute J of pi,
+
+00:26:30.400 --> 00:26:34.240
+the long-term potentially
+expected reward
+
+00:26:34.240 --> 00:26:37.090
+of executing that
+feedback policy
+
+00:26:37.090 --> 00:26:43.330
+on that robot, potentially
+from all states at all times.
+
+00:26:46.510 --> 00:26:49.750
+So this is maybe equivalent to
+what I just said about chess.
+
+00:26:49.750 --> 00:26:53.740
+So my value function for
+chess might look different
+
+00:26:53.740 --> 00:26:57.030
+than somebody who knows
+how to play chess.
+
+00:26:57.030 --> 00:27:00.730
+I look at the board, and
+most of the time, I'm losing,
+
+00:27:00.730 --> 00:27:04.152
+and my actions are going
+to be chosen differently,
+
+00:27:04.152 --> 00:27:06.610
+because I wouldn't even know
+what to do if my rook ended up
+
+00:27:06.610 --> 00:27:08.830
+over there.
+
+00:27:08.830 --> 00:27:13.720
+And the optimal value function,
+given I was acting optimally,
+
+00:27:13.720 --> 00:27:15.250
+might look very different.
+
+00:27:15.250 --> 00:27:22.060
+But for me, the first problem is
+just estimate what's my cost--
+
+00:27:22.060 --> 00:27:24.400
+the cost of executing
+my current game playing
+
+00:27:24.400 --> 00:27:26.950
+strategy, my current
+control-- feedback controller
+
+00:27:26.950 --> 00:27:31.510
+on this robot, or this game?
+
+00:27:31.510 --> 00:27:33.280
+Now, there is
+something culturally
+
+00:27:33.280 --> 00:27:38.050
+different from the
+reinforcement learning
+
+00:27:38.050 --> 00:27:40.720
+value-based communities,
+and I'm going
+
+00:27:40.720 --> 00:27:42.305
+to go ahead and make
+that switch now.
+
+00:27:47.680 --> 00:27:52.000
+Most of the time, these
+things are infinite horizon
+
+00:27:52.000 --> 00:27:52.900
+discounted problems.
+
+00:27:56.690 --> 00:27:59.050
+I'll say it's discrete
+time just to keep it clean,
+
+00:27:59.050 --> 00:28:04.360
+because then it's easy to
+write [INAUDIBLE] equals t
+
+00:28:04.360 --> 00:28:08.720
+to infinity here, gamma to the--
+
+00:28:08.720 --> 00:28:10.220
+let me just do it like this.
+
+00:28:10.220 --> 00:28:12.492
+Let's assume that it's
+completely feedback.
+
+00:28:12.492 --> 00:28:14.200
+That'll just keep me
+writing less symbols
+
+00:28:14.200 --> 00:28:16.180
+for the rest of
+the lecture here.
+
+00:28:16.180 --> 00:28:32.130
+0 to infinity, gamma to the
+n, xn, and then pi of xn,
+
+00:28:32.130 --> 00:28:35.690
+where my action is always
+pulled directly from pi--
+
+00:28:43.712 --> 00:28:45.170
+I mentioned it once
+before, but why
+
+00:28:45.170 --> 00:28:49.250
+do people do discounted things?
+
+00:28:49.250 --> 00:28:52.730
+Lots of reasons why people
+do discounted things-- first
+
+00:28:52.730 --> 00:28:54.828
+of all, if you have
+infinite horizon rewards,
+
+00:28:54.828 --> 00:28:56.120
+there's just a practical issue.
+
+00:28:56.120 --> 00:28:59.630
+If you're not careful,
+infinite horizon rewards
+
+00:28:59.630 --> 00:29:01.360
+will blow up on you.
+
+00:29:01.360 --> 00:29:09.500
+So if you put some sort
+of decaying factor gammas,
+
+00:29:09.500 --> 00:29:12.200
+typically, it's constrained
+to be less than 1
+
+00:29:12.200 --> 00:29:14.630
+just so you don't have to
+worry about things blowing up
+
+00:29:14.630 --> 00:29:18.150
+in the long term.
+
+00:29:18.150 --> 00:29:20.522
+But you can make it
+1, and then you just
+
+00:29:20.522 --> 00:29:22.730
+have to be more careful that
+you get to a fixed point
+
+00:29:22.730 --> 00:29:24.230
+[INAUDIBLE] cost,
+or whatever it is.
+
+00:29:26.750 --> 00:29:33.702
+Let's just put some decaying
+cost on future experiences.
+
+00:29:39.500 --> 00:29:42.240
+Philosophically, some
+people really like this.
+
+00:29:42.240 --> 00:29:44.450
+So a lot of the problems
+we've talked about
+
+00:29:44.450 --> 00:29:46.820
+are very episodic in nature.
+
+00:29:46.820 --> 00:29:49.220
+We talked about designing
+trajectories from time 0
+
+00:29:49.220 --> 00:29:50.548
+to time final.
+
+00:29:50.548 --> 00:29:51.590
+What's the optimal thing?
+
+00:29:51.590 --> 00:29:53.660
+What's the optimal thing?
+
+00:29:53.660 --> 00:29:57.770
+If you just want
+to live your life--
+
+00:29:57.770 --> 00:29:59.810
+presumably, you don't
+know exactly when
+
+00:29:59.810 --> 00:30:00.860
+you're going to die.
+
+00:30:00.860 --> 00:30:03.622
+You're going to maximize
+some long-term reward.
+
+00:30:03.622 --> 00:30:06.080
+You'd like it to be infinite,
+but realistically, the things
+
+00:30:06.080 --> 00:30:07.130
+that are going to
+happen to me tomorrow
+
+00:30:07.130 --> 00:30:09.005
+are more important to
+me that the things that
+
+00:30:09.005 --> 00:30:11.140
+are happening in the
+very far, distant future.
+
+00:30:11.140 --> 00:30:15.380
+So some people, philosophically,
+just like having this
+
+00:30:15.380 --> 00:30:18.860
+as a cost function
+for a robot that's
+
+00:30:18.860 --> 00:30:21.050
+alive executing
+an online policy,
+
+00:30:21.050 --> 00:30:23.630
+worrying about short-term
+things a little bit more,
+
+00:30:23.630 --> 00:30:25.558
+but thinking about
+into the future.
+
+00:30:25.558 --> 00:30:27.100
+And that knob is
+controlled by gamma.
+
+00:30:31.280 --> 00:30:36.290
+Almost all of the
+RL tools can be
+
+00:30:36.290 --> 00:30:39.710
+made compatible with the
+episodic non-discounted cases,
+
+00:30:39.710 --> 00:30:42.508
+but culturally, like I said,
+they're almost always written
+
+00:30:42.508 --> 00:30:44.300
+in this form, so I
+thought it'd makes sense
+
+00:30:44.300 --> 00:30:46.250
+to switch to that
+form for a little bit.
+
+00:30:56.090 --> 00:31:01.760
+So how do we estimate J pi of
+x, given that kind of a setup?
+
+00:31:06.370 --> 00:31:14.690
+Let's do the model-based
+case, just as a first case.
+
+00:31:14.690 --> 00:31:16.390
+Let's say I have a good model.
+
+00:31:23.770 --> 00:31:25.480
+I made it look
+deterministic here,
+
+00:31:25.480 --> 00:31:28.900
+but we can, in general, do
+this for stochastic things.
+
+00:31:33.260 --> 00:31:37.250
+Let me do the model-based
+Markov chain version first.
+
+00:31:50.808 --> 00:31:53.350
+So you remember, in general, we
+said that the optimal control
+
+00:31:53.350 --> 00:31:58.540
+problem for discrete
+states, discrete actions,
+
+00:31:58.540 --> 00:32:03.850
+stochastic transitions looked
+like a Markov decision process,
+
+00:32:03.850 --> 00:32:16.050
+where we have some
+discrete state space,
+
+00:32:16.050 --> 00:32:31.560
+we have a probability
+transition matrix,
+
+00:32:31.560 --> 00:32:55.640
+where T-I-J is probability
+of transitioning from I to J.
+
+00:32:55.640 --> 00:32:58.910
+And we have some cost.
+
+00:32:58.910 --> 00:33:00.830
+And in the graph sense,
+I tend to write--
+
+00:33:00.830 --> 00:33:04.520
+we tend to write the cost as--
+
+00:33:04.520 --> 00:33:06.020
+instead of being
+[INAUDIBLE] action,
+
+00:33:06.020 --> 00:33:11.060
+we can just write it
+as the probability of--
+
+00:33:11.060 --> 00:33:35.280
+the cost of transitioning from
+state I to state J. Good--
+
+00:33:35.280 --> 00:33:38.520
+now, in the Markov
+decision processes
+
+00:33:38.520 --> 00:33:42.570
+that we talked about before,
+the transition matrix
+
+00:33:42.570 --> 00:33:45.870
+was a function of
+the action you chose.
+
+00:33:45.870 --> 00:33:50.100
+Your goal was to choose
+the action, which
+
+00:33:50.100 --> 00:33:54.330
+made your transition
+matrices have the optimal--
+
+00:33:54.330 --> 00:33:57.390
+choose the best transition
+matrices for your problem.
+
+00:33:57.390 --> 00:33:59.700
+In policy evaluation,
+where we're saying,
+
+00:33:59.700 --> 00:34:03.300
+we're trying to figure out the
+probability of the cost-to-go
+
+00:34:03.300 --> 00:34:07.380
+of running this policy,
+then the actions are--
+
+00:34:07.380 --> 00:34:09.582
+the parameterization by
+action disappears again.
+
+00:34:09.582 --> 00:34:11.040
+It's not a Markov
+decision process.
+
+00:34:11.040 --> 00:34:14.020
+It falls back right into
+being a Markov chain.
+
+00:34:14.020 --> 00:34:16.230
+So it's a simple picture now.
+
+00:34:16.230 --> 00:34:25.580
+We have a graph there's some
+probabilities of transitioning
+
+00:34:25.580 --> 00:34:32.330
+from each state to each
+action, from each state,
+
+00:34:32.330 --> 00:34:34.675
+because my actions
+are predetermined.
+
+00:34:34.675 --> 00:34:36.800
+If I'm in some state, I'm
+going to take this action
+
+00:34:36.800 --> 00:34:37.469
+based on pi.
+
+00:34:40.010 --> 00:34:44.030
+And each transition
+incurs some cost,
+
+00:34:44.030 --> 00:34:49.250
+and my goal is to
+move around the graph
+
+00:34:49.250 --> 00:34:53.880
+in a way that incurs minimal
+long-term cost and expected
+
+00:34:53.880 --> 00:34:54.380
+value.
+
+00:35:01.970 --> 00:35:04.790
+So that's a good way
+to start figuring out
+
+00:35:04.790 --> 00:35:06.912
+how to do policy evaluation.
+
+00:35:10.490 --> 00:35:15.890
+So now, in this discrete state
+transition matrix [INAUDIBLE]
+
+00:35:15.890 --> 00:35:24.560
+this form, I'm going to rewrite
+J pi as being a function of i,
+
+00:35:24.560 --> 00:35:27.260
+where i is from--
+
+00:35:27.260 --> 00:35:30.230
+i is drawn from S, some--
+
+00:35:30.230 --> 00:35:32.750
+it's one discrete state.
+
+00:35:32.750 --> 00:35:44.750
+And it's the expected value of
+G-I-N to I [INAUDIBLE] plus 1.
+
+00:36:14.310 --> 00:36:16.690
+I should say another funny
+example I just remembered.
+
+00:36:16.690 --> 00:36:20.090
+So I gave an analogy
+of playing a game.
+
+00:36:20.090 --> 00:36:21.840
+You might look at the
+board and figure out
+
+00:36:21.840 --> 00:36:24.840
+what's the value of
+being in certain states.
+
+00:36:24.840 --> 00:36:27.270
+People think it's relevant
+in your brains too.
+
+00:36:27.270 --> 00:36:30.600
+So there's actually a lot of
+work in neuroscience these days
+
+00:36:30.600 --> 00:36:34.170
+which probes activity of
+certain neurons in your brain,
+
+00:36:34.170 --> 00:36:39.330
+and finds neurons that basically
+respond with the expected value
+
+00:36:39.330 --> 00:36:43.620
+of your cost-to-go function.
+
+00:36:43.620 --> 00:36:45.120
+They have monkeys
+doing these tasks,
+
+00:36:45.120 --> 00:36:48.540
+where they pull levers or
+blink at the right time,
+
+00:36:48.540 --> 00:36:50.160
+and get certain rewards.
+
+00:36:50.160 --> 00:36:52.620
+And there's neurons
+that fire correlated
+
+00:36:52.620 --> 00:36:55.410
+with their expected
+reward in ways that are--
+
+00:36:55.410 --> 00:36:57.930
+they design an experiment so
+it doesn't look like something
+
+00:36:57.930 --> 00:37:00.390
+that's correlated with the
+action they're going to choose,
+
+00:37:00.390 --> 00:37:01.932
+but it does look
+like it's correlated
+
+00:37:01.932 --> 00:37:03.660
+with expected reward.
+
+00:37:03.660 --> 00:37:07.140
+And interestingly,
+when they learn--
+
+00:37:07.140 --> 00:37:09.060
+as the monkeys learn
+during the task,
+
+00:37:09.060 --> 00:37:11.520
+you can actually
+see that they start
+
+00:37:11.520 --> 00:37:13.080
+making predictions
+accurately when
+
+00:37:13.080 --> 00:37:14.745
+they're close to the reward.
+
+00:37:14.745 --> 00:37:17.370
+They're about to get juice, and
+then, a few minutes later, they
+
+00:37:17.370 --> 00:37:20.320
+can predict when they're a
+minute away from getting juice.
+
+00:37:20.320 --> 00:37:22.320
+And then, if you look at
+it a couple of days in,
+
+00:37:22.320 --> 00:37:23.640
+they're able to
+predict when they're
+
+00:37:23.640 --> 00:37:25.890
+a half hour from getting
+juice or something like this.
+
+00:37:28.330 --> 00:37:31.080
+I think the structure of trying
+to learn the value function
+
+00:37:31.080 --> 00:37:37.230
+is very real, especially if
+you're a juice-deprived monkey.
+
+00:37:37.230 --> 00:37:42.120
+So let's continue on here.
+
+00:37:46.470 --> 00:37:48.930
+How do you compute J
+pi, given this equation?
+
+00:37:53.070 --> 00:37:55.500
+J is a vector now.
+
+00:37:55.500 --> 00:37:58.393
+Well, first of all the dynamic
+programming recursion let's
+
+00:37:58.393 --> 00:37:59.310
+us write it like this.
+
+00:38:01.890 --> 00:38:07.950
+J of ik is the expected
+value of taking one step--
+
+00:38:23.280 --> 00:38:26.830
+the one step cost plus
+the discount factor
+
+00:38:26.830 --> 00:38:29.670
+times the future.
+
+00:38:29.670 --> 00:38:33.300
+The reason people choose this
+form for the discount factor
+
+00:38:33.300 --> 00:38:36.827
+is that the Bellman recursion
+just looks like that.
+
+00:38:36.827 --> 00:38:38.660
+You just put a gamma
+in front of everything.
+
+00:38:46.350 --> 00:38:49.200
+We can take the expected value
+of this with our Markov chain
+
+00:38:49.200 --> 00:38:53.320
+notation and say
+it's the sum over i k
+
+00:38:53.320 --> 00:39:03.800
+plus 1's of Tik ik plus
+1 times g ik, ik plus 1.
+
+00:39:08.960 --> 00:39:11.930
+Keep putting pi everywhere
+so we remember that.
+
+00:39:11.930 --> 00:39:14.840
+Pi k plus 1.
+
+00:39:24.000 --> 00:39:28.140
+The expected value just is a sum
+over probabilities of getting
+
+00:39:28.140 --> 00:39:29.015
+each of the outcomes.
+
+00:39:31.610 --> 00:39:33.920
+So you can use that
+transition matrix.
+
+00:39:33.920 --> 00:39:40.290
+And in vector form, since
+I have a finite number
+
+00:39:40.290 --> 00:39:43.980
+of discrete states,
+I can just write
+
+00:39:43.980 --> 00:39:57.600
+that as J is g plus gamma TJ,
+where the i-th element of g
+
+00:39:57.600 --> 00:40:20.032
+is Keep my pi's everywhere.
+
+00:40:24.125 --> 00:40:25.500
+Everybody agree
+with those steps?
+
+00:40:28.430 --> 00:40:30.450
+OK.
+
+00:40:30.450 --> 00:40:32.406
+So what's J-- J pi?
+
+00:40:32.406 --> 00:40:37.135
+AUDIENCE: [INAUDIBLE]
+
+00:40:37.135 --> 00:40:38.010
+RUSS TEDRAKE: Mm-hmm.
+
+00:40:38.010 --> 00:40:44.117
+AUDIENCE: [INAUDIBLE]
+
+00:40:44.117 --> 00:40:46.200
+RUSS TEDRAKE: I have to
+go to a vector form for J,
+
+00:40:46.200 --> 00:40:48.450
+so I just put it over here.
+
+00:40:48.450 --> 00:40:52.140
+I'm saying that the i-th
+element of the vector g--
+
+00:40:52.140 --> 00:40:53.695
+this is my vector g now--
+
+00:40:53.695 --> 00:40:56.070
+and the i-th element of my
+vector g has that T in there--
+
+00:40:56.070 --> 00:40:57.110
+absolutely.
+
+00:41:04.170 --> 00:41:04.890
+Yep.
+
+00:41:04.890 --> 00:41:08.760
+So it's the expected
+value of g there.
+
+00:41:08.760 --> 00:41:09.780
+OK, so what's J pi?
+
+00:41:51.660 --> 00:41:59.460
+So lo and behold,
+policy evaluation
+
+00:41:59.460 --> 00:42:06.850
+on a Markov chain with known
+probabilities is trivial.
+
+00:42:06.850 --> 00:42:08.160
+It's this.
+
+00:42:08.160 --> 00:42:11.220
+It's almost free to compute.
+
+00:42:11.220 --> 00:42:15.570
+I could tell you exactly
+what my long-term cost
+
+00:42:15.570 --> 00:42:20.158
+is going to be just by
+knowing my transition matrix.
+
+00:42:20.158 --> 00:42:22.200
+That's something I think
+we forget, because we're
+
+00:42:22.200 --> 00:42:23.370
+going to get into
+models that look more
+
+00:42:23.370 --> 00:42:24.870
+complicated than
+that, but remember,
+
+00:42:24.870 --> 00:42:29.220
+if the transition matrix,
+it's trivial to compute
+
+00:42:29.220 --> 00:42:32.830
+the long-term cost
+for a Markov chain.
+
+00:42:32.830 --> 00:42:35.970
+So let me just show you why
+that's relevant, for instance.
+
+00:42:39.400 --> 00:42:43.640
+All right, so I told you about
+this the day the clock stopped.
+
+00:42:43.640 --> 00:42:47.462
+I kept telling you about it
+[INAUDIBLE] And for the record,
+
+00:42:47.462 --> 00:42:48.920
+do you know what
+happened that day?
+
+00:42:48.920 --> 00:42:52.040
+The clock physically stopped.
+
+00:42:52.040 --> 00:42:52.880
+Michael debugged it.
+
+00:42:52.880 --> 00:42:54.620
+There was a little
+piece of paint
+
+00:42:54.620 --> 00:42:56.960
+that blocked it at
+exactly 3:05 the day
+
+00:42:56.960 --> 00:42:59.000
+I was giving that lecture.
+
+00:42:59.000 --> 00:43:03.120
+That was a hard one
+to catch, to be fair.
+
+00:43:03.120 --> 00:43:08.270
+So one of my favorite models
+of stochastic processes
+
+00:43:08.270 --> 00:43:10.610
+in discrete time,
+for instance, is
+
+00:43:10.610 --> 00:43:14.030
+taking our rimless wheels,
+our passive walking models,
+
+00:43:14.030 --> 00:43:16.220
+and putting them
+on rough terrain.
+
+00:43:16.220 --> 00:43:21.530
+So this is the rimless wheel,
+where now, every time it
+
+00:43:21.530 --> 00:43:27.560
+takes a step, the ramp angle is
+drawn from some distribution.
+
+00:43:27.560 --> 00:43:31.040
+Now, in real life, maybe you
+don't roll rimless wheels
+
+00:43:31.040 --> 00:43:37.400
+on that kind of slope, but
+the contention in that paper
+
+00:43:37.400 --> 00:43:39.500
+was that actually, every
+floor is rough terrain,
+
+00:43:39.500 --> 00:43:42.440
+and you actually have to worry
+about the stochastic dynamics
+
+00:43:42.440 --> 00:43:44.098
+all the time.
+
+00:43:44.098 --> 00:43:45.140
+And if you want to take--
+
+00:43:45.140 --> 00:43:46.640
+you can take your
+compass-gait model
+
+00:43:46.640 --> 00:43:49.940
+and put it on rough
+terrain, and you
+
+00:43:49.940 --> 00:43:52.928
+could take the [? kneed ?] model
+and put it on rough terrain.
+
+00:43:52.928 --> 00:43:54.470
+These are the passive
+things, so they
+
+00:43:54.470 --> 00:43:58.910
+can't walk on very much rough
+terrain before they fall down.
+
+00:43:58.910 --> 00:43:59.510
+But they can.
+
+00:43:59.510 --> 00:44:00.802
+They can walk on rough terrain.
+
+00:44:03.530 --> 00:44:05.630
+And then you want to ask
+complicated questions
+
+00:44:05.630 --> 00:44:06.500
+about this, maybe.
+
+00:44:06.500 --> 00:44:08.450
+You want to say,
+given my terrain
+
+00:44:08.450 --> 00:44:10.940
+was drawn from
+some distribution,
+
+00:44:10.940 --> 00:44:16.158
+how far should I expect my robot
+to walk before it falls down?
+
+00:44:16.158 --> 00:44:17.950
+That sounds like a hard
+question to answer.
+
+00:44:20.520 --> 00:44:23.690
+It's trivial to
+answer, actually.
+
+00:44:23.690 --> 00:44:27.590
+So this equation is exactly
+what drove that work.
+
+00:44:27.590 --> 00:44:31.850
+We built the transition matrix
+on the [INAUDIBLE] map, saying,
+
+00:44:31.850 --> 00:44:32.940
+given it's passive--
+
+00:44:32.940 --> 00:44:34.700
+there's no actions
+to choose from--
+
+00:44:34.700 --> 00:44:37.287
+given it's passive, what's
+the probability of being
+
+00:44:37.287 --> 00:44:38.870
+in this new state,
+given the terrain's
+
+00:44:38.870 --> 00:44:41.810
+drawn from some distribution
+given it's at a current state.
+
+00:44:41.810 --> 00:44:44.600
+The cost function was
+1 if it keeps taking
+
+00:44:44.600 --> 00:44:47.990
+a step, 0 if it fell over.
+
+00:44:47.990 --> 00:44:50.632
+And you compute this, and it--
+
+00:44:50.632 --> 00:44:51.590
+what does it tells you?
+
+00:44:51.590 --> 00:44:55.230
+It tells you the expected number
+of steps until you fall down--
+
+00:44:55.230 --> 00:44:55.730
+period.
+
+00:44:55.730 --> 00:44:56.900
+On shot.
+
+00:44:56.900 --> 00:44:58.850
+Simple calculation.
+
+00:44:58.850 --> 00:44:59.870
+It's so simple.
+
+00:44:59.870 --> 00:45:01.912
+The bad part is you have
+to discretize your state
+
+00:45:01.912 --> 00:45:02.832
+space to do it.
+
+00:45:02.832 --> 00:45:05.040
+But if you're willing to
+discretize your state space,
+
+00:45:05.040 --> 00:45:08.780
+then you can make very long-term
+predictions about your model
+
+00:45:08.780 --> 00:45:09.560
+with--
+
+00:45:09.560 --> 00:45:11.360
+just like that,
+to the point where
+
+00:45:11.360 --> 00:45:16.482
+we are trying to say that people
+who talk about stability--
+
+00:45:16.482 --> 00:45:18.440
+people are coming up with
+metrics for stability
+
+00:45:18.440 --> 00:45:19.670
+and walking systems.
+
+00:45:19.670 --> 00:45:21.260
+They say, why not just do this?
+
+00:45:21.260 --> 00:45:23.330
+Why not actually
+compute, given some model
+
+00:45:23.330 --> 00:45:25.223
+of the terrain, how
+many steps you'd expect
+
+00:45:25.223 --> 00:45:26.390
+to take until it falls down?
+
+00:45:26.390 --> 00:45:27.807
+That's what you'd
+like to compute,
+
+00:45:27.807 --> 00:45:31.280
+and it's not hard to compute,
+so you should do that.
+
+00:45:31.280 --> 00:45:36.020
+So that's a clear place where
+policy evaluation by itself--
+
+00:45:36.020 --> 00:45:38.210
+there's lots of cases where
+you have a robot that's
+
+00:45:38.210 --> 00:45:40.640
+doing something, it's
+got a control system,
+
+00:45:40.640 --> 00:45:42.890
+and you just want to
+verify how well it works.
+
+00:45:42.890 --> 00:45:45.620
+If you're trying to verify it
+an expected value, it's easy.
+
+00:45:45.620 --> 00:45:48.950
+Just do the Monte Carlo-- or
+sorry-- the Markov chain thing.
+
+00:45:55.402 --> 00:45:57.110
+But what happens if
+I don't have a model?
+
+00:45:57.110 --> 00:45:59.840
+That's what we're supposed
+to be talking about today.
+
+00:45:59.840 --> 00:46:04.400
+Can we do the same thing
+if we don't have a model?
+
+00:46:04.400 --> 00:46:07.520
+I had to know T. I had to
+know the-- all the transition
+
+00:46:07.520 --> 00:46:10.325
+probabilities in order
+to make that calculation.
+
+00:46:10.325 --> 00:46:12.950
+What happens if we don't have a
+model-- we just have a robot we
+
+00:46:12.950 --> 00:46:14.342
+can run a bunch of times?
+
+00:46:14.342 --> 00:46:15.050
+How do you do it?
+
+00:47:15.470 --> 00:47:17.398
+What would you do,
+if I asked you--
+
+00:47:17.398 --> 00:47:18.440
+I say, I like your robot.
+
+00:47:18.440 --> 00:47:22.337
+I want to know how long it
+tends to run before it fails.
+
+00:47:22.337 --> 00:47:23.170
+How would you do it?
+
+00:47:28.227 --> 00:47:29.060
+How would you do it?
+
+00:47:32.510 --> 00:47:34.780
+There's an easy answer.
+
+00:47:34.780 --> 00:47:38.610
+You could run it a bunch of
+times and take an average.
+
+00:47:41.330 --> 00:47:44.620
+We know that these value
+functions are state-dependent,
+
+00:47:44.620 --> 00:47:46.630
+so it's a little more
+painful than that.
+
+00:47:46.630 --> 00:47:48.005
+Technically, you're
+going to have
+
+00:47:48.005 --> 00:47:51.773
+to run it a bunch of times from
+every single initial condition,
+
+00:47:51.773 --> 00:47:52.690
+but you could do that.
+
+00:47:52.690 --> 00:47:54.610
+And actually, that's
+not totally crazy.
+
+00:48:15.820 --> 00:48:17.650
+So I want to know
+how much cost I'm
+
+00:48:17.650 --> 00:48:19.900
+going to incur-- in the case
+of the walking robot, how
+
+00:48:19.900 --> 00:48:23.050
+many steps it's going to take
+on average before it falls down.
+
+00:48:23.050 --> 00:48:24.250
+First thing to try--
+
+00:48:24.250 --> 00:48:26.380
+don't have to know the
+transition matrices-- just
+
+00:48:26.380 --> 00:48:28.420
+run it a bunch of times.
+
+00:48:28.420 --> 00:48:44.920
+So if I say Jn i, the n-th
+time I run my robot, I incur--
+
+00:48:44.920 --> 00:48:46.295
+I just keep track of the cost.
+
+00:48:46.295 --> 00:48:47.920
+I keep track of how
+many steps it took.
+
+00:48:47.920 --> 00:48:51.008
+I keep track of how
+much gold it found--
+
+00:48:51.008 --> 00:48:52.300
+whatever your cost function is.
+
+00:49:09.430 --> 00:49:13.210
+The thing I'm trying to
+estimate is the expected value
+
+00:49:13.210 --> 00:49:15.530
+of that long-term cost.
+
+00:49:15.530 --> 00:49:17.140
+But any one trial--
+
+00:49:17.140 --> 00:49:19.885
+I get this thing out
+as a random variable.
+
+00:49:23.620 --> 00:49:27.100
+I could take the expected
+value of the random variable.
+
+00:49:27.100 --> 00:49:30.760
+I can make a nice
+estimate of J pi i
+
+00:49:30.760 --> 00:49:35.830
+by just running it a bunch
+of times and taking--
+
+00:49:44.700 --> 00:49:46.560
+doesn't sound very
+elegant, but it works.
+
+00:49:52.284 --> 00:49:54.198
+AUDIENCE: [INAUDIBLE]
+
+00:49:54.198 --> 00:49:54.990
+RUSS TEDRAKE: What?
+
+00:49:58.490 --> 00:49:59.360
+Sum over k.
+
+00:49:59.360 --> 00:50:00.525
+Good.
+
+00:50:00.525 --> 00:50:01.400
+Thank you, thank you.
+
+00:50:01.400 --> 00:50:01.900
+Good.
+
+00:50:01.900 --> 00:50:04.730
+Sum over k.
+
+00:50:04.730 --> 00:50:11.395
+[INAUDIBLE] you've corrected
+both simultaneously.
+
+00:50:23.790 --> 00:50:25.900
+OK, so a couple
+of nuances here--
+
+00:50:25.900 --> 00:50:32.310
+so first of all, I have an
+infinite horizon cost function.
+
+00:50:32.310 --> 00:50:34.650
+So this is only going
+to be an approximation,
+
+00:50:34.650 --> 00:50:37.050
+because I'm not going to
+run this forever 10 times.
+
+00:50:37.050 --> 00:50:40.050
+I'm going to run it for some
+finite duration 10 times.
+
+00:50:40.050 --> 00:50:41.790
+So in practice,
+I'm actually going
+
+00:50:41.790 --> 00:50:46.550
+to run something
+that's big number.
+
+00:50:51.600 --> 00:50:54.240
+But that's OK because
+this discount factor
+
+00:50:54.240 --> 00:50:57.698
+means that a finite trial
+approximation should
+
+00:50:57.698 --> 00:50:59.490
+be a pretty good estimate
+of the long-term.
+
+00:51:03.330 --> 00:51:06.820
+And if I run it from initial
+condition i long enough,
+
+00:51:06.820 --> 00:51:10.200
+then I should be able
+to take an average
+
+00:51:10.200 --> 00:51:12.585
+and get the expected
+[INAUDIBLE]..
+
+00:51:21.770 --> 00:51:29.210
+There's lots of ways you
+can do that kind of thing
+
+00:51:29.210 --> 00:51:34.190
+if you don't want to do all
+the bookkeeping of remembering
+
+00:51:34.190 --> 00:51:35.690
+where you've been.
+
+00:51:35.690 --> 00:51:37.910
+You don't have to remember
+all of these things.
+
+00:51:37.910 --> 00:51:41.090
+You can do an online
+version, incremental.
+
+00:51:41.090 --> 00:51:45.590
+You can say that
+my J hat is just--
+
+00:51:45.590 --> 00:51:49.505
+my J hat pi is just J hat pi--
+
+00:52:03.830 --> 00:52:08.420
+I can guess an initial
+J hat, and then,
+
+00:52:08.420 --> 00:52:10.610
+every time I get
+a new trial, I'll
+
+00:52:10.610 --> 00:52:15.680
+just move my estimate
+towards that trial.
+
+00:52:15.680 --> 00:52:19.070
+And this is actually
+an online version that
+
+00:52:19.070 --> 00:52:21.980
+approximates that in batch.
+
+00:52:21.980 --> 00:52:24.470
+This is just a
+standard [INAUDIBLE]
+
+00:52:24.470 --> 00:52:27.110
+that you can do
+it more carefully.
+
+00:52:31.355 --> 00:52:33.570
+I could choose these to
+be a perfect weighting
+
+00:52:33.570 --> 00:52:36.112
+but in general, this is actually
+a pretty good approximation,
+
+00:52:36.112 --> 00:52:40.610
+as the number of trials goes
+up, to this sum without keeping
+
+00:52:40.610 --> 00:52:41.412
+track of every J.
+
+00:52:41.412 --> 00:52:43.370
+Every time, I'm just
+going to do moving average
+
+00:52:43.370 --> 00:52:46.550
+towards the new point, and
+by changing a small amount,
+
+00:52:46.550 --> 00:52:47.600
+it will converge.
+
+00:52:47.600 --> 00:52:49.430
+This is a low-pass filter.
+
+00:52:49.430 --> 00:52:50.870
+That's another way to say it.
+
+00:52:50.870 --> 00:52:53.180
+It's a low-pass filter
+that tries to get me to--
+
+00:52:53.180 --> 00:52:58.400
+the mean of the J
+samples I'm getting in.
+
+00:53:05.680 --> 00:53:08.020
+So that gets rid of a
+little bit of bookkeeping.
+
+00:53:08.020 --> 00:53:08.950
+There's other things you can do.
+
+00:53:08.950 --> 00:53:10.200
+Now, here's a really cool one.
+
+00:53:15.130 --> 00:53:18.310
+Think about this, and tell me
+if you think it's possible.
+
+00:53:18.310 --> 00:53:22.240
+I'm going to tell you
+in a minute how that--
+
+00:53:22.240 --> 00:53:32.100
+if I have two policies, I can--
+
+00:53:32.100 --> 00:53:34.140
+say, pi 1 and pi 2--
+
+00:53:54.189 --> 00:53:55.200
+Do you believe that?
+
+00:53:58.612 --> 00:54:00.570
+It's going to take a
+little bit more machinery,
+
+00:54:00.570 --> 00:54:03.540
+but just to see where we go.
+
+00:54:03.540 --> 00:54:06.330
+Say I have two control systems.
+
+00:54:06.330 --> 00:54:10.530
+I have the one that is
+risky, and I ran it once,
+
+00:54:10.530 --> 00:54:13.072
+and the thing fell down.
+
+00:54:13.072 --> 00:54:15.030
+So I don't actually want
+to run that 100 times.
+
+00:54:15.030 --> 00:54:17.118
+I might break my robot.
+
+00:54:17.118 --> 00:54:18.660
+Let's say I've got
+a different policy
+
+00:54:18.660 --> 00:54:19.827
+that I like a little better.
+
+00:54:19.827 --> 00:54:21.900
+It's a little safer
+to do evaluations on.
+
+00:54:21.900 --> 00:54:25.410
+Can you imagine running
+the safe policy, let's say,
+
+00:54:25.410 --> 00:54:26.790
+to learn about the risky policy?
+
+00:54:30.480 --> 00:54:31.800
+That's pretty cool idea, right?
+
+00:54:35.270 --> 00:54:36.270
+What is wrong with this?
+
+00:54:48.390 --> 00:54:49.860
+Typically done
+with a q function.
+
+00:54:49.860 --> 00:54:51.610
+I'll show you how to
+say that in a second.
+
+00:54:56.283 --> 00:54:57.950
+So there's lots of
+ways you can do that.
+
+00:54:57.950 --> 00:55:02.322
+You can run trials,
+you can keep averages,
+
+00:55:02.322 --> 00:55:04.780
+you can try to learn about one
+trial by learning the other.
+
+00:55:04.780 --> 00:55:06.430
+What the fundamental
+idea here is
+
+00:55:06.430 --> 00:55:09.910
+is that it requires
+stochasticity.
+
+00:55:09.910 --> 00:55:14.680
+You need that, in
+policy, pi 1 and pi 2
+
+00:55:14.680 --> 00:55:17.140
+have to change--
+take the same actions
+
+00:55:17.140 --> 00:55:20.020
+with some non-zero probability.
+
+00:55:20.020 --> 00:55:23.230
+Pi 2 might be my risky policy,
+and every once in a while,
+
+00:55:23.230 --> 00:55:26.470
+with some small probability, it
+takes a safe action, let's say.
+
+00:55:26.470 --> 00:55:31.080
+And pi 1 is my safe policy,
+but every once in a while, it
+
+00:55:31.080 --> 00:55:32.170
+takes a risky action.
+
+00:55:32.170 --> 00:55:35.150
+As long as these things
+have some non-zero overlap
+
+00:55:35.150 --> 00:55:38.230
+in probability space,
+then I can actually
+
+00:55:38.230 --> 00:55:39.760
+learn about what
+it would have been
+
+00:55:39.760 --> 00:55:41.500
+to do the more risky
+thing by taking
+
+00:55:41.500 --> 00:55:45.060
+the more conservative thing.
+
+00:55:45.060 --> 00:55:46.810
+So policy evaluation's
+a really nice tool.
+
+00:55:49.750 --> 00:55:51.100
+But this feels slow.
+
+00:55:51.100 --> 00:55:53.700
+The Monte Carlo
+thing feels slow--
+
+00:55:53.700 --> 00:55:55.480
+feels like I got to
+run a lot of trials
+
+00:55:55.480 --> 00:55:57.280
+from a lot of different
+initial conditions.
+
+00:55:57.280 --> 00:55:59.245
+And now you tell me
+what the cost-to-go
+
+00:55:59.245 --> 00:56:01.120
+is from this initial
+condition, and let's say
+
+00:56:01.120 --> 00:56:02.260
+I try this initial condition.
+
+00:56:02.260 --> 00:56:02.810
+What do I do?
+
+00:56:02.810 --> 00:56:06.160
+Do I just have to start over
+and run trials from the get-go
+
+00:56:06.160 --> 00:56:06.760
+again?
+
+00:56:06.760 --> 00:56:08.480
+Well, that doesn't
+seem very satisfying.
+
+00:56:11.020 --> 00:56:14.358
+Approach number two
+is bootstrapping.
+
+00:56:31.470 --> 00:56:34.920
+I call it bootstrapping.
+
+00:56:34.920 --> 00:56:39.027
+If I learned about the cost
+of being in this state,
+
+00:56:39.027 --> 00:56:41.610
+and I spent a long time learning
+about the cost-to-go of being
+
+00:56:41.610 --> 00:56:43.980
+in this state, and then
+I go back and ask what's
+
+00:56:43.980 --> 00:56:47.400
+the cost of being in
+this state, if this one
+
+00:56:47.400 --> 00:56:48.840
+transitions into
+this one, then I
+
+00:56:48.840 --> 00:56:51.810
+should be able to reuse what
+I learned about the state
+
+00:56:51.810 --> 00:56:54.390
+to make it faster to
+learn about that state.
+
+00:56:54.390 --> 00:56:58.020
+I didn't really plan to do it
+with the steps on the floor,
+
+00:56:58.020 --> 00:56:59.428
+but I hope that makes sense.
+
+00:56:59.428 --> 00:57:00.720
+Maybe I could do it on a graph.
+
+00:57:00.720 --> 00:57:03.720
+That's better, yeah?
+
+00:57:03.720 --> 00:57:10.440
+Let's say I figured out
+what J pi of this state is--
+
+00:57:10.440 --> 00:57:12.545
+because I went from
+here, and I went around,
+
+00:57:12.545 --> 00:57:13.920
+and I did my stuff,
+and I learned
+
+00:57:13.920 --> 00:57:16.295
+pretty much what there is to
+learn about here [INAUDIBLE]
+
+00:57:16.295 --> 00:57:17.190
+policy.
+
+00:57:17.190 --> 00:57:21.853
+And now I want to
+know about this state.
+
+00:57:21.853 --> 00:57:23.520
+Well, I should be
+able to reuse the fact
+
+00:57:23.520 --> 00:57:26.820
+that I've learned about
+that to help me learn this
+
+00:57:26.820 --> 00:57:29.730
+more quickly--
+
+00:57:29.730 --> 00:57:30.420
+reasonable idea.
+
+00:57:33.120 --> 00:57:37.800
+Using your estimate to inform
+your future estimates is
+
+00:57:37.800 --> 00:57:40.080
+an idea about
+bootstrapping, reusing--
+
+00:57:40.080 --> 00:57:45.060
+building on your current guess
+to build a better future guess.
+
+00:57:45.060 --> 00:57:49.740
+And here's how it could look
+in the optimal control policy
+
+00:57:49.740 --> 00:57:50.670
+evaluation sense.
+
+00:58:05.000 --> 00:58:11.330
+What if I said my
+online rule used
+
+00:58:11.330 --> 00:58:18.380
+to be this, where I've got
+some estimate J pi hat?
+
+00:58:18.380 --> 00:58:21.440
+I'm going to run from 0
+to some very large number
+
+00:58:21.440 --> 00:58:24.260
+to estimate this, and
+then make the update.
+
+00:58:24.260 --> 00:58:27.470
+What if, instead, I
+just took a single step
+
+00:58:27.470 --> 00:58:28.430
+and I did this update?
+
+00:59:08.193 --> 00:59:09.360
+Does that make sense to you?
+
+00:59:20.730 --> 00:59:25.530
+Let's say I ask you to guess
+the long-term cost here.
+
+00:59:25.530 --> 00:59:28.710
+Instead of running all the
+way to the end, what if I just
+
+00:59:28.710 --> 00:59:32.040
+run a single step and
+then use as my cost
+
+00:59:32.040 --> 00:59:37.500
+my estimate for this,
+the cost of going here
+
+00:59:37.500 --> 00:59:42.450
+plus the gamma times the
+cost of doing all that?
+
+00:59:42.450 --> 00:59:55.440
+It's just using this one-step
+cost as an estimate for when I
+
+00:59:55.440 --> 00:59:59.490
+was going J-N of ik plus 1--
+
+00:59:59.490 --> 01:00:00.600
+or sorry, J-N of ik.
+
+01:00:04.640 --> 01:00:07.430
+Does that makes sense?
+
+01:00:07.430 --> 01:00:09.980
+If I find myself in a lot of
+different initial conditions,
+
+01:00:09.980 --> 01:00:11.780
+I could take one step
+and then use my guess
+
+01:00:11.780 --> 01:00:16.290
+for the cost-to-go from that
+step to the rest of the time.
+
+01:00:16.290 --> 01:00:18.240
+Now, this starts feeling
+a lot more appealing,
+
+01:00:18.240 --> 01:00:21.660
+actually, because now
+I don't have to think--
+
+01:00:21.660 --> 01:00:24.300
+this actually got rid of
+that whole episodic problem.
+
+01:00:24.300 --> 01:00:27.750
+I don't have to go in
+and run some fixed length
+
+01:00:27.750 --> 01:00:31.290
+trial to approximate
+the long-term thing.
+
+01:00:31.290 --> 01:00:36.390
+I just take a single step,
+use this as my estimate,
+
+01:00:36.390 --> 01:00:38.940
+and I can just keep moving
+through my Markov chain.
+
+01:00:38.940 --> 01:00:41.250
+I don't have to ever reset.
+
+01:00:41.250 --> 01:00:44.798
+And potentially, if I
+visit states often enough--
+
+01:00:44.798 --> 01:00:46.590
+I won't get into all
+the details-- roughly,
+
+01:00:46.590 --> 01:00:49.020
+it involves that
+Markov chain being--
+
+01:00:49.020 --> 01:00:51.630
+having ergodicity.
+
+01:00:51.630 --> 01:00:53.550
+you have to be able to
+visit all the states
+
+01:00:53.550 --> 01:00:56.365
+with some non-zero
+probability as you go along.
+
+01:00:56.365 --> 01:00:58.740
+But if you visit the states--
+each state infinitely often
+
+01:00:58.740 --> 01:01:03.180
+is roughly the thing--
+then this actually
+
+01:01:03.180 --> 01:01:14.620
+will converge to J pi of ik.
+
+01:01:45.540 --> 01:01:48.700
+So the ergodicity is actually
+bad news for my walking robot,
+
+01:01:48.700 --> 01:01:50.897
+because if my walking
+robot falls down,
+
+01:01:50.897 --> 01:01:52.480
+I'm going have to
+pick it back up if I
+
+01:01:52.480 --> 01:01:54.055
+want to get ergodicity back.
+
+01:01:54.055 --> 01:01:55.930
+There are robots that
+don't visit every state
+
+01:01:55.930 --> 01:01:59.152
+every arbitrarily often.
+
+01:01:59.152 --> 01:02:00.610
+But in the Markov
+chain sense, that
+
+01:02:00.610 --> 01:02:02.320
+doesn't seem like
+such a bad assumption.
+
+01:02:02.320 --> 01:02:04.570
+And if I'm willing to take
+my robot when it falls down
+
+01:02:04.570 --> 01:02:05.625
+and pick it back up--
+
+01:02:05.625 --> 01:02:07.000
+which, by the way,
+is about how I
+
+01:02:07.000 --> 01:02:08.410
+spent the last year of my PhD--
+
+01:02:10.872 --> 01:02:12.580
+then actually, I can
+get ergodicity back.
+
+01:02:17.590 --> 01:02:20.320
+OK, cool-- so that
+makes sense, right?
+
+01:02:20.320 --> 01:02:24.460
+I'm going to use my existing
+estimate of the cost-to-go
+
+01:02:24.460 --> 01:02:27.110
+to bootstrap my algorithm for
+estimating the cost-to-go.
+
+01:02:27.110 --> 01:02:27.610
+Yeah?
+
+01:02:27.610 --> 01:02:29.318
+AUDIENCE: Does the
+transition [INAUDIBLE]
+
+01:02:29.318 --> 01:02:30.760
+come into play at all?
+
+01:02:30.760 --> 01:02:32.350
+RUSS TEDRAKE: It
+does, because I'm
+
+01:02:32.350 --> 01:02:35.530
+getting this from sampled data.
+
+01:02:35.530 --> 01:02:36.628
+So this is actually drawn.
+
+01:02:36.628 --> 01:02:38.920
+The expected value of this
+update does the right thing.
+
+01:02:41.607 --> 01:02:43.440
+So this update doesn't
+have it, because this
+
+01:02:43.440 --> 01:02:45.660
+is from a real trials.
+
+01:02:45.660 --> 01:02:48.270
+But you should think
+about this as a sample
+
+01:02:48.270 --> 01:02:50.535
+from the real distribution.
+
+01:02:50.535 --> 01:02:52.410
+Now, that's actually a
+really good way for me
+
+01:02:52.410 --> 01:02:53.640
+to lead into the next step.
+
+01:02:53.640 --> 01:02:59.050
+These algorithms tend to be
+a lot faster in practice than
+
+01:02:59.050 --> 01:03:01.990
+those algorithms-- not only are
+they a little bit more elegant,
+
+01:03:01.990 --> 01:03:04.630
+because you don't have to reset
+and run finite-length trials--
+
+01:03:04.630 --> 01:03:07.070
+they tend to be a lot faster.
+
+01:03:07.070 --> 01:03:12.280
+And the reason for that is
+this here is really the--
+
+01:03:12.280 --> 01:03:15.130
+it has the expected value of
+future costs built into it.
+
+01:03:18.030 --> 01:03:21.420
+Let me say that in the pictures.
+
+01:03:21.420 --> 01:03:23.520
+There's two ways, I
+could estimate this.
+
+01:03:23.520 --> 01:03:26.320
+I could get here and then
+I could take a single path.
+
+01:03:26.320 --> 01:03:28.590
+Well, this one is not
+rich enough for me
+
+01:03:28.590 --> 01:03:30.690
+to make my point
+here, but OK-- so I
+
+01:03:30.690 --> 01:03:32.610
+could take a single
+path through here
+
+01:03:32.610 --> 01:03:38.460
+and get a single sample
+estimating the long-term cost.
+
+01:03:38.460 --> 01:03:42.510
+But if I instead use J pi,
+J pi is the expected value
+
+01:03:42.510 --> 01:03:45.330
+of going around
+and living in this.
+
+01:03:45.330 --> 01:03:48.300
+So by using this
+update to bootstrap,
+
+01:03:48.300 --> 01:03:50.070
+or if I just take
+one step from here,
+
+01:03:50.070 --> 01:03:54.000
+I get for free the expected
+value of living over here
+
+01:03:54.000 --> 01:03:56.680
+for a long time.
+
+01:03:56.680 --> 01:03:59.370
+Does that make sense?
+
+01:03:59.370 --> 01:04:01.770
+So J is building up a map
+of the expected value,
+
+01:04:01.770 --> 01:04:04.230
+because it's visiting things
+often and it's-- drew this
+
+01:04:04.230 --> 01:04:07.410
+online algorithm with
+this low-pass filter.
+
+01:04:07.410 --> 01:04:10.470
+He's basically doing an
+expected value calculation.
+
+01:04:10.470 --> 01:04:14.550
+By using my low-pass
+filtered [INAUDIBLE] in here,
+
+01:04:14.550 --> 01:04:15.360
+it's also--
+
+01:04:15.360 --> 01:04:16.527
+it's getting the reward of--
+
+01:04:16.527 --> 01:04:18.485
+maybe you could just say
+it's filtering faster.
+
+01:04:18.485 --> 01:04:20.640
+That's actually not a bad
+way to think about it.
+
+01:04:20.640 --> 01:04:22.260
+I've already got
+this thing filtered,
+
+01:04:22.260 --> 01:04:24.600
+so this one filters faster.
+
+01:04:24.600 --> 01:04:28.510
+That's a pretty reasonable way
+to think about it, actually.
+
+01:04:28.510 --> 01:04:29.010
+OK.
+
+01:04:32.050 --> 01:04:35.020
+So this quantity
+here in the brackets,
+
+01:04:35.020 --> 01:04:44.660
+this whole guy right here,
+it's a very important quantity,
+
+01:04:44.660 --> 01:04:45.460
+it comes up a lot.
+
+01:04:45.460 --> 01:04:47.210
+It's called the temporal
+difference error.
+
+01:04:58.770 --> 01:05:03.300
+It's the difference that
+I get from executing
+
+01:05:03.300 --> 01:05:06.750
+my policy for one step and then
+using the long-term estimate
+
+01:05:06.750 --> 01:05:11.550
+compared to what I have
+is my long-term estimate,
+
+01:05:11.550 --> 01:05:13.530
+temporal difference error.
+
+01:05:13.530 --> 01:05:15.433
+Now, if the system
+was deterministic
+
+01:05:15.433 --> 01:05:17.850
+and I had already converged,
+then that temporal difference
+
+01:05:17.850 --> 01:05:23.670
+there should be 0, because
+this thing should be exactly--
+
+01:05:23.670 --> 01:05:26.010
+predict the long-term thing.
+
+01:05:26.010 --> 01:05:29.130
+If the system's stochastic, then
+this temporal difference error
+
+01:05:29.130 --> 01:05:30.975
+should be 0, on average.
+
+01:05:35.080 --> 01:05:38.470
+It's comparing my
+cost-to-go from ik,
+
+01:05:38.470 --> 01:05:42.130
+given my 1 step plus the
+cost-to-go from ik plus 1.
+
+01:05:42.130 --> 01:05:46.030
+So those things-- you want
+those to match, right?
+
+01:05:46.030 --> 01:05:50.020
+You want that my 1 step
+plus long-term prediction
+
+01:05:50.020 --> 01:05:52.400
+should match my
+long-term prediction,
+
+01:05:52.400 --> 01:05:54.040
+if things are right.
+
+01:05:54.040 --> 01:05:56.090
+They should match
+an expected value.
+
+01:05:56.090 --> 01:05:58.565
+So that thing's called the
+temporal difference error,
+
+01:05:58.565 --> 01:06:00.940
+and it's an important quantity
+in reinforcement learning.
+
+01:06:14.010 --> 01:06:15.760
+It makes sense to
+write that down.
+
+01:06:15.760 --> 01:06:20.124
+That's a reasonable
+estimate for J.
+
+01:06:20.124 --> 01:06:23.940
+n would be to take one step
+and then do the other one,
+
+01:06:23.940 --> 01:06:25.800
+but there's--
+
+01:06:25.800 --> 01:06:27.450
+that seems a little
+bit arbitrary.
+
+01:06:27.450 --> 01:06:30.952
+Why don't I just do one
+step and then use my lookup?
+
+01:06:30.952 --> 01:06:32.160
+Thi sis the way Rich says it.
+
+01:06:32.160 --> 01:06:36.390
+Why not do two steps and
+then use my value function
+
+01:06:36.390 --> 01:06:37.260
+to look up?
+
+01:06:37.260 --> 01:06:39.510
+Or three steps-- why not
+take, similarly, three steps,
+
+01:06:39.510 --> 01:06:41.970
+and then use that
+to look it up--
+
+01:06:41.970 --> 01:06:45.480
+or 14 steps or
+something like that.
+
+01:06:45.480 --> 01:06:49.710
+Why should I arbitrarily
+pick this one real data
+
+01:06:49.710 --> 01:06:53.040
+and then look ahead, instead
+of two real pieces of data
+
+01:06:53.040 --> 01:06:53.790
+and my look ahead?
+
+01:06:56.732 --> 01:06:58.440
+Well, there's no reason
+that you actually
+
+01:06:58.440 --> 01:07:01.050
+have to pick like that.
+
+01:07:09.020 --> 01:07:10.760
+Can I just write the
+inside part here?
+
+01:07:10.760 --> 01:07:20.720
+I could have estimated
+Jn ik as gik ik
+
+01:07:20.720 --> 01:07:32.540
+plus 1 plus gamma gik plus 1
+ik plus 2 plus gamma squared
+
+01:07:32.540 --> 01:07:38.480
+J pi at ik plus 2.
+
+01:07:38.480 --> 01:07:41.250
+That's a perfectly
+good approximation too.
+
+01:07:41.250 --> 01:07:42.470
+I could have done three-step.
+
+01:07:42.470 --> 01:07:43.923
+I could have done four-step.
+
+01:07:43.923 --> 01:07:45.875
+AUDIENCE: [INAUDIBLE]
+
+01:07:45.875 --> 01:07:47.000
+RUSS TEDRAKE: Say it again.
+
+01:07:47.000 --> 01:07:48.642
+AUDIENCE: [INAUDIBLE]
+
+01:07:48.642 --> 01:07:50.600
+RUSS TEDRAKE: Yeah I. I
+haven't been writing it
+
+01:07:50.600 --> 01:07:53.300
+that way because--
+
+01:07:53.300 --> 01:07:55.048
+yeah.
+
+01:07:55.048 --> 01:07:56.840
+I would have been fine
+writing it that way.
+
+01:07:56.840 --> 01:07:58.460
+At some point, I decided
+to not write pi there,
+
+01:07:58.460 --> 01:08:00.620
+and I'll just stay consistent
+by not writing that.
+
+01:08:06.880 --> 01:08:12.400
+OK, so Rich [INAUDIBLE] came
+up with a clever algorithm
+
+01:08:12.400 --> 01:08:17.410
+that's-- basically allows you to
+seamlessly pick between the one
+
+01:08:17.410 --> 01:08:21.340
+step, two step, three step,
+n-step look ahead with a single
+
+01:08:21.340 --> 01:08:22.840
+knob.
+
+01:08:22.840 --> 01:08:23.800
+And it works.
+
+01:08:23.800 --> 01:08:29.830
+It's called the TD
+lambda algorithm.
+
+01:08:40.410 --> 01:08:44.729
+And the basic idea
+is that you want
+
+01:08:44.729 --> 01:08:53.180
+to combine a lot of
+these different updates
+
+01:08:53.180 --> 01:08:54.229
+into a single update.
+
+01:08:54.229 --> 01:08:55.939
+It sounds really
+bizarre [INAUDIBLE]
+
+01:08:55.939 --> 01:08:57.200
+so let me just say it.
+
+01:08:57.200 --> 01:09:07.069
+Let's say I call my
+estimate J of Jn,
+
+01:09:07.069 --> 01:09:11.074
+with M step look ahead of ik.
+
+01:09:15.529 --> 01:09:26.810
+M equals 0 to M gamma of M
+gik plus M ik plus M plus 1.
+
+01:09:39.939 --> 01:09:43.930
+Big M.
+
+01:09:43.930 --> 01:09:48.580
+This is a big M. Big M.
+Everything else is little m's.
+
+01:09:52.720 --> 01:09:53.890
+That was the one step.
+
+01:09:53.890 --> 01:09:55.080
+This is the two step.
+
+01:09:55.080 --> 01:09:56.830
+In general, this is
+the M step look ahead.
+
+01:10:00.780 --> 01:10:03.690
+So it turns out there's
+actually an efficient way
+
+01:10:03.690 --> 01:10:04.650
+to compute this.
+
+01:10:23.240 --> 01:10:24.650
+Let's call it something else--
+
+01:10:24.650 --> 01:10:27.455
+p, p, p.
+
+01:10:35.290 --> 01:10:38.920
+This one takes a
+little time to digest.
+
+01:10:38.920 --> 01:10:45.910
+But it turns out it's pretty
+efficient to calculate
+
+01:10:45.910 --> 01:10:52.930
+a weighted sum of the one
+step, two step, three step--
+
+01:10:52.930 --> 01:10:58.840
+onto forever--
+sum of look-aheads
+
+01:10:58.840 --> 01:11:01.960
+parameterized by another
+parameter, lambda.
+
+01:11:05.020 --> 01:11:08.110
+So when lambda's 1,
+this thing turns out
+
+01:11:08.110 --> 01:11:12.970
+to be basically
+doing Monte Carlo.
+
+01:11:12.970 --> 01:11:16.060
+And when lambda's 0,
+this thing basically
+
+01:11:16.060 --> 01:11:18.430
+is doing just the
+one-step look ahead.
+
+01:11:18.430 --> 01:11:20.140
+And when lambda is
+somewhere in between,
+
+01:11:20.140 --> 01:11:27.610
+it's doing some look
+ahead using a few steps.
+
+01:11:27.610 --> 01:11:29.270
+Does that makes sense at all?
+
+01:11:29.270 --> 01:11:30.895
+It's a lot of terms
+flying around here.
+
+01:11:33.880 --> 01:11:38.110
+Even if you don't
+completely love that,
+
+01:11:38.110 --> 01:11:44.710
+just think of my estimate,
+J of lambda being awaited,
+
+01:11:44.710 --> 01:11:47.770
+basically something that,
+where if lambda is 1,
+
+01:11:47.770 --> 01:11:50.470
+it's going to be the very
+long-term look ahead.
+
+01:11:50.470 --> 01:11:53.182
+If lambda is 0, it's going to be
+the very short-term look ahead.
+
+01:11:53.182 --> 01:11:54.640
+And there's a
+continuum in between,
+
+01:11:54.640 --> 01:11:57.100
+a continuous knob I can
+turn to say how far I'm
+
+01:11:57.100 --> 01:12:00.365
+going to look ahead into
+the future as my estimate
+
+01:12:00.365 --> 01:12:01.990
+that I'm going to
+use in that TD error.
+
+01:12:22.100 --> 01:12:23.720
+And there's a whole
+gamut in between.
+
+01:12:26.594 --> 01:12:28.945
+AUDIENCE: [INAUDIBLE]
+
+01:12:28.945 --> 01:12:30.330
+RUSS TEDRAKE: Can
+I say it again?
+
+01:12:30.330 --> 01:12:31.205
+AUDIENCE: [INAUDIBLE]
+
+01:12:31.205 --> 01:12:34.230
+RUSS TEDRAKE: Or can I read it?
+
+01:12:34.230 --> 01:12:37.620
+1 minus lambda i just a
+the normalization factor.
+
+01:12:37.620 --> 01:12:40.620
+p equals 1 to infinity.
+
+01:12:40.620 --> 01:12:47.045
+Lambda the p minus 1 J p--
+
+01:12:47.045 --> 01:12:48.740
+where this is the
+p step look ahead.
+
+01:12:57.460 --> 01:12:59.140
+So this is a very
+famous algorithm--
+
+01:12:59.140 --> 01:13:01.630
+the TD lambda algorithm--
+
+01:13:01.630 --> 01:13:07.630
+which allows you to
+do policy evaluation
+
+01:13:07.630 --> 01:13:10.630
+without knowing the
+transition matrix,
+
+01:13:10.630 --> 01:13:14.110
+doing bootstrapping
+or Monte Carlo
+
+01:13:14.110 --> 01:13:18.220
+in a simple single framework
+with just a parameter lambda
+
+01:13:18.220 --> 01:13:20.580
+to evaluate.
+
+01:13:20.580 --> 01:13:23.760
+So it's a tweak.
+
+01:13:23.760 --> 01:13:28.620
+And it turns out it uses
+an eligibility trace,
+
+01:13:28.620 --> 01:13:30.210
+just like in reinforce.
+
+01:13:30.210 --> 01:13:32.960
+Did you get the
+eligibility traces, John?
+
+01:13:32.960 --> 01:13:35.190
+AUDIENCE: [INAUDIBLE]
+
+01:13:35.190 --> 01:13:35.910
+RUSS TEDRAKE: OK.
+
+01:13:35.910 --> 01:13:36.660
+Well, that's fine.
+
+01:13:36.660 --> 01:13:41.730
+So it turns out to have
+a really simple form.
+
+01:13:45.837 --> 01:13:47.420
+I'll write it, because
+it's so simple,
+
+01:13:47.420 --> 01:13:50.020
+but it'll also be
+in the notes, if you
+
+01:13:50.020 --> 01:13:51.580
+want to spend more
+time with it here.
+
+01:15:01.820 --> 01:15:04.340
+OK, two observations--
+first of all, this
+
+01:15:04.340 --> 01:15:07.190
+looks no harder [INAUDIBLE]
+than the original version I had,
+
+01:15:07.190 --> 01:15:09.190
+pretty much.
+
+01:15:09.190 --> 01:15:10.940
+It just requires one
+extra variable, which
+
+01:15:10.940 --> 01:15:14.120
+is this eligibility trace.
+
+01:15:14.120 --> 01:15:15.920
+What does the eligibility
+trace look like?
+
+01:15:28.110 --> 01:15:28.950
+OK.
+
+01:15:28.950 --> 01:15:31.470
+It starts off at 0.
+
+01:15:31.470 --> 01:15:36.240
+There's an element for
+every note in the graph.
+
+01:15:36.240 --> 01:15:41.550
+Every time I visit the graph--
+that node in the graph, I--
+
+01:15:41.550 --> 01:15:46.930
+it goes up by 1,
+and then it starts
+
+01:15:46.930 --> 01:15:53.110
+forgetting based on
+gamma and lambda,
+
+01:15:53.110 --> 01:15:54.950
+as this discount factor.
+
+01:15:54.950 --> 01:15:57.340
+And then, the next time I
+visit it, it goes up by 1.
+
+01:15:57.340 --> 01:15:59.830
+If I visit it a lot, it
+can build up like this.
+
+01:15:59.830 --> 01:16:06.180
+It's just a trace of memory
+of when I visited this cell.
+
+01:16:06.180 --> 01:16:09.070
+Does that makes sense,
+this dynamics here?
+
+01:16:09.070 --> 01:16:11.170
+Every time I visit the
+cell, it goes up by 1,
+
+01:16:11.170 --> 01:16:15.670
+and always, it's going
+down exponentially.
+
+01:16:15.670 --> 01:16:18.030
+It turns out, if you
+just remember that,
+
+01:16:18.030 --> 01:16:22.150
+the way that you've
+visited cells in the past,
+
+01:16:22.150 --> 01:16:26.270
+decade by this lambda-- as well
+as gamma-- but this lambda--
+
+01:16:26.270 --> 01:16:28.210
+which is the new term--
+
+01:16:28.210 --> 01:16:32.260
+then it's enough to [INAUDIBLE]
+this trivial update here,
+
+01:16:32.260 --> 01:16:34.360
+scaled by the--
+
+01:16:34.360 --> 01:16:37.510
+how often I visited
+that cell recently.
+
+01:16:37.510 --> 01:16:41.500
+Is it enough to accomplish this
+seemingly bizarre combination
+
+01:16:41.500 --> 01:16:43.427
+of short and
+long-term look-aheads.
+
+01:16:46.740 --> 01:16:50.460
+So it's a really simple,
+really beautiful algorithm.
+
+01:16:50.460 --> 01:16:53.490
+Just remember how-- when
+I visited these cells,
+
+01:16:53.490 --> 01:16:59.790
+and then make this TD error
+update scaled by that,
+
+01:16:59.790 --> 01:17:01.883
+and I've got the TD
+lambda algorithm.
+
+01:17:06.550 --> 01:17:07.960
+And what people can do is they--
+
+01:17:07.960 --> 01:17:18.870
+people can prove that TD lambda
+converges to the TD lambda
+
+01:17:18.870 --> 01:17:26.260
+update that J hat will go to J
+pi from any initial conditions.
+
+01:17:26.260 --> 01:17:29.570
+So you can just guess J
+randomly to begin with.
+
+01:17:29.570 --> 01:17:32.730
+And if I run it, as I visit all
+these states arbitrarily often,
+
+01:17:32.730 --> 01:17:34.950
+it still makes that
+ergodicity assumption.
+
+01:17:34.950 --> 01:17:39.480
+Then I'll get my
+policy evaluation out.
+
+01:17:39.480 --> 01:17:42.720
+That's really cool--
+simple algorithm.
+
+01:17:42.720 --> 01:17:47.310
+Now, what people also realize
+is that, when you start out,
+
+01:17:47.310 --> 01:17:51.120
+and J is randomly initialized,
+then it makes a lot of sense
+
+01:17:51.120 --> 01:17:56.863
+to set lambda close to 1,
+because bootstrapping has less
+
+01:17:56.863 --> 01:17:58.030
+value when I just start out.
+
+01:17:58.030 --> 01:18:00.010
+My estimate is
+bad everywhere, so
+
+01:18:00.010 --> 01:18:04.940
+why should I use my bad
+estimate as my predictor?
+
+01:18:04.940 --> 01:18:07.060
+So you start off-- you
+keep lambda close to 1.
+
+01:18:07.060 --> 01:18:08.170
+It does very long-term.
+
+01:18:08.170 --> 01:18:10.750
+It does more Monte
+Carlo style updates.
+
+01:18:10.750 --> 01:18:12.430
+And as this estimate
+starts converging
+
+01:18:12.430 --> 01:18:16.780
+to the good estimate, you
+start turning lambda down.
+
+01:18:16.780 --> 01:18:20.530
+And with a cleverly
+tuned timing of lambda,
+
+01:18:20.530 --> 01:18:22.330
+you can get very fast
+convergence compared
+
+01:18:22.330 --> 01:18:26.290
+to the Monte Carlo algorithms.
+
+01:18:26.290 --> 01:18:28.115
+You more and more bootstrap.
+
+01:18:30.650 --> 01:18:31.150
+Excellent.
+
+01:18:31.150 --> 01:18:33.160
+Well, time's up.
+
+01:18:33.160 --> 01:18:37.120
+The clock is still moving
+today, so I have to stop.
+
+01:18:37.120 --> 01:18:38.590
+So the really cool thing--
+
+01:18:41.630 --> 01:18:44.480
+we only talked about
+policy evaluation today.
+
+01:18:44.480 --> 01:18:46.280
+The next step is, how
+do you do these value
+
+01:18:46.280 --> 01:18:49.130
+methods to improve your policy?
+
+01:18:49.130 --> 01:18:52.730
+And it turns, out in many cases,
+if you make a current estimate
+
+01:18:52.730 --> 01:18:55.940
+of your value function
+and then, on every step,
+
+01:18:55.940 --> 01:18:59.840
+you try to do the greedy
+policy, epsilon greedy policy,
+
+01:18:59.840 --> 01:19:02.583
+you basically-- you mostly
+exploit your current estimate
+
+01:19:02.583 --> 01:19:05.000
+of the value function, then
+you can still prove that these
+
+01:19:05.000 --> 01:19:08.120
+things-- at least on the
+grid, the Markov chain case--
+
+01:19:08.120 --> 01:19:09.710
+can get to their optimal--
+
+01:19:09.710 --> 01:19:12.985
+the optimal value function
+and the optimal policy.
+
+01:19:12.985 --> 01:19:14.360
+So we'll finish
+that up next time
+
+01:19:14.360 --> 01:19:16.152
+and get into the more
+interesting-- get rid
+
+01:19:16.152 --> 01:19:19.290
+of these Markov chains to try
+to get back to the real world.
+
+01:19:19.290 --> 01:19:19.790
+Good.
+
+01:19:19.790 --> 01:19:23.260
+OK, see you Tuesday.

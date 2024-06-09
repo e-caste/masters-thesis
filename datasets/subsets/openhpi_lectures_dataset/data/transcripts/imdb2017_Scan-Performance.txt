@@ -1,0 +1,396 @@
+WEBVTT
+
+1
+00:00:00.400 --> 00:00:03.700 
+In this unit we are going to speak
+about the scan performance which
+
+2
+00:00:03.700 --> 00:00:05.900 
+we can achieve with
+our in-memory database.
+
+3
+00:00:06.100 --> 00:00:09.130 
+So let's assume we have our
+table with eight billion humans
+
+4
+00:00:10.140 --> 00:00:13.170 
+and all the attributes like
+first name, last name and so on.
+
+5
+00:00:13.170 --> 00:00:16.200 
+We are mainly interested
+in the gender attribute
+
+6
+00:00:17.210 --> 00:00:20.240 
+because we want to answer the
+question how many women and how
+
+7
+00:00:20.240 --> 00:00:23.270 
+many men do we have in
+our world population.
+
+8
+00:00:23.270 --> 00:00:26.300 
+Of course the obvious answer
+would be well about 50%
+
+9
+00:00:26.300 --> 00:00:31.350 
+so about four billion,
+but what if you want to
+
+10
+00:00:31.350 --> 00:00:34.380 
+have the exact number? So this
+is the case if you do billing
+
+11
+00:00:34.380 --> 00:00:38.420 
+in enterprise architectures,
+so enterprise systems,
+
+12
+00:00:39.430 --> 00:00:41.450 
+then you can't just say
+well it's about 100 euro.
+
+13
+00:00:42.460 --> 00:00:46.500 
+We have to know the exact number
+with the exact price on it
+
+14
+00:00:46.500 --> 00:00:51.550 
+so we always want to go
+for the exact things.
+
+15
+00:00:52.560 --> 00:00:57.610 
+We have the tuples here
+and each tuple is about
+
+16
+00:00:57.610 --> 00:01:02.000 
+200 byte in total, so every
+human has a representation
+
+17
+00:01:02.000 --> 00:01:06.700 
+of 200 byte and we assume a
+scan speed for our processesor
+
+18
+00:01:06.700 --> 00:01:08.720 
+which is four megabyte
+per millisecond per core,
+
+19
+00:01:09.730 --> 00:01:12.760 
+of course this does not a scale
+linearly if we parallelize,
+
+20
+00:01:13.770 --> 00:01:16.800 
+but on one core we can
+assume that and for
+
+21
+00:01:17.810 --> 00:01:21.000 
+for teaching reasons we
+simply stick with that.
+
+22
+00:01:22.860 --> 00:01:26.900 
+If you want to answer this
+question and we have a row store
+
+23
+00:01:26.900 --> 00:01:30.940 
+or row layout, the most naive
+approach is to scan the whole
+
+24
+00:01:30.940 --> 00:01:36.100 
+table. We can just add up the
+numbers - with eight billion tuples
+
+25
+00:01:36.100 --> 00:01:40.104 
+each 200 byte in size
+make up 1.6 terabyte
+
+26
+00:01:40.104 --> 00:01:44.108 
+to be scanned and with
+our scan rate of four
+
+27
+00:01:44.108 --> 00:01:48.112 
+megabyte per milli second
+per core, we need about 400
+
+28
+00:01:48.112 --> 00:01:52.116 
+seconds for that so above six
+minutes, six minutes and forty
+
+29
+00:01:52.116 --> 00:01:56.120 
+seconds - on one core. And
+why is the case? Basically,
+
+30
+00:01:56.120 --> 00:02:00.124 
+because we have to load huge
+amounts of data which we actually
+
+31
+00:02:00.124 --> 00:02:04.128 
+not even use once, we are only
+interested in the gender column
+
+32
+00:02:05.129 --> 00:02:08.132 
+which is colored black here and
+we're not interested in all the
+
+33
+00:02:08.132 --> 00:02:14.138 
+other things colored light
+grey here. Of course,
+
+34
+00:02:14.138 --> 00:02:17.141 
+there is room for improvement,
+even on the row store,
+
+35
+00:02:17.141 --> 00:02:21.145 
+and one of such improvements
+would be to do stride access so
+
+36
+00:02:22.146 --> 00:02:27.151 
+if our database can access the
+gender attribute or any attribute
+
+37
+00:02:27.151 --> 00:02:31.155 
+from the beginning of the actual
+attribute you want to read.
+
+38
+00:02:31.155 --> 00:02:35.159 
+We only have to read 412
+gigabyte in our example
+
+39
+00:02:36.160 --> 00:02:40.164 
+because we have to read
+64 for byte on each
+
+40
+00:02:40.164 --> 00:02:45.169 
+entry point because memory
+is always only readable
+
+41
+00:02:45.169 --> 00:02:49.173 
+in chunks of a cache size
+and a cache size on the most
+
+42
+00:02:50.174 --> 00:02:53.177 
+standards CPUs is
+nowadays 64 bytes.
+
+43
+00:02:54.178 --> 00:02:58.182 
+So again, we have to read some
+data which we actually not
+
+44
+00:02:58.182 --> 00:03:04.188 
+need, but we read far
+less data than before
+
+45
+00:03:04.188 --> 00:03:07.191 
+and if we calculate that
+again then we end up with
+
+46
+00:03:07.191 --> 00:03:11.195 
+128 seconds which
+is about two minutes
+
+47
+00:03:11.195 --> 00:03:14.198 
+on one core and again we could
+parallelize and so on but
+
+48
+00:03:15.199 --> 00:03:18.202 
+we leave that aside
+for a momement.
+
+49
+00:03:18.202 --> 00:03:24.208 
+What if you go to a column store?
+The total table size in our
+
+50
+00:03:24.208 --> 00:03:28.212 
+column store is
+about 92 gigabyte,
+
+51
+00:03:28.212 --> 00:03:31.215 
+this is of course already
+dictionary encoded,
+
+52
+00:03:31.215 --> 00:03:35.219 
+so we've got 91 gigabytes,
+the majority of size
+
+53
+00:03:35.219 --> 00:03:39.223 
+is the attribute vector and
+we've got about 700 megabyte
+
+54
+00:03:39.223 --> 00:03:44.228 
+in dictionaries. So we
+already compressed our whole
+
+55
+00:03:44.228 --> 00:03:49.233 
+table by a factor of about 17.
+But we are mainly interested
+
+56
+00:03:49.233 --> 00:03:52.236 
+in the gender column.
+In the column oriented
+
+57
+00:03:52.236 --> 00:03:56.240 
+table we can access only the
+gender column, we do not have to
+
+58
+00:03:56.240 --> 00:04:01.245 
+read any other data apart
+from that. So in our case
+
+59
+00:04:02.246 --> 00:04:06.250 
+we just assume one bit for the
+gender here, so only male and
+
+60
+00:04:06.250 --> 00:04:12.256 
+female encoded by zero and one.
+We just have to scan through
+
+61
+00:04:12.256 --> 00:04:15.259 
+about one gigabyte, so
+eight billion tuples
+
+62
+00:04:15.259 --> 00:04:18.262 
+times one bit per tuple
+is about one gigabyte
+
+63
+00:04:20.264 --> 00:04:24.268 
+and if we do that we end up
+with one fourth of a second,
+
+64
+00:04:25.269 --> 00:04:29.273 
+so quite a difference. If you
+would do that on any other
+
+65
+00:04:29.273 --> 00:04:33.277 
+column, so if you've got
+another question, calculate the
+
+66
+00:04:33.277 --> 00:04:38.282 
+average age of the persons or so
+on, we could do that of course
+
+67
+00:04:38.282 --> 00:04:42.286 
+also for the birthday, there
+we have two bytes per tuple
+
+68
+00:04:42.286 --> 00:04:46.290 
+because we need to
+encode much more data
+
+69
+00:04:46.290 --> 00:04:49.293 
+then we will end up with
+16 gigabyte which is still
+
+70
+00:04:50.294 --> 00:04:53.297 
+way below the things we saw in
+the row store which would be four
+
+71
+00:04:53.297 --> 00:04:57.301 
+seconds on one core,
+not yet parallelized.
+
+72
+00:04:57.301 --> 00:05:02.306 
+In comparison we need, on the
+row store for a full table scan
+
+73
+00:05:02.306 --> 00:05:08.312 
+about six minutes and more.
+With some tricks, so with stride
+
+74
+00:05:08.312 --> 00:05:10.314 
+access, we end up with
+about two minutes,
+
+75
+00:05:11.315 --> 00:05:14.318 
+on the column store we only
+need a fourth of a second.
+
+76
+00:05:14.318 --> 00:05:19.323 
+Basically, this is of course
+a really good case because
+
+77
+00:05:19.323 --> 00:05:24.328 
+the question we choose here
+really shows the effect
+
+78
+00:05:24.328 --> 00:05:28.332 
+of dictionary encoding
+to the greatest potential
+
+79
+00:05:29.333 --> 00:05:32.336 
+but it already highlights
+what we can achieve with that.

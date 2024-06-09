@@ -1,0 +1,5297 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT OpenCourseWare
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high-quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:18.140
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:18.140 --> 00:00:19.026
+at ocw.mit.edu.
+
+00:00:21.725 --> 00:00:23.350
+JULIAN SHUN: Today,
+we're going to talk
+
+00:00:23.350 --> 00:00:26.810
+about multicore programming.
+
+00:00:26.810 --> 00:00:30.730
+And as I was just informed
+by Charles, it's 2018.
+
+00:00:30.730 --> 00:00:35.110
+I had 2017 on the slide.
+
+00:00:35.110 --> 00:00:40.380
+So first, congratulations
+to all of you.
+
+00:00:40.380 --> 00:00:45.850
+You turned in the
+first project's data.
+
+00:00:45.850 --> 00:00:50.140
+Here's a plot showing the tiers
+that different groups reached
+
+00:00:50.140 --> 00:00:51.460
+for the beta.
+
+00:00:51.460 --> 00:00:53.650
+And this is in sorted order.
+
+00:00:53.650 --> 00:00:57.910
+And we set the beta
+cutoff to be tier 45.
+
+00:00:57.910 --> 00:00:59.860
+The final cutoff is tier 48.
+
+00:00:59.860 --> 00:01:03.550
+So the final cutoff we did
+set a little bit aggressively,
+
+00:01:03.550 --> 00:01:06.100
+but keep in mind that
+you don't necessarily
+
+00:01:06.100 --> 00:01:08.380
+have to get to the
+final cutoff in order
+
+00:01:08.380 --> 00:01:10.300
+to get an A on this project.
+
+00:01:14.260 --> 00:01:18.540
+So we're going to talk about
+multicore processing today.
+
+00:01:18.540 --> 00:01:20.830
+That's going to be the
+topic of the next project
+
+00:01:20.830 --> 00:01:24.160
+after you finish
+the first project.
+
+00:01:24.160 --> 00:01:27.070
+So in a multicore processor,
+we have a whole bunch
+
+00:01:27.070 --> 00:01:30.760
+of cores that are all
+placed on the same chip,
+
+00:01:30.760 --> 00:01:34.450
+and they have access
+to shared memory.
+
+00:01:34.450 --> 00:01:38.590
+They usually also have some
+sort of private cache, and then
+
+00:01:38.590 --> 00:01:41.950
+a shared last level cache,
+so L3, in this case.
+
+00:01:41.950 --> 00:01:44.990
+And then they all have access
+the same memory controller,
+
+00:01:44.990 --> 00:01:46.390
+which goes out to main memory.
+
+00:01:46.390 --> 00:01:49.960
+And then they also
+have access to I/O.
+
+00:01:49.960 --> 00:01:54.820
+But for a very long time, chips
+only had a single core on them.
+
+00:01:54.820 --> 00:01:58.240
+So why do we have multicore
+processors nowadays?
+
+00:01:58.240 --> 00:02:00.640
+Why did semiconductor
+vendors start
+
+00:02:00.640 --> 00:02:02.800
+producing chips that
+had multiple processor
+
+00:02:02.800 --> 00:02:03.580
+cores on them?
+
+00:02:06.880 --> 00:02:10.100
+So the answer is
+because of two things.
+
+00:02:10.100 --> 00:02:12.880
+So first, there's
+Moore's Law, which
+
+00:02:12.880 --> 00:02:16.720
+says that we get more
+transistors every year.
+
+00:02:16.720 --> 00:02:19.030
+So the number of transistors
+that you can fit on a chip
+
+00:02:19.030 --> 00:02:21.490
+doubles approximately
+every two years.
+
+00:02:21.490 --> 00:02:25.340
+And secondly, there's the end
+of scaling of clock frequency.
+
+00:02:25.340 --> 00:02:27.040
+So for a very long
+time, we could just
+
+00:02:27.040 --> 00:02:32.140
+keep increasing the frequency
+of the single core on the chip.
+
+00:02:32.140 --> 00:02:37.330
+But at around 2004 to 2005,
+that was no longer the case.
+
+00:02:37.330 --> 00:02:42.530
+We couldn't scale the
+clock frequency anymore.
+
+00:02:42.530 --> 00:02:46.820
+So here's a plot showing both
+the number of transistors
+
+00:02:46.820 --> 00:02:48.740
+you could fit on
+the chip over time,
+
+00:02:48.740 --> 00:02:52.110
+as well as the clock frequency
+of the processors over time.
+
+00:02:52.110 --> 00:02:55.730
+And notice that the y-axis
+is in log scale here.
+
+00:02:55.730 --> 00:02:58.730
+And the blue line is
+basically Moore's Law,
+
+00:02:58.730 --> 00:03:00.860
+which says that the
+number of transistors
+
+00:03:00.860 --> 00:03:04.050
+you can fit on a chip doubles
+approximately every two years.
+
+00:03:04.050 --> 00:03:06.350
+And that's been growing
+pretty steadily.
+
+00:03:06.350 --> 00:03:09.470
+So this plot goes up to
+2010, but in fact, it's
+
+00:03:09.470 --> 00:03:11.320
+been growing even up
+until the present.
+
+00:03:11.320 --> 00:03:13.310
+And it will continue
+to grow for a couple
+
+00:03:13.310 --> 00:03:16.670
+more years before
+Moore's Law ends.
+
+00:03:16.670 --> 00:03:19.980
+However, if you look at
+the clock frequency line,
+
+00:03:19.980 --> 00:03:22.700
+you see that it
+was growing quite
+
+00:03:22.700 --> 00:03:26.720
+steadily until about the early
+2000s, and then at that point,
+
+00:03:26.720 --> 00:03:28.460
+it flattened out.
+
+00:03:32.580 --> 00:03:36.620
+So at that point, we couldn't
+increase the clock frequencies
+
+00:03:36.620 --> 00:03:38.960
+anymore, and the clock
+speed was bounded
+
+00:03:38.960 --> 00:03:40.880
+at about four gigahertz.
+
+00:03:40.880 --> 00:03:42.960
+So nowadays, if you
+go buy a processor,
+
+00:03:42.960 --> 00:03:46.820
+it's usually still bounded
+by around 4 gigahertz.
+
+00:03:46.820 --> 00:03:49.210
+It's usually a little bit
+less than 4 gigahertz,
+
+00:03:49.210 --> 00:03:51.710
+because it doesn't really make
+sense to push it all the way.
+
+00:03:51.710 --> 00:03:55.280
+But you might find
+some processors
+
+00:03:55.280 --> 00:04:00.170
+that are around 4
+gigahertz nowadays.
+
+00:04:00.170 --> 00:04:03.710
+So what happened at
+around 2004 to 2005?
+
+00:04:03.710 --> 00:04:05.150
+Does anyone know?
+
+00:04:13.720 --> 00:04:15.360
+So Moore's Law
+basically says that we
+
+00:04:15.360 --> 00:04:17.970
+can fit more
+transistors on a chip
+
+00:04:17.970 --> 00:04:20.730
+because the transistors
+become smaller.
+
+00:04:20.730 --> 00:04:23.700
+And when the transistors
+become smaller,
+
+00:04:23.700 --> 00:04:25.260
+you can reduce
+the voltage that's
+
+00:04:25.260 --> 00:04:27.390
+needed to operate
+the transistors.
+
+00:04:27.390 --> 00:04:30.570
+And as a result, you can
+increase the clock frequency
+
+00:04:30.570 --> 00:04:33.210
+while maintaining the
+same power density.
+
+00:04:33.210 --> 00:04:37.890
+And that's what manufacturers
+did until about 2004 to 2005.
+
+00:04:37.890 --> 00:04:39.900
+They just kept increasing
+the clock frequency
+
+00:04:39.900 --> 00:04:42.240
+to take advantage
+of Moore's law.
+
+00:04:42.240 --> 00:04:44.310
+But it turns out that
+once transistors become
+
+00:04:44.310 --> 00:04:46.890
+small enough, and
+the voltage used
+
+00:04:46.890 --> 00:04:50.430
+to operate them
+becomes small enough,
+
+00:04:50.430 --> 00:04:52.170
+there's something
+called leakage current.
+
+00:04:52.170 --> 00:04:55.070
+So there's current
+that leaks, and we're
+
+00:04:55.070 --> 00:04:58.080
+unable to keep reducing the
+voltage while still having
+
+00:04:58.080 --> 00:05:00.510
+reliable switching.
+
+00:05:00.510 --> 00:05:03.250
+And if you can't reduce
+the voltage anymore,
+
+00:05:03.250 --> 00:05:07.133
+then you can't increase
+the clock frequency
+
+00:05:07.133 --> 00:05:08.925
+if you want to keep
+the same power density.
+
+00:05:13.280 --> 00:05:17.840
+So here's a plot from
+Intel back in 2004
+
+00:05:17.840 --> 00:05:22.040
+when they first started
+producing multicore processors.
+
+00:05:22.040 --> 00:05:25.220
+And this is plotting the
+power density versus time.
+
+00:05:25.220 --> 00:05:29.490
+And again, the y-axis
+is in log scale here.
+
+00:05:29.490 --> 00:05:32.120
+So the green data points
+are actual data points,
+
+00:05:32.120 --> 00:05:34.790
+and the orange
+ones are projected.
+
+00:05:34.790 --> 00:05:38.660
+And they projected
+what the power density
+
+00:05:38.660 --> 00:05:40.850
+would be if we kept
+increasing the clock
+
+00:05:40.850 --> 00:05:46.260
+frequency at a trend of
+about 25% to 30% per year,
+
+00:05:46.260 --> 00:05:50.540
+which is what happened
+up until around 2004.
+
+00:05:50.540 --> 00:05:53.330
+And because we couldn't
+reduce the voltage anymore,
+
+00:05:53.330 --> 00:05:57.050
+the power density will go up.
+
+00:05:57.050 --> 00:05:59.120
+And you can see
+that eventually, it
+
+00:05:59.120 --> 00:06:02.540
+reaches the power density
+of a nuclear reactor, which
+
+00:06:02.540 --> 00:06:05.510
+is pretty hot.
+
+00:06:05.510 --> 00:06:08.312
+And then it reaches the power
+density of a rocket nozzle,
+
+00:06:08.312 --> 00:06:09.770
+and eventually you
+get to the power
+
+00:06:09.770 --> 00:06:13.380
+density of the sun's surface.
+
+00:06:13.380 --> 00:06:17.750
+So if you have a chip
+that has a power density
+
+00:06:17.750 --> 00:06:19.580
+equal to the sun's surface--
+
+00:06:19.580 --> 00:06:22.335
+well, you don't actually
+really have a chip anymore.
+
+00:06:25.970 --> 00:06:28.310
+So basically if you get
+into this orange region,
+
+00:06:28.310 --> 00:06:30.650
+you basically have a
+fire, and you can't really
+
+00:06:30.650 --> 00:06:33.020
+do anything interesting,
+in terms of performance
+
+00:06:33.020 --> 00:06:36.230
+engineering, at that point.
+
+00:06:36.230 --> 00:06:43.640
+So to solve this problem,
+semiconductor vendors
+
+00:06:43.640 --> 00:06:47.690
+didn't increased the
+clock frequency anymore,
+
+00:06:47.690 --> 00:06:50.150
+but we still had
+Moore's Law giving us
+
+00:06:50.150 --> 00:06:52.370
+more and more
+transistors every year.
+
+00:06:52.370 --> 00:06:55.880
+So what they decided to do
+with these extra transistors
+
+00:06:55.880 --> 00:06:59.480
+was to put them
+into multiple cores,
+
+00:06:59.480 --> 00:07:02.280
+and then put multiple
+cores on the same chip.
+
+00:07:02.280 --> 00:07:05.420
+So we can see that,
+starting at around 2004,
+
+00:07:05.420 --> 00:07:10.820
+the number of cores per
+chip becomes more than one.
+
+00:07:13.800 --> 00:07:15.860
+And each generation
+of Moore's Law
+
+00:07:15.860 --> 00:07:17.870
+will potentially double
+the number of cores
+
+00:07:17.870 --> 00:07:20.480
+that you can fit on a
+chip, because it's doubling
+
+00:07:20.480 --> 00:07:21.920
+the number of transistors.
+
+00:07:21.920 --> 00:07:26.090
+And we've seen this trend
+up until about today.
+
+00:07:26.090 --> 00:07:29.030
+And again, it's going
+to continue for a couple
+
+00:07:29.030 --> 00:07:31.970
+more years before
+Moore's Law ends.
+
+00:07:31.970 --> 00:07:37.160
+So that's why we have chips
+with multiple cores today.
+
+00:07:37.160 --> 00:07:42.000
+So today, we're going to
+look at multicore processing.
+
+00:07:42.000 --> 00:07:44.780
+So I first want to introduce
+the abstract multicore
+
+00:07:44.780 --> 00:07:45.540
+architecture.
+
+00:07:45.540 --> 00:07:48.290
+So this is a very
+simplified version,
+
+00:07:48.290 --> 00:07:52.700
+but I can fit it on this
+slide, and it's a good example
+
+00:07:52.700 --> 00:07:53.630
+for illustration.
+
+00:07:53.630 --> 00:07:57.140
+So here, we have a whole
+bunch of processors.
+
+00:07:57.140 --> 00:07:59.600
+They each have a
+cache, so that's
+
+00:07:59.600 --> 00:08:02.570
+indicated with the dollar sign.
+
+00:08:02.570 --> 00:08:05.390
+And usually they have a
+private cache as well as
+
+00:08:05.390 --> 00:08:09.500
+a shared cache, so a shared last
+level cache, like the L3 cache.
+
+00:08:09.500 --> 00:08:13.220
+And then they're all
+connected to the network.
+
+00:08:13.220 --> 00:08:15.440
+And then, through
+the network, they
+
+00:08:15.440 --> 00:08:17.580
+can connect to the main memory.
+
+00:08:17.580 --> 00:08:21.050
+They can all access
+the same shared memory.
+
+00:08:21.050 --> 00:08:23.517
+And then usually there's a
+separate network for the I/O
+
+00:08:23.517 --> 00:08:26.100
+as well, even though I've drawn
+them as a single network here,
+
+00:08:26.100 --> 00:08:28.400
+so they can access
+the I/O interface.
+
+00:08:28.400 --> 00:08:30.110
+And potentially, the
+network will also
+
+00:08:30.110 --> 00:08:35.780
+connect to other multiprocessors
+on the same system.
+
+00:08:35.780 --> 00:08:37.789
+And this abstract
+multicore architecture
+
+00:08:37.789 --> 00:08:41.570
+is known as a chip
+multiprocessor, or CMP.
+
+00:08:41.570 --> 00:08:44.179
+So that's the architecture
+that we'll be looking at today.
+
+00:08:48.940 --> 00:08:51.860
+So here's an outline
+of today's lecture.
+
+00:08:51.860 --> 00:08:57.120
+So first, I'm going to go
+over some hardware challenges
+
+00:08:57.120 --> 00:09:00.630
+with shared memory
+multicore machines.
+
+00:09:00.630 --> 00:09:05.460
+So we're going to look at
+the cache coherence protocol.
+
+00:09:05.460 --> 00:09:07.530
+And then after
+looking at hardware,
+
+00:09:07.530 --> 00:09:11.460
+we're going to look at
+some software solutions
+
+00:09:11.460 --> 00:09:14.310
+to write parallel programs
+on these multicore machines
+
+00:09:14.310 --> 00:09:17.343
+to take advantage
+of the extra cores.
+
+00:09:17.343 --> 00:09:19.260
+And we're going to look
+at several concurrency
+
+00:09:19.260 --> 00:09:21.180
+platforms listed here.
+
+00:09:21.180 --> 00:09:23.490
+We're going to look at Pthreads.
+
+00:09:23.490 --> 00:09:25.620
+This is basically
+a low-level API
+
+00:09:25.620 --> 00:09:31.240
+for accessing, or for running
+your code in parallel.
+
+00:09:31.240 --> 00:09:34.080
+And if you program on
+Microsoft products,
+
+00:09:34.080 --> 00:09:36.900
+the Win API threads
+is pretty similar.
+
+00:09:36.900 --> 00:09:39.190
+Then there's Intel
+Threading Building Blocks,
+
+00:09:39.190 --> 00:09:42.180
+which is a library
+solution to concurrency.
+
+00:09:42.180 --> 00:09:44.070
+And then there are two
+linguistic solutions
+
+00:09:44.070 --> 00:09:45.153
+that we'll be looking at--
+
+00:09:45.153 --> 00:09:48.090
+OpenMP and Cilk Plus.
+
+00:09:48.090 --> 00:09:51.660
+And Cilk Plus is actually
+the concurrency platform
+
+00:09:51.660 --> 00:09:54.060
+that we'll be using
+for most of this class.
+
+00:10:06.995 --> 00:10:12.110
+So let's look at
+how caches work.
+
+00:10:12.110 --> 00:10:16.160
+So let's say that we
+have a value in memory
+
+00:10:16.160 --> 00:10:19.820
+at some location,
+and that value is--
+
+00:10:19.820 --> 00:10:25.350
+let's say that
+value is x equals 3.
+
+00:10:25.350 --> 00:10:27.750
+If one processor
+says, we want to load
+
+00:10:27.750 --> 00:10:31.580
+x, what happens is
+that processor reads
+
+00:10:31.580 --> 00:10:35.850
+this value from a main memory,
+brings it into its own cache,
+
+00:10:35.850 --> 00:10:38.370
+and then it also reads
+the value, loads it
+
+00:10:38.370 --> 00:10:40.740
+into one of its registers.
+
+00:10:40.740 --> 00:10:42.900
+And it keeps this
+value in cache so
+
+00:10:42.900 --> 00:10:46.812
+that if it wants to access this
+value again in the near future,
+
+00:10:46.812 --> 00:10:49.020
+it doesn't have to go all
+the way out to main memory.
+
+00:10:49.020 --> 00:10:52.740
+It can just look at
+the value in its cache.
+
+00:10:52.740 --> 00:10:58.173
+Now, what happens if another
+processor wants to load x?
+
+00:10:58.173 --> 00:10:59.590
+Well, it just does
+the same thing.
+
+00:10:59.590 --> 00:11:01.200
+It reads the value
+from main memory,
+
+00:11:01.200 --> 00:11:03.750
+brings it into its cache,
+and then also loads it
+
+00:11:03.750 --> 00:11:07.380
+into one of the registers.
+
+00:11:07.380 --> 00:11:10.820
+And then same thing
+with another processor.
+
+00:11:10.820 --> 00:11:12.360
+It turns out that
+you don't actually
+
+00:11:12.360 --> 00:11:15.360
+always have to go out to
+main memory to get the value.
+
+00:11:15.360 --> 00:11:19.050
+If the value resides in one of
+the other processor's caches,
+
+00:11:19.050 --> 00:11:22.590
+you can also get the value
+through the other processor's
+
+00:11:22.590 --> 00:11:23.370
+cache.
+
+00:11:23.370 --> 00:11:25.980
+And sometimes that's cheaper
+than going all the way out
+
+00:11:25.980 --> 00:11:27.390
+to main memory.
+
+00:11:33.940 --> 00:11:35.848
+So the second processor
+now loads x again.
+
+00:11:35.848 --> 00:11:37.390
+And it's in cache,
+so it doesn't have
+
+00:11:37.390 --> 00:11:41.140
+to go to main memory or
+anybody else's cache.
+
+00:11:41.140 --> 00:11:44.140
+So what happens now
+if we want to store
+
+00:11:44.140 --> 00:11:48.830
+x, if we want to set the
+value of x to something else?
+
+00:11:48.830 --> 00:11:54.650
+So let's say this processor
+wants to set x equal to 5.
+
+00:11:54.650 --> 00:11:57.150
+So it's going to
+write x equals 5
+
+00:11:57.150 --> 00:12:00.300
+and store that result
+in its own cache.
+
+00:12:00.300 --> 00:12:01.680
+So that's all well and good.
+
+00:12:05.460 --> 00:12:09.480
+Now what happens when the first
+processor wants to load x?
+
+00:12:09.480 --> 00:12:14.380
+Well, it seems that the value
+of x is in its own cache,
+
+00:12:14.380 --> 00:12:16.560
+so it's just going to
+read the value of x there,
+
+00:12:16.560 --> 00:12:19.740
+and it gets a value of 3.
+
+00:12:19.740 --> 00:12:21.060
+So what's the problem there?
+
+00:12:28.080 --> 00:12:28.580
+Yes?
+
+00:12:28.580 --> 00:12:29.980
+AUDIENCE: The path is stale.
+
+00:12:29.980 --> 00:12:30.730
+JULIAN SHUN: Yeah.
+
+00:12:30.730 --> 00:12:34.670
+So the problem is that the value
+of x in the first processor's
+
+00:12:34.670 --> 00:12:38.480
+cache is stale, because
+another processor updated it.
+
+00:12:38.480 --> 00:12:42.240
+So now this value of x in
+the first processor's cache
+
+00:12:42.240 --> 00:12:42.740
+is invalid.
+
+00:12:46.200 --> 00:12:48.180
+So that's the problem.
+
+00:12:48.180 --> 00:12:51.180
+And one of the main challenges
+of multicore hardware
+
+00:12:51.180 --> 00:12:54.570
+is to try to solve this
+problem of cache coherence--
+
+00:12:54.570 --> 00:12:59.460
+making sure that the values in
+different processors' caches
+
+00:12:59.460 --> 00:13:01.785
+are consistent across updates.
+
+00:13:06.630 --> 00:13:11.580
+So one basic protocol
+for solving this problem
+
+00:13:11.580 --> 00:13:14.640
+is known as the MSI protocol.
+
+00:13:14.640 --> 00:13:19.010
+And in this protocol, each cache
+line is labeled with a state.
+
+00:13:19.010 --> 00:13:20.510
+So there are three
+possible states--
+
+00:13:20.510 --> 00:13:25.260
+M, S, and I. And this is done on
+the granularity of cache lines.
+
+00:13:25.260 --> 00:13:28.458
+Because it turns out that
+storing this information
+
+00:13:28.458 --> 00:13:30.000
+is relatively
+expensive, so you don't
+
+00:13:30.000 --> 00:13:31.792
+want to store it for
+every memory location.
+
+00:13:31.792 --> 00:13:35.820
+So they do it on a
+per cache line basis.
+
+00:13:35.820 --> 00:13:38.130
+Does anyone know what
+the size of a cache line
+
+00:13:38.130 --> 00:13:39.990
+is, on the machines
+that we're using?
+
+00:13:47.090 --> 00:13:47.590
+Yeah?
+
+00:13:47.590 --> 00:13:49.030
+AUDIENCE: 64 bytes.
+
+00:13:49.030 --> 00:13:51.890
+JULIAN SHUN: Yeah,
+so it's 64 bytes.
+
+00:13:51.890 --> 00:13:56.510
+And that's typically what you
+see today on most Intel and AMD
+
+00:13:56.510 --> 00:13:57.710
+machines.
+
+00:13:57.710 --> 00:14:00.650
+There's some architectures that
+have different cache lines,
+
+00:14:00.650 --> 00:14:01.970
+like 128 bytes.
+
+00:14:01.970 --> 00:14:04.310
+But for our class, the
+machines that we're using
+
+00:14:04.310 --> 00:14:06.380
+will have 64 byte cache lines.
+
+00:14:06.380 --> 00:14:09.380
+It's important to remember
+that so that when you're doing
+
+00:14:09.380 --> 00:14:10.940
+back-of-the-envelope
+calculations,
+
+00:14:10.940 --> 00:14:14.120
+you can get accurate estimates.
+
+00:14:14.120 --> 00:14:18.050
+So the three states in the
+MSI protocol are M, S, and I.
+
+00:14:18.050 --> 00:14:20.600
+So M stands for modified.
+
+00:14:20.600 --> 00:14:23.030
+And when a cache block
+is in the modified state,
+
+00:14:23.030 --> 00:14:25.760
+that means no other caches
+can contain this block
+
+00:14:25.760 --> 00:14:29.040
+in the M or the S states.
+
+00:14:29.040 --> 00:14:32.090
+The S state means that
+the block is shared,
+
+00:14:32.090 --> 00:14:36.960
+so other caches can also have
+this block in shared state.
+
+00:14:36.960 --> 00:14:40.190
+And then finally, I mean
+the cache block is invalid.
+
+00:14:40.190 --> 00:14:42.800
+So that's essentially the
+same as the cache block
+
+00:14:42.800 --> 00:14:45.980
+not being in the cache.
+
+00:14:45.980 --> 00:14:49.370
+And to solve the problem
+of cache coherency, when
+
+00:14:49.370 --> 00:14:51.840
+one cache modifies
+a location, it
+
+00:14:51.840 --> 00:14:55.490
+has to inform all
+the other caches
+
+00:14:55.490 --> 00:15:00.200
+that their values are now stale,
+because this cache modified
+
+00:15:00.200 --> 00:15:01.760
+the value.
+
+00:15:01.760 --> 00:15:04.430
+So it's going to invalidate
+all of the other copies
+
+00:15:04.430 --> 00:15:07.010
+of that cache line
+in other caches
+
+00:15:07.010 --> 00:15:13.130
+by changing their
+state from S to I.
+
+00:15:13.130 --> 00:15:14.370
+So let's see how this works.
+
+00:15:14.370 --> 00:15:18.530
+So let's say that the second
+processor wants to store y
+
+00:15:18.530 --> 00:15:19.100
+equals 5.
+
+00:15:19.100 --> 00:15:23.360
+So previously, a value of y was
+17, and it was in shared state.
+
+00:15:23.360 --> 00:15:27.320
+The cache line containing y
+equals 17 was in shared state.
+
+00:15:27.320 --> 00:15:30.710
+So now, when I do
+y equals 5, I'm
+
+00:15:30.710 --> 00:15:36.440
+going to set the second
+processor's cache--
+
+00:15:36.440 --> 00:15:39.170
+that cache line--
+to modified state.
+
+00:15:39.170 --> 00:15:41.540
+And then I'm going to
+invalidate the cache
+
+00:15:41.540 --> 00:15:44.820
+line in all of the other caches
+that contain that cache line.
+
+00:15:44.820 --> 00:15:48.230
+So now the first cache
+and the fourth cache
+
+00:15:48.230 --> 00:15:51.710
+each have a state of
+I for y equals 17,
+
+00:15:51.710 --> 00:15:53.976
+because that value is stale.
+
+00:15:53.976 --> 00:15:57.390
+Is there any questions?
+
+00:15:57.390 --> 00:15:58.075
+Yes?
+
+00:15:58.075 --> 00:16:01.237
+AUDIENCE: If we already have to
+tell the other things to switch
+
+00:16:01.237 --> 00:16:05.013
+to invalid, why not just
+tell them the value of y?
+
+00:16:05.013 --> 00:16:06.680
+JULIAN SHUN: Yeah,
+so there are actually
+
+00:16:06.680 --> 00:16:08.390
+some protocols that do that.
+
+00:16:08.390 --> 00:16:11.690
+So this is just the
+most basic protocol.
+
+00:16:11.690 --> 00:16:13.250
+So this protocol doesn't do it.
+
+00:16:13.250 --> 00:16:15.800
+But there are some that
+are used in practice
+
+00:16:15.800 --> 00:16:17.720
+that actually do do that.
+
+00:16:17.720 --> 00:16:20.800
+So it's a good point.
+
+00:16:20.800 --> 00:16:24.350
+But I just want to present the
+most basic protocol for now.
+
+00:16:29.400 --> 00:16:29.900
+Sorry.
+
+00:16:32.770 --> 00:16:35.140
+And then, when you
+load a value, you
+
+00:16:35.140 --> 00:16:40.720
+can first check whether your
+cache line is in M or S state.
+
+00:16:40.720 --> 00:16:42.790
+And if it is an M
+or S state, then you
+
+00:16:42.790 --> 00:16:45.980
+can just read that
+value directly.
+
+00:16:45.980 --> 00:16:49.480
+But if it's in the I state,
+or if it's not there,
+
+00:16:49.480 --> 00:16:51.430
+then you have to
+fetch that block
+
+00:16:51.430 --> 00:16:53.980
+from either another
+processor's cache
+
+00:16:53.980 --> 00:16:58.250
+or fetch it from main memory.
+
+00:16:58.250 --> 00:17:03.130
+So it turns out that there are
+many other protocols out there.
+
+00:17:03.130 --> 00:17:08.050
+There's something known as
+MESI, the messy protocol.
+
+00:17:08.050 --> 00:17:11.980
+There's also MOESI and many
+other different protocols.
+
+00:17:11.980 --> 00:17:13.720
+And some of them
+are proprietary.
+
+00:17:13.720 --> 00:17:17.319
+And they all do
+different things.
+
+00:17:17.319 --> 00:17:19.480
+And it turns out that
+all of these protocols
+
+00:17:19.480 --> 00:17:21.880
+are quite complicated,
+and it's very hard
+
+00:17:21.880 --> 00:17:25.119
+to get these protocols right.
+
+00:17:25.119 --> 00:17:27.910
+And in fact, one of the
+most earliest successes
+
+00:17:27.910 --> 00:17:31.300
+of formal verification was
+improving some of these cache
+
+00:17:31.300 --> 00:17:34.210
+[INAUDIBLE] protocols
+to be correct.
+
+00:17:34.210 --> 00:17:35.020
+Yes, question?
+
+00:17:35.020 --> 00:17:37.558
+AUDIENCE: What happens if
+two processors try to modify
+
+00:17:37.558 --> 00:17:40.310
+one value at the same time
+
+00:17:40.310 --> 00:17:42.220
+JULIAN SHUN: Yeah,
+so if two processors
+
+00:17:42.220 --> 00:17:45.243
+try to modify the value, one
+of them has to happen first.
+
+00:17:45.243 --> 00:17:47.160
+So the hardware is going
+to take care of that.
+
+00:17:47.160 --> 00:17:49.750
+So the first one that
+actually modifies
+
+00:17:49.750 --> 00:17:51.730
+it will invalidate
+all the other copies,
+
+00:17:51.730 --> 00:17:54.100
+and then the second one
+that modifies the value
+
+00:17:54.100 --> 00:17:56.530
+will again invalidate
+all of the other copies.
+
+00:17:56.530 --> 00:17:58.810
+And when you do that--
+
+00:17:58.810 --> 00:18:01.720
+when a lot of processors try
+to modify the same value,
+
+00:18:01.720 --> 00:18:04.150
+you get something known
+as an invalidation storm.
+
+00:18:04.150 --> 00:18:06.430
+So you have a bunch of
+invalidation messages
+
+00:18:06.430 --> 00:18:09.340
+going throughout the hardware.
+
+00:18:09.340 --> 00:18:11.590
+And that can lead to a big
+performance bottleneck.
+
+00:18:11.590 --> 00:18:14.840
+Because each processor,
+when it modifies its value,
+
+00:18:14.840 --> 00:18:17.188
+it has to inform all
+the other processors.
+
+00:18:17.188 --> 00:18:19.480
+And if all the processors
+are modifying the same value,
+
+00:18:19.480 --> 00:18:22.343
+you get this sort of
+quadratic behavior.
+
+00:18:22.343 --> 00:18:24.010
+The hardware is still
+going to guarantee
+
+00:18:24.010 --> 00:18:26.590
+that one of their processors
+is going to end up
+
+00:18:26.590 --> 00:18:27.590
+writing the value there.
+
+00:18:27.590 --> 00:18:30.400
+But you should be aware
+of this performance issue
+
+00:18:30.400 --> 00:18:33.130
+when you're writing
+parallel code.
+
+00:18:33.130 --> 00:18:33.995
+Yes?
+
+00:18:33.995 --> 00:18:35.657
+AUDIENCE: So all of
+this protocol stuff
+
+00:18:35.657 --> 00:18:37.320
+happens in hardware?
+
+00:18:37.320 --> 00:18:40.250
+JULIAN SHUN: Yes, so this is
+all implemented in hardware.
+
+00:18:40.250 --> 00:18:42.880
+So if you take a computer
+architecture class,
+
+00:18:42.880 --> 00:18:46.030
+you'll learn much more about
+these protocols and all
+
+00:18:46.030 --> 00:18:48.400
+of their variants.
+
+00:18:48.400 --> 00:18:51.880
+So for our purposes,
+we don't actually
+
+00:18:51.880 --> 00:18:54.890
+need to understand all the
+details of the hardware.
+
+00:18:54.890 --> 00:18:57.800
+We just need to understand
+what it's doing at a high level
+
+00:18:57.800 --> 00:19:02.600
+so we can understand when we
+have a performance bottleneck
+
+00:19:02.600 --> 00:19:04.450
+and why we have a
+performance bottleneck.
+
+00:19:04.450 --> 00:19:06.730
+So that's why I'm just
+introducing the most
+
+00:19:06.730 --> 00:19:07.990
+basic protocol here.
+
+00:19:14.770 --> 00:19:15.990
+Any other questions?
+
+00:19:21.030 --> 00:19:26.320
+So I talked a little bit about
+the shared memory hardware.
+
+00:19:26.320 --> 00:19:30.070
+Let's now look at some
+concurrency platforms.
+
+00:19:30.070 --> 00:19:35.880
+So these are the four platforms
+that we'll be looking at today.
+
+00:19:35.880 --> 00:19:40.000
+So first, what is a
+concurrency platform?
+
+00:19:40.000 --> 00:19:44.250
+Well, writing parallel
+programs is very difficult.
+
+00:19:44.250 --> 00:19:46.793
+It's very hard to get these
+programs to be correct.
+
+00:19:46.793 --> 00:19:48.710
+And if you want to
+optimize their performance,
+
+00:19:48.710 --> 00:19:50.230
+it becomes even harder.
+
+00:19:50.230 --> 00:19:52.260
+So it's very painful
+and error-prone.
+
+00:19:52.260 --> 00:19:55.610
+And a concurrency platform
+abstracts processor
+
+00:19:55.610 --> 00:19:57.710
+cores and handles
+synchronization
+
+00:19:57.710 --> 00:19:59.720
+and communication protocols.
+
+00:19:59.720 --> 00:20:01.860
+And it also performs
+load balancing for you.
+
+00:20:01.860 --> 00:20:05.000
+So it makes your
+lives much easier.
+
+00:20:05.000 --> 00:20:08.660
+And so today we're
+going to talk about some
+
+00:20:08.660 --> 00:20:14.240
+of these different
+concurrency platforms.
+
+00:20:14.240 --> 00:20:16.730
+So to illustrate these
+concurrency platforms,
+
+00:20:16.730 --> 00:20:20.990
+I'm going to do the
+Fibonacci numbers example.
+
+00:20:20.990 --> 00:20:23.870
+So does anybody not
+know what Fibonacci is?
+
+00:20:27.840 --> 00:20:28.350
+So good.
+
+00:20:28.350 --> 00:20:30.270
+Everybody knows
+what Fibonacci is.
+
+00:20:33.100 --> 00:20:36.480
+So it's a sequence where
+each number is the sum
+
+00:20:36.480 --> 00:20:37.770
+of the previous two numbers.
+
+00:20:37.770 --> 00:20:43.860
+And the recurrence is shown
+in this brown box here.
+
+00:20:43.860 --> 00:20:50.010
+The sequence is named after
+Leonardo di Pisa, who was also
+
+00:20:50.010 --> 00:20:54.240
+known as Fibonacci, which
+is a contraction of Bonacci,
+
+00:20:54.240 --> 00:20:55.950
+son of Bonaccio.
+
+00:20:55.950 --> 00:20:58.830
+So that's where the name
+Fibonacci came from.
+
+00:20:58.830 --> 00:21:03.970
+And in Fibonacce's
+1202 book, Liber Abaci,
+
+00:21:03.970 --> 00:21:06.660
+he introduced the sequence--
+
+00:21:06.660 --> 00:21:10.710
+the Fibonacci sequence--
+to Western mathematics,
+
+00:21:10.710 --> 00:21:12.990
+although it had been
+previously known
+
+00:21:12.990 --> 00:21:19.260
+to Indian mathematicians
+for several centuries.
+
+00:21:19.260 --> 00:21:21.960
+But this is what we call
+the sequence nowadays--
+
+00:21:21.960 --> 00:21:22.950
+Fibonacci numbers.
+
+00:21:25.840 --> 00:21:31.090
+So here's a Fibonacci program.
+
+00:21:31.090 --> 00:21:33.160
+Has anyone seen this
+algorithm before?
+
+00:21:36.590 --> 00:21:39.570
+A couple of people.
+
+00:21:39.570 --> 00:21:41.880
+Probably more, but people
+didn't raise their hands.
+
+00:21:45.810 --> 00:21:49.410
+So it's a recursive program.
+
+00:21:49.410 --> 00:21:51.930
+So it basically
+implements the recurrence
+
+00:21:51.930 --> 00:21:53.260
+from the previous slide.
+
+00:21:53.260 --> 00:21:56.400
+So if n is less than
+2, we just return n.
+
+00:21:56.400 --> 00:21:58.880
+Otherwise, we compute
+fib of n minus 1,
+
+00:21:58.880 --> 00:22:03.180
+store that value in x, fib of n
+minus 2, store that value in y,
+
+00:22:03.180 --> 00:22:05.040
+and then return
+the sum of x and y.
+
+00:22:10.560 --> 00:22:12.100
+So I do want to
+make a disclaimer
+
+00:22:12.100 --> 00:22:14.410
+to the algorithms police
+that this is actually
+
+00:22:14.410 --> 00:22:16.480
+a very bad algorithm.
+
+00:22:16.480 --> 00:22:20.650
+So this algorithm
+takes exponential time,
+
+00:22:20.650 --> 00:22:22.240
+and there's actually
+much better ways
+
+00:22:22.240 --> 00:22:25.010
+to compute the end
+Fibonacci number.
+
+00:22:25.010 --> 00:22:27.535
+There's a linear
+time algorithm, which
+
+00:22:27.535 --> 00:22:31.720
+just computes the Fibonacci
+numbers from bottom up.
+
+00:22:31.720 --> 00:22:34.360
+This algorithm here is actually
+redoing a lot of the work,
+
+00:22:34.360 --> 00:22:39.610
+because it's computing Fibonacci
+numbers multiple times.
+
+00:22:39.610 --> 00:22:43.450
+Whereas if you do a linear scan
+from the smallest numbers up,
+
+00:22:43.450 --> 00:22:45.350
+you only have to
+compute each one once.
+
+00:22:45.350 --> 00:22:47.500
+And there's actually an
+even better algorithm
+
+00:22:47.500 --> 00:22:50.980
+that takes logarithmic
+time, and it's
+
+00:22:50.980 --> 00:22:52.370
+based on squaring matrices.
+
+00:22:52.370 --> 00:22:57.280
+So has anyone seen
+that algorithm before?
+
+00:22:57.280 --> 00:22:59.020
+So a couple of people.
+
+00:22:59.020 --> 00:23:00.855
+So if you're interested
+in learning more
+
+00:23:00.855 --> 00:23:02.230
+about this algorithm,
+I encourage
+
+00:23:02.230 --> 00:23:05.230
+you to look at your favorite
+textbook, Introduction
+
+00:23:05.230 --> 00:23:09.140
+to Algorithms by Cormen,
+Leiserson, Rivest, and Stein.
+
+00:23:11.675 --> 00:23:12.550
+So even though this--
+
+00:23:12.550 --> 00:23:13.520
+[LAUGHTER]
+
+00:23:13.520 --> 00:23:15.850
+Yes.
+
+00:23:15.850 --> 00:23:19.540
+So even though this is
+a pretty bad algorithm,
+
+00:23:19.540 --> 00:23:22.060
+it's still a good
+educational example,
+
+00:23:22.060 --> 00:23:24.400
+because I can fit
+it on one slide
+
+00:23:24.400 --> 00:23:28.450
+and illustrate all the
+concepts of parallelism
+
+00:23:28.450 --> 00:23:31.820
+that we want to cover today.
+
+00:23:31.820 --> 00:23:36.610
+So here's the execution
+tree for fib of 4.
+
+00:23:36.610 --> 00:23:41.380
+So we see that fib of 4 is going
+to call fib of 3 and fib of 2.
+
+00:23:41.380 --> 00:23:45.560
+Fib of 3 is going to call fib
+of 2, fib of 1, and so on.
+
+00:23:45.560 --> 00:23:47.560
+And you can see that
+repeated computations here.
+
+00:23:47.560 --> 00:23:52.460
+So fib of 2 is being
+computed twice, and so on.
+
+00:23:52.460 --> 00:23:55.000
+And if you have a
+much larger tree--
+
+00:23:55.000 --> 00:23:57.460
+say you ran this
+on fib of 40-- then
+
+00:23:57.460 --> 00:24:00.550
+you'll have many more
+overlapping computations.
+
+00:24:04.310 --> 00:24:09.860
+It turns out that the two
+recursive calls can actually
+
+00:24:09.860 --> 00:24:12.260
+be parallelized, because
+they're completely independent
+
+00:24:12.260 --> 00:24:13.710
+calculations.
+
+00:24:13.710 --> 00:24:16.160
+So the key idea
+for parallelization
+
+00:24:16.160 --> 00:24:22.100
+is to simultaneously execute the
+two recursive sub-calls to fib.
+
+00:24:22.100 --> 00:24:24.170
+And in fact, you can
+do this recursively.
+
+00:24:24.170 --> 00:24:27.860
+So the two sub-calls
+to fib of 3 can also
+
+00:24:27.860 --> 00:24:30.890
+be executed in parallel, and
+the two sub-calls of fib of 2
+
+00:24:30.890 --> 00:24:33.060
+can also be executed
+in parallel, and so on.
+
+00:24:33.060 --> 00:24:35.900
+So you have all of
+these calls that
+
+00:24:35.900 --> 00:24:38.020
+can be executed in parallel.
+
+00:24:38.020 --> 00:24:41.390
+So that's the key idea
+for extracting parallelism
+
+00:24:41.390 --> 00:24:42.410
+from this algorithm.
+
+00:24:45.980 --> 00:24:48.890
+So let's now look
+at how we can use
+
+00:24:48.890 --> 00:24:54.072
+Pthreads to implement this
+simple Fibonacci algorithm.
+
+00:24:56.730 --> 00:25:00.480
+So Pthreads is a standard
+API for threading,
+
+00:25:00.480 --> 00:25:04.800
+and it's supported on
+all Unix-based machines.
+
+00:25:04.800 --> 00:25:08.670
+And if you're programming
+using Microsoft products,
+
+00:25:08.670 --> 00:25:12.900
+then the equivalent
+is Win API threads.
+
+00:25:12.900 --> 00:25:18.450
+And Pthreads is actually
+standard in ANSI and IEEE,
+
+00:25:18.450 --> 00:25:21.570
+so there's this number here
+that specifies the standard.
+
+00:25:21.570 --> 00:25:24.070
+But nowadays, we just
+call it Pthreads.
+
+00:25:24.070 --> 00:25:26.070
+And it's basically a
+do-it-yourself concurrency
+
+00:25:26.070 --> 00:25:26.670
+platform.
+
+00:25:26.670 --> 00:25:29.190
+So it's like the
+assembly language
+
+00:25:29.190 --> 00:25:31.500
+of parallel programming.
+
+00:25:31.500 --> 00:25:33.570
+It's built as a
+library of functions
+
+00:25:33.570 --> 00:25:36.900
+with special non-C semantics.
+
+00:25:36.900 --> 00:25:39.240
+Because if you're just
+writing code in C,
+
+00:25:39.240 --> 00:25:42.508
+you can't really say
+which parts of the code
+
+00:25:42.508 --> 00:25:43.800
+should be executed in parallel.
+
+00:25:43.800 --> 00:25:45.990
+So Pthreads provides
+you a library
+
+00:25:45.990 --> 00:25:49.800
+of functions that allow
+you to specify concurrency
+
+00:25:49.800 --> 00:25:52.290
+in your program.
+
+00:25:52.290 --> 00:25:56.640
+And each thread implements an
+abstraction of a processor,
+
+00:25:56.640 --> 00:25:58.920
+and these threads
+are then multiplexed
+
+00:25:58.920 --> 00:26:02.040
+onto the actual
+machine resources.
+
+00:26:02.040 --> 00:26:04.590
+So the number of
+threads that you create
+
+00:26:04.590 --> 00:26:07.320
+doesn't necessarily have to
+match the number of processors
+
+00:26:07.320 --> 00:26:09.400
+you have on your machine.
+
+00:26:09.400 --> 00:26:12.690
+So if you have more threads
+than the number of processors
+
+00:26:12.690 --> 00:26:14.790
+you have, then they'll
+just be multiplexing.
+
+00:26:14.790 --> 00:26:17.400
+So you can actually
+run a Pthreads program
+
+00:26:17.400 --> 00:26:21.090
+on a single core even though
+you have multiple threads
+
+00:26:21.090 --> 00:26:21.930
+in the program.
+
+00:26:21.930 --> 00:26:25.560
+They would just be time-sharing.
+
+00:26:25.560 --> 00:26:28.590
+All the threads communicate
+through shared memory,
+
+00:26:28.590 --> 00:26:32.400
+so they all have access to
+the same view of the memory.
+
+00:26:32.400 --> 00:26:35.995
+And the library functions
+that Pthreads provides mask
+
+00:26:35.995 --> 00:26:40.170
+the protocols involved in
+interthread coordination,
+
+00:26:40.170 --> 00:26:41.670
+so you don't have
+to do it yourself.
+
+00:26:41.670 --> 00:26:44.880
+Because it turns out that
+this is quite difficult to
+
+00:26:44.880 --> 00:26:46.350
+do correctly by hand.
+
+00:26:48.930 --> 00:26:52.990
+So now I want to look at
+the key Pthread functions.
+
+00:26:52.990 --> 00:26:56.610
+So the first Pthread
+is pthread_create.
+
+00:26:56.610 --> 00:26:59.380
+And this takes four arguments.
+
+00:26:59.380 --> 00:27:04.350
+So the first argument
+is this pthread_t type.
+
+00:27:07.210 --> 00:27:09.420
+This is basically going
+to store an identifier
+
+00:27:09.420 --> 00:27:12.000
+for the new thread
+that pthread_create
+
+00:27:12.000 --> 00:27:14.880
+will create so that
+we can use that thread
+
+00:27:14.880 --> 00:27:17.640
+in our computations.
+
+00:27:17.640 --> 00:27:23.670
+pthread_attr_t-- this set
+some thread attributes,
+
+00:27:23.670 --> 00:27:26.330
+and for our purposes, we can
+just set it to null and use
+
+00:27:26.330 --> 00:27:29.460
+the default attributes.
+
+00:27:29.460 --> 00:27:32.430
+The third argument
+is this function
+
+00:27:32.430 --> 00:27:36.180
+that's going to be executed
+after we create the thread.
+
+00:27:36.180 --> 00:27:38.430
+So we're going to need to
+define this function that we
+
+00:27:38.430 --> 00:27:40.800
+want the thread to execute.
+
+00:27:40.800 --> 00:27:46.170
+And then finally, we have
+this void *arg argument,
+
+00:27:46.170 --> 00:27:48.960
+which stores the arguments
+that are going to be passed
+
+00:27:48.960 --> 00:27:53.430
+to the function that we're
+going to be executing.
+
+00:27:53.430 --> 00:27:57.220
+And then pthread_create also
+returns an error status,
+
+00:27:57.220 --> 00:28:00.370
+returns an integer specifying
+whether the thread creation
+
+00:28:00.370 --> 00:28:03.190
+was successful or not.
+
+00:28:03.190 --> 00:28:06.760
+And then there's another
+function called pthread_join.
+
+00:28:06.760 --> 00:28:09.640
+pthread_join
+basically says that we
+
+00:28:09.640 --> 00:28:15.820
+want to block at
+this part of our code
+
+00:28:15.820 --> 00:28:18.010
+until this specified
+thread finishes.
+
+00:28:18.010 --> 00:28:21.760
+So it takes as
+argument pthread_t.
+
+00:28:21.760 --> 00:28:24.430
+So this thread identifier,
+and these thread identifiers,
+
+00:28:24.430 --> 00:28:29.016
+were created when we
+called pthread_create.
+
+00:28:29.016 --> 00:28:31.990
+It also has a second
+argument, status,
+
+00:28:31.990 --> 00:28:34.090
+which is going to
+store the status
+
+00:28:34.090 --> 00:28:37.020
+of the terminating thread.
+
+00:28:37.020 --> 00:28:39.400
+And then pthread_join also
+returns an error status.
+
+00:28:39.400 --> 00:28:41.020
+So essentially what
+this does is it
+
+00:28:41.020 --> 00:28:46.230
+says to wait until this thread
+finishes before we continue on
+
+00:28:46.230 --> 00:28:46.855
+in our program.
+
+00:28:49.960 --> 00:28:51.770
+So any questions so far?
+
+00:29:00.900 --> 00:29:03.780
+So here's what the
+implementation of Fibonacci
+
+00:29:03.780 --> 00:29:07.350
+looks like using Pthreads.
+
+00:29:07.350 --> 00:29:12.330
+So on the left, we see the
+original program that we had,
+
+00:29:12.330 --> 00:29:13.590
+the fib function there.
+
+00:29:13.590 --> 00:29:16.830
+That's just the sequential code.
+
+00:29:16.830 --> 00:29:19.200
+And then we have
+all this other stuff
+
+00:29:19.200 --> 00:29:22.300
+to enable it to run in parallel.
+
+00:29:22.300 --> 00:29:26.880
+So first, we have this struct
+on the left, thread_args.
+
+00:29:26.880 --> 00:29:30.690
+This struct here is used
+to store the arguments that
+
+00:29:30.690 --> 00:29:35.430
+are passed to the function that
+the thread is going to execute.
+
+00:29:35.430 --> 00:29:38.160
+And then we have
+this thread_func.
+
+00:29:38.160 --> 00:29:42.540
+What that does is
+it reads the input
+
+00:29:42.540 --> 00:29:45.840
+argument from this
+thread_args struct,
+
+00:29:45.840 --> 00:29:49.950
+and then it sets that to i,
+and then it calls fib of i.
+
+00:29:49.950 --> 00:29:52.410
+And that gives you the output,
+and then we store the result
+
+00:29:52.410 --> 00:29:54.540
+into the output of the struct.
+
+00:29:57.640 --> 00:30:00.475
+And then that also
+just returns null.
+
+00:30:03.000 --> 00:30:04.820
+And then over on
+the right hand side,
+
+00:30:04.820 --> 00:30:08.930
+we have the main function that
+will actually call the fib
+
+00:30:08.930 --> 00:30:10.580
+function on the left.
+
+00:30:10.580 --> 00:30:15.260
+So we initialize a
+whole bunch of variables
+
+00:30:15.260 --> 00:30:19.640
+that we need to
+execute these threads.
+
+00:30:19.640 --> 00:30:23.370
+And then we first check
+if n is less than 30.
+
+00:30:23.370 --> 00:30:24.950
+If n is less than
+30, it turns out
+
+00:30:24.950 --> 00:30:27.620
+that it's actually not
+worth creating threads
+
+00:30:27.620 --> 00:30:29.660
+to execute this program
+in parallel, because
+
+00:30:29.660 --> 00:30:31.370
+of the overhead of
+thread creation.
+
+00:30:31.370 --> 00:30:34.280
+So if n is less than 30,
+we'll just execute the program
+
+00:30:34.280 --> 00:30:36.860
+sequentially.
+
+00:30:36.860 --> 00:30:39.030
+And this idea is
+known as coarsening.
+
+00:30:39.030 --> 00:30:42.470
+So you saw a similar
+example a couple of lectures
+
+00:30:42.470 --> 00:30:45.270
+ago when we did
+coarsening for sorting.
+
+00:30:45.270 --> 00:30:47.840
+But this is in the context
+of a parallel programming.
+
+00:30:47.840 --> 00:30:50.660
+So here, because there
+are some overheads
+
+00:30:50.660 --> 00:30:53.330
+to running a
+function in parallel,
+
+00:30:53.330 --> 00:30:55.250
+if the input size
+is small enough,
+
+00:30:55.250 --> 00:30:57.710
+sometimes you want to just
+execute it sequentially.
+
+00:31:00.230 --> 00:31:02.990
+And then we're going to--
+
+00:31:02.990 --> 00:31:04.820
+so let me just walk
+through this code,
+
+00:31:04.820 --> 00:31:06.800
+since I have an animation.
+
+00:31:10.160 --> 00:31:12.020
+So the next thing
+it's going to do
+
+00:31:12.020 --> 00:31:14.900
+is it's going to marshal the
+input argument to the thread
+
+00:31:14.900 --> 00:31:17.540
+so it's going to store the
+input argument n minus 1
+
+00:31:17.540 --> 00:31:23.000
+in this args struct.
+
+00:31:23.000 --> 00:31:26.120
+And then we're going
+to call pthread_create
+
+00:31:26.120 --> 00:31:28.550
+with a thread variable.
+
+00:31:28.550 --> 00:31:31.007
+For thread_args, we're
+just going to use null.
+
+00:31:31.007 --> 00:31:32.840
+And then we're going
+to pass the thread_func
+
+00:31:32.840 --> 00:31:35.850
+that we defined on the left.
+
+00:31:35.850 --> 00:31:39.180
+And then we're going to
+pass the args structure.
+
+00:31:39.180 --> 00:31:44.090
+And inside this args structure,
+the input is set to n minus 1,
+
+00:31:44.090 --> 00:31:45.590
+which we did on
+the previous line.
+
+00:31:51.440 --> 00:31:57.200
+And then pthread_create is
+going to give a return value.
+
+00:32:00.600 --> 00:32:04.500
+So if the Pthread
+creation was successful,
+
+00:32:04.500 --> 00:32:07.725
+then the status is going to
+be null, and we can continue.
+
+00:32:10.325 --> 00:32:11.700
+And when we
+continue, we're going
+
+00:32:11.700 --> 00:32:16.140
+to execute, now, fib of n minus
+2 and store the result of that
+
+00:32:16.140 --> 00:32:17.800
+into our result variable.
+
+00:32:17.800 --> 00:32:21.000
+And this is done at the same
+time that fib of n minus 1
+
+00:32:21.000 --> 00:32:21.660
+is executing.
+
+00:32:21.660 --> 00:32:25.800
+Because we created
+this Pthread, and we
+
+00:32:25.800 --> 00:32:29.100
+told it to call this
+thread_func function
+
+00:32:29.100 --> 00:32:30.270
+that we defined on the left.
+
+00:32:30.270 --> 00:32:33.240
+So both fib of n minus
+1 and fib of n minus 2
+
+00:32:33.240 --> 00:32:36.210
+are executing in parallel now.
+
+00:32:36.210 --> 00:32:39.210
+And then we have
+this pthread_join,
+
+00:32:39.210 --> 00:32:41.850
+which says we're going
+to wait until the thread
+
+00:32:41.850 --> 00:32:44.520
+that we've created finishes
+before we move on, because we
+
+00:32:44.520 --> 00:32:47.970
+need to know the result
+of both of the sub-calls
+
+00:32:47.970 --> 00:32:51.400
+before we can finish
+this function.
+
+00:32:51.400 --> 00:32:53.010
+And once that's done--
+
+00:32:53.010 --> 00:32:56.130
+well, we first check the status
+to see if it was successful.
+
+00:32:56.130 --> 00:32:59.780
+And if so, then we add the
+outputs of the argument's
+
+00:32:59.780 --> 00:33:02.790
+struct to the result. So
+args.output will store
+
+00:33:02.790 --> 00:33:05.730
+the output of fib of n minus 1.
+
+00:33:09.430 --> 00:33:13.530
+So that's the Pthreads code.
+
+00:33:13.530 --> 00:33:15.450
+Any questions on how this works?
+
+00:33:20.870 --> 00:33:21.630
+Yeah?
+
+00:33:21.630 --> 00:33:25.645
+AUDIENCE: I have a question
+about the thread function.
+
+00:33:25.645 --> 00:33:28.120
+So it looks like you
+passed a void pointer,
+
+00:33:28.120 --> 00:33:30.407
+but then you cast it to
+something else every time
+
+00:33:30.407 --> 00:33:33.330
+you use that--
+
+00:33:33.330 --> 00:33:35.080
+JULIAN SHUN: Yeah,
+so this is because
+
+00:33:35.080 --> 00:33:38.020
+the pthread_create
+function takes
+
+00:33:38.020 --> 00:33:40.630
+as input a void star pointer.
+
+00:33:40.630 --> 00:33:42.340
+Because it's actually
+a generic function,
+
+00:33:42.340 --> 00:33:44.520
+so it doesn't know
+what the data type is.
+
+00:33:44.520 --> 00:33:46.150
+It has to work for
+all data types,
+
+00:33:46.150 --> 00:33:48.250
+and that's why we need
+to cast it to avoid star.
+
+00:33:48.250 --> 00:33:51.280
+When we pass it to
+pthread_create and then
+
+00:33:51.280 --> 00:33:52.870
+inside the thread_func,
+we actually
+
+00:33:52.870 --> 00:33:56.420
+do know what type of pointer
+that is, so then we cast it.
+
+00:34:02.880 --> 00:34:04.555
+So does this code
+seem very parallel?
+
+00:34:09.560 --> 00:34:13.820
+So how many parallel
+calls am I doing here?
+
+00:34:13.820 --> 00:34:14.320
+Yeah?
+
+00:34:14.320 --> 00:34:16.315
+AUDIENCE: Just one.
+
+00:34:16.315 --> 00:34:18.440
+JULIAN SHUN: Yeah, so I'm
+only creating one thread.
+
+00:34:18.440 --> 00:34:22.040
+So I'm executing two
+things in parallel.
+
+00:34:22.040 --> 00:34:25.750
+So if I ran this code
+on four processors,
+
+00:34:25.750 --> 00:34:28.013
+what's the maximum
+speed-up I could get?
+
+00:34:28.013 --> 00:34:29.512
+AUDIENCE: [INAUDIBLE].
+
+00:34:29.512 --> 00:34:31.429
+JULIAN SHUN: So the
+maximum speed-up I can get
+
+00:34:31.429 --> 00:34:35.429
+is just two, because I'm only
+running two things in parallel.
+
+00:34:35.429 --> 00:34:40.760
+So this doesn't
+recursively create threads.
+
+00:34:40.760 --> 00:34:43.679
+It only creates one
+thread at the top level.
+
+00:34:43.679 --> 00:34:47.389
+And if you wanted to make it
+so that this code actually
+
+00:34:47.389 --> 00:34:49.820
+recursively created
+threads, it would actually
+
+00:34:49.820 --> 00:34:52.699
+become much more complicated.
+
+00:34:52.699 --> 00:34:56.780
+And that's one of the
+disadvantages of implementing
+
+00:34:56.780 --> 00:34:58.450
+this code in Pthreads.
+
+00:34:58.450 --> 00:35:00.200
+So we'll look at other
+solutions that will
+
+00:35:00.200 --> 00:35:01.595
+make this task much easier.
+
+00:35:05.120 --> 00:35:06.890
+So some of the
+issues with Pthreads
+
+00:35:06.890 --> 00:35:08.280
+are shown on this slide here.
+
+00:35:08.280 --> 00:35:12.020
+So there's a high overhead
+to creating a thread.
+
+00:35:12.020 --> 00:35:14.480
+So creating a thread
+typically takes over 10
+
+00:35:14.480 --> 00:35:17.720
+to the 4th cycles.
+
+00:35:17.720 --> 00:35:21.380
+And this leads to very
+coarse-grained concurrency,
+
+00:35:21.380 --> 00:35:24.530
+because your tasks have
+to do a lot of work
+
+00:35:24.530 --> 00:35:30.140
+in order to amortize the
+costs of creating that thread.
+
+00:35:30.140 --> 00:35:32.570
+There are something called
+thread pulls, which can help.
+
+00:35:32.570 --> 00:35:34.862
+And the idea here is to create
+a whole bunch of threads
+
+00:35:34.862 --> 00:35:38.660
+at the same time to amortize
+the costs of thread creation.
+
+00:35:38.660 --> 00:35:40.730
+And then when you need
+a thread, you just
+
+00:35:40.730 --> 00:35:42.060
+take one from the thread pull.
+
+00:35:42.060 --> 00:35:43.850
+So the thread pull
+contains threads that
+
+00:35:43.850 --> 00:35:45.680
+are just waiting to do work.
+
+00:35:48.300 --> 00:35:50.780
+There's also a scalability
+issue with this code
+
+00:35:50.780 --> 00:35:53.090
+that I showed on
+the previous slide.
+
+00:35:53.090 --> 00:35:56.000
+The Fibonacci code
+gets, at most,
+
+00:35:56.000 --> 00:35:59.280
+1.5x speed-up for two cores.
+
+00:35:59.280 --> 00:36:01.142
+Why is it 1.5 here?
+
+00:36:01.142 --> 00:36:01.850
+Does anyone know?
+
+00:36:05.130 --> 00:36:05.630
+Yeah?
+
+00:36:05.630 --> 00:36:08.170
+AUDIENCE: You have the asymmetry
+in the size of the two calls.
+
+00:36:08.170 --> 00:36:09.587
+JULIAN SHUN: Yeah,
+so it turns out
+
+00:36:09.587 --> 00:36:13.170
+that the two calls that
+I'm executing in parallel--
+
+00:36:13.170 --> 00:36:14.920
+they're not doing the
+same amount of work.
+
+00:36:14.920 --> 00:36:17.095
+So one is computing
+fib of n minus 1,
+
+00:36:17.095 --> 00:36:19.330
+one is computing
+fib of n minus 2.
+
+00:36:19.330 --> 00:36:23.630
+And does anyone know what the
+ratio between these two values
+
+00:36:23.630 --> 00:36:24.130
+is?
+
+00:36:27.360 --> 00:36:29.140
+Yeah, so it's the golden ratio.
+
+00:36:29.140 --> 00:36:31.330
+It's about 1.6.
+
+00:36:31.330 --> 00:36:33.970
+It turns out that if you
+can get a speed-up of 1.6,
+
+00:36:33.970 --> 00:36:34.720
+then that's great.
+
+00:36:34.720 --> 00:36:38.490
+But there are some
+overheads, so this code
+
+00:36:38.490 --> 00:36:42.410
+will get about a 1.5 speed up.
+
+00:36:42.410 --> 00:36:45.292
+And if you want to run this to
+take advantage of more cores,
+
+00:36:45.292 --> 00:36:46.750
+then you need to
+rewrite this code,
+
+00:36:46.750 --> 00:36:50.440
+and it becomes more complicated.
+
+00:36:50.440 --> 00:36:52.420
+Third, there's the
+issue of modularity.
+
+00:36:52.420 --> 00:36:56.560
+So if you look at
+this code here,
+
+00:36:56.560 --> 00:37:00.880
+you see that the Fibonacci
+logic is not nicely encapsulated
+
+00:37:00.880 --> 00:37:02.050
+within one function.
+
+00:37:02.050 --> 00:37:05.350
+We have that logic in the
+fib function on the left,
+
+00:37:05.350 --> 00:37:08.830
+but then we also have some
+of the fib logic on the right
+
+00:37:08.830 --> 00:37:10.660
+in our main function.
+
+00:37:10.660 --> 00:37:13.930
+And this makes this
+code not modular.
+
+00:37:13.930 --> 00:37:16.900
+And if we want to build
+programs on top of this,
+
+00:37:16.900 --> 00:37:18.350
+it makes it very
+hard to maintain,
+
+00:37:18.350 --> 00:37:22.690
+if we want to just change
+the logic of the Fibonacci
+
+00:37:22.690 --> 00:37:24.790
+function a little
+bit, because now we
+
+00:37:24.790 --> 00:37:26.290
+have to change it
+in multiple places
+
+00:37:26.290 --> 00:37:29.460
+instead of just having
+everything in one place.
+
+00:37:29.460 --> 00:37:32.740
+So it's not a good idea to
+write code that's not modular,
+
+00:37:32.740 --> 00:37:35.260
+so please don't do
+that in your projects.
+
+00:37:40.420 --> 00:37:44.020
+And then finally,
+the code becomes
+
+00:37:44.020 --> 00:37:47.110
+complicated because you
+have to actually move
+
+00:37:47.110 --> 00:37:48.070
+these arguments around.
+
+00:37:48.070 --> 00:37:50.230
+That's known as
+argument marshaling.
+
+00:37:50.230 --> 00:37:52.810
+And then you have to engage
+in error-prone protocols
+
+00:37:52.810 --> 00:37:55.270
+in order to do load balancing.
+
+00:37:55.270 --> 00:37:57.940
+So if you recall here,
+we have to actually
+
+00:37:57.940 --> 00:38:02.710
+place the argument n
+minus 1 into args.input
+
+00:38:02.710 --> 00:38:05.350
+and we have to extract the
+value out of args.output.
+
+00:38:05.350 --> 00:38:07.495
+So that makes the
+code very messy.
+
+00:38:13.090 --> 00:38:17.770
+So why do I say
+shades of 1958 here?
+
+00:38:17.770 --> 00:38:21.760
+Does anyone know what
+happened in 1958?
+
+00:38:21.760 --> 00:38:25.930
+Who was around in 1958?
+
+00:38:25.930 --> 00:38:26.520
+Just Charles?
+
+00:38:29.340 --> 00:38:33.610
+So there was a first
+something in 1958.
+
+00:38:33.610 --> 00:38:34.110
+What was it?
+
+00:38:42.200 --> 00:38:47.180
+So turns out in 1958, we
+had the first compiler.
+
+00:38:47.180 --> 00:38:50.390
+And this was the
+Fortran compiler.
+
+00:38:50.390 --> 00:38:52.730
+And before we had
+Fortran compiler,
+
+00:38:52.730 --> 00:38:54.830
+programmers were writing
+things in assembly.
+
+00:38:54.830 --> 00:38:56.750
+And when you write
+things in assembly,
+
+00:38:56.750 --> 00:38:59.210
+you have to do
+argument marshaling,
+
+00:38:59.210 --> 00:39:02.480
+because you have to place things
+into the appropriate registers
+
+00:39:02.480 --> 00:39:05.150
+before calling a function, and
+also move things around when
+
+00:39:05.150 --> 00:39:06.920
+you return from a function.
+
+00:39:06.920 --> 00:39:09.530
+And the nice thing
+about the first compiler
+
+00:39:09.530 --> 00:39:12.210
+is that it actually did all
+of this argument marshaling
+
+00:39:12.210 --> 00:39:12.710
+for you.
+
+00:39:12.710 --> 00:39:15.680
+So now you can just pass
+arguments to a function,
+
+00:39:15.680 --> 00:39:17.420
+and the compiler
+will generate code
+
+00:39:17.420 --> 00:39:22.340
+that will do the argument
+marshaling for us.
+
+00:39:22.340 --> 00:39:24.320
+So having you do
+this in Pthreads
+
+00:39:24.320 --> 00:39:27.560
+is similar to having to
+write code in assembly,
+
+00:39:27.560 --> 00:39:29.630
+because you have to
+actually manually marshal
+
+00:39:29.630 --> 00:39:31.320
+these arguments.
+
+00:39:31.320 --> 00:39:33.890
+So hopefully, there are
+better ways to do this.
+
+00:39:33.890 --> 00:39:37.490
+And indeed, we'll look at some
+other solutions that will make
+
+00:39:37.490 --> 00:39:40.900
+it easier on the programmer.
+
+00:39:40.900 --> 00:39:42.470
+Any questions before I continue?
+
+00:39:48.980 --> 00:39:51.020
+So we looked at Pthreads.
+
+00:39:51.020 --> 00:39:53.570
+Next, let's look at
+Threading Building Blocks.
+
+00:39:57.160 --> 00:40:00.340
+So Threading Building Blocks
+is a library solution.
+
+00:40:00.340 --> 00:40:02.920
+It was developed by Intel.
+
+00:40:02.920 --> 00:40:07.060
+And it's implemented as a
+C++ library that runs on top
+
+00:40:07.060 --> 00:40:09.090
+of native threads.
+
+00:40:09.090 --> 00:40:12.730
+So the underlying
+implementation uses threads,
+
+00:40:12.730 --> 00:40:15.370
+but the programmer
+doesn't deal with threads.
+
+00:40:15.370 --> 00:40:19.000
+Instead, the programmer
+specifies tasks,
+
+00:40:19.000 --> 00:40:21.430
+and these tasks are
+automatically load-balanced
+
+00:40:21.430 --> 00:40:25.090
+across the threads using
+a work-stealing algorithm
+
+00:40:25.090 --> 00:40:27.880
+inspired by research at MIT--
+
+00:40:27.880 --> 00:40:31.230
+Charles Leiserson's research.
+
+00:40:31.230 --> 00:40:34.690
+And the focus of Intel
+TBB is on performance.
+
+00:40:34.690 --> 00:40:37.840
+And as we'll see, the
+code written using TBB
+
+00:40:37.840 --> 00:40:39.700
+is simpler than
+what you would have
+
+00:40:39.700 --> 00:40:42.260
+to write if you used Pthreads.
+
+00:40:42.260 --> 00:40:46.270
+So let's look at how we can
+implement Fibonacci using TBB.
+
+00:40:49.810 --> 00:40:55.000
+So in TBB, we have to
+create these tasks.
+
+00:40:55.000 --> 00:41:01.460
+So in the Fibonacci code, we
+create this fib task class.
+
+00:41:01.460 --> 00:41:06.065
+And inside the task, we have to
+define this execute function.
+
+00:41:10.580 --> 00:41:12.800
+So the execute function
+is the function
+
+00:41:12.800 --> 00:41:16.080
+that performs a computation
+when we start the task.
+
+00:41:16.080 --> 00:41:21.050
+And this is where we
+define the Fibonacci logic.
+
+00:41:21.050 --> 00:41:24.990
+This task also takes as input
+these arguments parameter, n
+
+00:41:24.990 --> 00:41:25.490
+and sum.
+
+00:41:25.490 --> 00:41:27.365
+So n is the input here
+and sum is the output.
+
+00:41:31.640 --> 00:41:37.370
+And in TBB, we can easily
+create a recursive program
+
+00:41:37.370 --> 00:41:40.950
+that extracts more parallelism.
+
+00:41:40.950 --> 00:41:43.680
+And here, what we're doing
+is we're recursively creating
+
+00:41:43.680 --> 00:41:46.200
+two child tasks, a and b.
+
+00:41:46.200 --> 00:41:49.530
+That's the syntax for
+creating the tasks.
+
+00:41:49.530 --> 00:41:52.200
+And here, we can just pass
+the arguments to FibTask
+
+00:41:52.200 --> 00:41:56.960
+instead of marshaling
+the arguments ourselves.
+
+00:41:56.960 --> 00:42:00.600
+And then what we have
+here is a set_ref_count.
+
+00:42:00.600 --> 00:42:03.690
+And this basically is
+the number of tasks
+
+00:42:03.690 --> 00:42:07.470
+that we have to wait for plus
+one, so plus one for ourselves.
+
+00:42:07.470 --> 00:42:10.920
+And in this case, we
+created two children tasks,
+
+00:42:10.920 --> 00:42:14.940
+and we have ourselves,
+so that's 2 plus 1.
+
+00:42:14.940 --> 00:42:20.720
+And then after that, we start
+task b using the spawn(b) call.
+
+00:42:20.720 --> 00:42:25.310
+And then we do
+spawn_and_wait_for_all
+
+00:42:25.310 --> 00:42:27.050
+with a as the argument.
+
+00:42:27.050 --> 00:42:30.455
+In this place, he says,
+we're going to start task a,
+
+00:42:30.455 --> 00:42:33.350
+and then also wait
+for both a and b
+
+00:42:33.350 --> 00:42:35.070
+to finish before we proceed.
+
+00:42:35.070 --> 00:42:37.670
+So this
+spawn_and_wait_for_all call
+
+00:42:37.670 --> 00:42:40.550
+is going to look at the
+ref count that we set above
+
+00:42:40.550 --> 00:42:44.400
+and wait for that many tasks
+to finish before it continues.
+
+00:42:44.400 --> 00:42:47.870
+And after both and a
+and b have completed,
+
+00:42:47.870 --> 00:42:50.480
+then we can just
+sum up the results
+
+00:42:50.480 --> 00:42:53.930
+and store that into
+the sum variable.
+
+00:42:53.930 --> 00:42:56.870
+And here, these tasks
+are created recursively.
+
+00:42:56.870 --> 00:42:58.820
+So unlike the Pthreads
+implementation
+
+00:42:58.820 --> 00:43:01.760
+that was only creating one
+thread at the top level,
+
+00:43:01.760 --> 00:43:05.120
+here, we're actually recursively
+creating more and more tasks.
+
+00:43:05.120 --> 00:43:07.370
+So we can actually
+get more parallelism
+
+00:43:07.370 --> 00:43:09.830
+from this code and scale
+to more processors.
+
+00:43:14.510 --> 00:43:18.330
+We also need this main function
+just to start up the program.
+
+00:43:18.330 --> 00:43:22.160
+So what we do here is
+we create a root task,
+
+00:43:22.160 --> 00:43:26.150
+which just computes fib
+of n, and then we call
+
+00:43:26.150 --> 00:43:28.880
+spawn_root_and_wait(a).
+
+00:43:28.880 --> 00:43:31.430
+So a is the task for the root.
+
+00:43:31.430 --> 00:43:33.530
+And then it will just
+run the root task.
+
+00:43:36.990 --> 00:43:40.130
+So that's what Fibonacci
+looks like in TBB.
+
+00:43:40.130 --> 00:43:44.870
+So this is much simpler than
+the Pthreads implementation.
+
+00:43:44.870 --> 00:43:46.520
+And it also gets
+better performance,
+
+00:43:46.520 --> 00:43:48.320
+because we can extract
+more parallelism
+
+00:43:48.320 --> 00:43:50.330
+from the computation.
+
+00:43:54.480 --> 00:43:55.440
+Any questions?
+
+00:44:02.430 --> 00:44:08.130
+So TBB also has many other
+features in addition to tasks.
+
+00:44:08.130 --> 00:44:11.730
+So TBB provides many C++
+templates to express common
+
+00:44:11.730 --> 00:44:15.390
+patterns, and you can use these
+templates on different data
+
+00:44:15.390 --> 00:44:16.450
+types.
+
+00:44:16.450 --> 00:44:18.300
+So they have a
+parallel_for, which
+
+00:44:18.300 --> 00:44:21.110
+is used to express
+loop parallelism.
+
+00:44:21.110 --> 00:44:23.790
+So you can loop over a bunch
+of iterations in parallel.
+
+00:44:23.790 --> 00:44:26.580
+They also have a parallel_reduce
+for data aggregation.
+
+00:44:26.580 --> 00:44:28.890
+For example, if you
+want to sum together
+
+00:44:28.890 --> 00:44:31.140
+a whole bunch of values, you
+can use a parallel_reduce
+
+00:44:31.140 --> 00:44:33.610
+to do that in parallel.
+
+00:44:33.610 --> 00:44:37.170
+They also have
+pipeline and filter.
+
+00:44:37.170 --> 00:44:40.260
+That's used for
+software pipelining.
+
+00:44:40.260 --> 00:44:43.740
+TBB provides many concurrent
+container classes,
+
+00:44:43.740 --> 00:44:46.590
+which allow multiple threads
+to safely access and update
+
+00:44:46.590 --> 00:44:48.400
+the items in a
+container concurrently.
+
+00:44:48.400 --> 00:44:53.100
+So for example, they have hash
+tables, trees, priority cues,
+
+00:44:53.100 --> 00:44:53.830
+and so on.
+
+00:44:53.830 --> 00:44:55.980
+And you can just use
+these out of the box,
+
+00:44:55.980 --> 00:44:58.050
+and they'll work in parallel.
+
+00:44:58.050 --> 00:45:01.410
+You can do concurrent
+updates and reads
+
+00:45:01.410 --> 00:45:03.810
+to these data structures.
+
+00:45:03.810 --> 00:45:07.620
+TBB also has a variety of mutual
+exclusion library functions,
+
+00:45:07.620 --> 00:45:11.160
+such as locks and
+atomic operations.
+
+00:45:11.160 --> 00:45:13.560
+So there are a lot
+of features of TBB,
+
+00:45:13.560 --> 00:45:16.980
+which is why it's one of
+the more popular concurrency
+
+00:45:16.980 --> 00:45:18.120
+platforms.
+
+00:45:18.120 --> 00:45:20.040
+And because of all
+of these features,
+
+00:45:20.040 --> 00:45:22.830
+you don't have to implement many
+of these things by yourself,
+
+00:45:22.830 --> 00:45:24.780
+and still get pretty
+good performance.
+
+00:45:28.770 --> 00:45:33.660
+So TBB was a library solution
+to the concurrency problem.
+
+00:45:33.660 --> 00:45:36.270
+Now we're going to look at
+two linguistic solutions--
+
+00:45:36.270 --> 00:45:39.105
+OpenMP and Cilk.
+
+00:45:39.105 --> 00:45:40.230
+So let's start with OpenMP.
+
+00:45:44.050 --> 00:45:49.840
+So OpenMP is a specification
+by an industry consortium.
+
+00:45:49.840 --> 00:45:54.130
+And there are several compilers
+available that support OpenMP,
+
+00:45:54.130 --> 00:45:56.950
+both open source
+and proprietary.
+
+00:45:56.950 --> 00:46:00.040
+So nowadays, GCC,
+ICC, and Clang all
+
+00:46:00.040 --> 00:46:03.880
+support OpenMP, as
+well as Visual Studio.
+
+00:46:03.880 --> 00:46:08.560
+And OpenMP is-- it provides
+linguistic extensions to C
+
+00:46:08.560 --> 00:46:13.300
+and C++, as well as Fortran, in
+the form of compiler pragmas.
+
+00:46:13.300 --> 00:46:15.910
+So you use these
+compiler pragmas
+
+00:46:15.910 --> 00:46:19.900
+in your code to specify
+which pieces of code
+
+00:46:19.900 --> 00:46:22.780
+should run in parallel.
+
+00:46:22.780 --> 00:46:26.170
+And OpenMP also runs on
+top of native threads,
+
+00:46:26.170 --> 00:46:30.400
+but the programmer isn't
+exposed to these threads.
+
+00:46:30.400 --> 00:46:33.120
+OpenMP supports
+loop parallelism,
+
+00:46:33.120 --> 00:46:35.130
+so you can do
+parallel for loops.
+
+00:46:35.130 --> 00:46:39.144
+They have task parallelism as
+well as pipeline parallelism.
+
+00:46:41.750 --> 00:46:44.800
+So let's look at how we can
+implement Fibonacci in OpenMP.
+
+00:46:47.560 --> 00:46:51.140
+So this is the entire code.
+
+00:46:51.140 --> 00:46:54.290
+So I want you to compare this
+to the Pthreads implementation
+
+00:46:54.290 --> 00:46:57.770
+that we saw 10 minutes ago.
+
+00:46:57.770 --> 00:47:00.890
+So this code is much
+cleaner than the Pthreads
+
+00:47:00.890 --> 00:47:04.320
+implementation, and it
+also performs better.
+
+00:47:04.320 --> 00:47:06.110
+So let's see how
+this code works.
+
+00:47:10.270 --> 00:47:12.360
+So we have these
+compiler pragmas,
+
+00:47:12.360 --> 00:47:15.000
+or compiler directives.
+
+00:47:15.000 --> 00:47:20.040
+And the compiler pragma for
+creating a parallel task
+
+00:47:20.040 --> 00:47:24.840
+is omp task.
+
+00:47:24.840 --> 00:47:27.840
+So we're going to create
+an OpenMP task for fib
+
+00:47:27.840 --> 00:47:30.230
+of n minus 1 as well
+as fib of n minus 2.
+
+00:47:37.840 --> 00:47:40.780
+There's also this
+shared pragma, which
+
+00:47:40.780 --> 00:47:43.900
+specifies that the two
+variables in the arguments
+
+00:47:43.900 --> 00:47:47.150
+are shared across
+different threads.
+
+00:47:47.150 --> 00:47:49.630
+So you also have to
+specify whether variables
+
+00:47:49.630 --> 00:47:50.725
+are private or shared.
+
+00:47:55.030 --> 00:47:57.970
+And then the pragma
+omp wait just
+
+00:47:57.970 --> 00:48:00.970
+says we're going to wait
+for the preceding task
+
+00:48:00.970 --> 00:48:03.410
+to complete before we continue.
+
+00:48:03.410 --> 00:48:05.425
+So here, it's going to
+wait for fib of n minus 1
+
+00:48:05.425 --> 00:48:08.290
+and fib of n minus 2
+to finish before we
+
+00:48:08.290 --> 00:48:11.030
+return the result,
+which is what we want.
+
+00:48:11.030 --> 00:48:14.260
+And then after that, we
+just return x plus y.
+
+00:48:14.260 --> 00:48:15.490
+So that's the entire code.
+
+00:48:22.300 --> 00:48:26.170
+And OpenMP also provides
+many other pragma directives,
+
+00:48:26.170 --> 00:48:28.300
+in addition to task.
+
+00:48:28.300 --> 00:48:32.440
+So we can use a parallel
+for to do loop parallelism.
+
+00:48:32.440 --> 00:48:33.610
+There's reduction.
+
+00:48:33.610 --> 00:48:36.080
+There's also directives for
+scheduling and data sharing.
+
+00:48:36.080 --> 00:48:39.550
+So you can specify how
+you want a particular loop
+
+00:48:39.550 --> 00:48:40.360
+to be scheduled.
+
+00:48:40.360 --> 00:48:43.180
+OpenMP has many different
+scheduling policies.
+
+00:48:43.180 --> 00:48:46.730
+They have static parallelism,
+dynamic parallelism, and so on.
+
+00:48:46.730 --> 00:48:49.150
+And then these scheduling
+directives also
+
+00:48:49.150 --> 00:48:51.190
+have different grain sizes.
+
+00:48:51.190 --> 00:48:56.200
+The data sharing directives are
+specifying whether variables
+
+00:48:56.200 --> 00:48:58.770
+are private or shared.
+
+00:48:58.770 --> 00:49:01.870
+OpenMP also supplies a variety
+of synchronization constructs,
+
+00:49:01.870 --> 00:49:05.950
+such as barriers, atomic
+updates, mutual exclusion,
+
+00:49:05.950 --> 00:49:07.030
+or mutex locks.
+
+00:49:07.030 --> 00:49:09.250
+So OpenMP also
+has many features,
+
+00:49:09.250 --> 00:49:13.840
+and it's also one of the
+more popular solutions
+
+00:49:13.840 --> 00:49:17.110
+to writing parallel programs.
+
+00:49:17.110 --> 00:49:19.030
+As you saw in the
+previous example,
+
+00:49:19.030 --> 00:49:20.980
+the code is much
+simpler than if you
+
+00:49:20.980 --> 00:49:25.690
+were to write something
+using Pthreads or even TBB.
+
+00:49:25.690 --> 00:49:27.190
+This is a much simpler solution.
+
+00:49:32.430 --> 00:49:33.370
+Any questions?
+
+00:49:37.400 --> 00:49:38.210
+Yeah?
+
+00:49:38.210 --> 00:49:42.050
+AUDIENCE: So with every
+compiler directive,
+
+00:49:42.050 --> 00:49:47.605
+does it spawn a new [INAUDIBLE]
+on a different processor?
+
+00:49:47.605 --> 00:49:49.610
+JULIAN SHUN: So this
+code here is actually
+
+00:49:49.610 --> 00:49:51.450
+independent of the
+number of processors.
+
+00:49:51.450 --> 00:49:53.750
+So there is actually
+a scheduling algorithm
+
+00:49:53.750 --> 00:49:56.000
+that will determine
+how the tasks get
+
+00:49:56.000 --> 00:49:57.680
+mapped to different processors.
+
+00:49:57.680 --> 00:50:01.460
+So if you spawn a new task,
+it doesn't necessarily put it
+
+00:50:01.460 --> 00:50:02.540
+on a different processor.
+
+00:50:02.540 --> 00:50:04.480
+And you can have more
+tasks than the number
+
+00:50:04.480 --> 00:50:05.480
+of processors available.
+
+00:50:05.480 --> 00:50:06.860
+So there's a
+scheduling algorithm
+
+00:50:06.860 --> 00:50:09.650
+that will take care
+of how these tasks get
+
+00:50:09.650 --> 00:50:11.480
+mapped to different
+processors, and that's
+
+00:50:11.480 --> 00:50:13.340
+hidden from the programmer.
+
+00:50:13.340 --> 00:50:16.190
+Although you can
+use these scheduling
+
+00:50:16.190 --> 00:50:19.640
+pragmas to give
+hints to the compiler
+
+00:50:19.640 --> 00:50:22.750
+how it should schedule it.
+
+00:50:22.750 --> 00:50:23.500
+Yeah?
+
+00:50:23.500 --> 00:50:25.583
+AUDIENCE: What is the
+operating system [INAUDIBLE]
+
+00:50:25.583 --> 00:50:28.027
+scheduling [INAUDIBLE]?
+
+00:50:28.027 --> 00:50:29.860
+JULIAN SHUN: Underneath,
+this is implemented
+
+00:50:29.860 --> 00:50:34.030
+using Pthreads, which has to
+make operating system calls to,
+
+00:50:34.030 --> 00:50:37.390
+basically, directly talk
+to the processor cores
+
+00:50:37.390 --> 00:50:39.850
+and do multiplexing
+and so forth.
+
+00:50:39.850 --> 00:50:44.020
+So the operating system is
+involved at a very low level.
+
+00:50:56.630 --> 00:50:59.900
+So the last concurrency platform
+that we'll be looking at today
+
+00:50:59.900 --> 00:51:00.590
+is Cilk.
+
+00:51:08.158 --> 00:51:09.950
+We're going to look at
+Cilk Plus, actually.
+
+00:51:09.950 --> 00:51:12.870
+And the Cilk part of Cilk Plus
+is a small set of linguistic
+
+00:51:12.870 --> 00:51:18.040
+extensions to C and C++ that
+support fork-join parallelism.
+
+00:51:18.040 --> 00:51:21.180
+So for example, the
+Fibonacci example
+
+00:51:21.180 --> 00:51:22.770
+uses fork-join
+parallelism, so you
+
+00:51:22.770 --> 00:51:24.740
+can use Cilk to implement that.
+
+00:51:24.740 --> 00:51:28.680
+And the Plus part of Cilk Plus
+supports vector parallelism,
+
+00:51:28.680 --> 00:51:34.990
+which you had experience
+working with in your homeworks.
+
+00:51:34.990 --> 00:51:39.960
+So Cilk Plus was initially
+developed by Cilk Arts,
+
+00:51:39.960 --> 00:51:42.570
+which was an MIT spin-off.
+
+00:51:42.570 --> 00:51:47.730
+And Cilk Arts was acquired
+by Intel in July 2009.
+
+00:51:47.730 --> 00:51:52.560
+And the Cilk Plus
+implementation was
+
+00:51:52.560 --> 00:51:55.350
+based on the award-winning Cilk
+multi-threaded language that
+
+00:51:55.350 --> 00:51:59.670
+was developed two decades
+ago here at MIT by Charles
+
+00:51:59.670 --> 00:52:03.240
+Leiserson's research group.
+
+00:52:03.240 --> 00:52:05.610
+And it features a
+provably efficient
+
+00:52:05.610 --> 00:52:07.110
+work-stealing scheduler.
+
+00:52:07.110 --> 00:52:09.390
+So this scheduler is
+provably efficient.
+
+00:52:09.390 --> 00:52:12.280
+You can actually prove
+theoretical bounds on it.
+
+00:52:12.280 --> 00:52:14.700
+And this allows you to implement
+theoretically efficient
+
+00:52:14.700 --> 00:52:18.030
+algorithms, which we'll talk
+more about in another lecture--
+
+00:52:18.030 --> 00:52:18.840
+algorithm design.
+
+00:52:18.840 --> 00:52:21.690
+But it provides a
+provably efficient
+
+00:52:21.690 --> 00:52:23.460
+work-stealing scheduler.
+
+00:52:23.460 --> 00:52:26.310
+And Charles Leiserson
+has a very famous paper
+
+00:52:26.310 --> 00:52:29.760
+that has a proof of that
+this scheduler is optimal.
+
+00:52:29.760 --> 00:52:32.640
+So if you're interested
+in reading about this,
+
+00:52:32.640 --> 00:52:35.070
+you can talk to us offline.
+
+00:52:35.070 --> 00:52:37.860
+Cilk Plus also provides
+a hyperobject library
+
+00:52:37.860 --> 00:52:42.120
+for parallelizing code
+with global variables.
+
+00:52:42.120 --> 00:52:44.760
+And you'll have a chance to
+play around with hyperobjects
+
+00:52:44.760 --> 00:52:47.930
+in homework 4.
+
+00:52:47.930 --> 00:52:50.730
+The Cilk Plus
+ecosystem also includes
+
+00:52:50.730 --> 00:52:54.210
+useful programming tools,
+such as the Cilk Screen Race
+
+00:52:54.210 --> 00:52:54.750
+Detector.
+
+00:52:54.750 --> 00:52:57.810
+So this allows you to
+detect determinacy races
+
+00:52:57.810 --> 00:53:01.710
+in your program to help you
+isolate bugs and performance
+
+00:53:01.710 --> 00:53:03.120
+bottlenecks.
+
+00:53:03.120 --> 00:53:06.810
+It also has a scalability
+analyzer called Cilk View.
+
+00:53:06.810 --> 00:53:11.940
+And Cilk View will basically
+analyze the amount of work
+
+00:53:11.940 --> 00:53:15.120
+that your program
+is doing, as well as
+
+00:53:15.120 --> 00:53:16.740
+the maximum amount
+of parallelism
+
+00:53:16.740 --> 00:53:22.030
+that your code could possibly
+extract from the hardware.
+
+00:53:22.030 --> 00:53:25.683
+So that's Intel Cilk Plus.
+
+00:53:25.683 --> 00:53:27.350
+But it turns out that
+we're not actually
+
+00:53:27.350 --> 00:53:29.540
+going to be using Intel
+Cilk Plus in this class.
+
+00:53:29.540 --> 00:53:32.280
+We're going to be using
+a better compiler.
+
+00:53:32.280 --> 00:53:36.830
+And this compiler is
+based on Tapir/LLVM.
+
+00:53:36.830 --> 00:53:40.760
+And it supports the Cilk
+subset of Cilk Plus.
+
+00:53:40.760 --> 00:53:45.620
+And Tapir/LLVM was actually
+recently developed at MIT
+
+00:53:45.620 --> 00:53:50.870
+by T. B. Schardl, who gave
+a lecture last week, William
+
+00:53:50.870 --> 00:53:53.810
+Moses, who's a grad student
+working with Charles,
+
+00:53:53.810 --> 00:53:55.280
+as well as Charles Leiserson.
+
+00:53:58.550 --> 00:54:02.660
+So talking a lot about
+Charles's work today.
+
+00:54:02.660 --> 00:54:05.390
+And Tapir/LLVM
+generally produces
+
+00:54:05.390 --> 00:54:08.450
+better code, relative
+to its base compiler,
+
+00:54:08.450 --> 00:54:10.970
+than all other implementations
+of Cilk out there.
+
+00:54:10.970 --> 00:54:15.740
+So it's the best Cilk compiler
+that's available today.
+
+00:54:15.740 --> 00:54:18.500
+And they actually
+wrote a very nice paper
+
+00:54:18.500 --> 00:54:21.230
+on this last year, Charles
+Leiserson and his group.
+
+00:54:21.230 --> 00:54:23.750
+And that paper received
+the Best Paper Award
+
+00:54:23.750 --> 00:54:27.080
+at the annual Symposium on
+Principles and Practices
+
+00:54:27.080 --> 00:54:29.360
+of Parallel
+Programming, or PPoPP.
+
+00:54:29.360 --> 00:54:34.500
+So you should look at
+that paper as well.
+
+00:54:34.500 --> 00:54:38.600
+So right now, Tapir/LLVM uses
+the Intel Cilk Plus runtime
+
+00:54:38.600 --> 00:54:43.790
+system, but I believe Charles's
+group has plans to implement
+
+00:54:43.790 --> 00:54:46.460
+a better runtime system.
+
+00:54:46.460 --> 00:54:49.460
+And Tapir/LLVM also supports
+more general features
+
+00:54:49.460 --> 00:54:51.410
+than existing Cilk compilers.
+
+00:54:51.410 --> 00:54:55.290
+So in addition to
+spawning functions,
+
+00:54:55.290 --> 00:54:57.230
+you can also spawn code
+blocks that are not
+
+00:54:57.230 --> 00:55:02.120
+separate functions,
+and this makes
+
+00:55:02.120 --> 00:55:03.542
+writing programs more flexible.
+
+00:55:03.542 --> 00:55:05.750
+You don't have to actually
+create a separate function
+
+00:55:05.750 --> 00:55:11.606
+if you want to execute a
+code block in parallel.
+
+00:55:11.606 --> 00:55:13.103
+Any questions?
+
+00:55:21.590 --> 00:55:26.330
+So this is the Cilk
+code for Fibonacci.
+
+00:55:26.330 --> 00:55:29.320
+So it's also pretty simple.
+
+00:55:29.320 --> 00:55:31.960
+It looks very similar to
+the sequential program,
+
+00:55:31.960 --> 00:55:35.320
+except we have these
+cilk_spawn and cilk_synv
+
+00:55:35.320 --> 00:55:36.940
+statements in the code.
+
+00:55:36.940 --> 00:55:40.260
+So what do these statements do?
+
+00:55:40.260 --> 00:55:45.190
+So cilk_spawn says that the
+named child function, which
+
+00:55:45.190 --> 00:55:47.590
+is the function that is
+right after this cilk_spawn
+
+00:55:47.590 --> 00:55:50.800
+statement, may execute in
+parallel with the parent
+
+00:55:50.800 --> 00:55:51.400
+caller.
+
+00:55:51.400 --> 00:55:52.930
+The parent caller
+is the function
+
+00:55:52.930 --> 00:55:55.270
+that is calling cilk_spawn.
+
+00:55:55.270 --> 00:55:57.670
+So this says that
+fib of n minus 1
+
+00:55:57.670 --> 00:56:02.500
+can execute in parallel with
+the function that called it.
+
+00:56:02.500 --> 00:56:05.890
+And then this function is then
+going to call fib of n minus 2.
+
+00:56:05.890 --> 00:56:08.610
+And fib of n minus 2
+and fib of n minus 1
+
+00:56:08.610 --> 00:56:12.130
+now can be executing
+in parallel.
+
+00:56:12.130 --> 00:56:16.510
+And then cilk_sync says that
+control cannot pass this point
+
+00:56:16.510 --> 00:56:21.030
+until all of the spawn
+children have returned.
+
+00:56:21.030 --> 00:56:23.560
+So this is going to wait
+for fib of n minus 1
+
+00:56:23.560 --> 00:56:28.150
+to return before we go
+to the return statement
+
+00:56:28.150 --> 00:56:29.640
+where we add up x and y.
+
+00:56:34.760 --> 00:56:36.440
+So one important
+thing to note is
+
+00:56:36.440 --> 00:56:38.750
+that the Cilk keywords
+grant permission
+
+00:56:38.750 --> 00:56:42.830
+for parallel execution, but they
+don't actually force or command
+
+00:56:42.830 --> 00:56:44.000
+parallel execution.
+
+00:56:44.000 --> 00:56:47.980
+So even though I
+said cilk_spawn here,
+
+00:56:47.980 --> 00:56:50.240
+the runtime system
+doesn't necessarily
+
+00:56:50.240 --> 00:56:55.010
+have to run fib of n minus 1 in
+parallel with fib of n minus 2.
+
+00:56:55.010 --> 00:56:58.340
+I'm just saying that I could run
+these two things in parallel,
+
+00:56:58.340 --> 00:56:59.750
+and it's up to
+the runtime system
+
+00:56:59.750 --> 00:57:03.830
+to decide whether or not to
+run these things in parallel,
+
+00:57:03.830 --> 00:57:08.480
+based on its scheduling policy.
+
+00:57:08.480 --> 00:57:13.040
+So let's look at
+another example of Cilk.
+
+00:57:13.040 --> 00:57:15.960
+So let's look at
+loop parallelism.
+
+00:57:15.960 --> 00:57:18.860
+So here we want to do
+a matrix transpose,
+
+00:57:18.860 --> 00:57:21.080
+and we want to do this in-place.
+
+00:57:21.080 --> 00:57:24.380
+So the idea here is we
+want to basically swap
+
+00:57:24.380 --> 00:57:31.040
+the elements below the
+diagonal to its mirror
+
+00:57:31.040 --> 00:57:34.410
+image above the diagonal.
+
+00:57:34.410 --> 00:57:36.950
+And here's some code to do this.
+
+00:57:36.950 --> 00:57:39.020
+So we have a cilk_for.
+
+00:57:39.020 --> 00:57:42.590
+So this is basically
+a parallel for loop.
+
+00:57:42.590 --> 00:57:45.710
+It goes from i equals
+1 to n minus 1.
+
+00:57:45.710 --> 00:57:49.310
+And then the inner for loop
+goes from j equals 0 up
+
+00:57:49.310 --> 00:57:51.590
+to i minus 1.
+
+00:57:51.590 --> 00:57:55.730
+And then we just swap
+a of i j with a of j i,
+
+00:57:55.730 --> 00:57:58.400
+using these three statements
+inside the body of the
+
+00:57:58.400 --> 00:57:58.970
+for loop.
+
+00:58:02.110 --> 00:58:04.210
+So to execute a for
+loop in parallel,
+
+00:58:04.210 --> 00:58:10.630
+you just have to add cilk
+underscore to the for keyword.
+
+00:58:10.630 --> 00:58:14.160
+And that's as simple as it gets.
+
+00:58:14.160 --> 00:58:17.100
+So this code is actually
+going to run in parallel
+
+00:58:17.100 --> 00:58:22.890
+and get pretty good speed-up
+for this particular problem.
+
+00:58:22.890 --> 00:58:25.080
+And internally,
+Cilk for loops are
+
+00:58:25.080 --> 00:58:28.980
+transformed into nested
+cilk_spawn and cilk_sync calls.
+
+00:58:28.980 --> 00:58:32.880
+So the compiler is going
+to get rid of the cilk_for
+
+00:58:32.880 --> 00:58:36.150
+and change it into
+cilk_spawn and cilk_sync.
+
+00:58:36.150 --> 00:58:38.370
+So it's going to recursively
+divide the iteration
+
+00:58:38.370 --> 00:58:44.220
+space into half, and then it's
+going to spawn off one half
+
+00:58:44.220 --> 00:58:46.920
+and then execute the other
+half in parallel with that,
+
+00:58:46.920 --> 00:58:49.590
+and then recursively do
+that until the iteration
+
+00:58:49.590 --> 00:58:51.810
+range becomes small
+enough, at which point
+
+00:58:51.810 --> 00:58:54.870
+it doesn't make sense to
+execute it in parallel anymore,
+
+00:58:54.870 --> 00:58:57.750
+so we just execute that
+range sequentially.
+
+00:59:01.310 --> 00:59:03.180
+So that's loop
+parallelism in Cilk.
+
+00:59:03.180 --> 00:59:06.520
+Any questions?
+
+00:59:06.520 --> 00:59:07.060
+Yes?
+
+00:59:07.060 --> 00:59:12.070
+AUDIENCE: How does it know
+[INAUDIBLE] something weird,
+
+00:59:12.070 --> 00:59:15.103
+can it still do that?
+
+00:59:15.103 --> 00:59:16.520
+JULIAN SHUN: Yeah,
+so the compiler
+
+00:59:16.520 --> 00:59:19.940
+can actually figure out
+what the iteration space is.
+
+00:59:19.940 --> 00:59:22.850
+So you don't necessarily
+have to be incrementing by 1.
+
+00:59:22.850 --> 00:59:24.302
+You can do something else.
+
+00:59:24.302 --> 00:59:26.510
+You just have to guarantee
+that all of the iterations
+
+00:59:26.510 --> 00:59:29.780
+are independent.
+
+00:59:29.780 --> 00:59:32.090
+So if you have a
+determinacy race
+
+00:59:32.090 --> 00:59:35.270
+across the different iterations
+of your cilk_for loop,
+
+00:59:35.270 --> 00:59:37.910
+then your result might not
+necessarily be correct.
+
+00:59:37.910 --> 00:59:40.310
+So you have to make sure that
+the iterations are, indeed,
+
+00:59:40.310 --> 00:59:42.270
+independent.
+
+00:59:42.270 --> 00:59:42.770
+Yes?
+
+00:59:42.770 --> 00:59:44.510
+AUDIENCE: Can you
+nest cilk_fors?
+
+00:59:44.510 --> 00:59:47.980
+JULIAN SHUN: Yes, so
+you can nest cilk_fors.
+
+00:59:47.980 --> 00:59:50.210
+But it turns out that,
+for this example,
+
+00:59:50.210 --> 00:59:52.460
+usually, you already
+have enough parallelism
+
+00:59:52.460 --> 00:59:54.890
+in the outer loop for
+large enough values of n,
+
+00:59:54.890 --> 00:59:57.950
+so it doesn't make sense to
+put a cilk_for loop inside,
+
+00:59:57.950 --> 01:00:01.610
+because using a cilk_for loop
+adds some additional overheads.
+
+01:00:01.610 --> 01:00:04.610
+But you can actually do
+nested cilk_for loops.
+
+01:00:04.610 --> 01:00:07.170
+And in some cases,
+it does make sense,
+
+01:00:07.170 --> 01:00:10.910
+especially if there's
+not enough parallelism
+
+01:00:10.910 --> 01:00:13.280
+in the outermost for loop.
+
+01:00:13.280 --> 01:00:15.805
+So good question.
+
+01:00:15.805 --> 01:00:16.305
+Yes?
+
+01:00:16.305 --> 01:00:17.847
+AUDIENCE: What does
+the assembly code
+
+01:00:17.847 --> 01:00:20.390
+look like for the parallel code?
+
+01:00:20.390 --> 01:00:24.145
+JULIAN SHUN: So it has a bunch
+of calls to the Cilk runtime
+
+01:00:24.145 --> 01:00:24.645
+system.
+
+01:00:27.682 --> 01:00:29.640
+I don't know all the
+details, because I haven't
+
+01:00:29.640 --> 01:00:30.640
+looked at this recently.
+
+01:00:30.640 --> 01:00:32.730
+But I think you can
+actually generate
+
+01:00:32.730 --> 01:00:35.700
+the assembly code using a
+flag in the Clang compiler.
+
+01:00:35.700 --> 01:00:37.710
+So that's a good exercise.
+
+01:00:47.295 --> 01:00:48.670
+AUDIENCE: Yeah,
+you probably want
+
+01:00:48.670 --> 01:00:54.550
+to look at the LLVM IR,
+rather than the assembly,
+
+01:00:54.550 --> 01:00:57.580
+to begin with, to
+understand what's going on.
+
+01:00:57.580 --> 01:00:59.920
+It has three
+instructions that are not
+
+01:00:59.920 --> 01:01:07.990
+in the standard LLVM, which were
+added to support parallelism.
+
+01:01:07.990 --> 01:01:13.750
+Those things, when it's
+lowered into assembly,
+
+01:01:13.750 --> 01:01:16.000
+each of those
+instructions becomes
+
+01:01:16.000 --> 01:01:19.270
+a bunch of assembly
+language instructions.
+
+01:01:19.270 --> 01:01:23.980
+So you don't want to mess with
+looking at it in the assembler
+
+01:01:23.980 --> 01:01:26.590
+until you see what it looks
+like in the LLVM first.
+
+01:01:31.400 --> 01:01:34.060
+JULIAN SHUN: So good question.
+
+01:01:34.060 --> 01:01:36.930
+Any other questions
+about this code here?
+
+01:01:44.270 --> 01:01:49.611
+OK, so let's look
+at another example.
+
+01:01:49.611 --> 01:01:52.080
+So let's say we
+had this for loop
+
+01:01:52.080 --> 01:01:54.540
+where, on each
+iteration i, we're
+
+01:01:54.540 --> 01:01:58.530
+just incrementing a
+variable sum by i.
+
+01:01:58.530 --> 01:02:01.260
+So this is essentially
+going to compute
+
+01:02:01.260 --> 01:02:04.980
+the summation of everything
+from i equals 0 up to n minus 1,
+
+01:02:04.980 --> 01:02:06.930
+and then print out the result.
+
+01:02:06.930 --> 01:02:13.710
+So one straightforward way to
+try to parallelize this code
+
+01:02:13.710 --> 01:02:18.790
+is to just change
+the for to cilk_for.
+
+01:02:18.790 --> 01:02:20.560
+So does this code work?
+
+01:02:27.330 --> 01:02:31.540
+Who thinks that this
+code doesn't work?
+
+01:02:31.540 --> 01:02:35.750
+Or doesn't compute
+the correct result?
+
+01:02:35.750 --> 01:02:38.140
+So about half of you.
+
+01:02:38.140 --> 01:02:43.470
+And who thinks this
+code does work?
+
+01:02:43.470 --> 01:02:44.900
+So a couple people.
+
+01:02:44.900 --> 01:02:50.310
+And I guess the rest of
+the people don't care.
+
+01:02:50.310 --> 01:02:55.170
+So it turns out that it's not
+actually necessarily going
+
+01:02:55.170 --> 01:02:56.550
+to give you the right answer.
+
+01:02:56.550 --> 01:02:59.940
+Because the cilk_for
+loop says you
+
+01:02:59.940 --> 01:03:02.220
+can execute these
+iterations in parallel,
+
+01:03:02.220 --> 01:03:06.630
+but they're all updating the
+same shared variable sum here.
+
+01:03:06.630 --> 01:03:10.410
+So you have what's called
+a determinacy race, where
+
+01:03:10.410 --> 01:03:12.940
+multiple processors can be
+writing to the same memory
+
+01:03:12.940 --> 01:03:13.440
+location.
+
+01:03:13.440 --> 01:03:15.450
+We'll talk much more
+about determinacy races
+
+01:03:15.450 --> 01:03:17.510
+in the next lecture.
+
+01:03:17.510 --> 01:03:19.260
+But for this example,
+it's not necessarily
+
+01:03:19.260 --> 01:03:24.750
+going to work if you run it
+on more than one processor.
+
+01:03:24.750 --> 01:03:28.630
+And Cilk actually has a
+nice way to deal with this.
+
+01:03:28.630 --> 01:03:31.650
+So in Cilk, we have
+something known as a reducer.
+
+01:03:31.650 --> 01:03:34.110
+This is one example
+of a hyperobject,
+
+01:03:34.110 --> 01:03:36.000
+which I mentioned earlier.
+
+01:03:36.000 --> 01:03:38.040
+And with a reducer,
+what you have to do
+
+01:03:38.040 --> 01:03:42.090
+is, instead of declaring
+the sum variable just
+
+01:03:42.090 --> 01:03:44.910
+has an unsigned long
+data type, what you do
+
+01:03:44.910 --> 01:03:49.440
+is you use this macro called
+CILK_C_REDUCER_OPADD, which
+
+01:03:49.440 --> 01:03:53.340
+specifies we want to create
+a reducer with the addition
+
+01:03:53.340 --> 01:03:54.660
+function.
+
+01:03:54.660 --> 01:03:56.250
+Then we have the
+variable name sum,
+
+01:03:56.250 --> 01:04:00.580
+the data type unsigned long,
+and then the initial value 0.
+
+01:04:00.580 --> 01:04:03.480
+And then we have a macro
+to register this reducer,
+
+01:04:03.480 --> 01:04:06.810
+so a CILK_C_REGISTER_REDUCER.
+
+01:04:06.810 --> 01:04:08.580
+And then now, inside
+this cilk_for loop,
+
+01:04:08.580 --> 01:04:13.410
+we can increment the sum,
+or REDUCER_VIEW, of sum,
+
+01:04:13.410 --> 01:04:16.350
+which is another macro, by i.
+
+01:04:16.350 --> 01:04:18.540
+And you can actually
+execute this in parallel,
+
+01:04:18.540 --> 01:04:21.540
+and it will give
+you the same answer
+
+01:04:21.540 --> 01:04:23.880
+that you would get if you
+ran this sequentially.
+
+01:04:23.880 --> 01:04:28.740
+So the reducer will take care of
+this determinacy race for you.
+
+01:04:28.740 --> 01:04:31.320
+And at the end, when you
+print out this result,
+
+01:04:31.320 --> 01:04:36.450
+you'll see that the sum is equal
+to the sum that you expect.
+
+01:04:36.450 --> 01:04:38.460
+And then after you
+finish using the reducer,
+
+01:04:38.460 --> 01:04:43.380
+you use this other macro called
+CILK_C_UNREGISTER_REDUCER(sum)
+
+01:04:43.380 --> 01:04:48.450
+that tells the system that
+you're done using this reducer.
+
+01:04:48.450 --> 01:04:51.810
+So this is one way to
+deal with this problem
+
+01:04:51.810 --> 01:04:54.780
+when you want to do a reduction.
+
+01:04:54.780 --> 01:04:57.450
+And it turns out that there
+are many other interesting
+
+01:04:57.450 --> 01:04:59.960
+reduction operators that
+you might want to use.
+
+01:04:59.960 --> 01:05:03.750
+And in general, you can
+create reduces for monoids.
+
+01:05:03.750 --> 01:05:06.150
+And monoids are
+algebraic structures
+
+01:05:06.150 --> 01:05:09.000
+that have an associative
+binary operation as well
+
+01:05:09.000 --> 01:05:10.740
+as an identity element.
+
+01:05:10.740 --> 01:05:13.320
+So the addition
+operator is a monoid,
+
+01:05:13.320 --> 01:05:16.230
+because it's
+associative, it's binary,
+
+01:05:16.230 --> 01:05:19.830
+and the identity element is 0.
+
+01:05:19.830 --> 01:05:23.160
+Cilk also has several
+other predefined reducers,
+
+01:05:23.160 --> 01:05:27.900
+including multiplication, min,
+max, and, or, xor, et cetera.
+
+01:05:27.900 --> 01:05:29.550
+So these are all monoids.
+
+01:05:29.550 --> 01:05:32.280
+And you can also define
+your own reducer.
+
+01:05:32.280 --> 01:05:33.827
+So in fact, in
+the next homework,
+
+01:05:33.827 --> 01:05:36.160
+you'll have the opportunity
+to play around with reducers
+
+01:05:36.160 --> 01:05:41.193
+and write a reducer for lists.
+
+01:05:41.193 --> 01:05:41.985
+So that's reducers.
+
+01:05:46.740 --> 01:05:49.770
+Another nice thing about
+Cilk is that there's always
+
+01:05:49.770 --> 01:05:53.560
+a valid serial interpretation
+of the program.
+
+01:05:53.560 --> 01:05:56.730
+So the serial elision
+of a Cilk program
+
+01:05:56.730 --> 01:05:58.950
+is always a legal
+interpretation.
+
+01:05:58.950 --> 01:06:02.640
+And for the Cilk source
+code on the left,
+
+01:06:02.640 --> 01:06:04.740
+the serial elision
+is basically the code
+
+01:06:04.740 --> 01:06:07.020
+you get if you get
+rid of the cilk_spawn
+
+01:06:07.020 --> 01:06:09.600
+and cilk_sync statements.
+
+01:06:09.600 --> 01:06:12.750
+And this looks just like
+the sequential code.
+
+01:06:17.170 --> 01:06:20.190
+And remember that the Cilk
+keywords grant permission
+
+01:06:20.190 --> 01:06:22.470
+for parallel execution,
+but they don't necessarily
+
+01:06:22.470 --> 01:06:24.025
+command parallel execution.
+
+01:06:24.025 --> 01:06:28.950
+So if you ran this Cilk
+code using a single core,
+
+01:06:28.950 --> 01:06:31.415
+it wouldn't actually create
+these parallel tasks,
+
+01:06:31.415 --> 01:06:32.790
+and you would get
+the same answer
+
+01:06:32.790 --> 01:06:35.640
+as the sequential program.
+
+01:06:35.640 --> 01:06:38.400
+And this is-- in the
+serial edition-- is also
+
+01:06:38.400 --> 01:06:39.690
+a correct interpretation.
+
+01:06:39.690 --> 01:06:44.550
+So unlike other solutions,
+such as TBB and Pthreads,
+
+01:06:44.550 --> 01:06:46.920
+it's actually difficult,
+in those environments,
+
+01:06:46.920 --> 01:06:51.000
+to get a program that does what
+the sequential program does.
+
+01:06:51.000 --> 01:06:54.990
+Because they're actually
+doing a lot of additional work
+
+01:06:54.990 --> 01:06:58.990
+to set up these parallel calls
+and create these argument
+
+01:06:58.990 --> 01:07:01.170
+structures and other
+scheduling constructs.
+
+01:07:01.170 --> 01:07:03.435
+Whereas in Cilk,
+it's very easy just
+
+01:07:03.435 --> 01:07:04.560
+to get this serial elision.
+
+01:07:04.560 --> 01:07:10.020
+You just define cilk_spawn
+and cilk_sync to be null.
+
+01:07:10.020 --> 01:07:12.680
+You also define
+cilk_for to be for.
+
+01:07:12.680 --> 01:07:16.170
+And then this gives you a
+valid sequential program.
+
+01:07:16.170 --> 01:07:19.350
+So when you're
+debugging code, and you
+
+01:07:19.350 --> 01:07:24.300
+might first want to check if the
+sequential elision of your Cilk
+
+01:07:24.300 --> 01:07:25.950
+program is correct,
+and you can easily
+
+01:07:25.950 --> 01:07:28.170
+do that by using these macros.
+
+01:07:28.170 --> 01:07:30.780
+Or actually, there's
+actually a compiler flag
+
+01:07:30.780 --> 01:07:34.720
+that will do that for you
+and give you the equivalent C
+
+01:07:34.720 --> 01:07:35.220
+program.
+
+01:07:35.220 --> 01:07:37.110
+So this is a nice way
+to debug, because you
+
+01:07:37.110 --> 01:07:39.630
+don't have to start with
+the parallel program.
+
+01:07:39.630 --> 01:07:42.460
+You can first check if this
+serial program is correct
+
+01:07:42.460 --> 01:07:45.370
+before you go on to debug
+the parallel program.
+
+01:07:47.930 --> 01:07:51.030
+Questions?
+
+01:07:51.030 --> 01:07:52.090
+Yes?
+
+01:07:52.090 --> 01:07:54.030
+AUDIENCE: So does cilk_for--
+
+01:07:54.030 --> 01:07:59.730
+does each iteration of
+the cilk_for its own task
+
+01:07:59.730 --> 01:08:04.095
+that the scheduler decides if
+it wants to execute in parallel,
+
+01:08:04.095 --> 01:08:06.520
+or if it executes in parallel,
+do all of the iterations
+
+01:08:06.520 --> 01:08:08.950
+execute in parallel?
+
+01:08:08.950 --> 01:08:12.310
+JULIAN SHUN: So it turns
+out that by default,
+
+01:08:12.310 --> 01:08:16.899
+it groups a bunch of iterations
+together into a single task,
+
+01:08:16.899 --> 01:08:19.479
+because it doesn't make
+sense to break it down
+
+01:08:19.479 --> 01:08:23.590
+into such small chunks, due to
+the overheads of parallelism.
+
+01:08:23.590 --> 01:08:26.170
+But there's actually
+a setting you
+
+01:08:26.170 --> 01:08:28.540
+can do to change the grain
+size of the for loop.
+
+01:08:28.540 --> 01:08:32.069
+So you could actually make
+it so that each iteration
+
+01:08:32.069 --> 01:08:34.330
+is its own task.
+
+01:08:34.330 --> 01:08:37.359
+And then, as you
+the scheduler will
+
+01:08:37.359 --> 01:08:39.850
+decide how to map
+these different task
+
+01:08:39.850 --> 01:08:42.189
+onto different
+processors, or even
+
+01:08:42.189 --> 01:08:45.549
+if it wants to execute any
+of these tasks in parallel.
+
+01:08:45.549 --> 01:08:46.479
+So good question.
+
+01:08:56.600 --> 01:09:00.410
+So the idea in Cilk is
+to allow the programmer
+
+01:09:00.410 --> 01:09:03.870
+to express logical
+parallelism in an application.
+
+01:09:03.870 --> 01:09:06.890
+So the programmer
+just has to identify
+
+01:09:06.890 --> 01:09:09.649
+which pieces of the code
+could be executed in parallel,
+
+01:09:09.649 --> 01:09:15.050
+but doesn't necessarily have to
+determine which pieces of code
+
+01:09:15.050 --> 01:09:18.439
+should be executed in parallel.
+
+01:09:18.439 --> 01:09:21.350
+And then Cilk has
+a runtime scheduler
+
+01:09:21.350 --> 01:09:24.560
+that will automatically
+map the executing
+
+01:09:24.560 --> 01:09:28.760
+program onto the available
+processor cores' runtime.
+
+01:09:28.760 --> 01:09:31.282
+And it does this
+dynamically using
+
+01:09:31.282 --> 01:09:34.149
+a work-stealing
+scheduling algorithm.
+
+01:09:34.149 --> 01:09:35.720
+And the work-stealing
+scheduler is
+
+01:09:35.720 --> 01:09:39.439
+used to balance the
+tasks evenly across
+
+01:09:39.439 --> 01:09:40.939
+the different processors.
+
+01:09:40.939 --> 01:09:44.000
+And we'll talk more about
+the work-stealing scheduler
+
+01:09:44.000 --> 01:09:45.740
+in a future lecture.
+
+01:09:45.740 --> 01:09:49.340
+But I want to emphasize that
+unlike the other concurrency
+
+01:09:49.340 --> 01:09:52.279
+platforms that we
+looked at today,
+
+01:09:52.279 --> 01:09:55.520
+Cilk's work-stealing scheduling
+algorithm is theoretically
+
+01:09:55.520 --> 01:10:00.560
+efficient, whereas the OpenMP
+and TBB schedulers are not
+
+01:10:00.560 --> 01:10:01.580
+theoretically efficient.
+
+01:10:01.580 --> 01:10:04.490
+So this is a nice property,
+because it will guarantee you
+
+01:10:04.490 --> 01:10:07.910
+that the algorithms you
+write on top of Cilk
+
+01:10:07.910 --> 01:10:10.208
+will also be
+theoretically efficient.
+
+01:10:13.420 --> 01:10:15.520
+So here's a high-level
+illustration
+
+01:10:15.520 --> 01:10:19.460
+of the Cilk ecosystem.
+
+01:10:19.460 --> 01:10:22.240
+It's a very simplified
+view, but I did this
+
+01:10:22.240 --> 01:10:25.860
+to fit it on a single slide.
+
+01:10:25.860 --> 01:10:28.840
+So what you do is you
+take the Cilk source code,
+
+01:10:28.840 --> 01:10:32.320
+you pass it to your
+favorite Cilk compiler--
+
+01:10:32.320 --> 01:10:35.410
+the Tapir/LLVM
+compiler-- and this
+
+01:10:35.410 --> 01:10:40.720
+gives you a binary that you
+can run on multiple processors.
+
+01:10:40.720 --> 01:10:43.510
+And then you pass a program
+input to the binary,
+
+01:10:43.510 --> 01:10:48.460
+you run it on however
+many processors you have,
+
+01:10:48.460 --> 01:10:50.830
+and then this allows you
+to benchmark the parallel
+
+01:10:50.830 --> 01:10:52.150
+performance of your program.
+
+01:10:55.890 --> 01:10:58.010
+You can also do serial testing.
+
+01:10:58.010 --> 01:11:01.820
+And to do this, you just obtain
+a serial elision of the Cilk
+
+01:11:01.820 --> 01:11:06.125
+program, and you pass it to
+an ordinary C or C++ compiler.
+
+01:11:06.125 --> 01:11:11.360
+It generates a binary that can
+only run on a single processor,
+
+01:11:11.360 --> 01:11:14.330
+and you run your suite of
+serial regression tests
+
+01:11:14.330 --> 01:11:17.020
+on this single threaded binary.
+
+01:11:17.020 --> 01:11:19.910
+And this will allow you to
+benchmark the performance
+
+01:11:19.910 --> 01:11:22.970
+of your serial code and
+also debug any issues
+
+01:11:22.970 --> 01:11:25.100
+that might have arised
+when you were running
+
+01:11:25.100 --> 01:11:26.868
+this program sequentially.
+
+01:11:30.460 --> 01:11:32.690
+Another way to do this
+is you can actually just
+
+01:11:32.690 --> 01:11:36.320
+compile the original
+Cilk code but run it
+
+01:11:36.320 --> 01:11:37.520
+on a single processor.
+
+01:11:37.520 --> 01:11:39.290
+So there's a command
+line argument
+
+01:11:39.290 --> 01:11:42.410
+that tells the runtime system
+how many processors you
+
+01:11:42.410 --> 01:11:42.950
+want to use.
+
+01:11:42.950 --> 01:11:45.500
+And if you set that
+parameter to 1,
+
+01:11:45.500 --> 01:11:47.690
+then it will only use
+a single processor.
+
+01:11:47.690 --> 01:11:53.120
+And this allows you to benchmark
+the single threaded performance
+
+01:11:53.120 --> 01:11:54.260
+of your code as well.
+
+01:11:54.260 --> 01:11:57.560
+And the parallel program
+executing on a single core
+
+01:11:57.560 --> 01:12:00.050
+should behave
+exactly the same way
+
+01:12:00.050 --> 01:12:02.810
+as the execution of
+this serial elision.
+
+01:12:02.810 --> 01:12:07.780
+So that's one of the
+advantages of using Cilk.
+
+01:12:07.780 --> 01:12:12.560
+And because you can easily do
+serial testing using the Cilk
+
+01:12:12.560 --> 01:12:15.500
+platform, this allows
+you to separate out
+
+01:12:15.500 --> 01:12:17.930
+the serial correctness from
+the parallel correctness.
+
+01:12:17.930 --> 01:12:21.050
+As I said earlier, you can first
+debug the serial correctness,
+
+01:12:21.050 --> 01:12:23.180
+as well as any performance
+issues, before moving on
+
+01:12:23.180 --> 01:12:26.220
+to the parallel version.
+
+01:12:26.220 --> 01:12:27.710
+And another point
+I want to make is
+
+01:12:27.710 --> 01:12:35.630
+that because Cilk actually
+uses the serial program
+
+01:12:35.630 --> 01:12:38.210
+inside its task, it's
+actually good to optimize
+
+01:12:38.210 --> 01:12:40.670
+the serial program
+even when you're
+
+01:12:40.670 --> 01:12:42.830
+writing a parallel
+program, because optimizing
+
+01:12:42.830 --> 01:12:44.510
+the serial program
+for performance
+
+01:12:44.510 --> 01:12:47.930
+will also translate to
+better parallel performance.
+
+01:12:52.550 --> 01:12:55.460
+Another nice feature
+of Cilk is that it
+
+01:12:55.460 --> 01:12:58.340
+has this tool called
+Cilksan, which
+
+01:12:58.340 --> 01:13:01.070
+stands for Cilk Sanitizer.
+
+01:13:01.070 --> 01:13:06.020
+And Cilksan will detect
+any determinacy races
+
+01:13:06.020 --> 01:13:08.930
+that you have in your code,
+which will significantly
+
+01:13:08.930 --> 01:13:12.620
+help you with debugging
+the correctness
+
+01:13:12.620 --> 01:13:16.290
+as well as the
+performance of your code.
+
+01:13:16.290 --> 01:13:21.200
+So if you compile the Cilk
+code using the Cilksan flag,
+
+01:13:21.200 --> 01:13:24.410
+it will generate an instrumented
+binary that, when you run,
+
+01:13:24.410 --> 01:13:27.983
+it will find and localize
+all the determinacy races
+
+01:13:27.983 --> 01:13:28.650
+in your program.
+
+01:13:28.650 --> 01:13:31.340
+So it will tell you where
+the determinacy races occur,
+
+01:13:31.340 --> 01:13:33.770
+so that you can go inspect
+that part of your code
+
+01:13:33.770 --> 01:13:37.740
+and fix it if necessary.
+
+01:13:37.740 --> 01:13:42.170
+So this is a very useful
+tool for benchmarking
+
+01:13:42.170 --> 01:13:43.170
+your parallel programs.
+
+01:13:45.890 --> 01:13:49.400
+Cilk also has another nice
+tool called Cilkscale.
+
+01:13:49.400 --> 01:13:53.720
+Cilkscale is a
+performance analyzer.
+
+01:13:53.720 --> 01:13:55.850
+It will analyze how
+much parallelism
+
+01:13:55.850 --> 01:13:58.880
+is available in your program
+as well as the total amount
+
+01:13:58.880 --> 01:14:00.800
+of work that it's doing.
+
+01:14:00.800 --> 01:14:03.440
+So again, you pass a
+flag to the compiler that
+
+01:14:03.440 --> 01:14:05.870
+will turn on Cilkscale,
+and it will generate
+
+01:14:05.870 --> 01:14:08.360
+a binary that is instrumented.
+
+01:14:08.360 --> 01:14:11.192
+And then when you
+run this code, it
+
+01:14:11.192 --> 01:14:12.650
+will give you a
+scalability report.
+
+01:14:15.470 --> 01:14:17.390
+So you'll find these
+tools very useful when
+
+01:14:17.390 --> 01:14:20.540
+you're doing the next project.
+
+01:14:20.540 --> 01:14:23.210
+And we'll talk a little bit
+more about these two tools
+
+01:14:23.210 --> 01:14:24.110
+in the next lecture.
+
+01:14:26.630 --> 01:14:29.300
+And as I said, Cilkscale will
+analyze how well your program
+
+01:14:29.300 --> 01:14:30.860
+will scale to larger machines.
+
+01:14:30.860 --> 01:14:33.860
+So it will basically tell
+you the maximum number
+
+01:14:33.860 --> 01:14:36.540
+of processors that your code
+could possibly take advantage
+
+01:14:36.540 --> 01:14:37.040
+of.
+
+01:14:39.860 --> 01:14:40.980
+Any questions?
+
+01:14:40.980 --> 01:14:41.480
+Yes?
+
+01:14:41.480 --> 01:14:43.900
+AUDIENCE: What do you
+mean when you say runtime?
+
+01:14:43.900 --> 01:14:46.970
+JULIAN SHUN: So I mean the
+scheduler-- the Cilk runtime
+
+01:14:46.970 --> 01:14:50.960
+scheduler that's scheduling
+the different tasks when
+
+01:14:50.960 --> 01:14:52.874
+you're running the program.
+
+01:14:52.874 --> 01:14:55.830
+AUDIENCE: So that's
+included in the binary.
+
+01:14:55.830 --> 01:14:57.960
+JULIAN SHUN: So it's
+linked from the binary.
+
+01:14:57.960 --> 01:14:59.420
+It's not stored
+in the same place.
+
+01:14:59.420 --> 01:15:00.380
+It's linked.
+
+01:15:03.740 --> 01:15:05.180
+Other questions?
+
+01:15:08.400 --> 01:15:11.300
+So let me summarize
+what we looked at today.
+
+01:15:11.300 --> 01:15:16.300
+So first, we saw that
+most processors today
+
+01:15:16.300 --> 01:15:17.470
+have multiple cores.
+
+01:15:17.470 --> 01:15:20.800
+And probably all of your laptops
+have more than one core on it.
+
+01:15:20.800 --> 01:15:23.590
+Who has a laptop that
+only has one core?
+
+01:15:26.901 --> 01:15:29.270
+AUDIENCE: [INAUDIBLE].
+
+01:15:29.270 --> 01:15:32.398
+JULIAN SHUN: When
+did you buy it?
+
+01:15:32.398 --> 01:15:33.440
+Probably a long time ago.
+
+01:15:42.520 --> 01:15:45.740
+So nowadays, obtaining high
+performance on your machines
+
+01:15:45.740 --> 01:15:48.220
+requires you to write
+parallel programs.
+
+01:15:48.220 --> 01:15:51.178
+But parallel programming
+can be very hard,
+
+01:15:51.178 --> 01:15:52.970
+especially if you have
+the program directly
+
+01:15:52.970 --> 01:15:55.310
+on the processor cores and
+interact with the operating
+
+01:15:55.310 --> 01:15:56.900
+system yourself.
+
+01:15:56.900 --> 01:16:00.740
+So Cilk is very nice, because
+it abstracts the processor cores
+
+01:16:00.740 --> 01:16:03.140
+from the programmer, it
+handles synchronization
+
+01:16:03.140 --> 01:16:06.860
+and communication protocols,
+and it also performs
+
+01:16:06.860 --> 01:16:09.870
+provably good load-balancing.
+
+01:16:09.870 --> 01:16:11.990
+And in the next project,
+you'll have a chance
+
+01:16:11.990 --> 01:16:14.270
+to play around with Cilk.
+
+01:16:14.270 --> 01:16:17.490
+You'll be implementing your
+own parallel screensaver,
+
+01:16:17.490 --> 01:16:20.200
+so that's a very
+fun project to do.
+
+01:16:20.200 --> 01:16:22.430
+And possibly, in one
+of the future lectures,
+
+01:16:22.430 --> 01:16:24.820
+we'll post some of
+the nicest screensaver
+
+01:16:24.820 --> 01:16:28.920
+that students developed
+for everyone to see.
+
+01:16:28.920 --> 01:16:31.070
+OK, so that's all.

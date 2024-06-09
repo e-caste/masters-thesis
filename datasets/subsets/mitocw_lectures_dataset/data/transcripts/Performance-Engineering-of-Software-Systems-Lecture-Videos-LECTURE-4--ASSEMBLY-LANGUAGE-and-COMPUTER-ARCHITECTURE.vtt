@@ -1,0 +1,5337 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT OpenCourseWare
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:18.140
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:18.140 --> 00:00:19.026
+at ocw.mit.edu.
+
+00:00:22.233 --> 00:00:23.650
+CHARLES LEISERSON:
+So today, we're
+
+00:00:23.650 --> 00:00:26.200
+going to talk about assembly
+language and computer
+
+00:00:26.200 --> 00:00:29.470
+architecture.
+
+00:00:29.470 --> 00:00:31.900
+It's interesting these
+days, most software courses
+
+00:00:31.900 --> 00:00:35.480
+don't bother to talk
+about these things.
+
+00:00:35.480 --> 00:00:38.830
+And the reason is because
+as much as possible people
+
+00:00:38.830 --> 00:00:42.490
+have been insulated in writing
+their software from performance
+
+00:00:42.490 --> 00:00:43.460
+considerations.
+
+00:00:43.460 --> 00:00:48.430
+But if you want to
+write fast code,
+
+00:00:48.430 --> 00:00:51.880
+you have to know what is
+going on underneath so you
+
+00:00:51.880 --> 00:00:55.180
+can exploit the strengths
+of the architecture.
+
+00:00:55.180 --> 00:00:59.410
+And the interface, the best
+interface, that we have to that
+
+00:00:59.410 --> 00:01:03.530
+is the assembly language.
+
+00:01:03.530 --> 00:01:06.170
+So that's what we're
+going to talk about today.
+
+00:01:06.170 --> 00:01:11.140
+So when you take a
+particular piece of code
+
+00:01:11.140 --> 00:01:16.870
+like fib here, to compile
+it you run it through Clang,
+
+00:01:16.870 --> 00:01:19.480
+as I'm sure you're
+familiar at this point.
+
+00:01:19.480 --> 00:01:24.730
+And what it produces is
+a binary machine language
+
+00:01:24.730 --> 00:01:28.510
+that the computer is
+hardware programmed
+
+00:01:28.510 --> 00:01:31.570
+to interpret and execute.
+
+00:01:31.570 --> 00:01:35.380
+It looks at the bits as
+instructions as opposed to as
+
+00:01:35.380 --> 00:01:36.550
+data.
+
+00:01:36.550 --> 00:01:38.110
+And it executes them.
+
+00:01:41.020 --> 00:01:45.880
+And that's what we
+see when we execute.
+
+00:01:45.880 --> 00:01:47.740
+This process is not one step.
+
+00:01:47.740 --> 00:01:51.970
+It's actually there are
+four stages to compilation;
+
+00:01:51.970 --> 00:01:55.240
+preprocessing, compiling--
+sorry, for the redundancy,
+
+00:01:55.240 --> 00:01:57.490
+that's sort of a
+bad name conflict,
+
+00:01:57.490 --> 00:01:59.170
+but that's what they call it--
+
+00:01:59.170 --> 00:02:02.510
+assembling and linking.
+
+00:02:02.510 --> 00:02:07.075
+So I want to take us
+through those stages.
+
+00:02:11.590 --> 00:02:13.210
+So the first thing
+that goes through
+
+00:02:13.210 --> 00:02:16.390
+is you go through
+a preprocess stage.
+
+00:02:16.390 --> 00:02:19.790
+And you can invoke that
+with Clang manually.
+
+00:02:19.790 --> 00:02:21.250
+So you can say,
+for example, if you
+
+00:02:21.250 --> 00:02:26.650
+do clang minus e, that
+will run the preprocessor
+
+00:02:26.650 --> 00:02:27.960
+and nothing else.
+
+00:02:27.960 --> 00:02:29.530
+And you can take a
+look at the output
+
+00:02:29.530 --> 00:02:36.080
+there and look to see how
+all your macros got expanded
+
+00:02:36.080 --> 00:02:40.920
+and such before the compilation
+actually goes through.
+
+00:02:40.920 --> 00:02:42.650
+Then you compile it.
+
+00:02:42.650 --> 00:02:47.230
+And that produces assembly code.
+
+00:02:47.230 --> 00:02:52.810
+So assembly is a mnemonic
+structure of the machine code
+
+00:02:52.810 --> 00:02:55.180
+that makes it more human
+readable than the machine
+
+00:02:55.180 --> 00:02:58.090
+code itself would be.
+
+00:02:58.090 --> 00:03:02.410
+And once again, you can
+produce the assembly yourself
+
+00:03:02.410 --> 00:03:06.420
+with clang minus s.
+
+00:03:06.420 --> 00:03:11.660
+And then finally,
+penultimately maybe,
+
+00:03:11.660 --> 00:03:18.710
+you can assemble that
+assembly language code
+
+00:03:18.710 --> 00:03:21.050
+to produce an object file.
+
+00:03:21.050 --> 00:03:23.210
+And since we like to have
+separate compilations,
+
+00:03:23.210 --> 00:03:24.710
+you don't have to
+compile everything
+
+00:03:24.710 --> 00:03:27.710
+as one big monolithic hunk.
+
+00:03:27.710 --> 00:03:30.200
+Then there's typically
+a linking stage
+
+00:03:30.200 --> 00:03:32.330
+to produce the final executable.
+
+00:03:32.330 --> 00:03:36.080
+And for that we are using
+ld for the most part.
+
+00:03:36.080 --> 00:03:38.870
+We're actually using
+the gold linker,
+
+00:03:38.870 --> 00:03:40.530
+but ld is the command
+that calls it.
+
+00:03:43.580 --> 00:03:45.230
+So let's go through
+each of those steps
+
+00:03:45.230 --> 00:03:46.280
+and see what's going on.
+
+00:03:46.280 --> 00:03:53.093
+So first, the preprocessing
+is really straightforward.
+
+00:03:53.093 --> 00:03:54.260
+So I'm not going to do that.
+
+00:03:54.260 --> 00:03:56.750
+That's just a
+textual substitution.
+
+00:03:56.750 --> 00:04:01.410
+The next stage is the source
+code to assembly code.
+
+00:04:01.410 --> 00:04:04.520
+So when we do clang
+minus s, we get
+
+00:04:04.520 --> 00:04:06.320
+this symbolic representation.
+
+00:04:06.320 --> 00:04:10.400
+And it looks something
+like this, where we
+
+00:04:10.400 --> 00:04:13.775
+have some labels on the side.
+
+00:04:17.600 --> 00:04:21.829
+And we have some operations
+when they have some directives.
+
+00:04:21.829 --> 00:04:24.470
+And then we have a
+lot of gibberish,
+
+00:04:24.470 --> 00:04:27.980
+which won't seem like
+so much gibberish
+
+00:04:27.980 --> 00:04:31.160
+after you've played
+with it a little bit.
+
+00:04:31.160 --> 00:04:33.930
+But to begin with looks
+kind of like gibberish.
+
+00:04:37.080 --> 00:04:41.130
+From there, we assemble
+that assembly code and that
+
+00:04:41.130 --> 00:04:43.250
+produces the binary.
+
+00:04:43.250 --> 00:04:48.390
+And once again, you can invoke
+it just by running Clang.
+
+00:04:48.390 --> 00:04:52.110
+Clang will recognize that it
+doesn't have a C file or a C++
+
+00:04:52.110 --> 00:04:52.890
+file.
+
+00:04:52.890 --> 00:04:56.400
+It says, oh, goodness, I've
+got an assembly language file.
+
+00:04:56.400 --> 00:05:02.460
+And it will produce the binary.
+
+00:05:02.460 --> 00:05:05.190
+Now, the other thing that
+turns out to be the case
+
+00:05:05.190 --> 00:05:07.950
+is because assembly
+in machine code,
+
+00:05:07.950 --> 00:05:13.320
+they're really very
+similar in structure.
+
+00:05:13.320 --> 00:05:17.010
+Just things like
+the op codes, which
+
+00:05:17.010 --> 00:05:21.960
+are the things that are
+here in blue or purple,
+
+00:05:21.960 --> 00:05:27.060
+whatever that color
+is, like these guys,
+
+00:05:27.060 --> 00:05:29.730
+those correspond to specific
+bit patterns over here
+
+00:05:29.730 --> 00:05:33.060
+in the machine code.
+
+00:05:33.060 --> 00:05:36.900
+And these are the addresses
+and the registers that we're
+
+00:05:36.900 --> 00:05:39.240
+operating on, the operands.
+
+00:05:39.240 --> 00:05:47.235
+Those correspond to other to
+other bit codes over there.
+
+00:05:47.235 --> 00:05:49.680
+And there's very much a--
+
+00:05:49.680 --> 00:05:53.550
+it's not exactly one to one,
+but it's pretty close one to one
+
+00:05:53.550 --> 00:05:56.760
+compared to if you had C
+and you look at the binary,
+
+00:05:56.760 --> 00:06:00.300
+it's like way, way different.
+
+00:06:03.450 --> 00:06:08.130
+So one of the things that turns
+out you can do is if you have
+
+00:06:08.130 --> 00:06:13.830
+the machine code, and especially
+if the machine code that was
+
+00:06:13.830 --> 00:06:16.710
+produced with so-called
+debug symbols--
+
+00:06:16.710 --> 00:06:19.200
+that is it was
+compiled with dash g--
+
+00:06:19.200 --> 00:06:23.040
+you can use this
+program called objdump,
+
+00:06:23.040 --> 00:06:28.680
+which will produce a
+disassembly of the machine code.
+
+00:06:28.680 --> 00:06:33.570
+So it will tell you, OK,
+here's what the mnemonic, more
+
+00:06:33.570 --> 00:06:38.670
+human readable code is, the
+assembly code, from the binary.
+
+00:06:38.670 --> 00:06:40.170
+And that's really
+useful, especially
+
+00:06:40.170 --> 00:06:42.420
+if you're trying to do things--
+
+00:06:42.420 --> 00:06:46.480
+well, let's see why do we
+bother looking at the assembly?
+
+00:06:46.480 --> 00:06:49.387
+So why would you want to look
+at the assembly of your program?
+
+00:06:49.387 --> 00:06:50.595
+Does anybody have some ideas?
+
+00:06:53.170 --> 00:06:53.900
+Yeah.
+
+00:06:53.900 --> 00:06:55.780
+AUDIENCE: [INAUDIBLE]
+made or not.
+
+00:06:55.780 --> 00:06:57.280
+CHARLES LEISERSON:
+Yeah, you can see
+
+00:06:57.280 --> 00:06:59.720
+whether certain optimizations
+are made or not.
+
+00:06:59.720 --> 00:07:00.345
+Other reasons?
+
+00:07:03.010 --> 00:07:05.630
+Everybody is going
+to say that one.
+
+00:07:05.630 --> 00:07:06.130
+OK.
+
+00:07:10.870 --> 00:07:15.400
+Another one is-- well, let's
+see, so here's some reasons.
+
+00:07:15.400 --> 00:07:18.970
+The assembly reveals what the
+compiler did and did not do,
+
+00:07:18.970 --> 00:07:23.510
+because you can see exactly what
+the assembly is that is going
+
+00:07:23.510 --> 00:07:25.660
+to be executed as machine code.
+
+00:07:25.660 --> 00:07:27.370
+The second reason,
+which turns out
+
+00:07:27.370 --> 00:07:29.590
+to happen more often
+you would think,
+
+00:07:29.590 --> 00:07:31.430
+is that, hey, guess
+what, compiler
+
+00:07:31.430 --> 00:07:33.200
+is a piece of software.
+
+00:07:33.200 --> 00:07:35.590
+It has bugs.
+
+00:07:35.590 --> 00:07:38.160
+So your code isn't
+operating correctly.
+
+00:07:38.160 --> 00:07:41.800
+Oh, goodness, what's going on?
+
+00:07:41.800 --> 00:07:45.650
+Maybe the compiler
+made an error.
+
+00:07:45.650 --> 00:07:49.360
+And we have certainly found
+that, especially when you
+
+00:07:49.360 --> 00:07:53.620
+start using some of the less
+frequently used features
+
+00:07:53.620 --> 00:07:55.220
+of a compiler.
+
+00:07:55.220 --> 00:07:56.890
+You may discover,
+oh, it's actually not
+
+00:07:56.890 --> 00:08:01.120
+that well broken in.
+
+00:08:01.120 --> 00:08:05.170
+And it mentions here you
+may only have an effect when
+
+00:08:05.170 --> 00:08:09.550
+compiling at -03, but if
+you compile at -00, -01,
+
+00:08:09.550 --> 00:08:11.510
+everything works out just fine.
+
+00:08:11.510 --> 00:08:14.920
+So then it says, gee,
+somewhere in the optimizations,
+
+00:08:14.920 --> 00:08:17.380
+they did an optimization wrong.
+
+00:08:17.380 --> 00:08:21.220
+So one of the first principles
+of optimization is do it right.
+
+00:08:21.220 --> 00:08:24.400
+And then the second
+is make it fast.
+
+00:08:24.400 --> 00:08:28.480
+And so sometimes the
+compiler doesn't that.
+
+00:08:28.480 --> 00:08:33.250
+It's also the case that
+sometimes you cannot write code
+
+00:08:33.250 --> 00:08:36.860
+that produces the
+assembly that you want.
+
+00:08:36.860 --> 00:08:40.220
+And in that case,
+you can actually
+
+00:08:40.220 --> 00:08:43.820
+write the assembly by hand.
+
+00:08:43.820 --> 00:08:46.850
+Now, it used to be
+many years ago--
+
+00:08:46.850 --> 00:08:48.710
+many, many years ago--
+
+00:08:48.710 --> 00:08:52.550
+that a lot of software
+was written in assembly.
+
+00:08:55.230 --> 00:08:59.740
+In fact, my first
+job out of college,
+
+00:08:59.740 --> 00:09:02.040
+I spent about half
+the time programming
+
+00:09:02.040 --> 00:09:04.980
+in assembly language.
+
+00:09:04.980 --> 00:09:08.700
+And it's not as bad
+as you would think.
+
+00:09:08.700 --> 00:09:11.400
+But it certainly is easier
+to have high-level languages
+
+00:09:11.400 --> 00:09:12.270
+that's for sure.
+
+00:09:12.270 --> 00:09:15.060
+You get lot more
+done a lot quicker.
+
+00:09:15.060 --> 00:09:17.880
+And the last reason
+is reverse engineer.
+
+00:09:17.880 --> 00:09:20.760
+You can figure out what a
+program does when you only
+
+00:09:20.760 --> 00:09:23.070
+have access to its
+source, so, for example,
+
+00:09:23.070 --> 00:09:28.490
+the matrix multiplication
+example that I gave on day 1.
+
+00:09:28.490 --> 00:09:31.020
+You know, we had the
+overall outer structure,
+
+00:09:31.020 --> 00:09:37.950
+but the inner loop, we could
+not match the Intel math kernel
+
+00:09:37.950 --> 00:09:39.690
+library code.
+
+00:09:39.690 --> 00:09:40.590
+So what do we do?
+
+00:09:43.055 --> 00:09:44.430
+We didn't have
+the source for it.
+
+00:09:44.430 --> 00:09:45.900
+We looked to see
+what it was doing.
+
+00:09:45.900 --> 00:09:48.255
+We said, oh, is that
+what they're doing?
+
+00:09:50.790 --> 00:09:54.330
+And then we're able
+to do it ourselves
+
+00:09:54.330 --> 00:10:00.690
+without having to get
+the sauce from them.
+
+00:10:00.690 --> 00:10:03.000
+So we reverse engineered
+what they did?
+
+00:10:03.000 --> 00:10:05.310
+So all those are good reasons.
+
+00:10:05.310 --> 00:10:08.640
+Now, in this class, we
+have some expectations.
+
+00:10:08.640 --> 00:10:12.510
+So one thing is, you know,
+assembly is complicated
+
+00:10:12.510 --> 00:10:15.210
+and you needn't
+memorize the manual.
+
+00:10:15.210 --> 00:10:22.140
+In fact, the manual
+has over 1,000 pages.
+
+00:10:22.140 --> 00:10:27.300
+It's like-- but here's
+what we do expect of you.
+
+00:10:27.300 --> 00:10:32.220
+You should understand
+how a compiler implements
+
+00:10:32.220 --> 00:10:36.900
+various C linguistic constructs
+with x86 instructions.
+
+00:10:36.900 --> 00:10:40.660
+And that's what we'll
+see in the next lecture.
+
+00:10:40.660 --> 00:10:43.060
+And you should be able
+to read x86 assembly
+
+00:10:43.060 --> 00:10:45.670
+language with the aid of
+an architecture manual.
+
+00:10:45.670 --> 00:10:49.210
+And on a quiz, for example,
+we would give you snippets
+
+00:10:49.210 --> 00:10:51.610
+or explain what the op
+codes that are being
+
+00:10:51.610 --> 00:10:53.620
+used in case it's not there.
+
+00:10:53.620 --> 00:10:55.790
+But you should have some
+understanding of that,
+
+00:10:55.790 --> 00:10:58.340
+so you can see what's
+actually happening.
+
+00:10:58.340 --> 00:11:00.340
+You should understand the
+high-level performance
+
+00:11:00.340 --> 00:11:03.730
+implications of common
+assembly patterns.
+
+00:11:03.730 --> 00:11:08.140
+OK, so what does it
+mean to do things
+
+00:11:08.140 --> 00:11:11.270
+in a particular way in
+terms of performance?
+
+00:11:11.270 --> 00:11:12.760
+So some of them
+are quite obvious.
+
+00:11:12.760 --> 00:11:15.850
+Vector operations
+tend to be faster
+
+00:11:15.850 --> 00:11:21.550
+than doing the same thing with
+a bunch of scalar operations.
+
+00:11:24.670 --> 00:11:27.490
+If you do write an assembly,
+typically what we use
+
+00:11:27.490 --> 00:11:31.430
+is there are a bunch of compiler
+intrinsic functions, built-ins,
+
+00:11:31.430 --> 00:11:37.330
+so-called, that allow you
+to use the assembly language
+
+00:11:37.330 --> 00:11:39.190
+instructions.
+
+00:11:39.190 --> 00:11:44.950
+And you should be after we've
+done this able to write code
+
+00:11:44.950 --> 00:11:48.567
+from scratch if the
+situation demands it sometime
+
+00:11:48.567 --> 00:11:49.150
+in the future.
+
+00:11:49.150 --> 00:11:51.220
+We won't do that in
+this class, but we
+
+00:11:51.220 --> 00:11:56.180
+expect that you will be in a
+position to do that after--
+
+00:11:56.180 --> 00:11:58.240
+you should get a
+mastery to the level
+
+00:11:58.240 --> 00:12:02.340
+where that would not be
+impossible for you to do.
+
+00:12:02.340 --> 00:12:06.220
+You'd be able to do that with
+a reasonable amount of effort.
+
+00:12:06.220 --> 00:12:07.800
+So the rest of the
+lecture here is
+
+00:12:07.800 --> 00:12:12.630
+I'm going to first start by
+talking about the instruction
+
+00:12:12.630 --> 00:12:15.660
+set architecture of
+the x86-64, which
+
+00:12:15.660 --> 00:12:18.960
+is the one that we are
+using for the cloud machines
+
+00:12:18.960 --> 00:12:21.880
+that we're using.
+
+00:12:21.880 --> 00:12:24.660
+And then I'm going to talk
+about floating point in vector
+
+00:12:24.660 --> 00:12:27.540
+hardware and then I'm going
+to do an overview of computer
+
+00:12:27.540 --> 00:12:29.110
+architecture.
+
+00:12:29.110 --> 00:12:32.730
+Now, all of this I'm doing--
+this is software class, right?
+
+00:12:32.730 --> 00:12:34.800
+Software performance
+engineering we're doing.
+
+00:12:34.800 --> 00:12:38.040
+So the reason
+we're doing this is
+
+00:12:38.040 --> 00:12:41.610
+so you can write code that
+better matches the hardware,
+
+00:12:41.610 --> 00:12:43.500
+therefore to better get it.
+
+00:12:43.500 --> 00:12:45.900
+In order to do that, I could
+give things at a high-level.
+
+00:12:45.900 --> 00:12:47.550
+My experience is
+that if you really
+
+00:12:47.550 --> 00:12:49.320
+want to understand
+something, you
+
+00:12:49.320 --> 00:12:52.320
+want to understand it to
+level that's necessary
+
+00:12:52.320 --> 00:12:55.380
+and then one level below that.
+
+00:12:55.380 --> 00:12:58.520
+It's not that you'll necessarily
+use that one level below it,
+
+00:12:58.520 --> 00:13:02.510
+but that gives you insight as
+to why that layer is what it is
+
+00:13:02.510 --> 00:13:04.355
+and what's really going on.
+
+00:13:04.355 --> 00:13:06.230
+And so that's kind of
+what we're going to do.
+
+00:13:06.230 --> 00:13:07.688
+We're going to do
+a dive that takes
+
+00:13:07.688 --> 00:13:10.550
+us one level beyond
+what you probably
+
+00:13:10.550 --> 00:13:13.790
+will need to know in
+the class, so that you
+
+00:13:13.790 --> 00:13:17.330
+have a robust foundation
+for understanding.
+
+00:13:17.330 --> 00:13:20.470
+Does that makes sense?
+
+00:13:20.470 --> 00:13:22.600
+That's my part of my
+learning philosophy
+
+00:13:22.600 --> 00:13:25.150
+is you know go one step beyond.
+
+00:13:25.150 --> 00:13:28.570
+And then you can come back.
+
+00:13:28.570 --> 00:13:35.120
+The ISA primer, so the ISA talks
+about the syntax and semantics
+
+00:13:35.120 --> 00:13:35.620
+of assembly.
+
+00:13:40.090 --> 00:13:44.770
+There are four
+important concepts
+
+00:13:44.770 --> 00:13:49.030
+in the instruction
+set architecture--
+
+00:13:49.030 --> 00:13:52.750
+the notion of registers,
+the notion of instructions,
+
+00:13:52.750 --> 00:13:56.470
+the data types, and the
+memory addressing modes.
+
+00:13:56.470 --> 00:13:59.470
+And those are sort of indicated.
+
+00:13:59.470 --> 00:14:03.320
+For example, here, we're going
+to go through those one by one.
+
+00:14:03.320 --> 00:14:05.020
+So let's start
+with the registers.
+
+00:14:05.020 --> 00:14:08.380
+So the registers is where
+the processor stores things.
+
+00:14:08.380 --> 00:14:14.080
+And there are a bunch
+of x86 registers,
+
+00:14:14.080 --> 00:14:18.280
+so many that you don't
+need to know most of them.
+
+00:14:18.280 --> 00:14:20.170
+The ones that are
+important are these.
+
+00:14:23.050 --> 00:14:26.290
+So first of all, there a
+general purpose registers.
+
+00:14:26.290 --> 00:14:29.500
+And those typically
+have width 64.
+
+00:14:29.500 --> 00:14:32.320
+And there are many of those.
+
+00:14:32.320 --> 00:14:36.340
+There is a so-called flags
+register, called RFLAGS,
+
+00:14:36.340 --> 00:14:38.740
+which keeps track of
+things like whether there
+
+00:14:38.740 --> 00:14:41.890
+was an overflow, whether
+the last arithmetic
+
+00:14:41.890 --> 00:14:46.000
+operation resulted in a
+zero, whether a kid there
+
+00:14:46.000 --> 00:14:51.590
+was a carryout of a
+word or what have you.
+
+00:14:51.590 --> 00:14:54.520
+The next one is the
+instruction pointer.
+
+00:14:54.520 --> 00:14:56.770
+So the assembly
+language is organized
+
+00:14:56.770 --> 00:14:59.140
+as a sequence of instructions.
+
+00:14:59.140 --> 00:15:01.900
+And the hardware
+marches linearly
+
+00:15:01.900 --> 00:15:05.590
+through that sequence,
+one after the other,
+
+00:15:05.590 --> 00:15:08.740
+unless it encounters
+a conditional jump
+
+00:15:08.740 --> 00:15:11.410
+or an unconditional
+jump, in which case
+
+00:15:11.410 --> 00:15:13.628
+it'll branch to whatever
+the location is.
+
+00:15:13.628 --> 00:15:15.670
+But for the most part,
+it's just running straight
+
+00:15:15.670 --> 00:15:17.530
+through memory.
+
+00:15:17.530 --> 00:15:21.400
+Then there are
+some registers that
+
+00:15:21.400 --> 00:15:28.900
+were added quite late in the
+game, namely the SSE registers
+
+00:15:28.900 --> 00:15:31.120
+and the AVX registers.
+
+00:15:31.120 --> 00:15:33.140
+And these are vector registers.
+
+00:15:33.140 --> 00:15:38.340
+So the XMM registers were, when
+they first did vectorization,
+
+00:15:38.340 --> 00:15:39.730
+they used 128 bits.
+
+00:15:39.730 --> 00:15:44.290
+There's also for AVX, there
+are the YMM registers.
+
+00:15:44.290 --> 00:15:46.460
+And in the most
+recent processors,
+
+00:15:46.460 --> 00:15:49.780
+which were not using
+this term, there's
+
+00:15:49.780 --> 00:15:55.990
+another level of AVX that
+gives you 512-bit registers.
+
+00:15:55.990 --> 00:16:00.470
+Maybe we'll use that
+for the final project,
+
+00:16:00.470 --> 00:16:04.750
+because it's just like a little
+more power for the game playing
+
+00:16:04.750 --> 00:16:06.400
+project.
+
+00:16:06.400 --> 00:16:08.200
+But for most of what
+you'll be doing,
+
+00:16:08.200 --> 00:16:17.860
+we'll just be keeping to
+the C4 instances in AWS
+
+00:16:17.860 --> 00:16:21.100
+that you guys have been using.
+
+00:16:21.100 --> 00:16:26.800
+Now, the x86-64 didn't
+start out as x86-64.
+
+00:16:26.800 --> 00:16:29.080
+It started out as x86.
+
+00:16:29.080 --> 00:16:34.000
+And it was used for machines,
+in particular the 80-86,
+
+00:16:34.000 --> 00:16:35.800
+which had a 16-bit word.
+
+00:16:38.410 --> 00:16:42.090
+So really short.
+
+00:16:42.090 --> 00:16:44.760
+How many things can you
+index with a 16-bit word?
+
+00:16:48.100 --> 00:16:50.110
+About how many?
+
+00:16:50.110 --> 00:16:51.407
+AUDIENCE: 65,000.
+
+00:16:51.407 --> 00:16:52.990
+CHARLES LEISERSON:
+Yeah, about 65,000.
+
+00:16:52.990 --> 00:17:00.760
+65,536 words you can
+address, or bytes.
+
+00:17:00.760 --> 00:17:02.800
+This is byte addressing.
+
+00:17:02.800 --> 00:17:06.950
+So that's 65k bytes
+that you can address.
+
+00:17:06.950 --> 00:17:10.220
+How could they possibly
+use that for machines?
+
+00:17:10.220 --> 00:17:14.030
+Well, the answer is that's how
+much memory was on the machine.
+
+00:17:14.030 --> 00:17:16.040
+You didn't have gigabytes.
+
+00:17:16.040 --> 00:17:17.480
+So as the machines--
+
+00:17:17.480 --> 00:17:22.069
+as Moore's law marched along
+and we got more and more memory,
+
+00:17:22.069 --> 00:17:24.980
+then the words had to become
+wider to be able to index them.
+
+00:17:24.980 --> 00:17:25.684
+Yeah?
+
+00:17:25.684 --> 00:17:27.582
+AUDIENCE: [INAUDIBLE]
+
+00:17:27.582 --> 00:17:29.040
+CHARLES LEISERSON:
+Yeah, but here's
+
+00:17:29.040 --> 00:17:33.060
+the thing is if you're building
+stuff that's too expensive
+
+00:17:33.060 --> 00:17:38.430
+and you can't get memory
+that's big enough, then
+
+00:17:38.430 --> 00:17:43.440
+if you build a wider word, like
+if you build a word of 32 bits,
+
+00:17:43.440 --> 00:17:45.840
+then your processor
+just cost twice as much
+
+00:17:45.840 --> 00:17:48.150
+as the next guy's processor.
+
+00:17:48.150 --> 00:17:51.030
+So instead, what they did is
+they went along as long as that
+
+00:17:51.030 --> 00:17:55.140
+was the common size, and
+then had some growth pains
+
+00:17:55.140 --> 00:17:58.012
+and went to 32.
+
+00:17:58.012 --> 00:17:59.970
+And from there, they had
+some more growth pains
+
+00:17:59.970 --> 00:18:01.980
+and went to 64.
+
+00:18:01.980 --> 00:18:04.120
+OK, those are two
+separate things.
+
+00:18:04.120 --> 00:18:08.940
+And, in fact, they did they
+did some really weird stuff.
+
+00:18:08.940 --> 00:18:12.120
+So what they did in fact is
+when they made these longer
+
+00:18:12.120 --> 00:18:15.100
+registers, they have
+registers that are
+
+00:18:15.100 --> 00:18:19.470
+aliased to exactly the same
+thing for the lower bits.
+
+00:18:19.470 --> 00:18:27.870
+So they can address
+them either by a byte--
+
+00:18:27.870 --> 00:18:30.330
+so these registers
+all have the same--
+
+00:18:30.330 --> 00:18:33.600
+you can do the lower and
+upper half of the short word,
+
+00:18:33.600 --> 00:18:41.670
+or you can do the 32-bit word
+or you can do the 64-bit word.
+
+00:18:41.670 --> 00:18:44.190
+And that's just like if
+you're doing this today,
+
+00:18:44.190 --> 00:18:45.520
+you wouldn't do that.
+
+00:18:45.520 --> 00:18:49.200
+You wouldn't have all these
+registers that alias and such.
+
+00:18:49.200 --> 00:18:55.410
+But that's what they did because
+this is history, not design.
+
+00:18:55.410 --> 00:18:57.820
+And the reason was
+because when they're
+
+00:18:57.820 --> 00:19:00.000
+doing that they were not
+designing for long term.
+
+00:19:00.000 --> 00:19:03.570
+Now, are we going to go
+to 128-bit addressing?
+
+00:19:03.570 --> 00:19:04.380
+Probably not.
+
+00:19:04.380 --> 00:19:09.130
+64 bits address is a
+spectacular amount of stuff.
+
+00:19:09.130 --> 00:19:13.215
+You know, not quite as many--
+
+00:19:13.215 --> 00:19:15.120
+2 to the 64th is what?
+
+00:19:15.120 --> 00:19:21.030
+Is like how many gazillions?
+
+00:19:21.030 --> 00:19:23.780
+It's a lot of gazillions.
+
+00:19:23.780 --> 00:19:30.340
+So, yeah, we're not going to
+have to go beyond 64 probably.
+
+00:19:30.340 --> 00:19:34.930
+So here are the general
+purpose registers.
+
+00:19:34.930 --> 00:19:38.570
+And as I mentioned, they
+have different names,
+
+00:19:38.570 --> 00:19:40.130
+but they cover the same thing.
+
+00:19:40.130 --> 00:19:46.030
+So if you change eax, for
+example, that also changes rax.
+
+00:19:46.030 --> 00:19:49.900
+And so you see they originally
+all had functional purposes.
+
+00:19:49.900 --> 00:19:55.810
+Now, they're all pretty
+much the same thing,
+
+00:19:55.810 --> 00:19:59.925
+but the names have stuck
+because of history.
+
+00:19:59.925 --> 00:20:01.300
+Instead of calling
+them registers
+
+00:20:01.300 --> 00:20:05.380
+0, register 1, or whatever,
+they all have these funny names.
+
+00:20:05.380 --> 00:20:07.600
+Some of them still are used
+for a particular purpose,
+
+00:20:07.600 --> 00:20:11.680
+like rsp is used as
+the stack pointer.
+
+00:20:11.680 --> 00:20:16.240
+And rbp is used to point
+to the base of the frame,
+
+00:20:16.240 --> 00:20:19.608
+for those who remember
+their 6004 stuff.
+
+00:20:19.608 --> 00:20:21.400
+So anyway, there are
+a whole bunch of them.
+
+00:20:21.400 --> 00:20:22.942
+And they're different
+names depending
+
+00:20:22.942 --> 00:20:26.200
+upon which part of the
+register you're accessing.
+
+00:20:26.200 --> 00:20:30.100
+Now, the format of an
+x86-64 instruction code
+
+00:20:30.100 --> 00:20:33.220
+is to have an opcode and
+then an operand list.
+
+00:20:33.220 --> 00:20:38.260
+And the operand list is
+typically 0, 1, 2, or rarely
+
+00:20:38.260 --> 00:20:41.050
+3 operands separated by commas.
+
+00:20:41.050 --> 00:20:43.930
+Typically, all
+operands are sources
+
+00:20:43.930 --> 00:20:46.180
+and one operand might
+also be the destination.
+
+00:20:46.180 --> 00:20:52.510
+So, for example, if you take a
+look at this add instruction,
+
+00:20:52.510 --> 00:20:54.430
+the operation is an add.
+
+00:20:54.430 --> 00:21:00.050
+And the operand list
+is these two registers.
+
+00:21:00.050 --> 00:21:02.650
+One is edi and the other is ecx.
+
+00:21:02.650 --> 00:21:07.990
+And the destination
+is the second one.
+
+00:21:07.990 --> 00:21:10.930
+When you add-- in this
+case, what's going on
+
+00:21:10.930 --> 00:21:15.490
+is it's taking the value in
+ecx, adding the value in edi
+
+00:21:15.490 --> 00:21:16.330
+into it.
+
+00:21:16.330 --> 00:21:18.970
+And the result is in ecx.
+
+00:21:18.970 --> 00:21:19.753
+Yes?
+
+00:21:19.753 --> 00:21:22.218
+AUDIENCE: Is there a convention
+for where the destination
+
+00:21:22.218 --> 00:21:24.190
+[INAUDIBLE]
+
+00:21:24.190 --> 00:21:26.830
+CHARLES LEISERSON:
+Funny you should ask.
+
+00:21:26.830 --> 00:21:28.330
+Yes.
+
+00:21:28.330 --> 00:21:30.040
+So what does op A, B mean?
+
+00:21:30.040 --> 00:21:34.840
+It turns out naturally
+that the literature
+
+00:21:34.840 --> 00:21:39.470
+is inconsistent about how
+it refers to operations.
+
+00:21:39.470 --> 00:21:42.130
+And there's two major
+ways that are used.
+
+00:21:42.130 --> 00:21:48.580
+One is the AT&T syntax, and
+the other is the Intel syntax.
+
+00:21:48.580 --> 00:21:52.360
+So the AT&T syntax, the second
+operand is the destination.
+
+00:21:52.360 --> 00:21:55.210
+The last operand
+is the destination.
+
+00:21:55.210 --> 00:22:00.940
+In the Intel syntax, the first
+operand is the destination.
+
+00:22:00.940 --> 00:22:03.460
+OK, is that confusing?
+
+00:22:03.460 --> 00:22:06.580
+So almost all the tools
+that we're going to use
+
+00:22:06.580 --> 00:22:08.635
+are going to use
+the AT&T syntax.
+
+00:22:13.750 --> 00:22:19.570
+But you will read documentation,
+which is Intel documentation.
+
+00:22:19.570 --> 00:22:21.550
+It will use the other syntax.
+
+00:22:21.550 --> 00:22:24.600
+Don't get confused.
+
+00:22:24.600 --> 00:22:26.060
+OK?
+
+00:22:26.060 --> 00:22:29.180
+I can't help-- it's
+like I can't help
+
+00:22:29.180 --> 00:22:31.620
+that this is the way the
+state of the world is.
+
+00:22:31.620 --> 00:22:32.830
+OK?
+
+00:22:32.830 --> 00:22:33.522
+Yeah?
+
+00:22:33.522 --> 00:22:35.480
+AUDIENCE: Are there tools
+that help [INAUDIBLE]
+
+00:22:35.480 --> 00:22:36.647
+CHARLES LEISERSON: Oh, yeah.
+
+00:22:36.647 --> 00:22:40.130
+In particular, if you
+could compile it and undo,
+
+00:22:40.130 --> 00:22:41.750
+but I'm sure there's--
+
+00:22:41.750 --> 00:22:44.240
+I mean, this is not a
+hard translation thing.
+
+00:22:44.240 --> 00:22:47.440
+I'll bet if you just Google,
+you can in two minutes,
+
+00:22:47.440 --> 00:22:50.660
+in two seconds, find
+somebody who will translate
+
+00:22:50.660 --> 00:22:53.210
+from one to the other.
+
+00:22:53.210 --> 00:22:59.180
+This is not a complicated
+translation process.
+
+00:22:59.180 --> 00:23:05.960
+Now, here are some very
+common x86 opcodes.
+
+00:23:05.960 --> 00:23:09.380
+And so let me just
+mention a few of these,
+
+00:23:09.380 --> 00:23:14.150
+because these are ones that
+you'll often see in the code.
+
+00:23:14.150 --> 00:23:18.008
+So move, what do
+you think move does?
+
+00:23:18.008 --> 00:23:19.091
+AUDIENCE: Moves something.
+
+00:23:19.091 --> 00:23:21.133
+CHARLES LEISERSON: Yeah,
+it puts something in one
+
+00:23:21.133 --> 00:23:22.540
+register into another register.
+
+00:23:22.540 --> 00:23:24.490
+Of course, when
+it moves it, this
+
+00:23:24.490 --> 00:23:27.310
+is computer science
+move, not real move.
+
+00:23:27.310 --> 00:23:32.140
+When I move my belongings
+in my house to my new house,
+
+00:23:32.140 --> 00:23:34.900
+they're no longer in
+the old place, right?
+
+00:23:34.900 --> 00:23:37.540
+But in computer science, for
+some reason, when we move
+
+00:23:37.540 --> 00:23:42.760
+things we leave a copy behind.
+
+00:23:42.760 --> 00:23:45.207
+So they may call it move, but--
+
+00:23:45.207 --> 00:23:46.790
+AUDIENCE: Why don't
+they call it copy?
+
+00:23:46.790 --> 00:23:49.690
+CHARLES LEISERSON: Yeah,
+why don't they call it copy?
+
+00:23:49.690 --> 00:23:50.350
+You got me.
+
+00:23:54.290 --> 00:23:57.250
+OK, then there's
+conditional move.
+
+00:23:57.250 --> 00:24:02.830
+So this is move based
+on a condition--
+
+00:24:02.830 --> 00:24:04.810
+and we'll see some of
+the ways that this is--
+
+00:24:04.810 --> 00:24:13.150
+like move if flag is equal
+to 0 and so forth, so
+
+00:24:13.150 --> 00:24:15.040
+basically conditional move.
+
+00:24:15.040 --> 00:24:18.370
+It doesn't always do the move.
+
+00:24:18.370 --> 00:24:21.580
+Then you can extend the sign.
+
+00:24:21.580 --> 00:24:28.990
+So, for example, suppose you're
+moving from a 32-bit value
+
+00:24:28.990 --> 00:24:32.650
+register into a 64-bit register.
+
+00:24:32.650 --> 00:24:37.110
+Then the question is, what
+happens to high order bits?
+
+00:24:37.110 --> 00:24:39.450
+So there's two basic
+mechanisms that can be used.
+
+00:24:39.450 --> 00:24:42.510
+Either it can be
+filled with zeros,
+
+00:24:42.510 --> 00:24:47.760
+or remember that the first
+bit, or the leftmost bit as we
+
+00:24:47.760 --> 00:24:53.280
+think of it, is the sign bit
+from our electron binary.
+
+00:24:53.280 --> 00:24:56.730
+That bit will be extended
+through the high order
+
+00:24:56.730 --> 00:25:02.550
+part of the word, so that the
+whole number if it's negative
+
+00:25:02.550 --> 00:25:04.140
+will be negative and
+if it's positive,
+
+00:25:04.140 --> 00:25:08.060
+it'll be zeros and so forth.
+
+00:25:08.060 --> 00:25:10.530
+Does that makes sense?
+
+00:25:10.530 --> 00:25:14.560
+Then there are things like
+push and pop to do stacks.
+
+00:25:14.560 --> 00:25:18.460
+There's a lot of
+integer arithmetic.
+
+00:25:18.460 --> 00:25:23.380
+There's addition, subtraction,
+multiplication, division,
+
+00:25:23.380 --> 00:25:28.210
+various shifts, address
+calculation shifts, rotations,
+
+00:25:28.210 --> 00:25:31.000
+incrementing, decrementing,
+negating, etc.
+
+00:25:31.000 --> 00:25:35.030
+There's also a lot of binary
+logic, AND, OR, XOR, NOT.
+
+00:25:35.030 --> 00:25:38.680
+Those are all doing
+bitwise operations.
+
+00:25:38.680 --> 00:25:42.550
+And then there is Boolean
+logic, like testing
+
+00:25:42.550 --> 00:25:49.230
+to see whether some value has
+a given value or comparing.
+
+00:25:49.230 --> 00:25:51.700
+There's unconditional
+jump, which is jump.
+
+00:25:51.700 --> 00:25:54.970
+And there's conditional jumps,
+which is jump with a condition.
+
+00:25:54.970 --> 00:25:56.800
+And then things
+like subroutines.
+
+00:25:56.800 --> 00:26:00.970
+And there are a bunch more,
+which the manual will have
+
+00:26:00.970 --> 00:26:02.628
+and which will
+undoubtedly show up.
+
+00:26:02.628 --> 00:26:05.170
+Like, for example, there's the
+whole set of vector operations
+
+00:26:05.170 --> 00:26:08.320
+we'll talk about a
+little bit later.
+
+00:26:08.320 --> 00:26:11.400
+Now, the opcodes
+may be augmented
+
+00:26:11.400 --> 00:26:14.340
+with a suffix that describes
+the data type of the operation
+
+00:26:14.340 --> 00:26:16.680
+or a condition code.
+
+00:26:16.680 --> 00:26:19.980
+OK, so an opcode for data
+movement, arithmetic, or logic
+
+00:26:19.980 --> 00:26:26.820
+use a single character suffix
+to indicate the data type.
+
+00:26:26.820 --> 00:26:29.280
+And if the suffix is missing,
+it can usually be inferred.
+
+00:26:29.280 --> 00:26:31.420
+So take a look at this example.
+
+00:26:31.420 --> 00:26:33.480
+So this is a move
+with a q at the end.
+
+00:26:33.480 --> 00:26:37.470
+What do you think q stands for?
+
+00:26:37.470 --> 00:26:38.782
+AUDIENCE: Quad words?
+
+00:26:38.782 --> 00:26:39.990
+CHARLES LEISERSON: Quad word.
+
+00:26:39.990 --> 00:26:41.850
+OK, how many bytes
+in a quad word?
+
+00:26:45.722 --> 00:26:46.558
+AUDIENCE: Eight.
+
+00:26:46.558 --> 00:26:47.600
+CHARLES LEISERSON: Eight.
+
+00:26:51.160 --> 00:26:55.900
+That's because originally it
+started out with a 16-bit word.
+
+00:26:55.900 --> 00:26:59.860
+So they said a quad word was
+four of those 16-bit words.
+
+00:26:59.860 --> 00:27:01.780
+So that's 8 bytes.
+
+00:27:01.780 --> 00:27:02.950
+You get the idea, right?
+
+00:27:02.950 --> 00:27:07.390
+But let me tell you this is all
+over the x86 instruction set.
+
+00:27:07.390 --> 00:27:09.850
+All these historical
+things and all these
+
+00:27:09.850 --> 00:27:14.950
+mnemonics that if you don't
+understand what they really
+
+00:27:14.950 --> 00:27:17.800
+mean, you can get very confused.
+
+00:27:17.800 --> 00:27:20.290
+So in this case, we're
+moving a 64-bit integer,
+
+00:27:20.290 --> 00:27:25.990
+because a quad word
+has 8 bytes or 64 bits.
+
+00:27:25.990 --> 00:27:27.490
+This is one of my--
+
+00:27:27.490 --> 00:27:29.590
+it's like whenever I
+prepare this lecture,
+
+00:27:29.590 --> 00:27:35.290
+I just go into spasms
+of laughter, as I look
+
+00:27:35.290 --> 00:27:38.500
+and I say, oh, my god,
+they really did that like.
+
+00:27:38.500 --> 00:27:42.160
+For example, on the last
+page, when I did subtract.
+
+00:27:42.160 --> 00:27:47.430
+So the sub-operator, if it's
+a two argument operator,
+
+00:27:47.430 --> 00:27:48.750
+it subtracts the--
+
+00:27:48.750 --> 00:27:50.590
+I think it's the
+first and the second.
+
+00:27:50.590 --> 00:27:52.780
+But there is no way of
+subtracting the other way
+
+00:27:52.780 --> 00:27:54.690
+around.
+
+00:27:54.690 --> 00:27:57.650
+It puts the destination
+in the second one.
+
+00:27:57.650 --> 00:28:00.810
+It basically takes the second
+one minus the first one
+
+00:28:00.810 --> 00:28:03.150
+and puts that in the second one.
+
+00:28:03.150 --> 00:28:06.420
+But if you wanted to have
+it the other way around,
+
+00:28:06.420 --> 00:28:08.160
+to save yourself a cycle--
+
+00:28:08.160 --> 00:28:09.480
+anyway, it doesn't matter.
+
+00:28:09.480 --> 00:28:11.820
+You can't do it that way.
+
+00:28:11.820 --> 00:28:14.130
+And all this stuff the
+compiler has to understand.
+
+00:28:17.390 --> 00:28:21.590
+So here are the
+x86-64 data types.
+
+00:28:21.590 --> 00:28:25.940
+The way I've done it is to show
+you the difference between C
+
+00:28:25.940 --> 00:28:36.140
+and x86-64, so for example,
+here are the declarations in C.
+
+00:28:36.140 --> 00:28:41.450
+So there's a char, a short,
+int, unsigned int, long, etc.
+
+00:28:41.450 --> 00:28:43.280
+Here's an example
+of a C constant
+
+00:28:43.280 --> 00:28:45.300
+that does those things.
+
+00:28:45.300 --> 00:28:47.570
+And here's the size
+in bytes that you
+
+00:28:47.570 --> 00:28:50.510
+get when you declare that.
+
+00:28:50.510 --> 00:28:58.370
+And then the assembly suffix
+is one of these things.
+
+00:28:58.370 --> 00:29:02.930
+So in the assembly, it says
+b or w for a word, an l or d
+
+00:29:02.930 --> 00:29:07.300
+for a double word, a q
+for a quad word, i.e.
+
+00:29:07.300 --> 00:29:09.980
+8 bytes, single precision,
+double precision,
+
+00:29:09.980 --> 00:29:11.432
+extended precision.
+
+00:29:15.710 --> 00:29:19.460
+So sign extension use
+two date type suffixes.
+
+00:29:19.460 --> 00:29:22.470
+So here's an example.
+
+00:29:22.470 --> 00:29:27.840
+So the first one says
+we're going to move.
+
+00:29:27.840 --> 00:29:32.362
+And now you see I can't read
+this without my cheat sheet.
+
+00:29:32.362 --> 00:29:33.320
+So what is this saying?
+
+00:29:33.320 --> 00:29:43.250
+This is saying, we're going
+to move with a zero-extend.
+
+00:29:43.250 --> 00:29:45.710
+And it's going to be the
+first operand is a byte,
+
+00:29:45.710 --> 00:29:47.400
+and the second
+operation is a long.
+
+00:29:47.400 --> 00:29:49.430
+Is that right?
+
+00:29:49.430 --> 00:29:53.570
+If I'm wrong, it's like I
+got to look at the chart too.
+
+00:29:53.570 --> 00:29:56.000
+And, of course, we
+don't hold you to that.
+
+00:29:56.000 --> 00:29:58.970
+But the z there says
+extends with zeros.
+
+00:29:58.970 --> 00:30:03.240
+And the S says
+preserve the sign.
+
+00:30:03.240 --> 00:30:05.460
+So that's the things.
+
+00:30:05.460 --> 00:30:08.520
+Now, that would all
+be all well and good,
+
+00:30:08.520 --> 00:30:15.810
+except that then what they did
+is if you do 32-bit operations,
+
+00:30:15.810 --> 00:30:19.320
+where you're moving
+it to a 64-bit value,
+
+00:30:19.320 --> 00:30:23.230
+it implicitly
+zero-extends the sign.
+
+00:30:23.230 --> 00:30:27.130
+If you do it for smaller
+values and you store it in,
+
+00:30:27.130 --> 00:30:30.475
+it simply overwrites the
+values in those registers.
+
+00:30:30.475 --> 00:30:32.980
+It doesn't touch
+the high order bits.
+
+00:30:32.980 --> 00:30:39.370
+But when they did the
+32 to 64-bit extension
+
+00:30:39.370 --> 00:30:42.430
+of the instruction
+set, they decided
+
+00:30:42.430 --> 00:30:45.610
+that they wouldn't do what
+had been done in the past.
+
+00:30:45.610 --> 00:30:48.670
+And they decided that they
+would zero-extend things,
+
+00:30:48.670 --> 00:30:52.750
+unless there was something
+explicit to the contrary.
+
+00:30:52.750 --> 00:30:53.980
+You got me, OK.
+
+00:30:56.780 --> 00:31:00.640
+Yeah, I have a friend
+who worked at Intel.
+
+00:31:00.640 --> 00:31:04.008
+And he had a joke about
+the Intel instructions set.
+
+00:31:04.008 --> 00:31:05.550
+You'll discover the
+Intel instruction
+
+00:31:05.550 --> 00:31:07.030
+set is really complicated.
+
+00:31:07.030 --> 00:31:09.640
+He says, here's the idea of
+the Intel instruction set.
+
+00:31:09.640 --> 00:31:12.910
+He said, to become
+an Intel fellow,
+
+00:31:12.910 --> 00:31:17.832
+you need to have an instruction
+in the Intel instruction set.
+
+00:31:17.832 --> 00:31:19.540
+You have an instruction
+that you invented
+
+00:31:19.540 --> 00:31:21.940
+and that that's
+now used in Intel.
+
+00:31:21.940 --> 00:31:25.000
+He says nobody becomes
+an Intel fellow
+
+00:31:25.000 --> 00:31:28.740
+for removing instructions.
+
+00:31:28.740 --> 00:31:31.710
+So it just sort of grows and
+grows and grows and gets more
+
+00:31:31.710 --> 00:31:36.150
+and more complicated
+for each thing.
+
+00:31:36.150 --> 00:31:41.160
+Now, once again, for
+extension, you can sign-extend.
+
+00:31:41.160 --> 00:31:44.310
+And here's two examples.
+
+00:31:44.310 --> 00:31:48.120
+In one case, moving an 8-bit
+integer to a 32-bit integer
+
+00:31:48.120 --> 00:31:51.570
+and zero-extended it
+versus preserving the sign.
+
+00:31:55.440 --> 00:31:57.360
+Conditional jumps
+and conditional moves
+
+00:31:57.360 --> 00:32:01.200
+also use suffixes to
+indicate the condition code.
+
+00:32:01.200 --> 00:32:05.010
+So here, for example, the ne
+indicates the jump should only
+
+00:32:05.010 --> 00:32:08.460
+be taken if the argument
+of the previous comparison
+
+00:32:08.460 --> 00:32:09.480
+are not equal.
+
+00:32:09.480 --> 00:32:11.100
+So ne is not equal.
+
+00:32:11.100 --> 00:32:12.960
+So you do a
+comparison, and that's
+
+00:32:12.960 --> 00:32:16.320
+going to set a flag in
+the RFLAGS register.
+
+00:32:16.320 --> 00:32:19.140
+Then the jump will
+look at that flag
+
+00:32:19.140 --> 00:32:22.260
+and decide whether it's going
+to jump or not or just continue
+
+00:32:22.260 --> 00:32:26.697
+the sequential
+execution of the code.
+
+00:32:26.697 --> 00:32:28.530
+And there are a bunch
+of things that you can
+
+00:32:28.530 --> 00:32:36.030
+jump on which are status flags.
+
+00:32:36.030 --> 00:32:37.770
+And you can see the names here.
+
+00:32:37.770 --> 00:32:39.060
+There's Carry.
+
+00:32:39.060 --> 00:32:40.800
+There's Parity.
+
+00:32:40.800 --> 00:32:43.170
+Parity is the XOR of all
+the bits in the word.
+
+00:32:46.390 --> 00:32:49.860
+Adjust, I don't even
+know what that's for.
+
+00:32:49.860 --> 00:32:51.202
+There's the Zero flag.
+
+00:32:51.202 --> 00:32:52.410
+It tells whether it's a zero.
+
+00:32:52.410 --> 00:32:55.720
+There's a Sign flag, whether
+it's positive or negative.
+
+00:32:55.720 --> 00:33:01.290
+There's a Trap flag and
+Interrupt enable and Direction,
+
+00:33:01.290 --> 00:33:02.070
+Overflow.
+
+00:33:02.070 --> 00:33:05.310
+So anyway, you can see there
+are a whole bunch of these.
+
+00:33:05.310 --> 00:33:08.850
+So, for example here, this
+is going to decrement rbx.
+
+00:33:08.850 --> 00:33:12.270
+And then it sets the Zero
+flag if the results are equal.
+
+00:33:12.270 --> 00:33:15.210
+And then the jump,
+the conditional jump,
+
+00:33:15.210 --> 00:33:21.340
+jumps to the label if the ZF
+flag is not set, in this case.
+
+00:33:21.340 --> 00:33:24.040
+OK, it make sense?
+
+00:33:24.040 --> 00:33:26.050
+After a fashion.
+
+00:33:26.050 --> 00:33:28.330
+Doesn't make rational sense,
+but it does make sense.
+
+00:33:32.300 --> 00:33:35.000
+Here are the main ones
+that you're going to need.
+
+00:33:35.000 --> 00:33:38.210
+The Carry flag is whether you
+got a carry or a borrow out
+
+00:33:38.210 --> 00:33:39.740
+of the most significant bit.
+
+00:33:39.740 --> 00:33:44.390
+The Zero flag is if the
+ALU operation was 0,
+
+00:33:44.390 --> 00:33:47.450
+whether the last ALU operation
+had the sign bit set.
+
+00:33:47.450 --> 00:33:49.640
+And the overflow
+says it resulted
+
+00:33:49.640 --> 00:33:52.410
+in arithmetic overflow.
+
+00:33:52.410 --> 00:33:56.390
+The condition codes are--
+
+00:33:56.390 --> 00:33:58.520
+if you put one of
+these condition codes
+
+00:33:58.520 --> 00:34:02.600
+on your conditional
+jump or whatever,
+
+00:34:02.600 --> 00:34:07.760
+this tells you exactly what
+the flag is that is being set.
+
+00:34:07.760 --> 00:34:14.389
+So, for example, the easy
+ones are if it's equal.
+
+00:34:14.389 --> 00:34:16.199
+But there are some
+other ones there.
+
+00:34:16.199 --> 00:34:22.969
+So, for example, if you
+say why, for example,
+
+00:34:22.969 --> 00:34:25.969
+do the condition codes e
+and ne, check the Zero flag?
+
+00:34:29.190 --> 00:34:34.320
+And the answer is
+typically, rather
+
+00:34:34.320 --> 00:34:36.870
+than having a separate
+comparison, what they've done
+
+00:34:36.870 --> 00:34:39.900
+is separate the branch
+from the comparison itself.
+
+00:34:39.900 --> 00:34:43.620
+But it also needn't be
+a compare instruction.
+
+00:34:43.620 --> 00:34:48.330
+It could be the result
+of the last arithmetic
+
+00:34:48.330 --> 00:34:50.940
+operation was a zero,
+and therefore it
+
+00:34:50.940 --> 00:34:56.090
+can branch without having to
+do a comparison with zero.
+
+00:34:56.090 --> 00:34:59.660
+So, for example,
+if you have a loop.
+
+00:34:59.660 --> 00:35:03.140
+where you're decrementing a
+counter till it gets to 0,
+
+00:35:03.140 --> 00:35:09.390
+that's actually faster
+by one instruction
+
+00:35:09.390 --> 00:35:14.550
+to compare whether
+the loop index hits 0
+
+00:35:14.550 --> 00:35:18.740
+than it is if you have the
+loop going up to n, and then
+
+00:35:18.740 --> 00:35:21.200
+every time through the loop
+having to compare with n
+
+00:35:21.200 --> 00:35:24.530
+in order before you can branch.
+
+00:35:24.530 --> 00:35:28.460
+So these days that optimization
+doesn't mean anything,
+
+00:35:28.460 --> 00:35:31.190
+because, as we'll talk
+about in a little bit,
+
+00:35:31.190 --> 00:35:38.840
+these machines are so powerful,
+that doing an extra integer
+
+00:35:38.840 --> 00:35:40.310
+arithmetic like
+that probably has
+
+00:35:40.310 --> 00:35:41.900
+no bearing on the overall cost.
+
+00:35:41.900 --> 00:35:42.436
+Yeah?
+
+00:35:42.436 --> 00:35:44.644
+AUDIENCE: So this instruction
+doesn't take arguments?
+
+00:35:44.644 --> 00:35:45.590
+It just looks at the flags?
+
+00:35:45.590 --> 00:35:47.270
+CHARLES LEISERSON: Just
+looks at the flags, yep.
+
+00:35:47.270 --> 00:35:48.270
+Just looks at the flags.
+
+00:35:48.270 --> 00:35:52.230
+It doesn't take any arguments.
+
+00:35:52.230 --> 00:35:55.700
+Now, the next aspect of this
+is you can give registers,
+
+00:35:55.700 --> 00:35:58.310
+but you also can address memory.
+
+00:35:58.310 --> 00:36:05.450
+And there are three direct
+addressing modes and three
+
+00:36:05.450 --> 00:36:06.920
+indirect addressing modes.
+
+00:36:09.440 --> 00:36:14.420
+At most, one operand may
+specify a memory address.
+
+00:36:14.420 --> 00:36:16.640
+So here are the direct
+addressing modes.
+
+00:36:16.640 --> 00:36:19.980
+So for immediate what you do
+is you give it a constant,
+
+00:36:19.980 --> 00:36:26.630
+like 172, random constant,
+to store into the register,
+
+00:36:26.630 --> 00:36:27.200
+in this case.
+
+00:36:27.200 --> 00:36:28.430
+That's called an immediate.
+
+00:36:28.430 --> 00:36:32.120
+What happens if you
+look at the instruction,
+
+00:36:32.120 --> 00:36:33.700
+if you look at the
+machine language,
+
+00:36:33.700 --> 00:36:37.730
+172 is right in the instruction.
+
+00:36:37.730 --> 00:36:42.080
+It's right in the
+instruction, that number 172.
+
+00:36:42.080 --> 00:36:44.870
+Register says we'll move
+the value from the register,
+
+00:36:44.870 --> 00:36:47.390
+in this case, %cx.
+
+00:36:47.390 --> 00:36:52.070
+And then the index of the
+register is put in that part.
+
+00:36:52.070 --> 00:36:58.940
+And direct memory says use a
+particular memory location.
+
+00:36:58.940 --> 00:37:00.650
+And you can give a hex value.
+
+00:37:00.650 --> 00:37:05.910
+When you do direct
+memory, it's going
+
+00:37:05.910 --> 00:37:09.020
+to use the value at
+that place in memory.
+
+00:37:09.020 --> 00:37:13.730
+And to indicate that memory
+is going to take you,
+
+00:37:13.730 --> 00:37:19.190
+on a 64-bit machine, 64
+8-bytes to specify that memory.
+
+00:37:19.190 --> 00:37:27.370
+Whereas, for example, the move
+q, 172 will fit in 1 byte.
+
+00:37:27.370 --> 00:37:32.410
+And so I'll have spent a lot
+less storage in order to do it.
+
+00:37:32.410 --> 00:37:35.740
+Plus, I can do it directly
+from the instruction stream.
+
+00:37:35.740 --> 00:37:38.260
+And I avoid having
+an access to memory,
+
+00:37:38.260 --> 00:37:39.910
+which is very expensive.
+
+00:37:39.910 --> 00:37:43.660
+So how many cycles does it
+take if the value that you're
+
+00:37:43.660 --> 00:37:49.450
+fetching from memory
+is not in cache
+
+00:37:49.450 --> 00:37:51.167
+or whatever or a register?
+
+00:37:51.167 --> 00:37:52.750
+If I'm fetching
+something from memory,
+
+00:37:52.750 --> 00:37:54.670
+how many cycles of
+the machine does
+
+00:37:54.670 --> 00:37:56.200
+it typically take these days.
+
+00:37:58.970 --> 00:37:59.542
+Yeah.
+
+00:37:59.542 --> 00:38:00.870
+AUDIENCE: A few hundred?
+
+00:38:00.870 --> 00:38:03.078
+CHARLES LEISERSON: Yeah, a
+couple of hundred or more,
+
+00:38:03.078 --> 00:38:05.220
+yeah, a couple hundred cycles.
+
+00:38:05.220 --> 00:38:08.230
+To fetch something from memory.
+
+00:38:08.230 --> 00:38:09.760
+It's so slow.
+
+00:38:09.760 --> 00:38:12.670
+No, it's the
+processors are so fast.
+
+00:38:12.670 --> 00:38:15.940
+And so clearly, if you can
+get things into registers,
+
+00:38:15.940 --> 00:38:19.760
+most registers you can
+access in a single cycle.
+
+00:38:19.760 --> 00:38:21.880
+So we want to move things
+close to the processor,
+
+00:38:21.880 --> 00:38:24.320
+operate on them,
+shove them back.
+
+00:38:24.320 --> 00:38:25.880
+And while we pull
+things from memory,
+
+00:38:25.880 --> 00:38:28.880
+we want other things
+to be to be working on.
+
+00:38:28.880 --> 00:38:33.360
+And so the hardware is
+all organized to do that.
+
+00:38:33.360 --> 00:38:35.390
+Now, of course, we
+spend a lot of time
+
+00:38:35.390 --> 00:38:36.680
+fetching stuff from memory.
+
+00:38:36.680 --> 00:38:38.330
+And that's one reason
+we use caching.
+
+00:38:38.330 --> 00:38:39.920
+And we'll have a big thing--
+
+00:38:39.920 --> 00:38:41.250
+caching is really important.
+
+00:38:41.250 --> 00:38:42.625
+We're going spend
+a bunch of time
+
+00:38:42.625 --> 00:38:45.860
+on how to get the best
+out of your cache.
+
+00:38:45.860 --> 00:38:49.100
+There's also
+indirect addressing.
+
+00:38:49.100 --> 00:38:51.500
+So instead of just
+giving a location,
+
+00:38:51.500 --> 00:38:56.960
+you say, oh, let's go
+to some other place,
+
+00:38:56.960 --> 00:39:03.750
+for example, a register,
+and get the value
+
+00:39:03.750 --> 00:39:06.740
+and the address is going to
+be stored in that location.
+
+00:39:06.740 --> 00:39:10.900
+So, for example here, register
+indirect says, in this case,
+
+00:39:10.900 --> 00:39:15.145
+move the contents of rax into--
+
+00:39:17.890 --> 00:39:20.740
+sorry, the contents is
+the address of the thing
+
+00:39:20.740 --> 00:39:24.600
+that you're going
+to move into rdi.
+
+00:39:24.600 --> 00:39:30.020
+So if rax was
+location 172, then it
+
+00:39:30.020 --> 00:39:32.975
+would take whatever is in
+location 172 and put it in rdi.
+
+00:39:35.520 --> 00:39:37.770
+Registered index says,
+well, do the same thing,
+
+00:39:37.770 --> 00:39:42.030
+but while you're at
+it, add an offset.
+
+00:39:42.030 --> 00:39:47.220
+So once again, if rax
+had 172, in this case
+
+00:39:47.220 --> 00:39:54.250
+it would go to 344 to
+fetch the value out
+
+00:39:54.250 --> 00:39:59.140
+of that location 344 for
+this particular instruction.
+
+00:39:59.140 --> 00:40:02.410
+And then instruction-pointer
+relative,
+
+00:40:02.410 --> 00:40:05.980
+instead of indexing off
+of a general purpose
+
+00:40:05.980 --> 00:40:09.590
+register, you index off
+the instruction pointer.
+
+00:40:09.590 --> 00:40:13.870
+That usually happens in the
+code where the code is--
+
+00:40:17.950 --> 00:40:19.690
+for example, you
+can jump to where
+
+00:40:19.690 --> 00:40:23.320
+you are in the code
+plus four instructions.
+
+00:40:23.320 --> 00:40:27.010
+So you can jump down some number
+of instructions in the code.
+
+00:40:27.010 --> 00:40:29.620
+Usually, you'll see that
+only with use with control,
+
+00:40:29.620 --> 00:40:31.120
+because you're
+talking about things.
+
+00:40:31.120 --> 00:40:35.260
+But sometimes they'll put some
+data in the instruction stream.
+
+00:40:35.260 --> 00:40:37.330
+And then it can index off
+the instruction pointer
+
+00:40:37.330 --> 00:40:39.460
+to get those values
+without having
+
+00:40:39.460 --> 00:40:44.020
+to soil another register.
+
+00:40:44.020 --> 00:40:48.430
+Now, the most general form is
+base indexed scale displacement
+
+00:40:48.430 --> 00:40:49.780
+addressing.
+
+00:40:49.780 --> 00:40:52.090
+Wow.
+
+00:40:52.090 --> 00:40:59.080
+This is a move that has a
+constant plus three terms.
+
+00:40:59.080 --> 00:41:03.880
+And this is the most complicated
+instruction that is supported.
+
+00:41:03.880 --> 00:41:09.490
+The mode refers to the
+address whatever the base is.
+
+00:41:09.490 --> 00:41:15.970
+So the base is a general purpose
+register, in this case, rdi.
+
+00:41:15.970 --> 00:41:19.940
+And then it adds the
+index times the scale.
+
+00:41:19.940 --> 00:41:24.370
+So the scale is 1, 2, 4, or 8.
+
+00:41:24.370 --> 00:41:30.100
+And then a displacement, which
+is that number on the front.
+
+00:41:30.100 --> 00:41:33.310
+And this gives you
+very general indexing
+
+00:41:33.310 --> 00:41:35.350
+of things off of a base point.
+
+00:41:35.350 --> 00:41:38.080
+You'll often see this
+kind of accessing
+
+00:41:38.080 --> 00:41:40.380
+when you're accessing
+stack memory,
+
+00:41:40.380 --> 00:41:41.880
+because everything
+you can say, here
+
+00:41:41.880 --> 00:41:46.120
+is the base of my frame on the
+stack, and now for anything
+
+00:41:46.120 --> 00:41:49.690
+that I want to add, I'm going
+to be going up a certain amount.
+
+00:41:49.690 --> 00:41:51.310
+I may scaling by
+a certain amount
+
+00:41:51.310 --> 00:41:54.400
+to get the value that I want.
+
+00:41:54.400 --> 00:42:02.200
+So once again, you will
+become familiar with a manual.
+
+00:42:02.200 --> 00:42:04.553
+You don't have to
+memorize all these,
+
+00:42:04.553 --> 00:42:06.220
+but you do have to
+understand that there
+
+00:42:06.220 --> 00:42:10.510
+are a lot of these
+complex addressing modes.
+
+00:42:10.510 --> 00:42:12.340
+The jump instruction
+take a label
+
+00:42:12.340 --> 00:42:14.830
+as their operand,
+which identifies
+
+00:42:14.830 --> 00:42:17.080
+a location in the code.
+
+00:42:17.080 --> 00:42:19.780
+For this, the labels
+can be symbols.
+
+00:42:19.780 --> 00:42:21.640
+In other words, you
+can say here's a symbol
+
+00:42:21.640 --> 00:42:22.750
+that I want to jump to.
+
+00:42:22.750 --> 00:42:24.850
+It might be the
+beginning of a function,
+
+00:42:24.850 --> 00:42:27.730
+or it might be a
+label that's generated
+
+00:42:27.730 --> 00:42:29.910
+to be at the beginning
+of a loop or whatever.
+
+00:42:29.910 --> 00:42:33.460
+They can be exact addresses--
+go to this place in the code.
+
+00:42:33.460 --> 00:42:35.940
+Or they can be relative
+address-- jump to some place
+
+00:42:35.940 --> 00:42:39.670
+as I mentioned that's indexed
+off the instruction pointer.
+
+00:42:39.670 --> 00:42:43.570
+And then an indirect
+jump takes as its
+
+00:42:43.570 --> 00:42:44.950
+operand an indirect address--
+
+00:42:47.932 --> 00:42:52.220
+oop, I got-- as its
+operand as its operand.
+
+00:42:52.220 --> 00:42:54.250
+OK, so that's a typo.
+
+00:42:54.250 --> 00:42:56.780
+It just takes an operand
+as an indirect address.
+
+00:42:56.780 --> 00:43:01.370
+So basically, you can
+say, jump to whatever
+
+00:43:01.370 --> 00:43:05.240
+is pointed to by that register
+using whatever indexing method
+
+00:43:05.240 --> 00:43:08.000
+that you want.
+
+00:43:08.000 --> 00:43:12.230
+So that's kind of the overview
+of the assembly language.
+
+00:43:12.230 --> 00:43:13.820
+Now, let's take a
+look at some idioms.
+
+00:43:13.820 --> 00:43:18.620
+So the XOR opcode computes
+the bitwise XOR of A and B.
+
+00:43:18.620 --> 00:43:22.080
+We saw XOR was a great
+trick for swapping numbers,
+
+00:43:22.080 --> 00:43:24.140
+for example, the other day.
+
+00:43:24.140 --> 00:43:26.660
+So often in the code,
+you will see something
+
+00:43:26.660 --> 00:43:29.900
+like this, xor rax rax.
+
+00:43:29.900 --> 00:43:32.450
+What does that do?
+
+00:43:32.450 --> 00:43:32.950
+Yeah.
+
+00:43:32.950 --> 00:43:34.000
+AUDIENCE: Zeros the register.
+
+00:43:34.000 --> 00:43:35.708
+CHARLES LEISERSON: It
+zeros the register.
+
+00:43:35.708 --> 00:43:38.126
+Why does that zero the register?
+
+00:43:38.126 --> 00:43:40.075
+AUDIENCE: Is the
+XOR just the same?
+
+00:43:40.075 --> 00:43:41.700
+CHARLES LEISERSON:
+Yeah, it's basically
+
+00:43:41.700 --> 00:43:48.445
+taking the results of rax,
+the results rax, xor-ing them.
+
+00:43:48.445 --> 00:43:50.070
+And when you XOR
+something with itself,
+
+00:43:50.070 --> 00:43:52.495
+you get zero, storing
+that back into it.
+
+00:43:52.495 --> 00:43:54.120
+So that's actually
+how you zero things.
+
+00:43:54.120 --> 00:43:55.170
+So you'll see that.
+
+00:43:55.170 --> 00:43:58.470
+Whenever you see that,
+hey, what are they doing?
+
+00:43:58.470 --> 00:44:00.720
+They're zeroing the register.
+
+00:44:00.720 --> 00:44:03.450
+And that's actually
+quicker and easier
+
+00:44:03.450 --> 00:44:09.240
+than having a zero constant that
+they put into the instruction.
+
+00:44:09.240 --> 00:44:11.940
+It saves a byte,
+because this ends up
+
+00:44:11.940 --> 00:44:15.150
+being a very short instruction.
+
+00:44:15.150 --> 00:44:18.810
+I don't remember how many
+bytes that instruction is.
+
+00:44:18.810 --> 00:44:21.960
+Here's another one, the
+test opcode, test A, B,
+
+00:44:21.960 --> 00:44:26.130
+computes the bitwise AND of A
+and B and discards the result,
+
+00:44:26.130 --> 00:44:29.910
+preserving the RFLAGS register.
+
+00:44:29.910 --> 00:44:33.030
+So basically, it says, what
+does the test instruction
+
+00:44:33.030 --> 00:44:35.160
+for these things do?
+
+00:44:38.270 --> 00:44:41.990
+So what is the first one doing?
+
+00:44:41.990 --> 00:44:43.913
+So it takes rcx-- yeah.
+
+00:44:43.913 --> 00:44:46.328
+AUDIENCE: Does it jump?
+
+00:44:46.328 --> 00:44:54.060
+It jumps to [INAUDIBLE]
+rcx [INAUDIBLE]
+
+00:44:54.060 --> 00:44:58.430
+So it takes the
+bitwise AND of A and B.
+
+00:44:58.430 --> 00:45:04.040
+And so then it's
+saying jump if equal.
+
+00:45:04.040 --> 00:45:06.011
+So--
+
+00:45:06.011 --> 00:45:08.396
+AUDIENCE: An AND would
+be non-zero in any
+
+00:45:08.396 --> 00:45:09.350
+of the bits set.
+
+00:45:09.350 --> 00:45:11.800
+CHARLES LEISERSON: Right.
+
+00:45:11.800 --> 00:45:14.213
+AND is non-zero if any
+of the bits are set.
+
+00:45:14.213 --> 00:45:15.139
+AUDIENCE: Right.
+
+00:45:15.139 --> 00:45:18.817
+So if the zero flag were set,
+that means that rcx was zero.
+
+00:45:18.817 --> 00:45:20.150
+CHARLES LEISERSON: That's right.
+
+00:45:20.150 --> 00:45:22.760
+So if the Zero flag is
+set, then rcx is set.
+
+00:45:22.760 --> 00:45:25.330
+So this is going to
+jump to that location
+
+00:45:25.330 --> 00:45:31.340
+if rcx holds the value 0.
+
+00:45:31.340 --> 00:45:33.770
+In all the other cases,
+it won't set the Zero flag
+
+00:45:33.770 --> 00:45:36.380
+because the result
+of the AND will be 0.
+
+00:45:36.380 --> 00:45:38.957
+So once again, that's kind
+of an idiom that they use.
+
+00:45:38.957 --> 00:45:40.040
+What about the second one?
+
+00:45:42.940 --> 00:45:45.167
+So this is a conditional move.
+
+00:45:45.167 --> 00:45:46.750
+So both of them are
+basically checking
+
+00:45:46.750 --> 00:45:49.300
+to see if the register is 0.
+
+00:45:49.300 --> 00:45:53.380
+And then doing something
+if it is or isn't.
+
+00:45:53.380 --> 00:45:55.900
+But those are just
+idioms that you sort of
+
+00:45:55.900 --> 00:45:59.920
+have to look at to see how
+it is that they accomplish
+
+00:45:59.920 --> 00:46:03.070
+their particular thing.
+
+00:46:03.070 --> 00:46:03.970
+Here's another one.
+
+00:46:03.970 --> 00:46:09.310
+So the ISA can include
+several no-op, no operation
+
+00:46:09.310 --> 00:46:13.180
+instructions, including
+nop, nop A-- that's
+
+00:46:13.180 --> 00:46:17.140
+an operation with an argument--
+and data16, which sets aside
+
+00:46:17.140 --> 00:46:20.020
+2 bytes of a nop.
+
+00:46:20.020 --> 00:46:22.480
+So here's a line
+of assembly that we
+
+00:46:22.480 --> 00:46:25.090
+found in some of our code--
+
+00:46:25.090 --> 00:46:30.130
+data16 days16 data16
+nopw and then %csx.
+
+00:46:34.320 --> 00:46:38.790
+So nopw is going to take this
+argument, which has got all
+
+00:46:38.790 --> 00:46:41.010
+this address calculation in it.
+
+00:46:41.010 --> 00:46:43.990
+So what do you
+think this is doing?
+
+00:46:43.990 --> 00:46:47.110
+What's the effect
+of this, by the way?
+
+00:46:47.110 --> 00:46:48.700
+They're all no-ops.
+
+00:46:48.700 --> 00:46:51.320
+So the effect is?
+
+00:46:51.320 --> 00:46:53.026
+Nothing.
+
+00:46:53.026 --> 00:46:55.810
+The effect is nothing.
+
+00:46:55.810 --> 00:46:57.670
+OK, now it does set the RFLAGS.
+
+00:46:57.670 --> 00:47:03.080
+But basically, mostly,
+it does nothing.
+
+00:47:03.080 --> 00:47:06.980
+Why would a compiler generate
+assembly with these idioms?
+
+00:47:06.980 --> 00:47:08.700
+Why would you get that kind of--
+
+00:47:08.700 --> 00:47:11.290
+that's crazy, right?
+
+00:47:11.290 --> 00:47:12.076
+Yeah.
+
+00:47:12.076 --> 00:47:14.667
+AUDIENCE: Could it be doing
+some cache optimization?
+
+00:47:14.667 --> 00:47:16.250
+CHARLES LEISERSON:
+Yeah, it's actually
+
+00:47:16.250 --> 00:47:22.280
+doing alignment optimization
+typically or code size.
+
+00:47:22.280 --> 00:47:26.030
+So it may want to start the next
+instruction on the beginning
+
+00:47:26.030 --> 00:47:27.860
+of a cache line.
+
+00:47:27.860 --> 00:47:30.830
+And, in fact, there's
+a directive to do that.
+
+00:47:30.830 --> 00:47:32.510
+If you want all your
+functions to start
+
+00:47:32.510 --> 00:47:34.040
+at the beginning
+of cache line, then
+
+00:47:34.040 --> 00:47:40.490
+it wants to make sure that
+if code gets to that point,
+
+00:47:40.490 --> 00:47:43.730
+you'll just proceed to
+jump through memory,
+
+00:47:43.730 --> 00:47:46.370
+continue through memory.
+
+00:47:46.370 --> 00:47:47.800
+So mainly is to optimize memory.
+
+00:47:47.800 --> 00:47:48.950
+So you'll see those things.
+
+00:47:48.950 --> 00:47:50.850
+I mean, you just
+have to realize, oh,
+
+00:47:50.850 --> 00:47:54.710
+that's the compiler
+generating some sum no-ops.
+
+00:47:54.710 --> 00:47:58.880
+So that's sort of
+our brief excursion
+
+00:47:58.880 --> 00:48:03.770
+over assembly language,
+x86 assembly language.
+
+00:48:03.770 --> 00:48:07.040
+Now, I want to dive into
+floating-point and vector
+
+00:48:07.040 --> 00:48:09.020
+hardware, which is going
+to be the main part.
+
+00:48:09.020 --> 00:48:12.830
+And then if there's any time at
+the end, I'll show the slides--
+
+00:48:12.830 --> 00:48:16.400
+I have a bunch of other slides
+on how branch prediction works
+
+00:48:16.400 --> 00:48:19.670
+and a variety of other
+machines sorts of things,
+
+00:48:19.670 --> 00:48:21.770
+that if we don't get
+to, it's no problem.
+
+00:48:21.770 --> 00:48:23.270
+You can take a
+look at the slides,
+
+00:48:23.270 --> 00:48:27.800
+and there's also the
+architecture manual.
+
+00:48:27.800 --> 00:48:29.650
+So floating-point
+instruction sets,
+
+00:48:29.650 --> 00:48:37.610
+so mostly the scalar
+floating-point operations
+
+00:48:37.610 --> 00:48:42.170
+are access via couple of
+different instruction sets.
+
+00:48:42.170 --> 00:48:44.180
+So the history of floating
+point is interesting,
+
+00:48:44.180 --> 00:48:50.090
+because originally the 80-86 did
+not have a floating-point unit.
+
+00:48:50.090 --> 00:48:51.920
+Floating-point was
+done in software.
+
+00:48:51.920 --> 00:48:53.930
+And then they made
+a companion chip
+
+00:48:53.930 --> 00:48:55.580
+that would do floating-point.
+
+00:48:55.580 --> 00:48:57.140
+And then they
+started integrating
+
+00:48:57.140 --> 00:49:02.180
+and so forth as
+miniaturization took hold.
+
+00:49:02.180 --> 00:49:05.150
+So the SSE and AVX
+instructions do
+
+00:49:05.150 --> 00:49:08.540
+both single and double precision
+scalar floating-point, i.e.
+
+00:49:08.540 --> 00:49:09.960
+floats or doubles.
+
+00:49:09.960 --> 00:49:14.960
+And then the x86 instructions,
+the x87 instructions--
+
+00:49:14.960 --> 00:49:19.057
+that's the 80-87 that
+was attached to the 80-86
+
+00:49:19.057 --> 00:49:20.390
+and that's where they get them--
+
+00:49:20.390 --> 00:49:22.640
+support single, double,
+and extended precision
+
+00:49:22.640 --> 00:49:24.800
+scalar floating-point
+arithmetic,
+
+00:49:24.800 --> 00:49:27.320
+including float double
+and long double.
+
+00:49:27.320 --> 00:49:30.650
+So you can actually get a
+great big result of a multiply
+
+00:49:30.650 --> 00:49:34.630
+if you use the x87
+instruction sets.
+
+00:49:34.630 --> 00:49:36.380
+And they also include
+vector instructions,
+
+00:49:36.380 --> 00:49:39.043
+so you can multiply
+or add there as well--
+
+00:49:39.043 --> 00:49:41.210
+so all these places on the
+chip where you can decide
+
+00:49:41.210 --> 00:49:43.670
+to do one thing or another.
+
+00:49:43.670 --> 00:49:46.190
+Compilers generally like
+the SSE instructions
+
+00:49:46.190 --> 00:49:49.100
+over the x87 instructions
+because they're simpler
+
+00:49:49.100 --> 00:49:51.440
+to compile for and to optimize.
+
+00:49:51.440 --> 00:49:58.130
+And the SSE opcodes are similar
+to the normal x86 opcodes.
+
+00:49:58.130 --> 00:50:01.160
+And they use the XMM registers
+and floating-point types.
+
+00:50:01.160 --> 00:50:03.530
+And so you'll see stuff
+like this, where you've
+
+00:50:03.530 --> 00:50:07.610
+got a movesd and so forth.
+
+00:50:07.610 --> 00:50:10.670
+The suffix there is
+saying what the data type.
+
+00:50:10.670 --> 00:50:13.850
+In this case, it's saying it's a
+double precision floating-point
+
+00:50:13.850 --> 00:50:15.470
+value, i.e. a double.
+
+00:50:19.340 --> 00:50:20.900
+Once again, they're
+using suffix.
+
+00:50:20.900 --> 00:50:25.070
+The sd in this case is a double
+precision floating-point.
+
+00:50:25.070 --> 00:50:29.060
+The other option
+is the first letter
+
+00:50:29.060 --> 00:50:33.080
+says whether it's single, i.e.
+a scalar operation, or packed,
+
+00:50:33.080 --> 00:50:36.650
+i.e. a vector operation.
+
+00:50:36.650 --> 00:50:38.870
+And the second letter
+says whether it's
+
+00:50:38.870 --> 00:50:41.240
+single or double precision.
+
+00:50:41.240 --> 00:50:45.140
+And so when you see one of these
+operations, you can decode,
+
+00:50:45.140 --> 00:50:50.060
+oh, this is operating on a
+64-bit value or a 32-bit value,
+
+00:50:50.060 --> 00:50:54.920
+floating-point value, or on
+a vector of those values.
+
+00:50:54.920 --> 00:50:56.840
+Now, what about these vectors?
+
+00:50:56.840 --> 00:51:00.128
+So when you start using
+the packed representation
+
+00:51:00.128 --> 00:51:01.670
+and you start using
+vectors, you have
+
+00:51:01.670 --> 00:51:03.830
+to understand a little bit
+about the vector units that
+
+00:51:03.830 --> 00:51:04.747
+are on these machines.
+
+00:51:07.430 --> 00:51:09.950
+So the way a vector
+unit works is
+
+00:51:09.950 --> 00:51:13.910
+that there is the processor
+issuing instructions.
+
+00:51:13.910 --> 00:51:19.190
+And it issues the instructions
+to all of the vector units.
+
+00:51:19.190 --> 00:51:23.810
+So for example, if you take
+a look at a typical thing,
+
+00:51:23.810 --> 00:51:27.410
+you may have a vector
+width of four vector units.
+
+00:51:27.410 --> 00:51:30.410
+Each of them is
+often called a lane--
+
+00:51:30.410 --> 00:51:31.910
+l-a-n-e.
+
+00:51:31.910 --> 00:51:33.570
+And the x is the vector width.
+
+00:51:33.570 --> 00:51:35.420
+And so when the
+instruction is given,
+
+00:51:35.420 --> 00:51:37.820
+it's given to all
+of the vector units.
+
+00:51:37.820 --> 00:51:41.060
+And they all do it on their
+own local copy of the register.
+
+00:51:41.060 --> 00:51:43.880
+So the register you can think
+of as a very wide thing broken
+
+00:51:43.880 --> 00:51:46.100
+into several words.
+
+00:51:46.100 --> 00:51:48.560
+And when I say add
+two vectors together,
+
+00:51:48.560 --> 00:51:53.067
+it'll add four words
+together and store it back
+
+00:51:53.067 --> 00:51:54.275
+into another vector register.
+
+00:51:57.290 --> 00:51:59.570
+And so whatever k is--
+
+00:51:59.570 --> 00:52:03.320
+in the example I
+just said, k was 4.
+
+00:52:03.320 --> 00:52:07.520
+And the lanes are the
+thing that each of which
+
+00:52:07.520 --> 00:52:11.360
+contains the integer
+floating-point arithmetic.
+
+00:52:11.360 --> 00:52:15.930
+But the important thing is that
+they all operate in lock step.
+
+00:52:15.930 --> 00:52:17.750
+It's not like one is
+going to do one thing
+
+00:52:17.750 --> 00:52:19.458
+and another is going
+to do another thing.
+
+00:52:19.458 --> 00:52:21.370
+They all have to do
+exactly the same thing.
+
+00:52:21.370 --> 00:52:25.700
+And the basic idea here is for
+the price of one instruction,
+
+00:52:25.700 --> 00:52:30.260
+I can command a bunch of
+operations to be done.
+
+00:52:30.260 --> 00:52:32.180
+Now, generally,
+vector instructions
+
+00:52:32.180 --> 00:52:34.400
+operate in an
+element-wise fashion,
+
+00:52:34.400 --> 00:52:37.070
+where you take the i-th
+element of one vector
+
+00:52:37.070 --> 00:52:40.640
+and operate on it with the
+i-th element of another vector.
+
+00:52:40.640 --> 00:52:45.620
+And all the lanes perform
+exactly the same operation.
+
+00:52:45.620 --> 00:52:49.520
+Depending upon the architecture,
+some architectures,
+
+00:52:49.520 --> 00:52:51.980
+the operands need to be aligned.
+
+00:52:51.980 --> 00:52:55.730
+That is you've got to have
+the beginnings at the exactly
+
+00:52:55.730 --> 00:52:59.510
+same place in memory, a
+multiple of the vector length.
+
+00:52:59.510 --> 00:53:01.220
+There are others
+where the vectors
+
+00:53:01.220 --> 00:53:04.040
+can be shifted in memory.
+
+00:53:04.040 --> 00:53:07.855
+Usually, there's a performance
+difference between the two.
+
+00:53:07.855 --> 00:53:09.230
+If it does support--
+some of them
+
+00:53:09.230 --> 00:53:12.560
+will not support unaligned
+vector operations.
+
+00:53:12.560 --> 00:53:15.710
+So if it can't figure out that
+they're aligned, I'm sorry,
+
+00:53:15.710 --> 00:53:19.150
+your code will end up
+being executed scalar,
+
+00:53:19.150 --> 00:53:20.840
+in a scalar fashion.
+
+00:53:20.840 --> 00:53:27.360
+If they are aligned, it's got
+to be able to figure that out.
+
+00:53:27.360 --> 00:53:29.150
+And in that case--
+
+00:53:29.150 --> 00:53:31.370
+sorry, if it's not
+aligned, but you
+
+00:53:31.370 --> 00:53:34.070
+do support vector
+operizations unaligned,
+
+00:53:34.070 --> 00:53:38.670
+it's usually slower than
+if they are aligned.
+
+00:53:38.670 --> 00:53:40.560
+And for some machines
+now, they actually
+
+00:53:40.560 --> 00:53:43.680
+have good performance on both.
+
+00:53:43.680 --> 00:53:46.740
+So it really depends
+upon the machine.
+
+00:53:46.740 --> 00:53:48.960
+And then also there
+are some architectures
+
+00:53:48.960 --> 00:53:52.260
+will support cross-lane
+operation, such as inserting
+
+00:53:52.260 --> 00:53:54.570
+or extracting subsets
+of vector elements,
+
+00:53:54.570 --> 00:53:59.130
+permuting, shuffling, scatter,
+gather types of operations.
+
+00:54:02.450 --> 00:54:06.235
+So x86 supports several
+instruction sets,
+
+00:54:06.235 --> 00:54:06.860
+as I mentioned.
+
+00:54:06.860 --> 00:54:07.610
+There's SSE.
+
+00:54:07.610 --> 00:54:09.170
+There's AVX.
+
+00:54:09.170 --> 00:54:10.400
+There's AVX2.
+
+00:54:10.400 --> 00:54:12.710
+And then there's
+now the AVX-512,
+
+00:54:12.710 --> 00:54:15.803
+or sometimes called
+AVX3, which is not
+
+00:54:15.803 --> 00:54:17.720
+available on the machines
+that we'll be using,
+
+00:54:17.720 --> 00:54:21.230
+the Haswell machines
+that we'll be doing.
+
+00:54:21.230 --> 00:54:26.330
+Generally, the AVX and AVX2
+extend the SSE instruction
+
+00:54:26.330 --> 00:54:31.820
+set by using the wider
+registers and operate on a 2.
+
+00:54:31.820 --> 00:54:34.380
+The SSE use wider
+registers and operate
+
+00:54:34.380 --> 00:54:35.780
+on at most two operands.
+
+00:54:35.780 --> 00:54:42.290
+The AVX ones can use the 256 and
+also have three operands, not
+
+00:54:42.290 --> 00:54:43.870
+just two operations.
+
+00:54:43.870 --> 00:54:47.690
+So say you can say add A
+to B and store it in C,
+
+00:54:47.690 --> 00:54:51.800
+as opposed to saying add
+A to B and store it in B.
+
+00:54:51.800 --> 00:54:53.300
+So it can also support three.
+
+00:54:56.610 --> 00:55:01.650
+Yeah, most of them are
+similar to traditional opcodes
+
+00:55:01.650 --> 00:55:02.820
+with minor differences.
+
+00:55:02.820 --> 00:55:07.850
+So if you look at them,
+if you have an SSE,
+
+00:55:07.850 --> 00:55:11.730
+it basically looks just
+like the traditional name,
+
+00:55:11.730 --> 00:55:14.700
+like add in this case,
+but you can then say,
+
+00:55:14.700 --> 00:55:20.600
+do a packed add or a
+vector with packed data.
+
+00:55:20.600 --> 00:55:23.450
+So the v prefix it's AVX.
+
+00:55:23.450 --> 00:55:25.343
+So if you see it's
+v, you go to the part
+
+00:55:25.343 --> 00:55:26.510
+in the manual that says AVX.
+
+00:55:29.390 --> 00:55:32.420
+If you see the p's, that
+say it's packed data.
+
+00:55:32.420 --> 00:55:38.760
+Then you go to SSE if
+it doesn't have the v.
+
+00:55:38.760 --> 00:55:42.830
+And the p prefix distinguishing
+integer vector instruction,
+
+00:55:42.830 --> 00:55:43.560
+you got me.
+
+00:55:43.560 --> 00:55:48.572
+I tried to think why is p
+distinguishing an integer?
+
+00:55:48.572 --> 00:55:53.100
+It's like p, good mnemonic
+for integer, right?
+
+00:55:57.070 --> 00:56:00.670
+Then in addition, they do
+this aliasing trick again,
+
+00:56:00.670 --> 00:56:06.560
+where the YMM registers actually
+alias the XMM registers.
+
+00:56:06.560 --> 00:56:08.610
+So you can use both
+operations, but you've
+
+00:56:08.610 --> 00:56:11.737
+got to be careful
+what's going on,
+
+00:56:11.737 --> 00:56:13.070
+because they just extended them.
+
+00:56:13.070 --> 00:56:16.820
+And now, of course,
+with AVX-512,
+
+00:56:16.820 --> 00:56:19.550
+they did another
+extension to 512 bits.
+
+00:56:23.060 --> 00:56:24.700
+That's vectors stuff.
+
+00:56:24.700 --> 00:56:27.590
+So you can use those explicitly.
+
+00:56:27.590 --> 00:56:29.330
+The compiler will
+vectorize for you.
+
+00:56:29.330 --> 00:56:33.710
+And the homework this week takes
+you through some vectorization
+
+00:56:33.710 --> 00:56:34.350
+exercises.
+
+00:56:34.350 --> 00:56:35.475
+It's actually a lot of fun.
+
+00:56:35.475 --> 00:56:37.410
+We were just going over
+it in a staff meeting.
+
+00:56:37.410 --> 00:56:38.840
+And it's really fun.
+
+00:56:38.840 --> 00:56:40.430
+I think it's a
+really fun exercise.
+
+00:56:40.430 --> 00:56:42.740
+We introduced that
+last year, by the way,
+
+00:56:42.740 --> 00:56:44.280
+or maybe two years ago.
+
+00:56:44.280 --> 00:56:46.550
+But, in any case,
+it's a fun one--
+
+00:56:50.550 --> 00:56:54.120
+for my definition
+of fun, which I hope
+
+00:56:54.120 --> 00:56:57.660
+is your definition of fun.
+
+00:56:57.660 --> 00:57:00.540
+Now, I want to talk generally
+about computer architecture.
+
+00:57:00.540 --> 00:57:05.430
+And I'm not going to get through
+all of these slides, as I say.
+
+00:57:05.430 --> 00:57:07.950
+But I want to get started
+on the and give you
+
+00:57:07.950 --> 00:57:10.850
+a sense of other things
+going on in the processor
+
+00:57:10.850 --> 00:57:13.060
+that you should be aware of.
+
+00:57:13.060 --> 00:57:18.690
+So in 6.004, you probably talked
+about a 5-stage processor.
+
+00:57:18.690 --> 00:57:20.840
+Anybody remember that?
+
+00:57:20.840 --> 00:57:22.740
+OK, 5-stage processor.
+
+00:57:22.740 --> 00:57:24.480
+There's an Instruction Fetch.
+
+00:57:24.480 --> 00:57:25.920
+There's an Instruction Decode.
+
+00:57:25.920 --> 00:57:27.660
+There's an Execute.
+
+00:57:27.660 --> 00:57:31.440
+Then there's a
+Memory Addressing.
+
+00:57:31.440 --> 00:57:33.960
+And then you Write
+back the values.
+
+00:57:33.960 --> 00:57:36.780
+And this is done as
+a pipeline, so as
+
+00:57:36.780 --> 00:57:39.540
+to make-- you could do
+all of this in one thing,
+
+00:57:39.540 --> 00:57:41.157
+but then you have
+a long clock cycle.
+
+00:57:41.157 --> 00:57:43.240
+And you'll only be able
+to do one thing at a time.
+
+00:57:43.240 --> 00:57:45.930
+Instead, they stack
+them together.
+
+00:57:45.930 --> 00:57:51.610
+So here's a block diagram
+of the 5-stage processor.
+
+00:57:51.610 --> 00:57:53.200
+We read the
+instruction from memory
+
+00:57:53.200 --> 00:57:55.510
+in the instruction fetch cycle.
+
+00:57:55.510 --> 00:57:57.550
+Then we decode it.
+
+00:57:57.550 --> 00:57:59.020
+Basically, it takes
+a look at, what
+
+00:57:59.020 --> 00:58:02.200
+is the opcode, what are the
+addressing modes, et cetera,
+
+00:58:02.200 --> 00:58:05.040
+and figures out what
+it actually has to do
+
+00:58:05.040 --> 00:58:07.750
+and actually performs
+the ALU operations.
+
+00:58:07.750 --> 00:58:10.060
+And then it reads and
+writes the data memory.
+
+00:58:10.060 --> 00:58:12.430
+And then it writes back
+the results into registers.
+
+00:58:12.430 --> 00:58:15.730
+That's typically a common
+way that these things
+
+00:58:15.730 --> 00:58:19.420
+go for a 5-stage processor.
+
+00:58:19.420 --> 00:58:22.480
+By the way, this is
+vastly oversimplified.
+
+00:58:22.480 --> 00:58:26.380
+You can take 6823 if
+you want to learn truth.
+
+00:58:26.380 --> 00:58:30.970
+I'm going to tell you
+nothing but white lies
+
+00:58:30.970 --> 00:58:32.440
+for this lecture.
+
+00:58:32.440 --> 00:58:38.140
+Now, if you look at the
+Intel Haswell, the machine
+
+00:58:38.140 --> 00:58:43.210
+that we're using, it actually
+has between 14 and 19 pipeline
+
+00:58:43.210 --> 00:58:45.290
+stages.
+
+00:58:45.290 --> 00:58:49.150
+The 14 to 19 reflects
+the fact that there
+
+00:58:49.150 --> 00:58:50.680
+are different paths
+through it that
+
+00:58:50.680 --> 00:58:53.020
+take different amounts of time.
+
+00:58:53.020 --> 00:58:54.820
+It also I think
+reflects a little bit
+
+00:58:54.820 --> 00:58:58.150
+that nobody has published
+the Intel internal stuff.
+
+00:58:58.150 --> 00:59:02.500
+So maybe we're not sure if
+it's 14 to 19, but somewhere
+
+00:59:02.500 --> 00:59:03.448
+in that range.
+
+00:59:03.448 --> 00:59:05.740
+But I think it's actually
+because the different lengths
+
+00:59:05.740 --> 00:59:08.090
+of time as I was explaining.
+
+00:59:08.090 --> 00:59:10.750
+So what I want to do is--
+
+00:59:10.750 --> 00:59:12.400
+you've seen the
+5-stage price line.
+
+00:59:12.400 --> 00:59:14.920
+I want to talk about the
+difference between that
+
+00:59:14.920 --> 00:59:17.530
+and a modern processor by
+looking at several design
+
+00:59:17.530 --> 00:59:18.220
+features.
+
+00:59:18.220 --> 00:59:20.350
+We already talked
+about vector hardware.
+
+00:59:20.350 --> 00:59:22.420
+I then want to talk
+about super scalar
+
+00:59:22.420 --> 00:59:24.280
+processing, out of
+order execution,
+
+00:59:24.280 --> 00:59:28.000
+and branch prediction
+a little bit.
+
+00:59:28.000 --> 00:59:30.400
+And the out of order, I'm
+going to skip a bunch of that
+
+00:59:30.400 --> 00:59:32.620
+because it has to do with
+score boarding, which
+
+00:59:32.620 --> 00:59:37.210
+is really interesting and fun,
+but it's also time consuming.
+
+00:59:37.210 --> 00:59:38.710
+But it's really
+interesting and fun.
+
+00:59:38.710 --> 00:59:42.220
+That's what you learn in 6823.
+
+00:59:42.220 --> 00:59:45.610
+So historically,
+there's two ways
+
+00:59:45.610 --> 00:59:47.830
+that people make
+processors go faster--
+
+00:59:47.830 --> 00:59:52.890
+by exploiting parallelism
+and by exploiting locality.
+
+00:59:52.890 --> 00:59:56.140
+And parallelism, there's
+instruction-- well,
+
+00:59:56.140 --> 00:59:58.330
+we already did
+word-level parallelism
+
+00:59:58.330 --> 01:00:00.740
+in the bit tricks thing.
+
+01:00:00.740 --> 01:00:03.350
+But there's also
+instruction-level parallelism,
+
+01:00:03.350 --> 01:00:06.730
+so-called ILB,
+vectorization and multicore.
+
+01:00:06.730 --> 01:00:11.463
+And for locality, the main thing
+that's used there is caching.
+
+01:00:11.463 --> 01:00:12.880
+I would say also
+the fact that you
+
+01:00:12.880 --> 01:00:16.582
+have a design with registers
+that also reflects locality,
+
+01:00:16.582 --> 01:00:18.790
+because the way that the
+processor wants to do things
+
+01:00:18.790 --> 01:00:20.125
+is fetch stuff from memory.
+
+01:00:20.125 --> 01:00:21.970
+It doesn't want to
+operate on it in memory.
+
+01:00:21.970 --> 01:00:22.990
+That's very expensive.
+
+01:00:22.990 --> 01:00:25.613
+It wants to fetch things into
+memory, get enough of them
+
+01:00:25.613 --> 01:00:27.280
+there that you can
+do some calculations,
+
+01:00:27.280 --> 01:00:28.810
+do a whole bunch
+of calculations,
+
+01:00:28.810 --> 01:00:32.110
+and then put them
+back out there.
+
+01:00:32.110 --> 01:00:34.780
+So this lecture we're talking
+about ILP and vectorization.
+
+01:00:34.780 --> 01:00:39.530
+So let me talk about
+instruction-level parallelism.
+
+01:00:39.530 --> 01:00:46.870
+So when you have, let's
+say, a 5-stage pipeline,
+
+01:00:46.870 --> 01:00:48.700
+you're interested in
+finding opportunities
+
+01:00:48.700 --> 01:00:52.630
+to execute multiple
+instruction simultaneously.
+
+01:00:52.630 --> 01:00:57.490
+So in instruction 1, it's going
+to do an instruction fetch.
+
+01:00:57.490 --> 01:00:58.570
+Then it does its decode.
+
+01:00:58.570 --> 01:01:04.930
+And so it takes five cycles for
+this instruction to complete.
+
+01:01:04.930 --> 01:01:07.420
+So ideally what you'd
+like is that you
+
+01:01:07.420 --> 01:01:12.610
+can start instruction 2 on cycle
+2, instruction 3 on cycle 3,
+
+01:01:12.610 --> 01:01:15.640
+and so forth, and have 5
+instructions-- once you
+
+01:01:15.640 --> 01:01:19.030
+get into the steady state,
+have 5 instructions executing
+
+01:01:19.030 --> 01:01:20.590
+all the time.
+
+01:01:20.590 --> 01:01:25.120
+That would be ideal, where
+each one takes just one thing.
+
+01:01:25.120 --> 01:01:27.167
+So that's really pretty good.
+
+01:01:27.167 --> 01:01:28.750
+And that would improve
+the throughput.
+
+01:01:28.750 --> 01:01:30.292
+Even though it might
+take a long time
+
+01:01:30.292 --> 01:01:34.720
+to get one instruction done,
+I can have many instructions
+
+01:01:34.720 --> 01:01:36.280
+in the pipeline at some time.
+
+01:01:39.640 --> 01:01:42.670
+So each pipeline is executing
+a different instruction.
+
+01:01:42.670 --> 01:01:45.010
+However, in practice
+this isn't what happens.
+
+01:01:45.010 --> 01:01:49.420
+In practice, you
+discover that there are
+
+01:01:49.420 --> 01:01:51.190
+what's called pipeline stalls.
+
+01:01:51.190 --> 01:01:53.950
+When it comes time to
+execute an instruction,
+
+01:01:53.950 --> 01:01:58.330
+for some correctness reason, it
+cannot execute the instruction.
+
+01:01:58.330 --> 01:01:59.530
+It has to wait.
+
+01:01:59.530 --> 01:02:01.390
+And that's a pipeline stall.
+
+01:02:01.390 --> 01:02:03.040
+That's what you
+want to try to avoid
+
+01:02:03.040 --> 01:02:08.140
+and the compiler tries to Bruce
+code that will avoid stalls.
+
+01:02:08.140 --> 01:02:11.290
+So why do stalls happen?
+
+01:02:11.290 --> 01:02:13.870
+They happen because of
+what are called hazards.
+
+01:02:13.870 --> 01:02:15.520
+There's actually two
+notions of hazard.
+
+01:02:15.520 --> 01:02:16.730
+And this is one of them.
+
+01:02:16.730 --> 01:02:18.920
+The other is a race
+condition hazard.
+
+01:02:18.920 --> 01:02:20.590
+This is dependency hazard.
+
+01:02:20.590 --> 01:02:22.150
+But people call
+them both hazards,
+
+01:02:22.150 --> 01:02:29.390
+just like they call the second
+stage of compilation compiling.
+
+01:02:29.390 --> 01:02:32.260
+It's like they make
+up these words.
+
+01:02:32.260 --> 01:02:35.140
+So here's three types of
+hazards that can prevent
+
+01:02:35.140 --> 01:02:37.180
+an instruction from executing.
+
+01:02:37.180 --> 01:02:40.660
+First of all, there's what's
+called a structural hazard.
+
+01:02:40.660 --> 01:02:43.400
+Two instructions attempt to
+use the same functional unit,
+
+01:02:43.400 --> 01:02:45.050
+the same time.
+
+01:02:45.050 --> 01:02:52.540
+If there's, for example, only
+one floating-point multiplier
+
+01:02:52.540 --> 01:02:56.380
+and two of them try to use it at
+the same time, one has to wait.
+
+01:02:56.380 --> 01:02:58.910
+In modern processors, there's
+a bunch of each of those.
+
+01:02:58.910 --> 01:03:04.510
+But if you have k functional
+units and k plus 1 instructions
+
+01:03:04.510 --> 01:03:07.690
+want to access it,
+you're out of luck.
+
+01:03:07.690 --> 01:03:09.370
+One of them is going
+to have to wait.
+
+01:03:09.370 --> 01:03:11.872
+The second is a data hazard.
+
+01:03:11.872 --> 01:03:13.330
+This is when an
+instruction depends
+
+01:03:13.330 --> 01:03:17.320
+on the result of a prior
+instruction in the pipeline.
+
+01:03:17.320 --> 01:03:21.610
+So one instruction is
+computing a value that
+
+01:03:21.610 --> 01:03:27.060
+is going to stick in rcx, say.
+
+01:03:27.060 --> 01:03:28.360
+So they stick it into rcx.
+
+01:03:28.360 --> 01:03:30.550
+The other one has to
+read the value from rcx
+
+01:03:30.550 --> 01:03:33.340
+and it comes later.
+
+01:03:33.340 --> 01:03:34.870
+That other instruction
+has to wait
+
+01:03:34.870 --> 01:03:37.480
+until that value is written
+there before it can read it.
+
+01:03:37.480 --> 01:03:39.430
+That's a data hazard.
+
+01:03:39.430 --> 01:03:44.950
+And a control
+hazard is where you
+
+01:03:44.950 --> 01:03:47.770
+decide that you
+need to make a jump
+
+01:03:47.770 --> 01:03:49.930
+and you can't execute
+the next instruction,
+
+01:03:49.930 --> 01:03:52.923
+because you don't know which
+way the jump is going to go.
+
+01:03:52.923 --> 01:03:54.340
+So if you have a
+conditional jump,
+
+01:03:54.340 --> 01:03:57.250
+it's like, well, what's the next
+instruction after that jump?
+
+01:03:57.250 --> 01:03:58.230
+I don't know.
+
+01:03:58.230 --> 01:03:59.890
+So I have to wait
+to execute that.
+
+01:03:59.890 --> 01:04:02.080
+I can't go ahead and
+do the jump and then do
+
+01:04:02.080 --> 01:04:04.420
+the next instruction after
+it, because I don't know what
+
+01:04:04.420 --> 01:04:05.628
+happened to the previous one.
+
+01:04:09.030 --> 01:04:13.970
+Now of these, we're going to
+mostly talk about data hazards.
+
+01:04:13.970 --> 01:04:16.490
+So an instruction can
+create a data hazard--
+
+01:04:16.490 --> 01:04:20.060
+I can create a data hazard
+due to a dependence between i
+
+01:04:20.060 --> 01:04:21.320
+and j.
+
+01:04:21.320 --> 01:04:24.380
+So the first type is
+called a true dependence,
+
+01:04:24.380 --> 01:04:28.820
+or I read after
+write dependence.
+
+01:04:28.820 --> 01:04:31.040
+And this is where,
+as in this example,
+
+01:04:31.040 --> 01:04:33.590
+I'm adding something
+and storing into rax
+
+01:04:33.590 --> 01:04:35.660
+and the next instruction
+wants to read from rax.
+
+01:04:38.500 --> 01:04:40.700
+So the second
+instruction can't get
+
+01:04:40.700 --> 01:04:43.820
+going until the
+previous one or it may
+
+01:04:43.820 --> 01:04:48.153
+stall until the result of
+the previous one is known.
+
+01:04:48.153 --> 01:04:50.070
+There's another one
+called an anti-dependence.
+
+01:04:50.070 --> 01:04:52.890
+This is where I want to
+write into a location,
+
+01:04:52.890 --> 01:04:56.250
+but I have to wait until the
+previous instruction has read
+
+01:04:56.250 --> 01:04:59.780
+the value, because
+otherwise I'm going
+
+01:04:59.780 --> 01:05:02.700
+to clobber that
+instruction and clobber
+
+01:05:02.700 --> 01:05:05.580
+the value before it gets read.
+
+01:05:05.580 --> 01:05:08.670
+so that's an anti-dependence.
+
+01:05:08.670 --> 01:05:12.180
+And then the final one
+is an output dependence,
+
+01:05:12.180 --> 01:05:18.050
+where they're both trying to
+move something to are rax.
+
+01:05:18.050 --> 01:05:22.610
+So why would two things
+want to move things
+
+01:05:22.610 --> 01:05:24.410
+to the same location?
+
+01:05:24.410 --> 01:05:27.320
+After all, one of them is going
+to be lost and just not do
+
+01:05:27.320 --> 01:05:31.000
+that instruction.
+
+01:05:31.000 --> 01:05:31.618
+Why wouldn't--
+
+01:05:31.618 --> 01:05:32.660
+AUDIENCE: Set some flags.
+
+01:05:32.660 --> 01:05:34.368
+CHARLES LEISERSON:
+Yeah, maybe because it
+
+01:05:34.368 --> 01:05:37.030
+wants to set some flags.
+
+01:05:37.030 --> 01:05:41.250
+So that's one reason
+that it might do this,
+
+01:05:41.250 --> 01:05:43.000
+because you know the
+first instruction set
+
+01:05:43.000 --> 01:05:47.800
+some flags in addition to moving
+the output to that location.
+
+01:05:47.800 --> 01:05:49.380
+And there's one other reason.
+
+01:05:49.380 --> 01:05:50.380
+What's the other reason?
+
+01:05:54.290 --> 01:05:55.040
+I'm blanking.
+
+01:05:55.040 --> 01:05:56.790
+There's two reasons.
+
+01:05:56.790 --> 01:05:58.310
+And I didn't put
+them in my notes.
+
+01:06:03.590 --> 01:06:05.210
+I don't remember.
+
+01:06:05.210 --> 01:06:08.710
+OK, but anyway, that's a
+good question for quiz then.
+
+01:06:11.380 --> 01:06:13.704
+OK, give me two reasons-- yeah.
+
+01:06:13.704 --> 01:06:17.008
+AUDIENCE: Can there be
+intermediate instructions
+
+01:06:17.008 --> 01:06:20.025
+like between those [INAUDIBLE]
+
+01:06:20.025 --> 01:06:21.900
+CHARLES LEISERSON: There
+could, but of course
+
+01:06:21.900 --> 01:06:26.880
+then if it's going to
+use that register, then--
+
+01:06:26.880 --> 01:06:29.490
+oh, I know the other reason.
+
+01:06:29.490 --> 01:06:31.355
+So this is still
+good for a quiz.
+
+01:06:31.355 --> 01:06:33.480
+The other reason is there
+may be aliasing going on.
+
+01:06:33.480 --> 01:06:37.680
+Maybe an intervening
+instruction uses one
+
+01:06:37.680 --> 01:06:40.260
+of the values in its aliasist.
+
+01:06:40.260 --> 01:06:43.530
+So uses part of the result
+or whatever, there still
+
+01:06:43.530 --> 01:06:47.110
+could be a dependency.
+
+01:06:47.110 --> 01:06:52.890
+Anyway, some
+arithmetic operations
+
+01:06:52.890 --> 01:06:54.450
+are complex to
+implement in hardware
+
+01:06:54.450 --> 01:06:56.790
+and have long latencies.
+
+01:06:56.790 --> 01:07:03.270
+So here's some sample opcodes
+and how many latency they take.
+
+01:07:03.270 --> 01:07:05.290
+They take a different number.
+
+01:07:05.290 --> 01:07:08.600
+So, for example, integer
+division actually is variable,
+
+01:07:08.600 --> 01:07:10.710
+but a multiply takes
+about three times what
+
+01:07:10.710 --> 01:07:13.350
+most of the integer
+operations are.
+
+01:07:13.350 --> 01:07:16.050
+And floating-point
+multiply is like 5.
+
+01:07:16.050 --> 01:07:17.535
+And then fma, what's fma?
+
+01:07:20.740 --> 01:07:22.390
+Fused multiply add.
+
+01:07:22.390 --> 01:07:24.790
+This is where you're doing
+both a multiply and an add.
+
+01:07:24.790 --> 01:07:26.940
+And why do we care about
+fuse multiply adds?
+
+01:07:30.174 --> 01:07:32.091
+AUDIENCE: For memory
+accessing and [INAUDIBLE]
+
+01:07:32.091 --> 01:07:33.924
+CHARLES LEISERSON: Not
+for memory accessing.
+
+01:07:33.924 --> 01:07:36.210
+This is actually floating-point
+multiply and add.
+
+01:07:39.830 --> 01:07:43.190
+It's called linear algebra.
+
+01:07:43.190 --> 01:07:44.990
+So when you do major
+multiplication,
+
+01:07:44.990 --> 01:07:46.070
+you're doing dot product.
+
+01:07:46.070 --> 01:07:48.290
+You're doing
+multiplies and adds.
+
+01:07:48.290 --> 01:07:52.950
+So that kind of thing, that's
+where you do a lot of those.
+
+01:07:52.950 --> 01:07:54.710
+So how does the
+hardware accommodate
+
+01:07:54.710 --> 01:07:57.300
+these complex operations?
+
+01:07:57.300 --> 01:08:02.210
+So the strategy that much
+hardware tends to use
+
+01:08:02.210 --> 01:08:05.180
+is to have separate functional
+units for complex operations,
+
+01:08:05.180 --> 01:08:07.490
+such as floating-point
+arithmetic.
+
+01:08:07.490 --> 01:08:11.000
+So there may be in fact
+separate registers,
+
+01:08:11.000 --> 01:08:13.040
+for example, the XMM
+registers, that only
+
+01:08:13.040 --> 01:08:14.610
+work with the floating point.
+
+01:08:14.610 --> 01:08:16.430
+So you have your basic
+5-stage pipeline.
+
+01:08:16.430 --> 01:08:18.979
+You have another pipeline
+that's off on the side.
+
+01:08:18.979 --> 01:08:21.229
+And it's going to take
+multiple cycles sometimes
+
+01:08:21.229 --> 01:08:26.220
+for things and maybe pipeline
+to a different depth.
+
+01:08:26.220 --> 01:08:33.029
+And so you basically
+separate these operations.
+
+01:08:33.029 --> 01:08:34.950
+The functional units
+may be pipelined, fully,
+
+01:08:34.950 --> 01:08:38.560
+partially, or not at all.
+
+01:08:38.560 --> 01:08:44.623
+And so I now have a whole bunch
+of different functional units,
+
+01:08:44.623 --> 01:08:46.123
+and there's different
+paths that I'm
+
+01:08:46.123 --> 01:08:52.330
+going to be able to take through
+the data path of the processor.
+
+01:08:52.330 --> 01:08:56.790
+So in Haswell, they have
+integer vector floating-point
+
+01:08:56.790 --> 01:08:59.910
+distributed among eight
+different ports, which
+
+01:08:59.910 --> 01:09:04.620
+is sort from the entry.
+
+01:09:04.620 --> 01:09:07.470
+So given that, things
+get really complicated.
+
+01:09:07.470 --> 01:09:11.609
+If we go back to
+our simple diagram,
+
+01:09:11.609 --> 01:09:14.790
+suppose we have all these
+additional functional units,
+
+01:09:14.790 --> 01:09:21.970
+how can I now exploit more
+instruction-level parallelism?
+
+01:09:21.970 --> 01:09:27.060
+So right now, we can start
+up one operation at a time.
+
+01:09:27.060 --> 01:09:31.670
+What might I do to get more
+parallelism out of the hardware
+
+01:09:31.670 --> 01:09:33.098
+that I've got?
+
+01:09:39.080 --> 01:09:40.830
+What do you think
+computer architects did?
+
+01:09:43.260 --> 01:09:43.760
+OK.
+
+01:09:43.760 --> 01:09:49.790
+AUDIENCE: It's a guess but, you
+could glue together [INAUDIBLE]
+
+01:09:49.790 --> 01:09:52.700
+CHARLES LEISERSON: Yeah, so
+even simpler than that, but
+
+01:09:52.700 --> 01:09:54.350
+which is implied in
+what you're saying,
+
+01:09:54.350 --> 01:09:59.360
+is you can just fetch and
+issue multiple instructions
+
+01:09:59.360 --> 01:10:01.290
+per cycle.
+
+01:10:01.290 --> 01:10:03.030
+So rather than just
+doing one per cycle
+
+01:10:03.030 --> 01:10:05.610
+as we showed with a
+typical pipeline processor,
+
+01:10:05.610 --> 01:10:07.860
+let me fetch several
+that use different parts
+
+01:10:07.860 --> 01:10:10.200
+of the processor pipeline,
+because they're not
+
+01:10:10.200 --> 01:10:14.970
+going to interfere, to
+keep everything busy.
+
+01:10:14.970 --> 01:10:17.550
+And so that's basically
+what's called a super scalar
+
+01:10:17.550 --> 01:10:20.430
+processor, where it's not
+executing one thing at a time.
+
+01:10:20.430 --> 01:10:24.340
+It's executing multiple
+things at a time.
+
+01:10:24.340 --> 01:10:27.360
+So Haswell, in fact,
+breaks up the instructions
+
+01:10:27.360 --> 01:10:30.330
+into simpler operations,
+called micro-ops.
+
+01:10:30.330 --> 01:10:33.390
+And they can emit for
+micro-ops per cycle
+
+01:10:33.390 --> 01:10:35.220
+to the rest of the pipeline.
+
+01:10:35.220 --> 01:10:38.370
+And the fetch and decode
+stages implement optimizations
+
+01:10:38.370 --> 01:10:41.850
+on micro-op processing,
+including special cases
+
+01:10:41.850 --> 01:10:42.750
+for common patents.
+
+01:10:42.750 --> 01:10:47.400
+For example, if it sees
+the XOR of rax and rax,
+
+01:10:47.400 --> 01:10:50.100
+it knows that rax
+is being set to 0.
+
+01:10:50.100 --> 01:10:53.120
+It doesn't even use a
+functional unit for that.
+
+01:10:53.120 --> 01:10:55.530
+It just does it and it's done.
+
+01:10:55.530 --> 01:10:58.820
+It has just a special
+logic that observes
+
+01:10:58.820 --> 01:11:02.020
+that because it's such a
+common thing to set things out.
+
+01:11:02.020 --> 01:11:05.030
+And so that means that now
+your processor can execute
+
+01:11:05.030 --> 01:11:06.430
+a lot of things at one time.
+
+01:11:06.430 --> 01:11:08.180
+And that's the machines
+that you're doing.
+
+01:11:08.180 --> 01:11:12.450
+That's why when I said if
+you save one add instruction,
+
+01:11:12.450 --> 01:11:14.270
+it probably doesn't
+make any difference
+
+01:11:14.270 --> 01:11:16.220
+in today's processor,
+because there's probably
+
+01:11:16.220 --> 01:11:18.050
+an idle adder lying around.
+
+01:11:18.050 --> 01:11:22.560
+There's probably a-- did
+I read caught how many--
+
+01:11:22.560 --> 01:11:24.560
+where do we go here?
+
+01:11:24.560 --> 01:11:27.620
+Yeah, so if you look
+here, you can even
+
+01:11:27.620 --> 01:11:31.220
+discover that there are
+actually a bunch of ALUs that
+
+01:11:31.220 --> 01:11:35.190
+are capable of doing an add.
+
+01:11:35.190 --> 01:11:38.730
+So they're all over
+the map in Haswell.
+
+01:11:41.250 --> 01:11:46.020
+Now, still, we are insisting
+that the processors execute
+
+01:11:46.020 --> 01:11:47.820
+in things in order.
+
+01:11:47.820 --> 01:11:50.820
+And that's kind of the
+next stage is, how do you
+
+01:11:50.820 --> 01:11:55.065
+end up making things run--
+
+01:11:58.800 --> 01:12:04.380
+that is, how do you make it
+so that you can free yourself
+
+01:12:04.380 --> 01:12:08.400
+from the tyranny of one
+instruction after the other?
+
+01:12:08.400 --> 01:12:11.520
+And so the first
+thing is there's
+
+01:12:11.520 --> 01:12:13.770
+a strategy called bypassing.
+
+01:12:13.770 --> 01:12:19.500
+So suppose that you have
+instructions running into rax.
+
+01:12:19.500 --> 01:12:22.800
+And then you're going
+to use that to read.
+
+01:12:22.800 --> 01:12:27.450
+Well, why bother waiting for it
+to be stored into the register
+
+01:12:27.450 --> 01:12:31.560
+file and then pulled back out
+for the second instruction?
+
+01:12:31.560 --> 01:12:36.690
+Instead, let's have a
+bypass, a special circuit
+
+01:12:36.690 --> 01:12:39.330
+that identifies that
+kind of situation
+
+01:12:39.330 --> 01:12:42.900
+and feeds it directly
+to the next instruction
+
+01:12:42.900 --> 01:12:45.660
+without requiring that it
+go into the register file
+
+01:12:45.660 --> 01:12:47.430
+and back out.
+
+01:12:47.430 --> 01:12:48.935
+So that's called bypassing.
+
+01:12:48.935 --> 01:12:51.060
+There are lots of places
+where things are bypassed.
+
+01:12:51.060 --> 01:12:53.400
+And we'll talk about it more.
+
+01:12:53.400 --> 01:12:55.500
+So normally, you
+would stall waiting
+
+01:12:55.500 --> 01:12:57.450
+for it to be written back.
+
+01:12:57.450 --> 01:12:59.940
+And now, when you
+eliminate it, now I
+
+01:12:59.940 --> 01:13:02.250
+can move it way
+forward, because I just
+
+01:13:02.250 --> 01:13:06.600
+use the bypass path to execute.
+
+01:13:06.600 --> 01:13:08.100
+And it allows the
+second instruction
+
+01:13:08.100 --> 01:13:09.030
+to get going earlier.
+
+01:13:12.900 --> 01:13:13.940
+What else can we do?
+
+01:13:13.940 --> 01:13:17.843
+Well, let's take a
+large code example.
+
+01:13:17.843 --> 01:13:19.260
+Given the amount
+of time, what I'm
+
+01:13:19.260 --> 01:13:21.180
+going to do is
+basically say, you
+
+01:13:21.180 --> 01:13:22.710
+can go through and
+figure out what
+
+01:13:22.710 --> 01:13:24.930
+are the read after
+write dependencies
+
+01:13:24.930 --> 01:13:27.330
+and the write after
+read dependencies.
+
+01:13:27.330 --> 01:13:28.540
+They're all over the place.
+
+01:13:28.540 --> 01:13:33.210
+And what you can
+do is if you look
+
+01:13:33.210 --> 01:13:36.952
+at what the dependencies are
+that I just flashed through,
+
+01:13:36.952 --> 01:13:38.910
+you can discover, oh,
+there's all these things.
+
+01:13:38.910 --> 01:13:44.220
+Each one right now has to
+wait for the previous one
+
+01:13:44.220 --> 01:13:47.070
+before it can get started.
+
+01:13:47.070 --> 01:13:49.700
+But there are
+some-- for example,
+
+01:13:49.700 --> 01:13:51.450
+the first one is
+just issue order.
+
+01:13:51.450 --> 01:13:53.070
+You can't start the second--
+
+01:13:53.070 --> 01:13:55.440
+if it's in order, you
+can't start the second
+
+01:13:55.440 --> 01:13:58.290
+till you've started
+the first, that it's
+
+01:13:58.290 --> 01:13:59.862
+finished the first stage.
+
+01:13:59.862 --> 01:14:01.320
+But the other thing
+here is there's
+
+01:14:01.320 --> 01:14:04.890
+a data dependence between the
+second and third instructions.
+
+01:14:04.890 --> 01:14:08.040
+So if you look at the second
+and third instructions,
+
+01:14:08.040 --> 01:14:10.940
+they're both using XMM2.
+
+01:14:10.940 --> 01:14:13.195
+And so we're prevented.
+
+01:14:13.195 --> 01:14:14.820
+So one of the questions
+there is, well,
+
+01:14:14.820 --> 01:14:19.520
+why not do a little bit better
+by taking a look at this
+
+01:14:19.520 --> 01:14:21.140
+as a graph and
+figuring out what's
+
+01:14:21.140 --> 01:14:22.878
+the best way through the graph?
+
+01:14:22.878 --> 01:14:24.920
+And there are a bunch of
+tricks you can do there,
+
+01:14:24.920 --> 01:14:28.220
+which I'll run through
+here very quickly.
+
+01:14:28.220 --> 01:14:31.740
+And you can take
+a look at these.
+
+01:14:31.740 --> 01:14:33.740
+You can discover that
+some of these dependencies
+
+01:14:33.740 --> 01:14:35.180
+are not real dependence.
+
+01:14:35.180 --> 01:14:37.910
+And as long as you're willing
+to execute things out of order
+
+01:14:37.910 --> 01:14:41.120
+and keep track of that,
+it's perfectly fine.
+
+01:14:41.120 --> 01:14:43.550
+If you're not actually
+dependent on it,
+
+01:14:43.550 --> 01:14:45.290
+then just go ahead
+and execute it.
+
+01:14:45.290 --> 01:14:46.820
+And then you can advance things.
+
+01:14:46.820 --> 01:14:48.320
+And then the other
+trick you can use
+
+01:14:48.320 --> 01:14:50.360
+is what's called
+register renaming.
+
+01:14:50.360 --> 01:14:54.130
+If you have a destination
+that's going to be read from--
+
+01:14:54.130 --> 01:15:00.890
+sorry, if I want to
+write to something,
+
+01:15:00.890 --> 01:15:04.300
+but I have to wait for
+something else to read from it,
+
+01:15:04.300 --> 01:15:08.120
+the write after read
+dependence, then what
+
+01:15:08.120 --> 01:15:11.660
+I can do is just
+rename the register,
+
+01:15:11.660 --> 01:15:13.070
+so that I have
+something to write
+
+01:15:13.070 --> 01:15:15.590
+to that is the same thing.
+
+01:15:15.590 --> 01:15:18.080
+And there's a very
+complex mechanism called
+
+01:15:18.080 --> 01:15:21.380
+score boarding that does that.
+
+01:15:21.380 --> 01:15:25.982
+So anyway, you can take a
+look at all of these tricks.
+
+01:15:25.982 --> 01:15:27.440
+And then the last
+thing that I want
+
+01:15:27.440 --> 01:15:29.565
+to-- so this is this part
+I was going to skip over.
+
+01:15:29.565 --> 01:15:31.500
+And indeed, I don't
+have time to do it.
+
+01:15:31.500 --> 01:15:35.730
+I just want to mention the last
+thing, which is worthwhile.
+
+01:15:35.730 --> 01:15:37.460
+So this-- you don't
+have to know any
+
+01:15:37.460 --> 01:15:39.320
+of the details of that part.
+
+01:15:39.320 --> 01:15:41.850
+But it's in there if
+you're interested.
+
+01:15:41.850 --> 01:15:43.607
+So it does renaming
+and reordering.
+
+01:15:43.607 --> 01:15:45.440
+And then the last thing
+I do want to mention
+
+01:15:45.440 --> 01:15:47.010
+is branch prediction.
+
+01:15:47.010 --> 01:15:50.750
+So when you come to branch
+prediction, the outcome,
+
+01:15:50.750 --> 01:15:54.350
+you can have a hazard because
+the outcome is known too late.
+
+01:15:54.350 --> 01:15:58.760
+And so in that
+case, what they do
+
+01:15:58.760 --> 01:16:01.010
+is what's called
+speculative execution, which
+
+01:16:01.010 --> 01:16:03.170
+you've probably heard of.
+
+01:16:03.170 --> 01:16:05.510
+So basically that says I'm
+going to guess the outcome
+
+01:16:05.510 --> 01:16:07.970
+of the branch and execute.
+
+01:16:07.970 --> 01:16:12.140
+If it's encountered,
+you assume it's taken
+
+01:16:12.140 --> 01:16:13.790
+and you execute normally.
+
+01:16:13.790 --> 01:16:16.460
+And if you're right,
+everything is hunky dory.
+
+01:16:16.460 --> 01:16:19.430
+If you're wrong, it cost
+you something like a--
+
+01:16:23.840 --> 01:16:26.480
+you have to undo that
+speculative computation
+
+01:16:26.480 --> 01:16:29.240
+and the effect is
+sort of like stalling.
+
+01:16:29.240 --> 01:16:31.560
+So you don't want
+that to happen.
+
+01:16:31.560 --> 01:16:36.200
+And so a mispredicted
+branch on Haswell
+
+01:16:36.200 --> 01:16:39.260
+costs about 15 to 20 cycles.
+
+01:16:39.260 --> 01:16:41.840
+Most of the machines
+use a branch predictor
+
+01:16:41.840 --> 01:16:43.760
+to tell whether or
+not it's going to do.
+
+01:16:43.760 --> 01:16:45.177
+There's a little
+bit of stuff here
+
+01:16:45.177 --> 01:16:49.690
+about how you tell about
+whether a branch is
+
+01:16:49.690 --> 01:16:52.280
+going to be predicted or not.
+
+01:16:52.280 --> 01:16:55.440
+And you can take a look
+at that on your own.
+
+01:16:55.440 --> 01:16:57.140
+So sorry to rush a
+little bit the end,
+
+01:16:57.140 --> 01:16:59.360
+but I knew I wasn't going
+to get through all of this.
+
+01:16:59.360 --> 01:17:03.020
+But it's in the notes, in
+the slides when we put it up.
+
+01:17:03.020 --> 01:17:05.960
+And this is really kind
+of interesting stuff.
+
+01:17:05.960 --> 01:17:08.810
+Once again, remember that I'm
+dealing with this at one level
+
+01:17:08.810 --> 01:17:11.270
+below what you
+really need to do.
+
+01:17:11.270 --> 01:17:13.580
+But it is really helpful
+to understand that layer
+
+01:17:13.580 --> 01:17:17.000
+so you have a deep understanding
+of why certain software
+
+01:17:17.000 --> 01:17:19.350
+optimizations work
+and don't work.
+
+01:17:19.350 --> 01:17:20.890
+Sound good?
+
+01:17:20.890 --> 01:17:24.310
+OK, good luck on finishing
+your project 1's.

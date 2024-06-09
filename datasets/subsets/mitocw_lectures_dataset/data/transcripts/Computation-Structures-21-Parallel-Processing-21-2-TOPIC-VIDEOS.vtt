@@ -1,0 +1,701 @@
+WEBVTT
+
+00:00:00.740 --> 00:00:05.790
+The modern world has an insatiable appetite
+for computation, so system architects are
+
+00:00:05.790 --> 00:00:09.620
+always thinking about ways to make programs
+run faster.
+
+00:00:09.620 --> 00:00:13.389
+The running time of a program is the product
+of three terms:
+
+00:00:13.389 --> 00:00:18.240
+The number of instructions in the program,
+multiplied by the average number of processor
+
+00:00:18.240 --> 00:00:23.790
+cycles required to execute each instruction
+(CPI), multiplied by the time required for
+
+00:00:23.790 --> 00:00:27.440
+each processor cycle (t_CLK).
+
+00:00:27.440 --> 00:00:32.070
+To decrease the running time we need to decrease
+one or more of these terms.
+
+00:00:32.070 --> 00:00:36.250
+The number of instructions per program is
+determined by the ISA and by the compiler
+
+00:00:36.250 --> 00:00:40.030
+that produced the sequence of assembly language
+instructions to be executed.
+
+00:00:40.030 --> 00:00:46.700
+Both are fair game, but for this discussion,
+let's work on reducing the other two terms.
+
+00:00:46.700 --> 00:00:51.460
+As we've seen, pipelining reduces t_CLK by
+dividing instruction execution into a sequence
+
+00:00:51.460 --> 00:00:56.330
+of steps, each of which can complete its task
+in a shorter t_CLK.
+
+00:00:56.330 --> 00:00:59.420
+What about reducing CPI?
+
+00:00:59.420 --> 00:01:04.280
+In our 5-stage pipelined implementation of
+the Beta, we designed the hardware to complete
+
+00:01:04.280 --> 00:01:10.399
+the execution of one instruction every clock
+cycle, so CPI_ideal is 1.
+
+00:01:10.399 --> 00:01:15.619
+But sometimes the hardware has to introduce
+"NOP bubbles" into the pipeline to delay execution
+
+00:01:15.619 --> 00:01:21.658
+of a pipeline stage if the required operation
+couldn't (yet) be completed.
+
+00:01:21.658 --> 00:01:26.450
+This happens on taken branch instructions,
+when attempting to immediately use a value
+
+00:01:26.450 --> 00:01:31.710
+loaded from memory by the LD instruction,
+and when waiting for a cache miss to be satisfied
+
+00:01:31.710 --> 00:01:33.759
+from main memory.
+
+00:01:33.759 --> 00:01:39.770
+CPI_stall accounts for the cycles lost to
+the NOPs introduced into the pipeline.
+
+00:01:39.770 --> 00:01:45.020
+Its value depends on the frequency of taken
+branches and immediate use of LD results.
+
+00:01:45.020 --> 00:01:47.469
+Typically it's some fraction of a cycle.
+
+00:01:47.469 --> 00:01:53.908
+For example, if a 6-instruction loop with
+a LD takes 8 cycles to complete, CPI_stall
+
+00:01:53.908 --> 00:02:00.659
+for the loop would be 2/6, i.e., 2 extra cycles
+for every 6 instructions.
+
+00:02:00.659 --> 00:02:05.920
+Our classic 5-stage pipeline is an effective
+compromise that allows for a substantial reduction
+
+00:02:05.920 --> 00:02:11.140
+of t_CLK while keeping CPI_stall to a reasonably
+modest value.
+
+00:02:11.140 --> 00:02:12.730
+There is room for improvement.
+
+00:02:12.730 --> 00:02:19.690
+Since each stage is working on one instruction
+at a time, CPI_ideal is 1.
+
+00:02:19.690 --> 00:02:25.800
+Slow operations - e.g, completing a multiply
+in the ALU stage, or accessing a large cache
+
+00:02:25.800 --> 00:02:31.450
+in the IF or MEM stages - force t_CLK to be
+large to accommodate all the work that has
+
+00:02:31.450 --> 00:02:34.510
+to be done in one cycle.
+
+00:02:34.510 --> 00:02:37.870
+The order of the instructions in the pipeline
+is fixed.
+
+00:02:37.870 --> 00:02:43.750
+If, say, a LD instruction is delayed in the
+MEM stage because of a cache miss, all the
+
+00:02:43.750 --> 00:02:48.590
+instructions in earlier stages are also delayed
+even though their execution may not depend
+
+00:02:48.590 --> 00:02:51.160
+on the value produced by the LD.
+
+00:02:51.160 --> 00:02:54.960
+The order of instructions in the pipeline
+always reflects the order in which they were
+
+00:02:54.960 --> 00:02:57.300
+fetched by the IF stage.
+
+00:02:57.300 --> 00:03:02.150
+Let's look into what it would take to relax
+these constraints and hopefully improve program
+
+00:03:02.150 --> 00:03:04.180
+runtimes.
+
+00:03:04.180 --> 00:03:08.860
+Increasing the number of pipeline stages should
+allow us to decrease the clock cycle time.
+
+00:03:08.860 --> 00:03:15.350
+We'd add stages to break up performance bottlenecks,
+e.g., adding additional pipeline stages (MEM1
+
+00:03:15.350 --> 00:03:21.240
+and MEM2) to allow a longer time for memory
+operations to complete.
+
+00:03:21.240 --> 00:03:26.710
+This comes at cost to CPI_stall since each
+additional MEM stage means that more NOP bubbles
+
+00:03:26.710 --> 00:03:30.600
+have to be introduced when there's a LD data
+hazard.
+
+00:03:30.600 --> 00:03:36.200
+Deeper pipelines mean that the processor will
+be executing more instructions in parallel.
+
+00:03:36.200 --> 00:03:40.930
+Let's interrupt enumerating our performance
+shopping list to think about limits to pipeline
+
+00:03:40.930 --> 00:03:42.120
+depth.
+
+00:03:42.120 --> 00:03:47.160
+Each additional pipeline stage includes some
+additional overhead costs to the time budget.
+
+00:03:47.160 --> 00:03:52.380
+We have to account for the propagation, setup,
+and hold times for the pipeline registers.
+
+00:03:52.380 --> 00:03:57.440
+And we usually have to allow a bit of extra
+time to account for clock skew, i.e., the
+
+00:03:57.440 --> 00:04:00.940
+difference in arrival time of the clock edge
+at each register.
+
+00:04:00.940 --> 00:04:06.270
+And, finally, since we can't always divide
+the work exactly evenly between the pipeline
+
+00:04:06.270 --> 00:04:11.020
+stages, there will be some wasted time in
+the stages that have less work.
+
+00:04:11.020 --> 00:04:16.789
+We'll capture all of these effects as an additional
+per-stage time overhead of O.
+
+00:04:16.789 --> 00:04:22.270
+If the original clock period was T, then with
+N pipeline stages, the clock period will be
+
+00:04:22.270 --> 00:04:24.729
+T/N + O.
+
+00:04:24.729 --> 00:04:31.110
+At the limit, as N becomes large, the speedup
+approaches T/O.
+
+00:04:31.110 --> 00:04:36.240
+In other words, the overhead starts to dominate
+as the time spent on work in each stage becomes
+
+00:04:36.240 --> 00:04:38.520
+smaller and smaller.
+
+00:04:38.520 --> 00:04:43.610
+At some point adding additional pipeline stages
+has almost no impact on the clock period.
+
+00:04:43.610 --> 00:04:51.509
+As a data point, the Intel Core-2 x86 chips
+(nicknamed "Nehalem") have a 14-stage execution
+
+00:04:51.509 --> 00:04:52.509
+pipeline.
+
+00:04:52.509 --> 00:04:55.990
+Okay, back to our performance shopping list…
+
+00:04:55.990 --> 00:05:01.150
+There may be times we can arrange to execute
+two or more instructions in parallel, assuming
+
+00:05:01.150 --> 00:05:04.240
+that their executions are independent from
+each other.
+
+00:05:04.240 --> 00:05:08.960
+This would increase CPI_ideal at the cost
+of increasing the complexity of each pipeline
+
+00:05:08.960 --> 00:05:14.710
+stage to deal with concurrent execution of
+multiple instructions.
+
+00:05:14.710 --> 00:05:19.930
+If there's an instruction stalled in the pipeline
+by a data hazard, there may be following instructions
+
+00:05:19.930 --> 00:05:23.080
+whose execution could still proceed.
+
+00:05:23.080 --> 00:05:28.669
+Allowing instructions to pass each other in
+the pipeline is called out-of-order execution.
+
+00:05:28.669 --> 00:05:33.159
+We'd have to be careful to ensure that changing
+the execution order didn't affect the values
+
+00:05:33.159 --> 00:05:36.379
+produced by the program.
+
+00:05:36.379 --> 00:05:40.979
+More pipeline stages and wider pipeline stages
+increase the amount of work that has to be
+
+00:05:40.979 --> 00:05:46.240
+discarded on control hazards, potentially
+increasing CPI_stall.
+
+00:05:46.240 --> 00:05:51.010
+So it's important to minimize the number of
+control hazards by predicting the results
+
+00:05:51.010 --> 00:05:57.319
+of a branch (i.e., taken or not taken)
+so that we increase the chances that the instructions
+
+00:05:57.319 --> 00:06:00.930
+in the pipeline are the ones we'll want to
+execute.
+
+00:06:00.930 --> 00:06:05.949
+Our ability to exploit wider pipelines and
+out-of-order execution depends on finding
+
+00:06:05.949 --> 00:06:10.960
+instructions that can be executed in parallel
+or in different orders.
+
+00:06:10.960 --> 00:06:15.249
+Collectively these properties are called "instruction-level
+parallelism" (ILP).
+
+00:06:15.249 --> 00:06:21.780
+Here's an example that will let us explore
+the amount of ILP that might be available.
+
+00:06:21.780 --> 00:06:27.009
+On the left is an unoptimized loop that computes
+the product of the first N integers.
+
+00:06:27.009 --> 00:06:31.909
+On the right, we've rewritten the code, placing
+instructions that could be executed concurrently
+
+00:06:31.909 --> 00:06:34.150
+on the same line.
+
+00:06:34.150 --> 00:06:38.360
+First notice the red line following the BF
+instruction.
+
+00:06:38.360 --> 00:06:43.169
+Instructions below the line should only be
+executed if the BF is *not* taken.
+
+00:06:43.169 --> 00:06:46.840
+That doesn't mean we couldn't start executing
+them before the results of the branch are
+
+00:06:46.840 --> 00:06:49.520
+known,
+but if we executed them before the branch,
+
+00:06:49.520 --> 00:06:54.800
+we would have to be prepared to throw away
+their results if the branch was taken.
+
+00:06:54.800 --> 00:06:58.810
+The possible execution order is constrained
+by the read-after-write (RAW) dependencies
+
+00:06:58.810 --> 00:07:00.580
+shown by the red arrows.
+
+00:07:00.580 --> 00:07:06.589
+We recognize these as the potential data hazards
+that occur when an operand value for one instruction
+
+00:07:06.589 --> 00:07:10.110
+depends on the result of an earlier instruction.
+
+00:07:10.110 --> 00:07:14.990
+In our 5-stage pipeline, we were able to resolve
+many of these hazards by bypassing values
+
+00:07:14.990 --> 00:07:22.020
+from the ALU, MEM, and WB stages back to the
+RF stage where operand values are determined.
+
+00:07:22.020 --> 00:07:27.789
+Of course, bypassing will only work when the
+instruction has been executed so its result
+
+00:07:27.789 --> 00:07:29.570
+is available for bypassing!
+
+00:07:29.570 --> 00:07:35.069
+So, in this case, the arrows are showing us
+the constraints on execution order that guarantee
+
+00:07:35.069 --> 00:07:38.680
+bypassing will be possible.
+
+00:07:38.680 --> 00:07:41.469
+There are other constraints on execution order.
+
+00:07:41.469 --> 00:07:46.089
+The green arrow identifies a write-after-write
+(WAW) constraint between two instructions
+
+00:07:46.089 --> 00:07:49.120
+with the same destination register.
+
+00:07:49.120 --> 00:07:55.241
+In order to ensure the correct value is in
+R2 at the end of the loop, the LD(r,R2) instruction
+
+00:07:55.241 --> 00:08:01.001
+has to store its result into the register
+file after the result of the CMPLT instruction
+
+00:08:01.001 --> 00:08:03.330
+is stored into the register file.
+
+00:08:03.330 --> 00:08:09.309
+Similarly, the blue arrow shows a write-after-read
+(WAR) constraint that ensures that the correct
+
+00:08:09.309 --> 00:08:12.169
+values are used when accessing a register.
+
+00:08:12.169 --> 00:08:18.839
+In this case, LD(r,R2) must store into R2
+after the Ra operand for the BF has been read
+
+00:08:18.839 --> 00:08:20.819
+from R2.
+
+00:08:20.819 --> 00:08:26.610
+As it turns out, WAW and WAR constraints can
+be eliminated if we give each instruction
+
+00:08:26.610 --> 00:08:29.639
+result a unique register name.
+
+00:08:29.639 --> 00:08:34.399
+This can actually be done relatively easily
+by the hardware by using a generous supply
+
+00:08:34.399 --> 00:08:39.309
+of temporary registers, but we won't go into
+the details of renaming here.
+
+00:08:39.309 --> 00:08:43.849
+The use of temporary registers also makes
+it easy to discard results of instructions
+
+00:08:43.849 --> 00:08:47.480
+executed before we know the outcomes of branches.
+
+00:08:47.480 --> 00:08:52.690
+In this example, we discovered that the potential
+concurrency was actually pretty good for the
+
+00:08:52.690 --> 00:08:54.930
+instructions following the BF.
+
+00:08:54.930 --> 00:09:00.050
+To take advantage of this potential concurrency,
+we'll need to modify the pipeline to execute
+
+00:09:00.050 --> 00:09:03.160
+some number N of instructions in parallel.
+
+00:09:03.160 --> 00:09:09.089
+If we can sustain that rate of execution,
+CPI_ideal would then be 1/N since we'd complete
+
+00:09:09.089 --> 00:09:15.910
+the execution of N instructions in each clock
+cycle as they exited the final pipeline stage.
+
+00:09:15.910 --> 00:09:19.190
+So what value should we choose for N?
+
+00:09:19.190 --> 00:09:23.660
+Instructions that are executed by different
+ALU hardware are easy to execute in parallel,
+
+00:09:23.660 --> 00:09:28.449
+e.g., ADDs and SHIFTs, or integer and floating-point
+operations.
+
+00:09:28.449 --> 00:09:33.170
+Of course, if we provided multiple adders,
+we could execute multiple integer arithmetic
+
+00:09:33.170 --> 00:09:36.130
+instructions concurrently.
+
+00:09:36.130 --> 00:09:41.660
+Having separate hardware for address arithmetic
+(called LD/ST units) would support concurrent
+
+00:09:41.660 --> 00:09:46.730
+execution of LD/ST instructions and integer
+arithmetic instructions.
+
+00:09:46.730 --> 00:09:51.090
+This set of lecture slides from Duke gives
+a nice overview of techniques used in each
+
+00:09:51.090 --> 00:09:55.260
+pipeline stage to support concurrent execution.
+
+00:09:55.260 --> 00:10:00.170
+Basically by increasing the number of functional
+units in the ALU and the number of memory
+
+00:10:00.170 --> 00:10:04.990
+ports on the register file and main memory,
+we would have what it takes to support concurrent
+
+00:10:04.990 --> 00:10:07.560
+execution of multiple instructions.
+
+00:10:07.560 --> 00:10:14.639
+So, what's the right tradeoff between increased
+circuit costs and increased concurrency?
+
+00:10:14.639 --> 00:10:20.110
+As a data point, the Intel Nehelam core can
+complete up to 4 micro-operations per cycle,
+
+00:10:20.110 --> 00:10:25.340
+where each micro-operation corresponds to
+one of our simple RISC instructions.
+
+00:10:25.340 --> 00:10:31.630
+Here's a simplified diagram of a modern out-of-order
+superscalar processor.
+
+00:10:31.630 --> 00:10:35.380
+Instruction fetch and decode handles, say,
+4 instructions at a time.
+
+00:10:35.380 --> 00:10:39.870
+The ability to sustain this execution rate
+depends heavily on the ability to predict
+
+00:10:39.870 --> 00:10:44.490
+the outcome of branch instructions,
+ensuring that the wide pipeline will be mostly
+
+00:10:44.490 --> 00:10:48.220
+filled with instructions we actually want
+to execute.
+
+00:10:48.220 --> 00:10:52.680
+Good branch prediction requires the use of
+the history from previous branches and there's
+
+00:10:52.680 --> 00:10:56.910
+been a lot of cleverness devoted to getting
+good predictions from the least amount of
+
+00:10:56.910 --> 00:10:58.589
+hardware!
+
+00:10:58.589 --> 00:11:03.930
+If you're interested in the details, search
+for "branch predictor" on Wikipedia.
+
+00:11:03.930 --> 00:11:08.819
+The register renaming happens during instruction
+decode, after which the instructions are ready
+
+00:11:08.819 --> 00:11:12.940
+to be dispatched to the functional units.
+
+00:11:12.940 --> 00:11:17.540
+If an instruction needs the result of an earlier
+instruction as an operand, the dispatcher
+
+00:11:17.540 --> 00:11:22.290
+has identified which functional unit will
+be producing the result.
+
+00:11:22.290 --> 00:11:26.870
+The instruction waits in a queue until the
+indicated functional unit produces the result
+
+00:11:26.870 --> 00:11:31.290
+and when all the operand values are known,
+the instruction is finally taken from the
+
+00:11:31.290 --> 00:11:33.720
+queue and executed.
+
+00:11:33.720 --> 00:11:37.850
+Since the instructions are executed by different
+functional units as soon as their operands
+
+00:11:37.850 --> 00:11:44.320
+are available, the order of execution may
+not be the same as in the original program.
+
+00:11:44.320 --> 00:11:49.170
+After execution, the functional units broadcast
+their results so that waiting instructions
+
+00:11:49.170 --> 00:11:51.340
+know when to proceed.
+
+00:11:51.340 --> 00:11:55.589
+The results are also collected in a large
+reorder buffer so that that they can be retired
+
+00:11:55.589 --> 00:12:00.949
+(i.e., write their results in the register
+file) in the correct order.
+
+00:12:00.949 --> 00:12:02.199
+Whew!
+
+00:12:02.199 --> 00:12:06.760
+There's a lot of circuitry involved in keeping
+the functional units fed with instructions,
+
+00:12:06.760 --> 00:12:11.529
+knowing when instructions have all their operands,
+and organizing the execution results into
+
+00:12:11.529 --> 00:12:13.269
+the correct order.
+
+00:12:13.269 --> 00:12:18.420
+So how much speed up should we expect from
+all this machinery?
+
+00:12:18.420 --> 00:12:24.259
+The effective CPI is very program-specific,
+depending as it does on cache hit rates, successful
+
+00:12:24.259 --> 00:12:29.440
+branch prediction, available ILP, and so on.
+
+00:12:29.440 --> 00:12:33.620
+Given the architecture described here the
+best speed up we could hope for is a factor
+
+00:12:33.620 --> 00:12:34.700
+of 4.
+
+00:12:34.700 --> 00:12:40.490
+Googling around, it seems that the reality
+is an average speed-up of 2, maybe slightly
+
+00:12:40.490 --> 00:12:46.089
+less, over what would be achieved by an in-order,
+single-issue processor.
+
+00:12:46.089 --> 00:12:49.889
+What can we expect for future performance
+improvements in out-of-order, superscalar
+
+00:12:49.889 --> 00:12:52.379
+pipelines?
+
+00:12:52.379 --> 00:12:57.670
+Increases in pipeline depth can cause CPI_stall
+and timing overheads to rise.
+
+00:12:57.670 --> 00:13:02.480
+At the current pipeline depths the increase
+in CPI_stall is larger than the gains from
+
+00:13:02.480 --> 00:13:06.810
+decreased t_CLK and so further increases in
+depth are unlikely.
+
+00:13:06.810 --> 00:13:13.430
+A similar tradeoff exists between using more
+out-of-order execution to increase ILP and
+
+00:13:13.430 --> 00:13:19.080
+the increase in CPI_stall caused by the impact
+of mis-predicted branches and the inability
+
+00:13:19.080 --> 00:13:22.860
+to run main memories any faster.
+
+00:13:22.860 --> 00:13:27.920
+Power consumption increases more quickly than
+the performance gains from lower t_CLK and
+
+00:13:27.920 --> 00:13:30.649
+additional out-of-order execution logic.
+
+00:13:30.649 --> 00:13:34.790
+The additional complexity required to enable
+further improvements in branch prediction
+
+00:13:34.790 --> 00:13:37.560
+and concurrent execution seems very daunting.
+
+00:13:37.560 --> 00:13:43.269
+All of these factors suggest that is unlikely
+that we'll see substantial future improvements
+
+00:13:43.269 --> 00:13:48.990
+in the performance of out-of-order superscalar
+pipelined processors.
+
+00:13:48.990 --> 00:13:53.509
+So system architects have turned their attention
+to exploiting data-level parallelism (DLP)
+
+00:13:53.509 --> 00:13:55.709
+and thread-level parallelism (TLP).
+
+00:13:55.709 --> 00:13:57.109
+These are our next two topics.

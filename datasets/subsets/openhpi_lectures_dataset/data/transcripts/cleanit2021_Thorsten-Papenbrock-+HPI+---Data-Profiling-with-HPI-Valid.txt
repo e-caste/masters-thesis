@@ -1,0 +1,1459 @@
+WEBVTT
+
+1
+00:00:00.620 --> 00:00:06.470 
+Hello, my name is Thorsten Papenbrock and I'm
+from the HPI Information Systems chair.
+
+2
+00:00:07.240 --> 00:00:11.490 
+In this presentation, I want to
+show you how computers can save
+
+3
+00:00:11.490 --> 00:00:15.260 
+energy when they are looking
+for keys and while this might
+
+4
+00:00:15.260 --> 00:00:19.660 
+be something that is that
+database engineers are
+
+5
+00:00:19.660 --> 00:00:22.140 
+already familiar with -
+computers looking for keys,
+
+6
+00:00:22.670 --> 00:00:25.250 
+I will show you in a minute
+what this actually means.
+
+7
+00:00:25.670 --> 00:00:29.830 
+But before that let's first take
+a look at what sustainability
+
+8
+00:00:29.830 --> 00:00:31.220 
+means in our context.
+
+9
+00:00:32.560 --> 00:00:38.880 
+So, sustainable computing in our context
+means saving energy and saving energy
+
+10
+00:00:39.450 --> 00:00:44.490 
+means that we want to minimize work, there
+are other ways of minimizing energy
+
+11
+00:00:44.590 --> 00:00:48.010 
+but in our context minimizing
+work is the most,
+
+12
+00:00:49.550 --> 00:00:50.880 
+is what what we do.
+
+13
+00:00:51.750 --> 00:00:57.340 
+Minimizing work then means that we want
+to avoid unnecessary computation steps,
+
+14
+00:00:57.630 --> 00:01:01.010 
+which are such computation
+steps that are not
+
+15
+00:01:01.730 --> 00:01:05.970 
+effectively contributing to the
+final results of our computation.
+
+16
+00:01:06.300 --> 00:01:10.250 
+It's a little bit like walking in
+a maze and the most efficient
+
+17
+00:01:10.250 --> 00:01:13.080 
+way to walk a maze is to
+directly walk to the exit.
+
+18
+00:01:13.480 --> 00:01:17.850 
+Every detour that you do is a
+kind of wasted time and energy
+
+19
+00:01:18.410 --> 00:01:20.840 
+and this is exactly what
+we want to avoid in our
+
+20
+00:01:21.610 --> 00:01:26.130 
+algorithms, make them straight work to
+the final result without any detours.
+
+21
+00:01:27.060 --> 00:01:31.470 
+Avoiding unnecessary computation
+steps then decreases the run time
+
+22
+00:01:31.960 --> 00:01:36.820 
+and this is why we focus on measuring
+the run time in our context.
+
+23
+00:01:38.160 --> 00:01:41.650 
+The run time is
+not necessarily
+
+24
+00:01:41.650 --> 00:01:45.970 
+tied to energy consumption but
+it's much easier to measure
+
+25
+00:01:46.220 --> 00:01:50.830 
+and because our
+solutions are mostly,
+
+26
+00:01:51.190 --> 00:01:56.960 
+the solutions in data
+profiling are mostly CPU
+
+27
+00:01:57.230 --> 00:02:01.660 
+bound. Run time is a
+pretty good replacement
+
+28
+00:02:01.660 --> 00:02:06.230 
+measure for energy consumption
+and correlates very well.
+
+29
+00:02:06.650 --> 00:02:10.290 
+Also, the
+
+30
+00:02:11.060 --> 00:02:14.690 
+ranges of run-time reduction that
+we are talking about in a minute
+
+31
+00:02:15.080 --> 00:02:18.790 
+is in an area where the run time
+clearly corresponds to the
+
+32
+00:02:18.790 --> 00:02:20.790 
+energy consumption
+of our algorithms.
+
+33
+00:02:21.740 --> 00:02:26.920 
+Okay, so now let's look at what
+keys are for computer and for
+
+34
+00:02:26.920 --> 00:02:29.550 
+that I brought a small
+example namely Pokémon.
+
+35
+00:02:29.960 --> 00:02:33.050 
+Pokémon are small pocket monsters
+and it turns out that there's
+
+36
+00:02:33.080 --> 00:02:36.120 
+actually data about
+these pocket monsters,
+
+37
+00:02:36.550 --> 00:02:38.050 
+and this data
+looks like so.
+
+38
+00:02:39.080 --> 00:02:45.210 
+In this data set, we are interested
+in the attributes or values of
+
+39
+00:02:45.530 --> 00:02:50.410 
+of these entities that uniquely
+identify each entity in this
+
+40
+00:02:50.860 --> 00:02:54.610 
+relation, this is needed because
+then we can talk about
+
+41
+00:02:54.610 --> 00:02:56.880 
+the individual entities
+and identify them.
+
+42
+00:02:57.680 --> 00:03:01.480 
+This is called a
+database key, a set of
+
+43
+00:03:01.940 --> 00:03:05.740 
+attributes that uniquely identify
+every entity in the table.
+
+44
+00:03:06.820 --> 00:03:10.330 
+Such keys are also referred to
+as unique column combinations
+
+45
+00:03:10.330 --> 00:03:14.120 
+because all the values in
+these attributes are unique.
+
+46
+00:03:15.530 --> 00:03:19.780 
+We can formalize this and say
+well there should be no two
+
+47
+00:03:20.060 --> 00:03:23.910 
+value combinations in a UCC -
+unique column combination,
+
+48
+00:03:24.240 --> 00:03:29.020 
+that are the same. When
+we look at our example,
+
+49
+00:03:29.550 --> 00:03:35.030 
+we need this to do
+data management, to
+
+50
+00:03:35.220 --> 00:03:39.460 
+query answering, to identifying querying
+for certain entities, linking them up,
+
+51
+00:03:39.780 --> 00:03:42.290 
+machine learning, we
+have to identify,
+
+52
+00:03:42.290 --> 00:03:46.010 
+we have to identify entities
+to learn something
+
+53
+00:03:46.020 --> 00:03:49.690 
+about these entities and this is true for
+many other computer science tasks. So,
+
+54
+00:03:49.880 --> 00:03:55.480 
+keys are very important here but in most
+cases these keys are actually missing
+
+55
+00:03:55.790 --> 00:03:59.980 
+which means that we need algorithms
+to discover them in the
+
+56
+00:03:59.980 --> 00:04:04.080 
+data that we have. And if we look
+at our example then a natural
+
+57
+00:04:04.080 --> 00:04:07.810 
+thing to do is to consider
+the index as a key.
+
+58
+00:04:08.740 --> 00:04:12.370 
+But in this but particular case
+it turns out that the index
+
+59
+00:04:12.370 --> 00:04:16.070 
+is not a key, there are
+entities with the same index.
+
+60
+00:04:17.290 --> 00:04:20.630 
+So maybe the name is a unique
+column combination or candidate
+
+61
+00:04:20.630 --> 00:04:23.900 
+for a key, but also the name
+of pokemon is not unique,
+
+62
+00:04:24.440 --> 00:04:27.710 
+and if we continue that it's true
+for all the other attributes
+
+63
+00:04:27.710 --> 00:04:31.150 
+as well. If we only consider one
+individual attribute, it's not
+
+64
+00:04:31.150 --> 00:04:35.850 
+a key and we cannot identify a
+pokémon with these attributes.
+
+65
+00:04:36.110 --> 00:04:39.490 
+So, what we do instead is we
+combine different attributes and
+
+66
+00:04:39.490 --> 00:04:43.110 
+then we find the actual key of this
+relation, which is the Name,
+
+67
+00:04:43.350 --> 00:04:47.610 
+the Sex of a Pokémon, and its
+Type. These 3 values uniquely
+
+68
+00:04:47.610 --> 00:04:49.500 
+identify all
+individual entities.
+
+69
+00:04:50.850 --> 00:04:55.860 
+Now we need an algorithm to find these
+automatically because doing this manually
+
+70
+00:04:56.050 --> 00:04:59.760 
+requires some domain knowledge and
+at least I'm am not an expert
+
+71
+00:04:59.760 --> 00:05:02.180 
+in Pokémon and I would not have
+been able to come up with
+
+72
+00:05:02.180 --> 00:05:05.680 
+this on my own, so we have
+algorithms to discover them.
+
+73
+00:05:06.190 --> 00:05:09.230 
+And to make this discovery a
+little bit more focused,
+
+74
+00:05:09.950 --> 00:05:14.170 
+let's first talk about the
+search space that these
+
+75
+00:05:14.170 --> 00:05:19.090 
+algorithms have to traverse and this search
+space can be systematically formalised as a
+
+76
+00:05:19.330 --> 00:05:22.310 
+powerset lattice of attribute
+combinations. So, we have all the
+
+77
+00:05:22.310 --> 00:05:23.900 
+attribute combinations
+on the bottom
+
+78
+00:05:24.510 --> 00:05:29.140 
+and now we build a lattice
+of all combinations that
+
+79
+00:05:29.140 --> 00:05:31.620 
+we can form with these attributes
+and this could look like
+
+80
+00:05:31.620 --> 00:05:32.350 
+this one here.
+
+81
+00:05:34.580 --> 00:05:38.340 
+Now a naive solution would be to
+go through all these candidates
+
+82
+00:05:38.520 --> 00:05:42.680 
+and classify them as either
+a true unique column
+
+83
+00:05:42.680 --> 00:05:47.460 
+combination or a false one.
+So, yeah all combinations
+
+84
+00:05:47.460 --> 00:05:50.270 
+of 2 are unique column
+combinations of size 2.
+
+85
+00:05:50.700 --> 00:05:55.160 
+ABC is a candidate for a column
+combination of size 3 and so on.
+
+86
+00:05:55.540 --> 00:05:58.850 
+And we have to go through
+all of them and decide
+
+87
+00:05:59.090 --> 00:06:04.110 
+whether they are true or false and
+the solution of this naive approach
+
+88
+00:06:04.300 --> 00:06:06.240 
+would be something
+like this here. So,
+
+89
+00:06:06.930 --> 00:06:11.580 
+red ones are non-UCC's
+or no keys,
+
+90
+00:06:11.980 --> 00:06:16.910 
+definitely no keys and the blue ones are
+unique column combinations key candidates.
+
+91
+00:06:18.130 --> 00:06:21.460 
+And if we go there to these lattices
+and classify all of these
+
+92
+00:06:21.460 --> 00:06:25.970 
+combinations as true or false
+then this takes a lot of time.
+
+93
+00:06:26.650 --> 00:06:31.670 
+So, what you can see here is a
+visualization of exponential complexity.
+
+94
+00:06:32.120 --> 00:06:38.320 
+The number of candidates grows exponentially and
+the size of the lattices grows exponentially
+
+95
+00:06:38.530 --> 00:06:41.010 
+with the number of attributes
+in the input relation,
+
+96
+00:06:41.580 --> 00:06:45.830 
+and if we test all of them, this
+really wastes a lot of energy. With
+
+97
+00:06:46.080 --> 00:06:51.170 
+only 20 attributes in our table, so to
+say a table of with 20 attributes
+
+98
+00:06:51.360 --> 00:06:55.410 
+already has more than one million
+candidates that the algorithm
+
+99
+00:06:55.410 --> 00:06:58.830 
+would need to check. So, there's
+definitely something that we
+
+100
+00:06:58.830 --> 00:07:01.650 
+need to do about it to
+make this more focused.
+
+101
+00:07:03.150 --> 00:07:06.560 
+So, the first thing that we have
+to acknowledge is that we do
+
+102
+00:07:06.560 --> 00:07:09.770 
+not actually
+need all the
+
+103
+00:07:10.240 --> 00:07:14.440 
+blue nodes here in our lattice but
+only those that are minimum,
+
+104
+00:07:14.820 --> 00:07:18.180 
+What this means is we only need
+these blue ones here because
+
+105
+00:07:18.180 --> 00:07:22.190 
+the now black ones can be
+inferred from the blue ones.
+
+106
+00:07:22.740 --> 00:07:28.520 
+If for instance, ABE is a unique column
+combination then all supersets,
+
+107
+00:07:28.670 --> 00:07:31.720 
+adding more attributes
+to this would
+
+108
+00:07:32.280 --> 00:07:35.870 
+also result in a true
+unique column-
+
+109
+00:07:35.870 --> 00:07:39.210 
+combination. So, we do not
+explicitly have to enumerate them
+
+110
+00:07:40.080 --> 00:07:43.120 
+and when we only focus on the
+blue ones then we can prune all
+
+111
+00:07:43.120 --> 00:07:46.280 
+the other candidates away and a
+systematic way of doing this
+
+112
+00:07:46.290 --> 00:07:49.640 
+is by going through the
+lattice from bottom to
+
+113
+00:07:49.640 --> 00:07:53.840 
+to the top of the lattice. So, bottom-up
+search and this is something that
+
+114
+00:07:54.030 --> 00:07:57.770 
+several algorithms already
+tried, TANE and HCA were a
+
+115
+00:07:57.770 --> 00:07:59.050 
+few of the first ones,
+
+116
+00:07:59.780 --> 00:08:04.110 
+and what they do is they start from
+the lowest level, they classify
+
+117
+00:08:04.110 --> 00:08:07.080 
+the candidates on that level and
+then they go to the next one.
+
+118
+00:08:07.520 --> 00:08:10.920 
+If they find a unique column
+combination then we can infer
+
+119
+00:08:10.920 --> 00:08:15.010 
+that all the supersets of that kind
+of combination are also true
+
+120
+00:08:15.230 --> 00:08:17.980 
+and we do not need to test
+them in the further process
+
+121
+00:08:18.770 --> 00:08:22.440 
+and this continues level-wise
+until the algorithm reaches
+
+122
+00:08:22.470 --> 00:08:27.040 
+the top and we have found all the minimal unique
+column combinations - our key candidates.
+
+123
+00:08:28.510 --> 00:08:32.340 
+This helps a lot and makes
+the search much faster
+
+124
+00:08:32.580 --> 00:08:36.230 
+but it's not the only
+strategy that we can use.
+
+125
+00:08:36.500 --> 00:08:41.790 
+Another strategy is based on Agree-Sets and
+Inference, a very different idea here.
+
+126
+00:08:42.430 --> 00:08:48.330 
+So, this strategy as well was proposed
+first by the FDEP algorithm and it works
+
+127
+00:08:48.620 --> 00:08:53.760 
+basically as follows. So, instead of
+looking at the search space lattice,
+
+128
+00:08:53.930 --> 00:08:58.460 
+we look at the actual instance and
+in this instance, we compare
+
+129
+00:08:58.860 --> 00:09:03.380 
+pairs of records in the table.
+So, the first comparison
+
+130
+00:09:04.050 --> 00:09:07.130 
+is between Thomas Miller and
+Sarah Miller and what we
+
+131
+00:09:08.130 --> 00:09:13.550 
+derive from that is a so-called
+Agree-Set. Agree-Set are all the
+
+132
+00:09:13.820 --> 00:09:16.940 
+attributes that have the same
+value in this particular
+
+133
+00:09:18.460 --> 00:09:21.560 
+entity pair. So, surname,
+postcode, city, and mayor
+
+134
+00:09:22.130 --> 00:09:24.900 
+have the same value, so this
+is our first agree set
+
+135
+00:09:25.230 --> 00:09:28.490 
+and now the algorithm continues
+and compares all the different
+
+136
+00:09:28.490 --> 00:09:33.300 
+entities in the table and in the end
+we get a complete set of Agree-Sets.
+
+137
+00:09:33.480 --> 00:09:38.110 
+Every Agree-Set represents a
+unique column combination
+
+138
+00:09:38.110 --> 00:09:42.320 
+that cannot be true because there's
+at least one entity in the data set
+
+139
+00:09:42.480 --> 00:09:47.050 
+were all values in
+this attribute
+
+140
+00:09:47.050 --> 00:09:51.500 
+combination are the same, so we cannot
+differentiate the entities by them.
+
+141
+00:09:52.630 --> 00:09:56.210 
+Now there's a systematic way of
+turning all these Agree-Sets
+
+142
+00:09:56.620 --> 00:09:59.420 
+into their opposite, so
+inferring the actual
+
+143
+00:09:59.740 --> 00:10:03.130 
+UCC's, the true unique column
+combinations from them
+
+144
+00:10:03.950 --> 00:10:07.250 
+and this is an inference
+step that I will not
+
+145
+00:10:07.250 --> 00:10:10.070 
+go into too much detail but
+it's pretty efficient.
+
+146
+00:10:11.030 --> 00:10:14.680 
+So how does this look in practice, so
+here we have our search space lattice
+
+147
+00:10:15.010 --> 00:10:20.420 
+and let's say that we found that BCE
+is not a unit column combination.
+
+148
+00:10:20.790 --> 00:10:24.890 
+So, what we can do then is
+we can remove BCE and
+
+149
+00:10:25.150 --> 00:10:29.900 
+all of its subsets from the search space
+they are all not true because there are
+
+150
+00:10:30.370 --> 00:10:35.210 
+duplicate values in them and here we
+see that with only one of these
+
+151
+00:10:35.390 --> 00:10:38.120 
+agrees that we can prune
+already a lot of candidates
+
+152
+00:10:38.120 --> 00:10:40.410 
+which makes this approach
+pretty powerful.
+
+153
+00:10:40.990 --> 00:10:44.860 
+Now we continue and insert all
+the other non unique column
+
+154
+00:10:44.860 --> 00:10:48.650 
+combinations into our lattice and
+in the end we prune out all
+
+155
+00:10:48.660 --> 00:10:50.690 
+unique column combinations
+that cannot be true.
+
+156
+00:10:51.450 --> 00:10:56.090 
+Now with this inference step,
+we can simply turn this over
+
+157
+00:10:56.220 --> 00:10:59.530 
+and get the set of minimal unique
+column combinations which
+
+158
+00:10:59.530 --> 00:11:02.920 
+are those that are true and this
+is the result of the algorithm.
+
+159
+00:11:04.050 --> 00:11:07.790 
+So we have two steps that are
+pretty different and they have
+
+160
+00:11:07.790 --> 00:11:09.300 
+their strengths
+and weaknesses
+
+161
+00:11:10.820 --> 00:11:13.420 
+and the logical next step for an
+algorithm to do would be to
+
+162
+00:11:13.420 --> 00:11:17.130 
+take these two steps and combine
+them. So, we have on the one
+
+163
+00:11:17.130 --> 00:11:20.390 
+side this column efficient step
+that compares records and derives
+
+164
+00:11:20.610 --> 00:11:23.780 
+non unique column combinations
+and on the other side this row
+
+165
+00:11:23.780 --> 00:11:26.850 
+efficient approach that goes through the
+lattice and checks the candidates.
+
+166
+00:11:27.310 --> 00:11:28.750 
+Column efficient
+means that
+
+167
+00:11:29.510 --> 00:11:32.940 
+the algorithm is pretty robust when
+adding more columns increasing
+
+168
+00:11:32.940 --> 00:11:34.050 
+the width of the table
+
+169
+00:11:34.940 --> 00:11:37.990 
+with respect to its run-time and
+row efficient means that the
+
+170
+00:11:38.370 --> 00:11:41.220 
+approach is pretty efficient
+with respect to the number of
+
+171
+00:11:41.220 --> 00:11:43.710 
+rows increasing the length
+of the data set doesn't
+
+172
+00:11:44.160 --> 00:11:46.410 
+impact the performance of
+that approach so much.
+
+173
+00:11:47.010 --> 00:11:50.940 
+So what we then did as we proposed
+an algorithm called HyUCC
+
+174
+00:11:50.940 --> 00:11:52.670 
+hybrid algorithm
+
+175
+00:11:53.580 --> 00:11:58.390 
+that uses both of these strategies.
+Well one intuitive way
+
+176
+00:11:58.390 --> 00:12:01.890 
+would be to start both strategies
+and the strategy which returns
+
+177
+00:12:01.890 --> 00:12:05.220 
+first is the one which is better
+and wins in the end but this
+
+178
+00:12:05.220 --> 00:12:08.830 
+again wastes some energy
+because whatever we do in
+
+179
+00:12:09.390 --> 00:12:12.180 
+one strategy can be used by the
+other strategy to increase
+
+180
+00:12:12.180 --> 00:12:15.630 
+its performance. So, we can
+reuse intermediate results.
+
+181
+00:12:15.880 --> 00:12:19.950 
+So, what the algorithm does is it
+starts in the column efficient space
+
+182
+00:12:20.310 --> 00:12:23.290 
+and if that space is for
+some reason inefficient
+
+183
+00:12:23.990 --> 00:12:27.450 
+then we turn to the other
+discovery strategy.
+
+184
+00:12:27.870 --> 00:12:31.090 
+If that discovery strategy again
+turns out to be inefficient
+
+185
+00:12:31.090 --> 00:12:33.180 
+we turn back to the column
+efficient strategy
+
+186
+00:12:33.650 --> 00:12:38.590 
+and the switching back and forth
+ends if at some point all the UCC
+
+187
+00:12:39.060 --> 00:12:41.020 
+candidates have
+been classified.
+
+188
+00:12:41.480 --> 00:12:43.810 
+So we use the strength
+of both worlds.
+
+189
+00:12:45.440 --> 00:12:47.860 
+To illustrate this
+let's again have
+
+190
+00:12:47.860 --> 00:12:51.010 
+a look at our lattice and let's assume
+that we start in the column efficient
+
+191
+00:12:51.620 --> 00:12:55.590 
+domain and we found that AB is a
+non-unique column combination,
+
+192
+00:12:55.890 --> 00:12:58.390 
+so we use this powerful
+pruning strategy where we
+
+193
+00:12:58.860 --> 00:13:02.340 
+cross out all the candidates that are not
+true with respect to that candidate.
+
+194
+00:13:02.680 --> 00:13:06.120 
+We find another one then we do
+the same we remove all the
+
+195
+00:13:06.620 --> 00:13:12.720 
+supersets of this non-UCC and maybe another
+one that again removes something,
+
+196
+00:13:13.030 --> 00:13:16.390 
+then we notice that while this strategy
+might have been inefficient yet
+
+197
+00:13:17.050 --> 00:13:20.380 
+at this point so we switch the
+strategy to the other one which
+
+198
+00:13:20.380 --> 00:13:23.940 
+starts at the bottom and classifies
+whatever remains to be classified.
+
+199
+00:13:24.120 --> 00:13:27.320 
+In this case, it's the
+candidate D which is not
+
+200
+00:13:27.320 --> 00:13:30.470 
+a unique column combination, well
+this was not pretty efficient,
+
+201
+00:13:30.470 --> 00:13:33.650 
+there were no results gained from
+this step so we switch back
+
+202
+00:13:33.650 --> 00:13:34.760 
+to the first strategy.
+
+203
+00:13:35.510 --> 00:13:38.490 
+Again find something where
+we can prune the lattice
+
+204
+00:13:39.150 --> 00:13:42.770 
+and when we then switch back to
+the first strategy and we can
+
+205
+00:13:42.770 --> 00:13:46.780 
+continue on the second level, classify
+everything, use the powerful
+
+206
+00:13:47.000 --> 00:13:49.070 
+pruning from
+
+207
+00:13:49.840 --> 00:13:55.590 
+true candidates and continue with our search
+upwards, classify stuff, prune stuff
+
+208
+00:13:56.290 --> 00:14:00.650 
+and as soon as we reach the top the algorithm
+is done and has discovered all the
+
+209
+00:14:00.790 --> 00:14:02.550 
+minimal unique column
+combinations.
+
+210
+00:14:03.680 --> 00:14:06.760 
+Now this could have been
+the end but there are
+
+211
+00:14:06.760 --> 00:14:11.390 
+actually other strategies that can
+also be used to make this process
+
+212
+00:14:11.510 --> 00:14:14.960 
+more effective and reduce the
+amount of candidates that we
+
+213
+00:14:14.970 --> 00:14:18.670 
+need to check, reduce
+the amount of tuples
+
+214
+00:14:18.780 --> 00:14:21.270 
+that we have to compare
+in the first step.
+
+215
+00:14:21.920 --> 00:14:26.490 
+This idea is based on an algorithm, another
+algorithm that is called Gordian.
+
+216
+00:14:26.890 --> 00:14:30.170 
+What Gordian does is similar to
+FDEP, it compares all the pairs
+
+217
+00:14:30.320 --> 00:14:35.810 
+of entities in our instance, derives
+what is called Difference-Sets
+
+218
+00:14:36.250 --> 00:14:40.740 
+and does not derive what is called
+Agree-Sets, but now it discovers
+
+219
+00:14:40.740 --> 00:14:44.240 
+something that is called Difference-Sets.
+So, these are the attributes
+
+220
+00:14:44.480 --> 00:14:46.500 
+that have different
+values in
+
+221
+00:14:47.100 --> 00:14:48.950 
+these two entities.
+
+222
+00:14:49.720 --> 00:14:53.140 
+In this example, this would only be Name
+because only the Name is different
+
+223
+00:14:53.880 --> 00:14:57.300 
+and when we continue we will also find
+Name, Postcodes, City and Mayor
+
+224
+00:14:57.490 --> 00:15:00.330 
+and what is powerful about these
+Difference-Sets and the steps
+
+225
+00:15:00.330 --> 00:15:03.550 
+that we will do afterwards is
+that we do not need to store
+
+226
+00:15:03.640 --> 00:15:06.740 
+all the supersets of already
+discovered Difference-Sets.
+
+227
+00:15:07.210 --> 00:15:11.740 
+So, we already know that Name is sufficient
+to differentiate the entities, so
+
+228
+00:15:11.930 --> 00:15:14.310 
+Postcodes, City and Mayor are
+not necessarily needed.
+
+229
+00:15:14.780 --> 00:15:19.960 
+So, we remove these here and
+continue with our search
+
+230
+00:15:20.490 --> 00:15:24.930 
+and deal with a very much smaller
+set of Difference-Sets.
+
+231
+00:15:26.260 --> 00:15:28.850 
+So, then when we have all
+the different sets Gordian
+
+232
+00:15:28.850 --> 00:15:32.440 
+does something that is called Hitting
+Set Enumeration. So, we find all the
+
+233
+00:15:32.620 --> 00:15:36.550 
+Hitting-Set combinations of
+attributes with respect
+
+234
+00:15:36.560 --> 00:15:41.020 
+to the Difference-Sets that we have discovered
+before and these Hitting-Sets are
+
+235
+00:15:41.180 --> 00:15:44.290 
+actually the minimum unique
+column combinations
+
+236
+00:15:44.520 --> 00:15:46.760 
+of our relational
+instance.
+
+237
+00:15:47.530 --> 00:15:51.660 
+And if we do this completely then
+this is already the final result
+
+238
+00:15:51.940 --> 00:15:56.430 
+but we can see that the first step is
+still very slow because we have to
+
+239
+00:15:56.720 --> 00:16:00.590 
+compare all the entities although
+then the next steps would be fast.
+
+240
+00:16:01.420 --> 00:16:04.400 
+So by seeing this and by remembering
+what we have learned from
+
+241
+00:16:04.400 --> 00:16:08.100 
+other discovery approaches
+and we developed
+
+242
+00:16:08.100 --> 00:16:13.040 
+a new algorithm that is called HPIValid
+that kind of brings this idea
+
+243
+00:16:13.160 --> 00:16:18.040 
+to the next level. So first
+we do not compare all
+
+244
+00:16:18.040 --> 00:16:22.540 
+the records in the
+initial instance which
+
+245
+00:16:22.540 --> 00:16:26.430 
+makes this comparison a lot
+faster. We only sample a few,
+
+246
+00:16:27.210 --> 00:16:30.960 
+then we do the
+Hitting-Set
+
+247
+00:16:31.050 --> 00:16:34.120 
+enumeration which
+brings us to the
+
+248
+00:16:34.120 --> 00:16:38.030 
+unique column combinations but because we
+only sampled in the original instance
+
+249
+00:16:38.520 --> 00:16:42.210 
+the results might be wrong we
+might have missed some of the
+
+250
+00:16:42.700 --> 00:16:44.860 
+the Difference-Sets.
+
+251
+00:16:45.880 --> 00:16:49.860 
+So to make up for
+this we do another
+
+252
+00:16:49.860 --> 00:16:54.630 
+validation step after the Hitting-Set enumeration
+which validates all the candidates,
+
+253
+00:16:54.840 --> 00:17:00.430 
+so we are correct but now we are
+incomplete because we did not
+
+254
+00:17:00.650 --> 00:17:02.350 
+find all the
+minimal ones.
+
+255
+00:17:03.980 --> 00:17:08.990 
+And to make the approach complete again we
+do this hybrid switch that we already
+
+256
+00:17:09.130 --> 00:17:12.450 
+have seen before. So, we go back
+to the sampling step, sample
+
+257
+00:17:13.590 --> 00:17:17.970 
+a few more candidates, do the
+Hitting-Set enumeration again,
+
+258
+00:17:18.260 --> 00:17:22.920 
+and the validation and if everything
+is valid in the end and
+
+259
+00:17:22.920 --> 00:17:26.390 
+we could prove that this is
+actually the minimal set,
+
+260
+00:17:27.430 --> 00:17:30.490 
+the complete set of minimal
+unique column combinations.
+
+261
+00:17:31.380 --> 00:17:35.780 
+And this hybrid switching back
+and forth makes all the steps
+
+262
+00:17:35.940 --> 00:17:37.710 
+as fast as they can be.
+
+263
+00:17:39.220 --> 00:17:44.860 
+Okay, so in the end, this shows a
+long history of improving the
+
+264
+00:17:44.860 --> 00:17:51.100 
+discovery of keys in relational data sets
+which is a part discipline of data profiling
+
+265
+00:17:51.700 --> 00:17:55.870 
+and here we can see what
+this has gained us. So,
+
+266
+00:17:56.430 --> 00:18:00.900 
+it's just a very rough intuition
+that I want to show here, it's
+
+267
+00:18:00.900 --> 00:18:05.160 
+more complex in detailed, it really depends
+on the actual instances that you have
+
+268
+00:18:05.440 --> 00:18:09.160 
+which cause the algorithm to be
+more or less efficient, but
+
+269
+00:18:09.550 --> 00:18:12.930 
+roughly with Gordian we brought
+the perform on the run-time
+
+270
+00:18:12.930 --> 00:18:16.670 
+of the algorithms down to
+12%, then from Gordian
+
+271
+00:18:16.670 --> 00:18:21.950 
+to HCA it got to
+up to 14% down.
+
+272
+00:18:22.900 --> 00:18:27.390 
+There we see that sometimes this is also
+not always an improvement, sometimes
+
+273
+00:18:27.700 --> 00:18:30.130 
+previous solutions were better
+and the added overhead doesn't
+
+274
+00:18:30.130 --> 00:18:33.160 
+pay off, so then the performance
+actually decreases.
+
+275
+00:18:33.630 --> 00:18:37.460 
+In either case, it's
+more clear and this is
+
+276
+00:18:37.710 --> 00:18:40.420 
+in particular the case for
+the hybrid algorithms
+
+277
+00:18:40.590 --> 00:18:44.170 
+which always follow the best
+path as they avoid these
+
+278
+00:18:44.470 --> 00:18:49.270 
+dangerous costly edge cases. So,
+when we walk down, so with DUCC,
+
+279
+00:18:49.390 --> 00:18:53.160 
+we reduce the performance
+of the run-time to 5%
+
+280
+00:18:53.420 --> 00:18:57.540 
+and HyUCC and HPIValid
+then they both reduce
+
+281
+00:18:57.540 --> 00:19:01.000 
+it to 1% of the previous
+approach which brought it
+
+282
+00:19:01.000 --> 00:19:05.040 
+down significantly orders
+of magnitude faster.
+
+283
+00:19:05.900 --> 00:19:08.560 
+So, as an intuition where
+the naive solution would
+
+284
+00:19:08.560 --> 00:19:12.420 
+take weeks of computation, weeks
+of power consumption on the CPU,
+
+285
+00:19:12.770 --> 00:19:16.990 
+it slowly got better to days,
+hours, minutes, and in the end
+
+286
+00:19:17.210 --> 00:19:21.240 
+we are now at seconds for about
+100 megabytes sized datasets
+
+287
+00:19:21.630 --> 00:19:25.680 
+with these more complex
+hybrid approaches.
+
+288
+00:19:26.410 --> 00:19:30.500 
+This shows how we can discover
+keys more effectively
+
+289
+00:19:30.980 --> 00:19:36.790 
+and in data profiling, we have many such problems
+- functional dependencies, order dependencies
+
+290
+00:19:37.280 --> 00:19:40.990 
+deny constraints, a lot of
+rules that are intrinsic
+
+291
+00:19:40.990 --> 00:19:44.910 
+to the data that we can discover and
+where we can improve the algorithms
+
+292
+00:19:45.220 --> 00:19:48.900 
+to consume a lot less
+energy in this process.
+
+293
+00:19:50.060 --> 00:19:53.190 
+If you have any further questions
+on this topic, please contact
+
+294
+00:19:53.190 --> 00:19:57.920 
+me at any time and yeah,
+thanks for your attention.

@@ -1,0 +1,4260 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.490
+The following content is
+provided under a Creative
+
+00:00:02.490 --> 00:00:04.059
+Commons license.
+
+00:00:04.059 --> 00:00:06.360
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.360 --> 00:00:10.720
+continue to offer high quality
+educational resources for free.
+
+00:00:10.720 --> 00:00:13.350
+To make a donation or
+view additional materials
+
+00:00:13.350 --> 00:00:17.290
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.290 --> 00:00:18.294
+at ocw.mit.edu.
+
+00:00:30.792 --> 00:00:32.950
+PROFESSOR: So my name
+is Hari Balakrishnan,
+
+00:00:32.950 --> 00:00:35.140
+and I'm going to take you
+through the rest of 6.02,
+
+00:00:35.140 --> 00:00:39.440
+doing the remaining
+lectures in the class.
+
+00:00:39.440 --> 00:00:41.530
+So far in 6.02,
+what we've looked at
+
+00:00:41.530 --> 00:00:47.210
+are ways in which we design
+a single communication link.
+
+00:00:47.210 --> 00:00:52.750
+So we know how to take
+two computers or two nodes
+
+00:00:52.750 --> 00:00:57.200
+and design what a link
+between them might look like.
+
+00:00:57.200 --> 00:00:59.560
+And this link might be
+an actual wired link.
+
+00:00:59.560 --> 00:01:02.470
+Or it might be a radio link.
+
+00:01:02.470 --> 00:01:04.632
+Or it might be an acoustic link.
+
+00:01:04.632 --> 00:01:07.540
+There's some medium over which
+these two guys communicate.
+
+00:01:07.540 --> 00:01:09.910
+And the main ideas
+we've looked at
+
+00:01:09.910 --> 00:01:13.810
+have to do with coding,
+in particular, channel
+
+00:01:13.810 --> 00:01:17.890
+coding, which is a strategy to
+combat noise and errors that
+
+00:01:17.890 --> 00:01:19.820
+might show up on the channel.
+
+00:01:19.820 --> 00:01:25.000
+And then in order to
+match what we communicate
+
+00:01:25.000 --> 00:01:27.410
+to the characteristics of
+the channel-- for example,
+
+00:01:27.410 --> 00:01:30.640
+the ability of the channel
+to deal in sinusoids--
+
+00:01:30.640 --> 00:01:36.850
+we studied modulation
+and de-modulation.
+
+00:01:36.850 --> 00:01:39.250
+So those are the two main
+elements that we studied.
+
+00:01:39.250 --> 00:01:43.027
+And in both of these, we
+looked at both how you do this
+
+00:01:43.027 --> 00:01:44.860
+to achieve reliability--
+because ultimately,
+
+00:01:44.860 --> 00:01:47.050
+we want to communicate
+information in a way
+
+00:01:47.050 --> 00:01:48.820
+that's reliable--
+
+00:01:48.820 --> 00:01:51.850
+and do it efficiently.
+
+00:01:51.850 --> 00:01:53.440
+In particular with
+modulation, we
+
+00:01:53.440 --> 00:01:55.630
+look at a scheme
+to share a medium
+
+00:01:55.630 --> 00:01:59.350
+amongst multiple conversations,
+frequency division
+
+00:01:59.350 --> 00:02:01.180
+multiplexing, which
+is the topic of one
+
+00:02:01.180 --> 00:02:02.253
+of the tasks on this lab.
+
+00:02:02.253 --> 00:02:03.670
+And with coding,
+we looked at ways
+
+00:02:03.670 --> 00:02:07.330
+in which you do this coding in a
+way that isn't just replicating
+
+00:02:07.330 --> 00:02:11.920
+every bit but involves some
+linear algebra operations that
+
+00:02:11.920 --> 00:02:14.673
+allows you to gain efficiency.
+
+00:02:14.673 --> 00:02:16.090
+So the rest of the
+class is really
+
+00:02:16.090 --> 00:02:19.900
+about taking for
+granted our ability
+
+00:02:19.900 --> 00:02:22.180
+to design communication
+links and putting them
+
+00:02:22.180 --> 00:02:25.030
+together and composing
+them to build networks.
+
+00:02:25.030 --> 00:02:28.570
+So the basic problem is
+actually very, very easy.
+
+00:02:28.570 --> 00:02:31.790
+The problem is, you're
+given a set of nodes--
+
+00:02:31.790 --> 00:02:38.878
+let's say computers-- and
+the problem you want to solve
+
+00:02:38.878 --> 00:02:40.420
+is to come up with
+a way by which you
+
+00:02:40.420 --> 00:02:42.340
+can allow any
+computer or any phone
+
+00:02:42.340 --> 00:02:44.710
+or any device on this
+network to communicate
+
+00:02:44.710 --> 00:02:47.452
+with any other device
+on the network.
+
+00:02:47.452 --> 00:02:48.410
+And that's the problem.
+
+00:02:48.410 --> 00:02:49.915
+So you're given n nodes.
+
+00:02:53.890 --> 00:02:56.062
+And you want all-to-all
+communication.
+
+00:03:00.220 --> 00:03:02.162
+Now, this is a little
+different from the kind
+
+00:03:02.162 --> 00:03:04.120
+of-- there are other
+networks you could design.
+
+00:03:04.120 --> 00:03:06.328
+You could design a network
+where you're given n nodes
+
+00:03:06.328 --> 00:03:07.850
+and you have 1 to
+n communication.
+
+00:03:07.850 --> 00:03:10.750
+There's one transmitter,
+many, many receivers,
+
+00:03:10.750 --> 00:03:13.060
+and you want to design a
+network for that purpose.
+
+00:03:13.060 --> 00:03:14.290
+What's an example
+of a network where
+
+00:03:14.290 --> 00:03:15.998
+you have one transmitter,
+many receivers,
+
+00:03:15.998 --> 00:03:19.780
+and you just want to build
+something that makes that work?
+
+00:03:19.780 --> 00:03:21.040
+Radio is one example.
+
+00:03:21.040 --> 00:03:23.200
+Television is another example.
+
+00:03:23.200 --> 00:03:25.630
+And those are good examples.
+
+00:03:25.630 --> 00:03:28.310
+In fact, for those kinds
+of one-to-many networks
+
+00:03:28.310 --> 00:03:30.550
+whether you have--
+or k to n networks
+
+00:03:30.550 --> 00:03:33.670
+where you have k sources of
+information and n receivers
+
+00:03:33.670 --> 00:03:36.460
+and k is a lot
+smaller than n, it'll
+
+00:03:36.460 --> 00:03:38.350
+turn out that the basic
+frequency division
+
+00:03:38.350 --> 00:03:39.260
+approach makes sense.
+
+00:03:39.260 --> 00:03:42.070
+I mean, that's how radio
+stations or TV stations work.
+
+00:03:42.070 --> 00:03:44.950
+Someone in the US-- the Federal
+Communications Commission
+
+00:03:44.950 --> 00:03:47.560
+has decided to allocate
+different chunks of frequency
+
+00:03:47.560 --> 00:03:50.500
+to different TV stations and
+different radio stations.
+
+00:03:50.500 --> 00:03:53.260
+And the assumption is they're
+always going to be using it.
+
+00:03:53.260 --> 00:03:55.327
+Turns out that assumption
+may or may not be true.
+
+00:03:55.327 --> 00:03:57.160
+But under the assumption
+that they're always
+
+00:03:57.160 --> 00:03:58.535
+going to be using
+it and you have
+
+00:03:58.535 --> 00:04:00.160
+many, many, many
+receivers, you just
+
+00:04:00.160 --> 00:04:03.790
+divide up frequencies and
+allow them each to transmit
+
+00:04:03.790 --> 00:04:04.870
+in their own frequencies.
+
+00:04:04.870 --> 00:04:06.328
+And then you have
+a receiver that's
+
+00:04:06.328 --> 00:04:08.230
+capable of tuning to
+different frequencies.
+
+00:04:08.230 --> 00:04:12.130
+And you get the information
+or the channel that you want.
+
+00:04:12.130 --> 00:04:15.130
+We'll actually come
+back to that problem
+
+00:04:15.130 --> 00:04:17.769
+a little bit in the
+next two lectures.
+
+00:04:17.769 --> 00:04:20.079
+But for today, the design
+problem-- and going forward,
+
+00:04:20.079 --> 00:04:21.829
+the design problem you
+should have in mind
+
+00:04:21.829 --> 00:04:24.610
+is you want a network where you
+have all-to-all communication
+
+00:04:24.610 --> 00:04:27.200
+and you want to be able to
+support any application.
+
+00:04:29.960 --> 00:04:30.903
+This is a big deal.
+
+00:04:30.903 --> 00:04:32.320
+We're not just
+designing a network
+
+00:04:32.320 --> 00:04:33.758
+to allow telephone
+calls to work.
+
+00:04:33.758 --> 00:04:35.800
+Or we're not just designing
+a network that allows
+
+00:04:35.800 --> 00:04:37.960
+you to do video conferencing.
+
+00:04:37.960 --> 00:04:39.730
+We're trying to
+design a network where
+
+00:04:39.730 --> 00:04:41.740
+any application can run on it--
+
+00:04:41.740 --> 00:04:45.460
+in particular, applications that
+you might not have envisioned.
+
+00:04:45.460 --> 00:04:47.718
+This is the reason why the
+internet works really well
+
+00:04:47.718 --> 00:04:49.510
+is because when they
+designed the internet,
+
+00:04:49.510 --> 00:04:52.210
+they designed it under
+some set of assumptions.
+
+00:04:52.210 --> 00:04:53.740
+But they were
+really, really smart
+
+00:04:53.740 --> 00:04:56.710
+to design a network that
+made minimal assumptions
+
+00:04:56.710 --> 00:04:58.460
+about the application.
+
+00:04:58.460 --> 00:05:00.220
+So it's a network
+that's good enough
+
+00:05:00.220 --> 00:05:05.730
+for almost any application,
+though it isn't perfectly
+
+00:05:05.730 --> 00:05:07.190
+optimal for any application.
+
+00:05:07.190 --> 00:05:09.160
+It's just good enough
+for everything.
+
+00:05:09.160 --> 00:05:10.830
+And that's a really
+good characteristic
+
+00:05:10.830 --> 00:05:13.050
+of a well-designed
+network is if it
+
+00:05:13.050 --> 00:05:15.308
+can work even for things
+you didn't even dream of.
+
+00:05:15.308 --> 00:05:17.100
+When they build the
+internet, they suddenly
+
+00:05:17.100 --> 00:05:19.080
+didn't dream that
+the web would exist.
+
+00:05:19.080 --> 00:05:22.800
+They didn't dream that people
+would be tweeting and telling
+
+00:05:22.800 --> 00:05:24.300
+people they're going
+to the bathroom
+
+00:05:24.300 --> 00:05:25.830
+or whatever they do on Twitter.
+
+00:05:25.830 --> 00:05:27.420
+I mean, they designed a network.
+
+00:05:27.420 --> 00:05:30.890
+And it just kind of is amazing
+that all these applications
+
+00:05:30.890 --> 00:05:31.390
+can work.
+
+00:05:31.390 --> 00:05:33.360
+So the question is, what
+did they do correct?
+
+00:05:33.360 --> 00:05:34.350
+What did they do right?
+
+00:05:34.350 --> 00:05:36.680
+And what are things that--
+
+00:05:36.680 --> 00:05:39.460
+what general lessons
+can we learn from it?
+
+00:05:39.460 --> 00:05:41.010
+And the general
+high level lessons
+
+00:05:41.010 --> 00:05:43.540
+you learn actually apply
+to any system you build.
+
+00:05:43.540 --> 00:05:45.270
+It'll turn out that
+whenever-- if you're
+
+00:05:45.270 --> 00:05:48.060
+confronted with a real
+world problem in an industry
+
+00:05:48.060 --> 00:05:51.300
+or research or
+whatever, very often
+
+00:05:51.300 --> 00:05:55.090
+you're trying to make decisions
+on what you need to be doing.
+
+00:05:55.090 --> 00:05:57.390
+And it's very tempting
+to make decisions
+
+00:05:57.390 --> 00:06:00.030
+based on what you think
+it's going to be used for.
+
+00:06:00.030 --> 00:06:02.575
+But very often, what you end
+up eventually using it for
+
+00:06:02.575 --> 00:06:04.950
+is very different from what
+you thought in the beginning.
+
+00:06:04.950 --> 00:06:06.810
+So it's good to have
+applications in mind.
+
+00:06:06.810 --> 00:06:09.180
+But it's good not to embed too
+much about those applications
+
+00:06:09.180 --> 00:06:10.222
+in the design of network.
+
+00:06:10.222 --> 00:06:12.810
+So the high-level
+principle here is
+
+00:06:12.810 --> 00:06:15.480
+how you can do
+something that works
+
+00:06:15.480 --> 00:06:18.420
+well enough without making too
+many assumptions about what's
+
+00:06:18.420 --> 00:06:21.280
+running on top of it.
+
+00:06:21.280 --> 00:06:22.328
+There are two big themes.
+
+00:06:22.328 --> 00:06:24.870
+They're the same two themes that
+we studied before that we're
+
+00:06:24.870 --> 00:06:26.280
+going to keep coming back to.
+
+00:06:26.280 --> 00:06:28.140
+The first is efficiency.
+
+00:06:31.020 --> 00:06:32.748
+And the second is reliability.
+
+00:06:38.370 --> 00:06:41.590
+The same two themes we come
+back to over and over again.
+
+00:06:41.590 --> 00:06:44.490
+There's a third important theme
+about network design, which
+
+00:06:44.490 --> 00:06:46.260
+has to do with scalability.
+
+00:06:46.260 --> 00:06:48.900
+I mean, how can you make
+it work so this network can
+
+00:06:48.900 --> 00:06:51.060
+work for millions or
+billions of devices
+
+00:06:51.060 --> 00:06:52.470
+and billions of computers?
+
+00:06:52.470 --> 00:06:55.422
+That's a topic we're not
+really going to talk about.
+
+00:06:55.422 --> 00:06:56.880
+I'll get to it in
+the last lecture.
+
+00:06:56.880 --> 00:07:01.750
+But 6.033 and 6.829 we'll
+talk about those issues.
+
+00:07:01.750 --> 00:07:05.380
+So let me start first
+with efficiency.
+
+00:07:05.380 --> 00:07:07.560
+If I tell you how to build
+a communication link that
+
+00:07:07.560 --> 00:07:11.938
+can communicate between any two
+devices or any two computers,
+
+00:07:11.938 --> 00:07:13.980
+it should be pretty
+straightforward to now design
+
+00:07:13.980 --> 00:07:17.920
+a network that allows
+all-to-all communication.
+
+00:07:17.920 --> 00:07:20.580
+Something out?
+
+00:07:20.580 --> 00:07:21.640
+That's a mouse.
+
+00:07:21.640 --> 00:07:22.140
+Great.
+
+00:07:27.370 --> 00:07:28.840
+One way you can
+design this network
+
+00:07:28.840 --> 00:07:30.882
+is to simply take your
+communication link that we
+
+00:07:30.882 --> 00:07:33.220
+know how to build and do this.
+
+00:07:33.220 --> 00:07:35.510
+Just connect every
+pair of computers
+
+00:07:35.510 --> 00:07:37.840
+or every pair of
+nodes to each other.
+
+00:07:37.840 --> 00:07:39.500
+I'm probably missing
+a few of these.
+
+00:07:39.500 --> 00:07:45.450
+But this is a great
+network design
+
+00:07:45.450 --> 00:07:50.190
+because it's composed of bunch
+of links to build a network.
+
+00:07:50.190 --> 00:07:51.645
+So why don't we do this?
+
+00:07:51.645 --> 00:07:52.770
+Or maybe we should do this.
+
+00:07:55.595 --> 00:07:56.095
+What?
+
+00:07:58.908 --> 00:07:59.700
+It's too expensive.
+
+00:07:59.700 --> 00:08:02.740
+Why is it too expensive?
+
+00:08:02.740 --> 00:08:04.800
+Sorry?
+
+00:08:04.800 --> 00:08:07.280
+You know, how many of you
+are in Professor [INAUDIBLE]
+
+00:08:07.280 --> 00:08:08.530
+recitation?
+
+00:08:08.530 --> 00:08:09.350
+Great.
+
+00:08:09.350 --> 00:08:11.365
+I understand he gives
+you guys money to answer
+
+00:08:11.365 --> 00:08:13.280
+or if he makes a mistake.
+
+00:08:13.280 --> 00:08:14.730
+I'm going to do the same thing.
+
+00:08:14.730 --> 00:08:16.730
+Whenever I make a mistake,
+Professor [INAUDIBLE]
+
+00:08:16.730 --> 00:08:17.790
+will give you some money.
+
+00:08:17.790 --> 00:08:21.470
+[LAUGHTER]
+
+00:08:21.470 --> 00:08:24.050
+So I actually-- I mean,
+don't hold me to this.
+
+00:08:24.050 --> 00:08:25.808
+But why don't you guys answer?
+
+00:08:25.808 --> 00:08:27.100
+This is pretty straightforward.
+
+00:08:27.100 --> 00:08:30.062
+How many links do you need?
+
+00:08:30.062 --> 00:08:30.770
+n [? choose ?] 2.
+
+00:08:30.770 --> 00:08:32.820
+It's about n squared, right?
+
+00:08:32.820 --> 00:08:34.705
+So n squared, depending
+on the context,
+
+00:08:34.705 --> 00:08:36.080
+it's either too
+big or too small.
+
+00:08:36.080 --> 00:08:38.840
+But it's about n2 to
+n squared lengths.
+
+00:08:38.840 --> 00:08:41.360
+It turns out that's actually a
+pretty large number of links,
+
+00:08:41.360 --> 00:08:42.740
+because--
+
+00:08:42.740 --> 00:08:45.140
+and the notes talk about
+some of the reasons
+
+00:08:45.140 --> 00:08:46.862
+why this is too expensive.
+
+00:08:46.862 --> 00:08:48.320
+But the other reason
+it's a problem
+
+00:08:48.320 --> 00:08:50.300
+is that it's one thing
+to design a network where
+
+00:08:50.300 --> 00:08:52.425
+every computer in this room
+can talk to each other.
+
+00:08:52.425 --> 00:08:55.250
+And conceivably, we might get
+tangled up in all these wires.
+
+00:08:55.250 --> 00:08:56.690
+But we could
+imagine laying wires
+
+00:08:56.690 --> 00:08:59.920
+between every pair of our
+computers and communicating.
+
+00:08:59.920 --> 00:09:01.920
+But there are two reasons
+this is a big problem.
+
+00:09:01.920 --> 00:09:04.070
+I want to communicate with
+computers in California
+
+00:09:04.070 --> 00:09:06.350
+or China or wherever.
+
+00:09:06.350 --> 00:09:08.840
+And individual links
+going across the world
+
+00:09:08.840 --> 00:09:10.670
+and my computer to
+China and your computer
+
+00:09:10.670 --> 00:09:12.920
+to another computer in
+China just doesn't scale.
+
+00:09:12.920 --> 00:09:14.470
+It doesn't work very well.
+
+00:09:14.470 --> 00:09:17.900
+And the second problem, the
+reason why this issue matters
+
+00:09:17.900 --> 00:09:20.450
+is that not all communication
+links are wires.
+
+00:09:20.450 --> 00:09:24.597
+In fact, right now, the most
+dominant mode by which people
+
+00:09:24.597 --> 00:09:26.180
+gain access to the
+internet, including
+
+00:09:26.180 --> 00:09:29.140
+right now in this
+room, is through radio,
+
+00:09:29.140 --> 00:09:29.990
+is through wireless.
+
+00:09:29.990 --> 00:09:31.590
+And this is a shared medium.
+
+00:09:31.590 --> 00:09:36.188
+So it's not like we can somehow
+put these wires together.
+
+00:09:36.188 --> 00:09:38.480
+We're going to have to share
+this communication medium.
+
+00:09:38.480 --> 00:09:41.153
+We're going to have to share
+this communication network.
+
+00:09:41.153 --> 00:09:43.070
+And somehow we have to
+come up with a strategy
+
+00:09:43.070 --> 00:09:44.818
+to do this efficiently.
+
+00:09:44.818 --> 00:09:46.610
+There's a few different
+principles involved
+
+00:09:46.610 --> 00:09:48.650
+in how you design networks.
+
+00:09:48.650 --> 00:09:50.750
+But the main one
+is that we're going
+
+00:09:50.750 --> 00:09:53.720
+to construct a special
+computer called a switch.
+
+00:09:57.100 --> 00:09:59.090
+And a lot of what
+we're going to be doing
+
+00:09:59.090 --> 00:10:02.723
+has to do with what
+we do in the switch.
+
+00:10:02.723 --> 00:10:04.640
+The other part of what
+we're going to be doing
+
+00:10:04.640 --> 00:10:06.477
+is what we do in the
+computers itself.
+
+00:10:06.477 --> 00:10:08.060
+So our network is
+going to be designed
+
+00:10:08.060 --> 00:10:11.540
+using a set of rules that
+are obeyed and implemented
+
+00:10:11.540 --> 00:10:13.932
+and followed by the computers.
+
+00:10:13.932 --> 00:10:15.890
+OK, a special set of
+rules that are implemented
+
+00:10:15.890 --> 00:10:17.780
+by these computers called
+switches and a special set
+
+00:10:17.780 --> 00:10:19.905
+of rules that are implemented
+by the end computers,
+
+00:10:19.905 --> 00:10:21.320
+by the devices on the network.
+
+00:10:21.320 --> 00:10:23.830
+And together, they're going to
+make our communication work.
+
+00:10:23.830 --> 00:10:26.660
+So the high level
+plan is going to be
+
+00:10:26.660 --> 00:10:28.940
+that we take these computers
+and rather than put wires
+
+00:10:28.940 --> 00:10:30.740
+between every pair
+of them, we're
+
+00:10:30.740 --> 00:10:32.900
+going to connect
+them together into--
+
+00:10:32.900 --> 00:10:35.720
+perhaps there's lots and lots
+of computers and many of them
+
+00:10:35.720 --> 00:10:40.760
+get connected to one of these
+boxes, which is a switch.
+
+00:10:40.760 --> 00:10:43.085
+And a switch may connect
+to other switches.
+
+00:10:46.435 --> 00:10:48.560
+And some of these switches
+may have other computers
+
+00:10:48.560 --> 00:10:49.268
+attached to them.
+
+00:10:53.860 --> 00:10:57.880
+And then eventually you might
+get to other end computers.
+
+00:10:57.880 --> 00:10:59.680
+And when you build
+a network like this,
+
+00:10:59.680 --> 00:11:02.380
+a structure like this,
+this kind of a picture
+
+00:11:02.380 --> 00:11:04.163
+is called the network topology.
+
+00:11:07.410 --> 00:11:11.540
+A switch has one or more
+links attached to it.
+
+00:11:11.540 --> 00:11:12.940
+These links could be wires.
+
+00:11:12.940 --> 00:11:15.910
+They could be
+shared things like--
+
+00:11:15.910 --> 00:11:18.880
+like this thing
+here is a switch.
+
+00:11:18.880 --> 00:11:21.970
+It has no visible
+links, but it probably
+
+00:11:21.970 --> 00:11:24.460
+has one wire link
+connecting it via ethernet
+
+00:11:24.460 --> 00:11:26.200
+to the rest of the MIT campus.
+
+00:11:26.200 --> 00:11:29.618
+And out here lots of computers
+right now are connected to it.
+
+00:11:29.618 --> 00:11:31.660
+It gives the illusion that
+each of your computers
+
+00:11:31.660 --> 00:11:33.077
+has a separate
+link to the switch.
+
+00:11:33.077 --> 00:11:35.930
+And we look at how that
+illusion is maintained and done
+
+00:11:35.930 --> 00:11:38.000
+next time, next lecture.
+
+00:11:38.000 --> 00:11:40.530
+But this is an example of a
+switch, probably the world's--
+
+00:11:40.530 --> 00:11:42.560
+you know, this thing is
+made, I think, by Cisco.
+
+00:11:42.560 --> 00:11:44.890
+So they charge $600
+or $800 for it.
+
+00:11:44.890 --> 00:11:48.465
+But really, you
+can buy it for $40.
+
+00:11:48.465 --> 00:11:50.590
+When you put the word
+"enterprise" next to anything
+
+00:11:50.590 --> 00:11:54.550
+you sell, you can
+mark up the price.
+
+00:11:54.550 --> 00:11:56.910
+But anyway, the world's
+cheapest switches
+
+00:11:56.910 --> 00:11:59.397
+are on Wi-Fi access points.
+
+00:11:59.397 --> 00:12:01.480
+So you connect the stuff
+together into a topology.
+
+00:12:01.480 --> 00:12:03.580
+And the job of the
+switch is to look
+
+00:12:03.580 --> 00:12:07.060
+at messages that come
+in from these links
+
+00:12:07.060 --> 00:12:09.250
+and figure out what to
+do with those messages
+
+00:12:09.250 --> 00:12:13.330
+and make sure that together
+they coordinate to get messages
+
+00:12:13.330 --> 00:12:18.040
+to the destinations to which
+you wish to send those messages.
+
+00:12:18.040 --> 00:12:21.310
+So here's a picture
+that I got today
+
+00:12:21.310 --> 00:12:27.410
+from MIT's ISNT, which is
+a picture of MIT'S network.
+
+00:12:27.410 --> 00:12:32.070
+So I just want to give you
+a sense for what this looks
+
+00:12:32.070 --> 00:12:35.190
+like for a campus like MIT.
+
+00:12:35.190 --> 00:12:38.093
+So the first thing to notice
+is that this is actually--
+
+00:12:38.093 --> 00:12:39.510
+it's got some
+redundancy built in.
+
+00:12:39.510 --> 00:12:40.960
+You don't see it in the picture.
+
+00:12:40.960 --> 00:12:42.710
+But really what's going
+on here is that we
+
+00:12:42.710 --> 00:12:44.670
+have these two routers here.
+
+00:12:44.670 --> 00:12:47.340
+In the context of the
+internet, these switches
+
+00:12:47.340 --> 00:12:49.500
+are also called routers.
+
+00:12:49.500 --> 00:12:51.000
+It's taken me 10
+years to pronounce
+
+00:12:51.000 --> 00:12:53.130
+it router because
+where I was brought up,
+
+00:12:53.130 --> 00:12:54.570
+they pronounced it "rooter."
+
+00:12:54.570 --> 00:12:55.950
+And many people say that.
+
+00:12:55.950 --> 00:12:58.230
+But in the US,
+they say "router."
+
+00:12:58.230 --> 00:13:01.410
+So anyway, these routers here,
+there are two backbone routers.
+
+00:13:01.410 --> 00:13:04.590
+And they're actually-- each of
+these guys, these other routers
+
+00:13:04.590 --> 00:13:06.990
+in these different buildings,
+are connected, actually,
+
+00:13:06.990 --> 00:13:08.080
+to both of these.
+
+00:13:08.080 --> 00:13:10.890
+So the idea here is that if
+one of those links were to fail
+
+00:13:10.890 --> 00:13:12.630
+or if one of these
+routers were to fail,
+
+00:13:12.630 --> 00:13:16.320
+the other guy would take
+over and handle this traffic.
+
+00:13:16.320 --> 00:13:18.502
+Under normal
+conditions traffic is
+
+00:13:18.502 --> 00:13:20.710
+kind of balanced between
+these two different routers.
+
+00:13:20.710 --> 00:13:22.770
+So some of these computers--
+some of these other routers
+
+00:13:22.770 --> 00:13:24.060
+are connected to one of them.
+
+00:13:24.060 --> 00:13:26.268
+Some of the other routers
+are connected to the other.
+
+00:13:26.268 --> 00:13:28.860
+And together they work
+to provide connectivity.
+
+00:13:28.860 --> 00:13:30.360
+These backbone
+routers get connected
+
+00:13:30.360 --> 00:13:33.630
+to these things that are
+called external routers, which
+
+00:13:33.630 --> 00:13:36.660
+are routers that connect
+to various other networks
+
+00:13:36.660 --> 00:13:40.970
+and internet service
+providers that MIT uses.
+
+00:13:40.970 --> 00:13:42.560
+MIT is extremely well connected.
+
+00:13:42.560 --> 00:13:44.310
+The amount of bandwidth
+coming in and out,
+
+00:13:44.310 --> 00:13:47.010
+as you might have noticed
+doing, I don't know, bittorent
+
+00:13:47.010 --> 00:13:50.070
+or whatever the cool people
+do these days with networks,
+
+00:13:50.070 --> 00:13:53.920
+is phenomenal.
+
+00:13:53.920 --> 00:13:57.005
+MIT commercially uses Sprint,
+which is an internet service
+
+00:13:57.005 --> 00:13:58.380
+provider, uses
+level three, which
+
+00:13:58.380 --> 00:14:01.980
+is probably the biggest internet
+service provider in the US.
+
+00:14:01.980 --> 00:14:04.500
+This thing called
+[INAUDIBLE] tech is--
+
+00:14:04.500 --> 00:14:07.020
+I found is that-- so
+MIT now does telephony
+
+00:14:07.020 --> 00:14:08.010
+through the internet.
+
+00:14:08.010 --> 00:14:12.310
+So it's voice over IP as opposed
+to the old telephone system.
+
+00:14:12.310 --> 00:14:17.220
+So a lot of that voice traffic
+goes through that network
+
+00:14:17.220 --> 00:14:19.200
+service provider.
+
+00:14:19.200 --> 00:14:23.280
+Other things here--
+this NOX is--
+
+00:14:23.280 --> 00:14:25.620
+I think it stands for
+the Northeast Crossroads
+
+00:14:25.620 --> 00:14:26.937
+or something like that.
+
+00:14:26.937 --> 00:14:28.770
+It connects to a network
+called the internet
+
+00:14:28.770 --> 00:14:31.230
+two, which is a network
+connecting many universities
+
+00:14:31.230 --> 00:14:32.460
+in the US.
+
+00:14:32.460 --> 00:14:34.900
+And it's a very, very
+high bandwidth network.
+
+00:14:34.900 --> 00:14:37.680
+And so if you were
+to communicate
+
+00:14:37.680 --> 00:14:39.630
+with, say, a Stanford
+or something like that,
+
+00:14:39.630 --> 00:14:41.297
+it wouldn't go over
+the public internet.
+
+00:14:41.297 --> 00:14:43.410
+It goes over a network
+that's essentially not
+
+00:14:43.410 --> 00:14:46.980
+commercially paid for
+but is a private network
+
+00:14:46.980 --> 00:14:49.390
+connecting different
+universities.
+
+00:14:49.390 --> 00:14:51.900
+And it has a
+connection to Comcast.
+
+00:14:51.900 --> 00:14:55.770
+So many people who have Comcast
+in their homes in this area
+
+00:14:55.770 --> 00:14:56.802
+tend to have good--
+
+00:14:56.802 --> 00:14:58.260
+or are supposed
+to, in theory, have
+
+00:14:58.260 --> 00:15:02.820
+good delay, low delay to MIT.
+
+00:15:02.820 --> 00:15:06.210
+Out here on this side, MIT is
+connected to other research
+
+00:15:06.210 --> 00:15:08.740
+and education networks.
+
+00:15:08.740 --> 00:15:12.060
+It has high
+connectivity to fermilab
+
+00:15:12.060 --> 00:15:14.220
+and to [INAUDIBLE],,
+because I'm assuming
+
+00:15:14.220 --> 00:15:16.590
+there's a huge amount of data
+flowing because of things
+
+00:15:16.590 --> 00:15:18.360
+like the LFC experiments.
+
+00:15:18.360 --> 00:15:22.065
+They send terabytes or petabytes
+of data back and forth.
+
+00:15:22.065 --> 00:15:23.190
+So you need high bandwidth.
+
+00:15:23.190 --> 00:15:27.610
+So they have their own
+network connection to do that.
+
+00:15:27.610 --> 00:15:30.400
+This NLR is something called
+the National Lambda Rail, which
+
+00:15:30.400 --> 00:15:32.740
+is another high speed network
+connecting a bunch of East
+
+00:15:32.740 --> 00:15:34.162
+Coast universities.
+
+00:15:34.162 --> 00:15:35.620
+And then out here
+on the edges, you
+
+00:15:35.620 --> 00:15:39.110
+have MIT connecting to other--
+
+00:15:39.110 --> 00:15:41.208
+out here-- other internet
+service providers.
+
+00:15:41.208 --> 00:15:42.250
+This thing here is funny.
+
+00:15:42.250 --> 00:15:47.120
+It's called Big Ape,
+which is actually--
+
+00:15:47.120 --> 00:15:49.450
+its called the Big
+Apple peering exchange.
+
+00:15:49.450 --> 00:15:53.328
+It's this place in New York City
+where a lot of people-- a lot
+
+00:15:53.328 --> 00:15:55.120
+of companies and internet
+service providers
+
+00:15:55.120 --> 00:15:56.170
+have gotten together.
+
+00:15:56.170 --> 00:15:59.170
+And you can just connect
+to other networks.
+
+00:15:59.170 --> 00:16:01.330
+So MIT connects to, I
+think, 13 other networks
+
+00:16:01.330 --> 00:16:02.818
+on a non-payment basis.
+
+00:16:02.818 --> 00:16:04.360
+Whereas to internet
+service providers
+
+00:16:04.360 --> 00:16:07.600
+you have to pay money, you
+can peer with other networks
+
+00:16:07.600 --> 00:16:09.280
+essentially on a
+bilateral agreement.
+
+00:16:09.280 --> 00:16:11.980
+So I carry your traffic,
+you carry my traffic.
+
+00:16:11.980 --> 00:16:13.720
+So it turns out that
+out in New York,
+
+00:16:13.720 --> 00:16:18.070
+there is this building where a
+lot of these different networks
+
+00:16:18.070 --> 00:16:19.090
+have gotten together.
+
+00:16:19.090 --> 00:16:20.840
+And MIT is one among
+those networks.
+
+00:16:20.840 --> 00:16:22.990
+So it has extremely
+good connectivity.
+
+00:16:22.990 --> 00:16:25.630
+But you can see that already
+MIT is a tiny campus.
+
+00:16:25.630 --> 00:16:28.180
+And already it's got
+such rich connectivity
+
+00:16:28.180 --> 00:16:29.980
+to the rest of the internet.
+
+00:16:29.980 --> 00:16:32.480
+I guess as far as college
+campuses go, it's a big campus.
+
+00:16:32.480 --> 00:16:34.660
+But still, in the grand
+scale of the internet,
+
+00:16:34.660 --> 00:16:35.540
+it's a tiny thing.
+
+00:16:35.540 --> 00:16:37.040
+And you can already
+see that there's
+
+00:16:37.040 --> 00:16:40.780
+so much complexity and
+so many things going on
+
+00:16:40.780 --> 00:16:42.560
+inside the network.
+
+00:16:42.560 --> 00:16:47.090
+So the question is, how does
+this network get designed?
+
+00:16:47.090 --> 00:16:50.150
+And the main idea that
+I want to get at today
+
+00:16:50.150 --> 00:16:55.510
+is this idea of packets
+and packet switching.
+
+00:16:55.510 --> 00:17:01.490
+So the design principle that's
+used in communication networks
+
+00:17:01.490 --> 00:17:04.322
+is this idea of packets
+and packet switching.
+
+00:17:12.700 --> 00:17:14.470
+There are some special
+rules-- simple,
+
+00:17:14.470 --> 00:17:16.780
+special rules that
+you have to follow
+
+00:17:16.780 --> 00:17:20.839
+to allow these switches to
+send messages back and forth.
+
+00:17:20.839 --> 00:17:23.560
+And in fact, these are
+fairly obvious rules.
+
+00:17:23.560 --> 00:17:29.490
+But what's remarkable about
+them is how simple they are.
+
+00:17:29.490 --> 00:17:30.960
+And they can work.
+
+00:17:30.960 --> 00:17:35.610
+The main idea is that
+you take your message
+
+00:17:35.610 --> 00:17:39.960
+and you have to decide who
+it needs to be sent to.
+
+00:17:39.960 --> 00:17:42.490
+And you have to decide
+who it's coming from.
+
+00:17:42.490 --> 00:17:45.690
+So if I decide that I want
+to send a message to you
+
+00:17:45.690 --> 00:17:48.420
+in this network, my
+computer and your computer
+
+00:17:48.420 --> 00:17:51.990
+have to somehow have names
+associated with them.
+
+00:17:51.990 --> 00:17:55.200
+And in the context of packet
+switched networks, these names
+
+00:17:55.200 --> 00:17:57.535
+that we associate with--
+
+00:17:57.535 --> 00:17:59.910
+ideally, these names should
+be associated with computers.
+
+00:17:59.910 --> 00:18:01.710
+But they turn out
+to be names that
+
+00:18:01.710 --> 00:18:05.760
+are associated with the link
+that you use from your computer
+
+00:18:05.760 --> 00:18:07.740
+to send these messages.
+
+00:18:07.740 --> 00:18:09.722
+These names are
+called addresses.
+
+00:18:12.960 --> 00:18:15.060
+So very concretely, if
+I have a computer here,
+
+00:18:15.060 --> 00:18:17.430
+my computer may have a name.
+
+00:18:17.430 --> 00:18:20.250
+But this computer here has
+two or three different links
+
+00:18:20.250 --> 00:18:21.300
+coming out of it.
+
+00:18:21.300 --> 00:18:22.920
+If I connect this--
+
+00:18:22.920 --> 00:18:26.160
+even this thing here or this
+ethernet link to the USB port
+
+00:18:26.160 --> 00:18:29.760
+here and I connect a cable
+to it, that's one link.
+
+00:18:29.760 --> 00:18:32.130
+The Wi-Fi on this
+is another link.
+
+00:18:32.130 --> 00:18:35.400
+If I turn the Bluetooth on and
+use that, it's a third link.
+
+00:18:35.400 --> 00:18:38.560
+Each of those links
+has a different name.
+
+00:18:38.560 --> 00:18:40.380
+The name here is
+equivalent to an address.
+
+00:18:40.380 --> 00:18:42.460
+Each of these things
+is an address.
+
+00:18:42.460 --> 00:18:45.240
+So when I send a packet, I
+have to tell you my address.
+
+00:18:45.240 --> 00:18:47.358
+And similarly, if I want
+to send someone else,
+
+00:18:47.358 --> 00:18:48.900
+some other computer,
+a packet, I have
+
+00:18:48.900 --> 00:18:52.390
+to specify the address
+that I wish to send it to.
+
+00:18:52.390 --> 00:18:55.290
+So that's the first rule
+of packet switching.
+
+00:18:55.290 --> 00:18:57.510
+It's specify an address--
+
+00:18:57.510 --> 00:18:59.940
+in particular, specify
+a destination address.
+
+00:19:02.710 --> 00:19:04.470
+And you specify
+a source address.
+
+00:19:11.350 --> 00:19:17.430
+Now, the idea is once
+I specify the addresses
+
+00:19:17.430 --> 00:19:23.680
+and I construct a message, my
+message has some bits in it.
+
+00:19:23.680 --> 00:19:24.430
+Maybe it's a file.
+
+00:19:24.430 --> 00:19:27.360
+Maybe it's a piece
+of video or whatever.
+
+00:19:27.360 --> 00:19:33.610
+I add something to that message,
+which I call the header.
+
+00:19:33.610 --> 00:19:37.180
+The header has a bunch of fields
+in it specifying something
+
+00:19:37.180 --> 00:19:39.820
+about what should be
+done with the message.
+
+00:19:39.820 --> 00:19:42.040
+But the only two
+important things here--
+
+00:19:42.040 --> 00:19:43.870
+there's three or four
+things that you need.
+
+00:19:43.870 --> 00:19:47.410
+But the non-negotiable part
+that you need is a part of this
+
+00:19:47.410 --> 00:19:48.250
+address--
+
+00:19:48.250 --> 00:19:51.080
+part of this header should
+specify the destination
+
+00:19:51.080 --> 00:19:51.580
+address.
+
+00:20:00.443 --> 00:20:02.860
+There's other parts of it that
+specify the source address,
+
+00:20:02.860 --> 00:20:03.360
+as well.
+
+00:20:06.630 --> 00:20:08.110
+The basic structure
+is very simple.
+
+00:20:08.110 --> 00:20:11.870
+I send a message in which I
+specify a destination address.
+
+00:20:11.870 --> 00:20:16.660
+And the job-- and my job is
+done as the source for the time
+
+00:20:16.660 --> 00:20:17.620
+being.
+
+00:20:17.620 --> 00:20:19.348
+I send it to some switch.
+
+00:20:19.348 --> 00:20:20.890
+I'm connected to a
+bunch of switches.
+
+00:20:20.890 --> 00:20:23.328
+My computer picks a
+switch to send it to.
+
+00:20:23.328 --> 00:20:25.120
+The switch it picks is
+typically the switch
+
+00:20:25.120 --> 00:20:26.412
+that that link is connected to.
+
+00:20:26.412 --> 00:20:29.470
+So if I am connected right now
+through ethernet and Wi-Fi,
+
+00:20:29.470 --> 00:20:31.060
+there's some rule
+on my computer that
+
+00:20:31.060 --> 00:20:34.240
+decides whether to
+use ethernet or Wi-Fi.
+
+00:20:34.240 --> 00:20:37.840
+And let's say it
+decides to use Wi-Fi.
+
+00:20:37.840 --> 00:20:40.720
+It sends this
+thing, this message,
+
+00:20:40.720 --> 00:20:44.555
+with this destination
+address to that access point.
+
+00:20:44.555 --> 00:20:46.180
+And that's the first
+switch it goes to.
+
+00:20:46.180 --> 00:20:47.680
+And then it becomes
+the switch's job
+
+00:20:47.680 --> 00:20:50.050
+to figure out how
+to get this message
+
+00:20:50.050 --> 00:20:52.930
+to the actual destination.
+
+00:20:52.930 --> 00:20:55.900
+This combination of a header
+that includes the destination
+
+00:20:55.900 --> 00:20:59.650
+address and some
+number of bits that
+
+00:20:59.650 --> 00:21:02.548
+corresponds to the message,
+this entire bag of bits
+
+00:21:02.548 --> 00:21:03.340
+is called a packet.
+
+00:21:07.360 --> 00:21:09.850
+For something technically
+to be considered a packet,
+
+00:21:09.850 --> 00:21:11.950
+it needs to have
+an address on it.
+
+00:21:11.950 --> 00:21:14.290
+Or it needs to have
+something that's
+
+00:21:14.290 --> 00:21:16.720
+equivalent to an address
+on it that then allows
+
+00:21:16.720 --> 00:21:18.760
+the rest of the
+network to decide
+
+00:21:18.760 --> 00:21:21.070
+how to send that packet onward.
+
+00:21:21.070 --> 00:21:23.502
+This is a lot like the
+way the post office works.
+
+00:21:23.502 --> 00:21:25.210
+When you deliver--
+you write your letter.
+
+00:21:25.210 --> 00:21:26.210
+You write who it's from.
+
+00:21:26.210 --> 00:21:27.300
+And you write who it's to.
+
+00:21:27.300 --> 00:21:28.480
+You put it in the mailbox.
+
+00:21:28.480 --> 00:21:29.968
+Your job is done.
+
+00:21:29.968 --> 00:21:32.260
+And maybe at some later point,
+if it's registered post,
+
+00:21:32.260 --> 00:21:34.480
+you get an acknowledgment
+that the other guy
+
+00:21:34.480 --> 00:21:36.520
+received the message.
+
+00:21:36.520 --> 00:21:39.682
+Packet switch networks
+are very much like that.
+
+00:21:39.682 --> 00:21:41.140
+They just work a
+little bit faster.
+
+00:21:44.900 --> 00:21:49.090
+Now, why is this idea good?
+
+00:21:49.090 --> 00:21:50.650
+Now, the reason
+this idea is good
+
+00:21:50.650 --> 00:21:54.460
+is that it's extremely robust at
+dealing with failures, at least
+
+00:21:54.460 --> 00:21:58.720
+in theory, because it becomes
+the job of the switches
+
+00:21:58.720 --> 00:22:00.850
+and the network to
+talk to each other
+
+00:22:00.850 --> 00:22:03.730
+and run some sort of
+algorithm between each other
+
+00:22:03.730 --> 00:22:08.050
+that allows them to always
+construct and maintain
+
+00:22:08.050 --> 00:22:10.510
+some information that allows
+them to always, no matter what
+
+00:22:10.510 --> 00:22:13.510
+the failures are, as long as
+there is some path that takes
+
+00:22:13.510 --> 00:22:17.290
+you from here to there in the
+network, regardless of failure,
+
+00:22:17.290 --> 00:22:20.860
+as long as the underlying
+topology allows you
+
+00:22:20.860 --> 00:22:23.990
+at least one path to get
+between one place to another,
+
+00:22:23.990 --> 00:22:26.600
+the switches figure that out.
+
+00:22:26.600 --> 00:22:28.690
+And if you want to make
+a network more reliable,
+
+00:22:28.690 --> 00:22:30.708
+you add more switches
+and more links.
+
+00:22:30.708 --> 00:22:32.500
+And you figure out how
+to make it reliable.
+
+00:22:32.500 --> 00:22:35.140
+The end points and nothing
+else have to really bother
+
+00:22:35.140 --> 00:22:36.870
+with that problem.
+
+00:22:36.870 --> 00:22:39.370
+And you can take portions of
+the network that are unreliable
+
+00:22:39.370 --> 00:22:42.220
+and add some redundancy to
+it, add more pads to it,
+
+00:22:42.220 --> 00:22:43.930
+and run some other
+algorithm that
+
+00:22:43.930 --> 00:22:45.880
+allows the switches
+to figure out
+
+00:22:45.880 --> 00:22:47.380
+how to divert, how
+to route packets,
+
+00:22:47.380 --> 00:22:49.900
+or how to move these
+messages across.
+
+00:22:49.900 --> 00:22:52.860
+And this idea is
+a brilliant idea.
+
+00:22:52.860 --> 00:22:54.610
+It looks completely
+obvious in retrospect,
+
+00:22:54.610 --> 00:22:56.050
+like all brilliant ideas.
+
+00:22:56.050 --> 00:22:57.640
+But it's actually quite recent.
+
+00:22:57.640 --> 00:23:02.800
+I think they celebrated its
+50th anniversary quite recently.
+
+00:23:02.800 --> 00:23:06.310
+In 1959, Paul Baran, who
+was at the RAND Corporation
+
+00:23:06.310 --> 00:23:10.480
+at the time, wrote one or two--
+
+00:23:10.480 --> 00:23:13.060
+you know, it's not often you
+can call a paper seminal.
+
+00:23:13.060 --> 00:23:13.870
+This is seminal.
+
+00:23:13.870 --> 00:23:15.910
+This is really important.
+
+00:23:15.910 --> 00:23:19.120
+It just changed the way
+communication worked.
+
+00:23:19.120 --> 00:23:22.000
+His paper is called on
+distributed communications,
+
+00:23:22.000 --> 00:23:22.740
+introduction to--
+
+00:23:22.740 --> 00:23:25.240
+the first one was "Introduction
+to Distributed Communication
+
+00:23:25.240 --> 00:23:28.060
+Networks," where he looked at
+various ways you could design
+
+00:23:28.060 --> 00:23:32.170
+these network topologies and
+completely theoretically argued
+
+00:23:32.170 --> 00:23:36.850
+that this design would allow
+you to build a network that
+
+00:23:36.850 --> 00:23:39.340
+could withstand various
+kinds of failures--
+
+00:23:39.340 --> 00:23:41.500
+in particular, even
+adversarial failures caused
+
+00:23:41.500 --> 00:23:44.290
+by enemy attacks.
+
+00:23:44.290 --> 00:23:48.790
+And the second part of the
+story with these messages that
+
+00:23:48.790 --> 00:23:53.410
+are in packets is
+he said that if I
+
+00:23:53.410 --> 00:23:56.470
+want to communicate a
+large amount of data,
+
+00:23:56.470 --> 00:23:59.802
+what you should do is break
+it up into smaller pieces.
+
+00:23:59.802 --> 00:24:02.260
+So you take a message-- if you
+have a big file to transfer,
+
+00:24:02.260 --> 00:24:05.200
+don't put it in one big packet.
+
+00:24:05.200 --> 00:24:09.850
+But instead, you break
+it up into smaller pieces
+
+00:24:09.850 --> 00:24:12.080
+and send each piece
+into the network.
+
+00:24:12.080 --> 00:24:14.470
+So a big file gets broken
+up into many packets.
+
+00:24:14.470 --> 00:24:17.680
+Each packet becomes an
+independent, atomic unit
+
+00:24:17.680 --> 00:24:19.750
+of delivery.
+
+00:24:19.750 --> 00:24:22.300
+Packets could be sent
+along very different paths,
+
+00:24:22.300 --> 00:24:24.760
+in principle, between
+any point in the network
+
+00:24:24.760 --> 00:24:26.440
+and any other point
+in the network.
+
+00:24:26.440 --> 00:24:29.890
+And at the other end,
+packets could arrive along
+
+00:24:29.890 --> 00:24:30.782
+different paths.
+
+00:24:30.782 --> 00:24:32.490
+And as long as there's
+some working path,
+
+00:24:32.490 --> 00:24:34.365
+it's the job of the
+network to figure out how
+
+00:24:34.365 --> 00:24:35.950
+to get those packets through.
+
+00:24:35.950 --> 00:24:38.210
+That's the basic idea.
+
+00:24:38.210 --> 00:24:41.600
+So the first one is this idea
+of using an address on messages.
+
+00:24:41.600 --> 00:24:45.145
+The second one is the idea of
+breaking it up into packets.
+
+00:24:51.730 --> 00:24:57.850
+And in particular, these packets
+could all take arbitrary paths.
+
+00:24:57.850 --> 00:25:00.810
+The sources and the destinations
+don't determine the path.
+
+00:25:00.810 --> 00:25:04.090
+The switches determine the
+paths that you have to use,
+
+00:25:04.090 --> 00:25:07.720
+using some algorithms that
+we're going to be studying.
+
+00:25:07.720 --> 00:25:08.710
+So is the idea clear?
+
+00:25:08.710 --> 00:25:10.420
+Does everybody
+understand kind of what
+
+00:25:10.420 --> 00:25:12.840
+a packet switched network is?
+
+00:25:12.840 --> 00:25:14.290
+The textbook-- the
+notes also talk
+
+00:25:14.290 --> 00:25:15.500
+about other ways of doing it.
+
+00:25:15.500 --> 00:25:18.100
+The other big way of doing
+it, which predates this,
+
+00:25:18.100 --> 00:25:21.790
+was what was done in the
+Bell Telephone network.
+
+00:25:21.790 --> 00:25:23.393
+It's called circuit switching.
+
+00:25:23.393 --> 00:25:24.310
+It's a different idea.
+
+00:25:24.310 --> 00:25:25.935
+I'm not going to talk
+about in lecture.
+
+00:25:25.935 --> 00:25:27.260
+You can read about it.
+
+00:25:27.260 --> 00:25:30.550
+It's important stuff to
+read about, but mostly
+
+00:25:30.550 --> 00:25:33.280
+cultural at this point,
+because almost every network is
+
+00:25:33.280 --> 00:25:35.750
+packet switched today.
+
+00:25:35.750 --> 00:25:38.940
+So any questions
+about this idea?
+
+00:25:38.940 --> 00:25:41.480
+It's pretty simple.
+
+00:25:41.480 --> 00:25:43.120
+OK.
+
+00:25:43.120 --> 00:25:45.760
+So here's an example of the
+world's simplest packet header.
+
+00:25:45.760 --> 00:25:48.520
+This is the 6.02
+reference design.
+
+00:25:48.520 --> 00:25:50.380
+So for the labs and
+everything else,
+
+00:25:50.380 --> 00:25:52.660
+this is the packet header
+we're going to be using.
+
+00:25:52.660 --> 00:25:54.340
+It has just four fields--
+
+00:25:54.340 --> 00:25:57.730
+a destination address,
+which specifies where
+
+00:25:57.730 --> 00:26:00.400
+the packets should be sent.
+
+00:26:00.400 --> 00:26:03.130
+It has something called
+the hop limit, which
+
+00:26:03.130 --> 00:26:05.500
+I will talk about in
+a couple of lectures
+
+00:26:05.500 --> 00:26:07.840
+from now as to why we need it.
+
+00:26:07.840 --> 00:26:10.600
+It has a source address,
+mainly because when
+
+00:26:10.600 --> 00:26:11.830
+I receive a message--
+
+00:26:11.830 --> 00:26:14.270
+when this computer receives
+a message from someone,
+
+00:26:14.270 --> 00:26:17.710
+it often wants to send a
+message back in response.
+
+00:26:17.710 --> 00:26:19.830
+And having the
+source address allows
+
+00:26:19.830 --> 00:26:22.990
+it to send a message back to
+the person who sent the message.
+
+00:26:22.990 --> 00:26:27.120
+It's just for two
+way communication.
+
+00:26:27.120 --> 00:26:28.383
+And it has a length.
+
+00:26:28.383 --> 00:26:30.550
+And the reason for having
+the length is convenience.
+
+00:26:30.550 --> 00:26:32.950
+You kind of know once
+the header is done,
+
+00:26:32.950 --> 00:26:34.240
+how many bits do you need?
+
+00:26:34.240 --> 00:26:38.270
+Or how big is the actual data
+corresponding to the packet?
+
+00:26:38.270 --> 00:26:39.700
+It's also called the payload.
+
+00:26:39.700 --> 00:26:43.040
+How big is the
+payload in the packet?
+
+00:26:43.040 --> 00:26:47.140
+Now, real world packet header
+is a little more complicated.
+
+00:26:47.140 --> 00:26:48.700
+Just for concreteness,
+this is what
+
+00:26:48.700 --> 00:26:50.680
+IP version 6, which
+is the version
+
+00:26:50.680 --> 00:26:53.500
+of IP everybody's trying to
+move to, the internet protocol,
+
+00:26:53.500 --> 00:26:55.207
+looks like.
+
+00:26:55.207 --> 00:26:57.040
+It has the destination
+and source addresses.
+
+00:26:57.040 --> 00:26:58.060
+It has the hop limit.
+
+00:26:58.060 --> 00:26:59.170
+It has the length.
+
+00:26:59.170 --> 00:27:01.390
+And it's got a few other
+things that we're not
+
+00:27:01.390 --> 00:27:02.440
+going to worry about.
+
+00:27:02.440 --> 00:27:04.360
+They have to do with
+allowing switches
+
+00:27:04.360 --> 00:27:06.730
+to prioritize certain
+kinds of packets so that--
+
+00:27:10.000 --> 00:27:15.340
+I guess things like if you were
+doing Skype or voice telephony,
+
+00:27:15.340 --> 00:27:18.210
+you might want to schedule
+those packets differently
+
+00:27:18.210 --> 00:27:21.110
+in the switch so
+you get low delay.
+
+00:27:21.110 --> 00:27:22.060
+Or if you were--
+
+00:27:22.060 --> 00:27:26.440
+maybe the CEO's packets get
+higher priority, whatever.
+
+00:27:26.440 --> 00:27:28.630
+You could come up with
+policies on deciding
+
+00:27:28.630 --> 00:27:30.100
+how you switch these--
+
+00:27:30.100 --> 00:27:32.560
+how you schedule these packets.
+
+00:27:32.560 --> 00:27:36.825
+So that's the main idea
+in packet switching.
+
+00:27:36.825 --> 00:27:38.200
+For the rest of
+today, I actually
+
+00:27:38.200 --> 00:27:43.370
+want to talk about two
+performance metrics
+
+00:27:43.370 --> 00:27:46.320
+that people use to evaluate
+how well a packet switching
+
+00:27:46.320 --> 00:27:50.510
+network is doing in terms of
+how properties that users care
+
+00:27:50.510 --> 00:27:51.680
+about.
+
+00:27:51.680 --> 00:27:55.130
+And I want to also explain
+to you why this idea works--
+
+00:27:55.130 --> 00:27:59.630
+like, this idea that
+nodes just send data.
+
+00:27:59.630 --> 00:28:02.180
+All these nodes are sharing
+a communication medium--
+
+00:28:02.180 --> 00:28:03.320
+I'm sorry.
+
+00:28:03.320 --> 00:28:04.980
+Sharing resources in the switch.
+
+00:28:04.980 --> 00:28:07.775
+So this node can send packets.
+
+00:28:07.775 --> 00:28:08.900
+This node can send packets.
+
+00:28:08.900 --> 00:28:10.520
+This node can send packets.
+
+00:28:10.520 --> 00:28:13.670
+And the switch must
+have a plan in mind to--
+
+00:28:13.670 --> 00:28:16.280
+let's say that all these packets
+are going to some destination
+
+00:28:16.280 --> 00:28:17.900
+and have to go on this link.
+
+00:28:17.900 --> 00:28:19.580
+This switch must
+have a plan in mind
+
+00:28:19.580 --> 00:28:21.830
+for deciding how to take
+all these packets that
+
+00:28:21.830 --> 00:28:25.082
+are coming in and sending
+them along this link.
+
+00:28:25.082 --> 00:28:27.290
+I mean, for example, what
+happens if packets come too
+
+00:28:27.290 --> 00:28:30.110
+fast for the switch to handle?
+
+00:28:30.110 --> 00:28:32.990
+The speed of these links when
+they all simultaneously send
+
+00:28:32.990 --> 00:28:34.790
+packets could be
+bigger than the speed
+
+00:28:34.790 --> 00:28:36.493
+of the link going this way.
+
+00:28:36.493 --> 00:28:37.910
+What does the
+switch do with that?
+
+00:28:37.910 --> 00:28:39.368
+Does it just drop the packets?
+
+00:28:39.368 --> 00:28:40.910
+Does it hold onto
+them for some time?
+
+00:28:40.910 --> 00:28:42.620
+What does it actually do?
+
+00:28:42.620 --> 00:28:47.390
+And I want to do this first
+with a very simple picture that
+
+00:28:47.390 --> 00:28:51.950
+tries to get at why this idea
+really, really actually works.
+
+00:28:51.950 --> 00:28:54.110
+This idea that makes
+packet switching work
+
+00:28:54.110 --> 00:28:57.270
+has a fancy name.
+
+00:28:57.270 --> 00:28:59.330
+It's called statistical
+multiplexing.
+
+00:28:59.330 --> 00:29:00.770
+So let me explain
+what that means.
+
+00:29:05.280 --> 00:29:07.830
+Let's take it with a
+very simple picture.
+
+00:29:07.830 --> 00:29:12.380
+So let's say that you have a
+switch with one link coming out
+
+00:29:12.380 --> 00:29:13.170
+of it.
+
+00:29:13.170 --> 00:29:15.730
+And let's say that the
+speed of this link--
+
+00:29:15.730 --> 00:29:17.580
+I need to get into
+some metrics here.
+
+00:29:17.580 --> 00:29:21.480
+So links are measured in
+terms of how quickly--
+
+00:29:21.480 --> 00:29:22.850
+how quickly is the wrong word.
+
+00:29:22.850 --> 00:29:25.970
+In terms of the rate at
+which they can send data.
+
+00:29:25.970 --> 00:29:29.220
+And there's another metric,
+which is the delay of the link.
+
+00:29:29.220 --> 00:29:32.187
+So I'll get to both of these
+more carefully in a bit.
+
+00:29:32.187 --> 00:29:34.520
+But the important thing right
+now I want to keep in mind
+
+00:29:34.520 --> 00:29:36.380
+is the rate of the link.
+
+00:29:36.380 --> 00:29:41.300
+This is the rate at which
+it can send bits per second.
+
+00:29:41.300 --> 00:29:44.150
+It's a measure of throughput.
+
+00:29:44.150 --> 00:29:46.920
+So it's typically measured
+in bits per second.
+
+00:29:46.920 --> 00:29:49.880
+So let me actually imagine
+that the rate of this link
+
+00:29:49.880 --> 00:29:53.690
+is one megabyte
+per second, which
+
+00:29:53.690 --> 00:29:55.880
+is 10 to the 6, which is a
+million bytes per second,
+
+00:29:55.880 --> 00:29:57.380
+or about 10 million
+bits per second.
+
+00:30:00.110 --> 00:30:04.350
+Let's imagine a simple
+network that looks like this.
+
+00:30:04.350 --> 00:30:07.760
+Let's imagine that all
+these links are also coming
+
+00:30:07.760 --> 00:30:09.020
+in at 1 megabyte per second.
+
+00:30:17.668 --> 00:30:19.210
+If somebody came
+and told you, here's
+
+00:30:19.210 --> 00:30:20.800
+the design of my network.
+
+00:30:20.800 --> 00:30:22.660
+I have a switch.
+
+00:30:22.660 --> 00:30:25.680
+It's connected to three
+computers, each of which can--
+
+00:30:25.680 --> 00:30:27.820
+is connected with a
+link whose maximum speed
+
+00:30:27.820 --> 00:30:30.100
+is one megabyte per second.
+
+00:30:30.100 --> 00:30:32.320
+And this switch is going
+to connect to something
+
+00:30:32.320 --> 00:30:34.030
+else downstream,
+maybe another switch,
+
+00:30:34.030 --> 00:30:35.470
+and it goes somewhere else.
+
+00:30:35.470 --> 00:30:39.250
+And the speed of this link
+is one megabyte per second.
+
+00:30:39.250 --> 00:30:41.152
+Is this a good network design?
+
+00:30:41.152 --> 00:30:43.110
+How would you go about
+assessing that question?
+
+00:30:47.412 --> 00:30:48.690
+Is this good or bad?
+
+00:30:48.690 --> 00:30:49.800
+How would you know?
+
+00:30:49.800 --> 00:30:51.022
+Yes?
+
+00:30:51.022 --> 00:30:54.910
+AUDIENCE: [INAUDIBLE]
+
+00:30:54.910 --> 00:30:57.477
+PROFESSOR: Right.
+
+00:30:57.477 --> 00:30:59.560
+So let me ask this before
+we answer this question.
+
+00:30:59.560 --> 00:31:01.352
+Let's say this was 10
+megabytes per second.
+
+00:31:01.352 --> 00:31:03.565
+Is this a good network design?
+
+00:31:03.565 --> 00:31:04.065
+It is.
+
+00:31:04.065 --> 00:31:06.100
+You're paying too
+much, though, because I
+
+00:31:06.100 --> 00:31:08.170
+mean, really, this
+link is too fast
+
+00:31:08.170 --> 00:31:10.090
+for the amount of load
+that is coming in.
+
+00:31:10.090 --> 00:31:12.070
+But yeah, you know, it's a
+reasonable network design.
+
+00:31:12.070 --> 00:31:13.870
+But the real question
+is, if it's one here,
+
+00:31:13.870 --> 00:31:15.340
+is it a good network design?
+
+00:31:15.340 --> 00:31:17.423
+And the answer, as the
+gentleman here pointed out,
+
+00:31:17.423 --> 00:31:20.560
+is it really depends
+on how much traffic
+
+00:31:20.560 --> 00:31:22.300
+or how many packets
+per second or bits
+
+00:31:22.300 --> 00:31:23.800
+per second these
+different computers
+
+00:31:23.800 --> 00:31:25.510
+are going to be sending.
+
+00:31:25.510 --> 00:31:28.930
+Let's say that they
+all actually send--
+
+00:31:28.930 --> 00:31:30.670
+when they send
+traffic, they send
+
+00:31:30.670 --> 00:31:32.860
+at one megabyte per second.
+
+00:31:32.860 --> 00:31:35.170
+And when they don't send
+traffic, they're quiet.
+
+00:31:35.170 --> 00:31:37.777
+How would you determine whether
+this is a good network design,
+
+00:31:37.777 --> 00:31:38.860
+whether this works or not?
+
+00:31:38.860 --> 00:31:41.380
+Like, in practice,
+on average, how often
+
+00:31:41.380 --> 00:31:43.150
+can each of these
+guys be sending
+
+00:31:43.150 --> 00:31:45.580
+before you determine
+that this is probably
+
+00:31:45.580 --> 00:31:47.450
+not-- this network
+isn't going to work.
+
+00:31:47.450 --> 00:31:48.482
+Yeah.
+
+00:31:48.482 --> 00:31:49.880
+AUDIENCE: [INAUDIBLE].
+
+00:31:54.982 --> 00:31:55.690
+PROFESSOR: Right.
+
+00:31:55.690 --> 00:31:56.950
+And they may or
+may not be equal.
+
+00:31:56.950 --> 00:31:58.510
+Ideally, what you'd like
+is just to make sure
+
+00:31:58.510 --> 00:32:00.010
+that over some
+window of time, they
+
+00:32:00.010 --> 00:32:03.850
+sent slower than the rate
+at which this link can
+
+00:32:03.850 --> 00:32:04.840
+ship packets.
+
+00:32:04.840 --> 00:32:07.150
+Now, the reason why
+packet switching works
+
+00:32:07.150 --> 00:32:11.320
+is that when you build
+a network like this
+
+00:32:11.320 --> 00:32:13.210
+and you scan it out
+to bigger numbers,
+
+00:32:13.210 --> 00:32:16.090
+it turns out to be extremely
+unlikely that everybody
+
+00:32:16.090 --> 00:32:19.150
+using the network exercises
+the network at exactly
+
+00:32:19.150 --> 00:32:20.170
+the same time.
+
+00:32:20.170 --> 00:32:22.600
+I mean, a bunch of people
+might have their computer on.
+
+00:32:22.600 --> 00:32:24.700
+But if you think about how
+it's used, you click on a link
+
+00:32:24.700 --> 00:32:26.440
+and you get a bunch
+of stuff showing up.
+
+00:32:26.440 --> 00:32:28.360
+And then you click on--
+you read it for some time.
+
+00:32:28.360 --> 00:32:30.360
+You click on a link and
+something else shows up.
+
+00:32:30.360 --> 00:32:34.450
+Or if you're watching a video
+stream, video is compressed.
+
+00:32:34.450 --> 00:32:36.640
+So if the scene
+changes very often,
+
+00:32:36.640 --> 00:32:39.520
+you end up using a
+lot more of the--
+
+00:32:39.520 --> 00:32:40.520
+in terms of the bitrate.
+
+00:32:40.520 --> 00:32:42.020
+But then every once
+in a while, it's
+
+00:32:42.020 --> 00:32:44.080
+one of these old Russian
+movies where nothing's
+
+00:32:44.080 --> 00:32:45.120
+changing for 10 minutes.
+
+00:32:45.120 --> 00:32:46.953
+And it's very
+heavily compressed.
+
+00:32:46.953 --> 00:32:48.370
+And then you get
+to Schwarzenegger
+
+00:32:48.370 --> 00:32:51.230
+and it's blowing
+your bandwidth limit.
+
+00:32:51.230 --> 00:32:53.200
+So I mean, it's
+kind of like that.
+
+00:32:53.200 --> 00:32:54.310
+Traffic is bursty.
+
+00:32:57.670 --> 00:32:59.170
+So when traffic
+arrives in bursts
+
+00:32:59.170 --> 00:33:02.420
+and the users are not all highly
+correlated with each other--
+
+00:33:02.420 --> 00:33:05.590
+I mean, from time to time,
+you do get these correlations.
+
+00:33:05.590 --> 00:33:07.570
+These are called flash crowds.
+
+00:33:07.570 --> 00:33:09.410
+Presumably this
+happened last night.
+
+00:33:09.410 --> 00:33:12.580
+Everybody is hitting refresh
+on the New York Times website.
+
+00:33:12.580 --> 00:33:15.080
+And presumably what's
+happening there, of course,
+
+00:33:15.080 --> 00:33:17.950
+is that these websites really
+know what they're doing.
+
+00:33:17.950 --> 00:33:20.980
+So they've actually provisioned
+with the expectation
+
+00:33:20.980 --> 00:33:23.082
+that starting from
+8:00 PM, everybody
+
+00:33:23.082 --> 00:33:24.040
+is sitting there glued.
+
+00:33:24.040 --> 00:33:27.220
+Nothing's changing, but
+everybody's hitting reload.
+
+00:33:27.220 --> 00:33:29.325
+And they've designed
+this network--
+
+00:33:29.325 --> 00:33:30.700
+they've provisioned
+their network
+
+00:33:30.700 --> 00:33:35.010
+to allow for people to
+get the answers they want
+
+00:33:35.010 --> 00:33:37.310
+or the results they want to see.
+
+00:33:37.310 --> 00:33:38.310
+So here's some pictures.
+
+00:33:38.310 --> 00:33:40.080
+So what I did was I took--
+
+00:33:40.080 --> 00:33:45.330
+I sniffed on the
+traffic in this room.
+
+00:33:45.330 --> 00:33:47.520
+So here's the kind of
+stuff that you see.
+
+00:33:47.520 --> 00:33:50.040
+So this is the traffic in
+this room during lecture.
+
+00:33:53.280 --> 00:33:56.850
+Now, this is actually
+not this semester.
+
+00:33:56.850 --> 00:34:00.900
+But I would assume that
+it's fairly typical.
+
+00:34:00.900 --> 00:34:04.740
+I should also say this
+was during-- well,
+
+00:34:04.740 --> 00:34:06.900
+I don't want to say.
+
+00:34:06.900 --> 00:34:08.969
+The x-axis in these
+pictures is time.
+
+00:34:08.969 --> 00:34:12.812
+The y-axis is the number
+of bytes that was sent.
+
+00:34:12.812 --> 00:34:14.520
+So you can see that
+what I've done on top
+
+00:34:14.520 --> 00:34:19.210
+is I've broken time into
+10 millisecond windows.
+
+00:34:19.210 --> 00:34:21.613
+So initially on top, it's
+every 10 milliseconds I just
+
+00:34:21.613 --> 00:34:24.280
+count the total number of bits--
+actually, total number of bytes
+
+00:34:24.280 --> 00:34:25.900
+that was sent.
+
+00:34:25.900 --> 00:34:28.150
+Now, you can't read the
+scale on the y-axis on top.
+
+00:34:28.150 --> 00:34:33.100
+But on the top curve, it goes up
+to 200,000 bytes in a small 10
+
+00:34:33.100 --> 00:34:34.780
+millisecond window.
+
+00:34:34.780 --> 00:34:37.210
+Then the curve down here
+does the same thing.
+
+00:34:37.210 --> 00:34:40.647
+But I've picked 100
+millisecond window.
+
+00:34:40.647 --> 00:34:42.730
+Now you can see that what
+has happened when you've
+
+00:34:42.730 --> 00:34:44.022
+picked a bigger window of time?
+
+00:34:44.022 --> 00:34:46.170
+Has it become smoother
+or less smoother?
+
+00:34:46.170 --> 00:34:48.060
+What can you say about it?
+
+00:34:48.060 --> 00:34:49.310
+It's become a little smoother.
+
+00:34:49.310 --> 00:34:51.010
+But surely there
+still are these peaks.
+
+00:34:51.010 --> 00:34:52.409
+The bursts do become smoother.
+
+00:34:52.409 --> 00:34:54.050
+But they don't
+completely disappear.
+
+00:34:54.050 --> 00:34:55.600
+And what's remarkable
+about network traffic
+
+00:34:55.600 --> 00:34:57.600
+is that these bursts never
+completely disappear,
+
+00:34:57.600 --> 00:35:00.640
+but they do get a little
+smoother as you aggregate over
+
+00:35:00.640 --> 00:35:01.840
+more time.
+
+00:35:01.840 --> 00:35:05.470
+Over 100 millisecond windows,
+that's what it looks like.
+
+00:35:05.470 --> 00:35:07.340
+Over one second window,
+it looks smoother.
+
+00:35:07.340 --> 00:35:09.340
+But you can actually see
+that from time to time,
+
+00:35:09.340 --> 00:35:12.850
+there are these big bursts
+that take up a lot of the--
+
+00:35:12.850 --> 00:35:20.020
+that end up over any window
+of time that you expand out,
+
+00:35:20.020 --> 00:35:22.270
+there's still some
+probability with which
+
+00:35:22.270 --> 00:35:23.770
+you'll see a big
+burst of traffic
+
+00:35:23.770 --> 00:35:25.300
+showing up in that window.
+
+00:35:25.300 --> 00:35:28.300
+That's kind of a nice and
+noteworthy characteristic
+
+00:35:28.300 --> 00:35:31.300
+of kind of real
+world data traffic.
+
+00:35:31.300 --> 00:35:34.160
+In fact, even when you go to
+10 second windows, it says,
+
+00:35:34.160 --> 00:35:36.430
+look, I'm looking at
+10 seconds at a time.
+
+00:35:36.430 --> 00:35:38.100
+You get stuff that
+looks like this.
+
+00:35:38.100 --> 00:35:39.970
+MIT runs a website
+you can get access
+
+00:35:39.970 --> 00:35:41.710
+to using your web certificates.
+
+00:35:41.710 --> 00:35:48.262
+It's called mrtg.mit.edu.
+
+00:35:48.262 --> 00:35:49.720
+You can actually
+go to this website
+
+00:35:49.720 --> 00:35:51.725
+and you can see, for
+different switches,
+
+00:35:51.725 --> 00:35:53.350
+including ones in
+your dorm or wherever
+
+00:35:53.350 --> 00:35:55.010
+you're living if
+you live on campus,
+
+00:35:55.010 --> 00:35:57.700
+you can actually look at the
+statistics from your router.
+
+00:35:57.700 --> 00:36:00.350
+They do this on a
+per switch level.
+
+00:36:00.350 --> 00:36:03.280
+It's kind of interesting to see
+when people use this network
+
+00:36:03.280 --> 00:36:04.500
+and when they don't.
+
+00:36:04.500 --> 00:36:06.370
+I think an interesting
+characteristic
+
+00:36:06.370 --> 00:36:08.080
+of MIT's networks
+is it turns out
+
+00:36:08.080 --> 00:36:10.210
+if you look at some of
+the dawn network traffic,
+
+00:36:10.210 --> 00:36:12.970
+it peaks at between 1:00
+and 3:00 or 1:00 and 4:00
+
+00:36:12.970 --> 00:36:16.570
+in the morning, which
+is probably good,
+
+00:36:16.570 --> 00:36:19.060
+because honestly, I think
+MIT should negotiate
+
+00:36:19.060 --> 00:36:21.010
+preferential pricing
+with ISPs, because no one
+
+00:36:21.010 --> 00:36:23.770
+else is using those ISP
+networks at that time.
+
+00:36:23.770 --> 00:36:25.750
+So it would be actually--
+
+00:36:25.750 --> 00:36:28.360
+it turns out I learned that
+the Amazon Kindle kind of does
+
+00:36:28.360 --> 00:36:29.290
+that.
+
+00:36:29.290 --> 00:36:31.110
+When you do your
+newspaper subscriptions,
+
+00:36:31.110 --> 00:36:34.360
+they actually send it
+through wireless networks,
+
+00:36:34.360 --> 00:36:37.450
+through this commercial 3G
+and 4G wireless networks.
+
+00:36:37.450 --> 00:36:39.763
+And I believe that
+what they do is
+
+00:36:39.763 --> 00:36:41.680
+they send it to you in
+the middle of the night
+
+00:36:41.680 --> 00:36:43.930
+when not many people
+other than at MIT
+
+00:36:43.930 --> 00:36:46.298
+are using those networks.
+
+00:36:46.298 --> 00:36:48.340
+So you could take advantage
+of some of these time
+
+00:36:48.340 --> 00:36:50.800
+varying properties
+[INAUDIBLE] doing it.
+
+00:36:50.800 --> 00:36:52.840
+So why did I tell
+you this story?
+
+00:36:52.840 --> 00:36:54.882
+The same thing-- I showed
+you these time windows.
+
+00:36:54.882 --> 00:36:57.132
+The same thing applies when
+you bring many, many users
+
+00:36:57.132 --> 00:36:57.670
+together.
+
+00:36:57.670 --> 00:37:00.550
+The odds that we all
+are going to click
+
+00:37:00.550 --> 00:37:05.140
+on some link at exactly
+the same time and all of us
+
+00:37:05.140 --> 00:37:08.050
+cause a burst of traffic to
+happen exactly at the same time
+
+00:37:08.050 --> 00:37:09.863
+is extremely small.
+
+00:37:09.863 --> 00:37:12.280
+Now, it can happen if there's
+an adversary in the network.
+
+00:37:12.280 --> 00:37:13.905
+If there are bad
+guys-- and how many of
+
+00:37:13.905 --> 00:37:15.800
+you have heard of denial
+of service attacks?
+
+00:37:15.800 --> 00:37:19.120
+Yeah, DDoS, Distributed
+Denial of Service attacks.
+
+00:37:19.120 --> 00:37:23.770
+I understand if you know Russian
+you get an edge in doing it.
+
+00:37:23.770 --> 00:37:26.140
+So these things are
+launched because they
+
+00:37:26.140 --> 00:37:28.270
+commandeer a whole
+bunch of machines
+
+00:37:28.270 --> 00:37:30.220
+and they coordinate an attack.
+
+00:37:30.220 --> 00:37:31.630
+They destroy the
+assumptions that
+
+00:37:31.630 --> 00:37:33.910
+make statistical
+multiplexing work
+
+00:37:33.910 --> 00:37:35.650
+because the normal
+assumption is people
+
+00:37:35.650 --> 00:37:37.760
+are not exercising the
+network at the same time.
+
+00:37:37.760 --> 00:37:39.760
+So you're not attacking
+some website or whatever
+
+00:37:39.760 --> 00:37:41.140
+at the same time.
+
+00:37:41.140 --> 00:37:44.710
+But if you coordinate
+an attack, then you
+
+00:37:44.710 --> 00:37:48.730
+make that assumption not hold,
+causing congestion to happen,
+
+00:37:48.730 --> 00:37:53.290
+causing traffic to exceed what
+your network link can support.
+
+00:37:53.290 --> 00:37:55.330
+But under normal,
+non-adversarial conditions,
+
+00:37:55.330 --> 00:37:59.183
+the assumption is that people
+are randomly gaining access
+
+00:37:59.183 --> 00:38:01.600
+to the network, which means
+that you can actually get away
+
+00:38:01.600 --> 00:38:04.390
+with the design of a network
+that looks like this as
+
+00:38:04.390 --> 00:38:06.980
+long as you study statistics
+like the average amount
+
+00:38:06.980 --> 00:38:07.480
+of traffic.
+
+00:38:07.480 --> 00:38:08.890
+Like, on average,
+the guy is not going
+
+00:38:08.890 --> 00:38:10.640
+to be sending more
+than-- this node is not
+
+00:38:10.640 --> 00:38:13.360
+going to be sending more than
+a certain amount of traffic
+
+00:38:13.360 --> 00:38:16.430
+when measured over
+some period of time.
+
+00:38:16.430 --> 00:38:20.860
+What happens when people
+send traffic in a burst?
+
+00:38:20.860 --> 00:38:22.430
+What happens when,
+from time to time,
+
+00:38:22.430 --> 00:38:24.430
+in fact, you see these
+bursts of traffic, right?
+
+00:38:24.430 --> 00:38:26.690
+You look at this picture here.
+
+00:38:26.690 --> 00:38:29.050
+You do it over a one
+second window or a 100
+
+00:38:29.050 --> 00:38:32.440
+millisecond window and you see
+these big peaks of traffic.
+
+00:38:32.440 --> 00:38:36.580
+Lots of bytes at 100
+millisecond window.
+
+00:38:36.580 --> 00:38:39.280
+What that really means
+is that this switch here
+
+00:38:39.280 --> 00:38:41.860
+is going to be getting
+traffic from different users
+
+00:38:41.860 --> 00:38:45.220
+that probably exceeds--
+
+00:38:45.220 --> 00:38:48.430
+you know, is perhaps the sum
+of all of the input links.
+
+00:38:48.430 --> 00:38:49.900
+So it's a large
+amount of traffic.
+
+00:38:49.900 --> 00:38:52.720
+If you have a design like
+this, something's got to give,
+
+00:38:52.720 --> 00:38:55.060
+because you're getting
+water or packets
+
+00:38:55.060 --> 00:38:57.952
+coming in at one megabyte
+per second times three.
+
+00:38:57.952 --> 00:38:59.410
+And you've got a
+link that can only
+
+00:38:59.410 --> 00:39:02.090
+send one megabyte per second.
+
+00:39:02.090 --> 00:39:04.190
+So what can you do?
+
+00:39:04.190 --> 00:39:06.970
+What can the switch do?
+
+00:39:06.970 --> 00:39:08.950
+AUDIENCE: [INAUDIBLE]
+
+00:39:08.950 --> 00:39:11.740
+PROFESSOR: The easiest thing
+it can do is just drop it.
+
+00:39:11.740 --> 00:39:13.420
+Just say, you know what?
+
+00:39:13.420 --> 00:39:15.430
+Just drop it.
+
+00:39:15.430 --> 00:39:18.467
+You laugh, but I'm telling
+you, sometimes dropping it
+
+00:39:18.467 --> 00:39:20.050
+and letting the end
+point deal with it
+
+00:39:20.050 --> 00:39:21.758
+is a better strategy
+than holding onto it
+
+00:39:21.758 --> 00:39:23.148
+and simply keeping it in line.
+
+00:39:23.148 --> 00:39:24.940
+It's like, you've got
+to be careful, right?
+
+00:39:24.940 --> 00:39:27.075
+I like the idea of storing it.
+
+00:39:27.075 --> 00:39:28.450
+But for how long
+do you store it?
+
+00:39:31.270 --> 00:39:33.460
+How much do you store?
+
+00:39:33.460 --> 00:39:35.920
+For example, if I look at
+that burst of traffic here
+
+00:39:35.920 --> 00:39:37.420
+and I have a network
+like this and I
+
+00:39:37.420 --> 00:39:38.795
+look at this big
+burst of traffic
+
+00:39:38.795 --> 00:39:40.870
+here, over a 10
+second window, I'm
+
+00:39:40.870 --> 00:39:44.710
+seeing traffic that's probably,
+in this example, perhaps
+
+00:39:44.710 --> 00:39:46.690
+10 or 100 times bigger
+than the average.
+
+00:39:46.690 --> 00:39:48.460
+The average is sitting
+down somewhere.
+
+00:39:48.460 --> 00:39:51.110
+And maybe this is 10
+times the average.
+
+00:39:51.110 --> 00:39:53.890
+The peak to average ratio
+might be 10 to 1 or 20 to 1.
+
+00:39:53.890 --> 00:39:56.950
+So how much should you
+store inside the switch?
+
+00:39:59.872 --> 00:40:01.430
+If you were designing
+a network and I
+
+00:40:01.430 --> 00:40:03.157
+told you, well, all
+right, good idea.
+
+00:40:03.157 --> 00:40:04.490
+Why don't you store the packets.
+
+00:40:04.490 --> 00:40:07.130
+You're going to put these
+packets into a data structure
+
+00:40:07.130 --> 00:40:09.320
+called a queue, right?
+
+00:40:09.320 --> 00:40:10.160
+Packets come in.
+
+00:40:10.160 --> 00:40:11.715
+Packets go out.
+
+00:40:11.715 --> 00:40:14.090
+Packets go out whenever the
+link is able to send packets.
+
+00:40:14.090 --> 00:40:15.140
+You keep shipping packets out.
+
+00:40:15.140 --> 00:40:16.515
+In the meantime,
+traffic's coming
+
+00:40:16.515 --> 00:40:17.720
+faster than you can handle.
+
+00:40:17.720 --> 00:40:19.770
+You're going to put
+stuff in a queue.
+
+00:40:19.770 --> 00:40:21.760
+How much?
+
+00:40:21.760 --> 00:40:24.960
+Do you want to keep everything?
+
+00:40:24.960 --> 00:40:26.610
+If you did, you'd be
+like Disney World,
+
+00:40:26.610 --> 00:40:28.570
+because they have these
+lines that go forever,
+
+00:40:28.570 --> 00:40:30.060
+and nothing's
+moving and everybody
+
+00:40:30.060 --> 00:40:31.477
+just piles on the
+end of the line.
+
+00:40:34.238 --> 00:40:35.280
+This is a tough question.
+
+00:40:35.280 --> 00:40:38.640
+We're going to answer
+this question somewhat.
+
+00:40:38.640 --> 00:40:41.030
+There's no single, easy
+answer to this question.
+
+00:40:41.030 --> 00:40:43.110
+But the rule of thumb that I'm
+going to have you keep in mind
+
+00:40:43.110 --> 00:40:45.610
+now is you're probably going
+to keep between 10 milliseconds
+
+00:40:45.610 --> 00:40:48.840
+and 100 milliseconds
+worth of traffic.
+
+00:40:48.840 --> 00:40:50.320
+I'll get to why later.
+
+00:40:50.320 --> 00:40:53.250
+For now, it's some small
+amount of time worth--
+
+00:40:53.250 --> 00:40:54.000
+amount of traffic.
+
+00:40:56.590 --> 00:40:58.660
+The reason why you
+need this queue
+
+00:40:58.660 --> 00:41:01.780
+is to absorb a burst of
+traffic that you're not
+
+00:41:01.780 --> 00:41:03.190
+able to immediately send.
+
+00:41:03.190 --> 00:41:05.440
+But the important principle
+in a packet switch network
+
+00:41:05.440 --> 00:41:08.890
+is, you need a queue, but
+they're a necessary evil,
+
+00:41:08.890 --> 00:41:11.530
+because the only thing that
+the queue is doing for you
+
+00:41:11.530 --> 00:41:12.563
+is absorbing the burst.
+
+00:41:12.563 --> 00:41:14.980
+But the only thing-- the bad
+thing that it's doing for you
+
+00:41:14.980 --> 00:41:17.560
+is adding delay.
+
+00:41:17.560 --> 00:41:19.310
+Just because you have
+a queue, the network
+
+00:41:19.310 --> 00:41:20.783
+ain't going to move faster.
+
+00:41:20.783 --> 00:41:23.200
+The network's moving-- the
+link's moving at the same speed
+
+00:41:23.200 --> 00:41:24.910
+whether you have a queue or not.
+
+00:41:24.910 --> 00:41:28.000
+The only thing the queue is
+doing is it absorbs a burst
+
+00:41:28.000 --> 00:41:31.930
+so that whenever the network
+link is able to send packets,
+
+00:41:31.930 --> 00:41:33.757
+you can ship packets
+from the queue
+
+00:41:33.757 --> 00:41:35.590
+and you don't want to
+drop too many packets.
+
+00:41:35.590 --> 00:41:39.130
+Now, if you're lucky,
+the size of the queue
+
+00:41:39.130 --> 00:41:40.690
+is enough to absorb
+all of the burst.
+
+00:41:40.690 --> 00:41:43.140
+And then the traffic eases
+and you get to send the rest.
+
+00:41:43.140 --> 00:41:44.890
+But if you're unlucky,
+the queue overflows
+
+00:41:44.890 --> 00:41:45.910
+and you drop some packets.
+
+00:41:45.910 --> 00:41:48.077
+And then the endpoints have
+to somehow deal with it.
+
+00:41:50.830 --> 00:41:52.580
+So what are the things
+we've looked at?
+
+00:41:52.580 --> 00:41:54.690
+Packet switch
+networks as defined
+
+00:41:54.690 --> 00:41:58.530
+by a header, which includes
+the destination address.
+
+00:41:58.530 --> 00:42:01.342
+The way the network works
+is that the sources just
+
+00:42:01.342 --> 00:42:03.800
+ship a packet with the header
+that includes the destination
+
+00:42:03.800 --> 00:42:04.290
+address.
+
+00:42:04.290 --> 00:42:06.707
+The switches somehow are going
+to figure out how to ship--
+
+00:42:06.707 --> 00:42:09.720
+how to get those packets
+to the destination.
+
+00:42:09.720 --> 00:42:11.460
+The reason why
+this stuff works is
+
+00:42:11.460 --> 00:42:14.790
+because of the
+statistical multiplexing.
+
+00:42:14.790 --> 00:42:19.350
+And finally, the reason we
+need a queue in a packet switch
+
+00:42:19.350 --> 00:42:22.780
+network is to
+absorb these bursts.
+
+00:42:22.780 --> 00:42:25.690
+So what I want to do in the
+remaining six or seven minutes
+
+00:42:25.690 --> 00:42:29.980
+is to tell you about the
+other metric by which we're
+
+00:42:29.980 --> 00:42:31.680
+going to evaluate our networks.
+
+00:42:31.680 --> 00:42:36.100
+The first metric I introduced
+already is the rate of a link.
+
+00:42:36.100 --> 00:42:38.205
+When you have links
+of different rates,
+
+00:42:38.205 --> 00:42:40.580
+you can also define the rate
+for an actual communication.
+
+00:42:40.580 --> 00:42:43.420
+When a source sends a
+packet to a destination,
+
+00:42:43.420 --> 00:42:45.850
+you can measure the
+rate at which bits are
+
+00:42:45.850 --> 00:42:47.110
+arriving at the destination.
+
+00:42:47.110 --> 00:42:51.530
+That's the throughput of the
+data transfer of the bit rate.
+
+00:42:51.530 --> 00:42:53.530
+The other metric we're
+going to care a lot about
+
+00:42:53.530 --> 00:42:55.000
+is called the delay.
+
+00:42:59.500 --> 00:43:03.680
+The fancy term for
+delay is latency.
+
+00:43:03.680 --> 00:43:05.760
+I really don't know why
+they have two terms.
+
+00:43:05.760 --> 00:43:08.090
+But you know, from
+time to time, people
+
+00:43:08.090 --> 00:43:10.320
+use the word delay or latency.
+
+00:43:10.320 --> 00:43:13.730
+And by the way, I'm going to try
+hard to use the word rate here
+
+00:43:13.730 --> 00:43:15.980
+or bitrate or throughput.
+
+00:43:15.980 --> 00:43:17.840
+Often you see the word
+bandwidth, like oh,
+
+00:43:17.840 --> 00:43:20.390
+my bandwidth is 10
+megabits per second.
+
+00:43:20.390 --> 00:43:22.670
+And that's actually
+fine to use, except it's
+
+00:43:22.670 --> 00:43:24.460
+confusing in a real
+communication system
+
+00:43:24.460 --> 00:43:25.460
+because we're going to--
+
+00:43:25.460 --> 00:43:27.002
+we've already used
+the word bandwidth
+
+00:43:27.002 --> 00:43:29.265
+to refer to a frequency.
+
+00:43:29.265 --> 00:43:30.890
+And so we've already
+said the bandwidth
+
+00:43:30.890 --> 00:43:34.440
+is defined in terms of, say,
+Hertz or something like that.
+
+00:43:34.440 --> 00:43:39.313
+And it's just a little confusing
+to also use bandwidth for rate.
+
+00:43:39.313 --> 00:43:40.730
+So we're going to
+try to use words
+
+00:43:40.730 --> 00:43:44.430
+like bitrate and throughput
+to refer to bits per second.
+
+00:43:44.430 --> 00:43:46.430
+So delay is measured in
+seconds or milliseconds
+
+00:43:46.430 --> 00:43:47.510
+or microseconds.
+
+00:43:47.510 --> 00:43:53.600
+And what we want is you
+have a source that sends
+
+00:43:53.600 --> 00:43:55.700
+a packet or set of packets--
+
+00:43:55.700 --> 00:43:58.010
+let's say a single packet
+to a receiver going
+
+00:43:58.010 --> 00:44:00.750
+through a network of switches.
+
+00:44:00.750 --> 00:44:01.830
+And I want to ask--
+
+00:44:01.830 --> 00:44:08.300
+if I send a packet at some point
+in time, let's say at time 0,
+
+00:44:08.300 --> 00:44:10.160
+when does that package
+reach the receiver?
+
+00:44:13.100 --> 00:44:15.510
+That's the delay
+for a single packet.
+
+00:44:15.510 --> 00:44:18.050
+So I just want to explain
+to you how to calculate this
+
+00:44:18.050 --> 00:44:22.780
+or how to measure this.
+
+00:44:22.780 --> 00:44:27.560
+So let's say that the
+packet has a size of L bits.
+
+00:44:31.253 --> 00:44:32.670
+So what does the
+answer depend on?
+
+00:44:38.692 --> 00:44:40.150
+Let's take an even
+simpler example.
+
+00:44:40.150 --> 00:44:42.070
+Let's say that I have a sender.
+
+00:44:42.070 --> 00:44:43.210
+I have a receiver.
+
+00:44:43.210 --> 00:44:44.650
+I have one link between them.
+
+00:44:44.650 --> 00:44:46.480
+No switches.
+
+00:44:46.480 --> 00:44:48.515
+And the packet has size L bits.
+
+00:44:51.410 --> 00:44:53.830
+I send a packet at time 0.
+
+00:44:53.830 --> 00:44:57.340
+When does the last bit of the
+packet show up at the receiver?
+
+00:44:57.340 --> 00:44:58.100
+Yes?
+
+00:44:58.100 --> 00:45:02.803
+AUDIENCE: [INAUDIBLE]
+
+00:45:02.803 --> 00:45:03.470
+PROFESSOR: Good.
+
+00:45:03.470 --> 00:45:06.500
+So I need to define
+this thing here.
+
+00:45:06.500 --> 00:45:09.080
+Let's say that the bitrate of
+this link is c bits per second.
+
+00:45:12.360 --> 00:45:15.470
+So I have l bits and I have
+a link that can send packets
+
+00:45:15.470 --> 00:45:17.540
+at c bits per second.
+
+00:45:17.540 --> 00:45:23.900
+Therefore, something here
+should be l divided by c second.
+
+00:45:23.900 --> 00:45:28.040
+That is from the moment I
+start shipping these bits,
+
+00:45:28.040 --> 00:45:31.490
+from the time delay between
+when the first bit arrives--
+
+00:45:31.490 --> 00:45:33.440
+first bit arrives
+at the receiver
+
+00:45:33.440 --> 00:45:36.380
+and the last bit
+arrives at the receiver,
+
+00:45:36.380 --> 00:45:41.210
+that time distance or time
+difference is c divided by l--
+
+00:45:41.210 --> 00:45:43.835
+sorry, l divided by c seconds.
+
+00:45:47.250 --> 00:45:49.140
+Because I ship these bits.
+
+00:45:49.140 --> 00:45:51.285
+These bits go back to
+back over the link.
+
+00:45:51.285 --> 00:45:53.160
+If I look at when the
+first bit arrives and I
+
+00:45:53.160 --> 00:45:54.577
+look at when the
+last bit arrives,
+
+00:45:54.577 --> 00:45:57.750
+that time difference
+is the spacing--
+
+00:45:57.750 --> 00:46:00.660
+the time difference between
+any two bits showing up
+
+00:46:00.660 --> 00:46:04.000
+at the receiver is
+1 over c, seconds,
+
+00:46:04.000 --> 00:46:06.120
+because if the link can
+send c bits per second,
+
+00:46:06.120 --> 00:46:10.600
+any two bits are separated
+apart by 1 over c seconds.
+
+00:46:10.600 --> 00:46:14.220
+Therefore, from the time at
+which the first bit arrives
+
+00:46:14.220 --> 00:46:16.050
+to the time at which
+the last bit arrives,
+
+00:46:16.050 --> 00:46:18.570
+that distance is l over c.
+
+00:46:18.570 --> 00:46:21.090
+That difference is
+l over c seconds.
+
+00:46:21.090 --> 00:46:24.067
+This l over c has a
+name associated with it.
+
+00:46:24.067 --> 00:46:25.650
+This is called the
+transmission delay.
+
+00:46:32.180 --> 00:46:36.750
+Now let's say I want
+to send just one bit.
+
+00:46:36.750 --> 00:46:37.460
+I have to now--
+
+00:46:37.460 --> 00:46:39.080
+I send a bit at
+some point in time.
+
+00:46:39.080 --> 00:46:43.340
+And that bit shows up
+some point in the future,
+
+00:46:43.340 --> 00:46:45.140
+because it can't
+show up immediately.
+
+00:46:45.140 --> 00:46:49.400
+If it did, we'd probably have
+to change the laws of physics
+
+00:46:49.400 --> 00:46:55.410
+because speed of light is no
+longer valid as a finite limit.
+
+00:46:55.410 --> 00:46:57.710
+So what is the time between
+when I send the first bit
+
+00:46:57.710 --> 00:46:59.508
+and when the first
+bit shows up here?
+
+00:46:59.508 --> 00:47:00.550
+What does that depend on?
+
+00:47:04.240 --> 00:47:07.070
+Like, let's think I want
+to communicate to the moon.
+
+00:47:07.070 --> 00:47:09.320
+I send one bit of information.
+
+00:47:09.320 --> 00:47:11.150
+I put it out onto the--
+or even one sample.
+
+00:47:11.150 --> 00:47:13.910
+I put it out on the
+radio or whatever.
+
+00:47:13.910 --> 00:47:17.685
+How long before it
+gets to the moon?
+
+00:47:17.685 --> 00:47:19.070
+AUDIENCE: [INAUDIBLE]
+
+00:47:19.070 --> 00:47:21.320
+PROFESSOR: Depends on what?
+
+00:47:21.320 --> 00:47:24.110
+Does it depend on the rate
+at which I can communicate?
+
+00:47:24.110 --> 00:47:25.160
+No.
+
+00:47:25.160 --> 00:47:26.363
+What does it depend on?
+
+00:47:26.363 --> 00:47:29.081
+AUDIENCE: [INAUDIBLE].
+
+00:47:29.081 --> 00:47:29.822
+PROFESSOR: Sorry?
+
+00:47:29.822 --> 00:47:30.530
+You guys said it.
+
+00:47:30.530 --> 00:47:31.420
+What is it?
+
+00:47:31.420 --> 00:47:32.420
+AUDIENCE: [INAUDIBLE].
+
+00:47:32.420 --> 00:47:34.087
+PROFESSOR: Speed, and
+the speed of what?
+
+00:47:34.087 --> 00:47:35.533
+AUDIENCE: [INAUDIBLE].
+
+00:47:35.533 --> 00:47:36.950
+PROFESSOR: It's
+the speed of light
+
+00:47:36.950 --> 00:47:39.408
+in that medium, or speed of
+whatever the signal you use is.
+
+00:47:39.408 --> 00:47:42.050
+If it's acoustic, then it's the
+speed of sound over the medium.
+
+00:47:42.050 --> 00:47:43.550
+So it depends on
+the distance and it
+
+00:47:43.550 --> 00:47:46.682
+depends on a speed at which
+a signal can propagate
+
+00:47:46.682 --> 00:47:48.140
+through that
+communication medium--
+
+00:47:48.140 --> 00:47:49.710
+for example, the speed of light.
+
+00:47:49.710 --> 00:47:54.440
+So the distance is b and the
+speed of the communication
+
+00:47:54.440 --> 00:47:57.230
+medium is, let's say, v.
+
+00:47:57.230 --> 00:47:59.240
+That thing is called
+the propagation delay.
+
+00:48:02.990 --> 00:48:07.145
+So let me organize this properly
+so I'm not confusing everybody
+
+00:48:07.145 --> 00:48:08.270
+with these different terms.
+
+00:48:08.270 --> 00:48:11.210
+So so far we've hit
+two sources of delay.
+
+00:48:11.210 --> 00:48:14.000
+The first source of delay,
+which I said second,
+
+00:48:14.000 --> 00:48:15.410
+is the propagation delay.
+
+00:48:19.160 --> 00:48:21.500
+This is the time it
+takes for the first bit
+
+00:48:21.500 --> 00:48:22.910
+to get to the other side.
+
+00:48:22.910 --> 00:48:25.087
+It depends on the speed at
+which a signal propagates
+
+00:48:25.087 --> 00:48:27.170
+through the medium and the
+distance between sender
+
+00:48:27.170 --> 00:48:28.470
+and receiver.
+
+00:48:28.470 --> 00:48:30.440
+So sound travels at one
+foot per millisecond,
+
+00:48:30.440 --> 00:48:32.370
+I think, roughly
+something like that.
+
+00:48:32.370 --> 00:48:36.860
+So if I'm doing acoustic, that
+dictates the propagation delay.
+
+00:48:36.860 --> 00:48:43.990
+The second delay is
+the transmission delay,
+
+00:48:43.990 --> 00:48:47.740
+which depends on this l over c.
+
+00:48:47.740 --> 00:48:51.580
+The third delay is whatever
+processing delays there are.
+
+00:48:54.280 --> 00:48:57.190
+That, for example, is when
+a switch gets a packet,
+
+00:48:57.190 --> 00:48:58.960
+it has to look at
+the packet's header,
+
+00:48:58.960 --> 00:49:01.710
+figure out the destination,
+do something to that.
+
+00:49:01.710 --> 00:49:04.240
+There's some competition
+time that the switches
+
+00:49:04.240 --> 00:49:05.710
+have to work with.
+
+00:49:05.710 --> 00:49:07.780
+That delay is called
+the processing delay.
+
+00:49:07.780 --> 00:49:10.690
+This is purely some
+sort of computing delay.
+
+00:49:10.690 --> 00:49:13.600
+And it's usually
+very, very small.
+
+00:49:13.600 --> 00:49:16.630
+And the fourth delay
+is the queuing delay,
+
+00:49:16.630 --> 00:49:18.790
+because it could be that
+you get these packets in
+
+00:49:18.790 --> 00:49:20.830
+and they have to sit
+behind in a queue.
+
+00:49:20.830 --> 00:49:23.950
+And that imposes a
+delay in communication.
+
+00:49:23.950 --> 00:49:25.600
+So that's called
+the queuing delay.
+
+00:49:25.600 --> 00:49:29.020
+And it's usually a very
+variable source of delay.
+
+00:49:29.020 --> 00:49:32.530
+On many networks, these
+other delays are constant--
+
+00:49:32.530 --> 00:49:34.150
+not always, but
+generally constant.
+
+00:49:34.150 --> 00:49:36.460
+The transmission delay may
+or may not be constant.
+
+00:49:36.460 --> 00:49:38.500
+But usually these
+are more constant.
+
+00:49:38.500 --> 00:49:40.600
+The queuing delay is
+not a constant delay.
+
+00:49:40.600 --> 00:49:42.520
+And the actual delays
+that you experience
+
+00:49:42.520 --> 00:49:45.010
+when you click on
+a link, there's
+
+00:49:45.010 --> 00:49:47.440
+lots of reasons why
+the website is slow.
+
+00:49:47.440 --> 00:49:50.140
+But these are a
+principle, dominant factor
+
+00:49:50.140 --> 00:49:51.680
+in many, many cases.
+
+00:49:51.680 --> 00:49:55.060
+So we'll pick up on this next
+week after the quiz two stuff.
+
+00:49:55.060 --> 00:49:57.580
+You deal with quiz
+two and p set 6.
+
+00:49:57.580 --> 00:50:00.570
+And we'll continue with
+multi-hop networks.

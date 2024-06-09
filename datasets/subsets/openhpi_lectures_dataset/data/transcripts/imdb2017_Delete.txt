@@ -1,0 +1,280 @@
+WEBVTT
+
+1
+00:00:00.400 --> 00:00:03.700 
+Hello and welcome also from my
+side - to the course in-memory
+
+2
+00:00:03.700 --> 00:00:07.110 
+data management. I am Ralf Teusner,
+PhD student at the chair of
+
+3
+00:00:07.110 --> 00:00:11.150 
+Hasso Plattner and also part of
+the teaching team for this course.
+
+4
+00:00:11.150 --> 00:00:14.180 
+In this lecture we're going to
+talk about the delete operation
+
+5
+00:00:15.190 --> 00:00:20.240 
+The delete operation is basically needed if
+you want to remove a couple from the database
+
+6
+00:00:21.250 --> 00:00:27.310 
+or terminate the validity of a given tuple.
+So there are basically two ways to do this:
+
+7
+00:00:27.310 --> 00:00:31.350 
+either the physical delete,
+which really removes the actual
+
+8
+00:00:32.360 --> 00:00:35.390 
+data from the database - it's physically
+not in there any longer afterwards
+
+9
+00:00:36.400 --> 00:00:39.430 
+- or the logical delete which
+just terminates the validity
+
+10
+00:00:39.430 --> 00:00:41.450 
+of the tuple
+in the dataset,
+
+11
+00:00:42.460 --> 00:00:46.500 
+but the tuple stays in the data.
+So the physical delete might
+
+12
+00:00:46.500 --> 00:00:49.530 
+be necessary for legal
+reasons, so that we actually
+
+13
+00:00:50.540 --> 00:00:55.590 
+wipe out any clue of the data
+so for example for data privacy
+
+14
+00:00:55.590 --> 00:01:00.640 
+reasons - and the logical delete, it
+is the most common case in enterprise
+
+15
+00:01:00.640 --> 00:01:03.670 
+systems, is necessary
+if we just want to
+
+16
+00:01:03.670 --> 00:01:07.710 
+say it's deleted, but we
+have still the information
+
+17
+00:01:07.710 --> 00:01:11.750 
+for example to do
+time travel queries
+
+18
+00:01:12.760 --> 00:01:16.800 
+or to do auditing and so on. And
+if you want to delete something
+
+19
+00:01:17.810 --> 00:01:21.850 
+we of course have to write something
+to carry out this relational
+
+20
+00:01:21.850 --> 00:01:25.890 
+operation and in SQL, the most basic
+syntax, or the simplified syntax
+
+21
+00:01:25.890 --> 00:01:29.930 
+is: DELETE FROM FROM and then we
+states a table name WHERE a given
+
+22
+00:01:29.930 --> 00:01:33.970 
+predicate holds true. So an
+attribute equals a value or
+
+23
+00:01:33.970 --> 00:01:37.101 
+something like that. And to
+demonstrate that we're going to
+
+24
+00:01:37.101 --> 00:01:41.105 
+use the world population
+table which we already know
+
+25
+00:01:41.105 --> 00:01:44.108 
+and we want to remove
+Jane Doe from this table.
+
+26
+00:01:45.109 --> 00:01:48.112 
+So our predicate here is first
+name equals "Jane"
+
+27
+00:01:49.113 --> 00:01:53.117 
+and last name equals "Doe",
+and of course all tables are dictionary
+
+28
+00:01:53.117 --> 00:01:57.121 
+encoded as we've already learned
+so we've got for the first name
+
+29
+00:01:57.121 --> 00:02:02.126 
+"fname" and last name "lname"
+column both dictionaries and attribute
+
+30
+00:02:02.126 --> 00:02:05.129 
+vectors, and the first part is
+to check whether the predicate
+
+31
+00:02:05.129 --> 00:02:10.134 
+holds true for a given tuple and
+for that we look into the dictionary
+
+32
+00:02:10.134 --> 00:02:14.138 
+and find out the given value
+IDs which we want to have
+
+33
+00:02:14.138 --> 00:02:17.141 
+or which we have to look for
+in the attribute vectors.
+
+34
+00:02:18.142 --> 00:02:21.145 
+When we begin with that,
+we found out that we
+
+35
+00:02:21.145 --> 00:02:23.147 
+have to look
+for valueID 23
+
+36
+00:02:24.148 --> 00:02:27.151 
+in the first name
+attribute-vector and for valueID
+
+37
+00:02:27.151 --> 00:02:31.155 
+Doe (18) in the last name
+attribute-vector and if we do that
+
+38
+00:02:32.156 --> 00:02:37.161 
+we find out that we have to
+delete the tuple with the implicit
+
+39
+00:02:37.161 --> 00:02:42.166 
+recordID 41 and then
+we can savely remove it
+
+40
+00:02:43.167 --> 00:02:46.170 
+If you would only look at the
+last name - so if you would only
+
+41
+00:02:46.170 --> 00:02:49.173 
+look for "Doe" we
+would also for example delete
+
+42
+00:02:49.173 --> 00:02:52.176 
+row number with
+the recordID 42
+
+43
+00:02:52.176 --> 00:02:55.179 
+and that would perhaps
+
+44
+00:02:56.180 --> 00:03:00.184 
+yeah affect her husband or some other
+person named "John Doe"
+
+45
+00:03:00.184 --> 00:03:04.188 
+so it's always crucial to check
+that the whole predicate is true.
+
+46
+00:03:04.188 --> 00:03:08.192 
+And if we do that then
+we remove the tuple
+
+47
+00:03:08.192 --> 00:03:13.197 
+and of course, then, to
+keep a sequential order
+
+48
+00:03:13.197 --> 00:03:17.201 
+in the recordIDs and also
+a sequential memory area
+
+49
+00:03:17.201 --> 00:03:21.205 
+so for all column scans this
+is really necessary to have a
+
+50
+00:03:21.205 --> 00:03:25.209 
+sequential
+memory area also
+
+51
+00:03:25.209 --> 00:03:28.212 
+we have to clean up afterwards.
+And this cleaning up is of course
+
+52
+00:03:28.212 --> 00:03:36.220 
+really expensive because we
+have to move memory parts
+
+53
+00:03:36.220 --> 00:03:38.222 
+and we also have to
+change numbers again.
+
+54
+00:03:38.222 --> 00:03:42.226 
+So the recordIDs have to be
+changed. - Yeah and that is
+
+55
+00:03:42.226 --> 00:03:46.230 
+pretty expensive and for that
+reason we want to do this a better
+
+56
+00:03:46.230 --> 00:03:49.233 
+way and how we can do this in a
+better way we will learn afterwards.

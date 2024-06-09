@@ -1,0 +1,549 @@
+WEBVTT
+
+0
+00:00:00.560 --> 00:00:02.340 
+Hi everyone and welcome back.
+
+1
+00:00:02.350 --> 00:00:06.150 
+So, in this video we are gonna talk about Grover's algorithm, which
+
+2
+00:00:06.150 --> 00:00:10.350 
+is yet another algorithm and before going into the implementation with Qiskit,
+
+3
+00:00:10.360 --> 00:00:13.710 
+I will first give you an overview of how it works theoretically what the
+
+4
+00:00:13.710 --> 00:00:17.420 
+goal is and how the quantum algorithm looks like before we can implement it.
+
+5
+00:00:18.550 --> 00:00:23.740 
+So, grover's algorithm was developed in 1996 and it's a search algorithm. So, it
+
+6
+00:00:23.740 --> 00:00:29.060 
+can search an unsorted database which has N elements where as you know,
+
+7
+00:00:29.060 --> 00:00:31.100 
+we always think in bits, so we always think
+
+8
+00:00:31.100 --> 00:00:34.830 
+of bit strings consisting of n bits and n-small,
+
+9
+00:00:34.840 --> 00:00:39.510 
+which means that we have in total N=2^n elements.
+
+10
+00:00:40.070 --> 00:00:44.360 
+So, we can search such a database. But what is an unsorted database?
+
+11
+00:00:44.370 --> 00:00:49.240 
+Well, common example that people give for that is the idea of a phone book.
+
+12
+00:00:49.250 --> 00:00:53.390 
+So, usually if I ask you what is your name you can give me the phone number.
+
+13
+00:00:53.390 --> 00:00:54.350 
+You can look it up.
+
+14
+00:00:54.360 --> 00:00:58.250 
+But if I ask you this is the phone number, what is the corresponding name, then
+
+15
+00:00:58.250 --> 00:01:02.390 
+this is hard to find. It's unsorted because it's sorted by name not by numbers.
+
+16
+00:01:02.940 --> 00:01:06.390 
+However, this example is actually not such a good example.
+
+17
+00:01:06.390 --> 00:01:09.530 
+So, if you want you can think of it as it is an unsorted database.
+
+18
+00:01:09.540 --> 00:01:11.640 
+But for our algorithm to work,
+
+19
+00:01:11.650 --> 00:01:13.730 
+if we in the end have again these kind
+
+20
+00:01:13.730 --> 00:01:16.620 
+of oracles that implement our functions and we want
+
+21
+00:01:16.620 --> 00:01:20.760 
+them to give us the answer whether this is the correct name or not the correct name.
+
+22
+00:01:20.770 --> 00:01:26.180 
+This is not a good example because the phone book would need to be like the oracle
+
+23
+00:01:26.180 --> 00:01:28.020 
+would need to know the whole all of the
+
+24
+00:01:28.020 --> 00:01:30.480 
+entries in the phonebook to then give the answer.
+
+25
+00:01:30.870 --> 00:01:35.290 
+So, another way of phrasing what a database, an unsorted
+
+26
+00:01:35.530 --> 00:01:36.230 
+database is,
+
+27
+00:01:36.240 --> 00:01:37.900 
+another way of how you can think about it,
+
+28
+00:01:37.900 --> 00:01:42.380 
+I think is to think of it as some problem where
+
+29
+00:01:42.380 --> 00:01:45.080 
+you have a lot of possible answers and you want to
+
+30
+00:01:45.080 --> 00:01:49.220 
+figure out which answer is correct in the sense that it's
+
+31
+00:01:49.230 --> 00:01:52.110 
+that satisfies a lot of constraints that you might have.
+
+32
+00:01:52.610 --> 00:01:54.810 
+This is what you call a satisfybility problem.
+
+33
+00:01:54.820 --> 00:01:58.640 
+So, for example what you probably all know is Sudoku, where
+
+34
+00:01:58.640 --> 00:02:01.360 
+you are given some empty fields and you have to put the
+
+35
+00:02:01.360 --> 00:02:05.070 
+numbers in there and I can give you some filled out
+
+36
+00:02:05.080 --> 00:02:07.640 
+Sudoku and I can ask you is that correct or not?
+
+37
+00:02:07.650 --> 00:02:09.860 
+And you can check all the constraints whether in
+
+38
+00:02:09.860 --> 00:02:11.990 
+each row and each column and each box,
+
+39
+00:02:12.000 --> 00:02:14.540 
+every number between one and nine appears exactly once.
+
+40
+00:02:14.550 --> 00:02:18.540 
+And if this is correct, you can say yes, it's correct. If it's not correct.
+
+41
+00:02:18.550 --> 00:02:19.930 
+Well, you tell me it's wrong,
+
+42
+00:02:20.260 --> 00:02:22.000 
+but for that you don't need to know the answer.
+
+43
+00:02:22.000 --> 00:02:24.130 
+You can just check whether the answer is correct.
+
+44
+00:02:24.140 --> 00:02:27.950 
+So, this we can also call an unsorted database in that sense because we just have a
+
+45
+00:02:27.950 --> 00:02:32.340 
+lot of different, well possible answers that are not sorted in a way, it's not sorted
+
+46
+00:02:32.340 --> 00:02:34.800 
+that I first give you the correct one, but it's unsorted.
+
+47
+00:02:35.490 --> 00:02:36.040 
+Anyway.
+
+48
+00:02:36.050 --> 00:02:38.000 
+So, to solve such an algorithm,
+
+49
+00:02:38.010 --> 00:02:42.570 
+a classical computer would, well if you go back to the phone book example,
+
+50
+00:02:42.580 --> 00:02:46.950 
+just for the sake of it because it's easier to translate that.
+
+51
+00:02:46.960 --> 00:02:50.740 
+It would need n over two times on
+
+52
+00:02:50.740 --> 00:02:53.910 
+average because, well on average you will need to go
+
+53
+00:02:53.910 --> 00:02:55.950 
+through half the phone book to find the correct
+
+54
+00:02:55.960 --> 00:02:59.030 
+name that corresponds to the number.
+
+55
+00:02:59.040 --> 00:03:03.860 
+However, quantum computer can solve that problem in square root of N time
+
+56
+00:03:04.140 --> 00:03:06.360 
+because it can make use of what I
+
+57
+00:03:06.710 --> 00:03:07.510 
+discussed earlier,
+
+58
+00:03:07.510 --> 00:03:10.820 
+all these different interference effects with different phases.
+
+59
+00:03:11.630 --> 00:03:15.020 
+And I want to show you quickly how that works,
+
+60
+00:03:15.020 --> 00:03:17.800 
+like with the rough ideas. The idea behind Grover's
+
+61
+00:03:17.800 --> 00:03:21.890 
+algorithm is what we call amplitude amplification. For that,
+
+62
+00:03:21.900 --> 00:03:24.340 
+as a first step, as I told you, it's always the first step.
+
+63
+00:03:24.350 --> 00:03:27.530 
+We put all items into superposition. So, we play Hadamard gate
+
+64
+00:03:27.530 --> 00:03:30.330 
+on all of them, as you can also see in this circuit here
+
+65
+00:03:31.090 --> 00:03:32.590 
+and all our in n qubits,
+
+66
+00:03:33.170 --> 00:03:36.200 
+then we apply a phase oracle,
+
+67
+00:03:37.070 --> 00:03:41.140 
+which is this second step here, this Uf tilde is what I call it.
+
+68
+00:03:41.150 --> 00:03:46.500 
+So, this is an oracle that gives a phase to whatever our correct answer is.
+
+69
+00:03:46.510 --> 00:03:50.820 
+So, that oracle needs to somehow determine whether or not
+
+70
+00:03:50.830 --> 00:03:53.380 
+our entry is correct or is the wanted element.
+
+71
+00:03:54.090 --> 00:03:56.580 
+And then in the third step we have what we call
+
+72
+00:03:56.580 --> 00:04:00.000 
+the diffuser which performs a reflection around the average amplitude.
+
+73
+00:04:00.960 --> 00:04:03.860 
+Don't worry, I will in a minute explain what that means,
+
+74
+00:04:03.860 --> 00:04:07.500 
+what this diffuser actually doe, but it can be implemented by
+
+75
+00:04:07.850 --> 00:04:10.840 
+Hadamard gates and in the middle another oracle that
+
+76
+00:04:10.840 --> 00:04:12.720 
+does not depend on the correct solution though.
+
+77
+00:04:13.650 --> 00:04:17.040 
+The whole steps or steps two and three, we repeat them r
+
+78
+00:04:17.040 --> 00:04:19.740 
+times where all depends on the number of elements that we have
+
+79
+00:04:19.750 --> 00:04:22.010 
+and in the end we do a measurement and with a very
+
+80
+00:04:22.010 --> 00:04:25.890 
+high probability we will be able to measure the wanted element.
+
+81
+00:04:27.790 --> 00:04:31.110 
+So, the way this amplitude amplification works,
+
+82
+00:04:31.120 --> 00:04:34.170 
+I just gave you the circuit but that's maybe not very intuitive.
+
+83
+00:04:34.180 --> 00:04:37.510 
+So, I thought I also show you the amplitudes and the amplitudes is
+
+84
+00:04:37.510 --> 00:04:39.590 
+something that directly relates to the
+
+85
+00:04:39.590 --> 00:04:41.710 
+probability to measure the specific element.
+
+86
+00:04:42.310 --> 00:04:47.940 
+So, the probability to measure a specific element is given by its amplitude squared.
+
+87
+00:04:48.600 --> 00:04:50.560 
+So, let's say in the beginning,
+
+88
+00:04:50.570 --> 00:04:53.940 
+if I have all items in the zero state or my qubits are initially
+
+89
+00:04:53.940 --> 00:04:57.320 
+in the zero state to have this zero bit string with probability one.
+
+90
+00:04:57.330 --> 00:05:01.440 
+So, if I would do a measurement in the very beginning I would for sure measure zero.
+
+91
+00:05:02.810 --> 00:05:06.260 
+Then I apply the first step which is the superposition.
+
+92
+00:05:06.770 --> 00:05:09.890 
+And while since I've put every single item in super position,
+
+93
+00:05:09.900 --> 00:05:12.870 
+I would have been an equal superposition of all the different
+
+94
+00:05:12.870 --> 00:05:16.490 
+2^n or in this case capital N different elements
+
+95
+00:05:17.040 --> 00:05:21.520 
+And so here now I don't have the binary representation but the normal one,
+
+96
+00:05:21.520 --> 00:05:22.250 
+the decimal one.
+
+97
+00:05:22.930 --> 00:05:26.010 
+And so we have the superposition meaning that the amplitude is the same
+
+98
+00:05:26.010 --> 00:05:28.990 
+for all these elements and it's always 1 over square root of n.
+
+99
+00:05:29.000 --> 00:05:33.550 
+Because if I square root I get a probability of 1 over N for all of these items,
+
+100
+00:05:34.930 --> 00:05:38.190 
+then I have this second phase as a second step
+
+101
+00:05:38.200 --> 00:05:41.200 
+where I changed the phase of the winning element.
+
+102
+00:05:41.200 --> 00:05:42.670 
+So, the element we're looking for.
+
+103
+00:05:43.190 --> 00:05:48.810 
+That means we're flipping here the the amplitude. So, you can see instead of plus one
+
+104
+00:05:48.840 --> 00:05:52.490 
+over square root of n, it goes to minus square root over n. So, we have it down here
+
+105
+00:05:53.420 --> 00:05:55.300 
+Still the probability is unchanged because the
+
+106
+00:05:55.300 --> 00:05:57.450 
+probability is just the absolute value squared.
+
+107
+00:05:57.460 --> 00:05:59.150 
+So, probability would be the same.
+
+108
+00:05:59.160 --> 00:06:02.750 
+So, we couldn't, if we do a measurement now it would not be useful.
+
+109
+00:06:03.420 --> 00:06:03.980 
+However,
+
+110
+00:06:03.980 --> 00:06:08.270 
+then we have the third step in which we reflect around the average amplitude.
+
+111
+00:06:08.280 --> 00:06:12.240 
+This is what the so called diffuser does and it's of course not
+
+112
+00:06:12.240 --> 00:06:16.230 
+obvious that the other gates I showed you before perform this reflection.
+
+113
+00:06:16.240 --> 00:06:18.930 
+But once someone, if you go through the mathematics,
+
+114
+00:06:18.940 --> 00:06:20.780 
+you will actually see that this is what happens.
+
+115
+00:06:21.450 --> 00:06:23.680 
+So, you see in the second step due to the fact
+
+116
+00:06:23.680 --> 00:06:27.160 
+that we change the phase of the one of the elements,
+
+117
+00:06:27.170 --> 00:06:30.290 
+the average dropped by a bit, the average is the red line here.
+
+118
+00:06:31.070 --> 00:06:37.130 
+Now if we flip around, reflect around this average then all the elements
+
+119
+00:06:37.130 --> 00:06:40.900 
+that are not the one we're looking for decreased by a bit.
+
+120
+00:06:40.910 --> 00:06:43.120 
+Well the one that we're looking for actually get
+
+121
+00:06:43.130 --> 00:06:46.400 
+boosted up basically and goes to the top here
+
+122
+00:06:46.410 --> 00:06:51.350 
+quite a bit high up though this is not yet at probability one its risk a little bit.
+
+123
+00:06:52.170 --> 00:06:56.680 
+Now, we perform steps two and three again and again a couple of times.
+
+124
+00:06:56.690 --> 00:07:00.690 
+And until at some point this winning element has an amplitude that
+
+125
+00:07:00.690 --> 00:07:04.530 
+is almost one and all the other amplitudes are basically zero.
+
+126
+00:07:05.370 --> 00:07:07.540 
+And at that point, if we now do a measurement,
+
+127
+00:07:07.540 --> 00:07:11.540 
+we can have a very high probability to measure the element that we want.
+
+128
+00:07:11.540 --> 00:07:14.480 
+So, the final measurement will have an exponentially
+
+129
+00:07:14.480 --> 00:07:17.910 
+close amplitude to one to result in our element.
+
+130
+00:07:18.890 --> 00:07:19.760 
+In the next video.
+
+131
+00:07:19.760 --> 00:07:21.490 
+You will then see how we actually implemented
+
+132
+00:07:21.490 --> 00:07:25.680 
+with Qiskit and both by programming it ourselves,
+
+133
+00:07:25.680 --> 00:07:26.920 
+but also by using some,
+
+134
+00:07:27.770 --> 00:07:31.280 
+some libraries that already exist in Qiskit to implement
+
+135
+00:07:31.280 --> 00:07:35.210 
+it even faster and even more complicated or sophisticated problems.
+
+136
+00:07:35.820 --> 00:07:36.720 
+Bye!

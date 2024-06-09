@@ -1,0 +1,913 @@
+WEBVTT
+
+1
+00:00:00.400 --> 00:00:03.700 
+Welcome to the course "In Memory
+Data Management" in this lecture
+
+2
+00:00:03.700 --> 00:00:08.120 
+we will talk about the join
+operation. First we will
+
+3
+00:00:08.120 --> 00:00:10.140 
+talk about what is
+actually a join operation
+
+4
+00:00:11.150 --> 00:00:15.190 
+the join operation combines
+several tuples from different
+
+5
+00:00:15.190 --> 00:00:19.230 
+tables there are two general
+categories of a join which is
+
+6
+00:00:19.230 --> 00:00:23.270 
+the outer join and inner join.
+The standard version of that is
+
+7
+00:00:23.270 --> 00:00:28.320 
+the inner join. In a inner join
+we combine tuples from both tables
+
+8
+00:00:28.320 --> 00:00:33.370 
+only if the join predicate matches
+and the outer join we combine
+
+9
+00:00:33.370 --> 00:00:36.400 
+the tuples also if the join
+attribute doesn't match in that
+
+10
+00:00:36.400 --> 00:00:40.440 
+case if we have a tuple on the
+left side and no match on the right
+
+11
+00:00:40.440 --> 00:00:43.470 
+side we just fill up
+the values with NULL.
+
+12
+00:00:44.480 --> 00:00:47.510 
+There are also two further
+more specializations
+
+13
+00:00:47.510 --> 00:00:51.550 
+of the join operation for
+example the equi-join and
+
+14
+00:00:51.550 --> 00:00:54.580 
+the semi-join they are discussed
+in more detail in the text
+
+15
+00:00:54.580 --> 00:00:57.610 
+in the book but
+and we won't go
+
+16
+00:00:57.610 --> 00:00:58.620 
+deep in to
+that right now.
+
+17
+00:01:01.650 --> 00:01:04.680 
+Joins are usually used in
+normalized relational databases to
+
+18
+00:01:04.680 --> 00:01:07.710 
+combine tuples from different
+tables with different kinds of
+
+19
+00:01:07.710 --> 00:01:10.740 
+joins for example there's
+an one to one join,
+
+20
+00:01:11.750 --> 00:01:14.780 
+which means or, one one
+relationship that means that for one
+
+21
+00:01:14.780 --> 00:01:17.810 
+tuple on the one on the left
+side we have exactly one tuple on
+
+22
+00:01:17.810 --> 00:01:20.840 
+the other side. Another
+kind is the one to n-join
+
+23
+00:01:21.850 --> 00:01:25.890 
+who relationship here we have
+one tuple left side and multiple
+
+24
+00:01:25.890 --> 00:01:28.920 
+matching tuples for that
+one tuple from the left side
+
+25
+00:01:28.920 --> 00:01:32.960 
+on the right side and end to
+end join means that we can have
+
+26
+00:01:32.960 --> 00:01:36.100 
+for multiple tuples on the left
+side one or more tuples from
+
+27
+00:01:36.100 --> 00:01:38.102 
+the the right side
+and vice versa.
+
+28
+00:01:39.103 --> 00:01:42.106 
+The n to m join usually done
+using additional table that
+
+29
+00:01:42.106 --> 00:01:45.109 
+basically stands in the
+middle of two tables.
+
+30
+00:01:47.111 --> 00:01:51.115 
+We will talk in detail
+about join execution for
+
+31
+00:01:51.115 --> 00:01:54.118 
+main memory databases that
+use dictionary compression
+
+32
+00:01:55.119 --> 00:01:59.123 
+and compression and
+dictionary encoding.
+
+33
+00:02:01.125 --> 00:02:05.129 
+Our main goal here is to leverage
+the sequential scan speed
+
+34
+00:02:05.129 --> 00:02:09.133 
+of modern CPUs, the leverage the
+caching effects of modern CPUs
+
+35
+00:02:10.134 --> 00:02:13.137 
+and to avoid random lookups.
+Also we want to avoid
+
+36
+00:02:13.137 --> 00:02:16.140 
+every early materialization
+and materialize
+
+37
+00:02:16.140 --> 00:02:18.142 
+as late as possible
+during the join operation.
+
+38
+00:02:20.144 --> 00:02:22.146 
+An example here,
+we have two
+
+39
+00:02:22.146 --> 00:02:25.149 
+different kinds of the
+join, one is the hash join
+
+40
+00:02:25.149 --> 00:02:28.152 
+and one is the
+sort-merge join.
+
+41
+00:02:31.155 --> 00:02:34.158 
+The (current?) example
+that we will use for a
+
+42
+00:02:35.159 --> 00:02:38.162 
+two join operations or for
+two different implementations
+
+43
+00:02:38.162 --> 00:02:40.164 
+of the join operation
+will be the following,
+
+44
+00:02:41.165 --> 00:02:48.172 
+we ask "what is the population density for the cities in the state of Hessen?", which is a state in Germany.
+
+45
+00:02:49.173 --> 00:02:53.177 
+We have two tables for that, we
+have the well known world population
+
+46
+00:02:53.177 --> 00:02:56.180 
+table and we have another
+table, locations table,
+
+47
+00:02:56.180 --> 00:03:00.184 
+that has the information of
+how large and square kilometers
+
+48
+00:03:00.184 --> 00:03:05.189 
+is a state or is a city and
+you can see the SQL query just
+
+49
+00:03:05.189 --> 00:03:11.195 
+down below. To the hash join,
+we have one basic requirement
+
+50
+00:03:11.195 --> 00:03:13.197 
+for the hash
+shown which is
+
+51
+00:03:14.198 --> 00:03:17.201 
+so called hash function. A
+Hash function takes any input
+
+52
+00:03:17.201 --> 00:03:20.204 
+and maps that input
+to a 64-bit integer
+
+53
+00:03:21.205 --> 00:03:23.207 
+so hot no matter how long the
+input is a what the input is
+
+54
+00:03:24.208 --> 00:03:26.210 
+the same input will always
+be mapped to one single
+
+55
+00:03:26.210 --> 00:03:31.215 
+sixty four bit integer. The hash
+join works in two phases, the first
+
+56
+00:03:31.215 --> 00:03:34.218 
+phase as the hash phase and
+the second is the probe phase.
+
+57
+00:03:37.221 --> 00:03:38.222 
+Starting with
+the hash phase,
+
+58
+00:03:39.223 --> 00:03:41.225 
+we can see here the two tables
+that we are trying to join
+
+59
+00:03:42.226 --> 00:03:45.229 
+if the world population table
+with the column city and we have
+
+60
+00:03:45.229 --> 00:03:48.232 
+locations table again
+with the column city.
+
+61
+00:03:50.234 --> 00:03:53.237 
+The first step that
+we do right now is to
+
+62
+00:03:53.237 --> 00:03:57.241 
+to apply all filters that we
+can apply up front to the join
+
+63
+00:03:57.241 --> 00:04:00.244 
+operation, because the
+join is a comparably
+
+64
+00:04:00.244 --> 00:04:03.247 
+comparatively expensive
+operation, so we want to
+
+65
+00:04:03.247 --> 00:04:06.250 
+keep the result set that goes
+into the join as small as possible
+
+66
+00:04:07.251 --> 00:04:10.254 
+so we will apply the filter
+for the state of hessen
+
+67
+00:04:10.254 --> 00:04:13.257 
+first and then continue
+with the join operation.
+
+68
+00:04:14.258 --> 00:04:16.260 
+Iin that case we
+have a list of
+
+69
+00:04:16.260 --> 00:04:20.264 
+tuple IDs which represent
+the tuples that are
+
+70
+00:04:20.264 --> 00:04:25.269 
+cities in Hessen. In the
+second phase we are going to
+
+71
+00:04:25.269 --> 00:04:27.271 
+try to build up
+the hash map.
+
+72
+00:04:28.272 --> 00:04:31.275 
+Here we take the positions
+of all the cities in Hessen,
+
+73
+00:04:31.275 --> 00:04:35.279 
+take the value id of
+the city and hash that
+
+74
+00:04:35.279 --> 00:04:39.283 
+value id, draw table to a
+hash map as you can see here
+
+75
+00:04:40.284 --> 00:04:41.284 
+on the slide.
+
+76
+00:04:43.287 --> 00:04:46.290 
+With that mapping structure we
+now start with the second phase,
+
+77
+00:04:46.290 --> 00:04:49.293 
+the probe phase here
+we scan sequentially
+
+78
+00:04:49.293 --> 00:04:52.296 
+which is fast on modern
+CPUs of our larger relation.
+
+79
+00:04:53.297 --> 00:04:55.299 
+For each value now in
+this larger relation
+
+80
+00:04:56.300 --> 00:04:59.303 
+we look into the mapping structure
+to find the corresponding
+
+81
+00:04:59.303 --> 00:05:03.307 
+value id of the first
+relation and that value id
+
+82
+00:05:04.308 --> 00:05:08.312 
+into the hash function
+and look up the hash value
+
+83
+00:05:09.313 --> 00:05:13.317 
+in the hash structure for
+that key. If we do not find
+
+84
+00:05:13.317 --> 00:05:15.319 
+in our hashing structure
+
+85
+00:05:16.320 --> 00:05:18.322 
+if we do not find
+the key here,
+
+86
+00:05:19.323 --> 00:05:21.325 
+that means that there's
+no matching tuple
+
+87
+00:05:21.325 --> 00:05:24.328 
+in the other relation, that either
+means for the inner join that
+
+88
+00:05:24.328 --> 00:05:28.332 
+we do not have tuples to emit to the
+result, if we have the outer join
+
+89
+00:05:28.332 --> 00:05:30.334 
+we know that we now have to
+fill the other side with NULLs.
+
+90
+00:05:37.341 --> 00:05:40.344 
+So the result of the
+probe phase is basically
+
+91
+00:05:41.345 --> 00:05:44.348 
+a list of tuples with
+the position of the left
+
+92
+00:05:44.348 --> 00:05:48.352 
+tuple combined with the matching
+tuple of the right relation.
+
+93
+00:05:52.356 --> 00:05:54.358 
+In the last step of the
+hash join phase we simply
+
+94
+00:05:54.358 --> 00:05:58.362 
+have to materialize the results
+so we take both positions
+
+95
+00:05:58.362 --> 00:06:02.366 
+from the two tables materialize
+the results, combine them
+
+96
+00:06:02.366 --> 00:06:03.367 
+and emit them
+to the user.
+
+97
+00:06:06.370 --> 00:06:09.373 
+The second implementation
+of the join operation
+
+98
+00:06:09.373 --> 00:06:11.375 
+that we want to talk about
+is the sort-merge join
+
+99
+00:06:12.376 --> 00:06:15.379 
+we have certain problem
+with the hash join which
+
+100
+00:06:15.379 --> 00:06:18.382 
+is that we have depending
+on hash function that
+
+101
+00:06:18.382 --> 00:06:21.385 
+we might have collisions.
+That means that
+
+102
+00:06:21.385 --> 00:06:25.389 
+two different input
+values might map to the
+
+103
+00:06:25.389 --> 00:06:30.394 
+same hash key. In that case
+for every time we apply
+
+104
+00:06:30.394 --> 00:06:32.396 
+the hashing function we have
+to deal with collisions.
+
+105
+00:06:33.397 --> 00:06:36.400 
+Another implementation of the join
+operation is the sort-merge join
+
+106
+00:06:36.400 --> 00:06:39.403 
+which does not have
+the hashing function
+
+107
+00:06:39.403 --> 00:06:42.406 
+and thus we don't have
+to care about collisions.
+
+108
+00:06:43.407 --> 00:06:45.409 
+The sort-merge join
+is usually slower
+
+109
+00:06:46.410 --> 00:06:49.413 
+than a hash join but still it is
+interesting for us to show you
+
+110
+00:06:49.413 --> 00:06:53.417 
+that join. The algorithm usually,
+basically works as follows:
+
+111
+00:06:54.418 --> 00:06:57.421 
+in the first step again we
+filter the locations tables with
+
+112
+00:06:57.421 --> 00:07:00.424 
+all the predicates we can apply
+upfront to the join operation.
+
+113
+00:07:01.425 --> 00:07:05.429 
+Second, we create a list of cities
+and the corresponding valueIDs
+
+114
+00:07:05.429 --> 00:07:10.434 
+and create furthermore a
+list of unique valueIDs
+
+115
+00:07:10.434 --> 00:07:14.438 
+of the cities and sort it.
+Third step similar to the hash
+
+116
+00:07:15.439 --> 00:07:18.442 
+join is building a mapping
+structure mapping the two
+
+117
+00:07:19.443 --> 00:07:22.446 
+columns from different
+tables and the fourth step
+
+118
+00:07:23.447 --> 00:07:26.450 
+is to create a list
+similar to step two
+
+119
+00:07:26.450 --> 00:07:29.453 
+for the other table
+followed by the last step
+
+120
+00:07:29.453 --> 00:07:31.455 
+which is basically
+the merge.
+
+121
+00:07:33.457 --> 00:07:36.460 
+So here again you see the two
+tables that we try to merge now
+
+122
+00:07:36.460 --> 00:07:39.463 
+and on the right side you can see
+the dictionaries for both tables
+
+123
+00:07:40.464 --> 00:07:43.467 
+and again as we have
+said the first phase is
+
+124
+00:07:44.468 --> 00:07:47.471 
+to apply the first filter
+which is only cities
+
+125
+00:07:47.471 --> 00:07:51.475 
+of the state of Hessen so
+we already have reduced our
+
+126
+00:07:51.475 --> 00:07:54.478 
+input for the
+join on the left
+
+127
+00:07:54.478 --> 00:07:59.483 
+for smaller relation and you
+can see the resulting list on
+
+128
+00:07:59.483 --> 00:08:03.487 
+the left, which says
+position 902, position
+
+129
+00:08:03.487 --> 00:08:05.489 
+912 and so on of
+cities in Hessen.
+
+130
+00:08:05.489 --> 00:08:09.493 
+With that input list we
+now create list of pairs.
+
+131
+00:08:10.494 --> 00:08:13.497 
+Each pair consists of the
+position, so the position in the
+
+132
+00:08:13.497 --> 00:08:17.501 
+left table and it's
+valueID. This list
+
+133
+00:08:17.501 --> 00:08:21.505 
+is going to be sorted by valueIDs
+so that the first position
+
+134
+00:08:21.505 --> 00:08:24.508 
+has the lowest valueID of the
+list and the last position
+
+135
+00:08:24.508 --> 00:08:28.512 
+has the item with the highest
+valueID. Furthermore we also
+
+136
+00:08:28.512 --> 00:08:33.517 
+create a list of distinct
+valueIDs. This list of distinct
+
+137
+00:08:33.517 --> 00:08:37.521 
+valueIDs is used to create
+our mapping structure.
+
+138
+00:08:37.521 --> 00:08:40.524 
+Similar to the hash function,
+we have to map values
+
+139
+00:08:40.524 --> 00:08:44.528 
+from new different tables because we
+cannot ensure that your dictionaries
+
+140
+00:08:44.528 --> 00:08:47.531 
+are going to look exactly the
+same while the sorting order
+
+141
+00:08:47.531 --> 00:08:49.533 
+of both dictionaries
+has to be the same.
+
+142
+00:08:50.534 --> 00:08:54.538 
+In our example we will deal
+with the problem that there is
+
+143
+00:08:54.538 --> 00:08:57.541 
+no matching tuple
+for Darmstadt,
+
+144
+00:08:57.541 --> 00:09:02.546 
+which has the valueID of
+37. As you can see here
+
+145
+00:09:02.546 --> 00:09:05.549 
+we couldn't find in the mapping
+structure a matching value for Darmstadt
+
+146
+00:09:05.549 --> 00:09:08.552 
+in the other table, so
+we so we just put in
+
+147
+00:09:08.552 --> 00:09:12.556 
+"not available" in
+the table. Before we can start
+
+148
+00:09:12.556 --> 00:09:15.559 
+the second phase we
+have to ensure that you
+
+149
+00:09:15.559 --> 00:09:18.562 
+use our mapping structure
+to have the same valueIDs
+
+150
+00:09:18.562 --> 00:09:21.565 
+mapped to each other.
+We will do this by
+
+151
+00:09:21.565 --> 00:09:25.569 
+appending the new value
+id from the right relation
+
+152
+00:09:25.569 --> 00:09:29.573 
+to our list of tuples which we have
+created using the left relation.
+
+153
+00:09:30.574 --> 00:09:34.578 
+So now we have a list
+which has again a list
+
+154
+00:09:35.579 --> 00:09:38.582 
+which has the position of the
+tuple from the left relation,
+
+155
+00:09:39.583 --> 00:09:43.000 
+its old valueID, and the new
+valueID which we mapped to.
+
+156
+00:09:44.588 --> 00:09:45.589 
+Before we can start
+with the second phase
+
+157
+00:09:46.590 --> 00:09:50.594 
+we are going to sort that
+list by the new valueIDs.
+
+158
+00:09:52.596 --> 00:09:55.599 
+Here we can see the actual
+merging phase which is the join
+
+159
+00:09:55.599 --> 00:10:00.604 
+basically. We then, since
+both input relations are now
+
+160
+00:10:00.604 --> 00:10:04.608 
+sorted by the valueID and
+we know that each value
+
+161
+00:10:04.608 --> 00:10:07.611 
+represents the same value, each
+valueID represents the same value
+
+162
+00:10:07.611 --> 00:10:11.615 
+we can just scan sequentially
+over both relations and
+
+163
+00:10:11.615 --> 00:10:14.618 
+emit all the resulting
+joint tuples.
+
+164
+00:10:17.621 --> 00:10:20.624 
+To conclude, we have
+the questions so what
+
+165
+00:10:20.624 --> 00:10:24.628 
+join algorithm should I choose,
+this highly depends on multiple
+
+166
+00:10:24.628 --> 00:10:27.631 
+factors but one important
+factor is the size of your
+
+167
+00:10:27.631 --> 00:10:31.635 
+relations that go in the join. If
+you have really small relations
+
+168
+00:10:31.635 --> 00:10:34.638 
+there's another join
+implementation which is the
+
+169
+00:10:34.638 --> 00:10:38.642 
+nested loop join, this is
+really well suited for small
+
+170
+00:10:38.642 --> 00:10:41.645 
+relations but it's rather
+slow for large relations.
+
+171
+00:10:41.645 --> 00:10:46.650 
+The hash join is one of the
+fastest join implementations
+
+172
+00:10:47.651 --> 00:10:50.654 
+but there are also cases where
+the sort-merge join is really
+
+173
+00:10:50.654 --> 00:10:53.657 
+fast, for example when the
+columns already sorted.
+
+174
+00:10:53.657 --> 00:10:57.000 
+So columns don't have to be sorted
+upfront the join operation, I can
+
+175
+00:10:57.000 --> 00:10:59.663 
+immediately start with
+mapping and joining.
+
+176
+00:11:00.664 --> 00:11:04.668 
+There are some problems,
+as we have mentioned the
+
+177
+00:11:04.668 --> 00:11:06.670 
+join operation has to
+deal with collisions
+
+178
+00:11:07.671 --> 00:11:08.672 
+so we have to think
+about these collisions
+
+179
+00:11:09.673 --> 00:11:12.676 
+and the join
+operation also suffers
+
+180
+00:11:12.676 --> 00:11:15.679 
+if you have two really really
+large tables so my hash
+
+181
+00:11:15.679 --> 00:11:19.683 
+mapping, my hash structure
+is still going to be quite
+
+182
+00:11:19.683 --> 00:11:23.687 
+large and in my probing phase we are
+going to have a lot of cache misses
+
+183
+00:11:23.687 --> 00:11:27.691 
+because of
+that. Thank you.

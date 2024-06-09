@@ -1,0 +1,451 @@
+WEBVTT
+
+00:00:00.489 --> 00:00:06.689
+It's not unusual to find that an application
+is organized as multiple communicating processes.
+
+00:00:06.689 --> 00:00:12.050
+What's the advantage of using multiple processes
+instead of just a single process?
+
+00:00:12.050 --> 00:00:17.710
+Many applications exhibit concurrency, i.e.,
+some of the required computations can be performed
+
+00:00:17.710 --> 00:00:19.060
+in parallel.
+
+00:00:19.060 --> 00:00:24.230
+For example, video compression algorithms
+represent each video frame as an array of
+
+00:00:24.230 --> 00:00:27.340
+8-pixel by 8-pixel macroblocks.
+
+00:00:27.340 --> 00:00:32.880
+Each macroblock is individually compressed
+by converting the 64 intensity and color values
+
+00:00:32.880 --> 00:00:38.500
+from the spatial domain to the frequency domain
+and then quantizing and Huffman encoding the
+
+00:00:38.500 --> 00:00:40.450
+frequency coefficients.
+
+00:00:40.450 --> 00:00:44.650
+If you're using a multi-core processor to
+do the compression, you can perform the macroblock
+
+00:00:44.650 --> 00:00:48.480
+compressions concurrently.
+
+00:00:48.480 --> 00:00:53.460
+Applications like video games are naturally
+divided into the "front-end" user interface
+
+00:00:53.460 --> 00:00:57.820
+and "back-end" simulation and rendering engines.
+
+00:00:57.820 --> 00:01:02.810
+Inputs from the user arrive asynchronously
+with respect to the simulation and it's easiest
+
+00:01:02.810 --> 00:01:09.329
+to organize the processing of user events
+separately from the backend processing.
+
+00:01:09.329 --> 00:01:14.630
+Processes are an effective way to encapsulate
+the state and computation for what are logically
+
+00:01:14.630 --> 00:01:19.799
+independent components of an application,
+which communicate with one another when they
+
+00:01:19.799 --> 00:01:22.710
+need to share information.
+
+00:01:22.710 --> 00:01:28.049
+These sorts of applications are often data-
+or event-driven, i.e., the processing required
+
+00:01:28.049 --> 00:01:34.420
+is determined by the data to be processed
+or the arrival of external events.
+
+00:01:34.420 --> 00:01:38.020
+How should the processes communicate with
+each other?
+
+00:01:38.020 --> 00:01:43.170
+If the processes are running out of the same
+physical memory, it would be easy to arrange
+
+00:01:43.170 --> 00:01:49.369
+to share memory data by mapping the same physical
+page into the contexts for both processes.
+
+00:01:49.369 --> 00:01:55.869
+Any data written to that page by one process
+will be able to be read by the other process.
+
+00:01:55.869 --> 00:02:00.579
+To make it easier to coordinate the processes'
+communicating via shared memory, we'll see
+
+00:02:00.579 --> 00:02:04.280
+it's convenient to provide synchronization
+primitives.
+
+00:02:04.280 --> 00:02:10.389
+Some ISAs include instructions that make it
+easy to do the required synchronization.
+
+00:02:10.389 --> 00:02:17.050
+Another approach is to add OS supervisor calls
+to pass messages from one process to another.
+
+00:02:17.050 --> 00:02:23.460
+Message passing involves more overhead than
+shared memory, but makes the application programming
+
+00:02:23.460 --> 00:02:29.160
+independent of whether the communicating processes
+are running on the same physical processor.
+
+00:02:29.160 --> 00:02:34.579
+In this lecture, we'll use the classic producer-consumer
+problem as our example of concurrent processes
+
+00:02:34.579 --> 00:02:36.620
+that need to communicate and synchronize.
+
+00:02:36.620 --> 00:02:41.920
+There are two processes: a producer and a
+consumer.
+
+00:02:41.920 --> 00:02:47.590
+The producer is running in a loop, which performs
+some computation  to generate information,
+
+00:02:47.590 --> 00:02:53.590
+in this case, a single character C.
+The consumer is also running a loop, which
+
+00:02:53.590 --> 00:02:58.590
+waits for the next character to arrive from
+the producer, then performs some computation
+
+00:02:58.590 --> 00:03:01.120
+.
+
+00:03:01.120 --> 00:03:04.900
+The information passing between the producer
+and consumer could obviously be much more
+
+00:03:04.900 --> 00:03:07.630
+complicated than a single character.
+
+00:03:07.630 --> 00:03:12.210
+For example, a compiler might produce a sequence
+of assembly language statements that are passed
+
+00:03:12.210 --> 00:03:17.370
+to the assembler to be converted into the
+appropriate binary representation.
+
+00:03:17.370 --> 00:03:22.290
+The user interface front-end for a video game
+might pass a sequence of player actions to
+
+00:03:22.290 --> 00:03:24.260
+the simulation and rendering back-end.
+
+00:03:24.260 --> 00:03:31.410
+In fact, the notion of hooking multiple processes
+together in a processing pipeline is so useful
+
+00:03:31.410 --> 00:03:36.270
+that the Unix and Linux operating systems
+provide a PIPE primitive in the operating
+
+00:03:36.270 --> 00:03:38.960
+system
+that connects the output channel of the upstream
+
+00:03:38.960 --> 00:03:43.600
+process to the input channel of the downstream
+process.
+
+00:03:43.600 --> 00:03:48.710
+Let's look at a timing diagram for the actions
+of our simple producer/consumer example.
+
+00:03:48.710 --> 00:03:53.570
+We'll use arrows to indicate when one action
+happens before another.
+
+00:03:53.570 --> 00:03:58.829
+Inside a single process, e.g., the producer,
+the order of execution implies a particular
+
+00:03:58.829 --> 00:04:03.220
+ordering in time:
+the first execution of  is followed by
+
+00:04:03.220 --> 00:04:05.580
+the sending of the first character.
+
+00:04:05.580 --> 00:04:10.090
+Then there's the second execution of ,
+followed by the sending of the second character,
+
+00:04:10.090 --> 00:04:11.850
+and so on.
+
+00:04:11.850 --> 00:04:15.880
+In later examples, we'll omit the timing arrows
+between successive statements in the same
+
+00:04:15.880 --> 00:04:18.149
+program.
+
+00:04:18.149 --> 00:04:23.319
+We see a similar order of execution in the
+consumer: the first character is received,
+
+00:04:23.319 --> 00:04:27.990
+then the computation  is performed for
+the first time, etc.
+
+00:04:27.990 --> 00:04:32.620
+Inside of each process, the process' program
+counter is determining the order in which
+
+00:04:32.620 --> 00:04:35.139
+the computations are performed.
+
+00:04:35.139 --> 00:04:39.129
+So far, so good - each process is running
+as expected.
+
+00:04:39.129 --> 00:04:43.620
+However, for the producer/consumer system
+to function correctly as a whole, we'll need
+
+00:04:43.620 --> 00:04:48.389
+to introduce some additional constraints on
+the order of execution.
+
+00:04:48.389 --> 00:04:52.979
+These are called "precedence constraints"
+and we'll use this stylized less-than sign
+
+00:04:52.979 --> 00:05:00.830
+to indicate that computation A must precede,
+i.e., come before, computation B.
+
+00:05:00.830 --> 00:05:06.060
+In the producer/consumer system we can't consume
+data before it's been produced, a constraint
+
+00:05:06.060 --> 00:05:12.349
+we can formalize as requiring that the i_th
+send operation has to precede the i_th receive
+
+00:05:12.349 --> 00:05:13.680
+operation.
+
+00:05:13.680 --> 00:05:19.440
+This timing constraint is shown as the solid
+red arrow in the timing diagram.
+
+00:05:19.440 --> 00:05:23.910
+Assuming we're using, say, a shared memory
+location to hold the character being transmitted
+
+00:05:23.910 --> 00:05:28.680
+from the producer to the consumer,
+we need to ensure that the producer doesn't
+
+00:05:28.680 --> 00:05:32.320
+overwrite the previous character before it's
+been read by the consumer.
+
+00:05:32.320 --> 00:05:39.990
+In other words, we require the i_th receive
+to precede the i+1_st send.
+
+00:05:39.990 --> 00:05:45.639
+These timing constraints are shown as the
+dotted red arrows in the timing diagram.
+
+00:05:45.639 --> 00:05:49.370
+Together these precedence constraints mean
+that the producer and consumer are tightly
+
+00:05:49.370 --> 00:05:53.840
+coupled in the sense that a character has
+to be read by the consumer before the next
+
+00:05:53.840 --> 00:05:59.659
+character can be sent by the producer,
+which might be less than optimal if the 
+
+00:05:59.659 --> 00:06:04.289
+and  computations take a variable amount
+of time.
+
+00:06:04.289 --> 00:06:10.139
+So let's see how we can relax the constraints
+to allow for more independence between the
+
+00:06:10.139 --> 00:06:12.669
+producer and consumer.
+
+00:06:12.669 --> 00:06:17.800
+We can relax the execution constraints on
+the producer and consumer by having them communicate
+
+00:06:17.800 --> 00:06:23.569
+via N-character first-in-first-out (FIFO)
+buffer.
+
+00:06:23.569 --> 00:06:27.830
+As the producer produces characters it inserts
+them into the buffer.
+
+00:06:27.830 --> 00:06:32.449
+The consumer reads characters from the buffer
+in the same order as they were produced.
+
+00:06:32.449 --> 00:06:36.210
+The buffer can hold between 0 and N characters.
+
+00:06:36.210 --> 00:06:41.680
+If the buffer holds 0 characters, it's empty;
+if it holds N characters, it's full.
+
+00:06:41.680 --> 00:06:46.240
+The producer should wait if the buffer is
+full, the consumer should wait if the buffer
+
+00:06:46.240 --> 00:06:48.509
+is empty.
+
+00:06:48.509 --> 00:06:53.449
+Using the N-character FIFO buffer relaxes
+our second overwrite constraint to the requirement
+
+00:06:53.449 --> 00:06:58.279
+that the i_th receive must happen before i+N_th
+send.
+
+00:06:58.279 --> 00:07:03.850
+In other words, the producer can get up to
+N characters ahead of the consumer.
+
+00:07:03.850 --> 00:07:09.159
+FIFO buffers are implemented as an N-element
+character array with two indices:
+
+00:07:09.159 --> 00:07:14.430
+the read index indicates the next character
+to be read, the write index indicates the
+
+00:07:14.430 --> 00:07:15.960
+next character to be written.
+
+00:07:15.960 --> 00:07:21.039
+We'll also need a counter to keep track of
+the number of characters held by the buffer,
+
+00:07:21.039 --> 00:07:23.259
+but that's been omitted from this diagram.
+
+00:07:23.259 --> 00:07:29.529
+The indices are incremented modulo N, i.e.,
+the next element to be accessed after the
+
+00:07:29.529 --> 00:07:35.249
+N-1_st element is the 0_th element, hence
+the name "circular buffer".
+
+00:07:35.249 --> 00:07:36.650
+Here's how it works.
+
+00:07:36.650 --> 00:07:42.029
+The producer runs, using the write index to
+add the first character to the buffer.
+
+00:07:42.029 --> 00:07:48.699
+The producer can produce additional characters,
+but must wait once the buffer is full.
+
+00:07:48.699 --> 00:07:53.539
+The consumer can receive a character anytime
+the buffer is not empty, using the read index
+
+00:07:53.539 --> 00:07:57.639
+to keep track of the next character to be
+read.
+
+00:07:57.639 --> 00:08:02.240
+Execution of the producer and consumer can
+proceed in any order so long as the producer
+
+00:08:02.240 --> 00:08:07.830
+doesn't write into a full buffer and the consumer
+doesn't read from an empty buffer.
+
+00:08:07.830 --> 00:08:11.860
+Here's what the code for the producer and
+consumer might look like.
+
+00:08:11.860 --> 00:08:16.400
+The array and indices for the circular buffer
+live in shared memory where they can be accessed
+
+00:08:16.400 --> 00:08:18.460
+by both processes.
+
+00:08:18.460 --> 00:08:23.589
+The SEND routine in the producer uses the
+write index IN to keep track of where to write
+
+00:08:23.589 --> 00:08:25.229
+the next character.
+
+00:08:25.229 --> 00:08:30.279
+Similarly the RCV routine in the consumer
+uses the read index OUT to keep track of the
+
+00:08:30.279 --> 00:08:32.240
+next character to be read.
+
+00:08:32.240 --> 00:08:36.000
+After each use, each index is incremented
+modulo N.
+
+00:08:36.000 --> 00:08:41.659
+The problem with this code is that, as currently
+written, neither of the two precedence constraints
+
+00:08:41.659 --> 00:08:42.880
+is enforced.
+
+00:08:42.880 --> 00:08:47.480
+The consumer can read from an empty buffer
+and the producer can overwrite entries when
+
+00:08:47.480 --> 00:08:49.490
+the buffer is full.
+
+00:08:49.490 --> 00:08:54.250
+We'll need to modify this code to enforce
+the constraints and for that we'll introduce
+
+00:08:54.250 --> 00:09:00.000
+a new programming construct that we'll use
+to provide the appropriate inter-process synchronization.

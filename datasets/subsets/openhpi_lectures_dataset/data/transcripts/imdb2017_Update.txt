@@ -1,0 +1,284 @@
+WEBVTT
+
+1
+00:00:01.000 --> 00:00:03.000 
+The next one is the Update.
+
+2
+00:00:03.000 --> 00:00:13.000 
+So we want to update the table, we want to
+set certain columns, actually I would like
+
+3
+00:00:13.000 --> 00:00:22.000 
+to have here one of our world population,
+then it is easier to read, where a condition
+
+4
+00:00:22.000 --> 00:00:30.000 
+is applicable. We have talked about updates
+already.
+
+5
+00:00:30.000 --> 00:00:38.000 
+When we look at the updates in detail now
+from the application side then we find a few
+
+6
+00:00:38.000 --> 00:00:47.000 
+types of them. So we have materialized aggregates
+and whenever an event happens then we have
+
+7
+00:00:47.000 --> 00:00:55.000 
+a cascade of changes in the materialized aggregates
+happening as well. In today's financial accounting
+
+8
+00:00:55.000 --> 00:01:03.000 
+system of SAP when a journal entry comes in
+I would guess it is close to 10 aggregates
+
+9
+00:01:03.000 --> 00:01:13.000 
+will be updated, a general ledger, German
+style, 4 general ledgers, world wide style,
+
+10
+00:01:13.000 --> 00:01:24.000 
+a cost central ledger, a project ledger, there
+are more than 10 and for each ledger there
+
+11
+00:01:24.000 --> 00:01:41.000 
+is probably an update of 5-8 taking place,
+which takes some time and nobody is using
+
+12
+00:01:41.000 --> 00:01:46.000 
+the German ledger anymore so we just do it
+for basically control purposes. So materialization
+
+13
+00:01:46.000 --> 00:01:56.000 
+is one, the alternative to materialized aggregates
+is create a view, define a view, run through
+
+14
+00:01:56.000 --> 00:02:04.000 
+the whole data set and create the view on
+demand.
+
+15
+00:02:04.000 --> 00:02:15.000 
+The second type is Status Updates. That basically
+switches. An easy one is an invoice, not paid
+
+16
+00:02:15.000 --> 00:02:26.000 
+- it is called open, paid - when it is paid,
+it is done. There is an order, shipped, when
+
+17
+00:02:26.000 --> 00:02:33.000 
+it is shipped, the order is done, not much
+we can do anymore. So status changes, in the
+
+18
+00:02:33.000 --> 00:02:43.000 
+old days there was a status variable on - off
+or probably even multiple states. We have
+
+19
+00:02:43.000 --> 00:02:55.000 
+to be a little bit careful in the application
+design, if there is multiple states like an
+
+20
+00:02:55.000 --> 00:03:10.000 
+order is accepted, validated, scheduled, prepared
+for shipment, shipped, paid and no escalation
+
+21
+00:03:10.000 --> 00:03:19.000 
+afterwards no complain ever received it can
+be finally dropped. So we have information
+
+22
+00:03:19.000 --> 00:03:26.000 
+like this in this system. In all modern systems
+this is a company by date, it is done by a
+
+23
+00:03:26.000 --> 00:03:32.000 
+date, so typically a time stamp, which has
+the advantage that you know exactly when it
+
+24
+00:03:32.000 --> 00:03:39.000 
+happened, and probably it is not only a time
+stamp it is also who did it, if it was a person
+
+25
+00:03:39.000 --> 00:03:49.000 
+or a program. But this is just a class of
+status updates, flip flop. I would allow them
+
+26
+00:03:49.000 --> 00:04:02.000 
+in the original storage area of the database,
+I would not replace this status update by
+
+27
+00:04:02.000 --> 00:04:13.000 
+a delete and an insert. Why? Lets take the
+accounting status. It is a different shape
+
+28
+00:04:13.000 --> 00:04:20.000 
+between the accounting, paid, non paid. So
+when it is null value or zero it is not paid
+
+29
+00:04:20.000 --> 00:04:27.000 
+and when there is an time stamp, then it is
+paid. So it is the time stamp, so it is exactly
+
+30
+00:04:27.000 --> 00:04:33.000 
+when it was paid. The whole development history
+is clearly define by that, it was not paid
+
+31
+00:04:33.000 --> 00:04:42.000 
+before it was paid and it is not paid after
+it was paid. My example with the history of
+
+32
+00:04:42.000 --> 00:04:53.000 
+an order, it was validated, it was excepted,
+it was ATP-Check performed, etc. We cannot
+
+33
+00:04:53.000 --> 00:05:00.000 
+express this state with one variable. We can
+express the current state but not the history.
+
+34
+00:05:00.000 --> 00:05:10.000 
+And if we want to keep the history for whatever
+reason, we have to apply delete and insert.
+
+35
+00:05:10.000 --> 00:05:19.000 
+Then we have in the main data area always
+the current state and in the history we have
+
+36
+00:05:19.000 --> 00:05:32.000 
+all changes of this tuple, in this case of
+this order line. And that might be the right
+
+37
+00:05:32.000 --> 00:05:38.000 
+organization for an application, that we know
+when was it accepted, when was it scheduled,
+
+38
+00:05:38.000 --> 00:05:44.000 
+when was it prepared for shipment, when was
+it shipped, when was it paid.
+
+39
+00:05:44.000 --> 00:05:51.000 
+So even status variables are not easy to decide.
+
+40
+00:05:51.000 --> 00:05:58.000 
+Value Updates, in most applications it is
+necessary to keep an order trail. It is easy
+
+41
+00:05:58.000 --> 00:06:05.000 
+in financials, we can not change financial
+data without an order trail. We can not change
+
+42
+00:06:05.000 --> 00:06:11.000 
+actually the fundamental of accounting, we
+can not change an amount, we can not change
+
+43
+00:06:11.000 --> 00:06:21.000 
+the coding. We might be able, we can discuss
+whether we want to change a cost center. Typically
+
+44
+00:06:21.000 --> 00:06:27.000 
+applications do delete and insert, so they
+reverse the original booking and have a new
+
+45
+00:06:27.000 --> 00:06:41.000 
+insert. So basically for all value changes
+we go for delete and insert.
+
+46
+00:06:41.000 --> 00:06:48.000 
+So avoid the materialization of aggregates,
+get rid of aggregates and replace them by
+
+47
+00:06:48.000 --> 00:07:01.000 
+views. Status updates are debatable. Just
+that we do not do silly things like all journal
+
+48
+00:07:01.000 --> 00:07:08.000 
+entries for customers and suppliers create
+at least two, one “it was entered” and
+
+49
+00:07:08.000 --> 00:07:14.000 
+one “it was changed”, that is a little
+bit stupid.
+
+50
+00:07:14.000 --> 00:07:26.000 
+Since we have decided already we have only
+sorted dictionaries, we can look through this
+
+51
+00:07:26.000 --> 00:07:37.000 
+relatively quickly and in the end we have
+similar things like when we add something.
+
+52
+00:07:37.000 --> 00:07:46.000 
+The delete is easy, this is a time stamp in
+the original tuple and then we have to insert
+
+53
+00:07:46.000 --> 00:07:52.000 
+the new tuple and we can run into the same
+problems we ran in already when we did inserts.
+
+54
+00:07:52.000 --> 00:08:01.000 
+So we have learned this already. Because in
+our case when we change the city to Bamberg,
+
+55
+00:08:01.000 --> 00:08:09.000 
+it is a new city and then we run into the
+same problems we have already discussed before.
+
+56
+00:08:09.000 --> 00:08:16.000 
+So in order to do this, we do not do it. So
+the insert and the updates, even the updates
+
+57
+00:08:16.000 --> 00:08:28.000 
+done as delete and insert we have to build
+a more complex structure in the system.

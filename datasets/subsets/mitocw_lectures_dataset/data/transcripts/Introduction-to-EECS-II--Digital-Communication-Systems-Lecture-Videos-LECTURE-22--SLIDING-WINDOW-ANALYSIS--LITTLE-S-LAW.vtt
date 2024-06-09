@@ -1,0 +1,4741 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.520
+The following content is
+provided under a Creative
+
+00:00:02.520 --> 00:00:03.970
+Commons license.
+
+00:00:03.970 --> 00:00:06.360
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.360 --> 00:00:10.660
+continue to offer high quality
+educational resources for free.
+
+00:00:10.660 --> 00:00:13.350
+To make a donation or
+view additional materials
+
+00:00:13.350 --> 00:00:17.190
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.190 --> 00:00:18.400
+at ocw.mit.edu.
+
+00:00:26.690 --> 00:00:30.290
+HARI BALAKRISHNAN: So this is
+actually almost near the end.
+
+00:00:30.290 --> 00:00:33.740
+So this is actually the last
+lecture on transport protocols.
+
+00:00:33.740 --> 00:00:36.320
+And then on
+Wednesday, my plan is
+
+00:00:36.320 --> 00:00:39.020
+to talk about how
+many of the things
+
+00:00:39.020 --> 00:00:41.450
+we have studied in this
+class apply to the internet.
+
+00:00:41.450 --> 00:00:45.840
+It will be a history lesson
+about communication networks.
+
+00:00:45.840 --> 00:00:49.200
+And I'll talk in specific terms
+about two interesting problems.
+
+00:00:49.200 --> 00:00:51.980
+One of them is a
+problem we'll start
+
+00:00:51.980 --> 00:00:54.800
+on today, which is how you
+pick these window sizes.
+
+00:00:54.800 --> 00:00:56.850
+And I'll talk about
+how TCP does this.
+
+00:00:56.850 --> 00:01:00.710
+And it's one of the
+pretty amazing result
+
+00:01:00.710 --> 00:01:03.940
+that was only invented in
+the mid-1980s or late 1980s.
+
+00:01:03.940 --> 00:01:05.690
+And the second thing
+I want to talk about,
+
+00:01:05.690 --> 00:01:08.840
+when I talk about this history
+of the internet from, say, 1960
+
+00:01:08.840 --> 00:01:13.130
+to today, I'll talk
+about how people
+
+00:01:13.130 --> 00:01:15.650
+can hijack other
+people's routes and be
+
+00:01:15.650 --> 00:01:18.325
+able to attract traffic
+that doesn't actually
+
+00:01:18.325 --> 00:01:18.950
+belong to them.
+
+00:01:18.950 --> 00:01:21.260
+So apparently, now
+there are people
+
+00:01:21.260 --> 00:01:23.660
+who are doing it illegally.
+
+00:01:23.660 --> 00:01:25.383
+But apparently, now
+some governments
+
+00:01:25.383 --> 00:01:26.800
+are also doing
+this sort of thing.
+
+00:01:26.800 --> 00:01:29.498
+So it's an interesting
+thing to understand,
+
+00:01:29.498 --> 00:01:31.790
+how it is that some of the
+routing protocols we studied
+
+00:01:31.790 --> 00:01:32.910
+are not secure.
+
+00:01:32.910 --> 00:01:35.030
+So I'll do that on Wednesday.
+
+00:01:35.030 --> 00:01:37.850
+And then we'll
+wrap up next week.
+
+00:01:37.850 --> 00:01:39.770
+So today, the plan
+is to continue
+
+00:01:39.770 --> 00:01:41.390
+to talk about
+transport protocols,
+
+00:01:41.390 --> 00:01:43.160
+in particular, about
+sliding windows.
+
+00:01:43.160 --> 00:01:45.290
+So just to refresh
+everyone's memory,
+
+00:01:45.290 --> 00:01:47.870
+the problem is that you have
+a best effort network, where
+
+00:01:47.870 --> 00:01:50.900
+packets could be lost,
+packets could be reordered,
+
+00:01:50.900 --> 00:01:54.290
+packets could be duplicated,
+and delays in the network
+
+00:01:54.290 --> 00:01:55.430
+are variable.
+
+00:01:55.430 --> 00:01:58.190
+And what we would like to
+provide to applications, like,
+
+00:01:58.190 --> 00:02:04.910
+for example, your web browser
+or your web client or server,
+
+00:02:04.910 --> 00:02:08.180
+is an abstraction where the
+application just writes data
+
+00:02:08.180 --> 00:02:10.910
+into some layer, and the
+application on the other side
+
+00:02:10.910 --> 00:02:13.520
+reads data from a layer,
+and this transport layer
+
+00:02:13.520 --> 00:02:18.050
+deals with providing in
+order reliable delivery.
+
+00:02:18.050 --> 00:02:21.200
+So we looked at the first
+version of that protocol, which
+
+00:02:21.200 --> 00:02:22.160
+is stop and wait.
+
+00:02:22.160 --> 00:02:23.780
+And it had a few
+nice ideas in it.
+
+00:02:23.780 --> 00:02:25.600
+The first-- all simple ideas--
+
+00:02:25.600 --> 00:02:29.000
+the first is to use
+sequence number,
+
+00:02:29.000 --> 00:02:32.450
+and then to have
+acknowledgments,
+
+00:02:32.450 --> 00:02:36.695
+and then to retransmit
+after a timeout.
+
+00:02:40.370 --> 00:02:42.410
+And I didn't actually
+talk about how
+
+00:02:42.410 --> 00:02:46.130
+to do adaptive timers and the
+low pass exponentially weighted
+
+00:02:46.130 --> 00:02:47.340
+moving average filter.
+
+00:02:47.340 --> 00:02:48.740
+But we started that recitation.
+
+00:02:48.740 --> 00:02:50.820
+And if I have time, I'll
+come back to that today.
+
+00:02:50.820 --> 00:02:56.310
+But my assumption is that you've
+already seen how to do that.
+
+00:02:56.310 --> 00:02:58.910
+But then we concluded that the
+throughput of the stop and wait
+
+00:02:58.910 --> 00:03:02.790
+protocol is not very high.
+
+00:03:02.790 --> 00:03:04.100
+It's sometimes a good idea.
+
+00:03:04.100 --> 00:03:07.070
+For example, to get reliable
+delivery between this access
+
+00:03:07.070 --> 00:03:10.320
+point here and your
+computer right now,
+
+00:03:10.320 --> 00:03:13.820
+a stop and wait protocol
+is perfectly reasonable.
+
+00:03:13.820 --> 00:03:15.350
+We'll understand why later on.
+
+00:03:15.350 --> 00:03:18.830
+But the short answer why is
+because the round-trip time
+
+00:03:18.830 --> 00:03:25.310
+between this access point here
+and your laptop is quite small.
+
+00:03:25.310 --> 00:03:28.320
+And because it's a really
+small round-trip time,
+
+00:03:28.320 --> 00:03:30.590
+you're able to get one
+packet per round-trip time--
+
+00:03:30.590 --> 00:03:32.450
+or in [INAUDIBLE]
+packet losses, it's
+
+00:03:32.450 --> 00:03:34.748
+less than one packet
+per round-trip time,
+
+00:03:34.748 --> 00:03:36.790
+but roughly about one
+packet per round-trip time.
+
+00:03:36.790 --> 00:03:39.500
+But the round-trip time is
+on the order of microseconds.
+
+00:03:39.500 --> 00:03:45.860
+One packet per round-trip
+time can give you a throughput
+
+00:03:45.860 --> 00:03:46.940
+that's quite large.
+
+00:03:46.940 --> 00:03:50.090
+And therefore, if the link
+speed is 10 megabits per second,
+
+00:03:50.090 --> 00:03:54.350
+and you're able to send
+1,000-byte packet in, say,
+
+00:03:54.350 --> 00:03:56.588
+20 microseconds, if
+you take the ratio,
+
+00:03:56.588 --> 00:03:58.880
+that's probably going to be
+bigger than the link speed.
+
+00:03:58.880 --> 00:04:00.558
+And therefore,
+you're going to get
+
+00:04:00.558 --> 00:04:01.850
+of the order of the link speed.
+
+00:04:01.850 --> 00:04:06.230
+And therefore, you're not
+going to underutilize the link.
+
+00:04:06.230 --> 00:04:08.900
+But now, if the round-trip
+time were 100 milliseconds,
+
+00:04:08.900 --> 00:04:11.360
+and you were able to send
+just one packet every 100
+
+00:04:11.360 --> 00:04:12.740
+milliseconds, it would be slow.
+
+00:04:12.740 --> 00:04:15.650
+And to solve that problem,
+we looked at this idea
+
+00:04:15.650 --> 00:04:18.880
+of a sliding window.
+
+00:04:18.880 --> 00:04:20.110
+This is just pipelining.
+
+00:04:20.110 --> 00:04:23.470
+It just says, rather than
+have one packet unacknowledged
+
+00:04:23.470 --> 00:04:25.000
+at any point in
+time, we're going
+
+00:04:25.000 --> 00:04:30.700
+to have a value w that the
+sender decides, decides
+
+00:04:30.700 --> 00:04:31.750
+upon this value.
+
+00:04:31.750 --> 00:04:34.330
+And the semantics
+of a window are
+
+00:04:34.330 --> 00:04:43.380
+that we're going to have
+w unacknowledged packets
+
+00:04:43.380 --> 00:04:45.900
+in the system between the
+sender and the receiver.
+
+00:04:45.900 --> 00:04:48.120
+Now, technically, it's
+at most w packets.
+
+00:04:48.120 --> 00:04:50.700
+Because from time to time,
+you might have transients,
+
+00:04:50.700 --> 00:04:53.430
+where you have less than
+w packets, because you're
+
+00:04:53.430 --> 00:04:55.050
+about to send the next packet.
+
+00:04:55.050 --> 00:04:57.870
+Or if you get toward
+the end of the file,
+
+00:04:57.870 --> 00:04:59.550
+and you run out of
+data to send, you're
+
+00:04:59.550 --> 00:05:01.590
+clearly going to have
+fewer than w packets.
+
+00:05:01.590 --> 00:05:04.740
+So the technical definition of
+a window, a fixed-size window,
+
+00:05:04.740 --> 00:05:07.980
+says that if the window
+is w, then the semantics
+
+00:05:07.980 --> 00:05:12.840
+are that we will have no more
+than w unacknowledged packets
+
+00:05:12.840 --> 00:05:14.460
+in the system.
+
+00:05:14.460 --> 00:05:16.350
+Now, that's not the
+only possible definition
+
+00:05:16.350 --> 00:05:18.767
+of the window, but that's our
+current operating definition
+
+00:05:18.767 --> 00:05:21.440
+of the window.
+
+00:05:21.440 --> 00:05:24.080
+So then the rules at the
+center are very simple.
+
+00:05:24.080 --> 00:05:26.965
+When you get an acknowledgment
+from the receiver,
+
+00:05:26.965 --> 00:05:28.340
+as long as it's
+an acknowledgment
+
+00:05:28.340 --> 00:05:32.060
+for a packet that you have
+sent, and that packet has not
+
+00:05:32.060 --> 00:05:35.985
+previously been
+acknowledged, then you now
+
+00:05:35.985 --> 00:05:37.610
+know that packet has
+been acknowledged.
+
+00:05:37.610 --> 00:05:39.818
+So you remove it from your
+list of knowledge packets,
+
+00:05:39.818 --> 00:05:41.480
+and you send a new packet.
+
+00:05:41.480 --> 00:05:43.520
+The packet you send,
+the new packet you send,
+
+00:05:43.520 --> 00:05:47.500
+is the smallest sequence number
+that you haven't sent so far.
+
+00:05:47.500 --> 00:05:48.000
+OK?
+
+00:05:48.000 --> 00:05:50.060
+It's the very simple rule.
+
+00:05:50.060 --> 00:05:51.800
+And separately,
+there's a calculation
+
+00:05:51.800 --> 00:05:56.705
+of the timeout, an exponential
+moving average filter that
+
+00:05:56.705 --> 00:05:58.580
+calculates the average
+value of that timeout,
+
+00:05:58.580 --> 00:06:02.870
+the smooth estimate of the
+timeout, a similar calculation
+
+00:06:02.870 --> 00:06:05.750
+that finds the
+deviation from the mean.
+
+00:06:05.750 --> 00:06:07.790
+And you pick a return
+special timeout
+
+00:06:07.790 --> 00:06:11.120
+that is some number of
+deviations away from the mean,
+
+00:06:11.120 --> 00:06:14.330
+for example, four times
+the smoothed estimate.
+
+00:06:14.330 --> 00:06:16.310
+If that timer fires,
+and you haven't
+
+00:06:16.310 --> 00:06:19.600
+received an acknowledgment,
+you retransmit the packet.
+
+00:06:19.600 --> 00:06:20.600
+It's a very simple idea.
+
+00:06:20.600 --> 00:06:22.280
+So I'm going to show
+now what happens
+
+00:06:22.280 --> 00:06:25.100
+in some pictures with
+the sliding window, when
+
+00:06:25.100 --> 00:06:27.450
+you have packet loss.
+
+00:06:27.450 --> 00:06:31.450
+So it's the same picture
+as the last time,
+
+00:06:31.450 --> 00:06:33.700
+except now we have a packet--
+
+00:06:33.700 --> 00:06:35.500
+packet 2 is lost.
+
+00:06:35.500 --> 00:06:37.870
+The sender doesn't know
+that it's lost yet.
+
+00:06:37.870 --> 00:06:39.460
+So packet 1 goes here.
+
+00:06:39.460 --> 00:06:41.950
+Packet 2 is lost.
+
+00:06:41.950 --> 00:06:43.680
+This side was supposed
+to be packet 3.
+
+00:06:43.680 --> 00:06:46.390
+The sent-- packet 4 is
+sent, and packet 5 is sent.
+
+00:06:46.390 --> 00:06:50.650
+And the window size
+in this example is 5.
+
+00:06:50.650 --> 00:06:53.410
+So now, when the first packet
+gets its acknowledgment,
+
+00:06:53.410 --> 00:06:55.850
+the window slides
+to the right by 1.
+
+00:06:55.850 --> 00:06:59.110
+And at this point,
+we send packet 6.
+
+00:06:59.110 --> 00:07:04.010
+And the window is now packet
+2 to 6, the sent packet 6.
+
+00:07:04.010 --> 00:07:06.010
+And now, in the meantime,
+what's going to happen
+
+00:07:06.010 --> 00:07:07.930
+is, when packet--
+packet 2 doesn't reach,
+
+00:07:07.930 --> 00:07:09.490
+but packet 3 reaches.
+
+00:07:09.490 --> 00:07:12.130
+when packet 3 reaches, 3
+gets an acknowledgment.
+
+00:07:12.130 --> 00:07:15.130
+The receiver says
+that it's received 3.
+
+00:07:15.130 --> 00:07:20.150
+When it receives 3, what's the
+next packet that's transmitted?
+
+00:07:20.150 --> 00:07:22.470
+The packet that's
+transmitted is 7.
+
+00:07:22.470 --> 00:07:27.100
+Now, let me ask you
+a question here.
+
+00:07:27.100 --> 00:07:30.110
+The sender got packet
+A1 and packet A3--
+
+00:07:30.110 --> 00:07:34.130
+sorry, acknowledgment A1
+and acknowledgment A3.
+
+00:07:34.130 --> 00:07:36.020
+Now, it the sender
+were calculating
+
+00:07:36.020 --> 00:07:38.120
+the expected next
+acknowledgment,
+
+00:07:38.120 --> 00:07:41.870
+it knows that after
+A1, it should get A2,
+
+00:07:41.870 --> 00:07:45.140
+and it now got A3.
+
+00:07:45.140 --> 00:07:48.350
+So why doesn't it just
+re-send packet 3 right now?
+
+00:07:52.090 --> 00:07:52.590
+Yeah?
+
+00:07:52.590 --> 00:07:53.843
+AUDIENCE: [INAUDIBLE]
+
+00:07:53.843 --> 00:07:55.760
+HARI BALAKRISHNAN: It
+could have been delayed.
+
+00:07:55.760 --> 00:07:58.910
+Now, yes, it could
+have been delayed.
+
+00:07:58.910 --> 00:08:01.910
+But if it were delayed,
+wouldn't 3, packet 3,
+
+00:08:01.910 --> 00:08:04.858
+have also been delayed?
+
+00:08:04.858 --> 00:08:06.670
+AUDIENCE: [INAUDIBLE]
+
+00:08:06.670 --> 00:08:09.158
+HARI BALAKRISHNAN: Why not?
+
+00:08:09.158 --> 00:08:10.188
+AUDIENCE: [INAUDIBLE]
+
+00:08:10.188 --> 00:08:11.980
+HARI BALAKRISHNAN: All
+packets are delayed.
+
+00:08:11.980 --> 00:08:13.563
+So the question is,
+what is it about--
+
+00:08:13.563 --> 00:08:15.400
+the delay is one
+part of the answer,
+
+00:08:15.400 --> 00:08:17.680
+but what is it specifically
+about that delay that has
+
+00:08:17.680 --> 00:08:18.370
+caused this to--
+
+00:08:18.370 --> 00:08:19.745
+I mean, if a packet
+gets delayed,
+
+00:08:19.745 --> 00:08:21.550
+and packets are
+sitting in a queue,
+
+00:08:21.550 --> 00:08:23.542
+if the first packet in
+the queue was delayed,
+
+00:08:23.542 --> 00:08:25.000
+then the remaining
+packets are also
+
+00:08:25.000 --> 00:08:26.542
+going to get delayed,
+because they're
+
+00:08:26.542 --> 00:08:29.110
+sitting behind that
+packet in the queue.
+
+00:08:29.110 --> 00:08:30.003
+Yes, sir?
+
+00:08:30.003 --> 00:08:32.370
+AUDIENCE: Does it depend
+on the size of the packet?
+
+00:08:32.370 --> 00:08:34.080
+HARI BALAKRISHNAN:
+Well, so far, let's
+
+00:08:34.080 --> 00:08:36.720
+assume that you have a network
+where packets are delayed,
+
+00:08:36.720 --> 00:08:38.700
+and delays are variable.
+
+00:08:38.700 --> 00:08:40.470
+And you have a switch, right?
+
+00:08:40.470 --> 00:08:43.860
+And the switch
+has a queue in it.
+
+00:08:43.860 --> 00:08:46.090
+And let's say that you
+have-- in this example,
+
+00:08:46.090 --> 00:08:48.060
+you have packet 1 and 2 and 3.
+
+00:08:48.060 --> 00:08:49.740
+But in fact, packet
+2 was lost, and you
+
+00:08:49.740 --> 00:08:52.650
+don't know that, this packet 3.
+
+00:08:52.650 --> 00:08:54.452
+That's one case.
+
+00:08:54.452 --> 00:08:56.910
+But in the other case, if packet
+2 were not actually lost--
+
+00:08:56.910 --> 00:09:00.910
+if packet 2 were lost, and you
+got an acknowledgment for 1
+
+00:09:00.910 --> 00:09:04.310
+and an acknowledgment for 3,
+if packet 2 were legitimately
+
+00:09:04.310 --> 00:09:06.060
+lost, then it's certainly
+correct behavior
+
+00:09:06.060 --> 00:09:09.450
+for the sender to send,
+when it receives A3,
+
+00:09:09.450 --> 00:09:11.718
+to retransmit packet 2.
+
+00:09:11.718 --> 00:09:13.260
+So clearly, you're
+going after a case
+
+00:09:13.260 --> 00:09:17.100
+here, where 2 exists,
+but wasn't lost.
+
+00:09:17.100 --> 00:09:24.154
+In other words, if the sender
+were to retransmit packet 3--
+
+00:09:24.154 --> 00:09:29.590
+oh, sorry, packet 2
+when it receives A3,
+
+00:09:29.590 --> 00:09:32.240
+she said that that's wrong,
+because it could have gotten
+
+00:09:32.240 --> 00:09:33.230
+delayed.
+
+00:09:33.230 --> 00:09:35.140
+But what kind of
+delay would delay
+
+00:09:35.140 --> 00:09:37.400
+packet 2 but not packet 3?
+
+00:09:37.400 --> 00:09:39.740
+Or what kind of
+delay equivalently
+
+00:09:39.740 --> 00:09:43.820
+would delay A2 but not A3?
+
+00:09:43.820 --> 00:09:46.320
+If it's sitting
+behind the same queue,
+
+00:09:46.320 --> 00:09:48.320
+and the queue is serviced
+in that order, I mean,
+
+00:09:48.320 --> 00:09:52.200
+if this packet was delayed, this
+package would also be delayed.
+
+00:09:52.200 --> 00:09:54.988
+And this packet's behind
+this packet in the queue.
+
+00:09:54.988 --> 00:09:56.030
+So what else could it be?
+
+00:09:56.030 --> 00:09:56.530
+Yeah?
+
+00:09:56.530 --> 00:10:01.110
+AUDIENCE: [INAUDIBLE]
+
+00:10:01.110 --> 00:10:02.110
+HARI BALAKRISHNAN: Yeah.
+
+00:10:02.110 --> 00:10:04.510
+So the word I'm looking
+for is that packets could
+
+00:10:04.510 --> 00:10:06.160
+get reordered in the network.
+
+00:10:06.160 --> 00:10:07.690
+In fact, the
+reordering could happen
+
+00:10:07.690 --> 00:10:10.265
+even if there were
+no variable delays,
+
+00:10:10.265 --> 00:10:11.890
+like, no queuing
+delays in the network.
+
+00:10:11.890 --> 00:10:13.510
+I mean, you could
+just have a switch
+
+00:10:13.510 --> 00:10:16.100
+that you have a switch here.
+
+00:10:16.100 --> 00:10:18.130
+It could be that packet
+2 gets sent that way,
+
+00:10:18.130 --> 00:10:21.440
+and packet 3 gets sent this way.
+
+00:10:21.440 --> 00:10:23.440
+Here's a very concrete
+example of how this would
+
+00:10:23.440 --> 00:10:25.450
+happen, from your previous lab.
+
+00:10:25.450 --> 00:10:28.180
+It could be that the network
+had a certain set of routes,
+
+00:10:28.180 --> 00:10:31.810
+and packets were
+going along this path.
+
+00:10:31.810 --> 00:10:35.440
+And then maybe there
+was a failure before,
+
+00:10:35.440 --> 00:10:36.790
+and a new link showed up.
+
+00:10:36.790 --> 00:10:38.440
+Or the failure healed.
+
+00:10:38.440 --> 00:10:41.560
+And the routing protocol
+converged to pick this path,
+
+00:10:41.560 --> 00:10:43.450
+going forward.
+
+00:10:43.450 --> 00:10:45.880
+And this new packet 3,
+that showed up after 2,
+
+00:10:45.880 --> 00:10:47.080
+gets sent along this path.
+
+00:10:47.080 --> 00:10:48.997
+And it could easily be
+the case that this path
+
+00:10:48.997 --> 00:10:53.560
+has a lot shorter delay to the
+destination than that path.
+
+00:10:53.560 --> 00:10:56.590
+And therefore, what would happen
+is that the receiver, packet 3
+
+00:10:56.590 --> 00:10:59.050
+would arrive before packet 2.
+
+00:10:59.050 --> 00:11:02.830
+So in other words, if I had a
+network where no packets ever
+
+00:11:02.830 --> 00:11:04.630
+got reordered, no
+acknowledgments
+
+00:11:04.630 --> 00:11:06.130
+got-- no data packets
+got reordered,
+
+00:11:06.130 --> 00:11:08.653
+and no ACKs got
+reordered, then, in fact,
+
+00:11:08.653 --> 00:11:10.570
+it was perfectly good
+behavior for the sender,
+
+00:11:10.570 --> 00:11:12.610
+at this point, when
+it observes A3,
+
+00:11:12.610 --> 00:11:15.670
+to go ahead and resend packet 2.
+
+00:11:15.670 --> 00:11:17.770
+Because I'm guaranteeing
+to you that there's
+
+00:11:17.770 --> 00:11:19.213
+no reordering in the network.
+
+00:11:19.213 --> 00:11:21.880
+But in general, the networks and
+packet switch networks, I mean,
+
+00:11:21.880 --> 00:11:24.160
+they get a lot of
+their robustness
+
+00:11:24.160 --> 00:11:26.650
+to failure and
+resilience to failure
+
+00:11:26.650 --> 00:11:29.020
+because they send
+packets any which way.
+
+00:11:29.020 --> 00:11:33.280
+Their only job is to get
+packets to the destination
+
+00:11:33.280 --> 00:11:35.708
+with as high a
+likelihood as they can,
+
+00:11:35.708 --> 00:11:37.750
+which means packets are
+allowed to get reordered.
+
+00:11:37.750 --> 00:11:40.930
+And therefore, it's not
+correct for packet 2
+
+00:11:40.930 --> 00:11:44.170
+to get retransmitted
+when you get A3.
+
+00:11:44.170 --> 00:11:45.670
+OK?
+
+00:11:45.670 --> 00:11:46.510
+So let's keep going.
+
+00:11:46.510 --> 00:11:47.885
+So what is the
+next packet that's
+
+00:11:47.885 --> 00:11:51.820
+going to be sent, when you
+get A3, in this picture?
+
+00:11:51.820 --> 00:11:52.480
+It's 7.
+
+00:11:52.480 --> 00:11:54.220
+Because the sender's
+rule is very simple.
+
+00:11:54.220 --> 00:11:55.610
+Have I seen the ACK before?
+
+00:11:55.610 --> 00:11:56.860
+No.
+
+00:11:56.860 --> 00:11:59.580
+Is this ACK corresponding to a
+packet that I've sent before?
+
+00:11:59.580 --> 00:12:01.330
+Remember, we need that
+check, because it's
+
+00:12:01.330 --> 00:12:02.740
+possible that a flaky--
+
+00:12:02.740 --> 00:12:04.810
+there's some bug on
+the receiver side.
+
+00:12:04.810 --> 00:12:07.060
+So is it is an ACK
+that corresponds
+
+00:12:07.060 --> 00:12:08.330
+to a packet I've sent before?
+
+00:12:08.330 --> 00:12:09.040
+Yes.
+
+00:12:09.040 --> 00:12:11.020
+Send the next
+in-sequence packet.
+
+00:12:11.020 --> 00:12:12.192
+So it sends packet 7.
+
+00:12:12.192 --> 00:12:14.650
+At this point, we're going to
+lose the beautiful animation.
+
+00:12:14.650 --> 00:12:17.500
+Because each of
+these things takes
+
+00:12:17.500 --> 00:12:18.980
+an endless amount of time.
+
+00:12:18.980 --> 00:12:21.610
+So I just produced
+the full picture.
+
+00:12:21.610 --> 00:12:23.560
+I just wish I had the
+patience to sit and do
+
+00:12:23.560 --> 00:12:24.460
+the full animation.
+
+00:12:24.460 --> 00:12:28.690
+But I ran out of patience.
+
+00:12:28.690 --> 00:12:31.480
+So anyway, you sent
+packet 7 at this point.
+
+00:12:31.480 --> 00:12:34.450
+And then, when you receive
+A4, you send packet 8.
+
+00:12:34.450 --> 00:12:36.850
+When you receive A5,
+you send packet 9; A6,
+
+00:12:36.850 --> 00:12:38.380
+you send packet 10.
+
+00:12:38.380 --> 00:12:40.810
+Now, let me ask this question.
+
+00:12:40.810 --> 00:12:44.440
+At this point in time, when you
+receive this acknowledgment,
+
+00:12:44.440 --> 00:12:48.297
+A5, and you sent packet
+9, what is the window?
+
+00:12:48.297 --> 00:12:50.380
+That is, what is the set
+of packets in the window?
+
+00:12:55.330 --> 00:12:57.250
+The window is 5,
+the window size,
+
+00:12:57.250 --> 00:13:00.130
+but the window size corresponds
+to some list of packets
+
+00:13:00.130 --> 00:13:01.360
+that are in the window.
+
+00:13:01.360 --> 00:13:05.150
+What is that set of packets
+or that list of packets?
+
+00:13:05.150 --> 00:13:06.500
+Yeah?
+
+00:13:06.500 --> 00:13:07.393
+AUDIENCE: [INAUDIBLE]
+
+00:13:07.393 --> 00:13:08.810
+HARI BALAKRISHNAN:
+2, 7, 8, 9, 10.
+
+00:13:08.810 --> 00:13:09.800
+This is important.
+
+00:13:09.800 --> 00:13:11.270
+This is 2, 7, 8, 9, 10.
+
+00:13:11.270 --> 00:13:12.830
+These packets are
+not in sequence.
+
+00:13:12.830 --> 00:13:15.620
+It's very tempting to say,
+the windows [INAUDIBLE]
+
+00:13:15.620 --> 00:13:16.400
+five packets.
+
+00:13:16.400 --> 00:13:20.510
+So if I've sent out 10, the
+window must be 10, 9, 8, 7, 6.
+
+00:13:20.510 --> 00:13:21.435
+Well, that's not true.
+
+00:13:21.435 --> 00:13:23.060
+The window just says,
+here's the number
+
+00:13:23.060 --> 00:13:26.000
+of unacknowledged packets.
+
+00:13:26.000 --> 00:13:31.160
+The number of unacknowledged
+packets is 5, in this case.
+
+00:13:31.160 --> 00:13:32.760
+All right, let's keep going.
+
+00:13:32.760 --> 00:13:36.530
+When 10 arrives, when
+10 is sent out here,
+
+00:13:36.530 --> 00:13:40.190
+and then at some
+later point in time,
+
+00:13:40.190 --> 00:13:42.650
+we get an acknowledgment
+for 7, we send out 11.
+
+00:13:42.650 --> 00:13:44.060
+When we get 8, we send out 12.
+
+00:13:44.060 --> 00:13:48.980
+At this point in time, the
+window is 12, 11, 10 9, and 2.
+
+00:13:48.980 --> 00:13:51.210
+At some point, the
+center times out.
+
+00:13:51.210 --> 00:13:55.130
+And the timeout is picked
+to be conservative.
+
+00:13:55.130 --> 00:13:56.760
+That's why we take
+the smooth average.
+
+00:13:56.760 --> 00:13:57.677
+We take the deviation.
+
+00:13:57.677 --> 00:14:00.620
+Because we don't actually
+want to transmit a packet
+
+00:14:00.620 --> 00:14:03.560
+that hasn't genuinely been lost.
+
+00:14:03.560 --> 00:14:07.910
+The reason for
+that is oftentimes,
+
+00:14:07.910 --> 00:14:10.400
+when you start seeing
+weird behavior like this,
+
+00:14:10.400 --> 00:14:12.650
+like a presumed
+missing packet, you're
+
+00:14:12.650 --> 00:14:14.090
+not actually sure
+if it's missing
+
+00:14:14.090 --> 00:14:17.960
+or if it's just delayed, as was
+pointed out before, because it
+
+00:14:17.960 --> 00:14:20.060
+took a different route.
+
+00:14:20.060 --> 00:14:24.260
+Something strange is
+going on in the network.
+
+00:14:24.260 --> 00:14:26.870
+And causing
+retransmission to happen
+
+00:14:26.870 --> 00:14:29.810
+of a packet that hasn't
+actually been lost
+
+00:14:29.810 --> 00:14:33.158
+makes things worse, because it
+adds more load onto the system
+
+00:14:33.158 --> 00:14:35.450
+right about the time when
+there's something fishy going
+
+00:14:35.450 --> 00:14:36.160
+on in the network.
+
+00:14:36.160 --> 00:14:37.535
+So the last thing
+you want to do,
+
+00:14:37.535 --> 00:14:40.160
+when something is under stress,
+is to add more stress to it.
+
+00:14:40.160 --> 00:14:41.930
+That's why the timeouts
+are conservative.
+
+00:14:41.930 --> 00:14:46.106
+Any time the sender, in
+any protocol like this,
+
+00:14:46.106 --> 00:14:50.180
+retransmits a packet that
+is not actually lost,
+
+00:14:50.180 --> 00:14:52.940
+that's considered a
+spurious retransmission.
+
+00:14:52.940 --> 00:14:57.300
+It's considered a retransmission
+that is just not a good thing.
+
+00:14:57.300 --> 00:14:59.340
+Now, actually, our protocol,
+as we've described,
+
+00:14:59.340 --> 00:15:01.370
+it has some wonderful
+nice properties.
+
+00:15:01.370 --> 00:15:03.980
+And I'll show later on--
+maybe you can read about this
+
+00:15:03.980 --> 00:15:04.940
+in the book--
+
+00:15:04.940 --> 00:15:07.100
+that it actually is the
+best possible protocol
+
+00:15:07.100 --> 00:15:09.240
+you can come up with in
+an asymptomatic sense.
+
+00:15:09.240 --> 00:15:11.585
+In other words,
+no other protocol,
+
+00:15:11.585 --> 00:15:13.460
+if you ran it for a long
+time, would actually
+
+00:15:13.460 --> 00:15:16.040
+get higher throughput in
+a network that had losses.
+
+00:15:16.040 --> 00:15:17.420
+So it has some nice properties.
+
+00:15:17.420 --> 00:15:19.860
+But it has this
+one bad property,
+
+00:15:19.860 --> 00:15:22.100
+which is that, in
+fact, this protocol,
+
+00:15:22.100 --> 00:15:25.070
+in the way these
+acknowledgments are structured,
+
+00:15:25.070 --> 00:15:27.440
+ends up with a lot of
+spurious retransmissions.
+
+00:15:27.440 --> 00:15:30.860
+Or they could end up with a lot
+of spurious retransmissions.
+
+00:15:30.860 --> 00:15:32.750
+Can you kind of see
+why this protocol
+
+00:15:32.750 --> 00:15:35.450
+could be that we follow this
+discipline extremely nicely,
+
+00:15:35.450 --> 00:15:38.540
+that timeouts are conservative.
+
+00:15:38.540 --> 00:15:40.260
+So the only timeout,
+when we are really,
+
+00:15:40.260 --> 00:15:42.110
+really sure when a packet--
+
+00:15:42.110 --> 00:15:45.350
+we don't get an acknowledgment,
+is when we time out,
+
+00:15:45.350 --> 00:15:46.550
+and we wait a long time.
+
+00:15:46.550 --> 00:15:49.850
+But the protocol could still
+have spurious retransmissions.
+
+00:15:49.850 --> 00:15:52.040
+Can anyone see why there's
+a very peculiar behavior
+
+00:15:52.040 --> 00:15:54.650
+of this property of
+this protocol that
+
+00:15:54.650 --> 00:15:57.020
+comes from the way in which
+these acknowledgments work?
+
+00:16:01.304 --> 00:16:02.700
+AUDIENCE: [INAUDIBLE]
+
+00:16:02.700 --> 00:16:03.700
+HARI BALAKRISHNAN: Yeah.
+
+00:16:03.700 --> 00:16:05.720
+So this protocol has
+a peculiar problem,
+
+00:16:05.720 --> 00:16:09.130
+which is that all packets and
+acknowledgments are essentially
+
+00:16:09.130 --> 00:16:09.890
+the same.
+
+00:16:09.890 --> 00:16:11.860
+They contain the
+same information.
+
+00:16:11.860 --> 00:16:15.130
+If you lose a packet or
+you lose an acknowledgment
+
+00:16:15.130 --> 00:16:18.371
+for that packet, the sender
+can't tell the difference.
+
+00:16:21.530 --> 00:16:23.390
+Now, this is, therefore,
+not necessarily
+
+00:16:23.390 --> 00:16:27.500
+the best protocol, in the sense
+that, if you have a path--
+
+00:16:27.500 --> 00:16:28.500
+here is an extreme case.
+
+00:16:28.500 --> 00:16:30.167
+So I have a path where
+there's no packet
+
+00:16:30.167 --> 00:16:32.840
+losses going from me to you,
+and I'm sending data to you.
+
+00:16:32.840 --> 00:16:37.040
+And coming back, the
+packet loss rate is 25%.
+
+00:16:37.040 --> 00:16:39.260
+This protocol has this
+unfortunate property
+
+00:16:39.260 --> 00:16:43.840
+that I believe that 25% of my
+transmissions are lost to you.
+
+00:16:43.840 --> 00:16:46.400
+In fact, you've got every
+single packet I've sent.
+
+00:16:46.400 --> 00:16:48.740
+It's just that I don't
+see the acknowledgments
+
+00:16:48.740 --> 00:16:49.947
+for those specific packets.
+
+00:16:49.947 --> 00:16:52.280
+And therefore, I'm going to
+retransmit all those packets
+
+00:16:52.280 --> 00:16:55.820
+to you, leading to
+spurious retransmissions.
+
+00:16:55.820 --> 00:16:58.610
+So we don't have to worry
+about it for the lab
+
+00:16:58.610 --> 00:17:01.430
+or for the class, but
+as a design problem,
+
+00:17:01.430 --> 00:17:04.300
+can you invent a protocol
+that fix this problem?
+
+00:17:08.533 --> 00:17:10.200
+Can you modify this
+protocol, or come up
+
+00:17:10.200 --> 00:17:14.310
+with an idea of your own,
+which has the property that--
+
+00:17:14.310 --> 00:17:17.339
+pick the design point that is
+the sender-to-receiver path
+
+00:17:17.339 --> 00:17:18.869
+is generally loss-free.
+
+00:17:18.869 --> 00:17:21.540
+But let's say that the
+receiver-to-send path
+
+00:17:21.540 --> 00:17:22.722
+has a high loss.
+
+00:17:22.722 --> 00:17:24.430
+And by the way, this
+is not hypothetical.
+
+00:17:24.430 --> 00:17:26.515
+This is what happens in
+wireless networks a lot.
+
+00:17:26.515 --> 00:17:28.890
+Because that base station
+sitting in some cell tower that
+
+00:17:28.890 --> 00:17:30.300
+has a huge amount of power--
+
+00:17:30.300 --> 00:17:33.090
+it's powered in-- it consumes
+probably kilowatts these days.
+
+00:17:33.090 --> 00:17:36.503
+So they can blast at whatever is
+the maximum allowed by the FCC.
+
+00:17:36.503 --> 00:17:37.920
+And your poor,
+little, dinky phone
+
+00:17:37.920 --> 00:17:39.120
+is sending acknowledgments.
+
+00:17:39.120 --> 00:17:40.890
+And the thing is running
+out of battery all the time.
+
+00:17:40.890 --> 00:17:42.640
+So they're carefully
+trying to figure out,
+
+00:17:42.640 --> 00:17:44.700
+what's the minimum power
+at which I can transmit?
+
+00:17:44.700 --> 00:17:47.970
+So in fact, these asymmetric
+conditions are not unrealistic.
+
+00:17:47.970 --> 00:17:49.498
+They're quite realistic.
+
+00:17:49.498 --> 00:17:51.540
+So if I ran this protocol
+on a network like that,
+
+00:17:51.540 --> 00:17:53.800
+it would be probably
+a bad thing.
+
+00:17:53.800 --> 00:17:57.340
+So what would you
+do to the protocol?
+
+00:17:57.340 --> 00:17:57.840
+Yes?
+
+00:17:57.840 --> 00:17:58.340
+What?
+
+00:17:58.340 --> 00:17:59.460
+AUDIENCE: [INAUDIBLE]
+
+00:17:59.460 --> 00:18:01.020
+HARI BALAKRISHNAN: Send multiple
+acknowledgments-- yeah, you
+
+00:18:01.020 --> 00:18:03.390
+could send multiple
+acknowledgments to every time.
+
+00:18:03.390 --> 00:18:04.680
+So you'd be doubling.
+
+00:18:04.680 --> 00:18:06.480
+Yeah, that's a little bit--
+
+00:18:06.480 --> 00:18:08.280
+but it's the right kind of idea.
+
+00:18:08.280 --> 00:18:09.760
+You want some sort
+of redundancy.
+
+00:18:09.760 --> 00:18:10.581
+Yeah?
+
+00:18:10.581 --> 00:18:14.180
+AUDIENCE: [INAUDIBLE]
+
+00:18:14.180 --> 00:18:15.180
+HARI BALAKRISHNAN: Yeah.
+
+00:18:15.180 --> 00:18:17.130
+That's actually not a bad idea.
+
+00:18:17.130 --> 00:18:19.710
+In a sense, you're sending
+multiple acknowledgments,
+
+00:18:19.710 --> 00:18:21.300
+but you're not just
+blindly sending
+
+00:18:21.300 --> 00:18:22.410
+multiple acknowledgment.
+
+00:18:22.410 --> 00:18:24.160
+But any time you send
+an acknowledgment,
+
+00:18:24.160 --> 00:18:26.190
+you could also say--
+
+00:18:26.190 --> 00:18:28.470
+sending the list of all
+packets you've received so far
+
+00:18:28.470 --> 00:18:29.280
+is a huge amount.
+
+00:18:29.280 --> 00:18:31.650
+Because if I send you a
+gigabyte movie, or something,
+
+00:18:31.650 --> 00:18:32.820
+I mean, by the
+end of that movie,
+
+00:18:32.820 --> 00:18:34.820
+you're just sending me a
+lot of acknowledgments.
+
+00:18:34.820 --> 00:18:36.350
+So you don't quite
+want to do that.
+
+00:18:36.350 --> 00:18:38.100
+But remember, the
+receiver has some idea.
+
+00:18:38.100 --> 00:18:39.600
+If it knew the
+window size, it would
+
+00:18:39.600 --> 00:18:44.400
+have some idea of what the
+number of things at the center.
+
+00:18:44.400 --> 00:18:47.100
+You could do something even
+simpler than all of that.
+
+00:18:47.100 --> 00:18:49.472
+One thing you could do is
+that the receiver, when
+
+00:18:49.472 --> 00:18:51.180
+it acknowledged the
+packet, wouldn't just
+
+00:18:51.180 --> 00:18:54.060
+acknowledge packet 7,
+when it got packet 7,
+
+00:18:54.060 --> 00:18:56.580
+but it might be able to send
+a cumulative acknowledgment.
+
+00:18:56.580 --> 00:18:59.220
+In other words, it
+could say, that when
+
+00:18:59.220 --> 00:19:01.680
+I send an acknowledgment,
+I guarantee
+
+00:19:01.680 --> 00:19:04.800
+to you that everything I've
+received up to this point--
+
+00:19:04.800 --> 00:19:05.490
+I'm sorry.
+
+00:19:05.490 --> 00:19:08.160
+I guarantee to you that all
+packets up to that point
+
+00:19:08.160 --> 00:19:09.860
+I have received.
+
+00:19:09.860 --> 00:19:12.330
+So if I tell you that
+my acknowledgment is 17,
+
+00:19:12.330 --> 00:19:14.790
+I guarantee you that
+there's nothing before 17
+
+00:19:14.790 --> 00:19:15.870
+that I've not received.
+
+00:19:15.870 --> 00:19:18.373
+And then I could, in addition,
+in the acknowledgment,
+
+00:19:18.373 --> 00:19:20.790
+tell you a little bit about
+some of the later packets I've
+
+00:19:20.790 --> 00:19:23.260
+received or some of the later
+packets that might be missing.
+
+00:19:23.260 --> 00:19:25.218
+So you can make this
+protocol have a little bit
+
+00:19:25.218 --> 00:19:26.160
+more redundancy.
+
+00:19:26.160 --> 00:19:29.310
+And if you do that, and
+you apply almost everything
+
+00:19:29.310 --> 00:19:32.070
+else I've taught,
+you get TCP, which is
+
+00:19:32.070 --> 00:19:33.480
+an extremely popular protocol.
+
+00:19:33.480 --> 00:19:36.990
+But that's about the only
+difference of significance
+
+00:19:36.990 --> 00:19:39.180
+between our protocol and TCP.
+
+00:19:39.180 --> 00:19:42.690
+Now, interestingly,
+our protocol,
+
+00:19:42.690 --> 00:19:45.198
+when you actually
+have loss rates
+
+00:19:45.198 --> 00:19:46.740
+in the forward and
+reverse directions
+
+00:19:46.740 --> 00:19:48.780
+that are roughly the
+same, our protocol
+
+00:19:48.780 --> 00:19:51.930
+actually does a little better
+than what TCP happens to do.
+
+00:19:51.930 --> 00:19:55.980
+But TCP is good at dealing
+with the reverse path having
+
+00:19:55.980 --> 00:19:58.780
+a higher degree of packet loss.
+
+00:19:58.780 --> 00:19:59.280
+OK.
+
+00:19:59.280 --> 00:20:06.650
+So the other question I want to
+ask people here, at this point,
+
+00:20:06.650 --> 00:20:09.410
+is let's say that you have
+a receiver that's running
+
+00:20:09.410 --> 00:20:11.310
+on an extremely simple device.
+
+00:20:11.310 --> 00:20:15.270
+So you don't want to
+have a lot of storage.
+
+00:20:15.270 --> 00:20:18.920
+Now, why would you need storage,
+before I get to that question?
+
+00:20:18.920 --> 00:20:20.390
+Let's take this picture here.
+
+00:20:20.390 --> 00:20:23.660
+So packet 2 hasn't
+yet been received.
+
+00:20:23.660 --> 00:20:25.190
+But in the meantime,
+the receiver
+
+00:20:25.190 --> 00:20:29.648
+has gotten packets 3 and 4
+and 5, all the way up to 12.
+
+00:20:29.648 --> 00:20:31.190
+So what does the
+receiver have to do?
+
+00:20:31.190 --> 00:20:33.650
+Well, the receiver, remember,
+before it delivers it
+
+00:20:33.650 --> 00:20:37.040
+to the application, it has
+to hold on to those packets.
+
+00:20:37.040 --> 00:20:39.908
+It can't deliver packet 3 to
+the application and packet 4
+
+00:20:39.908 --> 00:20:40.700
+to the application.
+
+00:20:40.700 --> 00:20:43.838
+Because the guarantee that
+the receiver is giving
+
+00:20:43.838 --> 00:20:45.380
+is that all packets
+will be delivered
+
+00:20:45.380 --> 00:20:48.170
+in exactly the same order
+in which they were sent.
+
+00:20:48.170 --> 00:20:50.660
+So the receiver has got
+to hold onto those packets
+
+00:20:50.660 --> 00:20:52.070
+until packet 2 shows up.
+
+00:20:54.620 --> 00:20:55.910
+Does that make sense?
+
+00:20:55.910 --> 00:20:56.410
+OK.
+
+00:20:56.410 --> 00:20:58.390
+How big can that
+receiver's buffer become?
+
+00:20:58.390 --> 00:20:59.830
+How big do you need to make it?
+
+00:20:59.830 --> 00:21:03.120
+Like, if you were implementing
+this on a computer,
+
+00:21:03.120 --> 00:21:04.718
+if you want to
+allocate memory for it,
+
+00:21:04.718 --> 00:21:06.010
+how big do you need to make it?
+
+00:21:11.180 --> 00:21:12.590
+AUDIENCE: [INAUDIBLE]
+
+00:21:12.590 --> 00:21:12.890
+HARI BALAKRISHNAN: What?
+
+00:21:12.890 --> 00:21:13.820
+AUDIENCE: [INAUDIBLE]
+
+00:21:13.820 --> 00:21:15.020
+HARI BALAKRISHNAN: Big enough
+to handle the timeout--
+
+00:21:15.020 --> 00:21:15.530
+good.
+
+00:21:15.530 --> 00:21:16.700
+How big can the timeout be?
+
+00:21:24.450 --> 00:21:26.530
+Well, the timeout can
+be some finite number.
+
+00:21:26.530 --> 00:21:28.030
+But think about what happens.
+
+00:21:28.030 --> 00:21:29.440
+Think about the timeout happens.
+
+00:21:29.440 --> 00:21:31.470
+You retransmit packet 2.
+
+00:21:31.470 --> 00:21:34.587
+And packet 2 is lost again.
+
+00:21:34.587 --> 00:21:36.920
+Now, in the meantime, the
+protocol is going to continue.
+
+00:21:36.920 --> 00:21:38.378
+Because all these
+other packets are
+
+00:21:38.378 --> 00:21:39.980
+going to keep getting
+acknowledgments,
+
+00:21:39.980 --> 00:21:41.813
+and they're going to
+keep causing the sender
+
+00:21:41.813 --> 00:21:42.880
+to keep sending packets.
+
+00:21:42.880 --> 00:21:46.160
+So if packet 2's
+retransmission were lost,
+
+00:21:46.160 --> 00:21:47.750
+we're going to be
+at this point here.
+
+00:21:47.750 --> 00:21:49.670
+We're still going to be
+sending, at this point
+
+00:21:49.670 --> 00:21:52.280
+in time, packet
+13 and whatever--
+
+00:21:52.280 --> 00:21:56.510
+13 and 14 and 15 and
+16, and so forth, right?
+
+00:21:56.510 --> 00:21:58.940
+Now, packet 2 could
+just keep getting lost.
+
+00:21:58.940 --> 00:22:00.980
+I mean, it may happen
+with low probability,
+
+00:22:00.980 --> 00:22:04.260
+but there's a probability
+that it'll happen.
+
+00:22:04.260 --> 00:22:05.810
+So how big does the
+receiver's buffer
+
+00:22:05.810 --> 00:22:07.730
+have to be in this
+implementation,
+
+00:22:07.730 --> 00:22:08.630
+in the worst case?
+
+00:22:15.177 --> 00:22:17.510
+Well, let's say that you don't
+know how big the file is.
+
+00:22:17.510 --> 00:22:22.220
+It's a continuous stream
+of packets that are sent.
+
+00:22:22.220 --> 00:22:23.605
+I mean, is that a bound?
+
+00:22:23.605 --> 00:22:24.980
+In the worst case,
+is that a real
+
+00:22:24.980 --> 00:22:27.500
+bound on the size of the buffer?
+
+00:22:27.500 --> 00:22:30.890
+Or can it grow to be as
+big as the entire stream
+
+00:22:30.890 --> 00:22:32.370
+that you're sending?
+
+00:22:32.370 --> 00:22:34.580
+It can grow to be
+really, really big.
+
+00:22:34.580 --> 00:22:37.693
+Now, this is a
+potential problem.
+
+00:22:37.693 --> 00:22:39.860
+Because it can keep growing
+and growing and growing.
+
+00:22:39.860 --> 00:22:41.485
+At some point, you're
+going to run out.
+
+00:22:41.485 --> 00:22:43.022
+You might run out of space.
+
+00:22:43.022 --> 00:22:44.480
+When you start to
+run out of space,
+
+00:22:44.480 --> 00:22:47.525
+it's tempting to just
+throw things out.
+
+00:22:47.525 --> 00:22:49.400
+So let's say that the
+receiver implements it.
+
+00:22:49.400 --> 00:22:51.650
+Somebody implements this
+protocol and just says,
+
+00:22:51.650 --> 00:22:53.450
+I'm going to just
+have 100 packets.
+
+00:22:53.450 --> 00:22:57.590
+The sender is running
+with a window size of 5.
+
+00:22:57.590 --> 00:23:01.010
+I'm just going to have a buffer
+of 100 packets, which says,
+
+00:23:01.010 --> 00:23:04.850
+the maximum number of packets
+I'm going to hold in my buffer,
+
+00:23:04.850 --> 00:23:11.700
+before I start discarding
+later packets, is 100.
+
+00:23:11.700 --> 00:23:13.290
+Does this protocol work?
+
+00:23:13.290 --> 00:23:15.670
+Is it correct if I do that?
+
+00:23:15.670 --> 00:23:16.170
+Yes?
+
+00:23:16.170 --> 00:23:17.712
+AUDIENCE: [INAUDIBLE]
+like a receiver
+
+00:23:17.712 --> 00:23:20.910
+just never acknowledges
+[INAUDIBLE] receives it
+
+00:23:20.910 --> 00:23:22.765
+[INAUDIBLE].
+
+00:23:22.765 --> 00:23:25.140
+HARI BALAKRISHNAN: OK, but
+what if I acknowledge a packet
+
+00:23:25.140 --> 00:23:26.940
+as soon as I get it?
+
+00:23:26.940 --> 00:23:29.220
+OK, if you acknowledge a
+packet as soon as you get it,
+
+00:23:29.220 --> 00:23:31.678
+the receiver's discipline, the
+guarantee it should provide,
+
+00:23:31.678 --> 00:23:34.440
+is if it acknowledges
+a packet, then
+
+00:23:34.440 --> 00:23:37.050
+it's told the sender that
+it's got the packet, which
+
+00:23:37.050 --> 00:23:39.360
+means the sender will
+never retransmit it,
+
+00:23:39.360 --> 00:23:41.910
+which means it shouldn't
+throw the packet away.
+
+00:23:41.910 --> 00:23:45.360
+So as long as the receiver
+only throws out packets
+
+00:23:45.360 --> 00:23:49.405
+that it doesn't
+acknowledge, you're OK.
+
+00:23:49.405 --> 00:23:50.280
+Does that make sense?
+
+00:23:50.280 --> 00:23:53.100
+So the discipline is it's just
+like writing a legal contract,
+
+00:23:53.100 --> 00:23:53.600
+right?
+
+00:23:53.600 --> 00:23:54.800
+That's what protocols are.
+
+00:23:54.800 --> 00:23:56.210
+It's just a bunch
+of legal contracts,
+
+00:23:56.210 --> 00:23:58.168
+and you try to make them
+as simple as possible.
+
+00:23:58.168 --> 00:24:00.320
+And you try hard, and you
+end up with 200 pages.
+
+00:24:00.320 --> 00:24:03.087
+But that's what lawyers also
+say-- yeah, it's really simple.
+
+00:24:03.087 --> 00:24:04.670
+But then you've got
+all these clauses.
+
+00:24:04.670 --> 00:24:05.930
+But the reality
+is that you've got
+
+00:24:05.930 --> 00:24:07.650
+to deal with all these
+[INAUDIBLE] cases.
+
+00:24:07.650 --> 00:24:09.483
+So protocols are nothing
+more than contracts
+
+00:24:09.483 --> 00:24:10.850
+that both sides agree upon.
+
+00:24:10.850 --> 00:24:12.500
+And the contract here
+from the receiver
+
+00:24:12.500 --> 00:24:13.620
+is actually pretty simple.
+
+00:24:13.620 --> 00:24:15.380
+It says, if I send
+you an acknowledgment,
+
+00:24:15.380 --> 00:24:17.338
+it means that I'm not
+throwing the packet away.
+
+00:24:20.120 --> 00:24:22.490
+What happens if I treat this
+protocol to do a little bit
+
+00:24:22.490 --> 00:24:24.470
+differently at the receiver?
+
+00:24:24.470 --> 00:24:27.590
+When I get a packet,
+if it's in order,
+
+00:24:27.590 --> 00:24:29.430
+I deliver it to the application.
+
+00:24:29.430 --> 00:24:31.500
+And after I deliver
+it to the application,
+
+00:24:31.500 --> 00:24:34.930
+I send an acknowledgment.
+
+00:24:34.930 --> 00:24:35.430
+OK?
+
+00:24:35.430 --> 00:24:38.700
+So in other words, I only send
+an acknowledgment to the sender
+
+00:24:38.700 --> 00:24:41.370
+after it's delivered
+up to the application.
+
+00:24:41.370 --> 00:24:44.048
+Otherwise, I don't.
+
+00:24:44.048 --> 00:24:45.840
+What happens to this
+protocol if I do that?
+
+00:24:45.840 --> 00:24:48.200
+Does it perform the
+same as what I describe?
+
+00:24:48.200 --> 00:24:49.950
+And remember, there's
+a subtle difference.
+
+00:24:49.950 --> 00:24:51.688
+The only difference
+is, in this protocol
+
+00:24:51.688 --> 00:24:53.730
+as I've described it, the
+receiver gets a packet,
+
+00:24:53.730 --> 00:24:56.040
+sends an acknowledgment,
+and then holds on to it
+
+00:24:56.040 --> 00:25:01.640
+in a buffer, if the packet's
+not the next packet in order.
+
+00:25:01.640 --> 00:25:05.360
+The modification I'm proposing
+is the receiver gets a packet,
+
+00:25:05.360 --> 00:25:08.780
+and only when it delivers
+it up to the application,
+
+00:25:08.780 --> 00:25:10.460
+does it send an acknowledgment.
+
+00:25:10.460 --> 00:25:14.870
+Otherwise, it doesn't
+send acknowledgment.
+
+00:25:14.870 --> 00:25:15.727
+Yes?
+
+00:25:15.727 --> 00:25:17.508
+AUDIENCE: [INAUDIBLE]
+
+00:25:17.508 --> 00:25:19.550
+HARI BALAKRISHNAN: Is it
+just like stop and wait?
+
+00:25:19.550 --> 00:25:23.112
+AUDIENCE: I think so,
+because [INAUDIBLE]..
+
+00:25:23.112 --> 00:25:25.320
+HARI BALAKRISHNAN: But if
+packets are not being lost,
+
+00:25:25.320 --> 00:25:28.650
+it's doing a lot better
+than stop and wait, right?
+
+00:25:28.650 --> 00:25:30.630
+If packets are not
+getting lost, it's doing--
+
+00:25:30.630 --> 00:25:32.505
+would you agree that if
+packets are not lost,
+
+00:25:32.505 --> 00:25:35.520
+it does better
+than stop and wait?
+
+00:25:35.520 --> 00:25:37.028
+In fact, if packets
+are not lost,
+
+00:25:37.028 --> 00:25:38.820
+is there any difference
+between my protocol
+
+00:25:38.820 --> 00:25:40.460
+and this [INAUDIBLE] modified?
+
+00:25:40.460 --> 00:25:40.960
+No.
+
+00:25:40.960 --> 00:25:41.790
+OK.
+
+00:25:41.790 --> 00:25:43.260
+But yet, you had a good thought.
+
+00:25:43.260 --> 00:25:44.280
+It looks like stop and wait.
+
+00:25:44.280 --> 00:25:45.420
+When does it look
+like stop and wait?
+
+00:25:45.420 --> 00:25:46.650
+AUDIENCE: [INAUDIBLE]
+
+00:25:46.650 --> 00:25:47.650
+HARI BALAKRISHNAN: Yeah.
+
+00:25:47.650 --> 00:25:49.923
+So that modification is,
+when packets are lost,
+
+00:25:49.923 --> 00:25:51.090
+it looks like stop and wait.
+
+00:25:51.090 --> 00:25:52.650
+Now, this is not a
+mere academic thing.
+
+00:25:52.650 --> 00:25:54.608
+So it turns out that
+there was a period of time
+
+00:25:54.608 --> 00:25:58.260
+in the '90s, where somebody in
+Linux TCP had the bright idea--
+
+00:25:58.260 --> 00:26:01.980
+it seemed like a bright idea--
+that that's what they would do.
+
+00:26:01.980 --> 00:26:04.140
+So for a period of time,
+there was a Linux TCP,
+
+00:26:04.140 --> 00:26:06.625
+where they said, well,
+it's all very complicated.
+
+00:26:06.625 --> 00:26:09.000
+Because what would happen was
+that sometimes, the machine
+
+00:26:09.000 --> 00:26:09.570
+would crash.
+
+00:26:09.570 --> 00:26:12.030
+And the sender thought that the
+packet had been acknowledged,
+
+00:26:12.030 --> 00:26:13.530
+but it hadn't actually
+been delivered up
+
+00:26:13.530 --> 00:26:14.470
+to the application.
+
+00:26:14.470 --> 00:26:16.350
+So let's just make it so
+the packets get delivered
+
+00:26:16.350 --> 00:26:18.600
+to the application, and only
+when the application does
+
+00:26:18.600 --> 00:26:19.468
+the read--
+
+00:26:19.468 --> 00:26:21.510
+for those of you who've
+done this sort of thing--
+
+00:26:21.510 --> 00:26:24.475
+from the socket buffer, and it's
+been out in the application,
+
+00:26:24.475 --> 00:26:26.100
+and out of the
+operating system, that's
+
+00:26:26.100 --> 00:26:27.558
+when we'll send
+the acknowledgment.
+
+00:26:27.558 --> 00:26:29.032
+And you [? read, ?] seemed OK.
+
+00:26:29.032 --> 00:26:30.490
+People said, that
+seems reasonable.
+
+00:26:30.490 --> 00:26:32.730
+And Linux, the way it
+seems, things seem to work,
+
+00:26:32.730 --> 00:26:34.105
+as people try out
+a lot of stuff.
+
+00:26:34.105 --> 00:26:36.510
+And then I suggest,
+from time to time,
+
+00:26:36.510 --> 00:26:38.550
+somebody declares that
+something is right.
+
+00:26:38.550 --> 00:26:40.620
+So anyway, they tried this out.
+
+00:26:40.620 --> 00:26:42.233
+And it actually
+didn't work as well.
+
+00:26:42.233 --> 00:26:43.650
+And the reason for
+that is, if you
+
+00:26:43.650 --> 00:26:46.300
+don't run on a high enough
+packet loss rate network,
+
+00:26:46.300 --> 00:26:49.710
+then what could happen is
+that you may get stuck.
+
+00:26:49.710 --> 00:26:52.920
+And it's very hard to notice
+these performance problems.
+
+00:26:52.920 --> 00:26:54.570
+Correctness problems
+are one thing,
+
+00:26:54.570 --> 00:26:56.370
+because the other side stops.
+
+00:26:56.370 --> 00:26:57.570
+It stops working.
+
+00:26:57.570 --> 00:26:59.610
+And you can corner it down.
+
+00:26:59.610 --> 00:27:02.873
+But this simple tweak, that
+looks perfectly reasonable,
+
+00:27:02.873 --> 00:27:04.290
+is actually a
+performance problem.
+
+00:27:04.290 --> 00:27:05.640
+And it doesn't show
+up all the time.
+
+00:27:05.640 --> 00:27:07.557
+It actually shows up
+only when the packet loss
+
+00:27:07.557 --> 00:27:09.150
+rate is reasonably high.
+
+00:27:09.150 --> 00:27:10.650
+So these are all
+examples of reasons
+
+00:27:10.650 --> 00:27:13.050
+why these protocols are
+not completely obvious
+
+00:27:13.050 --> 00:27:18.992
+and require a fair amount
+of care to get it to work.
+
+00:27:18.992 --> 00:27:20.950
+Are there any questions
+about any of the stuff?
+
+00:27:23.870 --> 00:27:26.360
+Is this all clear?
+
+00:27:26.360 --> 00:27:26.900
+OK.
+
+00:27:26.900 --> 00:27:29.300
+What I want to do now is to
+show a picture of something
+
+00:27:29.300 --> 00:27:32.990
+called a sequence plot,
+which is a very useful tool
+
+00:27:32.990 --> 00:27:35.310
+in understanding how these
+protocols actually work.
+
+00:27:35.310 --> 00:27:37.580
+So what you do to produce
+one of these plots
+
+00:27:37.580 --> 00:27:40.010
+is you run your protocol.
+
+00:27:40.010 --> 00:27:42.590
+And you plot out--
+at the sender,
+
+00:27:42.590 --> 00:27:45.680
+you plot out the times at
+which the sender sent out
+
+00:27:45.680 --> 00:27:49.610
+every sequence number, every
+time it transmitted a packet.
+
+00:27:49.610 --> 00:27:53.420
+And you plot that out
+as a function of time.
+
+00:27:53.420 --> 00:27:55.520
+The y-axis is the
+sequence number.
+
+00:27:55.520 --> 00:27:57.810
+The x-axis is time.
+
+00:27:57.810 --> 00:27:59.390
+And similarly, every
+time the sender
+
+00:27:59.390 --> 00:28:02.820
+gets an acknowledgment, you plot
+that out on the trace as well.
+
+00:28:02.820 --> 00:28:04.710
+So you look at these two traces.
+
+00:28:04.710 --> 00:28:08.230
+OK, this is a trace of packet
+transmissions, data packet
+
+00:28:08.230 --> 00:28:10.730
+transmissions, and this is a
+trace of ACK packet receptions.
+
+00:28:10.730 --> 00:28:12.110
+And you look at this picture.
+
+00:28:12.110 --> 00:28:16.297
+Now, the moment you get
+a picture like this,
+
+00:28:16.297 --> 00:28:18.380
+there's a few things you
+can immediately conclude.
+
+00:28:18.380 --> 00:28:19.880
+The first thing you
+can conclude is,
+
+00:28:19.880 --> 00:28:23.942
+that if I look at the distance
+between the data and the ACK,
+
+00:28:23.942 --> 00:28:25.400
+when there are no
+losses happening,
+
+00:28:25.400 --> 00:28:28.190
+if I look at that distance,
+that tells me the window size.
+
+00:28:28.190 --> 00:28:29.998
+Because that's the
+number of packets.
+
+00:28:29.998 --> 00:28:32.540
+Because the last acknowledgment,
+every time an acknowledgment
+
+00:28:32.540 --> 00:28:34.150
+happens, you send
+out a new packet.
+
+00:28:34.150 --> 00:28:38.675
+Therefore, the distance in
+sequence numbers between--
+
+00:28:38.675 --> 00:28:41.120
+in one of these vertical
+slices, when there are no packet
+
+00:28:41.120 --> 00:28:42.380
+losses, is the window size.
+
+00:28:45.350 --> 00:28:47.650
+You can also read off the
+typical round-trip time
+
+00:28:47.650 --> 00:28:48.400
+of the connection.
+
+00:28:48.400 --> 00:28:49.900
+Because the round-trip
+time is the time
+
+00:28:49.900 --> 00:28:51.760
+between when a packet,
+data packet, was sent
+
+00:28:51.760 --> 00:28:53.740
+and when you got an
+acknowledgment for it.
+
+00:28:53.740 --> 00:28:56.415
+So you can read
+that off as well.
+
+00:28:56.415 --> 00:28:59.830
+Those two pictures, there's an
+easy way for you in your lab
+
+00:28:59.830 --> 00:29:02.807
+9 to produce these pictures.
+
+00:29:02.807 --> 00:29:05.140
+So if you're running into
+things where things look slow,
+
+00:29:05.140 --> 00:29:08.800
+things look bad, you should just
+put up one of these pictures,
+
+00:29:08.800 --> 00:29:10.300
+and then it'll
+usually become pretty
+
+00:29:10.300 --> 00:29:11.380
+apparent what's going on.
+
+00:29:11.380 --> 00:29:13.210
+What may happen is
+that initially, things
+
+00:29:13.210 --> 00:29:13.835
+look like this.
+
+00:29:13.835 --> 00:29:15.400
+And all of a
+sudden, things stop.
+
+00:29:15.400 --> 00:29:16.510
+And you can start
+to see, well, I'm
+
+00:29:16.510 --> 00:29:17.890
+not getting
+acknowledgments, or I'm not
+
+00:29:17.890 --> 00:29:19.030
+sending data the right way.
+
+00:29:19.030 --> 00:29:21.435
+And these are very useful to
+understand what is going on.
+
+00:29:21.435 --> 00:29:22.810
+And generally
+speaking, these are
+
+00:29:22.810 --> 00:29:27.555
+useful to uncover performance
+issues rather than correctness.
+
+00:29:27.555 --> 00:29:28.930
+I mean, correctness,
+usually, you
+
+00:29:28.930 --> 00:29:33.080
+can iron out before
+you get to this stage.
+
+00:29:33.080 --> 00:29:34.965
+The retransmission
+timeout is the time
+
+00:29:34.965 --> 00:29:36.590
+between when you send
+a packet and when
+
+00:29:36.590 --> 00:29:38.382
+you send the retransmission
+for the packet.
+
+00:29:38.382 --> 00:29:41.990
+In this particular picture,
+the deviation from the mean
+
+00:29:41.990 --> 00:29:42.720
+was small.
+
+00:29:42.720 --> 00:29:44.750
+And that's why the
+retransmission timeout
+
+00:29:44.750 --> 00:29:49.420
+is only a little bit bigger
+than the mean round-trip time.
+
+00:29:49.420 --> 00:29:51.820
+Every time you see a packet
+that's off of that sequence
+
+00:29:51.820 --> 00:29:53.487
+[INAUDIBLE]---- so you
+see packets here.
+
+00:29:53.487 --> 00:29:54.700
+The pluses are data packets.
+
+00:29:54.700 --> 00:29:56.950
+And then you see
+something going normally.
+
+00:29:56.950 --> 00:30:00.570
+And then you see a lower
+sequence number retransmitted,
+
+00:30:00.570 --> 00:30:01.420
+sent here.
+
+00:30:01.420 --> 00:30:02.500
+That's a retransmission.
+
+00:30:02.500 --> 00:30:05.440
+So you see, normally, the new
+packets are all sent there.
+
+00:30:05.440 --> 00:30:07.070
+But the retransmissions
+show up before.
+
+00:30:07.070 --> 00:30:09.400
+So these are examples
+of retransmissions,
+
+00:30:09.400 --> 00:30:11.050
+and these are
+examples of packets
+
+00:30:11.050 --> 00:30:14.320
+that were retransmitted more
+than once, because they're
+
+00:30:14.320 --> 00:30:15.410
+timing out multiple times.
+
+00:30:15.410 --> 00:30:15.910
+Yes?
+
+00:30:15.910 --> 00:30:19.350
+AUDIENCE: [INAUDIBLE]
+
+00:30:19.350 --> 00:30:20.350
+HARI BALAKRISHNAN: Yeah.
+
+00:30:20.350 --> 00:30:22.933
+So the window size-- what's the
+definition of the window size?
+
+00:30:22.933 --> 00:30:25.610
+The maximum number of
+unacknowledged packets.
+
+00:30:25.610 --> 00:30:27.610
+So the maximum number of
+unacknowledged packets,
+
+00:30:27.610 --> 00:30:29.800
+when there are no packet
+losses that have happened,
+
+00:30:29.800 --> 00:30:33.520
+is the difference between the
+last packet you transmitted
+
+00:30:33.520 --> 00:30:35.335
+and the last
+acknowledgment you got.
+
+00:30:35.335 --> 00:30:37.210
+Because every time you
+got an acknowledgment,
+
+00:30:37.210 --> 00:30:38.770
+you send a new packet.
+
+00:30:38.770 --> 00:30:41.300
+And initially, you
+send out w packets.
+
+00:30:41.300 --> 00:30:43.780
+So if you continue that, so
+you initially send 1 to 5,
+
+00:30:43.780 --> 00:30:46.240
+then you send 2 to 6, 3 to 7.
+
+00:30:46.240 --> 00:30:49.960
+And the last ACK you had was
+2, when you sent out 3 to 7.
+
+00:30:49.960 --> 00:30:53.190
+So that distance tells
+you the window size.
+
+00:30:53.190 --> 00:30:54.750
+I might be off by 1.
+
+00:30:54.750 --> 00:30:56.670
+It's probably the
+last packet you
+
+00:30:56.670 --> 00:31:00.070
+sent minus the last
+acknowledgment you got plus 1,
+
+00:31:00.070 --> 00:31:04.742
+is the window size, or minus
+1, something like that.
+
+00:31:04.742 --> 00:31:06.450
+You've got to get that
+right on the quiz.
+
+00:31:06.450 --> 00:31:08.595
+Fortunately, I don't have
+to get it right here.
+
+00:31:08.595 --> 00:31:12.315
+[LAUGHTER]
+
+00:31:13.250 --> 00:31:15.778
+And then, some of these
+things here are later x's.
+
+00:31:15.778 --> 00:31:17.570
+And these are
+acknowledgments that show up.
+
+00:31:17.570 --> 00:31:20.390
+So these are packets that got
+retransmitted multiple times.
+
+00:31:20.390 --> 00:31:22.160
+These are
+acknowledgments that are
+
+00:31:22.160 --> 00:31:23.930
+for these retransmitted packets.
+
+00:31:23.930 --> 00:31:27.080
+And I say most probably, because
+I can't actually be sure.
+
+00:31:27.080 --> 00:31:29.870
+In principle, it could be
+that this acknowledgment here
+
+00:31:29.870 --> 00:31:33.980
+is for this packet, is
+for this data packet,
+
+00:31:33.980 --> 00:31:36.530
+that was actually originally
+transmitted over here,
+
+00:31:36.530 --> 00:31:38.180
+rather than for
+this retransmission.
+
+00:31:38.180 --> 00:31:40.910
+It's, in principle, possible
+that this acknowledgment
+
+00:31:40.910 --> 00:31:43.790
+was sent by the receiver
+upon the reception
+
+00:31:43.790 --> 00:31:44.982
+of a packet over here.
+
+00:31:44.982 --> 00:31:46.190
+It's just that it's unlikely.
+
+00:31:46.190 --> 00:31:47.540
+It's more likely
+that it was this,
+
+00:31:47.540 --> 00:31:49.070
+because that's the
+round-trip time that's
+
+00:31:49.070 --> 00:31:50.180
+consistent with that RTT.
+
+00:31:50.180 --> 00:31:53.008
+But you can't actually be sure.
+
+00:31:53.008 --> 00:31:55.550
+All you know is that this was
+an acknowledgment for that data
+
+00:31:55.550 --> 00:31:56.720
+packet.
+
+00:31:56.720 --> 00:31:59.360
+But most likely, it was
+for the retransmission.
+
+00:31:59.360 --> 00:32:01.490
+OK, so these sequence
+traces are generally pretty
+
+00:32:01.490 --> 00:32:04.155
+helpful and useful
+in understanding
+
+00:32:04.155 --> 00:32:05.780
+the performance of
+transport protocols,
+
+00:32:05.780 --> 00:32:10.030
+particularly sliding
+window protocols.
+
+00:32:10.030 --> 00:32:13.520
+So any questions?
+
+00:32:13.520 --> 00:32:14.020
+OK.
+
+00:32:14.020 --> 00:32:16.330
+So now I'm going to turn
+to the last remaining
+
+00:32:16.330 --> 00:32:21.040
+issue for these transport
+protocols, which is analogous
+
+00:32:21.040 --> 00:32:24.220
+to we did a calculation of
+the throughput of the stop
+
+00:32:24.220 --> 00:32:24.970
+and wait protocol.
+
+00:32:24.970 --> 00:32:27.635
+I want to look at the throughput
+of the sliding window protocol.
+
+00:32:27.635 --> 00:32:28.135
+OK.
+
+00:32:28.135 --> 00:32:32.200
+And I want to explain that
+by first actually explaining
+
+00:32:32.200 --> 00:32:33.070
+what the problem is.
+
+00:32:33.070 --> 00:32:36.250
+And then I want to
+go back and tell you
+
+00:32:36.250 --> 00:32:39.430
+about a very beautiful result,
+very widely applicable result,
+
+00:32:39.430 --> 00:32:44.243
+applies to everything from
+networking to how long
+
+00:32:44.243 --> 00:32:46.660
+you're going to wait to get
+served at a restaurant, called
+
+00:32:46.660 --> 00:32:47.590
+Little's Law.
+
+00:32:47.590 --> 00:32:52.150
+It's a remarkable result, very
+simple, and widely applicable.
+
+00:32:52.150 --> 00:32:54.260
+Everybody should know it.
+
+00:32:54.260 --> 00:32:56.380
+So the question here is,
+what's the throughput
+
+00:32:56.380 --> 00:32:57.130
+of sliding window?
+
+00:33:06.150 --> 00:33:09.180
+And in particular, if
+I had run a protocol
+
+00:33:09.180 --> 00:33:12.600
+in a network that looks like
+this-- so I have a sender.
+
+00:33:12.600 --> 00:33:15.120
+I have a receiver.
+
+00:33:15.120 --> 00:33:18.750
+There's some network
+path in between.
+
+00:33:18.750 --> 00:33:21.933
+And of course, this has
+a bunch of switches here.
+
+00:33:21.933 --> 00:33:24.350
+And I want to know what is the
+throughput of the protocol.
+
+00:33:24.350 --> 00:33:27.590
+And what I would like
+a few to tell you what
+
+00:33:27.590 --> 00:33:29.690
+the throughput is in terms of.
+
+00:33:29.690 --> 00:33:34.580
+So the sender has a window size
+w, according to this protocol.
+
+00:33:34.580 --> 00:33:38.120
+For now, we'll assume that
+there's no packet loss.
+
+00:33:38.120 --> 00:33:40.670
+That is, acknowledgment
+data packets are not lost,
+
+00:33:40.670 --> 00:33:42.770
+and acknowledgments
+are not lost.
+
+00:33:42.770 --> 00:33:44.330
+If I have time
+today, I'll come back
+
+00:33:44.330 --> 00:33:46.225
+to explaining what
+happens with packet loss.
+
+00:33:46.225 --> 00:33:48.350
+Otherwise, we'll pick it
+up in recitation tomorrow,
+
+00:33:48.350 --> 00:33:50.640
+or I'll point you to
+the place in the book.
+
+00:33:50.640 --> 00:33:53.240
+It's just a simple
+calculation that expands.
+
+00:33:53.240 --> 00:33:56.910
+The more important part is
+when there are no losses.
+
+00:33:56.910 --> 00:34:00.500
+Now, I'll also
+assume that there's
+
+00:34:00.500 --> 00:34:03.710
+links of different rates here.
+
+00:34:03.710 --> 00:34:07.310
+And one of these links on
+the path between sender
+
+00:34:07.310 --> 00:34:12.427
+and receiver is the link
+that is the bottleneck link.
+
+00:34:12.427 --> 00:34:14.719
+In other words, no matter
+what you do or who you bribe,
+
+00:34:14.719 --> 00:34:18.409
+you cannot send packets faster
+than the speed of that link.
+
+00:34:18.409 --> 00:34:21.540
+For simplicity, I'll assume
+that there's one bottleneck.
+
+00:34:21.540 --> 00:34:23.540
+The general results
+apply, even though there
+
+00:34:23.540 --> 00:34:25.000
+are multiple bottlenecks.
+
+00:34:25.000 --> 00:34:28.070
+But I'll assume that there's
+some bottleneck here.
+
+00:34:28.070 --> 00:34:31.639
+And I'll assume that its
+rate as c packets per second.
+
+00:34:35.639 --> 00:34:38.120
+And I will assume here,
+that because there's
+
+00:34:38.120 --> 00:34:42.139
+a bottleneck, in
+general, packets
+
+00:34:42.139 --> 00:34:44.750
+may show up faster than
+the bottleneck can handle.
+
+00:34:44.750 --> 00:34:46.909
+And if they do,
+they sit in a queue.
+
+00:34:50.300 --> 00:34:52.190
+And because I've
+constructed the problems
+
+00:34:52.190 --> 00:34:53.690
+so packets don't
+get lost, the queue
+
+00:34:53.690 --> 00:34:55.489
+can have an arbitrary length.
+
+00:34:55.489 --> 00:34:57.920
+It could be potentially--
+it could grow unbounded.
+
+00:34:57.920 --> 00:35:00.440
+Though, in reality, it
+won't, because the sender
+
+00:35:00.440 --> 00:35:03.140
+has a fixed window size of w.
+
+00:35:03.140 --> 00:35:05.090
+Now, all of this
+analysis and calculation
+
+00:35:05.090 --> 00:35:07.880
+will apply when there are many,
+many people transmitting data,
+
+00:35:07.880 --> 00:35:09.682
+sharing this bottleneck.
+
+00:35:09.682 --> 00:35:12.140
+So you can have multiple set
+senders to multiple receivers,
+
+00:35:12.140 --> 00:35:14.830
+and they'll all share
+this link in some way.
+
+00:35:14.830 --> 00:35:17.150
+And for now, today,
+all I'll assume
+
+00:35:17.150 --> 00:35:19.050
+is that there's one
+user of the network.
+
+00:35:19.050 --> 00:35:23.780
+It's not hard to extend the same
+calculation to multiple users.
+
+00:35:23.780 --> 00:35:25.850
+And the question is,
+what is the throughput
+
+00:35:25.850 --> 00:35:31.240
+in terms of the window size and
+in terms of these other things?
+
+00:35:31.240 --> 00:35:35.540
+Now, in order to
+answer this question,
+
+00:35:35.540 --> 00:35:37.290
+it'll turn out that
+the throughput depends
+
+00:35:37.290 --> 00:35:39.457
+on the window size, and
+also on the round-trip time,
+
+00:35:39.457 --> 00:35:44.430
+and also on the loss
+rate, and also on--
+
+00:35:44.430 --> 00:35:47.340
+in a certain mode,
+it will depend on c.
+
+00:35:47.340 --> 00:35:48.880
+It can't exceed c.
+
+00:35:48.880 --> 00:35:50.580
+OK?
+
+00:35:50.580 --> 00:35:52.380
+But in order to
+understand how to solve
+
+00:35:52.380 --> 00:35:53.803
+these kinds of
+questions, there's
+
+00:35:53.803 --> 00:35:55.470
+a more general result
+that's more widely
+
+00:35:55.470 --> 00:35:58.410
+applicable, called Little's Law,
+which I want to tell you about.
+
+00:35:58.410 --> 00:36:01.290
+So Little's Law applies
+to any queuing system.
+
+00:36:01.290 --> 00:36:04.470
+It applies to any system where
+there's some big black box
+
+00:36:04.470 --> 00:36:11.550
+here, and the black box has
+a queue sitting inside it,
+
+00:36:11.550 --> 00:36:14.760
+and the queue
+drains at some rate.
+
+00:36:14.760 --> 00:36:16.200
+So you have a
+queue sitting here.
+
+00:36:16.200 --> 00:36:19.590
+Things arrive into the queue.
+
+00:36:19.590 --> 00:36:24.430
+I'll call that the
+arrival process,
+
+00:36:24.430 --> 00:36:27.000
+which I'll represent by A.
+And then things come out
+
+00:36:27.000 --> 00:36:29.590
+of the queue, according
+to some service process,
+
+00:36:29.590 --> 00:36:36.570
+which I'll represent
+by S. By the way,
+
+00:36:36.570 --> 00:36:38.110
+Little is a professor at MIT.
+
+00:36:38.110 --> 00:36:41.670
+I think he wrote this
+result, this law.
+
+00:36:41.670 --> 00:36:43.590
+Well, I don't think he
+called it Little's Law,
+
+00:36:43.590 --> 00:36:45.030
+but other people did.
+
+00:36:47.910 --> 00:36:50.130
+So he did this work,
+I think, in the 1950s.
+
+00:36:50.130 --> 00:36:53.370
+And what's beautiful
+about this result
+
+00:36:53.370 --> 00:36:56.910
+is that it relates
+three parameters.
+
+00:36:56.910 --> 00:36:59.280
+It relates the--
+
+00:36:59.280 --> 00:37:02.880
+I'll call it N. It relates N,
+the average number of items
+
+00:37:02.880 --> 00:37:05.670
+that you have in this
+system, in the queue,
+
+00:37:05.670 --> 00:37:07.750
+or in this black box.
+
+00:37:07.750 --> 00:37:10.410
+It relates that to
+the service rate
+
+00:37:10.410 --> 00:37:14.790
+and to the average delay
+experienced by an item that
+
+00:37:14.790 --> 00:37:17.850
+sits inside this black box.
+
+00:37:17.850 --> 00:37:19.530
+So let me relate
+the three again.
+
+00:37:19.530 --> 00:37:28.590
+It relates N, which is
+the average number, to D,
+
+00:37:28.590 --> 00:37:31.450
+which is the average delay--
+
+00:37:31.450 --> 00:37:35.280
+so I'm going to put a bar above
+the fact that it's an average--
+
+00:37:35.280 --> 00:37:42.510
+to lambda, which is
+the average rate.
+
+00:37:42.510 --> 00:37:44.980
+Now, the result applies
+to a stable system.
+
+00:37:44.980 --> 00:37:46.830
+What that means is it
+applies to a system
+
+00:37:46.830 --> 00:37:50.107
+where the queue doesn't
+grow unbounded to infinity.
+
+00:37:50.107 --> 00:37:51.690
+In other words, it
+applies to a system
+
+00:37:51.690 --> 00:37:55.110
+where the service rate-- if
+the arrivals are persistently
+
+00:37:55.110 --> 00:37:57.870
+bigger than the service, then
+it doesn't matter what you do.
+
+00:37:57.870 --> 00:37:59.495
+The queue is going
+to grow to infinity,
+
+00:37:59.495 --> 00:38:01.890
+and the delay is going
+to grow to infinity,
+
+00:38:01.890 --> 00:38:03.800
+and N is going to
+grow to infinity.
+
+00:38:03.800 --> 00:38:06.660
+So you're going to get
+a relationship that's
+
+00:38:06.660 --> 00:38:08.490
+not of much practical use.
+
+00:38:08.490 --> 00:38:10.500
+But otherwise, if the
+rate at which things
+
+00:38:10.500 --> 00:38:13.723
+come out of the system, in
+a stable system, is lambda--
+
+00:38:13.723 --> 00:38:15.390
+which, if it's a
+stable system, the rate
+
+00:38:15.390 --> 00:38:18.240
+at which things enter the
+system can't exceed it either.
+
+00:38:18.240 --> 00:38:21.900
+But it relates the
+service rate lambda
+
+00:38:21.900 --> 00:38:25.860
+for a stable system that doesn't
+grow unbounded to N entity.
+
+00:38:25.860 --> 00:38:27.920
+OK?
+
+00:38:27.920 --> 00:38:31.420
+So let me give this
+first by example.
+
+00:38:31.420 --> 00:38:34.700
+How many of you guys
+have used the food truck?
+
+00:38:34.700 --> 00:38:38.360
+All right, so last week, I
+did a little experiment there.
+
+00:38:38.360 --> 00:38:40.670
+And I found that--
+this is all real data.
+
+00:38:40.670 --> 00:38:46.310
+I found that, at least
+the [? Thai ?] truck,
+
+00:38:46.310 --> 00:38:51.810
+they seem to take about 20
+seconds per person, on average.
+
+00:38:51.810 --> 00:38:52.310
+OK?
+
+00:38:58.778 --> 00:39:00.320
+And when I showed
+up there-- and this
+
+00:39:00.320 --> 00:39:01.580
+wasn't an average calculation.
+
+00:39:01.580 --> 00:39:03.530
+But I showed up there, and
+there were 20 people ahead of me
+
+00:39:03.530 --> 00:39:04.030
+in the line.
+
+00:39:12.195 --> 00:39:13.605
+And the question,
+of course, is I
+
+00:39:13.605 --> 00:39:15.480
+don't care how many
+people there are in line.
+
+00:39:15.480 --> 00:39:18.490
+What I care about is, how
+long do I have to wait?
+
+00:39:18.490 --> 00:39:20.100
+Assuming that the
+random sample I did
+
+00:39:20.100 --> 00:39:24.720
+was the average, which who
+knows if it was or not,
+
+00:39:24.720 --> 00:39:27.748
+looking at these two numbers,
+what's the waiting time?
+
+00:39:27.748 --> 00:39:28.790
+In other words, what's D?
+
+00:39:32.060 --> 00:39:33.740
+10 minutes?
+
+00:39:33.740 --> 00:39:34.550
+Is it?
+
+00:39:34.550 --> 00:39:35.760
+I didn't wait 10 minutes.
+
+00:39:35.760 --> 00:39:37.394
+How do you get 10?
+
+00:39:37.394 --> 00:39:38.278
+AUDIENCE: [INAUDIBLE]
+
+00:39:38.278 --> 00:39:39.320
+HARI BALAKRISHNAN: I see.
+
+00:39:39.320 --> 00:39:39.870
+It might be.
+
+00:39:39.870 --> 00:39:40.720
+So I got 30.
+
+00:39:40.720 --> 00:39:41.470
+So I had it as 20.
+
+00:39:41.470 --> 00:39:42.560
+All right, it might be 10.
+
+00:39:42.560 --> 00:39:43.160
+Why is it 10?
+
+00:39:46.520 --> 00:39:48.200
+How do you conclude
+that it was 10?
+
+00:39:51.070 --> 00:39:51.730
+Who said 10?
+
+00:39:51.730 --> 00:39:52.660
+AUDIENCE: [INAUDIBLE]
+
+00:39:52.660 --> 00:39:53.050
+HARI BALAKRISHNAN: Why?
+
+00:39:53.050 --> 00:39:55.592
+AUDIENCE: Well, so it'd be like,
+[? if you have ?] 30 people,
+
+00:39:55.592 --> 00:39:59.450
+then you have [INAUDIBLE]
+[? per person ?] [INAUDIBLE]..
+
+00:39:59.450 --> 00:40:00.600
+HARI BALAKRISHNAN: Yeah.
+
+00:40:00.600 --> 00:40:01.100
+Right.
+
+00:40:01.100 --> 00:40:03.200
+So what this says--
+what you did was
+
+00:40:03.200 --> 00:40:07.250
+you just said that D must be
+equal to N over lambda, right?
+
+00:40:07.250 --> 00:40:09.410
+Or N is lambda
+times D. So if you
+
+00:40:09.410 --> 00:40:13.950
+say that it's 20 seconds per
+person, is 3 people per minute.
+
+00:40:13.950 --> 00:40:18.110
+So what you do is you do 30
+people divided by 3 per minute.
+
+00:40:18.110 --> 00:40:19.240
+And so you get 10 minutes.
+
+00:40:22.260 --> 00:40:23.953
+So that's about right.
+
+00:40:23.953 --> 00:40:24.870
+That is exactly right.
+
+00:40:24.870 --> 00:40:29.030
+So Little's Law just tells
+you that the average number
+
+00:40:29.030 --> 00:40:31.640
+of items in a system-- this
+is all applicable to various
+
+00:40:31.640 --> 00:40:34.460
+conditions on stable
+systems, and so forth--
+
+00:40:34.460 --> 00:40:37.790
+it says the average number of
+items, or packets, or people,
+
+00:40:37.790 --> 00:40:42.470
+or whatever, is equal to the
+product of the rate at which
+
+00:40:42.470 --> 00:40:45.260
+the system is servicing them
+multiplied by the average delay
+
+00:40:45.260 --> 00:40:46.400
+that they experience.
+
+00:40:46.400 --> 00:40:48.650
+So knowing two of them, you
+can calculate the third.
+
+00:40:48.650 --> 00:40:51.650
+And what's truly, truly
+remarkable about the result
+
+00:40:51.650 --> 00:40:55.670
+is that it applies to anything
+that you do in the system.
+
+00:40:55.670 --> 00:40:57.500
+Packets could arrive,
+or jobs could arrive,
+
+00:40:57.500 --> 00:41:00.178
+or people could arrive, in
+some arbitrary distribution.
+
+00:41:00.178 --> 00:41:02.720
+They could be serviced according
+to some completely arbitrary
+
+00:41:02.720 --> 00:41:03.465
+distribution.
+
+00:41:03.465 --> 00:41:05.840
+They don't have to be serviced
+in the order in which they
+
+00:41:05.840 --> 00:41:06.340
+arrive.
+
+00:41:06.340 --> 00:41:07.790
+They could be shuffled around.
+
+00:41:07.790 --> 00:41:10.670
+You could make it so
+people who come in last
+
+00:41:10.670 --> 00:41:11.540
+get serviced first.
+
+00:41:11.540 --> 00:41:14.220
+You could do whatever, and
+the result still applies.
+
+00:41:14.220 --> 00:41:14.720
+Yes?
+
+00:41:14.720 --> 00:41:17.145
+AUDIENCE: [INAUDIBLE]
+delay [INAUDIBLE]??
+
+00:41:21.403 --> 00:41:22.320
+HARI BALAKRISHNAN: No.
+
+00:41:22.320 --> 00:41:24.300
+Well, I kind of cheated
+here a little bit.
+
+00:41:24.300 --> 00:41:26.210
+This is 20 seconds per person.
+
+00:41:26.210 --> 00:41:28.710
+But whenever I tell you a number
+like that, what this really
+
+00:41:28.710 --> 00:41:31.230
+says, that this is
+3 people per minute.
+
+00:41:33.850 --> 00:41:36.840
+So it looks like a
+delay, but this is really
+
+00:41:36.840 --> 00:41:40.020
+an inverse of a
+rate in the way--
+
+00:41:40.020 --> 00:41:44.586
+this is the inverse of the rate
+in the way I've described it.
+
+00:41:44.586 --> 00:41:46.110
+I mean, it's
+intuitive to say they
+
+00:41:46.110 --> 00:41:48.360
+take 20 seconds per person.
+
+00:41:48.360 --> 00:41:50.760
+But when I tell you that it
+takes 20 seconds per packet
+
+00:41:50.760 --> 00:41:52.860
+or 20 seconds per person,
+it looks like a delay.
+
+00:41:52.860 --> 00:41:54.600
+But it's really a rate.
+
+00:41:54.600 --> 00:41:55.350
+So it's important.
+
+00:41:55.350 --> 00:41:56.320
+That's a good question.
+
+00:41:56.320 --> 00:41:57.390
+Yeah, so this is a rate.
+
+00:41:57.390 --> 00:42:00.117
+So this is inverse time.
+
+00:42:00.117 --> 00:42:02.200
+And this is whatever
+quantity you're dealing with.
+
+00:42:02.200 --> 00:42:05.030
+So if you then take the ratio
+of N to lambda, you get time.
+
+00:42:07.900 --> 00:42:09.950
+OK, so why is Little's Law true?
+
+00:42:09.950 --> 00:42:12.490
+So here's a very simple
+pictorially proof
+
+00:42:12.490 --> 00:42:13.960
+of Little's Law.
+
+00:42:13.960 --> 00:42:16.305
+And it applies under
+specific conditions.
+
+00:42:16.305 --> 00:42:17.680
+But it turns out
+these conditions
+
+00:42:17.680 --> 00:42:19.880
+are good enough for our use.
+
+00:42:19.880 --> 00:42:22.190
+So let's say we draw a
+picture like this of a queue.
+
+00:42:22.190 --> 00:42:24.160
+So I'm going to assume that
+packets enter the queue
+
+00:42:24.160 --> 00:42:24.830
+and leave the queue.
+
+00:42:24.830 --> 00:42:26.830
+Now, the fact that there's
+a single queue, versus
+
+00:42:26.830 --> 00:42:27.790
+not a queue, doesn't matter.
+
+00:42:27.790 --> 00:42:28.750
+It's any black box.
+
+00:42:28.750 --> 00:42:30.970
+So p.packets could
+get-- or information
+
+00:42:30.970 --> 00:42:35.440
+or messages or items could
+get sent from the sender.
+
+00:42:35.440 --> 00:42:38.470
+They enter a black box, and they
+get stuck out at the receiver.
+
+00:42:38.470 --> 00:42:42.200
+And the thing applies
+to that as well.
+
+00:42:42.200 --> 00:42:44.170
+So let me plot the
+number of packets
+
+00:42:44.170 --> 00:42:46.570
+in the queue, or the number
+of items in the queue,
+
+00:42:46.570 --> 00:42:47.900
+as a function of time.
+
+00:42:47.900 --> 00:42:51.963
+So I'm going to assume here that
+capital T is extremely long.
+
+00:42:51.963 --> 00:42:53.380
+Whenever I deal
+with rates, I have
+
+00:42:53.380 --> 00:42:55.505
+to look at what happens
+over a long period of time,
+
+00:42:55.505 --> 00:42:57.500
+and then I can calculate a rate.
+
+00:42:57.500 --> 00:42:59.740
+So you can see that
+what I've done here
+
+00:42:59.740 --> 00:43:02.620
+is, that every time a packet
+arrives or an item arrives,
+
+00:43:02.620 --> 00:43:04.210
+the queue increments by 1.
+
+00:43:04.210 --> 00:43:07.480
+So you can see that the
+y-axis, the height of each
+
+00:43:07.480 --> 00:43:09.460
+of those little
+snippets here is 1.
+
+00:43:09.460 --> 00:43:11.450
+And then every time it
+leaves, it drops by 1.
+
+00:43:11.450 --> 00:43:14.230
+So you get-- in a
+particular execution
+
+00:43:14.230 --> 00:43:16.732
+of whatever the
+queue does, you get
+
+00:43:16.732 --> 00:43:17.940
+a trace that looks like this.
+
+00:43:17.940 --> 00:43:19.898
+Now, of course, in a
+different execution,
+
+00:43:19.898 --> 00:43:21.190
+the details might be different.
+
+00:43:21.190 --> 00:43:24.040
+But if you do it for
+a long enough time,
+
+00:43:24.040 --> 00:43:27.340
+you're going to sample all
+the possible evolutions
+
+00:43:27.340 --> 00:43:29.110
+of this thing, or at
+least enough of it,
+
+00:43:29.110 --> 00:43:30.850
+so you can make
+meaningful statements.
+
+00:43:30.850 --> 00:43:33.310
+So whenever a packet arrives,
+I've shown it in a color.
+
+00:43:33.310 --> 00:43:35.590
+And I think I've matched the
+color up against whenever
+
+00:43:35.590 --> 00:43:36.700
+that packet leaves.
+
+00:43:36.700 --> 00:43:38.320
+But in fact, the
+result applies--
+
+00:43:38.320 --> 00:43:42.007
+this particular example is
+a first-in, first-out queue.
+
+00:43:42.007 --> 00:43:44.090
+So packets leave in the
+same order they were sent.
+
+00:43:44.090 --> 00:43:46.880
+But that doesn't
+have to be true.
+
+00:43:46.880 --> 00:43:51.020
+So let me label these
+packets as shown here.
+
+00:43:51.020 --> 00:43:52.510
+Now, what I'm going
+to try to do is
+
+00:43:52.510 --> 00:43:55.750
+to relate the rate at which
+packets have entered or left
+
+00:43:55.750 --> 00:43:58.840
+the queue to the number
+of items in the queue
+
+00:43:58.840 --> 00:44:01.030
+and the average
+delay experienced
+
+00:44:01.030 --> 00:44:05.860
+by each item in the queue,
+in this pictorially proof.
+
+00:44:05.860 --> 00:44:07.503
+So the way you do
+that is everything
+
+00:44:07.503 --> 00:44:08.920
+has to do with the
+fact that there
+
+00:44:08.920 --> 00:44:10.360
+are two different
+ways of looking
+
+00:44:10.360 --> 00:44:12.310
+at the area under this curve.
+
+00:44:12.310 --> 00:44:14.480
+And there's two different ways.
+
+00:44:14.480 --> 00:44:17.290
+One of them relates to
+the rate, and the other
+
+00:44:17.290 --> 00:44:18.550
+relates to the average delay.
+
+00:44:18.550 --> 00:44:22.570
+And then we're going to say, all
+right, the area under the curve
+
+00:44:22.570 --> 00:44:23.950
+is the same, and
+therefore, we're
+
+00:44:23.950 --> 00:44:25.233
+going to equate two numbers.
+
+00:44:25.233 --> 00:44:26.650
+So the first thing
+I'm going to do
+
+00:44:26.650 --> 00:44:30.160
+is I'm going to divide this
+up, the area under the curve,
+
+00:44:30.160 --> 00:44:32.620
+and divide it up into rectangles
+like this and associate
+
+00:44:32.620 --> 00:44:35.810
+with each rectangle
+a packet, or an item.
+
+00:44:35.810 --> 00:44:37.960
+So I'm going to say
+that A showed up here,
+
+00:44:37.960 --> 00:44:39.680
+and it left at that point.
+
+00:44:39.680 --> 00:44:42.550
+So this entire
+period of time here
+
+00:44:42.550 --> 00:44:45.940
+corresponds to packet
+A sitting in the queue.
+
+00:44:45.940 --> 00:44:48.790
+This entire period of
+time corresponds to B. A
+
+00:44:48.790 --> 00:44:50.210
+left at this point in time.
+
+00:44:50.210 --> 00:44:51.920
+So now my queue
+was three packets,
+
+00:44:51.920 --> 00:44:54.810
+and they're B, C, D. And
+then, at this point in time, E
+
+00:44:54.810 --> 00:44:55.450
+showed up.
+
+00:44:55.450 --> 00:44:57.400
+So we now have C
+and D sitting here.
+
+00:44:57.400 --> 00:45:00.137
+But now E showed up, and then
+F showed up, and so forth.
+
+00:45:00.137 --> 00:45:01.720
+So you agree that I
+can divide this up
+
+00:45:01.720 --> 00:45:04.570
+into rectangles and associate
+with each little rectangle,
+
+00:45:04.570 --> 00:45:07.442
+whose height is 1,
+a particular packet.
+
+00:45:07.442 --> 00:45:09.150
+And that is the same
+packet in the queue.
+
+00:45:09.150 --> 00:45:11.440
+So the height represents
+a particular packet,
+
+00:45:11.440 --> 00:45:15.040
+and I associate every little
+piece of this queue picture
+
+00:45:15.040 --> 00:45:19.210
+with a given packet.
+
+00:45:19.210 --> 00:45:22.180
+Now, let's assume that we run
+this experiment for a long time
+
+00:45:22.180 --> 00:45:28.040
+T, capital T. And P packets were
+forwarded through the system.
+
+00:45:28.040 --> 00:45:28.900
+So what is the rate?
+
+00:45:32.748 --> 00:45:35.047
+AUDIENCE: [INAUDIBLE]
+
+00:45:35.047 --> 00:45:36.880
+HARI BALAKRISHNAN: P
+packets per T seconds--
+
+00:45:36.880 --> 00:45:39.450
+so the rate is clearly
+lambda is P over T. Right?
+
+00:45:39.450 --> 00:45:40.810
+This is easy.
+
+00:45:40.810 --> 00:45:41.310
+OK.
+
+00:45:41.310 --> 00:45:41.810
+Great.
+
+00:45:44.360 --> 00:45:48.530
+Now, let's assume that
+the area under the curve
+
+00:45:48.530 --> 00:45:53.030
+is A. This is the entire
+area under the curve here.
+
+00:45:53.030 --> 00:45:56.060
+Now, this is an area
+under the curve of N of T,
+
+00:45:56.060 --> 00:45:59.210
+which is the number of
+packets, as a function of T.
+
+00:45:59.210 --> 00:46:04.173
+So if I take this area under
+the curve, which is the same--
+
+00:46:04.173 --> 00:46:05.840
+if you think of it
+in continuous domain,
+
+00:46:05.840 --> 00:46:08.000
+it's the integral of N of T--
+
+00:46:08.000 --> 00:46:10.110
+and I divide by T,
+I get that number.
+
+00:46:10.110 --> 00:46:10.610
+Right?
+
+00:46:10.610 --> 00:46:13.730
+You agree that the mean
+number of packets in the queue
+
+00:46:13.730 --> 00:46:16.490
+is the integral of
+N of T, which is
+
+00:46:16.490 --> 00:46:19.510
+the number of packets in the
+queue at any point in time.
+
+00:46:19.510 --> 00:46:21.680
+If I take that integral,
+and I divide by capital T,
+
+00:46:21.680 --> 00:46:23.597
+I get the mean number
+of packets in the queue.
+
+00:46:23.597 --> 00:46:27.740
+All it says is this is the total
+number of packets in the queue
+
+00:46:27.740 --> 00:46:28.610
+over--
+
+00:46:28.610 --> 00:46:30.050
+aggregated across all time.
+
+00:46:30.050 --> 00:46:33.020
+Therefore, to find the
+average, I take the integral,
+
+00:46:33.020 --> 00:46:37.361
+and I divide by T. That's
+the definition of the mean.
+
+00:46:37.361 --> 00:46:39.300
+All right, so now
+we have two things.
+
+00:46:39.300 --> 00:46:41.600
+We have the rate
+is P over T. And we
+
+00:46:41.600 --> 00:46:43.670
+have that the mean number
+of packets in the queue
+
+00:46:43.670 --> 00:46:47.510
+is A over T, where A is
+the area under the curve.
+
+00:46:47.510 --> 00:46:50.900
+Now, to complete the puzzle,
+what we have to observe
+
+00:46:50.900 --> 00:46:53.398
+is, that if you look at the
+same area under the curve,
+
+00:46:53.398 --> 00:46:54.690
+you can look at it in two ways.
+
+00:46:54.690 --> 00:46:56.523
+The one way to look at
+it is the mean number
+
+00:46:56.523 --> 00:46:58.620
+of packets in the queue
+is some line through here,
+
+00:46:58.620 --> 00:47:01.760
+which is the area under
+that curve divided by T.
+
+00:47:01.760 --> 00:47:05.270
+But each of these things
+accounts for a certain delay.
+
+00:47:05.270 --> 00:47:08.600
+And the mean delay
+experienced by the packet
+
+00:47:08.600 --> 00:47:12.290
+is simply the area
+under this entire curve,
+
+00:47:12.290 --> 00:47:16.490
+but it's divided into all of the
+packets that ever got forwarded
+
+00:47:16.490 --> 00:47:17.370
+through the system.
+
+00:47:17.370 --> 00:47:18.980
+So through this
+experiment, P packets
+
+00:47:18.980 --> 00:47:20.600
+got forwarded by the system.
+
+00:47:20.600 --> 00:47:22.700
+And the area under
+the curve also
+
+00:47:22.700 --> 00:47:24.920
+represents a total
+aggregate delay.
+
+00:47:24.920 --> 00:47:27.260
+Because if I look at
+it with this axis here,
+
+00:47:27.260 --> 00:47:28.740
+that's the total time.
+
+00:47:28.740 --> 00:47:31.550
+So that's the total time spent.
+
+00:47:31.550 --> 00:47:34.160
+And if I take this entire
+area under the curve,
+
+00:47:34.160 --> 00:47:36.145
+and I look at that
+area under the curve,
+
+00:47:36.145 --> 00:47:38.780
+and I divide by the number
+of packets that I sent,
+
+00:47:38.780 --> 00:47:43.190
+that gives me the average
+time that a given packet spent
+
+00:47:43.190 --> 00:47:47.520
+in the queue, which means that
+the mean delay is A over P.
+
+00:47:47.520 --> 00:47:53.360
+So if I take A over P and
+multiply it by P over T, what
+
+00:47:53.360 --> 00:47:58.010
+I get is A over T,
+which is equal to N.
+
+00:47:58.010 --> 00:48:00.932
+And that's Little's Law.
+
+00:48:00.932 --> 00:48:02.640
+So now we're going to
+apply Little's Law.
+
+00:48:02.640 --> 00:48:04.500
+I mean, it's actually
+a very intuitive idea.
+
+00:48:04.500 --> 00:48:07.613
+It just says, that if I
+take the rate, average rate,
+
+00:48:07.613 --> 00:48:09.530
+and the average delay,
+and I multiply the two,
+
+00:48:09.530 --> 00:48:12.182
+I get the average number
+that's sitting in the system.
+
+00:48:12.182 --> 00:48:13.640
+So in order to
+complete the picture
+
+00:48:13.640 --> 00:48:16.820
+for the throughput of this
+sliding window protocol, what
+
+00:48:16.820 --> 00:48:18.740
+we're going to do is
+to apply Little's Law
+
+00:48:18.740 --> 00:48:20.940
+in a couple of different ways.
+
+00:48:20.940 --> 00:48:23.420
+We're going to say, that if
+the window size is w in that
+
+00:48:23.420 --> 00:48:30.227
+protocol, and the
+round-trip time is RTT--
+
+00:48:30.227 --> 00:48:32.060
+that's the time between
+when I send a packet
+
+00:48:32.060 --> 00:48:34.700
+and get an acknowledgment back--
+
+00:48:34.700 --> 00:48:36.060
+I first apply Little's Law.
+
+00:48:36.060 --> 00:48:38.210
+So now I have a big black box.
+
+00:48:38.210 --> 00:48:39.650
+I send out packets.
+
+00:48:39.650 --> 00:48:41.900
+And every time I receive
+an acknowledgment,
+
+00:48:41.900 --> 00:48:44.150
+I send out another packet.
+
+00:48:44.150 --> 00:48:47.300
+And I never send out
+more than w packets.
+
+00:48:47.300 --> 00:48:50.180
+So the average delay
+between when I send a packet
+
+00:48:50.180 --> 00:48:54.290
+and when I get an
+acknowledgment for it is RTT.
+
+00:48:54.290 --> 00:48:58.100
+So that's the D in the
+Little's Law formula.
+
+00:48:58.100 --> 00:48:59.850
+The number of things
+that I have sitting
+
+00:48:59.850 --> 00:49:01.850
+in this black box inside
+the network, the number
+
+00:49:01.850 --> 00:49:03.600
+of outstanding things
+that I have that are
+
+00:49:03.600 --> 00:49:06.950
+waiting to be processed, is w.
+
+00:49:06.950 --> 00:49:10.370
+And therefore, the rate
+is, by Little's Law,
+
+00:49:10.370 --> 00:49:12.970
+N over D, which is w over RTT.
+
+00:49:15.560 --> 00:49:19.490
+So therefore, the
+throughput of this protocol
+
+00:49:19.490 --> 00:49:22.160
+is simply equal to w over RTT.
+
+00:49:28.210 --> 00:49:32.540
+So if I increase w, I
+get higher throughput.
+
+00:49:32.540 --> 00:49:37.210
+So if I draw this as a
+function of the window size w,
+
+00:49:37.210 --> 00:49:39.640
+I look at the throughput here.
+
+00:49:39.640 --> 00:49:43.793
+I get a linear
+increase like that.
+
+00:49:43.793 --> 00:49:46.210
+Now, the problem with this is,
+of course, you look at this
+
+00:49:46.210 --> 00:49:48.335
+and go, well, the best way
+to get higher and higher
+
+00:49:48.335 --> 00:49:51.050
+and higher throughput is to
+keep increasing the window size.
+
+00:49:51.050 --> 00:49:54.730
+So what happens if I-- does
+this keep going on forever,
+
+00:49:54.730 --> 00:49:57.230
+that all I have to do is to
+keep increasing the window size,
+
+00:49:57.230 --> 00:49:59.991
+and then I'm getting
+infinite throughput?
+
+00:50:02.940 --> 00:50:04.210
+That's clearly not happening.
+
+00:50:04.210 --> 00:50:04.980
+So what happens?
+
+00:50:04.980 --> 00:50:08.400
+Why is it that it's completely
+true that w over RTT
+
+00:50:08.400 --> 00:50:09.660
+is the throughput.
+
+00:50:09.660 --> 00:50:12.630
+So why is it that I can't just
+keep increasing the window size
+
+00:50:12.630 --> 00:50:15.447
+and get infinite throughput?
+
+00:50:18.280 --> 00:50:18.780
+Yeah?
+
+00:50:18.780 --> 00:50:20.398
+AUDIENCE: [INAUDIBLE]
+
+00:50:20.398 --> 00:50:22.690
+HARI BALAKRISHNAN: Well, it's
+true you're bounded by c.
+
+00:50:22.690 --> 00:50:24.710
+But yet, this formula is true.
+
+00:50:24.710 --> 00:50:25.210
+Right?
+
+00:50:25.210 --> 00:50:27.218
+It's true that there's
+some round-trip time.
+
+00:50:27.218 --> 00:50:28.760
+So what's really
+going on, of course,
+
+00:50:28.760 --> 00:50:31.030
+is that if you increase
+the window size more
+
+00:50:31.030 --> 00:50:33.580
+than a certain amount,
+all that's going to happen
+
+00:50:33.580 --> 00:50:37.330
+is the packets are going to
+get stuck in this queue here.
+
+00:50:37.330 --> 00:50:39.478
+And they're going to start
+draining at some rate, c
+
+00:50:39.478 --> 00:50:40.270
+packets per second.
+
+00:50:40.270 --> 00:50:41.728
+But they're just
+going to get stuck
+
+00:50:41.728 --> 00:50:44.048
+at the back end of the queue.
+
+00:50:44.048 --> 00:50:46.090
+When they get stuck at
+the back end of the queue,
+
+00:50:46.090 --> 00:50:47.845
+the RTT is no longer fixed.
+
+00:50:47.845 --> 00:50:50.660
+The RTT now also starts going.
+
+00:50:50.660 --> 00:50:53.470
+So in other words,
+the throughput
+
+00:50:53.470 --> 00:50:54.660
+is always this formula.
+
+00:50:54.660 --> 00:50:57.160
+But initially, when the packets
+are no longer in the queue--
+
+00:50:57.160 --> 00:50:59.440
+until a certain point,
+initially, you said one packet.
+
+00:50:59.440 --> 00:51:00.130
+It goes through.
+
+00:51:00.130 --> 00:51:01.300
+You have a window
+of two packets.
+
+00:51:01.300 --> 00:51:02.440
+They go through,
+and you get ACKs.
+
+00:51:02.440 --> 00:51:04.180
+Three packets, they go
+through and get ACKs.
+
+00:51:04.180 --> 00:51:06.520
+At some point in time, they
+start to fill up the queue.
+
+00:51:06.520 --> 00:51:10.780
+And when they start to fill
+up the queue, w keeps growing.
+
+00:51:10.780 --> 00:51:12.190
+But RTT keeps growing.
+
+00:51:12.190 --> 00:51:15.460
+And what ends up happening is
+this ratio doesn't exceed c.
+
+00:51:15.460 --> 00:51:18.730
+So you end up with throughput
+that looks like that.
+
+00:51:18.730 --> 00:51:21.070
+And the point at which
+this happens here,
+
+00:51:21.070 --> 00:51:24.220
+this point here is
+actually a product
+
+00:51:24.220 --> 00:51:27.460
+of the minimum RTT
+of the system, which
+
+00:51:27.460 --> 00:51:31.240
+is the round-trip time in
+the absence of any queuing.
+
+00:51:31.240 --> 00:51:33.100
+I'm going to call that RTT min.
+
+00:51:33.100 --> 00:51:34.990
+And that depends
+on the propagation
+
+00:51:34.990 --> 00:51:37.270
+delay and the
+transmission delay,
+
+00:51:37.270 --> 00:51:38.560
+but not on the queuing delay.
+
+00:51:38.560 --> 00:51:39.970
+If there's no
+queues, and there's
+
+00:51:39.970 --> 00:51:41.530
+a certain minimum
+round-trip time-- like,
+
+00:51:41.530 --> 00:51:43.822
+it takes 100 milliseconds to
+go to California and back,
+
+00:51:43.822 --> 00:51:45.010
+or whatever.
+
+00:51:45.010 --> 00:51:48.010
+Now, when queues start to grow,
+that RTT starts increasing.
+
+00:51:48.010 --> 00:51:51.920
+But until that point happens,
+the round-trip time is RTT min.
+
+00:51:51.920 --> 00:51:55.450
+And if I take that, and
+I multiply that by c,
+
+00:51:55.450 --> 00:51:57.970
+that's the critical
+window size up
+
+00:51:57.970 --> 00:52:00.453
+to which point there are
+no queue packets that
+
+00:52:00.453 --> 00:52:01.370
+build up in the queue.
+
+00:52:01.370 --> 00:52:03.830
+But after that, packets start
+to build up in the queue.
+
+00:52:03.830 --> 00:52:08.450
+And there's a name given to this
+product of the bottleneck link
+
+00:52:08.450 --> 00:52:11.260
+speed, or bandwidth,
+and RTT min.
+
+00:52:11.260 --> 00:52:14.840
+It's called the
+bandwidth delay product.
+
+00:52:14.840 --> 00:52:17.470
+It's the product of the
+bandwidth and the delay,
+
+00:52:17.470 --> 00:52:19.640
+where the delay is the
+minimum round-trip time.
+
+00:52:19.640 --> 00:52:21.070
+And if I were to
+draw an analogous
+
+00:52:21.070 --> 00:52:25.510
+picture of the actual
+round-trip time
+
+00:52:25.510 --> 00:52:27.402
+as a function of
+the window size,
+
+00:52:27.402 --> 00:52:29.110
+initially, when the
+window size is small,
+
+00:52:29.110 --> 00:52:33.440
+the round-trip time is
+RTT min, with some value.
+
+00:52:33.440 --> 00:52:35.650
+And then, at this
+point in time--
+
+00:52:35.650 --> 00:52:37.390
+I want to mimic
+this thing here--
+
+00:52:37.390 --> 00:52:39.950
+you get to this point in time,
+which is the bandwidth delay
+
+00:52:39.950 --> 00:52:40.450
+product.
+
+00:52:40.450 --> 00:52:43.160
+And then the round-trip
+time starts to grow.
+
+00:52:43.160 --> 00:52:44.610
+So this is the actual delay.
+
+00:52:47.440 --> 00:52:48.820
+And so you look at this picture.
+
+00:52:48.820 --> 00:52:50.890
+And a well-designed,
+well-running protocol
+
+00:52:50.890 --> 00:52:53.530
+will run with a window
+size roughly around here,
+
+00:52:53.530 --> 00:52:55.480
+where it gets the highest
+possible throughput
+
+00:52:55.480 --> 00:52:57.210
+at the lowest possible delay.
+
+00:52:57.210 --> 00:52:59.710
+But sometimes, you might end
+up running with a bigger window
+
+00:52:59.710 --> 00:53:00.580
+size.
+
+00:53:00.580 --> 00:53:02.620
+You're not going to get
+any faster throughput,
+
+00:53:02.620 --> 00:53:06.190
+but what you would see is
+increasingly higher delay.
+
+00:53:06.190 --> 00:53:08.560
+Now, in real networks,
+designing protocols
+
+00:53:08.560 --> 00:53:10.390
+that run at this
+nice, sweet spot
+
+00:53:10.390 --> 00:53:12.180
+is an extremely
+challenging problem.
+
+00:53:12.180 --> 00:53:14.338
+I'll get back to this
+problem on Wednesday
+
+00:53:14.338 --> 00:53:15.880
+and talk about how
+people work on it.
+
+00:53:15.880 --> 00:53:18.112
+It's still a somewhat
+open problem.
+
+00:53:18.112 --> 00:53:19.570
+In fact, it's still
+an open problem
+
+00:53:19.570 --> 00:53:21.937
+in things like cellular
+wireless networks.
+
+00:53:21.937 --> 00:53:23.270
+So I'll come back to this point.
+
+00:53:23.270 --> 00:53:24.770
+But the main point
+here is this idea
+
+00:53:24.770 --> 00:53:26.880
+of a bandwidth delay product.

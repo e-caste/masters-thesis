@@ -1,0 +1,201 @@
+WEBVTT
+
+1
+00:00:01.000 --> 00:00:07.000 
+We look at insert now and we had already a
+glimpse of a feeling that the insert is a
+
+2
+00:00:07.000 --> 00:00:15.000 
+little bit difficult, because we made now
+assumptions like the dictionary is sorted
+
+3
+00:00:15.000 --> 00:00:24.000 
+and the whole relation is sorted. How do we
+maintain the sorted sequences and the answer
+
+4
+00:00:24.000 --> 00:00:31.000 
+is we can not. We will not maintain. And we
+will look at this here what this means.
+
+5
+00:00:31.000 --> 00:00:39.000 
+We have our relation again and we want to
+insert into world population Karen Schulze,
+
+6
+00:00:39.000 --> 00:00:52.000 
+female, Germany, Rostock and that's her birthday.
+That’s pretty recent. This is nice. So it’s
+
+7
+00:00:52.000 --> 00:01:02.000 
+an online real-time system and she just got
+born and has to go into the worldwide table.
+
+8
+00:01:02.000 --> 00:01:08.000 
+Actually this will come. The worldwide table
+will come. The Indians have identified all
+
+9
+00:01:08.000 --> 00:01:17.000 
+people and they all got a number. They have
+already a relation of all Indians, 1.2 billion,
+
+10
+00:01:17.000 --> 00:01:28.000 
+with a unique identifier. So this is that,
+science fiction. So we wanna insert her and
+
+11
+00:01:28.000 --> 00:01:34.000 
+there are a few issues with that now. We don’t
+have to talk about what happens in a row store,
+
+12
+00:01:34.000 --> 00:01:46.000 
+we just add and append the tuple and probably
+maintain one or multiple indices.
+
+13
+00:01:46.000 --> 00:01:50.000 
+Here we add now Schulze.
+
+14
+00:01:50.000 --> 00:02:02.000 
+The interesting thing is we can reuse Schulze,
+Schulze is already in the dictionary.
+
+15
+00:02:02.000 --> 00:02:16.000 
+We can add it at the end, append the value
+id and continue with the next field, Rostock.
+
+16
+00:02:16.000 --> 00:02:20.000 
+And here we have some bad luck.
+
+17
+00:02:20.000 --> 00:02:28.000 
+Rostock is not in. Then we have to add in
+the dictionary Rostock.
+
+18
+00:02:28.000 --> 00:02:35.000 
+We are lucky, we can put it at the end because
+Rostock comes after Potsdam - very unlikely
+
+19
+00:02:35.000 --> 00:02:36.000 
+that this happens in reality.
+
+20
+00:02:36.000 --> 00:02:44.000 
+We append the value in the city vector.
+
+21
+00:02:44.000 --> 00:02:49.000 
+We wanna do this now for Karen and now we
+are running out of like it’s not in.
+
+22
+00:02:49.000 --> 00:03:01.000 
+Second we append the new value and now we
+have to resort the dictionary.
+
+23
+00:03:01.000 --> 00:03:05.000 
+We resort the dictionary, then Karen comes
+into the right position.
+
+24
+00:03:05.000 --> 00:03:15.000 
+And now we have to change all value id’s
+of the first name.
+
+25
+00:03:15.000 --> 00:03:26.000 
+And append the new value id in the attribute
+vector of the first name.
+
+26
+00:03:26.000 --> 00:03:33.000 
+That sounds already fishy, so that takes a
+few operations in the databases, especially
+
+27
+00:03:33.000 --> 00:03:43.000 
+when you think about reassigning the 5 million
+first names coding to the 8 billion people.
+
+28
+00:03:43.000 --> 00:03:52.000 
+So this is 8 billion change operations. Even
+on a machine which does 2.5 billion per second,
+
+29
+00:03:52.000 --> 00:03:58.000 
+we are already in the seconds here. So all
+of the sudden, our great performance advantage
+
+30
+00:03:58.000 --> 00:04:18.000 
+is breaking down. But this is how we do it
+and since it is so time consuming we have
+
+31
+00:04:18.000 --> 00:04:25.000 
+to keep in mind that we have to develop some
+thing that separates the storage areas and
+
+32
+00:04:25.000 --> 00:04:36.000 
+we will do this later. The system still would
+work, but when ever the dictionary changes,
+
+33
+00:04:36.000 --> 00:04:40.000 
+and it’s not an append in the dictionary,
+the dictionary has to be resorted, something
+
+34
+00:04:40.000 --> 00:04:45.000 
+is happening. If the dictionary is not sorted,
+yes, this works, then we have always full
+
+35
+00:04:45.000 --> 00:04:50.000 
+dictionary scans instead of direct access
+in the dictionary and we would feel a significant
+
+36
+00:04:50.000 --> 00:04:58.000 
+performance negotiation in all operations.
+So there is a consequence: We wanna have the
+
+37
+00:04:58.000 --> 00:05:03.000 
+operations fast, in most operations or in
+all operations we need the dictionary, so
+
+38
+00:05:03.000 --> 00:05:12.000 
+the dictionary access has to be binary and
+therefore we have to sort the dictionary.
+
+39
+00:05:12.000 --> 00:05:19.000 
+That means when dictionary changes or taking
+place, we have to do something and the consequence
+
+40
+00:05:19.000 --> 00:05:26.000 
+of that is, the area on top of which, on to
+we have to apply the dictionary changes, the
+
+41
+00:05:26.000 --> 00:07:26.000 
+area has to be relatively small.

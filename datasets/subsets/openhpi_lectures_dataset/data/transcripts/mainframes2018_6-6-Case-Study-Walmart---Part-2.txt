@@ -1,0 +1,729 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.510 
+And another question I think many mainstream people who use Sysplex
+
+2
+00:00:05.620 --> 00:00:10.570 
+and Parallel Sysplex know the coupling facility. You contributed to a
+
+3
+00:00:10.690 --> 00:00:15.370 
+redbook coupling facility beyond the basics, and my question is
+
+4
+00:00:15.690 --> 00:00:20.530 
+what is a coupling facility data table and what for they use it?
+
+5
+00:00:21.180 --> 00:00:27.340 
+That's a very good question. Coupling facility data table is a centralized repository
+
+6
+00:00:28.410 --> 00:00:32.580 
+for multiple types of purposes. It's
+
+7
+00:00:33.590 --> 00:00:37.490 
+primary purpose is to be similar to that of a VSAM file an
+
+8
+00:00:37.490 --> 00:00:43.380 
+in memory VSAM file. The definition in CICS is a typical or standard
+
+9
+00:00:43.390 --> 00:00:47.310 
+audio definition for a file, and in the file you can specify
+
+10
+00:00:47.430 --> 00:00:49.150 
+if it's native VSAM
+
+11
+00:00:49.890 --> 00:00:55.850 
+or local VSAM. An LSR or Local Short Resource VSAM or RLS-
+
+12
+00:00:55.860 --> 00:00:59.570 
+for a Record Level Sharing VSAM or SDT which is a Shared Data
+
+13
+00:00:59.570 --> 00:01:04.290 
+Table which is an in memory for a single audipspace or a CF.
+
+14
+00:01:04.550 --> 00:01:08.220 
+The CF type of file is a coupling facility data table.
+
+15
+00:01:08.760 --> 00:01:12.360 
+And what it does, it allows you to have a shared repository in memory
+
+16
+00:01:12.790 --> 00:01:16.340 
+that all servers in every el part across the plex
+
+17
+00:01:16.830 --> 00:01:21.050 
+can use. Okay so instead of having a follow only region that you
+
+18
+00:01:21.050 --> 00:01:24.200 
+would have to for a shared file were instead of VSAM RLS which
+
+19
+00:01:24.200 --> 00:01:27.160 
+is a persistent VSAM file, you can have an actually in memory.
+
+20
+00:01:27.880 --> 00:01:30.890 
+So we have a variety of ways that we use it. We use it as a
+
+21
+00:01:30.890 --> 00:01:34.590 
+scratchpad. We use it for passing data back and forth between a
+
+22
+00:01:35.420 --> 00:01:40.040 
+parent and child application. Our primary use for is in our
+
+23
+00:01:40.040 --> 00:01:44.370 
+caching solution- we call it Z Cache or out on good habits ZECS for enterprise
+
+24
+00:01:44.820 --> 00:01:48.340 
+caching services. So we use the
+
+25
+00:01:49.040 --> 00:01:53.210 
+CFDT as our in-memory type of cache. Some things are better
+
+26
+00:01:53.210 --> 00:01:57.330 
+suited for in-memory instead of persistent or some things are better persistent.
+
+27
+00:01:57.480 --> 00:02:00.630 
+So you have to, based upon what your requirements are, you still
+
+28
+00:02:00.740 --> 00:02:05.330 
+define it as a file in CICS but based upon the
+
+29
+00:02:05.330 --> 00:02:09.670 
+internal setting it's CFDT or local VSAM. Now here's the powerful part about that.
+
+30
+00:02:09.870 --> 00:02:15.110 
+So CICS is an app server, a transaction router, a web server, whatever
+
+31
+00:02:15.110 --> 00:02:18.330 
+you want it to be. It's multi purpose, supports multiple languages.
+
+32
+00:02:18.330 --> 00:02:23.710 
+I believe it's the the most robust app server on the market
+
+33
+00:02:23.710 --> 00:02:26.230 
+today, because it supports all these different languages and features.
+
+34
+00:02:26.530 --> 00:02:28.970 
+It provides these really simple to use APIs.
+
+35
+00:02:29.410 --> 00:02:33.410 
+So in our caching service, we could define for example, Wolfram
+
+36
+00:02:33.410 --> 00:02:36.460 
+you create a instance of your ZCache service, Richard creates
+
+37
+00:02:36.460 --> 00:02:40.280 
+his own versions of that service. Your requirements need it to be
+
+38
+00:02:40.470 --> 00:02:43.390 
+persistent to disk, so when we provision it,
+
+39
+00:02:43.840 --> 00:02:45.720 
+we would create is as VSAM RLS.
+
+40
+00:02:46.530 --> 00:02:50.740 
+And Richard, he needs is non persistent therefore, we put his in
+
+41
+00:02:50.740 --> 00:02:55.740 
+memory as a CFDT. The program does not change. The ZCache code
+
+42
+00:02:55.750 --> 00:02:59.530 
+does exact same exe css read file write file based on the
+
+43
+00:02:59.530 --> 00:03:01.980 
+audio definition needed right to VSAM RLS, which is
+
+44
+00:03:02.840 --> 00:03:07.680 
+the CFDT. So here again, you can have one code base with one API,
+
+45
+00:03:07.700 --> 00:03:11.580 
+but yet two or multiple different repositories based
+
+46
+00:03:11.580 --> 00:03:15.270 
+upon the needs of each individual use of that service, ok.
+
+47
+00:03:17.440 --> 00:03:21.390 
+Do you have any outages during the last years?
+
+48
+00:03:23.180 --> 00:03:27.560 
+Well that's a very good question. So we have a
+
+49
+00:03:27.570 --> 00:03:32.500 
+two dedicated parallel Sysplexes for our cloud services and
+
+50
+00:03:32.750 --> 00:03:36.660 
+for example in our zcache or Zram or our key-value database,
+
+51
+00:03:37.010 --> 00:03:40.470 
+you can configure each instance to be either active single
+
+52
+00:03:40.470 --> 00:03:44.560 
+in a single parallel sysplex, active active across two parallel
+
+53
+00:03:44.560 --> 00:03:48.760 
+Sysplex were active, or standby across two with asynchronous replication.
+
+54
+00:03:49.960 --> 00:03:56.660 
+Our first user of Zcache was an application called retail link and
+
+55
+00:03:56.860 --> 00:04:01.990 
+it stores state information in our caching service and they required
+
+56
+00:04:02.180 --> 00:04:05.060 
+active active across both parallel Sysplexes because their
+
+57
+00:04:05.060 --> 00:04:06.980 
+applications lived in two different data centers.
+
+58
+00:04:08.010 --> 00:04:10.350 
+They average about fifteen million hits per day.
+
+59
+00:04:10.810 --> 00:04:13.200 
+They've been in production since twenty thirteen, so
+
+60
+00:04:14.720 --> 00:04:18.810 
+six years it's about thirty two billion hits that they've
+
+61
+00:04:18.810 --> 00:04:22.820 
+processed to our z cache. Thirty two billion hits,
+
+62
+00:04:23.280 --> 00:04:26.420 
+zero failures. Zero failures, I don't know you can find many
+
+63
+00:04:26.470 --> 00:04:29.560 
+products that can do that. But here's one something interesting I
+
+64
+00:04:29.850 --> 00:04:33.130 
+remember when it was Rich a couple years, back we did take a
+
+65
+00:04:33.190 --> 00:04:37.210 
+brief outage on one of the Parallel Sysplexes. I don't remember what the details were,
+
+66
+00:04:38.100 --> 00:04:40.680 
+however because we did active active replication
+
+67
+00:04:41.270 --> 00:04:45.790 
+for within our Z Cache service, the retailing customers didn't experience the outage,
+
+68
+00:04:46.160 --> 00:04:48.880 
+because it would go ahead and go to the active system,
+
+69
+00:04:49.610 --> 00:04:52.090 
+and then when the other system came back active we would go
+
+70
+00:04:52.090 --> 00:04:55.640 
+ahead and copy and replicate and then the data would be active on both sides.
+
+71
+00:04:55.970 --> 00:04:59.590 
+So here again even if there was an outage in one of the Sysplexes, the
+
+72
+00:04:59.590 --> 00:05:03.180 
+way we designed our services to run active active or active standby,
+
+73
+00:05:03.930 --> 00:05:06.610 
+none of the applications actually experienced any issues.
+
+74
+00:05:08.220 --> 00:05:14.060 
+Great. Really, really impressing your numbers and the last question -
+
+75
+00:05:14.270 --> 00:05:19.090 
+did your company think about all the native platforms for processing your transaction workload?
+
+76
+00:05:21.070 --> 00:05:24.410 
+Yes. A couple things are first I want to address- a question
+
+77
+00:05:25.000 --> 00:05:29.410 
+or something that we hear a lot, that's about cloud first of
+
+78
+00:05:29.410 --> 00:05:32.940 
+all I'd like to say that cloud is not a where it's a how. Cloud
+
+79
+00:05:32.940 --> 00:05:36.240 
+does not mean a remote service, remote host, CLoud can be local, can be raw,
+
+80
+00:05:36.640 --> 00:05:39.300 
+can be x y or z platform. It doesn't matter. Cloud is a delivery
+
+81
+00:05:39.300 --> 00:05:42.810 
+model. It's a how not a where. So when you hear about- let's put
+
+82
+00:05:42.810 --> 00:05:45.460 
+things in the cloud there is no 'the cloud'.
+
+83
+00:05:46.610 --> 00:05:50.450 
+Cloud is a delivery model ok and it's really important for people to understand that.
+
+84
+00:05:50.990 --> 00:05:54.220 
+That being the case we have a lot of applications that look
+
+85
+00:05:54.220 --> 00:05:57.590 
+for software that were off prim of the Z platform or even
+
+86
+00:05:57.590 --> 00:06:00.480 
+off prim of Walmart, because they wanted to be cloud based.
+
+87
+00:06:00.890 --> 00:06:05.360 
+So while there have been a lot of challenges running
+
+88
+00:06:05.360 --> 00:06:09.240 
+off prim on Z, or running outside of our data center walls,
+
+89
+00:06:09.640 --> 00:06:12.690 
+when there have been failures or have been challenges
+
+90
+00:06:12.690 --> 00:06:16.150 
+that did not meet our needs, people have come to our team to
+
+91
+00:06:16.150 --> 00:06:18.760 
+me and Rich and to the other to find technicians on our team
+
+92
+00:06:19.500 --> 00:06:23.510 
+to use the current service we have or even develop new services, for example
+
+93
+00:06:24.080 --> 00:06:27.260 
+there's an application that needed to have an event
+
+94
+00:06:27.260 --> 00:06:31.010 
+control process where they send in millions upon millions of
+
+95
+00:06:32.310 --> 00:06:36.990 
+events to log and then do searches on those events looking
+
+96
+00:06:36.990 --> 00:06:39.950 
+for a needle in a haystack, and they tried some other products
+
+97
+00:06:40.150 --> 00:06:44.410 
+off- prim. They tried some "in the cloud", wherever the heck that is,
+
+98
+00:06:44.950 --> 00:06:48.430 
+and it didn't work. In fact, it failed miserably and so they
+
+99
+00:06:48.430 --> 00:06:51.770 
+approached our team and we developed a product
+
+100
+00:06:51.770 --> 00:06:54.420 
+called ECP- Event Control Process that
+
+101
+00:06:55.270 --> 00:06:58.650 
+initially, day one production is running about five million
+
+102
+00:06:58.650 --> 00:07:01.910 
+transactions a day, and by this time next year,
+
+103
+00:07:01.920 --> 00:07:04.080 
+one of the service types will be running five hundred million
+
+104
+00:07:04.080 --> 00:07:08.090 
+transactions a day, and another service type we're in the process developing today,
+
+105
+00:07:08.230 --> 00:07:11.050 
+will be another five hundred million. That's a billion transactions
+
+106
+00:07:11.050 --> 00:07:14.520 
+a day that we will be running on z/OS. So to answer your question, yes
+
+107
+00:07:16.250 --> 00:07:18.130 
+developers have looked for other solutions
+
+108
+00:07:18.630 --> 00:07:24.080 
+off of z/OS. However when they look for the RAS, capabilities that Z provides,
+
+109
+00:07:24.350 --> 00:07:28.410 
+the reliability, availability scalability, they
+
+110
+00:07:28.760 --> 00:07:32.140 
+typically come back to us and look what the z platform provides.
+
+111
+00:07:32.820 --> 00:07:34.590 
+And something to, to think about.
+
+112
+00:07:35.620 --> 00:07:38.010 
+Going back to my little rant on cloud
+
+113
+00:07:38.640 --> 00:07:41.450 
+there's five essential characteristics cloud- there's self service,
+
+114
+00:07:41.450 --> 00:07:43.420 
+provisioning, there's metered measured service,
+
+115
+00:07:43.850 --> 00:07:45.220 
+there's broad network access,
+
+116
+00:07:46.240 --> 00:07:50.760 
+there's pooled shared resources. It's very important
+
+117
+00:07:50.760 --> 00:07:54.270 
+understand that z/OS out of the box has four of these five.
+
+118
+00:07:54.270 --> 00:07:56.260 
+The fifth one being the self service provisioning.
+
+119
+00:07:56.680 --> 00:08:00.630 
+IBM's been addressing with SMF and some other projects as well.
+
+120
+00:08:01.010 --> 00:08:04.380 
+So when you look at what z/OS provides out of the box, it's
+
+121
+00:08:04.380 --> 00:08:06.780 
+already cloud-like to begin with, and with a little bit of work,
+
+122
+00:08:06.780 --> 00:08:09.520 
+a little bit of creative coding, you can create a natural cloud
+
+123
+00:08:09.520 --> 00:08:12.040 
+delivery model and a cloud service provider on z/OS.
+
+124
+00:08:13.250 --> 00:08:19.010 
+I like to add to that though that even though IBM is working on
+
+125
+00:08:19.680 --> 00:08:22.830 
+things like Randy mentioned, COSMF and the
+
+126
+00:08:23.710 --> 00:08:28.980 
+like, you know a lot of us have already developed a ton
+
+127
+00:08:28.980 --> 00:08:30.960 
+of automation over the years
+
+128
+00:08:31.710 --> 00:08:35.370 
+to satisfy our immediate consumers.
+
+129
+00:08:36.190 --> 00:08:38.860 
+And you know I think
+
+130
+00:08:39.460 --> 00:08:46.330 
+that shouldn't be ignored. Randy and I have taken that, maybe a step further
+
+131
+00:08:46.630 --> 00:08:49.730 
+to make sure we satisfy every need of a consumer,
+
+132
+00:08:50.860 --> 00:08:53.890 
+but a lot of shops already do a lot of automation, and it's
+
+133
+00:08:53.890 --> 00:08:57.280 
+just a matter of taking that maybe a step further
+
+134
+00:08:57.770 --> 00:09:02.930 
+and making sure that your consumers are taken care of immediately,
+
+135
+00:09:03.030 --> 00:09:07.330 
+automatically, buy the things they need. So I just wanted
+
+136
+00:09:07.330 --> 00:09:08.140 
+to point that out.
+
+137
+00:09:10.240 --> 00:09:12.280 
+Wolfram, if you don't mind, can I add more thing to that?
+
+138
+00:09:12.350 --> 00:09:17.230 
+You okay with that? Okay, no worry. Okay Rich just talks about automation
+
+139
+00:09:17.230 --> 00:09:21.840 
+and here again, cloud is a how not a where and one of the
+
+140
+00:09:21.840 --> 00:09:24.930 
+aspects of cloud is the self service provisioning, which happens to be
+
+141
+00:09:25.100 --> 00:09:27.530 
+automation, the the automation that Rich was talking about.
+
+142
+00:09:27.640 --> 00:09:31.530 
+And so many Z shops already have so many things automated they're
+
+143
+00:09:31.530 --> 00:09:34.700 
+just like really, really close to being able to provide this
+
+144
+00:09:34.700 --> 00:09:37.230 
+cloud delivery model with the tools they've already developed.
+
+145
+00:09:37.510 --> 00:09:40.450 
+What we did to take this a step further to make sure that we
+
+146
+00:09:40.460 --> 00:09:44.250 
+meet the needs of our developers, is we made this self-service provisioning
+
+147
+00:09:44.400 --> 00:09:48.340 
+a portal. In other words, a something from a browser or
+
+148
+00:09:48.340 --> 00:09:50.820 
+something that's web accessible.
+
+149
+00:09:51.720 --> 00:09:55.510 
+So we developed our own portal called Zpac, which is our provisioning portal
+
+150
+00:09:55.670 --> 00:09:59.240 
+and happens to run in CICS and happens to be cobol and assembler language.
+
+151
+00:09:59.470 --> 00:10:03.280 
+It happens to use just a standard stuff that's out of the box
+
+152
+00:10:03.280 --> 00:10:05.680 
+that everybody else can use. It uses JSON.
+
+153
+00:10:06.250 --> 00:10:10.770 
+Well I have a script in there, right? Now that's true.
+
+154
+00:10:13.730 --> 00:10:18.590 
+The front end is javascript the entire back end is cobol and assembler.
+
+155
+00:10:18.690 --> 00:10:23.750 
+Let's make that clear. Right, right, so now the original
+
+156
+00:10:24.100 --> 00:10:26.740 
+version did not have the javascript, but we did add that to
+
+157
+00:10:26.740 --> 00:10:30.370 
+it. So that that is right. What we did is we took our automation
+
+158
+00:10:30.540 --> 00:10:35.280 
+and we put it in a web based it ok through the JSON services,
+
+159
+00:10:35.360 --> 00:10:38.220 
+and so now our developers can go to our portal.
+
+160
+00:10:38.710 --> 00:10:43.250 
+They can see a list of our services. They can select which service they want,
+
+161
+00:10:43.500 --> 00:10:46.280 
+click it we get a drop-down box of all the different things.
+
+162
+00:10:46.280 --> 00:10:50.660 
+You need to fill in and by doing so we do our own API management.
+
+163
+00:10:51.040 --> 00:10:53.460 
+We create the url, we create the security
+
+164
+00:10:54.280 --> 00:10:55.640 
+based upon the information they give us.
+
+165
+00:10:56.750 --> 00:11:01.010 
+And then, in about ten seconds time we've provisioned the entire service forum.
+
+166
+00:11:01.130 --> 00:11:04.900 
+We give an endpoint for data, input for Q,A, ten seconds through up and running.
+
+167
+00:11:05.460 --> 00:11:08.580 
+That's what it means about automation and giving to the developers
+
+168
+00:11:08.580 --> 00:11:11.740 
+what they need and when they need it. The sooner you give it
+
+169
+00:11:11.740 --> 00:11:16.350 
+to them, the more apt they're going to use this platform instead
+
+170
+00:11:16.350 --> 00:11:19.020 
+of going off platform to look for a service. So it speeds the
+
+171
+00:11:19.020 --> 00:11:23.130 
+market, it's also the capabilities that that they actually need something that's useful.
+
+172
+00:11:23.470 --> 00:11:25.810 
+So anyway, hopefully that helps.
+
+173
+00:11:26.520 --> 00:11:31.040 
+Okay thank you very much guys for sharing this information
+
+174
+00:11:31.040 --> 00:11:36.240 
+with us. It was a great discussion and yeah thank you very much
+
+175
+00:11:36.240 --> 00:11:39.100 
+for contributing to mainstream MOOC in Germany.
+
+176
+00:11:39.890 --> 00:11:42.490 
+well thank you for having us. we're honored. It
+
+177
+00:11:42.490 --> 00:11:46.090 
+was an honor, privilege to be there last year at your presentation
+
+178
+00:11:46.090 --> 00:11:48.990 
+to be the keynotes and to have that workshop and
+
+179
+00:11:49.610 --> 00:11:52.850 
+Wolfram, really appreciate the work that you do to further this platform,
+
+180
+00:11:53.020 --> 00:11:56.450 
+you know not only in Germany but also in central
+
+181
+00:11:56.450 --> 00:11:58.550 
+Europe and in the United States. So thank you for the work that
+
+182
+00:11:58.550 --> 00:11:59.120 
+you do as well.

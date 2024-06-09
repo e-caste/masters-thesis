@@ -1,0 +1,397 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.300 
+Another replication
+approach I
+
+2
+00:00:03.300 --> 00:00:07.700 
+want to talk about
+in more detail now is
+
+3
+00:00:07.700 --> 00:00:13.130 
+lazy master replication and
+for this we do transaction
+
+4
+00:00:13.130 --> 00:00:18.180 
+processing at master node and
+then if a transaction committed,
+
+5
+00:00:18.180 --> 00:00:22.220 
+the changes are
+sent to the replica
+
+6
+00:00:22.220 --> 00:00:27.270 
+and at the replica node there
+are only read queries we
+
+7
+00:00:27.270 --> 00:00:31.310 
+can process there and queries
+are processed on snapshot.
+
+8
+00:00:32.320 --> 00:00:36.360 
+Which means if you query a
+replica it's possible that you
+
+9
+00:00:36.360 --> 00:00:41.410 
+get a slightly outdated
+version of your query result
+
+10
+00:00:41.410 --> 00:00:44.000 
+but for enterprise
+applications it's fine.
+
+11
+00:00:44.440 --> 00:00:47.470 
+You always get a consistent
+view on your data, so you work
+
+12
+00:00:47.470 --> 00:00:51.510 
+on consistent snapshot
+of your master.
+
+13
+00:00:54.540 --> 00:00:57.570 
+We have also
+replicated database
+
+14
+00:00:57.570 --> 00:01:01.610 
+at our chair which is HyRise
+and therefore we added a
+
+15
+00:01:01.610 --> 00:01:06.660 
+dispatcher or think about
+a smart load-balancer to
+
+16
+00:01:06.660 --> 00:01:10.700 
+HyRise. The dispatcher
+looks at the query,
+
+17
+00:01:10.700 --> 00:01:12.720 
+decides whether
+it is a read query
+
+18
+00:01:12.720 --> 00:01:15.750 
+which can also go
+to the replica node
+
+19
+00:01:15.750 --> 00:01:18.780 
+or whether it's a
+writing transaction which
+
+20
+00:01:18.780 --> 00:01:21.810 
+have to go to the
+master and in addition
+
+21
+00:01:21.810 --> 00:01:24.840 
+we added a cluster
+interface to HyRise
+
+22
+00:01:24.840 --> 00:01:29.890 
+which is responsible to
+exchanging information and keeping
+
+23
+00:01:29.890 --> 00:01:32.920 
+replica nodes in sync.
+
+24
+00:01:36.960 --> 00:01:39.990 
+As I said, the logging
+or the information to
+
+25
+00:01:39.990 --> 00:01:43.103 
+keep up the replicas, this is
+logging information so we use
+
+26
+00:01:43.103 --> 00:01:46.106 
+a dictionary encoded
+log therefore
+
+27
+00:01:46.106 --> 00:01:50.110 
+and then we can discuss about
+the frequency so how often
+
+28
+00:01:50.110 --> 00:01:54.114 
+should the master node send
+the logging information to
+
+29
+00:01:54.114 --> 00:01:58.118 
+replica nodes. This can be
+depending on the size of the
+
+30
+00:01:58.118 --> 00:02:03.123 
+logs, can be also based on the
+calls so how many transactions
+
+31
+00:02:03.123 --> 00:02:08.128 
+are issued at the master
+and also time-based.
+
+32
+00:02:10.130 --> 00:02:15.135 
+Besides sending log information
+you also need some means
+
+33
+00:02:15.135 --> 00:02:19.139 
+of detecting failures in your
+system and therefore the student
+
+34
+00:02:19.139 --> 00:02:23.143 
+added a simple heartbeat protocol
+to detect failures off the
+
+35
+00:02:23.143 --> 00:02:24.144 
+master and
+replica nodes.
+
+36
+00:02:28.148 --> 00:02:32.152 
+The last topic I
+want to talk about
+
+37
+00:02:32.152 --> 00:02:36.156 
+is the distributed log,
+so maybe we have first
+
+38
+00:02:36.156 --> 00:02:39.159 
+a look at our
+in memory data
+
+39
+00:02:39.159 --> 00:02:43.163 
+model or model
+of our system
+
+40
+00:02:43.163 --> 00:02:47.167 
+with partial replicas
+and full replicas.
+
+41
+00:02:47.167 --> 00:02:51.171 
+Again, the idea was here
+that we use full replicas
+
+42
+00:02:51.171 --> 00:02:55.175 
+as hot standby nodes
+
+43
+00:02:55.175 --> 00:02:58.178 
+which can instantly a take
+over the role of the master
+
+44
+00:02:59.179 --> 00:03:03.183 
+and therefore have to
+store all data in memory
+
+45
+00:03:03.183 --> 00:03:06.186 
+and then we have also
+the partial replicas here
+
+46
+00:03:07.187 --> 00:03:10.190 
+which only store a subset
+of data which is a means
+
+47
+00:03:10.190 --> 00:03:15.195 
+of cheap or cost efficient scale
+out. Then there is a discussion
+
+48
+00:03:15.195 --> 00:03:20.200 
+with an increasing number of
+nodes, how should be propagate
+
+49
+00:03:20.200 --> 00:03:23.203 
+or keeps the replica
+nodes in sync.
+
+50
+00:03:23.203 --> 00:03:25.205 
+The original
+version in HyRise,
+
+51
+00:03:25.205 --> 00:03:30.000 
+what is implemented, is it
+says direct communication
+
+52
+00:03:30.000 --> 00:03:34.214 
+between the nodes and in
+this way the master only
+
+53
+00:03:34.214 --> 00:03:38.000 
+sends logging information
+to the distributed log
+
+54
+00:03:38.218 --> 00:03:42.222 
+and so we reduce the
+communication overhead
+
+55
+00:03:42.222 --> 00:03:48.228 
+at the master node and then
+the replicas can pull or
+
+56
+00:03:48.228 --> 00:03:53.233 
+the log can push data
+to the replica nodes.
+
+57
+00:03:53.233 --> 00:03:57.237 
+This can also, or the
+time can, also depend on
+
+58
+00:03:57.237 --> 00:04:01.241 
+the nodes. So think about
+the high availability nodes
+
+59
+00:04:01.241 --> 00:04:04.244 
+and therefore we think
+it's suitable that they
+
+60
+00:04:04.244 --> 00:04:08.248 
+get the newest entries
+
+61
+00:04:08.248 --> 00:04:13.253 
+quite often and then there
+can be some scale out nodes.
+
+62
+00:04:13.253 --> 00:04:15.255 
+For them it maybe
+doesn't really matter
+
+63
+00:04:16.256 --> 00:04:19.259 
+whether they have a quite
+old version of the data and
+
+64
+00:04:19.259 --> 00:04:23.263 
+we can reduce communication
+in the network and say let's
+
+65
+00:04:23.263 --> 00:04:28.268 
+just update every
+two or three seconds.
+
+66
+00:04:28.268 --> 00:04:32.272 
+And again the idea
+is here that we use
+
+67
+00:04:32.272 --> 00:04:37.277 
+scalable and fault
+tolerant separate system as
+
+68
+00:04:37.277 --> 00:04:40.280 
+your means to have a
+single source of truth
+
+69
+00:04:40.280 --> 00:04:43.283 
+for a replicated
+database set up.
+
+70
+00:04:47.287 --> 00:04:51.291 
+To summarize my talk,
+so replication is a way
+
+71
+00:04:51.291 --> 00:04:55.295 
+to scale a database and it
+also increases availability
+
+72
+00:04:55.295 --> 00:05:00.300 
+in case of failures and active
+master replication is a good
+
+73
+00:05:00.300 --> 00:05:04.304 
+way if we look at enterprise
+workload which are read dominant and
+
+74
+00:05:04.304 --> 00:05:09.309 
+where all the transactional
+data can be stored
+
+75
+00:05:09.309 --> 00:05:13.313 
+on a single node. Partial
+replication is a way
+
+76
+00:05:13.313 --> 00:05:18.318 
+to cost efficiently
+scale. The
+
+77
+00:05:18.318 --> 00:05:21.321 
+shared distributed log
+is a component or a means
+
+78
+00:05:22.322 --> 00:05:27.327 
+to optimize communication
+within the network,
+
+79
+00:05:27.327 --> 00:05:32.332 
+so have a single source
+of truth for an increasing
+
+80
+00:05:32.332 --> 00:05:33.333 
+number of replica nodes.

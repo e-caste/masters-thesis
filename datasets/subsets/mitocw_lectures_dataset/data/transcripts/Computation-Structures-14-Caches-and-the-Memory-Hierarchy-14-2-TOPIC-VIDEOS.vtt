@@ -1,0 +1,327 @@
+WEBVTT
+
+00:00:00.500 --> 00:00:02.380
+In the last lecture we
+completed the design
+
+00:00:02.380 --> 00:00:04.640
+of the Beta, our
+reduced-instruction-set
+
+00:00:04.640 --> 00:00:05.900
+computer.
+
+00:00:05.900 --> 00:00:08.410
+The simple organization
+of the Beta ISA
+
+00:00:08.410 --> 00:00:10.920
+meant that there was
+a lot commonality
+
+00:00:10.920 --> 00:00:14.000
+in the circuity needed to
+implement the instructions.
+
+00:00:14.000 --> 00:00:16.730
+The final design has a
+few main building blocks
+
+00:00:16.730 --> 00:00:18.750
+with MUX steering
+logic to select
+
+00:00:18.750 --> 00:00:22.030
+input values as appropriate.
+
+00:00:22.030 --> 00:00:25.690
+If we were to count MOSFETs and
+think about propagation delays,
+
+00:00:25.690 --> 00:00:29.770
+we’d quickly determine that our
+3-port main memory (shown here
+
+00:00:29.770 --> 00:00:33.470
+as the two yellow components)
+was the most costly component
+
+00:00:33.470 --> 00:00:36.180
+both in terms of space and
+percentage of the cycle time
+
+00:00:36.180 --> 00:00:38.890
+required by the memory accesses.
+
+00:00:38.890 --> 00:00:42.130
+So in many ways, we really
+have a “memory machine” instead
+
+00:00:42.130 --> 00:00:44.590
+of a “computing machine”.
+
+00:00:44.590 --> 00:00:46.510
+The execution of
+every instruction
+
+00:00:46.510 --> 00:00:49.900
+starts by fetching the
+instruction from main memory.
+
+00:00:49.900 --> 00:00:52.790
+And ultimately all the
+data processed by the CPU
+
+00:00:52.790 --> 00:00:56.360
+is loaded from or
+stored to main memory.
+
+00:00:56.360 --> 00:00:59.500
+A very few frequently-used
+variable values can be kept
+
+00:00:59.500 --> 00:01:03.620
+in the CPU’s register file,
+but most interesting programs
+
+00:01:03.620 --> 00:01:06.490
+manipulate *much* more data
+than can be accommodated
+
+00:01:06.490 --> 00:01:11.080
+by the storage available as
+part of the CPU datapath.
+
+00:01:11.080 --> 00:01:14.540
+In fact, the performance of
+most modern computers is limited
+
+00:01:14.540 --> 00:01:17.530
+by the bandwidth,
+i.e., bytes/second,
+
+00:01:17.530 --> 00:01:21.030
+of the connection between
+the CPU and main memory,
+
+00:01:21.030 --> 00:01:24.050
+the so-called
+“memory bottleneck”.
+
+00:01:24.050 --> 00:01:26.150
+The goal of this
+lecture is to understand
+
+00:01:26.150 --> 00:01:29.250
+the nature of the bottleneck and
+to see if there architectural
+
+00:01:29.250 --> 00:01:32.260
+improvements we might make
+to minimize the problem as
+
+00:01:32.260 --> 00:01:34.670
+much as possible.
+
+00:01:34.670 --> 00:01:37.500
+We have a number of memory
+technologies at our disposal,
+
+00:01:37.500 --> 00:01:41.190
+varying widely in their
+capacity, latency, bandwidth,
+
+00:01:41.190 --> 00:01:44.270
+energy efficiency
+and their cost.
+
+00:01:44.270 --> 00:01:46.050
+Not surprisingly,
+we find that each
+
+00:01:46.050 --> 00:01:47.920
+is useful for
+different applications
+
+00:01:47.920 --> 00:01:50.860
+in our overall
+system architecture.
+
+00:01:50.860 --> 00:01:53.020
+Our registers are built
+from sequential logic
+
+00:01:53.020 --> 00:01:56.930
+and provide very low
+latency access (20ps or so)
+
+00:01:56.930 --> 00:02:01.040
+to at most a few
+thousands of bits of data.
+
+00:02:01.040 --> 00:02:03.810
+Static and dynamic memories,
+which we’ll discuss further
+
+00:02:03.810 --> 00:02:07.180
+in the coming slides, offer
+larger capacities at the cost
+
+00:02:07.180 --> 00:02:09.550
+of longer access latencies.
+
+00:02:09.550 --> 00:02:12.560
+Static random-access
+memories (SRAMs)
+
+00:02:12.560 --> 00:02:15.210
+are designed to
+provide low latencies
+
+00:02:15.210 --> 00:02:19.500
+(a few nanoseconds at most) to
+many thousands of locations.
+
+00:02:19.500 --> 00:02:22.990
+Already we see that more
+locations means longer access
+
+00:02:22.990 --> 00:02:25.820
+latencies — this is a
+fundamental size vs.
+
+00:02:25.820 --> 00:02:30.160
+performance tradeoff of our
+current memory architectures.
+
+00:02:30.160 --> 00:02:33.320
+The tradeoff comes about because
+increasing the number of bits
+
+00:02:33.320 --> 00:02:36.860
+will increase the area needed
+for the memory circuitry, which
+
+00:02:36.860 --> 00:02:40.100
+will in turn lead to longer
+signal lines and slower circuit
+
+00:02:40.100 --> 00:02:44.670
+performance due to
+increased capacitive loads.
+
+00:02:44.670 --> 00:02:47.380
+Dynamic random-access
+memories (DRAMs)
+
+00:02:47.380 --> 00:02:50.120
+are optimized for
+capacity and low cost,
+
+00:02:50.120 --> 00:02:53.160
+sacrificing access latency.
+
+00:02:53.160 --> 00:02:57.070
+As we’ll see in this lecture,
+we’ll use both SRAMs and DRAMs
+
+00:02:57.070 --> 00:03:00.570
+to build a hybrid memory
+hierarchy that provides low
+
+00:03:00.570 --> 00:03:04.130
+average latency and high
+capacity — an attempt to get
+
+00:03:04.130 --> 00:03:06.930
+the best of both worlds!
+
+00:03:06.930 --> 00:03:09.940
+Notice that the word “average”
+has snuck into the performance
+
+00:03:09.940 --> 00:03:11.280
+claims.
+
+00:03:11.280 --> 00:03:14.290
+This means that we’ll be relying
+on statistical properties
+
+00:03:14.290 --> 00:03:17.800
+of memory accesses to achieve
+our goals of low latency
+
+00:03:17.800 --> 00:03:19.880
+and high capacity.
+
+00:03:19.880 --> 00:03:22.610
+In the worst case, we’ll still
+be stuck with the capacity
+
+00:03:22.610 --> 00:03:26.760
+limitations of SRAMs and
+the long latencies of DRAMs,
+
+00:03:26.760 --> 00:03:29.673
+but we’ll work hard to ensure
+that the worst case occurs
+
+00:03:29.673 --> 00:03:30.215
+infrequently!
+
+00:03:33.190 --> 00:03:35.200
+Flash memory and
+hard-disk drives
+
+00:03:35.200 --> 00:03:37.950
+provide non-volatile storage.
+
+00:03:37.950 --> 00:03:40.880
+“Non-volatile” means that the
+memory contents are preserved
+
+00:03:40.880 --> 00:03:43.520
+even when the power
+is turned off.
+
+00:03:43.520 --> 00:03:46.130
+Hard disks are at the bottom
+of the memory hierarchy,
+
+00:03:46.130 --> 00:03:48.880
+providing massive amounts
+of long-term storage
+
+00:03:48.880 --> 00:03:51.090
+for very little cost.
+
+00:03:51.090 --> 00:03:54.640
+Flash memories, with a 100-fold
+improvement in access latency,
+
+00:03:54.640 --> 00:03:58.050
+are often used in concert with
+hard-disk drives in the same
+
+00:03:58.050 --> 00:04:01.950
+way that SRAMs are used in
+concert with DRAMs, i.e.,
+
+00:04:01.950 --> 00:04:05.710
+to provide a hybrid system for
+non-volatile storage that has
+
+00:04:05.710 --> 00:04:09.340
+improved latency
+*and* high capacity.
+
+00:04:09.340 --> 00:04:11.590
+Let’s learn a bit more about
+each of these four memory
+
+00:04:11.590 --> 00:04:14.710
+technologies, then we’ll
+return to the job of building
+
+00:04:14.710 --> 00:04:16.720
+our memory system.

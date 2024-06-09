@@ -1,0 +1,513 @@
+WEBVTT
+
+00:00:00.539 --> 00:00:05.890
+A key technology for timesharing is the periodic
+interrupt from the external timer device.
+
+00:00:05.890 --> 00:00:11.450
+Let's remind ourselves how the interrupt hardware
+in the Beta works.
+
+00:00:11.450 --> 00:00:16.840
+External devices request an interrupt by asserting
+the Beta's interrupt request (IRQ) input.
+
+00:00:16.840 --> 00:00:22.570
+If the Beta is running in user mode, i.e.,
+the supervisor bit stored in the PC is 0,
+
+00:00:22.570 --> 00:00:29.579
+asserting IRQ will trigger the following actions
+on the clock cycle the interrupt is recognized.
+
+00:00:29.579 --> 00:00:35.230
+The goal is to save the current PC+4 value
+in the XP register and force the program counter
+
+00:00:35.230 --> 00:00:40.160
+(PC) to a particular kernel-mode instruction,
+which starts the execution of the interrupt
+
+00:00:40.160 --> 00:00:42.080
+handler code.
+
+00:00:42.080 --> 00:00:46.780
+The normal process of generating control signals
+based on the current instruction is superseded
+
+00:00:46.780 --> 00:00:51.800
+by forcing particular values for some of the
+control signals.
+
+00:00:51.800 --> 00:00:57.110
+PCSEL is set to 4, which selects a specified
+kernel-mode address as the next value of the
+
+00:00:57.110 --> 00:00:59.030
+program counter.
+
+00:00:59.030 --> 00:01:02.400
+The address chosen depends on the type of
+external interrupt.
+
+00:01:02.400 --> 00:01:09.430
+In the case of the timer interrupt, the address
+is 0x80000008.
+
+00:01:09.430 --> 00:01:15.070
+Note that PC[31], the supervisor bit, is being
+set to 1 and the CPU will be in kernel-mode
+
+00:01:15.070 --> 00:01:19.680
+as it starts executing the code of the interrupt
+handler.
+
+00:01:19.680 --> 00:01:26.200
+The WASEL, WDSEL, and WERF control signals
+are set so that PC+4 is written into the XP
+
+00:01:26.200 --> 00:01:30.370
+register (i.e., R30) in the register file.
+
+00:01:30.370 --> 00:01:36.950
+And, finally, MWR is set to 0 to ensure that
+if we're interrupting a ST instruction that
+
+00:01:36.950 --> 00:01:39.500
+its execution is aborted correctly.
+
+00:01:39.500 --> 00:01:44.789
+So in the next clock cycle, execution starts
+with the first instruction of the kernel-mode
+
+00:01:44.789 --> 00:01:48.780
+interrupt handler,
+which can find the PC+4 of the interrupted
+
+00:01:48.780 --> 00:01:53.330
+instruction in the XP register of the CPU.
+
+00:01:53.330 --> 00:01:56.860
+As we can see the interrupt hardware is pretty
+minimal:
+
+00:01:56.860 --> 00:02:02.830
+it saves the PC+4 of the interrupted user-mode
+program in the XP register and sets the program
+
+00:02:02.830 --> 00:02:09.369
+counter to some predetermined value that depends
+on which external interrupt happened.
+
+00:02:09.369 --> 00:02:13.569
+The remainder of the work to handle the interrupt
+request is performed in software.
+
+00:02:13.569 --> 00:02:19.870
+The state of the interrupted process, e.g.,
+the values in the CPU registers R0 through
+
+00:02:19.870 --> 00:02:24.829
+R30, is stored in main memory in an OS data
+structure called UserMState.
+
+00:02:24.829 --> 00:02:30.209
+Then the appropriate handler code, usually
+a procedure written in C, is invoked to do
+
+00:02:30.209 --> 00:02:32.049
+the heavy lifting.
+
+00:02:32.049 --> 00:02:36.849
+When that procedure returns, the process state
+is reloaded from UserMState.
+
+00:02:36.849 --> 00:02:44.239
+The OS subtracts 4 from the value in XP, making
+it point to the interrupted instruction and
+
+00:02:44.239 --> 00:02:49.430
+then resumes user-mode execution with a JMP(XP).
+
+00:02:49.430 --> 00:02:54.099
+Note that in our simple Beta implementation
+the first instructions for the various interrupt
+
+00:02:54.099 --> 00:02:57.930
+handlers occupy consecutive locations in main
+memory.
+
+00:02:57.930 --> 00:03:03.489
+Since interrupt handlers are longer than one
+instruction, this first instruction is invariably
+
+00:03:03.489 --> 00:03:06.959
+a branch to the actual interrupt code.
+
+00:03:06.959 --> 00:03:12.809
+Here we see that the reset interrupt (asserted
+when the CPU first starts running) sets the
+
+00:03:12.809 --> 00:03:18.999
+PC to 0, the illegal instruction interrupt
+sets the PC to 4, the timer interrupt sets
+
+00:03:18.999 --> 00:03:22.370
+the PC to 8, and so on.
+
+00:03:22.370 --> 00:03:29.939
+In all cases, bit 31 of the new PC value is
+set to 1 so that handlers execute in supervisor
+
+00:03:29.939 --> 00:03:35.239
+or kernel mode, giving them access to the
+kernel context.
+
+00:03:35.239 --> 00:03:41.019
+A common alternative is provide a table of
+new PC values at a known location and have
+
+00:03:41.019 --> 00:03:46.889
+the interrupt hardware access that table to
+fetch the PC for the appropriate handler routine.
+
+00:03:46.889 --> 00:03:51.150
+This provides the same functionality as our
+simple Beta implementation.
+
+00:03:51.150 --> 00:03:57.689
+Since the process state is saved and restored
+during an interrupt, interrupts are transparent
+
+00:03:57.689 --> 00:04:00.239
+to the running user-mode program.
+
+00:04:00.239 --> 00:04:05.450
+In essence, we borrow a few CPU cycles to
+deal with the interrupt, then it's back to
+
+00:04:05.450 --> 00:04:08.310
+normal program execution.
+
+00:04:08.310 --> 00:04:11.219
+Here's how the timer interrupt handler would
+work.
+
+00:04:11.219 --> 00:04:16.108
+Our initial goal is to use the timer interrupt
+to update a data value in the OS that records
+
+00:04:16.108 --> 00:04:18.250
+the current time of day (TOD).
+
+00:04:18.250 --> 00:04:22.880
+Let's assume the timer interrupt is triggered
+every 1/60th of a second.
+
+00:04:22.880 --> 00:04:27.730
+A user-mode program executes normally, not
+needing to make any special provision to deal
+
+00:04:27.730 --> 00:04:30.260
+with timer interrupts.
+
+00:04:30.260 --> 00:04:34.540
+Periodically the timer interrupts the user-mode
+program to run the clock interrupt handler
+
+00:04:34.540 --> 00:04:39.400
+code in the OS, then resumes execution of
+the user-mode program.
+
+00:04:39.400 --> 00:04:43.600
+The program continues execution just as if
+the interrupt had not occurred.
+
+00:04:43.600 --> 00:04:49.500
+If the program needs access to the TOD, it
+makes the appropriate service request to the
+
+00:04:49.500 --> 00:04:51.880
+OS.
+
+00:04:51.880 --> 00:04:56.200
+The clock handler code in the OS starts and
+ends with a small amount of assembly-language
+
+00:04:56.200 --> 00:04:58.570
+code to save and restore the state.
+
+00:04:58.570 --> 00:05:05.660
+In the middle, the assembly code makes a C
+procedure call to actually handle the interrupt.
+
+00:05:05.660 --> 00:05:07.770
+Here's what the handler code might look like.
+
+00:05:07.770 --> 00:05:14.610
+In C, we find the declarations for the TOD
+data value and the structure, called UserMState,
+
+00:05:14.610 --> 00:05:17.850
+that temporarily holds the saved process state.
+
+00:05:17.850 --> 00:05:22.900
+There's also the C procedure for incrementing
+the TOD value.
+
+00:05:22.900 --> 00:05:28.500
+A timer interrupt executes the BR() instruction
+at location 8, which branches to the actual
+
+00:05:28.500 --> 00:05:32.010
+interrupt handler code at CLOCK_H.
+
+00:05:32.010 --> 00:05:38.330
+The code first saves the values of all the
+CPU registers into the UserMState data structure.
+
+00:05:38.330 --> 00:05:43.580
+Note that we don't save the value of R31 since
+its value is always 0.
+
+00:05:43.580 --> 00:05:47.950
+After setting up the kernel-mode stack, the
+assembly-language stub calls the C procedure
+
+00:05:47.950 --> 00:05:50.470
+above to do the hard work.
+
+00:05:50.470 --> 00:05:55.870
+When the procedure returns, the CPU registers
+are reloaded from the saved process state
+
+00:05:55.870 --> 00:06:01.680
+and the XP register value decremented by 4
+so that it will point to the interrupted instruction.
+
+00:06:01.680 --> 00:06:06.310
+Then a JMP(XP) resumes user-mode execution.
+
+00:06:06.310 --> 00:06:08.960
+Okay, that was simple enough.
+
+00:06:08.960 --> 00:06:12.500
+But what does this all have to do with timesharing?
+
+00:06:12.500 --> 00:06:17.650
+Wasn't our goal to arrange to periodically
+switch which process was running?
+
+00:06:17.650 --> 00:06:18.760
+Aha!
+
+00:06:18.760 --> 00:06:24.140
+We have code that runs on every timer interrupt,
+so let's modify it so that every so often
+
+00:06:24.140 --> 00:06:28.280
+we arrange to call the OS' Scheduler() routine.
+
+00:06:28.280 --> 00:06:33.420
+In this example, we'd set the constant QUANTUM
+to 2 if we wanted to call Scheduler() every
+
+00:06:33.420 --> 00:06:36.210
+second timer interrupt.
+
+00:06:36.210 --> 00:06:41.620
+The Scheduler() subroutine is where the time
+sharing magic happens!
+
+00:06:41.620 --> 00:06:46.080
+Here we see the UserMState data structure
+from the previous slide where the user-mode
+
+00:06:46.080 --> 00:06:49.570
+process state is stored during interrupts.
+
+00:06:49.570 --> 00:06:54.780
+And here's an array of process control block
+(PCB) data structures, one for each process
+
+00:06:54.780 --> 00:06:56.639
+in the system.
+
+00:06:56.639 --> 00:07:01.840
+The PCB holds the complete state of a process
+when some other process is currently executing
+
+00:07:01.840 --> 00:07:06.389
+- it's the long-term storage for processor
+state!
+
+00:07:06.389 --> 00:07:11.980
+As you can see, it includes a copy of MState
+with the process' register values, the MMU
+
+00:07:11.980 --> 00:07:17.460
+state, and various state associated with the
+process' input/output activities,
+
+00:07:17.460 --> 00:07:22.950
+represented here by a number indicating which
+virtual user-interface console is attached
+
+00:07:22.950 --> 00:07:25.210
+to the process.
+
+00:07:25.210 --> 00:07:27.780
+There are N processes altogether.
+
+00:07:27.780 --> 00:07:35.400
+The variable CUR gives the index into ProcTable
+for the currently running process.
+
+00:07:35.400 --> 00:07:40.080
+And here's the surprisingly simple code for
+implementing timesharing.
+
+00:07:40.080 --> 00:07:45.360
+Whenever the Scheduler() routine is called,
+it starts by moving the temporary saved state
+
+00:07:45.360 --> 00:07:49.510
+into the PCB for the current process.
+
+00:07:49.510 --> 00:07:54.560
+It then increments CUR to move to the next
+process, making sure it wraps back around
+
+00:07:54.560 --> 00:07:59.340
+to 0 when we've just finished running the
+last of the N processes.
+
+00:07:59.340 --> 00:08:05.770
+It then loads reloads the temporary state
+from the PCB of the new process and sets up
+
+00:08:05.770 --> 00:08:08.730
+the MMU appropriately.
+
+00:08:08.730 --> 00:08:13.290
+At this point Scheduler() returns and the
+clock interrupt handler reloads the CPU registers
+
+00:08:13.290 --> 00:08:18.230
+from the updated temporary saved state and
+resumes execution.
+
+00:08:18.230 --> 00:08:19.600
+Voila!
+
+00:08:19.600 --> 00:08:22.960
+We're now running a new process.
+
+00:08:22.960 --> 00:08:26.880
+Let's use this diagram to once again walk
+through how time sharing works.
+
+00:08:26.880 --> 00:08:32.080
+At the top of the diagram you'll see the code
+for the user-mode processes, and below the
+
+00:08:32.080 --> 00:08:35.190
+OS code along with its data structures.
+
+00:08:35.190 --> 00:08:40.379
+The timer interrupts the currently running
+user-mode program and starts execution of
+
+00:08:40.379 --> 00:08:43.250
+the OS' clock handler code.
+
+00:08:43.250 --> 00:08:49.910
+The first thing the handler does is save all
+the registers into the UserMState data structure.
+
+00:08:49.910 --> 00:08:56.610
+If the Scheduler() routine is called, it moves
+the temporarily saved state into the PCB,
+
+00:08:56.610 --> 00:09:01.009
+which provides the long-term storage for a
+process' state.
+
+00:09:01.009 --> 00:09:05.749
+Next, Scheduler() copies the saved state for
+the next process into the temporary holding
+
+00:09:05.749 --> 00:09:06.999
+area.
+
+00:09:06.999 --> 00:09:13.319
+Then the clock handler reloads the updated
+state into the CPU registers and resumes execution,
+
+00:09:13.319 --> 00:09:17.029
+this time running code in the new process.
+
+00:09:17.029 --> 00:09:21.499
+While we're looking at the OS, note that since
+its code runs with the supervisor mode bit
+
+00:09:21.499 --> 00:09:26.700
+set to 1, interrupts are disabled while in
+the OS.
+
+00:09:26.700 --> 00:09:30.860
+This prevents the awkward problem of getting
+a second interrupt while still in the middle
+
+00:09:30.860 --> 00:09:36.089
+of handling a first interrupt, a situation
+that might accidentally overwrite the state
+
+00:09:36.089 --> 00:09:38.449
+in UserMState.
+
+00:09:38.449 --> 00:09:43.440
+But that means one has to be very careful
+when writing OS code.
+
+00:09:43.440 --> 00:09:47.110
+Any sort of infinite loop can never be interrupted.
+
+00:09:47.110 --> 00:09:51.829
+You may have experienced this when your machine
+appears to freeze, accepting no inputs and
+
+00:09:51.829 --> 00:09:54.379
+just sitting there like a lump.
+
+00:09:54.379 --> 00:09:59.709
+At this point, your only choice is to power-cycle
+the hardware (the ultimate interrupt!) and
+
+00:09:59.709 --> 00:10:02.089
+start afresh.
+
+00:10:02.089 --> 00:10:06.260
+Interrupts are allowed during execution of
+user-mode programs, so if they run amok and
+
+00:10:06.260 --> 00:10:10.990
+need to be interrupted, that's always possible
+since the OS is still responding to, say,
+
+00:10:10.990 --> 00:10:12.889
+keyboard interrupts.
+
+00:10:12.889 --> 00:10:17.410
+Every OS has a magic combination of keystrokes
+that is guaranteed to suspend execution of
+
+00:10:17.410 --> 00:10:22.410
+the current process, sometimes arranging to
+make a copy of the process state for later
+
+00:10:22.410 --> 00:10:23.970
+debugging.
+
+00:10:23.970 --> 00:10:24.420
+Very handy!

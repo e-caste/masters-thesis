@@ -1,0 +1,4367 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.490
+The following content is
+provided under a Creative
+
+00:00:02.490 --> 00:00:03.940
+Commons license.
+
+00:00:03.940 --> 00:00:06.330
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.330 --> 00:00:10.630
+continue to offer high-quality
+educational resources for free.
+
+00:00:10.630 --> 00:00:13.320
+To make a donation or
+view additional materials
+
+00:00:13.320 --> 00:00:17.160
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.160 --> 00:00:18.252
+at ocw.mit.edu.
+
+00:00:20.962 --> 00:00:21.670
+RUSS TEDRAKE: OK.
+
+00:00:21.670 --> 00:00:25.390
+So welcome back.
+
+00:00:25.390 --> 00:00:45.830
+We talked last time about the
+problem of policy evaluation,
+
+00:00:45.830 --> 00:00:53.270
+which was, given I'm
+executing some policy pi,
+
+00:00:53.270 --> 00:01:00.110
+estimate the cost to go, right?
+
+00:01:00.110 --> 00:01:02.780
+And we showed that it
+was sort of trivial to do
+
+00:01:02.780 --> 00:01:04.890
+if you have a model.
+
+00:01:04.890 --> 00:01:08.750
+And if you don't
+have a model, you
+
+00:01:08.750 --> 00:01:13.970
+can still do it with the
+temporal difference learning
+
+00:01:13.970 --> 00:01:27.380
+class of algorithms, which
+is TD, which is in the title
+
+00:01:27.380 --> 00:01:28.658
+there, OK?
+
+00:01:28.658 --> 00:01:30.200
+And the temporal
+difference learning,
+
+00:01:30.200 --> 00:01:34.000
+the TD, lambda, in
+particular, was nice
+
+00:01:34.000 --> 00:01:35.750
+because it encapsulated
+all the algorithms
+
+00:01:35.750 --> 00:01:37.880
+we talked about last time.
+
+00:01:37.880 --> 00:01:42.800
+TD, if lambda is
+0 was essentially
+
+00:01:42.800 --> 00:01:45.740
+the one-step
+bootstrapping idea, we
+
+00:01:45.740 --> 00:01:59.930
+said, where you use your
+current cost plus your expected
+
+00:01:59.930 --> 00:02:06.350
+value of all future costs as
+your new estimate of this.
+
+00:02:06.350 --> 00:02:10.340
+And the other
+limiting case was TD1,
+
+00:02:10.340 --> 00:02:13.340
+which resulted in just
+Monte Carlo evaluation.
+
+00:02:21.650 --> 00:02:26.120
+And what I said quickly at
+the end of class is that--
+
+00:02:26.120 --> 00:02:30.650
+we spent all our time last
+time on doing temporal distance
+
+00:02:30.650 --> 00:02:34.070
+learning just on the
+representation of solving
+
+00:02:34.070 --> 00:02:36.080
+a Markov chain, right?
+
+00:02:39.860 --> 00:02:42.785
+We did it for discrete state,
+discrete action, discrete time.
+
+00:02:52.070 --> 00:02:54.410
+And it's known that
+these algorithms converge
+
+00:02:54.410 --> 00:02:57.740
+to the correct
+estimate if you run
+
+00:02:57.740 --> 00:03:01.700
+enough times and your
+Markov chain is ergodic,
+
+00:03:01.700 --> 00:03:04.740
+if you visit all states
+at all times, OK?
+
+00:03:07.280 --> 00:03:10.820
+But that's pretty
+limiting because in order
+
+00:03:10.820 --> 00:03:14.930
+to do a Markov chain analysis
+of even an acrobot or something,
+
+00:03:14.930 --> 00:03:18.620
+you have to democratize four
+state variables-- theta,
+
+00:03:18.620 --> 00:03:22.670
+theta dot, theta 1, theta
+2, theta 1 dot, theta 2 dot.
+
+00:03:22.670 --> 00:03:23.840
+So you do 25--
+
+00:03:23.840 --> 00:03:25.010
+I mean, things get big fast.
+
+00:03:25.010 --> 00:03:27.070
+It'd be the 25 to
+the 4th power if you
+
+00:03:27.070 --> 00:03:34.890
+put 25 bins in each dimension,
+and that's not very many.
+
+00:03:34.890 --> 00:03:39.170
+So today, we want to make
+the tools more relevant, more
+
+00:03:39.170 --> 00:03:42.350
+powerful, by breaking
+this assumption that we're
+
+00:03:42.350 --> 00:03:45.570
+in a Markov chain, where
+we've discretized everything,
+
+00:03:45.570 --> 00:03:47.030
+and try to do more general--
+
+00:03:47.030 --> 00:03:49.940
+try to do temporal
+difference learning
+
+00:03:49.940 --> 00:03:52.370
+on a more general class
+of functions that are
+
+00:03:52.370 --> 00:03:55.130
+more natively continuous, OK?
+
+00:03:55.130 --> 00:03:58.700
+So we're going to do it
+with function approximation.
+
+00:03:58.700 --> 00:04:00.140
+Now, to get there--
+
+00:04:00.140 --> 00:04:02.390
+John did a little bit of
+function approximation
+
+00:04:02.390 --> 00:04:05.330
+in the reinforce lectures, so
+I want to basically pick up
+
+00:04:05.330 --> 00:04:08.000
+on the kind of examples
+he was showing you,
+
+00:04:08.000 --> 00:04:10.640
+and do a quick crash
+course on least
+
+00:04:10.640 --> 00:04:15.717
+squares function approximation,
+just to make sure
+
+00:04:15.717 --> 00:04:17.300
+that people are
+comfortable with that,
+
+00:04:17.300 --> 00:04:21.050
+and we'll build on that quickly.
+
+00:04:21.050 --> 00:04:33.000
+OK, so let's talk a
+little bit about least
+
+00:04:33.000 --> 00:04:35.438
+squares function approximation.
+
+00:04:49.110 --> 00:04:54.140
+OK, so the canonical example,
+which is the same thing
+
+00:04:54.140 --> 00:04:59.002
+that John showed you in class,
+is we want to approximate,
+
+00:04:59.002 --> 00:05:14.690
+or we want to estimate, some
+unknown function that takes
+
+00:05:14.690 --> 00:05:17.990
+input x and spits out output y.
+
+00:05:20.572 --> 00:05:36.890
+And you're given
+input/output data, which
+
+00:05:36.890 --> 00:05:38.210
+we can write something like--
+
+00:05:38.210 --> 00:05:43.220
+you're given pairs
+of data, samples
+
+00:05:43.220 --> 00:05:45.240
+of the input and output.
+
+00:05:45.240 --> 00:05:47.150
+So you're allowed to
+query the function.
+
+00:05:47.150 --> 00:05:50.420
+Given this input, what
+output should you do?
+
+00:05:50.420 --> 00:05:54.170
+In the basic case, you're
+doing this passively.
+
+00:05:54.170 --> 00:05:56.150
+Someone just gives
+you a data set,
+
+00:05:56.150 --> 00:05:58.580
+and you're supposed
+to then do your best
+
+00:05:58.580 --> 00:06:01.040
+job at reconstructing F, OK?
+
+00:06:01.040 --> 00:06:03.965
+There are interesting cases
+that people look at where,
+
+00:06:03.965 --> 00:06:06.120
+if you're allowed
+to choose this, then
+
+00:06:06.120 --> 00:06:08.360
+how do you actively
+interrogate the system?
+
+00:06:08.360 --> 00:06:10.970
+How do you pick the x's to get
+the most information output?
+
+00:06:10.970 --> 00:06:13.520
+In the simple case,
+let's just say
+
+00:06:13.520 --> 00:06:15.770
+you're given a collection
+of input/output data,
+
+00:06:15.770 --> 00:06:20.420
+and you want to estimate F.
+
+00:06:20.420 --> 00:06:29.900
+So the standard way to do
+this is to write down--
+
+00:06:29.900 --> 00:06:32.240
+there are many cost
+functions you could use,
+
+00:06:32.240 --> 00:06:35.810
+but the one most people
+use is to write down
+
+00:06:35.810 --> 00:06:40.760
+a least squares
+cost function, where
+
+00:06:40.760 --> 00:06:56.073
+we're going to try to find a
+model where y hat is some F of,
+
+00:06:56.073 --> 00:06:57.490
+let's say, it
+depends on parameter
+
+00:06:57.490 --> 00:07:02.695
+vector alpha, hat of x.
+
+00:07:02.695 --> 00:07:05.390
+Just like in the policy
+gradient kind of case,
+
+00:07:05.390 --> 00:07:09.790
+I'm going to write
+down a set of functions
+
+00:07:09.790 --> 00:07:13.570
+where the actual function
+depends on both alpha and x,
+
+00:07:13.570 --> 00:07:15.640
+but we can think of
+it as taking x's input
+
+00:07:15.640 --> 00:07:20.237
+and generating an
+estimate y hat, OK?
+
+00:07:20.237 --> 00:07:22.570
+And you can formulate the
+problem with the least squares
+
+00:07:22.570 --> 00:07:33.430
+metric, where you're
+going to minimize,
+
+00:07:33.430 --> 00:07:40.960
+over alpha, the squared
+error over my data
+
+00:07:40.960 --> 00:07:42.507
+minus my estimator.
+
+00:07:45.202 --> 00:07:46.660
+I actually have
+the estimator here.
+
+00:07:46.660 --> 00:07:51.530
+No big deal, but just to keep
+it consistent with my chicken
+
+00:07:51.530 --> 00:07:53.460
+scratch notes.
+
+00:07:53.460 --> 00:07:53.960
+OK?
+
+00:07:58.370 --> 00:08:00.448
+So if we can write down
+a class of functions
+
+00:08:00.448 --> 00:08:02.240
+we want to search over,
+then we can turn it
+
+00:08:02.240 --> 00:08:04.850
+into the standard optimization
+we've been doing throughout,
+
+00:08:04.850 --> 00:08:08.580
+where we just try to find
+the parameter vector alpha,
+
+00:08:08.580 --> 00:08:10.700
+which makes our estimates
+as close as possible,
+
+00:08:10.700 --> 00:08:14.741
+in the least squares sense,
+to the actual data, yeah?
+
+00:08:14.741 --> 00:08:19.730
+Or y hat here is F hat alpha xi.
+
+00:08:26.770 --> 00:08:28.930
+OK, so why do we care
+about doing that?
+
+00:08:28.930 --> 00:08:33.080
+The methods used-- you already
+know optimization methods.
+
+00:08:33.080 --> 00:08:35.110
+We know a lot of ways
+that we could potentially
+
+00:08:35.110 --> 00:08:36.130
+try to solve this.
+
+00:08:39.440 --> 00:08:41.830
+So for instance, we
+could take the gradient
+
+00:08:41.830 --> 00:08:46.180
+of this with respect to alpha
+and do gradient descent, which
+
+00:08:46.180 --> 00:08:49.010
+is exactly what John was
+doing in the reinforce case,
+
+00:08:49.010 --> 00:08:51.220
+except the gradient was
+not calculated explicitly.
+
+00:08:51.220 --> 00:08:57.230
+It was estimated by sampling
+in the reinforce case, right?
+
+00:08:57.230 --> 00:09:00.220
+And in general, there
+are some cases--
+
+00:09:00.220 --> 00:09:02.860
+there are some classes of
+functions that we can choose,
+
+00:09:02.860 --> 00:09:04.540
+and I'll make this
+more graphical
+
+00:09:04.540 --> 00:09:06.430
+and explicit in a second,
+where you can just
+
+00:09:06.430 --> 00:09:08.530
+solve it analytically, right?
+
+00:09:08.530 --> 00:09:12.017
+Same way in the optimal
+control derivations,
+
+00:09:12.017 --> 00:09:13.600
+there were some u's
+that we could just
+
+00:09:13.600 --> 00:09:15.788
+derive analytically
+and some that we
+
+00:09:15.788 --> 00:09:17.080
+had to do gradient descent for.
+
+00:09:19.840 --> 00:09:22.450
+So let's dig in now
+and get more specific
+
+00:09:22.450 --> 00:09:26.650
+and say, what kind
+of models do we
+
+00:09:26.650 --> 00:09:29.720
+want to use as candidates
+for these functions
+
+00:09:29.720 --> 00:09:30.970
+we're trying to fit?
+
+00:09:30.970 --> 00:09:33.700
+How would we write
+down an F hat, which
+
+00:09:33.700 --> 00:09:37.420
+depends on both alpha and x?
+
+00:09:37.420 --> 00:09:40.420
+The literature is just filled
+with people's different models
+
+00:09:40.420 --> 00:09:41.170
+that they do this.
+
+00:09:41.170 --> 00:09:44.210
+One of the most popular ones
+of, let's say, 20 years ago,
+
+00:09:44.210 --> 00:09:50.042
+which actually are
+still popular today,
+
+00:09:50.042 --> 00:09:51.595
+and we call them
+function classes.
+
+00:09:55.118 --> 00:09:56.410
+One of them is neural networks.
+
+00:10:04.100 --> 00:10:07.090
+So a lot of people
+believe that a good way
+
+00:10:07.090 --> 00:10:17.830
+to write down an arbitrary
+function is to take your inputs
+
+00:10:17.830 --> 00:10:21.490
+and try to do something
+that models a neuron.
+
+00:10:21.490 --> 00:10:23.290
+It adds things up.
+
+00:10:23.290 --> 00:10:25.270
+Adds up the different
+inputs, and then
+
+00:10:25.270 --> 00:10:29.920
+goes through a
+sigmoidal function
+
+00:10:29.920 --> 00:10:31.390
+and gives you an output y.
+
+00:10:36.520 --> 00:10:40.360
+Maybe just because that's what
+the brain sort of does, maybe
+
+00:10:40.360 --> 00:10:44.570
+because there's a lot of
+success stories from it,
+
+00:10:44.570 --> 00:10:47.200
+but a lot of people
+do this, right?
+
+00:10:47.200 --> 00:11:00.620
+And moreover, this is sort of
+the single layer neural network
+
+00:11:00.620 --> 00:11:06.400
+if you have lots of
+different input functions.
+
+00:11:10.420 --> 00:11:15.805
+And they potentially add
+up to y, for instance.
+
+00:11:20.800 --> 00:11:24.640
+And the parameters now are the
+weights of this connection.
+
+00:11:33.050 --> 00:11:40.450
+So your function might be
+some squashing function,
+
+00:11:40.450 --> 00:11:45.700
+this nonlinear function,
+times a weighted combination
+
+00:11:45.700 --> 00:11:49.420
+of the inputs, potentially
+plus some baseline or something
+
+00:11:49.420 --> 00:11:55.550
+like this, where this
+is tanh or some function
+
+00:11:55.550 --> 00:11:56.800
+like that that does a sigmoid.
+
+00:12:06.570 --> 00:12:09.360
+OK.
+
+00:12:09.360 --> 00:12:12.073
+And if you do this, then you
+can stack things up and make
+
+00:12:12.073 --> 00:12:13.365
+multiple-layer neural networks.
+
+00:12:18.270 --> 00:12:21.270
+And people believe, and
+people certainly in the '80s
+
+00:12:21.270 --> 00:12:27.390
+very strongly believed, that
+this is a representative class
+
+00:12:27.390 --> 00:12:31.530
+of functions that maybe
+looked a little bit like what
+
+00:12:31.530 --> 00:12:34.770
+was going on in the brain.
+
+00:12:34.770 --> 00:12:37.950
+And people know that if I have--
+
+00:12:37.950 --> 00:12:40.176
+it's a general
+function approximator.
+
+00:12:49.410 --> 00:13:10.120
+If I have enough of these
+neurons and enough layers,
+
+00:13:10.120 --> 00:13:12.680
+then I can represent any
+function arbitrarily finally.
+
+00:13:28.332 --> 00:13:31.560
+So it's kind of a
+cool result state.
+
+00:13:31.560 --> 00:13:34.050
+Using this thing that
+looks like the brain,
+
+00:13:34.050 --> 00:13:36.720
+if I stack up these
+elements, then I
+
+00:13:36.720 --> 00:13:40.150
+can represent any function
+with enough neurons.
+
+00:13:40.150 --> 00:13:42.900
+And if I want to solve a
+least squares optimization
+
+00:13:42.900 --> 00:13:45.937
+problem to make the input and
+output of this neural network
+
+00:13:45.937 --> 00:13:48.520
+work the same, then I can just
+solve this optimization problem
+
+00:13:48.520 --> 00:13:52.800
+with gradient descent,
+and that's roughly
+
+00:13:52.800 --> 00:13:54.330
+what everybody did in the '80s.
+
+00:13:54.330 --> 00:13:56.210
+I guess that's not
+quite fair, but--
+
+00:13:56.210 --> 00:13:56.710
+right?
+
+00:13:59.430 --> 00:14:01.500
+And it works, actually.
+
+00:14:01.500 --> 00:14:08.030
+People still use these today
+to do face recognizers, right?
+
+00:14:08.030 --> 00:14:09.145
+They use it to--
+
+00:14:11.790 --> 00:14:16.290
+Yann LeCun down at NYU has
+got this text recognizer
+
+00:14:16.290 --> 00:14:17.880
+that they use actually to scan--
+
+00:14:17.880 --> 00:14:20.340
+to read checks at
+the bank, right?
+
+00:14:20.340 --> 00:14:23.352
+That's still neural
+network-based, OK?
+
+00:14:23.352 --> 00:14:24.810
+A lot of people
+got a lot of things
+
+00:14:24.810 --> 00:14:26.010
+to work with these
+neural networks.
+
+00:14:26.010 --> 00:14:27.802
+Gerry Tesaro, in the
+optimal control sense,
+
+00:14:27.802 --> 00:14:30.185
+got the TD gammon--
+
+00:14:30.185 --> 00:14:31.560
+the reinforcement
+learning system
+
+00:14:31.560 --> 00:14:35.550
+to play gammon, where the
+board configurations were
+
+00:14:35.550 --> 00:14:37.320
+put in as inputs to
+the neural network,
+
+00:14:37.320 --> 00:14:39.540
+and the output was what
+move you should take,
+
+00:14:39.540 --> 00:14:41.070
+and he got that to work, right?
+
+00:14:41.070 --> 00:14:43.440
+And actually, there was a
+value function that came out.
+
+00:14:43.440 --> 00:14:47.545
+He would even explicitly
+estimate the value function.
+
+00:14:47.545 --> 00:14:49.170
+But today, this is
+a strawman because I
+
+00:14:49.170 --> 00:14:51.150
+don't like neural networks.
+
+00:14:51.150 --> 00:14:56.920
+They're not a particularly
+nice least squares thing
+
+00:14:56.920 --> 00:14:58.920
+to optimize.
+
+00:14:58.920 --> 00:15:01.932
+We can do better these days.
+
+00:15:01.932 --> 00:15:03.390
+I just wanted to
+put it up there is
+
+00:15:03.390 --> 00:15:07.440
+an important element
+of the class,
+
+00:15:07.440 --> 00:15:09.530
+but not one we'll
+tend to use, OK?
+
+00:15:14.840 --> 00:15:18.200
+If you care about least
+squares function approximation,
+
+00:15:18.200 --> 00:15:19.700
+there are a lot of
+other choices you
+
+00:15:19.700 --> 00:15:23.990
+can have for your function f,
+which you can parameterized
+
+00:15:23.990 --> 00:15:26.480
+by alpha, which maps x to y.
+
+00:15:26.480 --> 00:15:28.670
+A lot of choices, OK?
+
+00:15:28.670 --> 00:15:31.370
+The ones that people in
+reinforcement learning
+
+00:15:31.370 --> 00:15:35.510
+tend to use most effectively
+are the linear function
+
+00:15:35.510 --> 00:15:36.645
+approximators.
+
+00:15:53.125 --> 00:15:54.500
+Linear here,
+meaning that they're
+
+00:15:54.500 --> 00:15:56.375
+linear in the parameters,
+but not necessarily
+
+00:15:56.375 --> 00:15:57.890
+linear in the outputs.
+
+00:15:57.890 --> 00:16:09.740
+So I want yi hat to be
+some linear combination
+
+00:16:09.740 --> 00:16:14.030
+of potentially non-linear
+basis functions of xi.
+
+00:16:32.510 --> 00:16:33.010
+OK.
+
+00:16:33.010 --> 00:16:34.593
+So the neural networks
+had the problem
+
+00:16:34.593 --> 00:16:40.050
+that they were rich because they
+have nonlinearities in them,
+
+00:16:40.050 --> 00:16:41.860
+and if you cascade
+nonlinearities,
+
+00:16:41.860 --> 00:16:44.560
+you can get arbitrarily
+rich things.
+
+00:16:44.560 --> 00:16:47.470
+But the parameters that
+change the function
+
+00:16:47.470 --> 00:16:51.430
+are buried deep inside
+the nonlinearities, OK?
+
+00:16:51.430 --> 00:16:53.890
+It turns out, if you come
+up with policy and function
+
+00:16:53.890 --> 00:16:58.180
+classes that can represent
+your problem nicely,
+
+00:16:58.180 --> 00:17:01.450
+where the parameters
+are all at the output,
+
+00:17:01.450 --> 00:17:04.599
+then life gets a lot better, OK?
+
+00:17:04.599 --> 00:17:06.470
+Why does life get a lot better?
+
+00:17:06.470 --> 00:17:11.950
+Well, because now I can take
+this least squares metric
+
+00:17:11.950 --> 00:17:14.560
+and solve it explicitly
+for alpha, OK?
+
+00:17:24.258 --> 00:17:25.050
+There's two things.
+
+00:17:25.050 --> 00:17:31.350
+I can represent arbitrary
+non-linear functions
+
+00:17:31.350 --> 00:17:32.760
+if I have the right basis set.
+
+00:17:45.810 --> 00:17:51.660
+Also, compute alpha explicitly.
+
+00:17:54.173 --> 00:17:55.590
+Don't have to do
+gradient descent.
+
+00:17:55.590 --> 00:17:56.757
+I can just find the optimum.
+
+00:18:03.196 --> 00:18:05.030
+Just to see how that goes--
+
+00:18:05.030 --> 00:18:07.640
+you can probably see
+it, but it's so simple,
+
+00:18:07.640 --> 00:18:08.640
+we'll write it out here.
+
+00:18:16.670 --> 00:18:20.360
+If I want to minimize
+that squared error,
+
+00:18:20.360 --> 00:18:32.570
+I minimize over alpha, sum over
+i of yi minus alpha transpose.
+
+00:18:32.570 --> 00:18:40.550
+I'll write the vector form
+of that v of xi squared.
+
+00:18:48.700 --> 00:18:51.130
+I could write this
+even more vector form
+
+00:18:51.130 --> 00:18:54.820
+if I choose big Y to be y--
+
+00:18:58.810 --> 00:19:01.720
+if I put these things
+into a big vector,
+
+00:19:01.720 --> 00:19:15.190
+and big phi is in
+the other direction,
+
+00:19:15.190 --> 00:19:23.320
+then I can write this guy as min
+over alpha y minus phi alpha.
+
+00:19:33.000 --> 00:19:36.800
+If you take the gradient
+with respect to alpha,
+
+00:19:36.800 --> 00:19:38.170
+what do you get?
+
+00:19:38.170 --> 00:19:45.800
+You get negative phi transpose
+y minus phi alpha equals 0.
+
+00:19:49.480 --> 00:19:52.990
+Assuming that this
+thing is well-behaved,
+
+00:19:52.990 --> 00:19:56.290
+then you can just say alpha is--
+
+00:20:35.550 --> 00:20:38.490
+very straightforward
+least squares
+
+00:20:38.490 --> 00:20:40.470
+estimation with
+linear approximators,
+
+00:20:40.470 --> 00:20:43.590
+but let me now convince
+you just how rich
+
+00:20:43.590 --> 00:20:45.670
+that class of functions is, OK?
+
+00:21:32.120 --> 00:21:32.620
+OK.
+
+00:21:32.620 --> 00:21:34.640
+Here's the game.
+
+00:21:34.640 --> 00:21:39.890
+There's some
+function that exists.
+
+00:21:39.890 --> 00:21:42.340
+This is my actual f, OK?
+
+00:21:42.340 --> 00:21:43.150
+I don't know it.
+
+00:21:43.150 --> 00:21:45.440
+My algorithm that I'm about
+to do doesn't know it,
+
+00:21:45.440 --> 00:21:49.240
+but that's the original f
+I'm trying to estimate, OK?
+
+00:21:49.240 --> 00:21:51.400
+And let's say I don't
+get to experience f,
+
+00:21:51.400 --> 00:21:55.240
+but I get to sample from f,
+and every time I sample from f,
+
+00:21:55.240 --> 00:21:58.420
+I get some noise, right?
+
+00:21:58.420 --> 00:22:01.610
+Then maybe my input/output data
+might look something like this.
+
+00:22:01.610 --> 00:22:04.060
+This is just--
+
+00:22:04.060 --> 00:22:07.040
+I took a bunch of
+random x's, I evaluated
+
+00:22:07.040 --> 00:22:09.040
+what that function was,
+and I added a little bit
+
+00:22:09.040 --> 00:22:11.350
+of random noise to it, OK?
+
+00:22:11.350 --> 00:22:13.660
+Now the question is, if I
+just have those red data
+
+00:22:13.660 --> 00:22:17.110
+points as input/output
+data, can I
+
+00:22:17.110 --> 00:22:21.820
+come up with an
+estimate in f hat, which
+
+00:22:21.820 --> 00:22:23.380
+reproduces the original f?
+
+00:22:23.380 --> 00:22:25.640
+And that's not many
+data points, right?
+
+00:22:25.640 --> 00:22:26.290
+OK.
+
+00:22:26.290 --> 00:22:28.300
+I could do it with
+a neural network,
+
+00:22:28.300 --> 00:22:30.547
+but without telling
+you all the details,
+
+00:22:30.547 --> 00:22:31.630
+it's not quite as elegant.
+
+00:22:31.630 --> 00:22:32.672
+We did it with reinforce.
+
+00:22:32.672 --> 00:22:35.330
+It took a little
+bit of convergence.
+
+00:22:35.330 --> 00:22:37.330
+If we do it with a linear
+function approximator,
+
+00:22:37.330 --> 00:22:40.402
+we can do it just in one
+shot, just like that.
+
+00:22:40.402 --> 00:22:41.860
+The first trick,
+though, is we have
+
+00:22:41.860 --> 00:22:45.940
+to pick our basis set, phi, OK?
+
+00:22:45.940 --> 00:22:49.930
+You've got lots of
+choices with phi.
+
+00:22:49.930 --> 00:22:52.690
+Some of the common ones--
+
+00:22:52.690 --> 00:23:19.840
+let me do-- one common one is
+radial basis functions, where
+
+00:23:19.840 --> 00:23:23.940
+you assume phi of x is
+just some Gaussian, right?
+
+00:23:30.430 --> 00:23:35.010
+phi i of x is just
+a Gaussian function.
+
+00:23:35.010 --> 00:23:37.480
+The normalization
+doesn't matter.
+
+00:23:37.480 --> 00:23:43.450
+x minus mi squared to sigma i.
+
+00:23:46.852 --> 00:23:48.310
+It's just a collection
+of Gaussians
+
+00:23:48.310 --> 00:23:51.970
+where the means are different
+for every basis function, OK?
+
+00:23:51.970 --> 00:23:54.377
+The variances could
+be different too.
+
+00:23:54.377 --> 00:23:55.210
+That doesn't matter.
+
+00:23:57.940 --> 00:23:59.450
+So that might look like this.
+
+00:23:59.450 --> 00:24:04.460
+If I made 10 different basis
+functions for this problem,
+
+00:24:04.460 --> 00:24:08.170
+and I centered them
+evenly across the space
+
+00:24:08.170 --> 00:24:09.830
+that I sampled for,
+then that would
+
+00:24:09.830 --> 00:24:14.240
+look like a reasonable basis
+set for function approximation.
+
+00:24:14.240 --> 00:24:15.280
+OK.
+
+00:24:15.280 --> 00:24:17.770
+And then the question is, can
+I take a linear combination
+
+00:24:17.770 --> 00:24:21.250
+of that 10 Gaussians and turn
+it into a pretty good estimate
+
+00:24:21.250 --> 00:24:25.630
+of the original function just
+from looking at the red points?
+
+00:24:25.630 --> 00:24:26.530
+OK?
+
+00:24:26.530 --> 00:24:32.680
+If I plug this
+equation in, then I
+
+00:24:32.680 --> 00:24:36.700
+can get a weighting on each
+of those individual phis.
+
+00:24:36.700 --> 00:24:40.230
+Alpha i is the weight
+on phi i, right?
+
+00:24:43.320 --> 00:24:47.350
+I'll do that with
+another click here.
+
+00:24:47.350 --> 00:24:49.560
+And it turns out
+it said, in order
+
+00:24:49.560 --> 00:24:52.650
+to represent this function, that
+one that was centered around 0
+
+00:24:52.650 --> 00:24:54.323
+had better have
+some negative value.
+
+00:24:54.323 --> 00:24:55.740
+The one that was
+centered around 1
+
+00:24:55.740 --> 00:24:57.240
+has got a pretty
+big positive value.
+
+00:24:57.240 --> 00:24:59.860
+This one's got a pretty big
+positive value and so on.
+
+00:24:59.860 --> 00:25:01.950
+So you can see all the
+same Gaussians are there.
+
+00:25:01.950 --> 00:25:05.670
+They're just weighted by
+a different amount, OK?
+
+00:25:05.670 --> 00:25:09.420
+And if you sum all
+those up to estimate y,
+
+00:25:09.420 --> 00:25:11.430
+then what do you get?
+
+00:25:11.430 --> 00:25:12.780
+Pretty good, right?
+
+00:25:12.780 --> 00:25:16.020
+It's pretty sparse
+set of data points.
+
+00:25:16.020 --> 00:25:17.520
+Pretty sparse set
+of basis functions
+
+00:25:17.520 --> 00:25:19.440
+gets a really nice
+accurate-- in one shot.
+
+00:25:19.440 --> 00:25:21.060
+No gradient descent or anything.
+
+00:25:21.060 --> 00:25:23.640
+This is consistent with
+what John and I have
+
+00:25:23.640 --> 00:25:26.743
+been saying, don't do
+reinforce unless you have to.
+
+00:25:26.743 --> 00:25:28.410
+Because if you know
+the function and you
+
+00:25:28.410 --> 00:25:31.780
+can sample from the function,
+you can just explicitly get it.
+
+00:25:31.780 --> 00:25:33.000
+OK.
+
+00:25:33.000 --> 00:25:37.170
+The barycentric interpolators
+that we talked about before--
+
+00:25:37.170 --> 00:25:41.430
+remember, we interpolated
+between elements of the grid
+
+00:25:41.430 --> 00:25:43.740
+with barycentric interpolators.
+
+00:25:43.740 --> 00:25:55.720
+Those are linear
+function approximators,
+
+00:25:55.720 --> 00:25:59.160
+where it turns out,
+you can think of that
+
+00:25:59.160 --> 00:26:04.890
+as having nonlinear
+basis functions, which
+
+00:26:04.890 --> 00:26:19.530
+have something like this,
+the whole thing rectified.
+
+00:26:22.980 --> 00:26:29.220
+Essentially, if I plot
+it in 2D here, then--
+
+00:26:37.450 --> 00:26:41.860
+if I turn my radial basis
+functions off and do
+
+00:26:41.860 --> 00:26:49.650
+my barycentric interpolators,
+and I run that same demo,
+
+00:26:49.650 --> 00:26:51.630
+the barycentric
+interpolators are
+
+00:26:51.630 --> 00:26:53.850
+going to look like that, OK?
+
+00:26:53.850 --> 00:26:56.700
+If I want to linearly
+interpolate between all
+
+00:26:56.700 --> 00:26:58.290
+these neighboring
+points, one way
+
+00:26:58.290 --> 00:27:01.530
+to view it is I take my
+distance between the points,
+
+00:27:01.530 --> 00:27:02.460
+I interpolate.
+
+00:27:02.460 --> 00:27:04.230
+Another way to view
+that is actually,
+
+00:27:04.230 --> 00:27:07.490
+those are basis functions
+that look like tents.
+
+00:27:07.490 --> 00:27:12.983
+And the same thing is true
+in 2D, they're 2D tents, OK?
+
+00:27:12.983 --> 00:27:14.650
+It's the opposite way
+to think about it,
+
+00:27:14.650 --> 00:27:16.108
+but those barycentric
+interpolators
+
+00:27:16.108 --> 00:27:18.150
+we've been using the
+whole time are exactly
+
+00:27:18.150 --> 00:27:19.690
+linear basis functions.
+
+00:27:19.690 --> 00:27:21.720
+And again, I can
+sum these guys up,
+
+00:27:21.720 --> 00:27:26.520
+and I can make an approximation
+of the original non-linear
+
+00:27:26.520 --> 00:27:27.330
+function.
+
+00:27:27.330 --> 00:27:29.910
+This one, of course, has
+got to be piecewise linear,
+
+00:27:29.910 --> 00:27:30.618
+but that's OK.
+
+00:27:30.618 --> 00:27:32.160
+It did a pretty good
+job, considering
+
+00:27:32.160 --> 00:27:34.920
+it's piecewise linear and it's
+not a piecewise linear thing
+
+00:27:34.920 --> 00:27:37.890
+it's estimating.
+
+00:27:37.890 --> 00:27:45.930
+OK, you could do basis
+functions based on Fourier
+
+00:27:45.930 --> 00:27:47.475
+decompositions, for instance.
+
+00:28:07.710 --> 00:28:17.870
+You could do polynomials basis
+functions, where phi i of x
+
+00:28:17.870 --> 00:28:23.060
+is x to the i
+minus 1, let's say.
+
+00:28:23.060 --> 00:28:24.020
+Something like that.
+
+00:28:24.020 --> 00:28:25.040
+All these things work.
+
+00:28:32.850 --> 00:28:34.620
+I'll do the Fourier one here.
+
+00:28:37.170 --> 00:28:40.080
+Same function, noisy data.
+
+00:28:40.080 --> 00:28:42.030
+There's a Fourier basis over--
+
+00:28:42.030 --> 00:28:45.690
+spatial Fourier basis.
+
+00:28:45.690 --> 00:28:47.230
+I can add those up.
+
+00:28:47.230 --> 00:28:49.392
+I get very large coefficients.
+
+00:28:49.392 --> 00:28:51.630
+These tend to cancel
+themselves out a lot,
+
+00:28:51.630 --> 00:28:54.540
+but still, I get a pretty
+nice representation.
+
+00:28:54.540 --> 00:28:55.830
+OK.
+
+00:28:55.830 --> 00:29:02.660
+So this idea of using linear
+function approximators
+
+00:29:02.660 --> 00:29:06.540
+and then linear least square--
+exact least squares solution
+
+00:29:06.540 --> 00:29:07.617
+is a very powerful idea.
+
+00:29:07.617 --> 00:29:09.450
+You can represent very
+complicated functions
+
+00:29:09.450 --> 00:29:10.673
+potentially with this.
+
+00:29:10.673 --> 00:29:12.090
+This was not the
+way people tended
+
+00:29:12.090 --> 00:29:14.700
+to do things 15, 20 years ago.
+
+00:29:14.700 --> 00:29:17.580
+It really tends to be the
+way people do things now.
+
+00:29:17.580 --> 00:29:21.210
+In fact, machine
+learning got on this kick
+
+00:29:21.210 --> 00:29:22.685
+in statistical learning theory.
+
+00:29:22.685 --> 00:29:24.060
+People talk about
+kernel methods,
+
+00:29:24.060 --> 00:29:25.620
+and you might know these.
+
+00:29:25.620 --> 00:29:31.890
+I mean, the essential idea
+is there's two problems.
+
+00:29:31.890 --> 00:29:36.360
+I didn't say it,
+but sometimes people
+
+00:29:36.360 --> 00:29:39.360
+are trying to estimate scalar--
+
+00:29:39.360 --> 00:29:40.920
+continuous-valued outputs.
+
+00:29:40.920 --> 00:29:43.233
+Sometimes, people are trying
+to do Boolean outputs.
+
+00:29:43.233 --> 00:29:45.150
+They would call that a
+classification problem.
+
+00:29:45.150 --> 00:29:47.230
+There's different
+forms of this problem.
+
+00:29:47.230 --> 00:29:49.110
+But in machine learning,
+people realized
+
+00:29:49.110 --> 00:29:52.770
+that you can often take a
+fairly low-dimensional problem,
+
+00:29:52.770 --> 00:29:56.832
+blow it up into a very
+high-dimensional space using
+
+00:29:56.832 --> 00:29:59.040
+lots of basis functions,
+for instance, lots of kernel
+
+00:29:59.040 --> 00:30:01.440
+functions, and then
+do linear least
+
+00:30:01.440 --> 00:30:04.290
+squares in the
+high-dimensional space,
+
+00:30:04.290 --> 00:30:07.325
+and that works a lot better than
+doing some sort of nonlinear
+
+00:30:07.325 --> 00:30:08.700
+gradient descent-based
+estimation
+
+00:30:08.700 --> 00:30:10.740
+in the low-dimensional
+space, OK?
+
+00:30:10.740 --> 00:30:13.740
+So that's really a trend that
+happened in machine learning.
+
+00:30:13.740 --> 00:30:18.608
+In reinforcement learning, it's
+the norm because essentially,
+
+00:30:18.608 --> 00:30:20.400
+when we have linear
+function approximators,
+
+00:30:20.400 --> 00:30:22.650
+we have some proofs
+that our optimal control
+
+00:30:22.650 --> 00:30:25.990
+algorithms are going to converge
+when we have almost nothing.
+
+00:30:25.990 --> 00:30:29.800
+In fact, in the more nonlinear
+function approximator case,
+
+00:30:29.800 --> 00:30:31.470
+we have lots of
+examples where things
+
+00:30:31.470 --> 00:30:33.637
+like TD on a
+function approximator
+
+00:30:33.637 --> 00:30:34.470
+just don't converge.
+
+00:30:34.470 --> 00:30:35.430
+There are simple
+examples where they
+
+00:30:35.430 --> 00:30:36.555
+do exactly the wrong thing.
+
+00:30:39.990 --> 00:30:40.740
+Good.
+
+00:30:40.740 --> 00:30:45.440
+So just to convince you of one
+more basis function that is
+
+00:30:45.440 --> 00:30:47.940
+more relevant to this class--
+that was just the crash course
+
+00:30:47.940 --> 00:30:52.800
+for people who haven't seen
+function approximators--
+
+00:30:52.800 --> 00:30:55.984
+let me give you another example
+from system identification.
+
+00:31:05.180 --> 00:31:20.000
+Let's do nonlinear
+system identification
+
+00:31:20.000 --> 00:31:27.540
+as a least squares problem with
+linear function approximation.
+
+00:31:27.540 --> 00:31:30.705
+So let's say we've got
+our equations of motion,
+
+00:31:30.705 --> 00:31:31.580
+which come from this.
+
+00:31:31.580 --> 00:31:33.320
+It's been a little while
+since I wrote these equations.
+
+00:31:33.320 --> 00:31:33.820
+Jeez.
+
+00:31:45.870 --> 00:31:48.270
+Let's say it's for the
+pendulum or for the acrobot,
+
+00:31:48.270 --> 00:31:49.972
+you name it.
+
+00:31:49.972 --> 00:31:51.930
+And let's say we know
+the form of the equation,
+
+00:31:51.930 --> 00:31:53.305
+but we don't know
+the parameters.
+
+00:31:53.305 --> 00:31:55.110
+We don't know how
+much the masses are,
+
+00:31:55.110 --> 00:31:56.908
+how long the link lengths are.
+
+00:31:56.908 --> 00:31:58.200
+Normally you can measure those.
+
+00:31:58.200 --> 00:31:59.880
+But inertias, things
+like that, these
+
+00:31:59.880 --> 00:32:01.005
+can be harder to get right.
+
+00:32:03.450 --> 00:32:08.490
+So we can, for instance,
+run a bunch of trials
+
+00:32:08.490 --> 00:32:11.130
+with some dumb open
+loop controller.
+
+00:32:11.130 --> 00:32:13.230
+Just pick you
+randomly, let's say,
+
+00:32:13.230 --> 00:32:18.000
+and make the acrobot
+flail around a little bit
+
+00:32:18.000 --> 00:32:25.800
+and collect data that
+looked like this, right?
+
+00:32:25.800 --> 00:32:33.150
+q, q dot, even q double dot,
+and u at every instant in time.
+
+00:32:39.100 --> 00:32:43.900
+And this is going to be exactly
+like our input/output data
+
+00:32:43.900 --> 00:32:46.540
+in our least squares
+formulation, OK?
+
+00:32:52.490 --> 00:32:56.300
+And here's the very
+amazing observation.
+
+00:32:56.300 --> 00:33:00.560
+This one really surprised
+me when I first got it.
+
+00:33:00.560 --> 00:33:05.480
+The manipulator equations
+for random robot arms,
+
+00:33:05.480 --> 00:33:08.270
+they're actually linear
+in their parameters.
+
+00:33:08.270 --> 00:33:10.370
+Very non-linear functions.
+
+00:33:10.370 --> 00:33:12.260
+They do very
+complicated dynamics.
+
+00:33:12.260 --> 00:33:18.277
+But they tend to be, for
+most robot manipulators--
+
+00:33:18.277 --> 00:33:20.360
+robotic arms on the factory
+floor, walking robots,
+
+00:33:20.360 --> 00:33:21.710
+things like that--
+
+00:33:21.710 --> 00:33:23.720
+those equations
+actually turn out
+
+00:33:23.720 --> 00:33:26.210
+to be linear in the parameters.
+
+00:33:26.210 --> 00:33:28.490
+They're not linear
+in q, but they're
+
+00:33:28.490 --> 00:33:30.003
+linear in the parameters.
+
+00:34:01.060 --> 00:34:01.560
+All right.
+
+00:34:01.560 --> 00:34:02.610
+Take the simple pendulum.
+
+00:34:27.719 --> 00:34:36.780
+I can rewrite this dynamics
+as alpha transpose times
+
+00:34:36.780 --> 00:34:46.560
+theta double dot, theta
+dot, sine of theta equals u,
+
+00:34:46.560 --> 00:34:53.429
+where alpha is i, b, and mgl.
+
+00:35:06.830 --> 00:35:08.940
+OK, after you think
+about it a little bit,
+
+00:35:08.940 --> 00:35:11.400
+it turns out to be not
+all that surprising.
+
+00:35:11.400 --> 00:35:14.400
+In all our robot manipulators,
+you see sine thetas everywhere.
+
+00:35:14.400 --> 00:35:16.500
+You see sine squared thetas.
+
+00:35:16.500 --> 00:35:17.430
+You see sine cosines.
+
+00:35:17.430 --> 00:35:18.600
+You see all these things.
+
+00:35:18.600 --> 00:35:23.580
+You never see sine l theta
+or something like that, OK?
+
+00:35:23.580 --> 00:35:28.260
+It turns out, in these problems,
+that the parameters don't end
+
+00:35:28.260 --> 00:35:31.380
+up inside your nonlinearities.
+
+00:35:31.380 --> 00:35:31.950
+Yeah.
+
+00:35:31.950 --> 00:35:32.820
+AUDIENCE: Isn't
+it still nonlinear
+
+00:35:32.820 --> 00:35:35.070
+because the parameters
+are multiplied together?
+
+00:35:35.070 --> 00:35:36.450
+RUSS TEDRAKE: OK, good.
+
+00:35:36.450 --> 00:35:40.410
+So it's not linear in
+every individual parameter,
+
+00:35:40.410 --> 00:35:42.090
+but I can get--
+
+00:35:42.090 --> 00:35:44.600
+I can re-estimate this
+as a linear optimization.
+
+00:35:44.600 --> 00:35:45.600
+So that's exactly right.
+
+00:35:45.600 --> 00:36:09.860
+So sometimes, you have to
+settle for groups of parameters.
+
+00:36:09.860 --> 00:36:11.900
+But those groups of
+parameters are always
+
+00:36:11.900 --> 00:36:14.990
+enough to rewrite your
+initial dynamics, OK?
+
+00:36:19.860 --> 00:36:22.940
+OK, so that actually makes
+it sound like sys ID is easy.
+
+00:36:22.940 --> 00:36:24.633
+If we have a complicated robot--
+
+00:36:24.633 --> 00:36:27.050
+yeah, says Michael, who's been
+doing it for the last three
+
+00:36:27.050 --> 00:36:28.380
+months, six months, maybe.
+
+00:36:28.380 --> 00:36:35.930
+I don't know. (LAUGHS) You
+just shot daggers at me there.
+
+00:36:35.930 --> 00:36:38.900
+Yeah, so sys ID should
+be easy for robots
+
+00:36:38.900 --> 00:36:40.040
+that are well-behaved.
+
+00:36:40.040 --> 00:36:41.300
+It turns out, if
+you have saturations
+
+00:36:41.300 --> 00:36:43.800
+in your motor and stuff like
+that, it gets more complicated.
+
+00:36:43.800 --> 00:36:46.860
+Michael could tell
+you all about it.
+
+00:36:46.860 --> 00:36:49.670
+But if I have a
+simulation of a pendulum,
+
+00:36:49.670 --> 00:36:53.220
+let's say, then it should be
+trivial, and it is trivial.
+
+00:36:53.220 --> 00:36:56.120
+So let me just show you that.
+
+00:37:02.040 --> 00:37:04.590
+It turns out, it's exactly
+the same linear function
+
+00:37:04.590 --> 00:37:05.380
+approximation.
+
+00:37:05.380 --> 00:37:06.810
+This is my basis
+functions, right?
+
+00:37:06.810 --> 00:37:08.280
+These are my phi's.
+
+00:37:08.280 --> 00:37:09.610
+I've got three basis functions.
+
+00:37:09.610 --> 00:37:13.170
+One is theta double dot, one is
+theta dot, one is sine theta.
+
+00:37:13.170 --> 00:37:15.840
+These are my
+coefficients, alpha.
+
+00:37:15.840 --> 00:37:17.430
+And how am I going
+to do it here?
+
+00:37:21.240 --> 00:37:21.880
+Where is it?
+
+00:37:28.000 --> 00:37:31.460
+Sys ID, yeah.
+
+00:37:31.460 --> 00:37:35.570
+Just a few lines there
+of the Matlab code,
+
+00:37:35.570 --> 00:37:38.540
+and that includes
+running the tests, OK?
+
+00:37:41.240 --> 00:37:44.320
+So most of this is just
+setting up my simulator.
+
+00:37:44.320 --> 00:37:52.060
+I'm going to pick some small
+random actions, a random tape
+
+00:37:52.060 --> 00:37:53.210
+of torques to play out.
+
+00:37:53.210 --> 00:37:55.360
+I'm going to pick some
+random initial condition.
+
+00:37:55.360 --> 00:37:57.820
+I'm going to run
+my control system
+
+00:37:57.820 --> 00:38:03.310
+with just making that tape--
+
+00:38:03.310 --> 00:38:07.330
+a zero-order hold
+on that tape, OK?
+
+00:38:07.330 --> 00:38:11.620
+And I'm going to collect
+the time x torque
+
+00:38:11.620 --> 00:38:15.050
+and x dot that came
+out of that simulation,
+
+00:38:15.050 --> 00:38:18.070
+and do exactly the math
+I showed you over here,
+
+00:38:18.070 --> 00:38:21.270
+where alpha is i, b, mgl--
+
+00:38:21.270 --> 00:38:23.590
+in this case, it's the location
+of the center of mass--
+
+00:38:23.590 --> 00:38:28.930
+and do my optimization like
+that and watch what happens.
+
+00:38:41.222 --> 00:38:41.930
+What's it called?
+
+00:38:47.120 --> 00:38:49.610
+OK, so I started from
+random initial conditions.
+
+00:38:49.610 --> 00:38:54.350
+I play a small random tape
+for 10 seconds out, OK?
+
+00:38:54.350 --> 00:38:58.040
+The actual parameters that
+I started with were this.
+
+00:38:58.040 --> 00:38:59.540
+The ones that are
+estimated after 10
+
+00:38:59.540 --> 00:39:02.150
+seconds of running my simulation
+and doing least squares
+
+00:39:02.150 --> 00:39:02.750
+are that.
+
+00:39:02.750 --> 00:39:04.730
+It's pretty good, right?
+
+00:39:04.730 --> 00:39:07.010
+And that was corrupted by noise.
+
+00:39:07.010 --> 00:39:09.140
+Not a lot of noise,
+I guess, but noise.
+
+00:39:12.740 --> 00:39:13.430
+It's easy.
+
+00:39:13.430 --> 00:39:15.400
+System identification's
+easy, right?
+
+00:39:15.400 --> 00:39:18.350
+It's actually a very,
+very powerful observation
+
+00:39:18.350 --> 00:39:20.600
+that you can do system
+identification for these really
+
+00:39:20.600 --> 00:39:24.560
+hard systems just as a linear
+function approximation task.
+
+00:39:24.560 --> 00:39:25.455
+One shot.
+
+00:39:25.455 --> 00:39:27.080
+That's what makes
+adaptive control tick
+
+00:39:27.080 --> 00:39:28.850
+on a lot of these
+manipulators, right?
+
+00:39:28.850 --> 00:39:30.771
+It's a very fundamental
+observation.
+
+00:39:30.771 --> 00:39:33.188
+AUDIENCE: What would happen
+in the case you assigned theta
+
+00:39:33.188 --> 00:39:36.090
+to a theta?
+
+00:39:36.090 --> 00:39:38.640
+RUSS TEDRAKE: OK, it's not going
+to work as well, but let's--
+
+00:39:49.056 --> 00:39:51.280
+it's running some random
+initial tape here.
+
+00:39:54.830 --> 00:39:59.242
+It's not catastrophically
+bad, actually.
+
+00:39:59.242 --> 00:40:00.700
+AUDIENCE: We have
+this small angle.
+
+00:40:00.700 --> 00:40:01.150
+RUSS TEDRAKE: Exactly.
+
+00:40:01.150 --> 00:40:03.080
+That one happened to be
+a small angle, right?
+
+00:40:03.080 --> 00:40:04.690
+Let's see if I get--
+
+00:40:04.690 --> 00:40:07.337
+come on.
+
+00:40:07.337 --> 00:40:08.170
+That's a bigger one.
+
+00:40:12.500 --> 00:40:15.950
+That's worse, yeah?
+
+00:40:15.950 --> 00:40:19.580
+There's another way I can break
+it, just to anticipate here.
+
+00:40:23.630 --> 00:40:25.460
+Let me put it back
+before I forget.
+
+00:40:25.460 --> 00:40:26.720
+This was sine here, right?
+
+00:40:29.240 --> 00:40:33.770
+What if I don't put enough
+control torque in, OK?
+
+00:40:33.770 --> 00:40:36.830
+I put a note to myself,
+if I make a 0.1 here,
+
+00:40:36.830 --> 00:40:40.940
+then suddenly, I'm not putting
+in very much control torque.
+
+00:40:40.940 --> 00:40:43.584
+And why could that be a problem?
+
+00:40:43.584 --> 00:40:44.812
+AUDIENCE: Unprotected.
+
+00:40:44.812 --> 00:40:45.895
+RUSS TEDRAKE: What's that?
+
+00:40:45.895 --> 00:40:47.350
+AUDIENCE: You're unprotected.
+
+00:40:47.350 --> 00:40:47.920
+[INAUDIBLE]
+
+00:40:47.920 --> 00:40:49.120
+RUSS TEDRAKE: Yeah, I'm
+sort of not-- exactly.
+
+00:40:49.120 --> 00:40:51.490
+I'm not simulating the
+system beyond the noise
+
+00:40:51.490 --> 00:40:55.000
+that I've added, and
+that can break things.
+
+00:40:55.000 --> 00:40:57.168
+Let's see.
+
+00:40:57.168 --> 00:40:58.960
+So now it's pretty much
+just falling almost
+
+00:40:58.960 --> 00:41:03.515
+as a passive pendulum, and
+that breaks things more.
+
+00:41:03.515 --> 00:41:05.140
+Although this is a
+pretty easy problem.
+
+00:41:05.140 --> 00:41:08.130
+That doesn't horribly
+break anything.
+
+00:41:08.130 --> 00:41:11.920
+OK, that same code could have
+run for the acrobot, right?
+
+00:41:11.920 --> 00:41:16.120
+It couldn't have run
+for one of our airplanes
+
+00:41:16.120 --> 00:41:19.120
+because the aerodynamics
+tends to not be
+
+00:41:19.120 --> 00:41:20.410
+linear in the parameters.
+
+00:41:20.410 --> 00:41:23.890
+But rigid body dynamics tend
+to be linear in the parameters,
+
+00:41:23.890 --> 00:41:25.405
+right?
+
+00:41:25.405 --> 00:41:27.280
+Doing it on the acrobot's
+a little bit harder
+
+00:41:27.280 --> 00:41:30.490
+because you have to be
+more clever in stimulating
+
+00:41:30.490 --> 00:41:32.990
+all the dynamics with
+your one actuator.
+
+00:41:32.990 --> 00:41:34.690
+So there are a lot
+of good problems
+
+00:41:34.690 --> 00:41:36.580
+left in system identification.
+
+00:41:36.580 --> 00:41:38.380
+Designing sufficiently
+rich inputs
+
+00:41:38.380 --> 00:41:40.840
+to stimulate all your dynamics
+is one of the big ones.
+
+00:41:45.050 --> 00:41:49.150
+But function approximation
+and least squares
+
+00:41:49.150 --> 00:41:55.465
+is basically what you need to
+do to do system identification.
+
+00:41:55.465 --> 00:41:58.218
+AUDIENCE: So if you have,
+for example, [INAUDIBLE]----
+
+00:41:58.218 --> 00:41:59.010
+RUSS TEDRAKE: Yeah.
+
+00:41:59.010 --> 00:42:01.410
+AUDIENCE: And then
+presumably, you
+
+00:42:01.410 --> 00:42:08.260
+have sine theta minus as one
+of the parts in your equations.
+
+00:42:08.260 --> 00:42:10.140
+So if you want to get
+something good, you,
+
+00:42:10.140 --> 00:42:13.000
+should put that as one
+of the features, right?
+
+00:42:13.000 --> 00:42:15.912
+You have sine alpha minus gamma
+there, and then [INAUDIBLE]..
+
+00:42:15.912 --> 00:42:17.370
+RUSS TEDRAKE:
+There's always a step
+
+00:42:17.370 --> 00:42:19.320
+where you have to
+look at your equations
+
+00:42:19.320 --> 00:42:22.350
+and pull out the proper
+basis function to describe
+
+00:42:22.350 --> 00:42:24.540
+that class of systems.
+
+00:42:24.540 --> 00:42:25.650
+Absolutely.
+
+00:42:25.650 --> 00:42:27.582
+So if there's a sine
+theta 1 minus theta 2
+
+00:42:27.582 --> 00:42:29.040
+floating around in
+there, it should
+
+00:42:29.040 --> 00:42:30.880
+be in one of your basis--
+
+00:42:30.880 --> 00:42:32.130
+as one of your basis elements.
+
+00:42:32.130 --> 00:42:34.172
+AUDIENCE: If you want to
+do this with this system
+
+00:42:34.172 --> 00:42:36.490
+but you don't have
+the knowledge,
+
+00:42:36.490 --> 00:42:38.060
+you think that it's
+linear, but you
+
+00:42:38.060 --> 00:42:39.630
+don't know the equation for it.
+
+00:42:39.630 --> 00:42:40.422
+RUSS TEDRAKE: Good.
+
+00:42:40.422 --> 00:42:41.047
+AUDIENCE: Then?
+
+00:42:41.047 --> 00:42:42.505
+RUSS TEDRAKE: Then
+maybe you should
+
+00:42:42.505 --> 00:42:45.520
+do radial basis functions or
+polynomials or some other basis
+
+00:42:45.520 --> 00:42:46.180
+set.
+
+00:42:46.180 --> 00:42:48.790
+I think a more common
+thing would be,
+
+00:42:48.790 --> 00:42:50.805
+imagine there's something
+I'm not modeling well
+
+00:42:50.805 --> 00:42:51.430
+in my pendulum.
+
+00:42:51.430 --> 00:42:53.722
+Let's say there's some
+nonlinear friction in the joints
+
+00:42:53.722 --> 00:42:54.700
+or something like that.
+
+00:42:54.700 --> 00:42:59.110
+A common thing that people would
+do would be to add in here some
+
+00:42:59.110 --> 00:43:07.480
+slop terms-- let's say radial
+basis functions or something,
+
+00:43:07.480 --> 00:43:10.240
+just in my standard linear
+function approximator--
+
+00:43:10.240 --> 00:43:13.930
+and do that, OK?
+
+00:43:13.930 --> 00:43:16.780
+And then, now you've just added
+more representational power
+
+00:43:16.780 --> 00:43:17.740
+to this--
+
+00:43:17.740 --> 00:43:20.860
+you've given the basis functions
+which you believe to be true,
+
+00:43:20.860 --> 00:43:23.740
+but you also add in
+some slop terms, right?
+
+00:43:23.740 --> 00:43:27.130
+And this is-- I mean, so Slotine
+certainly teaches this and does
+
+00:43:27.130 --> 00:43:29.740
+this in his robots, right?
+
+00:43:29.740 --> 00:43:32.170
+For his adaptive
+controller, he puts those in
+
+00:43:32.170 --> 00:43:34.510
+to capture the terms that
+he didn't expect to show up.
+
+00:43:34.510 --> 00:43:35.890
+Yeah.
+
+00:43:35.890 --> 00:43:37.960
+AUDIENCE: How well does
+this work for things
+
+00:43:37.960 --> 00:43:39.310
+that aren't really smooth.
+
+00:43:39.310 --> 00:43:42.765
+Sometimes stick slope can--
+
+00:43:42.765 --> 00:43:45.715
+it seems like if you
+plot it, it's not really
+
+00:43:45.715 --> 00:43:48.490
+a continuous function.
+
+00:43:48.490 --> 00:43:52.240
+RUSS TEDRAKE: Continuous
+doesn't matter, right?
+
+00:43:52.240 --> 00:43:54.250
+If you were trying to fit
+a continuous basis set
+
+00:43:54.250 --> 00:43:56.020
+to a discontinuous
+function, then it'll
+
+00:43:56.020 --> 00:43:59.300
+only do as well as it can
+in the least square sense.
+
+00:43:59.300 --> 00:44:03.790
+But you can represent
+arbitrary static functions of--
+
+00:44:03.790 --> 00:44:07.487
+if it's a function of x,
+then it should be right.
+
+00:44:07.487 --> 00:44:09.070
+I think the more
+common problem, maybe
+
+00:44:09.070 --> 00:44:11.320
+in a stick slope kind of model,
+is that there's hidden state--
+
+00:44:11.320 --> 00:44:12.220
+AUDIENCE: OK, yeah.
+
+00:44:12.220 --> 00:44:13.090
+RUSS TEDRAKE: --for
+instance, right?
+
+00:44:13.090 --> 00:44:15.465
+Maybe you don't know exactly
+what the state of the system
+
+00:44:15.465 --> 00:44:18.180
+is because there's some other--
+
+00:44:18.180 --> 00:44:21.180
+and then you'd have to
+estimate that to put it
+
+00:44:21.180 --> 00:44:24.750
+into your basis set.
+
+00:44:24.750 --> 00:44:27.460
+OK, people feel OK with
+least squares estimation?
+
+00:44:27.460 --> 00:44:27.960
+Yeah?
+
+00:44:30.460 --> 00:44:30.960
+Good.
+
+00:44:30.960 --> 00:44:32.502
+Now let's see if we
+can put it to use
+
+00:44:32.502 --> 00:44:35.160
+to do what we promised at
+the beginning, which is
+
+00:44:35.160 --> 00:44:38.320
+temporal difference learning.
+
+00:44:38.320 --> 00:44:41.040
+It's gone, isn't it?
+
+00:44:41.040 --> 00:44:41.540
+OK.
+
+00:44:47.320 --> 00:44:50.260
+So if you remember, and I hope
+the impression came across when
+
+00:44:50.260 --> 00:44:53.560
+I was talking about temporal
+difference learning,
+
+00:44:53.560 --> 00:45:04.790
+that we made a pretty
+complicated update, which
+
+00:45:04.790 --> 00:45:10.160
+was this weighted sum of one
+step, two step, three step,
+
+00:45:10.160 --> 00:45:15.292
+end step returns through
+some algebraic trick,
+
+00:45:15.292 --> 00:45:17.750
+and that's really probably the
+right way to think about it.
+
+00:45:17.750 --> 00:45:19.125
+Through some
+algebraic trick, you
+
+00:45:19.125 --> 00:45:21.080
+could do it with a
+very simple algorithm.
+
+00:45:21.080 --> 00:45:24.290
+So let me just remind you
+that that algorithm was--
+
+00:46:40.790 --> 00:46:41.500
+OK.
+
+00:46:41.500 --> 00:46:45.790
+So if you remember, the
+picture we had last time
+
+00:46:45.790 --> 00:46:56.020
+was that I've got some Markov
+chain that I'm moving around.
+
+00:47:05.800 --> 00:47:10.870
+As I'm walking around
+this Markov chain,
+
+00:47:10.870 --> 00:47:13.990
+I'm trying to-- every
+time I visit a state,
+
+00:47:13.990 --> 00:47:16.930
+I want to update my
+estimate of the costs
+
+00:47:16.930 --> 00:47:20.890
+to go from being in
+that state, right?
+
+00:47:20.890 --> 00:47:25.270
+And I can do it with this
+very simple algorithm
+
+00:47:25.270 --> 00:47:32.440
+which keeps a decaying
+eligibility trace on each node.
+
+00:47:32.440 --> 00:47:34.378
+Every time I visit
+this node, it goes up.
+
+00:47:34.378 --> 00:47:36.670
+And then it starts decaying
+until the next time I visit
+
+00:47:36.670 --> 00:47:37.295
+and it goes up.
+
+00:47:40.360 --> 00:47:42.520
+The rate at which
+it decays is given
+
+00:47:42.520 --> 00:47:47.140
+by the discount factor in
+my optimal control problem
+
+00:47:47.140 --> 00:47:52.510
+and the lambda, which
+is the amount that I
+
+00:47:52.510 --> 00:47:54.460
+want to weight Monte Carlo--
+
+00:47:54.460 --> 00:47:58.930
+long-term evaluations-- versus
+short-term evaluations, right?
+
+00:47:58.930 --> 00:48:02.650
+If lambda is 1, I'm going to let
+that settle much more slowly,
+
+00:48:02.650 --> 00:48:05.560
+and it's going to be making
+very long-term updates,
+
+00:48:05.560 --> 00:48:07.810
+and if lambda is
+0, then it's just
+
+00:48:07.810 --> 00:48:12.220
+going to make an update based
+on the one-step prediction, OK?
+
+00:48:12.220 --> 00:48:14.800
+If I carry around this
+eligibility trace,
+
+00:48:14.800 --> 00:48:20.710
+this would be ei as a
+function of time for every i,
+
+00:48:20.710 --> 00:48:26.080
+and I do this very
+simple update,
+
+00:48:26.080 --> 00:48:31.630
+then there's this interpretation
+that j hat is doing something
+
+00:48:31.630 --> 00:48:34.150
+between Monte Carlo and
+one-step bootstrapping,
+
+00:48:34.150 --> 00:48:37.000
+depending on what
+lambda you pick.
+
+00:48:40.210 --> 00:48:40.710
+Right?
+
+00:48:45.500 --> 00:48:49.340
+OK, so let's say we don't have
+a discrete state and action
+
+00:48:49.340 --> 00:48:54.905
+system, but we now
+have, let's say
+
+00:48:54.905 --> 00:48:56.780
+our barycentric interpolator
+is on a pendulum
+
+00:48:56.780 --> 00:48:58.030
+or something like that, right?
+
+00:49:06.830 --> 00:49:10.302
+And let's say I take a
+trajectory through here,
+
+00:49:10.302 --> 00:49:13.800
+which I-- that was a bad
+trajectory for a phase space,
+
+00:49:13.800 --> 00:49:20.120
+but I take some trajectory
+through my state space, OK?
+
+00:49:22.870 --> 00:49:25.700
+Let's say I'm willing to
+discretize the system in time
+
+00:49:25.700 --> 00:49:26.200
+still.
+
+00:49:36.180 --> 00:49:39.360
+And let's say my value
+estimate is a linear function
+
+00:49:39.360 --> 00:49:44.280
+approximator here, which is
+this barycentric grid, OK?
+
+00:49:44.280 --> 00:49:47.490
+So at every point
+here, I'm going
+
+00:49:47.490 --> 00:49:51.720
+to say j hat is just a weighted
+combination of the four
+
+00:49:51.720 --> 00:49:56.520
+neighboring points weighted
+by the distance, right?
+
+00:49:56.520 --> 00:50:01.230
+Like I said, that
+actually is exactly
+
+00:50:01.230 --> 00:50:05.250
+of the form where I've
+got a scalar output,
+
+00:50:05.250 --> 00:50:07.440
+and I've just got-- you
+can think of this as being
+
+00:50:07.440 --> 00:50:12.180
+a tent, this being a
+basis function which
+
+00:50:12.180 --> 00:50:16.560
+has sort of a tent of region
+of applicability right here,
+
+00:50:16.560 --> 00:50:20.610
+and added with this one that has
+a tent of applicability here.
+
+00:50:20.610 --> 00:50:22.800
+And at every point, there's
+a-- at every cross-hair,
+
+00:50:22.800 --> 00:50:25.950
+there's a basis function
+that looks like a tent.
+
+00:50:25.950 --> 00:50:28.450
+Did you get that out
+of the previous one--
+
+00:50:28.450 --> 00:50:30.840
+the previous picture?
+
+00:50:30.840 --> 00:50:33.540
+Linearly interpolating
+between those four points
+
+00:50:33.540 --> 00:50:36.600
+is the same as saying I've
+got four basis functions that
+
+00:50:36.600 --> 00:50:38.790
+are active, and each
+of them contributes
+
+00:50:38.790 --> 00:50:43.050
+in a way that diminishes
+from their point of attack.
+
+00:50:46.420 --> 00:50:47.260
+OK.
+
+00:50:47.260 --> 00:50:50.410
+So now I've got a linear
+function approximator
+
+00:50:50.410 --> 00:50:52.030
+trying to estimate j hat.
+
+00:50:52.030 --> 00:50:56.110
+So how could I possibly
+do temporal distance
+
+00:50:56.110 --> 00:50:57.490
+learning-- yeah, John.
+
+00:50:57.490 --> 00:51:00.280
+AUDIENCE: Is that
+volumetric interpolation?
+
+00:51:00.280 --> 00:51:01.722
+Barycentric has smaller--
+
+00:51:01.722 --> 00:51:02.680
+RUSS TEDRAKE: OK, good.
+
+00:51:02.680 --> 00:51:05.203
+So you can do barycentric
+in three or four, actually.
+
+00:51:05.203 --> 00:51:07.370
+AUDIENCE: And here, you
+have-- this would be-- you'd
+
+00:51:07.370 --> 00:51:09.922
+have three points, though,
+right, in this problem?
+
+00:51:09.922 --> 00:51:12.130
+RUSS TEDRAKE: This would
+still be called barycentric,
+
+00:51:12.130 --> 00:51:16.000
+but it's true the barycentric
+we did before was just,
+
+00:51:16.000 --> 00:51:18.460
+you take the neighboring
+three points.
+
+00:51:18.460 --> 00:51:19.100
+It's true.
+
+00:51:19.100 --> 00:51:22.627
+So actually, you can do
+barycentric with the three
+
+00:51:22.627 --> 00:51:25.210
+neighboring points or the four
+neighboring points or whatever.
+
+00:51:25.210 --> 00:51:27.490
+The volumetric is
+actually also called--
+
+00:51:27.490 --> 00:51:29.470
+is also a barycentric
+interpolator.
+
+00:51:29.470 --> 00:51:30.190
+But you're right.
+
+00:51:30.190 --> 00:51:31.595
+I should have been more careful.
+
+00:51:31.595 --> 00:51:33.220
+The way we did
+barycentric before is we
+
+00:51:33.220 --> 00:51:39.127
+took the three closest
+points, not the four, right?
+
+00:51:39.127 --> 00:51:40.960
+Taking the four is also
+a good interpolator.
+
+00:51:40.960 --> 00:51:43.732
+It also is called a barycentric
+interpolator, actually, right?
+
+00:51:43.732 --> 00:51:45.940
+And the question is just
+how it grows with the state.
+
+00:51:45.940 --> 00:51:48.232
+Most people use the
+three closest points
+
+00:51:48.232 --> 00:51:49.690
+because then, in
+higher dimensions,
+
+00:51:49.690 --> 00:51:54.490
+it's always n plus 1 points
+instead of the powers of n.
+
+00:51:57.970 --> 00:51:58.750
+Good, thank you.
+
+00:51:58.750 --> 00:52:01.260
+OK.
+
+00:52:01.260 --> 00:52:03.010
+So I guess, then, the
+domain of attraction
+
+00:52:03.010 --> 00:52:04.593
+is more like that
+or something, right?
+
+00:52:07.925 --> 00:52:09.300
+For every cross-hair,
+there's a--
+
+00:52:09.300 --> 00:52:11.520
+if you're doing the
+triangle interpolation,
+
+00:52:11.520 --> 00:52:14.870
+then it's more like that.
+
+00:52:14.870 --> 00:52:16.905
+Yeah?
+
+00:52:16.905 --> 00:52:17.780
+So what do you think?
+
+00:52:17.780 --> 00:52:19.580
+So how can we make an
+analogy between going
+
+00:52:19.580 --> 00:52:24.740
+through discrete states
+and increasing eligibility?
+
+00:52:24.740 --> 00:52:25.948
+This eligibility is really--
+
+00:52:25.948 --> 00:52:27.740
+I just need to remember
+that that state was
+
+00:52:27.740 --> 00:52:30.800
+relevant in my history of costs.
+
+00:52:34.010 --> 00:52:36.320
+Can you think of
+an analogy of how
+
+00:52:36.320 --> 00:52:38.930
+this function approximator
+might play into those equations?
+
+00:52:41.630 --> 00:52:46.940
+What I want to get to with
+function approximation,
+
+00:52:46.940 --> 00:52:59.240
+I want to get an
+update for alpha
+
+00:52:59.240 --> 00:53:01.220
+that has the same sort of form.
+
+00:53:01.220 --> 00:53:03.650
+This j, remember, was--
+
+00:53:03.650 --> 00:53:13.100
+in the Markov chain
+case, that's a vector j,
+
+00:53:13.100 --> 00:53:18.470
+where each element of the vector
+was the cost to go estimate
+
+00:53:18.470 --> 00:53:21.710
+for the i-th node, right?
+
+00:53:21.710 --> 00:53:24.620
+Now my function
+approximator is-- again,
+
+00:53:24.620 --> 00:53:31.600
+I'm trying to estimate
+a vector alpha,
+
+00:53:31.600 --> 00:53:34.360
+but each alpha could
+potentially affect my estimate
+
+00:53:34.360 --> 00:53:36.280
+in multiple states.
+
+00:53:36.280 --> 00:53:37.740
+The power of function
+approximators
+
+00:53:37.740 --> 00:53:41.060
+is you don't have to consider
+every point individually.
+
+00:53:41.060 --> 00:53:43.810
+You get some generalization.
+
+00:53:43.810 --> 00:53:48.260
+One parameter affects
+multiple outputs.
+
+00:53:48.260 --> 00:53:49.240
+OK?
+
+00:53:49.240 --> 00:53:51.460
+So what could possibly
+make this tick?
+
+00:53:51.460 --> 00:53:54.460
+How would you do temporal
+difference learning
+
+00:53:54.460 --> 00:53:55.732
+with function approximators?
+
+00:54:12.460 --> 00:54:13.720
+Yeah.
+
+00:54:13.720 --> 00:54:16.890
+AUDIENCE: [INAUDIBLE] Before, we
+were basically doing it through
+
+00:54:16.890 --> 00:54:18.820
+basis functions that
+were deltas at every--
+
+00:54:18.820 --> 00:54:19.360
+RUSS TEDRAKE: Good.
+
+00:54:19.360 --> 00:54:20.110
+AUDIENCE: --point.
+
+00:54:20.110 --> 00:54:23.650
+So you can break
+j hat up into be
+
+00:54:23.650 --> 00:54:28.452
+something that is actually based
+on these other basis functions.
+
+00:54:28.452 --> 00:54:30.660
+RUSS TEDRAKE: So this should
+be-- whatever we come up
+
+00:54:30.660 --> 00:54:33.870
+with, this should hopefully
+be the limiting case where,
+
+00:54:33.870 --> 00:54:36.210
+if my basis function
+was delta functions,
+
+00:54:36.210 --> 00:54:38.830
+you'd like to get back to that?
+
+00:54:38.830 --> 00:54:43.110
+I think that's,
+unfortunately, going to be a--
+
+00:54:43.110 --> 00:54:43.855
+AUDIENCE: OK.
+
+00:54:43.855 --> 00:54:44.730
+RUSS TEDRAKE: No, no.
+
+00:54:44.730 --> 00:54:47.910
+Well, it just happens I'm going
+to be taking gradients, so--
+
+00:54:47.910 --> 00:54:50.740
+but yeah, that's very-- that's
+a very nice observation,
+
+00:54:50.740 --> 00:54:51.240
+actually.
+
+00:54:54.150 --> 00:54:55.023
+What's that?
+
+00:54:55.023 --> 00:54:57.440
+AUDIENCE: I think you can't
+erase because that [INAUDIBLE]
+
+00:54:57.440 --> 00:54:58.523
+Kronecker delta, so it's--
+
+00:54:58.523 --> 00:55:01.700
+RUSS TEDRAKE: Exactly, yeah.
+
+00:55:01.700 --> 00:55:06.080
+AUDIENCE: By delta function,
+he meant infinity or 1?
+
+00:55:06.080 --> 00:55:08.910
+RUSS TEDRAKE: That's what
+John was pointing out.
+
+00:55:08.910 --> 00:55:12.410
+So he thinks it's going to be
+a Kronecker delta because it's
+
+00:55:12.410 --> 00:55:13.340
+going to have--
+
+00:55:13.340 --> 00:55:14.800
+I guess it could be 1, yeah?
+
+00:55:14.800 --> 00:55:16.730
+AUDIENCE: So if it
+is 1, it's actually--
+
+00:55:16.730 --> 00:55:19.224
+it would be mapping from
+a Tableau representation
+
+00:55:19.224 --> 00:55:21.030
+to the actual function
+approximation.
+
+00:55:21.030 --> 00:55:21.822
+RUSS TEDRAKE: Yeah.
+
+00:55:21.822 --> 00:55:24.523
+AUDIENCE: But having features
+that are just 1, and you say--
+
+00:55:24.523 --> 00:55:25.940
+RUSS TEDRAKE: No,
+I think that's--
+
+00:55:25.940 --> 00:55:28.350
+I think it's a very
+nice observation.
+
+00:55:28.350 --> 00:55:34.430
+If we think of each feature as
+having height 1 here and domain
+
+00:55:34.430 --> 00:55:37.350
+nothing, right, then that
+should be the limiting case
+
+00:55:37.350 --> 00:55:38.600
+where we get our Markov chain.
+
+00:55:38.600 --> 00:55:41.060
+I think that's right.
+
+00:55:41.060 --> 00:55:44.200
+AUDIENCE: So if you just
+changed to taking, at each step,
+
+00:55:44.200 --> 00:55:47.198
+a weighted sum of nodes--
+
+00:55:47.198 --> 00:55:47.990
+RUSS TEDRAKE: Yeah.
+
+00:55:47.990 --> 00:55:51.614
+AUDIENCE: --then mapping that
+weighted sum, [INAUDIBLE]..
+
+00:55:55.100 --> 00:55:58.970
+RUSS TEDRAKE: Yeah, I mean,
+that's effectively right.
+
+00:55:58.970 --> 00:56:02.960
+So the way that you
+can do it turns out
+
+00:56:02.960 --> 00:56:06.040
+to be a little bit-- again, a
+little bit nice and magical,
+
+00:56:06.040 --> 00:56:06.830
+OK?
+
+00:56:06.830 --> 00:56:07.538
+So it turns out--
+
+00:56:07.538 --> 00:56:09.538
+so there's a couple of
+ways to think about this.
+
+00:56:09.538 --> 00:56:11.660
+One of them is when I'm
+going through the Markov
+
+00:56:11.660 --> 00:56:15.260
+chain, every time
+I get here, I'm
+
+00:56:15.260 --> 00:56:16.730
+going to think forward about--
+
+00:56:16.730 --> 00:56:17.870
+I'm going to do a
+one-step prediction,
+
+00:56:17.870 --> 00:56:18.980
+I'm going to do a
+two-step prediction,
+
+00:56:18.980 --> 00:56:20.960
+I'm going to do a
+three-step prediction.
+
+00:56:20.960 --> 00:56:24.350
+And what happens is that these
+eligibility traces are just
+
+00:56:24.350 --> 00:56:26.900
+this trick which
+makes all that work.
+
+00:56:26.900 --> 00:56:28.640
+If I just remember
+where I've been,
+
+00:56:28.640 --> 00:56:31.610
+then I can make an update, which
+is the same as looking forward.
+
+00:56:31.610 --> 00:56:33.350
+Instead, I'm
+looking back in time
+
+00:56:33.350 --> 00:56:35.293
+with my eligibility traces.
+
+00:56:35.293 --> 00:56:36.710
+In the function
+approximator case,
+
+00:56:36.710 --> 00:56:38.930
+doing exactly what
+you said turns out
+
+00:56:38.930 --> 00:56:41.600
+to be equivalent
+to remembering how
+
+00:56:41.600 --> 00:56:48.100
+important that parameter alpha
+i was in your recent history.
+
+00:56:48.100 --> 00:56:48.600
+OK?
+
+00:56:51.730 --> 00:56:53.830
+Does that make sense?
+
+00:56:53.830 --> 00:56:58.190
+If I remember the
+contribution that alpha made--
+
+00:56:58.190 --> 00:57:01.510
+let's say one of the elements
+of alpha, alpha i, alpha j--
+
+00:57:01.510 --> 00:57:04.420
+made in my recent
+history, then I
+
+00:57:04.420 --> 00:57:07.810
+can update alpha in
+the same sort of trick
+
+00:57:07.810 --> 00:57:10.415
+that this eligibility
+trace worked on for.
+
+00:57:10.415 --> 00:57:12.790
+AUDIENCE: Would you do some
+kind of decaying exponential?
+
+00:57:12.790 --> 00:57:13.972
+RUSS TEDRAKE: Yeah, yeah.
+
+00:57:13.972 --> 00:57:15.930
+AUDIENCE: That's kind of
+what it's doing there.
+
+00:57:15.930 --> 00:57:19.030
+RUSS TEDRAKE: This is
+exactly what it's doing here.
+
+00:57:19.030 --> 00:57:20.590
+And here, we had
+the special case
+
+00:57:20.590 --> 00:57:23.670
+where when I visited
+the state, I got a 1,
+
+00:57:23.670 --> 00:57:26.300
+and when I didn't
+visit it, I get here.
+
+00:57:26.300 --> 00:57:27.040
+I got nothing.
+
+00:57:27.040 --> 00:57:28.600
+It just decayed.
+
+00:57:28.600 --> 00:57:32.260
+And what we're going to get
+now is an eligibility trace
+
+00:57:32.260 --> 00:57:35.020
+on alpha.
+
+00:57:35.020 --> 00:57:35.920
+Do you have it?
+
+00:57:35.920 --> 00:57:36.707
+Yeah?
+
+00:57:36.707 --> 00:57:38.832
+AUDIENCE: Well, I mean,
+does this thing in brackets
+
+00:57:38.832 --> 00:57:40.820
+need to be changed at all?
+
+00:57:40.820 --> 00:57:42.018
+RUSS TEDRAKE: Excellent.
+
+00:57:42.018 --> 00:57:43.310
+AUDIENCE: It seems like delta--
+
+00:57:43.310 --> 00:57:45.143
+RUSS TEDRAKE: The
+eligibility trace changes.
+
+00:57:45.143 --> 00:57:48.217
+AUDIENCE: [INAUDIBLE]
+
+00:57:55.812 --> 00:57:57.020
+RUSS TEDRAKE: Perfect, right?
+
+00:58:06.620 --> 00:58:07.740
+This is gamma.
+
+00:58:07.740 --> 00:58:12.870
+It's going to do a
+decaying exponential still.
+
+00:58:12.870 --> 00:58:14.250
+You want to forget things.
+
+00:58:14.250 --> 00:58:15.180
+This thing is now--
+
+00:58:26.540 --> 00:58:29.190
+the new eligibility trace here
+is the same size as alpha,
+
+00:58:29.190 --> 00:58:32.650
+not the number of
+nodes in the system.
+
+00:58:32.650 --> 00:58:38.950
+And the amount that I'm going
+to credit each alpha with
+
+00:58:38.950 --> 00:58:41.408
+is the gradient of my estimate.
+
+00:58:57.540 --> 00:58:59.310
+Does that sort of make sense?
+
+00:58:59.310 --> 00:59:00.330
+Yeah?
+
+00:59:00.330 --> 00:59:03.810
+In the case of linear
+function approximators,
+
+00:59:03.810 --> 00:59:07.140
+the gradient of this
+is just phi of x.
+
+00:59:11.860 --> 00:59:12.990
+Partial j, partial alpha.
+
+00:59:12.990 --> 00:59:14.670
+Just gets rid of that alpha.
+
+00:59:18.300 --> 00:59:18.800
+OK?
+
+00:59:18.800 --> 00:59:20.910
+So I remember the
+relative contribution
+
+00:59:20.910 --> 00:59:23.760
+of each of my alphas
+in the recent past,
+
+00:59:23.760 --> 00:59:27.480
+and then, based on this
+e, I make the same update
+
+00:59:27.480 --> 00:59:28.530
+that I did before.
+
+00:59:28.530 --> 00:59:30.090
+Just copy this down.
+
+00:59:30.090 --> 00:59:35.340
+But my e is now the
+eligibility on alpha.
+
+00:59:42.880 --> 00:59:47.090
+AUDIENCE: [INAUDIBLE] based on
+that one to the one that gets
+
+00:59:47.090 --> 00:59:51.123
+visited and zero to the others.
+
+00:59:51.123 --> 00:59:52.290
+RUSS TEDRAKE: Which is what?
+
+00:59:52.290 --> 00:59:52.980
+What's that?
+
+00:59:52.980 --> 00:59:53.480
+Yeah?
+
+01:00:03.160 --> 01:00:03.790
+OK.
+
+01:00:03.790 --> 01:00:08.850
+So that is an intuitively
+correct algorithm, I think.
+
+01:00:08.850 --> 01:00:13.750
+So it seems pretty natural,
+using the eligibility argument,
+
+01:00:13.750 --> 01:00:15.400
+that this could work.
+
+01:00:15.400 --> 01:00:17.380
+Proving that it works
+turns out to be a pain.
+
+01:00:17.380 --> 01:00:24.010
+It's not actually an update
+like we would normally have.
+
+01:00:24.010 --> 01:00:25.270
+There's a special case.
+
+01:00:25.270 --> 01:00:34.780
+So in one case, when
+lambda equals 1,
+
+01:00:34.780 --> 01:00:38.530
+then you can actually
+show that this TD
+
+01:00:38.530 --> 01:00:48.550
+update with linear
+function approximation
+
+01:00:48.550 --> 01:01:05.860
+is doing gradient descent on
+the difference between my j
+
+01:01:05.860 --> 01:01:06.640
+lambda--
+
+01:01:06.640 --> 01:01:08.550
+what I call j lambda--
+
+01:01:08.550 --> 01:01:19.020
+and my other j squared.
+
+01:01:19.020 --> 01:01:19.520
+OK?
+
+01:01:19.520 --> 01:01:21.440
+So in the lambda versus
+1 case, it actually
+
+01:01:21.440 --> 01:01:29.330
+is doing gradient descent
+on the Monte Carlo error.
+
+01:01:29.330 --> 01:01:31.010
+In every other
+setting of lambda,
+
+01:01:31.010 --> 01:01:35.180
+the algorithm is not a
+standard optimization framework
+
+01:01:35.180 --> 01:01:38.690
+of going down in some steepest
+descent kind of approach.
+
+01:01:38.690 --> 01:01:40.820
+But it tends-- in
+some cases, it works
+
+01:01:40.820 --> 01:01:44.960
+faster because it uses previous
+information in a heuristic
+
+01:01:44.960 --> 01:01:47.540
+sort of way, but it does
+it very effectively.
+
+01:01:47.540 --> 01:01:49.040
+And people have done the work.
+
+01:01:49.040 --> 01:01:51.170
+In fact, the work
+was done upstairs
+
+01:01:51.170 --> 01:01:54.710
+by Tsitsiklis and Van Roy in
+'97 or something like this
+
+01:01:54.710 --> 01:01:59.120
+to prove that, for all
+lambdas between 0 and 1
+
+01:01:59.120 --> 01:02:01.910
+in linear function
+approximators,
+
+01:02:01.910 --> 01:02:07.670
+that this update will go
+to the true value estimate
+
+01:02:07.670 --> 01:02:09.020
+as your system runs.
+
+01:02:11.860 --> 01:02:14.060
+OK?
+
+01:02:14.060 --> 01:02:16.460
+AUDIENCE: Did they mention
+that the [INAUDIBLE]??
+
+01:02:20.300 --> 01:02:21.662
+RUSS TEDRAKE: They should.
+
+01:02:21.662 --> 01:02:26.435
+AUDIENCE: [INAUDIBLE] I guess
+different algorithms can reach
+
+01:02:26.435 --> 01:02:28.790
+a different result,
+and lambda equals
+
+01:02:28.790 --> 01:02:34.890
+1 only converges to the actual
+thing that you're looking for.
+
+01:02:34.890 --> 01:02:36.600
+As you start varying
+lambda, you converge
+
+01:02:36.600 --> 01:02:38.780
+toward different
+things, but it's
+
+01:02:38.780 --> 01:02:41.086
+still converging [INAUDIBLE].
+
+01:02:46.590 --> 01:02:48.090
+RUSS TEDRAKE: That's
+possible, but--
+
+01:02:48.090 --> 01:02:49.740
+AUDIENCE: Different lambdas?
+
+01:02:49.740 --> 01:02:50.943
+RUSS TEDRAKE: I mean--
+
+01:02:50.943 --> 01:02:52.360
+AUDIENCE: Once
+your [INAUDIBLE] is
+
+01:02:52.360 --> 01:02:54.152
+correct, doesn't lambda
+not matter anymore?
+
+01:02:54.152 --> 01:02:56.220
+Because it's going to
+project to the future--
+
+01:02:56.220 --> 01:02:58.095
+RUSS TEDRAKE: Yeah, the
+only stationary point
+
+01:02:58.095 --> 01:03:01.940
+should be the true
+cost to go function.
+
+01:03:01.940 --> 01:03:04.707
+So if it converges--
+
+01:03:04.707 --> 01:03:06.040
+I'd be surprised if that's true.
+
+01:03:06.040 --> 01:03:07.780
+AUDIENCE: Your
+lambda [INAUDIBLE]----
+
+01:03:07.780 --> 01:03:10.137
+RUSS TEDRAKE: I mean,
+Alborz has done the stuff,
+
+01:03:10.137 --> 01:03:11.720
+so you might know
+it better than I do.
+
+01:03:11.720 --> 01:03:16.510
+But I was under the impression
+it converges to the true value
+
+01:03:16.510 --> 01:03:18.670
+estimate.
+
+01:03:18.670 --> 01:03:22.480
+I mean, it's all based on
+these contraction mappings,
+
+01:03:22.480 --> 01:03:24.730
+and I think the stationary
+point of the contraction
+
+01:03:24.730 --> 01:03:26.470
+is the true value.
+
+01:03:30.075 --> 01:03:31.450
+If you find out
+differently, then
+
+01:03:31.450 --> 01:03:33.431
+tell us next class, definitely.
+
+01:03:36.320 --> 01:03:38.493
+OK.
+
+01:03:38.493 --> 01:03:39.410
+So what just happened?
+
+01:03:39.410 --> 01:03:43.100
+So I made a trivial
+change to the algorithm.
+
+01:03:43.100 --> 01:03:45.550
+In fact, in some ways,
+it looks almost easier.
+
+01:03:45.550 --> 01:03:47.620
+It's one less line.
+
+01:03:47.620 --> 01:03:51.640
+And it now suddenly works with
+linear function approximators.
+
+01:03:51.640 --> 01:03:54.550
+So I don't have to feel like
+I discretized my state space.
+
+01:03:54.550 --> 01:03:57.370
+I can cover my state space
+with radial basis functions.
+
+01:03:57.370 --> 01:03:58.930
+That might be as
+painful, by the way,
+
+01:03:58.930 --> 01:04:00.608
+as discretizing the
+state space if you
+
+01:04:00.608 --> 01:04:02.650
+have to put a lot of radial
+basis functions down.
+
+01:04:02.650 --> 01:04:04.930
+But I could also do it
+with more complicated--
+
+01:04:04.930 --> 01:04:06.880
+I could do it with
+polynomials, I could do it
+
+01:04:06.880 --> 01:04:11.980
+with Fourier bases,
+and potentially,
+
+01:04:11.980 --> 01:04:16.210
+things that work with
+less basis functions
+
+01:04:16.210 --> 01:04:18.640
+over a very large domain.
+
+01:04:18.640 --> 01:04:21.830
+And now suddenly,
+the tools scale up
+
+01:04:21.830 --> 01:04:23.740
+to little bit higher
+dimensional systems,
+
+01:04:23.740 --> 01:04:25.030
+as high as you can imagine.
+
+01:04:25.030 --> 01:04:28.450
+As creative as your basis
+set allows you to be.
+
+01:04:31.510 --> 01:04:33.610
+To complain about
+these algorithms
+
+01:04:33.610 --> 01:04:36.970
+is that they're inefficient
+in their use of data.
+
+01:04:40.430 --> 01:04:41.560
+So if you think--
+
+01:04:41.560 --> 01:04:46.600
+certainly when we're shooting
+planes and they break,
+
+01:04:46.600 --> 01:04:49.660
+or if we're using a walking
+robot and it falls down a lot,
+
+01:04:49.660 --> 01:04:56.020
+then every piece of data should
+be treated with reverence,
+
+01:04:56.020 --> 01:04:56.680
+right?
+
+01:04:56.680 --> 01:04:59.620
+This is hard-earned data.
+
+01:04:59.620 --> 01:05:03.010
+These algorithms, as written
+like this, basically,
+
+01:05:03.010 --> 01:05:05.050
+every time they
+visit the data, they
+
+01:05:05.050 --> 01:05:10.060
+make some small
+incremental update,
+
+01:05:10.060 --> 01:05:13.580
+and a throw it away
+and keep moving.
+
+01:05:13.580 --> 01:05:16.330
+And so, by no means are
+they efficient in data.
+
+01:05:16.330 --> 01:05:17.830
+They are efficient
+only in the sense
+
+01:05:17.830 --> 01:05:23.710
+that they use previous
+estimates of j hat to bootstrap,
+
+01:05:23.710 --> 01:05:27.670
+but there's no sense of
+remembering all your data
+
+01:05:27.670 --> 01:05:28.390
+and reusing it.
+
+01:05:28.390 --> 01:05:32.750
+So some people have thought
+about replaying trajectories.
+
+01:05:32.750 --> 01:05:34.720
+So if you store all your
+trajectories-- let's
+
+01:05:34.720 --> 01:05:37.152
+say I ran my plane
+10 times, well,
+
+01:05:37.152 --> 01:05:38.860
+I'll remember all that
+data and I'll just
+
+01:05:38.860 --> 01:05:41.193
+run the TD update over and
+over again over those same 10
+
+01:05:41.193 --> 01:05:42.460
+trajectories.
+
+01:05:42.460 --> 01:05:44.743
+That's a reasonable thing to do.
+
+01:05:44.743 --> 01:05:46.660
+But again, with linear
+function approximators,
+
+01:05:46.660 --> 01:05:47.702
+you can do better, right?
+
+01:05:47.702 --> 01:05:50.710
+You can do LSTD, least squares
+temporal difference learning.
+
+01:06:17.210 --> 01:06:20.870
+This is least squares temporal
+difference learning, yeah?
+
+01:06:39.630 --> 01:06:41.220
+The argument basically
+goes like this.
+
+01:06:45.387 --> 01:06:50.102
+So in learning, there's
+always a difference--
+
+01:06:50.102 --> 01:06:51.810
+people like to
+distinguish between online
+
+01:06:51.810 --> 01:06:53.252
+versus batch updates.
+
+01:06:53.252 --> 01:06:54.960
+So the online-- this
+is an online update.
+
+01:06:54.960 --> 01:06:56.790
+I took my piece of data in.
+
+01:06:56.790 --> 01:07:01.970
+I immediately changed alpha
+and then I spat it out, right?
+
+01:07:01.970 --> 01:07:05.350
+You could imagine a "batch"
+update, which collected
+
+01:07:05.350 --> 01:07:06.600
+a bunch of these trajectories.
+
+01:07:06.600 --> 01:07:09.090
+Let's say it ran a whole
+trajectory with the plane.
+
+01:07:09.090 --> 01:07:09.720
+Stop.
+
+01:07:09.720 --> 01:07:14.070
+Now process that trajectory,
+make a change in alpha,
+
+01:07:14.070 --> 01:07:14.830
+and then repeat.
+
+01:07:14.830 --> 01:07:17.460
+So instead of doing it at
+every single time step,
+
+01:07:17.460 --> 01:07:20.310
+let's collect a little bit of
+data and then make an update,
+
+01:07:20.310 --> 01:07:20.913
+OK?
+
+01:07:20.913 --> 01:07:22.830
+So let's just write down
+what a batch update--
+
+01:07:30.240 --> 01:07:36.630
+the batch update for this
+system, if I ran a trajectory
+
+01:07:36.630 --> 01:07:43.830
+and then made an
+update, that update
+
+01:07:43.830 --> 01:07:46.530
+would look like this,
+just by applying
+
+01:07:46.530 --> 01:07:49.950
+that rule a bunch of times
+but without changing alpha
+
+01:07:49.950 --> 01:07:51.340
+in between, right?
+
+01:07:51.340 --> 01:07:56.220
+So another way to say it is
+I'm going to hold alpha fixed,
+
+01:07:56.220 --> 01:07:57.630
+collect up all
+the changes I want
+
+01:07:57.630 --> 01:07:59.713
+to make at alpha, and then,
+at the end of the run,
+
+01:07:59.713 --> 01:08:02.820
+make one change to alpha, OK?
+
+01:08:02.820 --> 01:08:06.060
+Well, then that change, if
+you do it in the batch mode,
+
+01:08:06.060 --> 01:08:09.690
+is just going to be a
+sum of all these guys.
+
+01:08:16.220 --> 01:08:18.149
+That's a scalar times a vector.
+
+01:08:18.149 --> 01:08:22.729
+So I can reorder it
+without any pain.
+
+01:08:22.729 --> 01:08:23.338
+Oops.
+
+01:08:23.338 --> 01:08:24.380
+I got to put that inside.
+
+01:08:46.475 --> 01:08:49.950
+Let me write out the
+intermediate step here.
+
+01:08:49.950 --> 01:08:57.085
+j alpha ik plus 1
+minus j alpha ik.
+
+01:09:01.920 --> 01:09:02.880
+Agree with that?
+
+01:09:02.880 --> 01:09:06.000
+That's the batch update of that.
+
+01:09:06.000 --> 01:09:09.960
+I just collect them all
+up, I sum them over k here,
+
+01:09:09.960 --> 01:09:10.978
+all my time steps.
+
+01:09:10.978 --> 01:09:12.770
+That's what my update's
+going to look like.
+
+01:09:32.090 --> 01:09:33.810
+If I write this a
+little bit-- if I
+
+01:09:33.810 --> 01:09:39.000
+break into my function
+approximator there,
+
+01:09:39.000 --> 01:09:41.229
+I can write it like this.
+
+01:09:41.229 --> 01:09:43.420
+hm over k.
+
+01:09:43.420 --> 01:09:47.340
+Oh, boy, I forgot
+my ek over here.
+
+01:09:47.340 --> 01:09:48.090
+Sorry about that.
+
+01:09:48.090 --> 01:09:49.514
+There's an ek there too, right?
+
+01:10:31.070 --> 01:10:34.970
+j is just phi times alpha, so
+I'm going to break into that.
+
+01:10:42.340 --> 01:10:48.068
+If I collect those terms,
+then I get something
+
+01:10:48.068 --> 01:10:49.110
+we can think about again.
+
+01:10:52.894 --> 01:11:08.390
+Sorry, a times alpha, where this
+is b and this guy here is a.
+
+01:11:21.550 --> 01:11:25.645
+In other words, the long-term
+behavior of this system,
+
+01:11:25.645 --> 01:11:30.400
+if I collect the updates and
+then make them like this,
+
+01:11:30.400 --> 01:11:32.080
+well, this looks like
+a low-pass filter,
+
+01:11:32.080 --> 01:11:33.640
+really, that's going
+to this solution.
+
+01:11:33.640 --> 01:11:34.140
+Yeah.
+
+01:11:36.985 --> 01:11:46.210
+The steady state is alpha
+equals a inverse phi,
+
+01:11:46.210 --> 01:11:48.340
+where you do that
+inverse carefully.
+
+01:11:48.340 --> 01:11:49.935
+svd or something.
+
+01:12:00.960 --> 01:12:01.460
+OK.
+
+01:12:05.680 --> 01:12:08.830
+So that observation led
+to this least squares
+
+01:12:08.830 --> 01:12:10.880
+temporal difference
+learning algorithm,
+
+01:12:10.880 --> 01:12:14.170
+which said instead of chewing
+up every piece of-- every data
+
+01:12:14.170 --> 01:12:17.110
+point and spitting it
+out, remember everything
+
+01:12:17.110 --> 01:12:21.310
+that you have
+experienced in the past.
+
+01:12:21.310 --> 01:12:26.620
+And instead of doing this
+sort of incremental step
+
+01:12:26.620 --> 01:12:30.442
+that goes epsilon
+towards the steady state,
+
+01:12:30.442 --> 01:12:31.900
+you can solve for
+that steady state
+
+01:12:31.900 --> 01:12:34.300
+every time you have--
+if you collect b and a,
+
+01:12:34.300 --> 01:12:36.913
+you can just collect that
+with a bunch of data,
+
+01:12:36.913 --> 01:12:38.580
+go ahead and jump
+right to the solution.
+
+01:12:41.930 --> 01:12:46.360
+So LSTD, what I
+think a lot of people
+
+01:12:46.360 --> 01:12:48.170
+would consider the
+state of the art
+
+01:12:48.170 --> 01:12:55.630
+if you just want to
+do policy evaluation,
+
+01:12:55.630 --> 01:13:00.190
+build up b and a as you run.
+
+01:13:06.520 --> 01:13:13.030
+Compute alpha is a inverse
+b whenever you need
+
+01:13:13.030 --> 01:13:15.720
+a new estimate of alpha, OK?
+
+01:13:19.645 --> 01:13:20.770
+Why do you want to do that?
+
+01:13:26.850 --> 01:13:28.520
+It's more efficient
+with your data.
+
+01:13:28.520 --> 01:13:37.340
+You remember and replay
+your last data seamlessly.
+
+01:13:37.340 --> 01:13:39.620
+You don't have to guess
+some silly learning rate.
+
+01:13:43.712 --> 01:13:45.920
+And it doesn't even depend
+on your initial conditions
+
+01:13:45.920 --> 01:13:56.700
+anymore, your initial
+guess at alpha.
+
+01:14:02.966 --> 01:14:04.420
+OK?
+
+01:14:04.420 --> 01:14:09.690
+So if I went to go and do--
+if I were given a robot
+
+01:14:09.690 --> 01:14:13.797
+that's currently performing
+some feedback controller.
+
+01:14:13.797 --> 01:14:14.880
+Let's say it's stochastic.
+
+01:14:14.880 --> 01:14:17.435
+It's a stochastic system.
+
+01:14:17.435 --> 01:14:19.060
+There's noise and
+everything like that.
+
+01:14:19.060 --> 01:14:21.840
+And I wanted to just evaluate
+how well it performed
+
+01:14:21.840 --> 01:14:25.680
+on this cost function, some cost
+function that someone gave me.
+
+01:14:25.680 --> 01:14:29.028
+If [INAUDIBLE] says
+I got this robot,
+
+01:14:29.028 --> 01:14:30.820
+I wanted it to optimize
+this cost function.
+
+01:14:30.820 --> 01:14:31.400
+How is it doing?
+
+01:14:31.400 --> 01:14:32.370
+Tell me how it's doing.
+
+01:14:32.370 --> 01:14:35.477
+I would look at that--
+
+01:14:35.477 --> 01:14:36.810
+I would look at the state space.
+
+01:14:36.810 --> 01:14:40.530
+I'd try to come up with a
+linear tiling of radial basis
+
+01:14:40.530 --> 01:14:42.360
+functions, or some
+linear function
+
+01:14:42.360 --> 01:14:44.760
+approximator over
+that state space,
+
+01:14:44.760 --> 01:14:49.680
+and I'd start running trials
+and I'd keep those trials
+
+01:14:49.680 --> 01:14:54.090
+and store up these matrices,
+and do a least squares
+
+01:14:54.090 --> 01:14:55.890
+temporal difference update.
+
+01:14:55.890 --> 01:14:58.410
+And this result
+basically tells me
+
+01:14:58.410 --> 01:15:01.290
+that it's going to do
+the same thing as the TD.
+
+01:15:01.290 --> 01:15:04.380
+It's going to do it potentially
+more effectively because it's
+
+01:15:04.380 --> 01:15:06.720
+more efficient
+with data, and it's
+
+01:15:06.720 --> 01:15:12.300
+going to do it without having
+to guess initial vector
+
+01:15:12.300 --> 01:15:13.770
+or having some learning rate.
+
+01:15:13.770 --> 01:15:15.780
+AUDIENCE: Do you
+actually have to define
+
+01:15:15.780 --> 01:15:17.440
+the length of an
+episode, for example,
+
+01:15:17.440 --> 01:15:20.511
+if it's a periodic system
+like a walking system?
+
+01:15:20.511 --> 01:15:26.160
+[INAUDIBLE]
+
+01:15:26.160 --> 01:15:28.080
+RUSS TEDRAKE:
+That's really good.
+
+01:15:28.080 --> 01:15:30.480
+So Alborz here has
+actually written
+
+01:15:30.480 --> 01:15:33.390
+a paper on incremental LSTD.
+
+01:15:33.390 --> 01:15:37.305
+So you might think that doing
+that update is expensive,
+
+01:15:37.305 --> 01:15:40.560
+and it can be if you
+just naively do that.
+
+01:15:40.560 --> 01:15:42.790
+But you can do
+recursively squares,
+
+01:15:42.790 --> 01:15:45.840
+and you can sort of make
+a cheaper online update
+
+01:15:45.840 --> 01:15:49.877
+to try to do this, to make this
+a constant update of alpha.
+
+01:15:49.877 --> 01:15:51.960
+If you choose to update
+alpha at every step, which
+
+01:15:51.960 --> 01:15:54.043
+you could choose to do,
+and maybe you would choose
+
+01:15:54.043 --> 01:15:56.280
+to do on a non-episodic
+task, or maybe in walking,
+
+01:15:56.280 --> 01:15:57.905
+you do it once per
+step or whatever,
+
+01:15:57.905 --> 01:16:00.030
+then you can do it nicely
+with an incremental LSTD.
+
+01:16:00.030 --> 01:16:01.230
+And you can look
+at Alborz's paper
+
+01:16:01.230 --> 01:16:02.688
+to figure out how
+to do that, which
+
+01:16:02.688 --> 01:16:04.590
+is an approximation
+of the true LSTD,
+
+01:16:04.590 --> 01:16:07.950
+but a pretty good one in
+your experiments, right?
+
+01:16:07.950 --> 01:16:10.660
+And much more efficient, right?
+
+01:16:13.897 --> 01:16:15.230
+Yeah, or there's a lot of time--
+
+01:16:15.230 --> 01:16:16.650
+I mean, I think, in
+walking, it turns out
+
+01:16:16.650 --> 01:16:18.733
+I would do it probably
+once per step or something.
+
+01:16:18.733 --> 01:16:20.340
+There's natural discretizations.
+
+01:16:20.340 --> 01:16:21.450
+But there's nothing
+to say, if you
+
+01:16:21.450 --> 01:16:23.617
+have the computational
+horsepower, that you couldn't
+
+01:16:23.617 --> 01:16:25.652
+just do this every step too.
+
+01:16:25.652 --> 01:16:28.110
+It's just more expensive than
+doing an incremental version.
+
+01:16:32.500 --> 01:16:33.390
+OK?
+
+01:16:33.390 --> 01:16:35.140
+So function approximation's
+very powerful.
+
+01:16:35.140 --> 01:16:37.780
+This is what's going to
+take our tabular based ideas
+
+01:16:37.780 --> 01:16:39.520
+and our Markov
+chain ideas and make
+
+01:16:39.520 --> 01:16:42.710
+them scale to the real world.
+
+01:16:42.710 --> 01:16:45.940
+This is the first year I did
+function approximation first
+
+01:16:45.940 --> 01:16:48.670
+in the temporal
+different learning case,
+
+01:16:48.670 --> 01:16:51.850
+but of course it's relevant
+for the policy gradient world
+
+01:16:51.850 --> 01:16:53.480
+too, right?
+
+01:16:53.480 --> 01:16:55.480
+John showed you different
+function approximators
+
+01:16:55.480 --> 01:16:58.140
+that were doing reinforce.
+
+01:16:58.140 --> 01:17:02.050
+Instead of parameterizing my
+value function as a function
+
+01:17:02.050 --> 01:17:05.200
+approximator, I could have also
+just directly parameterized
+
+01:17:05.200 --> 01:17:07.660
+my feedback controller
+as a value function,
+
+01:17:07.660 --> 01:17:10.720
+and done gradient
+descent if I had a model,
+
+01:17:10.720 --> 01:17:14.103
+or reinforce if I
+didn't have a model.
+
+01:17:14.103 --> 01:17:15.520
+Function approximation
+is supposed
+
+01:17:15.520 --> 01:17:17.800
+to be the savior of
+reinforcement learning.
+
+01:17:17.800 --> 01:17:20.022
+The problem is there's
+limited results.
+
+01:17:20.022 --> 01:17:21.730
+I mean, the linear
+function approximation
+
+01:17:21.730 --> 01:17:24.220
+is really the only case we
+have strong results for most
+
+01:17:24.220 --> 01:17:26.530
+of these cases.
+
+01:17:26.530 --> 01:17:30.040
+So I'm going to talk about doing
+the policy stuff with function
+
+01:17:30.040 --> 01:17:31.840
+approximation on
+Thursday, and then
+
+01:17:31.840 --> 01:17:34.450
+it culminates in actor-critic,
+where you do both function
+
+01:17:34.450 --> 01:17:37.270
+approximation in the
+policy and the value
+
+01:17:37.270 --> 01:17:38.800
+function simultaneously.
+
+01:17:38.800 --> 01:17:41.680
+That'll happen
+sometime next week.
+
+01:17:41.680 --> 01:17:42.310
+Excellent.
+
+01:17:42.310 --> 01:17:44.500
+I'll see you next week.

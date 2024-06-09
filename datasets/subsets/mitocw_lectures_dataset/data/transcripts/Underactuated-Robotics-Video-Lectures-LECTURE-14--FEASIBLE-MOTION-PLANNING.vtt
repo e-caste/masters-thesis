@@ -1,0 +1,4346 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.520
+The following content is
+provided under a Creative
+
+00:00:02.520 --> 00:00:03.970
+Commons license.
+
+00:00:03.970 --> 00:00:06.360
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.360 --> 00:00:10.660
+continue to offer high quality
+educational resources for free.
+
+00:00:10.660 --> 00:00:13.350
+To make a donation or
+view additional materials
+
+00:00:13.350 --> 00:00:17.190
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.190 --> 00:00:18.400
+at ocw.mit.edu.
+
+00:00:21.212 --> 00:00:21.920
+RUSS TEDRAKE: OK.
+
+00:00:21.920 --> 00:00:22.910
+Welcome back.
+
+00:00:22.910 --> 00:00:24.770
+Well, sorry, I wasn't here.
+
+00:00:24.770 --> 00:00:26.870
+It's more dramatic
+for me, I guess,
+
+00:00:26.870 --> 00:00:29.270
+than if I had been
+here on Tuesday.
+
+00:00:29.270 --> 00:00:33.523
+I hope John did a good
+job covering for me.
+
+00:00:33.523 --> 00:00:34.190
+I'm sure he did.
+
+00:00:34.190 --> 00:00:39.650
+So you've learned
+about walking robots.
+
+00:00:39.650 --> 00:00:41.150
+You've learned about
+lots of robots.
+
+00:00:41.150 --> 00:00:45.080
+You learned a handful of
+very powerful techniques,
+
+00:00:45.080 --> 00:00:51.320
+I think, for designing
+motions for these robots.
+
+00:00:51.320 --> 00:00:54.230
+Some of my favorite these days
+are things like the dir call
+
+00:00:54.230 --> 00:00:56.400
+type methods.
+
+00:00:56.400 --> 00:01:01.670
+So let's consider the problem
+of taking some robot described
+
+00:01:01.670 --> 00:01:08.450
+by our standard, some
+non-linear dynamics form,
+
+00:01:08.450 --> 00:01:15.950
+and taking that robot from
+an initial condition x0
+
+00:01:15.950 --> 00:01:19.280
+and getting it to
+some final condition.
+
+00:01:19.280 --> 00:01:21.140
+I don't even care
+about the time.
+
+00:01:21.140 --> 00:01:28.860
+So you're just getting it
+to some other state, x goal.
+
+00:01:28.860 --> 00:01:32.600
+So what tools have
+we already got
+
+00:01:32.600 --> 00:01:35.982
+that could help us
+drive this system
+
+00:01:35.982 --> 00:01:37.940
+from some initial condition
+to some goal state?
+
+00:01:41.030 --> 00:01:44.600
+The answer is a lot
+of tools, right?
+
+00:01:44.600 --> 00:01:47.330
+If the state space
+is small enough,
+
+00:01:47.330 --> 00:01:50.630
+you could imagine designing an
+optimal control cost function
+
+00:01:50.630 --> 00:01:52.880
+that we could do
+dynamic programming on.
+
+00:01:52.880 --> 00:01:55.610
+That would get us to that goal
+if we only rewarded ourselves
+
+00:01:55.610 --> 00:01:58.370
+from being away from the goal.
+
+00:01:58.370 --> 00:02:01.800
+We could do a shooting
+method, right?
+
+00:02:01.800 --> 00:02:07.933
+If we're using our
+SQP, our SNOPT type
+
+00:02:07.933 --> 00:02:09.350
+interface to the
+shooting methods,
+
+00:02:09.350 --> 00:02:13.490
+then we could provide a
+final value constraint, which
+
+00:02:13.490 --> 00:02:16.250
+says I want the endpoint
+of my trajectory
+
+00:02:16.250 --> 00:02:17.570
+to be exactly at the goal.
+
+00:02:17.570 --> 00:02:21.822
+And that would solve this
+problem in some cases.
+
+00:02:21.822 --> 00:02:23.780
+But both of those methods
+have problems, right?
+
+00:02:23.780 --> 00:02:26.470
+The DP doesn't scale.
+
+00:02:26.470 --> 00:02:29.610
+The shooting methods
+scale nicely.
+
+00:02:29.610 --> 00:02:32.420
+But if you ask your
+shooting method
+
+00:02:32.420 --> 00:02:36.975
+to drive you from x0
+to x goal, there's
+
+00:02:36.975 --> 00:02:39.350
+some chance it's going to just
+say, I can't do it, right?
+
+00:02:39.350 --> 00:02:42.200
+I can't satisfy that
+constraint because it's
+
+00:02:42.200 --> 00:02:46.250
+based on a local
+gradient optimization.
+
+00:02:46.250 --> 00:02:50.300
+And if there's local
+minima, SNOPT will just say,
+
+00:02:50.300 --> 00:02:56.240
+I can't satisfy the constraint
+x at time final equals x goal,
+
+00:02:56.240 --> 00:02:57.050
+happens a lot.
+
+00:02:57.050 --> 00:02:59.258
+If you're looking at hard
+enough, interesting enough,
+
+00:02:59.258 --> 00:03:01.600
+problems, it'll
+happen to you, OK?
+
+00:03:01.600 --> 00:03:02.350
+So what do you do?
+
+00:03:02.350 --> 00:03:06.300
+Do you just say, oh, find
+a new research problem,
+
+00:03:06.300 --> 00:03:09.260
+tell my advisor I've got
+to find something else?
+
+00:03:09.260 --> 00:03:13.670
+OK, there's more
+things you can try.
+
+00:03:13.670 --> 00:03:17.900
+The methods I want
+to talk about today
+
+00:03:17.900 --> 00:03:21.560
+are the feasible motion
+planning algorithms.
+
+00:03:21.560 --> 00:03:24.665
+So motion planning
+is a very broad term.
+
+00:03:24.665 --> 00:03:27.140
+It's used all the
+time in robotics.
+
+00:03:27.140 --> 00:03:29.270
+I'd say roughly
+everything we've done
+
+00:03:29.270 --> 00:03:32.410
+to date has been a motion
+planning algorithm.
+
+00:03:32.410 --> 00:03:34.160
+It's like saying it's
+a control algorithm.
+
+00:03:34.160 --> 00:03:36.600
+It's a very general term.
+
+00:03:36.600 --> 00:03:42.260
+Some people debate whether an
+algorithm is a motion planning
+
+00:03:42.260 --> 00:03:44.535
+algorithm or an optimal
+control algorithm or whatever.
+
+00:03:44.535 --> 00:03:46.160
+I think that's sort
+of a waste of time.
+
+00:03:46.160 --> 00:03:49.850
+I would say they're all
+motion planning algorithms.
+
+00:03:49.850 --> 00:03:53.040
+Most of the things we've
+talked about so far
+
+00:03:53.040 --> 00:04:03.770
+I would call optimal motion
+planning, where we actually
+
+00:04:03.770 --> 00:04:06.230
+had a cost function
+flying around to do it.
+
+00:04:09.230 --> 00:04:13.580
+Oftentimes, motion plans
+go from a start to a goal.
+
+00:04:13.580 --> 00:04:16.380
+Oftentimes, they're open loop,
+but that's not really defining.
+
+00:04:16.380 --> 00:04:18.160
+You can do feedback
+motion planning.
+
+00:04:18.160 --> 00:04:19.910
+Motion planing is just
+a very general term
+
+00:04:19.910 --> 00:04:25.323
+saying I'm designing the
+motions of my machine.
+
+00:04:25.323 --> 00:04:26.990
+The reason I want to
+use motion planning
+
+00:04:26.990 --> 00:04:30.050
+in the title for this
+lecture and next lecture
+
+00:04:30.050 --> 00:04:33.320
+is because there's an important
+class of motion planning
+
+00:04:33.320 --> 00:04:35.780
+algorithms that are not
+covered by the optimal control
+
+00:04:35.780 --> 00:04:36.860
+algorithms.
+
+00:04:36.860 --> 00:04:53.940
+And that's these feasible
+motion planning algorithms.
+
+00:04:53.940 --> 00:04:55.650
+So the optimal motion
+planning algorithms
+
+00:04:55.650 --> 00:04:58.740
+try to get me from x0 to
+x goal in some way that's
+
+00:04:58.740 --> 00:05:02.760
+good as scored by
+some cost function.
+
+00:05:02.760 --> 00:05:06.900
+Feasible motion planning
+algorithms aspire to do less.
+
+00:05:06.900 --> 00:05:10.830
+They just say, I'll get
+any trajectory that gets me
+
+00:05:10.830 --> 00:05:13.830
+from the start to the goal.
+
+00:05:13.830 --> 00:05:16.480
+Because they surface their
+claims on optimality,
+
+00:05:16.480 --> 00:05:18.570
+oftentimes these
+algorithms will work
+
+00:05:18.570 --> 00:05:19.800
+for more complicated systems.
+
+00:05:23.100 --> 00:05:26.970
+So the message I want
+to sort of deliver today
+
+00:05:26.970 --> 00:05:29.850
+is that there are a lot of
+good feasible motion planning
+
+00:05:29.850 --> 00:05:32.260
+algorithms out
+there in the world.
+
+00:05:32.260 --> 00:05:36.180
+We'll talk about some of the
+most exciting ones, I think.
+
+00:05:36.180 --> 00:05:38.340
+And actually, even if you
+care about optimality,
+
+00:05:38.340 --> 00:05:39.870
+even if deep down
+in your core you
+
+00:05:39.870 --> 00:05:45.270
+say this is a cost function
+that I must optimize for my life
+
+00:05:45.270 --> 00:05:48.930
+to be complete, you still should
+care about feasible motion
+
+00:05:48.930 --> 00:05:51.960
+planning algorithms because
+they can do something
+
+00:05:51.960 --> 00:05:56.160
+like seed a dir call
+method, let's say,
+
+00:05:56.160 --> 00:05:57.520
+and get it out of local minima.
+
+00:05:57.520 --> 00:06:00.900
+So let's say I have an Acrobot
+that I'm trying to swing up.
+
+00:06:00.900 --> 00:06:04.350
+And I've got a table right
+here, so I can't swing that way.
+
+00:06:04.350 --> 00:06:09.542
+And whatever my initial
+guess at the trajectory,
+
+00:06:09.542 --> 00:06:11.250
+the system keeps
+banging up against this.
+
+00:06:11.250 --> 00:06:14.640
+It can't figure out a way
+to turn around and go back
+
+00:06:14.640 --> 00:06:16.590
+the opposite way
+to get to the top.
+
+00:06:16.590 --> 00:06:19.710
+Or maybe there's a table that
+you have to go through just
+
+00:06:19.710 --> 00:06:22.710
+at a certain way.
+
+00:06:22.710 --> 00:06:26.580
+I would say, if
+you're shooting method
+
+00:06:26.580 --> 00:06:28.950
+is having trouble finding
+its way to the goal,
+
+00:06:28.950 --> 00:06:31.050
+maybe you should back
+off on optimality.
+
+00:06:31.050 --> 00:06:33.870
+Just find any old trajectory
+that gets to the goal.
+
+00:06:33.870 --> 00:06:36.385
+And then take that result of
+that motion planning algorithm,
+
+00:06:36.385 --> 00:06:38.010
+hand it to dir call,
+and let it then do
+
+00:06:38.010 --> 00:06:40.377
+the rest of the optimization.
+
+00:06:40.377 --> 00:06:41.460
+We'll say more about this.
+
+00:06:41.460 --> 00:06:44.400
+I just wanted to
+give you some context
+
+00:06:44.400 --> 00:06:48.300
+about why we want to talk about
+this extra set of algorithms.
+
+00:06:48.300 --> 00:06:49.800
+In general, we're
+going to expect
+
+00:06:49.800 --> 00:06:54.240
+these to scale to slightly
+higher dimensional systems
+
+00:06:54.240 --> 00:06:55.710
+than the optimal
+control algorithms
+
+00:06:55.710 --> 00:06:57.930
+we've talked about
+so far and to be
+
+00:06:57.930 --> 00:07:01.650
+more global than the
+shooting methods.
+
+00:07:04.740 --> 00:07:11.425
+There's a great book on
+all of this stuff called--
+
+00:07:11.425 --> 00:07:12.800
+I guess it should
+be underlined--
+
+00:07:12.800 --> 00:07:16.430
+Planning Algorithms.
+
+00:07:16.430 --> 00:07:19.410
+So I just spelled
+planning wrong.
+
+00:07:19.410 --> 00:07:21.500
+So I'm completely
+sleep deprived.
+
+00:07:21.500 --> 00:07:24.607
+If I do stupid things
+like that, call them out.
+
+00:07:24.607 --> 00:07:25.190
+I'll fix them.
+
+00:07:42.930 --> 00:07:45.390
+Something about kid
+number two, the first kid
+
+00:07:45.390 --> 00:07:47.640
+stays awake while the other
+kid sleeps and vice versa.
+
+00:07:47.640 --> 00:07:49.940
+It just makes it that
+much more interesting.
+
+00:07:49.940 --> 00:07:51.997
+Yeah.
+
+00:07:51.997 --> 00:07:54.080
+And Planning Algorithms,
+the book by Steve LaValle
+
+00:07:54.080 --> 00:07:54.980
+is actually--
+
+00:07:54.980 --> 00:07:57.680
+Steve's got it on his
+website, the full version.
+
+00:07:57.680 --> 00:07:59.630
+You can download for free.
+
+00:07:59.630 --> 00:08:01.550
+So it's nice accessible
+text that you
+
+00:08:01.550 --> 00:08:02.840
+can check out if you like it.
+
+00:08:05.370 --> 00:08:05.870
+OK.
+
+00:08:05.870 --> 00:08:08.203
+So before we get into our
+first feasible motion planning
+
+00:08:08.203 --> 00:08:12.560
+algorithm, let me give you
+just a little sort of culture.
+
+00:08:12.560 --> 00:08:15.680
+The motion planning
+algorithms, I think,
+
+00:08:15.680 --> 00:08:18.230
+actually grew up not so much
+in the controls community,
+
+00:08:18.230 --> 00:08:23.090
+but in more the artificial
+intelligence community.
+
+00:08:23.090 --> 00:08:25.573
+And there's a reason for that.
+
+00:08:25.573 --> 00:08:26.990
+There are serious
+people out there
+
+00:08:26.990 --> 00:08:31.190
+that think the only thing
+there is to intelligence
+
+00:08:31.190 --> 00:08:34.820
+is the ability to do search.
+
+00:08:34.820 --> 00:08:43.820
+So I think that artificial
+intelligence via search,
+
+00:08:43.820 --> 00:08:47.768
+to some extent,
+sounds ridiculous.
+
+00:08:47.768 --> 00:08:50.060
+But it's pretty hard to
+disprove and some people really
+
+00:08:50.060 --> 00:08:50.840
+think it.
+
+00:08:50.840 --> 00:08:53.030
+But that's the way it happened.
+
+00:08:53.030 --> 00:08:55.250
+So let me give you
+some cultural examples
+
+00:08:55.250 --> 00:08:57.440
+of where that came from.
+
+00:08:57.440 --> 00:09:01.700
+Some of the original efforts
+in artificial intelligence,
+
+00:09:01.700 --> 00:09:04.663
+they thought, my
+computer program
+
+00:09:04.663 --> 00:09:06.080
+will be intelligent
+if it can play
+
+00:09:06.080 --> 00:09:08.690
+a game like checkers or chess.
+
+00:09:08.690 --> 00:09:13.250
+And as early as the '50s, Art
+Samuel was building checker
+
+00:09:13.250 --> 00:09:16.370
+playing robots that are
+basically doing search in order
+
+00:09:16.370 --> 00:09:20.930
+to try to figure out how to
+beat their opponent in chess--
+
+00:09:20.930 --> 00:09:21.920
+or in checkers, sorry.
+
+00:09:28.460 --> 00:09:30.845
+Checkers-- Samuel in the '50s.
+
+00:09:36.200 --> 00:09:40.910
+Chess, we can leap forward
+to IBM's Deep Blue,
+
+00:09:40.910 --> 00:09:44.120
+let's say in the last decade.
+
+00:09:47.240 --> 00:09:49.970
+These are computer
+programs that,
+
+00:09:49.970 --> 00:09:53.780
+at times, can play with the
+sophistication of a trained
+
+00:09:53.780 --> 00:09:55.850
+human.
+
+00:09:55.850 --> 00:09:57.710
+And they're based
+on simply having
+
+00:09:57.710 --> 00:10:00.260
+the rules of the
+game programmed,
+
+00:10:00.260 --> 00:10:03.650
+some databases of moves
+that they've stored up,
+
+00:10:03.650 --> 00:10:08.630
+a lot of them in the Deep
+Blue case, and search.
+
+00:10:08.630 --> 00:10:13.160
+Finding the way to move
+my robot from x0 to x goal
+
+00:10:13.160 --> 00:10:18.110
+you can imagine being very, very
+analogous to taking my computer
+
+00:10:18.110 --> 00:10:20.720
+game and finding from an
+initial board configuration
+
+00:10:20.720 --> 00:10:22.710
+to a winning board
+configuration.
+
+00:10:22.710 --> 00:10:26.150
+They're exactly
+the same problem.
+
+00:10:26.150 --> 00:10:29.018
+So because of things
+like computer games,
+
+00:10:29.018 --> 00:10:30.560
+the artificial
+intelligence community
+
+00:10:30.560 --> 00:10:33.500
+really started building up
+these search algorithms.
+
+00:10:33.500 --> 00:10:35.000
+And they were very fundamental.
+
+00:10:40.680 --> 00:10:44.480
+The other big push, I
+think, from the AI community
+
+00:10:44.480 --> 00:10:46.825
+was in ideas like
+theorem proving.
+
+00:10:53.060 --> 00:10:59.067
+So an AI zealot of
+4 years ago might
+
+00:10:59.067 --> 00:11:01.400
+have told you that mathematics
+would be obsolete by now.
+
+00:11:01.400 --> 00:11:04.160
+Because all you have
+to do is program
+
+00:11:04.160 --> 00:11:08.330
+the basic rules of mathematics
+into a set of rules
+
+00:11:08.330 --> 00:11:12.680
+that your computer
+program could evaluate,
+
+00:11:12.680 --> 00:11:16.250
+and then proving whether
+something was true or not
+
+00:11:16.250 --> 00:11:18.200
+was just a matter of
+finding the right chain
+
+00:11:18.200 --> 00:11:24.200
+of small logical
+deductions to put together
+
+00:11:24.200 --> 00:11:26.150
+to be able to
+prove that p equals
+
+00:11:26.150 --> 00:11:28.820
+np or something like that.
+
+00:11:28.820 --> 00:11:30.050
+OK.
+
+00:11:30.050 --> 00:11:33.830
+And actually, I joke, but that's
+actually a very powerful thing
+
+00:11:33.830 --> 00:11:35.120
+that works today.
+
+00:11:35.120 --> 00:11:37.190
+If you've use
+Mathematica or Maple
+
+00:11:37.190 --> 00:11:40.340
+and you've asked it
+to simplify, that's
+
+00:11:40.340 --> 00:11:44.060
+a result of theorem
+proving work that people
+
+00:11:44.060 --> 00:11:48.080
+did in artificial
+intelligence a long time ago.
+
+00:11:48.080 --> 00:11:50.182
+And again, it's a
+matter of designing
+
+00:11:50.182 --> 00:11:52.640
+the rules of the game, which
+is a collection, in that case,
+
+00:11:52.640 --> 00:11:54.800
+of mathematical
+primitives, and finding
+
+00:11:54.800 --> 00:12:00.000
+a path from your initial
+knowledge to some proof,
+
+00:12:00.000 --> 00:12:00.500
+let's say.
+
+00:12:04.640 --> 00:12:08.565
+But even going beyond that,
+there's people out there that--
+
+00:12:08.565 --> 00:12:10.190
+my favorite instance
+of this is there's
+
+00:12:10.190 --> 00:12:14.990
+a guy, David Lenat,
+who's somewhere in Texas
+
+00:12:14.990 --> 00:12:17.060
+right now typing--
+
+00:12:17.060 --> 00:12:20.210
+well, he's got teams of
+people typing random factoids
+
+00:12:20.210 --> 00:12:21.920
+into computers.
+
+00:12:21.920 --> 00:12:24.965
+He's got this
+project called Cyc.
+
+00:12:27.830 --> 00:12:29.720
+How many people
+have heard of Cyc?
+
+00:12:29.720 --> 00:12:30.830
+Yeah?
+
+00:12:30.830 --> 00:12:35.690
+So I think this guy
+believes that, if I
+
+00:12:35.690 --> 00:12:37.880
+can get enough people
+to type in things like,
+
+00:12:37.880 --> 00:12:42.140
+dogs chase cats and balloons
+go up or something--
+
+00:12:42.140 --> 00:12:46.310
+I don't know, enough random
+factoids into this computer--
+
+00:12:46.310 --> 00:12:54.410
+and he builds up an
+ontology of knowledge
+
+00:12:54.410 --> 00:12:59.510
+to some big collection of facts
+and a good search algorithm
+
+00:12:59.510 --> 00:13:03.628
+to back it up, that his computer
+will achieve intelligence.
+
+00:13:03.628 --> 00:13:05.045
+It'll be able to
+answer any query.
+
+00:13:05.045 --> 00:13:07.170
+It'll be completely
+indistinguishable from a human.
+
+00:13:07.170 --> 00:13:08.820
+You could ask it any query.
+
+00:13:08.820 --> 00:13:11.540
+And as long as it's got the
+right chain of factoids stored
+
+00:13:11.540 --> 00:13:14.310
+away and a good search
+algorithm behind it,
+
+00:13:14.310 --> 00:13:16.670
+then this thing is intelligent.
+
+00:13:16.670 --> 00:13:18.530
+And people have
+been typing things
+
+00:13:18.530 --> 00:13:20.960
+in for a really long time.
+
+00:13:20.960 --> 00:13:23.360
+You can go, and you can
+get the student version
+
+00:13:23.360 --> 00:13:25.330
+or whatever and
+ask it questions.
+
+00:13:25.330 --> 00:13:28.040
+And you can get a research
+version and ask it questions.
+
+00:13:28.040 --> 00:13:28.790
+And people use it.
+
+00:13:28.790 --> 00:13:32.330
+And I mean, Google,
+I think, works
+
+00:13:32.330 --> 00:13:34.280
+better because it's
+accessing WordNet,
+
+00:13:34.280 --> 00:13:36.525
+which is basically an
+ontology of synonyms
+
+00:13:36.525 --> 00:13:37.400
+and things like this.
+
+00:13:37.400 --> 00:13:40.945
+These sound crazy, but
+they're the backbone
+
+00:13:40.945 --> 00:13:42.820
+of some of the things
+that you use every day.
+
+00:13:47.190 --> 00:13:47.990
+OK.
+
+00:13:47.990 --> 00:13:53.060
+So for whatever reason,
+for these kind of reasons,
+
+00:13:53.060 --> 00:13:55.850
+the search algorithms, the
+motion planning algorithms
+
+00:13:55.850 --> 00:13:58.250
+that we're going to talk
+about, which are today
+
+00:13:58.250 --> 00:14:02.840
+used a lot in robotics, grew
+up under the computer science
+
+00:14:02.840 --> 00:14:05.194
+umbrella under
+artificial intelligence.
+
+00:14:15.570 --> 00:14:22.350
+So the term motion
+planning typically
+
+00:14:22.350 --> 00:14:25.500
+implies that you've got
+some dynamical system you're
+
+00:14:25.500 --> 00:14:32.580
+shoving around, let's say, but
+it's clearly just an instance
+
+00:14:32.580 --> 00:14:33.675
+of this search problem.
+
+00:14:36.240 --> 00:14:40.830
+When people talk about
+motion planning in robotics,
+
+00:14:40.830 --> 00:14:45.030
+there are problems that
+people care about a lot.
+
+00:14:51.630 --> 00:14:55.170
+A majority of the motion
+planning literature in robotics
+
+00:14:55.170 --> 00:15:08.430
+is concerned with
+kinematic motion planning,
+
+00:15:08.430 --> 00:15:10.440
+often with obstacles
+or something like this.
+
+00:15:17.050 --> 00:15:21.040
+So if I have a robotic arm
+with 10 degrees of freedom
+
+00:15:21.040 --> 00:15:25.620
+and I want to reach through
+some complicated geometry
+
+00:15:25.620 --> 00:15:29.370
+to turn a doorknob or to
+reach down and pick up
+
+00:15:29.370 --> 00:15:31.230
+some part from
+assembly, then that's
+
+00:15:31.230 --> 00:15:33.280
+a complicated geometric problem.
+
+00:15:36.733 --> 00:15:39.150
+Typically, you assume that the
+systems are fully actuated.
+
+00:15:39.150 --> 00:15:41.668
+You don't worry about actually
+handling the trajectory
+
+00:15:41.668 --> 00:15:42.460
+once you get there.
+
+00:15:42.460 --> 00:15:43.935
+That's normally assumed away.
+
+00:15:43.935 --> 00:15:46.060
+And they assume that all
+trajectories are feasible.
+
+00:15:46.060 --> 00:15:50.100
+They're just trying to find
+some path through the obstacle
+
+00:15:50.100 --> 00:15:51.870
+field.
+
+00:15:51.870 --> 00:15:54.360
+So one of the key
+problems that you
+
+00:15:54.360 --> 00:16:06.090
+can think about in that world
+is the piano movers problem.
+
+00:16:15.850 --> 00:16:18.780
+How many people know the
+piano movers problem?
+
+00:16:18.780 --> 00:16:19.800
+OK.
+
+00:16:19.800 --> 00:16:23.010
+How many people have ever
+moved a couch into a dorm room?
+
+00:16:23.010 --> 00:16:27.200
+You all know the piano
+movers problem then, right?
+
+00:16:27.200 --> 00:16:29.760
+Basic task is you
+have some 3D shape.
+
+00:16:29.760 --> 00:16:31.530
+You have a bunch of obstacles.
+
+00:16:31.530 --> 00:16:37.200
+You have to find a position
+and orientation trajectory that
+
+00:16:37.200 --> 00:16:41.880
+will maneuver your big piano
+through a world of obstacles.
+
+00:16:41.880 --> 00:16:47.800
+It's just like going up
+the stairs with your couch,
+
+00:16:47.800 --> 00:16:52.830
+you know, marking the walls and
+bending your couch as you go.
+
+00:16:52.830 --> 00:16:58.920
+And that's sort some of the
+driving problems in the motion
+
+00:16:58.920 --> 00:16:59.580
+planning space.
+
+00:16:59.580 --> 00:17:02.610
+So it's things like that,
+finding a collision-free path
+
+00:17:02.610 --> 00:17:09.569
+for a complicated geometry
+through an obstacle based
+
+00:17:09.569 --> 00:17:15.270
+environment, just trying to
+give you a little culture here.
+
+00:17:15.270 --> 00:17:20.339
+And in that world, one of
+the most important concepts,
+
+00:17:20.339 --> 00:17:35.960
+I think, is the configuration
+space concept, which actually--
+
+00:17:35.960 --> 00:17:39.500
+you know who came up with
+configuration spaces?
+
+00:17:39.500 --> 00:17:41.065
+He's sitting right upstairs.
+
+00:17:41.065 --> 00:17:44.480
+It's Tomás Lozano-Pérez
+is, I think,
+
+00:17:44.480 --> 00:17:48.090
+credited with the
+configuration space idea.
+
+00:17:48.090 --> 00:17:52.340
+And the idea is that these
+problems can get a lot simpler.
+
+00:17:55.430 --> 00:18:00.910
+Let's say I have a
+square robot going
+
+00:18:00.910 --> 00:18:03.280
+through some complicated
+obstacle field.
+
+00:18:08.360 --> 00:18:10.640
+And I want to find a path
+from some start to the goal.
+
+00:18:14.510 --> 00:18:18.390
+Well, instead of reasoning about
+the geometry of this relative
+
+00:18:18.390 --> 00:18:20.390
+to the geometry of
+this all the time,
+
+00:18:20.390 --> 00:18:21.830
+the configuration
+space tells you
+
+00:18:21.830 --> 00:18:26.780
+you should actually add
+the volume of your robot
+
+00:18:26.780 --> 00:18:30.920
+to your obstacles coming up with
+configuration space obstacles.
+
+00:18:33.560 --> 00:18:36.950
+If you actually add the
+volume of your robot
+
+00:18:36.950 --> 00:18:37.880
+to the obstacles--
+
+00:18:37.880 --> 00:18:41.060
+I'm doing this very
+hand-waving here.
+
+00:18:41.060 --> 00:18:46.040
+But then you can
+turn the problem
+
+00:18:46.040 --> 00:18:50.930
+of finding a big geometry
+through another geometric field
+
+00:18:50.930 --> 00:18:55.490
+to taking a point and driving
+it through the geometric field.
+
+00:18:55.490 --> 00:18:58.180
+And that's a critical,
+critical idea
+
+00:18:58.180 --> 00:18:59.930
+in the world of kinematic
+motion planning.
+
+00:19:04.160 --> 00:19:06.530
+We don't really care about
+kinematic motion planning
+
+00:19:06.530 --> 00:19:07.820
+in this class.
+
+00:19:07.820 --> 00:19:10.340
+We've got enough troubles
+without obstacles.
+
+00:19:10.340 --> 00:19:13.850
+We just care about having an
+interesting dynamic system
+
+00:19:13.850 --> 00:19:15.860
+to move around.
+
+00:19:15.860 --> 00:19:21.410
+So the things we're
+talking about in this class
+
+00:19:21.410 --> 00:19:28.730
+fall under the heading
+kinodynamic motion planning.
+
+00:19:37.010 --> 00:19:46.280
+And of course, the nonholonomic
+motion planning ideas
+
+00:19:46.280 --> 00:19:48.980
+are very related, too.
+
+00:19:56.315 --> 00:19:57.440
+We care about the dynamics.
+
+00:19:57.440 --> 00:19:59.840
+We care about things
+that are forced
+
+00:19:59.840 --> 00:20:03.480
+to follow some trajectories,
+like nonholonomic systems are,
+
+00:20:03.480 --> 00:20:03.980
+too.
+
+00:20:09.990 --> 00:20:12.890
+So if you're out there seeing
+papers and talks and everything
+
+00:20:12.890 --> 00:20:16.220
+by motion planning, I just
+want you to sort of see
+
+00:20:16.220 --> 00:20:20.030
+that they're certainly related
+to the optimal control things
+
+00:20:20.030 --> 00:20:20.900
+we've talked about.
+
+00:20:20.900 --> 00:20:24.440
+But sometimes they
+let go of optimality.
+
+00:20:24.440 --> 00:20:26.840
+They're often about
+kinematics, but there's
+
+00:20:26.840 --> 00:20:29.163
+a good subset of them
+which is thinking
+
+00:20:29.163 --> 00:20:30.830
+about exactly the
+problems we care about
+
+00:20:30.830 --> 00:20:32.420
+with this kinodynamic
+motion planning.
+
+00:20:34.990 --> 00:20:35.590
+Excellent.
+
+00:20:35.590 --> 00:20:36.347
+OK.
+
+00:20:36.347 --> 00:20:37.930
+So now, let's do
+some motion planning.
+
+00:20:37.930 --> 00:20:38.638
+Culture is there.
+
+00:20:50.430 --> 00:20:52.800
+When we did dynamic
+programming, I already
+
+00:20:52.800 --> 00:20:57.150
+sort of forced upon you the
+idea that we could potentially,
+
+00:20:57.150 --> 00:21:03.180
+at great cost, discretize our
+system and state and actions
+
+00:21:03.180 --> 00:21:04.500
+potentially.
+
+00:21:04.500 --> 00:21:06.900
+So let's do the same
+thing when we start off
+
+00:21:06.900 --> 00:21:09.780
+with motion planning and
+start with discrete planning
+
+00:21:09.780 --> 00:21:10.715
+algorithms.
+
+00:21:29.400 --> 00:21:32.850
+Let's say we've got our phase
+plot of our simple pendulum.
+
+00:21:35.432 --> 00:21:37.140
+For kicks right now,
+let's just start off
+
+00:21:37.140 --> 00:21:40.350
+with the trivial
+discretization, let's say.
+
+00:21:40.350 --> 00:21:47.130
+We're going to bin up
+our space like this,
+
+00:21:47.130 --> 00:21:52.380
+call each one of
+those a state and try
+
+00:21:52.380 --> 00:21:56.910
+to start talking about a
+graph-based representation
+
+00:21:56.910 --> 00:22:02.750
+of the dynamics of the system
+that tries to find a path,
+
+00:22:02.750 --> 00:22:11.120
+let's say, from our initial
+state to some goal state.
+
+00:22:15.735 --> 00:22:17.610
+This isn't the only way
+to do discretization,
+
+00:22:17.610 --> 00:22:21.390
+but it's a good way to
+start thinking about it.
+
+00:22:21.390 --> 00:22:29.610
+So that turns the problem
+into some graphical model,
+
+00:22:29.610 --> 00:22:32.910
+where the control actions
+determine our state
+
+00:22:32.910 --> 00:22:34.600
+transitions.
+
+00:22:34.600 --> 00:22:37.905
+I like to actually call them
+s and a in the discrete world.
+
+00:22:47.360 --> 00:22:52.825
+So people know a lot about
+doing search on a graph.
+
+00:22:52.825 --> 00:22:54.200
+I don't want to
+bore you with it,
+
+00:22:54.200 --> 00:22:56.325
+but I want you to at least
+know the algorithms that
+
+00:22:56.325 --> 00:22:59.234
+are out there and be
+able to call upon them
+
+00:22:59.234 --> 00:23:02.660
+if they become useful.
+
+00:23:02.660 --> 00:23:05.810
+So let's see we've butchered
+up our system like this,
+
+00:23:05.810 --> 00:23:11.390
+and we want to find a path from
+some starting discrete state
+
+00:23:11.390 --> 00:23:14.828
+to some goal state with a
+discrete set of actions.
+
+00:23:14.828 --> 00:23:15.620
+How can we do that?
+
+00:23:23.814 --> 00:23:28.500
+AUDIENCE: [INAUDIBLE] search
+algorithm, like A star.
+
+00:23:28.500 --> 00:23:30.250
+RUSS TEDRAKE: A star
+is a perfect example.
+
+00:23:30.250 --> 00:23:31.210
+Yeah.
+
+00:23:31.210 --> 00:23:35.500
+Dynamic programming
+is on the table, too.
+
+00:23:35.500 --> 00:23:37.588
+Dynamic programming,
+that's actually the way I--
+
+00:23:37.588 --> 00:23:39.130
+the reason I drew
+that picture before
+
+00:23:39.130 --> 00:23:40.797
+is because we talked
+about that as a way
+
+00:23:40.797 --> 00:23:44.200
+to think about
+dynamic programming.
+
+00:23:44.200 --> 00:23:45.760
+In dynamic programming
+is incredibly
+
+00:23:45.760 --> 00:23:50.770
+efficient if what you care about
+is knowing the optimal feedback
+
+00:23:50.770 --> 00:23:54.200
+policy, how to get to the goal
+from every possible initial
+
+00:23:54.200 --> 00:23:54.700
+state.
+
+00:23:59.265 --> 00:24:00.640
+I mean, the problem
+with that is,
+
+00:24:00.640 --> 00:24:02.750
+if you have to look at
+every single initial state,
+
+00:24:02.750 --> 00:24:05.417
+then it's not going to scale the
+high dimensions because there's
+
+00:24:05.417 --> 00:24:07.030
+going to be a lot of states.
+
+00:24:07.030 --> 00:24:10.210
+If you have a slightly higher
+dimensional system and you want
+
+00:24:10.210 --> 00:24:13.300
+to find a start to the goal,
+but just a single path--
+
+00:24:13.300 --> 00:24:15.723
+you don't care about
+every possible state--
+
+00:24:15.723 --> 00:24:17.890
+then you can do not better
+than dynamic programming.
+
+00:24:17.890 --> 00:24:22.030
+But you can be more selective
+with your dynamic programming
+
+00:24:22.030 --> 00:24:26.620
+algorithm by doing
+these Dijkstra type
+
+00:24:26.620 --> 00:24:28.840
+and A star type algorithms.
+
+00:24:28.840 --> 00:24:31.700
+So let me just sort
+of do that quickly,
+
+00:24:31.700 --> 00:24:33.450
+so you know that that's there.
+
+00:25:02.070 --> 00:25:14.610
+So dynamic programming,
+again, it's very efficient.
+
+00:25:14.610 --> 00:25:16.260
+It goes to a global optima.
+
+00:25:24.900 --> 00:25:28.650
+Typically, DP is used
+to describe the version
+
+00:25:28.650 --> 00:25:43.330
+where you're trying to solve
+for every state simultaneously.
+
+00:25:46.050 --> 00:25:50.430
+You can do a bit better,
+you can be more selective,
+
+00:25:50.430 --> 00:25:56.610
+if you just care about from a
+start to a goal, like 0 to xg.
+
+00:26:00.100 --> 00:26:02.580
+It's actually a
+little bit surprising
+
+00:26:02.580 --> 00:26:08.160
+to say that I can actually find
+my path from a start to a goal
+
+00:26:08.160 --> 00:26:11.900
+and know that I'm
+at a global optima
+
+00:26:11.900 --> 00:26:13.880
+without ever expanding
+every single node.
+
+00:26:58.190 --> 00:27:00.800
+And then sometimes we don't even
+care about optimality at all.
+
+00:27:00.800 --> 00:27:02.342
+Like I said, some
+of these algorithms
+
+00:27:02.342 --> 00:27:04.400
+are just trying to find
+any old path to the goal,
+
+00:27:04.400 --> 00:27:06.980
+and then you can
+certainly imagine
+
+00:27:06.980 --> 00:27:09.110
+finding your path to the
+goal without expanding
+
+00:27:09.110 --> 00:27:10.250
+every possible node.
+
+00:27:31.670 --> 00:27:33.590
+They all have a
+very simple recipe.
+
+00:27:33.590 --> 00:27:45.920
+Basically, you keep a
+prioritized Q. How many people
+
+00:27:45.920 --> 00:27:48.680
+know what a prioritized Q is?
+
+00:27:48.680 --> 00:27:53.000
+I should say it's often
+called Q, but it means queue.
+
+00:27:53.000 --> 00:27:54.880
+It's another sleep
+deprivation thing there.
+
+00:27:57.740 --> 00:28:00.200
+So a prioritized queue
+is a data structure
+
+00:28:00.200 --> 00:28:06.060
+that we use in computer science
+that I'll describe quickly
+
+00:28:06.060 --> 00:28:06.560
+here.
+
+00:28:06.560 --> 00:28:11.720
+So we basically
+have a list of nodes
+
+00:28:11.720 --> 00:28:14.300
+that we want to
+consider expanding
+
+00:28:14.300 --> 00:28:19.790
+next stored in some
+list, but they're
+
+00:28:19.790 --> 00:28:23.870
+stored in that list in an
+ordered fashion, ordered
+
+00:28:23.870 --> 00:28:30.620
+by how likely it is that we
+want to check that node next.
+
+00:28:30.620 --> 00:28:32.570
+Depending on the ways
+that you add nodes
+
+00:28:32.570 --> 00:28:35.390
+into the prioritized
+queue, you can
+
+00:28:35.390 --> 00:28:42.680
+do any number of the standard
+algorithms, the breadth
+
+00:28:42.680 --> 00:28:47.660
+first search, the
+depth first search.
+
+00:28:56.480 --> 00:28:58.760
+Dijkstra's, let me make
+sure I spell it right.
+
+00:28:58.760 --> 00:28:59.650
+D-J-I, right?
+
+00:29:04.660 --> 00:29:05.188
+What is it?
+
+00:29:05.188 --> 00:29:05.636
+AUDIENCE: D-I-J.
+
+00:29:05.636 --> 00:29:06.532
+RUSS TEDRAKE: D-I-J?
+
+00:29:06.532 --> 00:29:07.470
+OK, good.
+
+00:29:07.470 --> 00:29:07.970
+Thanks.
+
+00:29:14.696 --> 00:29:17.348
+And you could do A star.
+
+00:29:17.348 --> 00:29:17.890
+There's more.
+
+00:29:17.890 --> 00:29:21.850
+There's iterative
+deepening, things like this.
+
+00:29:21.850 --> 00:29:23.560
+They all go basically like this.
+
+00:29:27.280 --> 00:29:29.680
+I have a queue of things
+I'm about to explore.
+
+00:29:29.680 --> 00:29:32.620
+I start off with
+the starting state.
+
+00:29:32.620 --> 00:29:35.402
+I put that in my queue.
+
+00:29:35.402 --> 00:29:37.360
+Next step of the algorithm--
+take something out
+
+00:29:37.360 --> 00:29:38.170
+of the queue.
+
+00:29:38.170 --> 00:29:39.220
+Consider its children.
+
+00:29:42.260 --> 00:29:47.800
+And then take the first one out
+of my priority queue, repeat.
+
+00:29:47.800 --> 00:29:50.500
+If I consider the
+children in a first
+
+00:29:50.500 --> 00:29:53.350
+in, first out kind of way,
+if I add nodes and just say,
+
+00:29:53.350 --> 00:29:56.500
+as soon as I pick up a
+node, I'm going to go ahead
+
+00:29:56.500 --> 00:30:01.630
+and stick those nodes into my
+queue in a sort of a first in,
+
+00:30:01.630 --> 00:30:03.850
+first out kind of way,
+then what I'm going to do
+
+00:30:03.850 --> 00:30:06.560
+is I'm going to proceed to look
+for the goal by going here,
+
+00:30:06.560 --> 00:30:10.300
+then here, then here, then here,
+then here, right down the tree.
+
+00:30:10.300 --> 00:30:12.430
+That's a breadth first search.
+
+00:30:12.430 --> 00:30:16.060
+If I do a prioritized queue
+where, when I add the children,
+
+00:30:16.060 --> 00:30:22.390
+I just do a last in, first
+out, then I'll go here.
+
+00:30:22.390 --> 00:30:23.140
+Then I'll go here.
+
+00:30:23.140 --> 00:30:25.307
+Then I'll go here, and I'll
+go as deep down the tree
+
+00:30:25.307 --> 00:30:27.370
+as I could possibly
+do before I come back
+
+00:30:27.370 --> 00:30:31.420
+and go down to the other nodes.
+
+00:30:31.420 --> 00:30:37.780
+If I keep along,
+let's call it, a cost
+
+00:30:37.780 --> 00:30:46.010
+to come to differentiate
+it from the cost to go,
+
+00:30:46.010 --> 00:30:50.060
+if I keep a record of how much
+cost I incurred for my cost
+
+00:30:50.060 --> 00:30:54.740
+function getting to
+that node and I always
+
+00:30:54.740 --> 00:30:56.570
+select to expand
+the node that would
+
+00:30:56.570 --> 00:31:01.460
+be the cheapest, then that's
+called Dijkstra's algorithm.
+
+00:31:01.460 --> 00:31:04.910
+It's exactly equivalent
+to dynamic programming,
+
+00:31:04.910 --> 00:31:08.240
+but it's in the forward sense.
+
+00:31:08.240 --> 00:31:11.840
+And then A star is
+an even nicer way
+
+00:31:11.840 --> 00:31:14.210
+to do that, which
+combines a cost
+
+00:31:14.210 --> 00:31:23.180
+to come plus some heuristic.
+
+00:31:47.120 --> 00:31:50.840
+My goal is to make sure you
+guys know these are out there.
+
+00:31:50.840 --> 00:31:52.700
+There's lots of good
+easy places to read
+
+00:31:52.700 --> 00:31:58.355
+about these
+algorithms, especially
+
+00:31:58.355 --> 00:31:59.230
+Steve LaValle's book.
+
+00:32:02.630 --> 00:32:05.330
+The only surprising thing
+really about these algorithms
+
+00:32:05.330 --> 00:32:08.870
+is, first of all, that you
+can often very efficiently
+
+00:32:08.870 --> 00:32:11.960
+find your way to the goal
+without expanding as many nodes
+
+00:32:11.960 --> 00:32:14.870
+as you might think.
+
+00:32:14.870 --> 00:32:18.170
+A star, in particular, if you
+can find a good heuristic--
+
+00:32:18.170 --> 00:32:21.830
+a heuristic, in this case, is
+an estimate of the cost to go,
+
+00:32:21.830 --> 00:32:24.740
+a guess at your value function.
+
+00:32:30.980 --> 00:32:36.830
+If you can guess your value
+function in a way where you
+
+00:32:36.830 --> 00:32:39.770
+always underestimate it-- again,
+I'm not going to bore you with
+
+00:32:39.770 --> 00:32:41.090
+all the details here--
+
+00:32:41.090 --> 00:32:44.870
+then actually you can
+sometimes expand very few nodes
+
+00:32:44.870 --> 00:32:47.050
+and find your way
+right to the goal.
+
+00:32:47.050 --> 00:32:48.772
+They're very
+efficient algorithms.
+
+00:33:01.100 --> 00:33:03.260
+People out here use
+A star all the time.
+
+00:33:03.260 --> 00:33:07.130
+For the Grand Challenge,
+I think half the teams
+
+00:33:07.130 --> 00:33:10.970
+had A star planners
+running on their vehicle.
+
+00:33:10.970 --> 00:33:15.590
+For LittleDog, we're picking
+footholds to get from the start
+
+00:33:15.590 --> 00:33:16.430
+to the goal.
+
+00:33:16.430 --> 00:33:19.560
+We have an A star planner in
+there, discrete time planners.
+
+00:33:19.560 --> 00:33:20.540
+These things are real.
+
+00:33:20.540 --> 00:33:21.082
+They're good.
+
+00:33:21.082 --> 00:33:22.520
+They're fast.
+
+00:33:22.520 --> 00:33:24.740
+If you can find
+a good heuristic,
+
+00:33:24.740 --> 00:33:26.780
+they can be very,
+very efficient.
+
+00:33:26.780 --> 00:33:29.690
+If you care about a continuous
+time, a continuous state,
+
+00:33:29.690 --> 00:33:32.870
+continuous action plan
+that gets me from the goal,
+
+00:33:32.870 --> 00:33:34.850
+then they're not as
+satisfying because they
+
+00:33:34.850 --> 00:33:36.520
+relied on this discretization.
+
+00:33:40.490 --> 00:33:42.860
+So we know, when we're
+discretizing this thing,
+
+00:33:42.860 --> 00:33:44.512
+we're going to
+have some problems.
+
+00:33:44.512 --> 00:33:46.970
+I'm going to just assume that
+there's a control action that
+
+00:33:46.970 --> 00:33:48.590
+gets me sort of
+squarely in the center
+
+00:33:48.590 --> 00:33:54.030
+of this next discretized
+cell and then go like this.
+
+00:33:54.030 --> 00:33:56.030
+If I were to execute
+out my actions
+
+00:33:56.030 --> 00:33:57.710
+from my discrete
+planning algorithm
+
+00:33:57.710 --> 00:33:59.540
+on the continuous
+time system, I'm
+
+00:33:59.540 --> 00:34:02.468
+going to quickly
+deviate from my plan.
+
+00:34:02.468 --> 00:34:04.010
+But these things
+are an excellent way
+
+00:34:04.010 --> 00:34:09.170
+to start to seed something like
+a direct co-location method.
+
+00:34:09.170 --> 00:34:11.627
+Find yourself a
+feasible optimal plan.
+
+00:34:11.627 --> 00:34:13.960
+And then stabilize it, let's
+say, with the LTV feedback.
+
+00:34:30.870 --> 00:34:31.370
+Good.
+
+00:34:34.306 --> 00:34:36.389
+So that world of planning
+algorithms is out there.
+
+00:34:39.179 --> 00:34:41.460
+But about, I don't
+know, 10 years ago
+
+00:34:41.460 --> 00:34:44.520
+now, something big happened
+in the robotic motion planning
+
+00:34:44.520 --> 00:34:46.739
+world.
+
+00:34:46.739 --> 00:34:49.620
+People started using
+sample-based motion planning
+
+00:34:49.620 --> 00:34:51.510
+algorithms.
+
+00:34:51.510 --> 00:34:55.560
+And there was sort of a
+revolution in people using
+
+00:34:55.560 --> 00:34:56.730
+motion planning in robotics.
+
+00:35:35.860 --> 00:35:38.110
+It's also sometimes called
+randomized motion planning.
+
+00:35:51.915 --> 00:35:53.290
+And these are we
+are going to dig
+
+00:35:53.290 --> 00:35:56.900
+a little deeper in because
+we use them all the time.
+
+00:35:56.900 --> 00:35:59.320
+I think they're an important
+class of algorithms.
+
+00:35:59.320 --> 00:36:04.030
+So two of the most notable
+sample-based motion planning
+
+00:36:04.030 --> 00:36:25.840
+ideas are the rapidly
+exploring randomized trees
+
+00:36:25.840 --> 00:36:27.430
+and the probabilistic roadmap.
+
+00:36:39.560 --> 00:36:42.980
+Another poll, how many
+people know about RRTs?
+
+00:36:42.980 --> 00:36:44.750
+Awesome.
+
+00:36:44.750 --> 00:36:47.640
+How many people know about PRMs?
+
+00:36:47.640 --> 00:36:48.140
+OK.
+
+00:36:58.880 --> 00:37:01.560
+They're pretty
+related to each other.
+
+00:37:01.560 --> 00:37:03.840
+Let's talk about rapidly
+exploring randomized trees
+
+00:37:03.840 --> 00:37:04.340
+first.
+
+00:37:07.860 --> 00:37:10.830
+So both of these are
+an attempt to get away
+
+00:37:10.830 --> 00:37:15.270
+from these very coarse
+discretizations like this
+
+00:37:15.270 --> 00:37:18.210
+and sort of embrace the
+fact that we're working
+
+00:37:18.210 --> 00:37:20.220
+in a continuous state space.
+
+00:37:23.050 --> 00:37:28.660
+Instead of discretizing
+it at some known sites,
+
+00:37:28.660 --> 00:37:32.530
+we're going to discretize sort
+of at randomly chosen samples.
+
+00:37:35.190 --> 00:37:38.130
+And as we add more
+and more samples,
+
+00:37:38.130 --> 00:37:41.352
+we're going to worry less and
+less about the discretization.
+
+00:37:41.352 --> 00:37:42.810
+And eventually,
+we're going to have
+
+00:37:42.810 --> 00:37:47.010
+something nice to say
+about the continuous space.
+
+00:37:47.010 --> 00:37:49.260
+So the rapidly exploring
+randomized trees, the RRTs,
+
+00:37:49.260 --> 00:37:51.270
+are a very simple
+algorithm to explain.
+
+00:38:13.450 --> 00:38:21.130
+Let's think about it in terms of
+moving a 2D piano through a 2D
+
+00:38:21.130 --> 00:38:23.410
+world in configuration space.
+
+00:38:23.410 --> 00:38:26.860
+So we've got a point
+moving through a world.
+
+00:38:26.860 --> 00:38:28.630
+It should really
+be 3D, actually,
+
+00:38:28.630 --> 00:38:30.255
+if there's an
+orientation to the piano.
+
+00:38:30.255 --> 00:38:32.790
+But let's just look at
+the 2D problem here.
+
+00:38:35.880 --> 00:38:40.090
+So I've got a point,
+an official state,
+
+00:38:40.090 --> 00:38:42.100
+an initial goal in a 2D world.
+
+00:38:45.040 --> 00:38:46.750
+Let's call it xy.
+
+00:38:46.750 --> 00:38:48.040
+And I've got some obstacles.
+
+00:38:58.427 --> 00:39:00.510
+I'd like to find a path
+from the start to the goal
+
+00:39:00.510 --> 00:39:04.200
+without explicitly
+discretizing the space.
+
+00:39:04.200 --> 00:39:06.510
+The RRTs do it like this.
+
+00:39:06.510 --> 00:39:09.590
+Pick a point from
+random in the space.
+
+00:39:12.660 --> 00:39:14.400
+Try to connect your
+current tree, which
+
+00:39:14.400 --> 00:39:23.310
+in the initial state is just
+this x0, to that new point.
+
+00:39:23.310 --> 00:39:25.830
+Let's make it exactly
+clear that I can't do that.
+
+00:39:29.150 --> 00:39:30.810
+My attempt to
+directly connect this
+
+00:39:30.810 --> 00:39:34.260
+is going to fail because it
+goes through an obstacle.
+
+00:39:34.260 --> 00:39:36.000
+So I can't add that node.
+
+00:39:36.000 --> 00:39:37.238
+Sample again randomly.
+
+00:39:37.238 --> 00:39:39.030
+At some point, I'll
+get a node, like, here.
+
+00:39:42.630 --> 00:39:45.150
+I'm going to make
+a branch of my tree
+
+00:39:45.150 --> 00:39:47.820
+that connects those two points.
+
+00:39:47.820 --> 00:39:49.590
+Pick a new random point.
+
+00:39:49.590 --> 00:39:51.360
+Let's say you get
+something here.
+
+00:39:51.360 --> 00:39:54.900
+Now, you have to choose between
+these two random points,
+
+00:39:54.900 --> 00:39:56.887
+decide which is the closest.
+
+00:39:56.887 --> 00:39:58.470
+The closest isn't
+always an easy thing
+
+00:39:58.470 --> 00:40:01.413
+to decide if you have
+complicated dynamics.
+
+00:40:01.413 --> 00:40:02.830
+In this problem,
+it's pretty easy.
+
+00:40:02.830 --> 00:40:04.830
+We could just use something
+like a Euclidean distance.
+
+00:40:04.830 --> 00:40:06.210
+And I'll connect
+it up like this.
+
+00:40:06.210 --> 00:40:07.590
+I get another random point.
+
+00:40:07.590 --> 00:40:08.740
+I connect it up like this.
+
+00:40:08.740 --> 00:40:11.708
+I get some random points
+that go whatever way.
+
+00:40:11.708 --> 00:40:13.500
+If they end up here,
+I just throw them out.
+
+00:40:13.500 --> 00:40:15.990
+If they end up something
+that I can't connect,
+
+00:40:15.990 --> 00:40:17.590
+I'll just throw it out.
+
+00:40:17.590 --> 00:40:19.950
+But at some point, I'll
+start filling the space
+
+00:40:19.950 --> 00:40:22.035
+with these trees.
+
+00:40:26.750 --> 00:40:29.642
+Lo and behold, if
+I do it enough,
+
+00:40:29.642 --> 00:40:31.350
+it doesn't actually
+necessarily take that
+
+00:40:31.350 --> 00:40:35.040
+long until I get up here and
+get close in the vicinity
+
+00:40:35.040 --> 00:40:41.760
+of that goal, very
+simple random algorithm.
+
+00:40:41.760 --> 00:40:44.820
+Do you understand how
+it's sort of avoiding
+
+00:40:44.820 --> 00:40:46.590
+the curse of discretization?
+
+00:40:46.590 --> 00:40:48.420
+It's just picking
+points at random
+
+00:40:48.420 --> 00:40:50.050
+from this continuous space.
+
+00:40:50.050 --> 00:40:55.890
+So there's no constraints,
+no explicit constraints
+
+00:40:55.890 --> 00:40:57.630
+that it lies in the
+center of some bucket
+
+00:40:57.630 --> 00:40:59.130
+or something like that.
+
+00:40:59.130 --> 00:41:01.600
+Nodes could be arbitrarily
+close to each other.
+
+00:41:01.600 --> 00:41:08.010
+I can get arbitrarily fine
+sort of discretization.
+
+00:41:08.010 --> 00:41:12.060
+What's really cool, what
+makes these things tick,
+
+00:41:12.060 --> 00:41:15.180
+is that the idea is so simple.
+
+00:41:15.180 --> 00:41:16.950
+The code is so easy to write.
+
+00:41:16.950 --> 00:41:19.870
+And they really,
+really work fast.
+
+00:41:19.870 --> 00:41:23.640
+Let me just show you
+that basic example.
+
+00:41:57.990 --> 00:42:04.308
+This time, I'm going to do it
+even without any obstacles,
+
+00:42:04.308 --> 00:42:05.850
+but just to show
+you the basic growth
+
+00:42:05.850 --> 00:42:07.500
+of these kind of planners.
+
+00:42:16.480 --> 00:42:17.050
+Awesome.
+
+00:42:17.050 --> 00:42:17.590
+OK.
+
+00:42:17.590 --> 00:42:28.480
+So my initial condition
+is just that blue point.
+
+00:42:28.480 --> 00:42:31.450
+And I'm going to start growing a
+tree in every random direction.
+
+00:42:31.450 --> 00:42:32.560
+There's not even a
+goal in this problem.
+
+00:42:32.560 --> 00:42:34.840
+This is just to show you the
+basic growth of the tree.
+
+00:42:41.380 --> 00:42:44.950
+Every point I grow at
+random, every time I
+
+00:42:44.950 --> 00:42:47.620
+pick a point from a uniform
+distribution covering
+
+00:42:47.620 --> 00:42:52.600
+the space, I'm going to find the
+closest point in the algorithm,
+
+00:42:52.600 --> 00:42:53.980
+a closest point on the tree.
+
+00:42:53.980 --> 00:42:59.660
+And I'm going to try to grow
+my tree towards that node.
+
+00:42:59.660 --> 00:43:00.650
+Yeah.
+
+00:43:00.650 --> 00:43:03.170
+Sort of understand
+what's happening there?
+
+00:43:03.170 --> 00:43:06.690
+It's pretty faint,
+I think, but--
+
+00:43:06.690 --> 00:43:07.190
+all right.
+
+00:43:07.190 --> 00:43:09.065
+So watch what happens
+if I just let that run.
+
+00:43:19.530 --> 00:43:21.300
+OK.
+
+00:43:21.300 --> 00:43:24.240
+Trivial algorithm, it
+has what a lot of people
+
+00:43:24.240 --> 00:43:27.770
+like to call a fractal
+expansion of the coverage area.
+
+00:43:36.077 --> 00:43:37.660
+Of course, if there's
+obstacles, it'll
+
+00:43:37.660 --> 00:43:39.368
+take a little longer
+to get around there,
+
+00:43:39.368 --> 00:43:41.380
+but the algorithm
+probabilistically
+
+00:43:41.380 --> 00:43:44.820
+covers the state space as
+I add more and more points.
+
+00:43:48.280 --> 00:43:51.220
+Some people call them dense
+trees because they do this.
+
+00:43:56.730 --> 00:44:00.130
+If you noticed
+something about them,
+
+00:44:00.130 --> 00:44:04.800
+they have sort of
+surprisingly nice qualities.
+
+00:44:04.800 --> 00:44:08.490
+It filled the space pretty
+uniformly pretty quickly.
+
+00:44:08.490 --> 00:44:09.960
+It didn't just go
+off in one corner
+
+00:44:09.960 --> 00:44:16.170
+and start adding nodes on one
+side or something like that.
+
+00:44:16.170 --> 00:44:21.465
+It actually has a property that
+people call the Voronoi bias.
+
+00:44:56.850 --> 00:44:59.340
+The Voronoi bias
+implies that the tree
+
+00:44:59.340 --> 00:45:04.470
+has a bias for always
+growing into the biggest
+
+00:45:04.470 --> 00:45:08.970
+open regions of the graph.
+
+00:45:08.970 --> 00:45:11.640
+And that just comes
+from sampling uniformly.
+
+00:45:11.640 --> 00:45:17.700
+If I have some tree that
+has a big, wide open area
+
+00:45:17.700 --> 00:45:22.680
+for whatever region, then
+with very high probability
+
+00:45:22.680 --> 00:45:26.880
+I'm going to pick a point that's
+inside the biggest region.
+
+00:45:26.880 --> 00:45:28.380
+And the biggest
+regions in the space
+
+00:45:28.380 --> 00:45:29.797
+are the ones that
+have the highest
+
+00:45:29.797 --> 00:45:32.550
+probability of being chosen.
+
+00:45:32.550 --> 00:45:39.180
+So probabilistically, this thing
+fills the biggest open spaces
+
+00:45:39.180 --> 00:45:49.500
+in the search tree just by the
+virtue of sampling uniformly.
+
+00:45:49.500 --> 00:45:53.850
+So you get these very,
+very dense, fast trees.
+
+00:45:58.120 --> 00:46:00.370
+And you can imagine, if
+there's obstacles or something
+
+00:46:00.370 --> 00:46:03.610
+like that inside there, it's
+going to work its way just
+
+00:46:03.610 --> 00:46:04.630
+around the obstacles.
+
+00:46:04.630 --> 00:46:05.280
+Yeah.
+
+00:46:05.280 --> 00:46:06.880
+AUDIENCE: Does it
+slow down as you get
+
+00:46:06.880 --> 00:46:08.560
+more and more nodes in there?
+
+00:46:08.560 --> 00:46:09.550
+RUSS TEDRAKE: Good.
+
+00:46:09.550 --> 00:46:11.930
+So what is the computation
+that goes into it?
+
+00:46:11.930 --> 00:46:14.675
+What's the expensive part of
+the computation would you guess?
+
+00:46:14.675 --> 00:46:16.300
+AUDIENCE: Finding
+the nearest neighbor.
+
+00:46:16.300 --> 00:46:19.300
+RUSS TEDRAKE: Nearest
+neighbor-- good.
+
+00:46:19.300 --> 00:46:21.610
+So, yeah, it slows down
+with the nearest neighbor,
+
+00:46:21.610 --> 00:46:23.260
+but not as much as you expect.
+
+00:46:23.260 --> 00:46:25.300
+Actually, there's
+two expensive parts.
+
+00:46:25.300 --> 00:46:27.400
+Only the nearest neighbor
+one shows up here.
+
+00:46:27.400 --> 00:46:30.040
+The other one, potentially,
+is the collision checker.
+
+00:46:30.040 --> 00:46:32.470
+And in some complicated
+systems, checking
+
+00:46:32.470 --> 00:46:34.515
+if you're inside a
+region, especially
+
+00:46:34.515 --> 00:46:36.640
+if you're a big robotic
+arm or something like that,
+
+00:46:36.640 --> 00:46:38.557
+can be actually the
+dominant, expensive thing.
+
+00:46:41.020 --> 00:46:44.290
+So these things, in MATLAB,
+everything's vectorized.
+
+00:46:44.290 --> 00:46:47.113
+It actually doesn't grow that
+badly with the number of nodes,
+
+00:46:47.113 --> 00:46:49.030
+but certainly the nearest
+neighbor calculation
+
+00:46:49.030 --> 00:46:50.410
+gets more and more expensive.
+
+00:46:50.410 --> 00:46:54.820
+By default, it's just
+checking the sample point
+
+00:46:54.820 --> 00:46:56.690
+at every possible node.
+
+00:46:56.690 --> 00:46:58.690
+AUDIENCE: You could use
+a k-d tree or something.
+
+00:46:58.690 --> 00:46:59.350
+RUSS TEDRAKE: Yeah, good.
+
+00:46:59.350 --> 00:47:00.220
+Yeah.
+
+00:47:00.220 --> 00:47:04.300
+So there are different
+sort of structures
+
+00:47:04.300 --> 00:47:08.400
+that you can use to make
+that look-up more efficient.
+
+00:47:13.570 --> 00:47:17.560
+So RRTs have kind of come in
+and done things to robotics
+
+00:47:17.560 --> 00:47:20.180
+that people hadn't done before.
+
+00:47:20.180 --> 00:47:23.950
+So this is a
+two-dimensional example.
+
+00:47:23.950 --> 00:47:26.920
+People would have said before,
+I can do sort of motion planning
+
+00:47:26.920 --> 00:47:30.070
+effectively and maybe 5 or 10
+dimensions, a little bit more
+
+00:47:30.070 --> 00:47:33.250
+than I could do with just
+DP, but not a lot more.
+
+00:47:33.250 --> 00:47:36.652
+Because I'm still doing these
+sort of random factorizations.
+
+00:47:36.652 --> 00:47:38.860
+The guys that came out and
+started doing these RRTs--
+
+00:47:38.860 --> 00:47:41.350
+LaValle being one of them,
+Kuffner being another one--
+
+00:47:41.350 --> 00:47:43.090
+started showing
+examples of robots
+
+00:47:43.090 --> 00:47:46.660
+with 32 degrees of freedom
+doing pretty complicated plans.
+
+00:47:49.570 --> 00:47:51.580
+See if I have that
+Kuffner video there.
+
+00:48:08.430 --> 00:48:10.060
+It's an animated GIF.
+
+00:48:12.760 --> 00:48:14.200
+This is H7 at the time.
+
+00:48:14.200 --> 00:48:18.937
+This was the University of Tokyo
+humanoid entry before everybody
+
+00:48:18.937 --> 00:48:20.020
+started giving out ASIMOs.
+
+00:48:20.020 --> 00:48:22.353
+A little before Honda started
+giving out ASIMOs this is.
+
+00:48:25.840 --> 00:48:28.000
+And it's doing things
+like taking that 32
+
+00:48:28.000 --> 00:48:31.300
+degree of freedom robot, finding
+a plan to have it bend down
+
+00:48:31.300 --> 00:48:34.060
+and pick up a flashlight
+under the table.
+
+00:48:34.060 --> 00:48:36.640
+And that sort of shocked people.
+
+00:48:36.640 --> 00:48:39.130
+Now, people have gone off
+and used RRTs to do things
+
+00:48:39.130 --> 00:48:40.960
+like protein folding.
+
+00:48:40.960 --> 00:48:44.440
+It's was a pretty hot topic in
+the motion planning community
+
+00:48:44.440 --> 00:48:48.610
+and these other very high
+complexity geometric planning
+
+00:48:48.610 --> 00:48:52.390
+problems that people
+just haven't done before.
+
+00:48:52.390 --> 00:48:55.810
+But even this guy, even
+though it's a robot,
+
+00:48:55.810 --> 00:48:58.013
+his feet are flat
+on the ground, yeah?
+
+00:48:58.013 --> 00:48:59.680
+And they're still
+just assuming that you
+
+00:48:59.680 --> 00:49:02.638
+can search in position
+space and then find
+
+00:49:02.638 --> 00:49:04.180
+some controller
+that'll stabilize it.
+
+00:49:04.180 --> 00:49:07.035
+So they're not doing the
+underactuated planning example.
+
+00:49:13.147 --> 00:49:14.980
+All right, so I wouldn't
+be talking about it
+
+00:49:14.980 --> 00:49:16.355
+if I didn't think
+it was relevant
+
+00:49:16.355 --> 00:49:18.380
+for underactuated planning.
+
+00:49:18.380 --> 00:49:22.780
+So let's show you
+the basic story here.
+
+00:49:27.243 --> 00:49:29.160
+What happens if we do
+it on a simple pendulum?
+
+00:49:43.280 --> 00:49:44.640
+There we go.
+
+00:49:44.640 --> 00:49:48.080
+So you see, I'm plotting
+only every 30 nodes
+
+00:49:48.080 --> 00:49:49.310
+or something like that.
+
+00:49:49.310 --> 00:49:50.480
+I pick a point at random.
+
+00:49:53.980 --> 00:49:56.373
+I start growing the tree.
+
+00:49:56.373 --> 00:49:57.790
+The way I grew the
+tree, now, is I
+
+00:49:57.790 --> 00:50:00.160
+don't go all the
+way towards the goal
+
+00:50:00.160 --> 00:50:02.770
+because I can't necessarily go
+all the way towards the goal.
+
+00:50:02.770 --> 00:50:05.667
+I just take a step in the
+direction of the goal.
+
+00:50:05.667 --> 00:50:07.750
+How do I take a step in
+the direction of the goal?
+
+00:50:07.750 --> 00:50:10.293
+I just try five random
+actions, let's say,
+
+00:50:10.293 --> 00:50:12.210
+and pick the one that
+got closest to the goal.
+
+00:50:12.210 --> 00:50:15.537
+So if you look closely,
+every time it expands a node,
+
+00:50:15.537 --> 00:50:17.620
+you'll see a bunch of
+different arrows coming out.
+
+00:50:17.620 --> 00:50:20.260
+And it picked the one that got
+closest to that random sample
+
+00:50:20.260 --> 00:50:22.000
+point.
+
+00:50:22.000 --> 00:50:24.820
+And it's still just using
+the Euclidean distance
+
+00:50:24.820 --> 00:50:28.870
+to try to find the
+closest neighbor.
+
+00:50:33.210 --> 00:50:36.122
+This one I think I wasn't
+careful about doing
+
+00:50:36.122 --> 00:50:37.080
+the terminal condition.
+
+00:50:37.080 --> 00:50:41.130
+But I want you to see what the
+most important thing about this
+
+00:50:41.130 --> 00:50:45.837
+is, what do you see in
+that plot besides a mess
+
+00:50:45.837 --> 00:50:47.170
+as it gets adding more and more?
+
+00:50:50.155 --> 00:50:52.030
+What I see is I see the
+fundamental structure
+
+00:50:52.030 --> 00:50:53.280
+of the pendulum.
+
+00:50:53.280 --> 00:50:58.450
+I see these spiral trajectories.
+
+00:50:58.450 --> 00:51:04.660
+It's amazing to me that trivial
+randomized algorithms like this
+
+00:51:04.660 --> 00:51:09.145
+can probe the basic dynamics
+of my underactuated system.
+
+00:51:20.190 --> 00:51:27.430
+All right, so if you see the
+algorithm is, now, very simple.
+
+00:51:27.430 --> 00:51:28.883
+So I pick a point at random.
+
+00:51:28.883 --> 00:51:31.050
+That's actually a good
+example I just happened upon.
+
+00:51:34.950 --> 00:51:37.260
+Pick a point at random.
+
+00:51:37.260 --> 00:51:39.840
+The red is my
+random sample plane.
+
+00:51:39.840 --> 00:51:44.010
+The blue is the closest plane
+in the tree in the Euclidean
+
+00:51:44.010 --> 00:51:45.060
+sense.
+
+00:51:45.060 --> 00:51:47.220
+It happens to be a horrible
+choice for the closest
+
+00:51:47.220 --> 00:51:50.280
+point on the tree
+in the dynamic sense
+
+00:51:50.280 --> 00:51:53.190
+because I know, in state
+space, my dynamics can only
+
+00:51:53.190 --> 00:51:54.280
+go that way.
+
+00:51:54.280 --> 00:51:58.380
+So really, I'd like to have
+picked a point back there that
+
+00:51:58.380 --> 00:52:00.450
+was farther and Euclidean
+distance, but closer
+
+00:52:00.450 --> 00:52:02.473
+sort of in dynamic distance.
+
+00:52:02.473 --> 00:52:04.140
+And I'll actually
+talk more next lecture
+
+00:52:04.140 --> 00:52:06.450
+about how you could do that.
+
+00:52:06.450 --> 00:52:10.290
+But from that note, I
+try 10 different actions,
+
+00:52:10.290 --> 00:52:11.700
+see where it would
+have taken me,
+
+00:52:11.700 --> 00:52:14.670
+and pick the one that ended up
+closest in Euclidean distance,
+
+00:52:14.670 --> 00:52:18.600
+which happens to have been the
+one that happened horizontally.
+
+00:52:18.600 --> 00:52:20.310
+That's enough to let
+this thing just sort
+
+00:52:20.310 --> 00:52:24.120
+of spread itself
+out into the world
+
+00:52:24.120 --> 00:52:28.290
+like a disease or something,
+just covering the space
+
+00:52:28.290 --> 00:52:30.615
+and probing the
+dynamics of the system.
+
+00:52:30.615 --> 00:52:32.490
+And you wait until you
+get close to the goal.
+
+00:52:37.530 --> 00:52:39.750
+RRTs are very, very
+powerful way, now,
+
+00:52:39.750 --> 00:52:47.040
+to start trying to find
+reasonable plans on a robot.
+
+00:52:47.040 --> 00:52:48.930
+That's the vanilla
+RRT algorithm.
+
+00:52:48.930 --> 00:52:51.720
+There's a lot of ways you
+can quickly improve them.
+
+00:52:51.720 --> 00:52:56.880
+And actually, any of the
+graph-based search algorithms
+
+00:52:56.880 --> 00:52:59.050
+do this.
+
+00:52:59.050 --> 00:53:02.010
+So if I wanted to do
+some simple things to try
+
+00:53:02.010 --> 00:53:04.155
+to speed up that algorithm,
+what might you suggest?
+
+00:53:08.573 --> 00:53:10.740
+There's a couple of reasons
+why it felt inefficient.
+
+00:53:10.740 --> 00:53:12.282
+One of them is
+because it's not doing
+
+00:53:12.282 --> 00:53:17.830
+a very nice job of chasing these
+sort of intermediate goals,
+
+00:53:17.830 --> 00:53:19.800
+like that example showed.
+
+00:53:19.800 --> 00:53:22.800
+The other thing is it
+seems like it's not really
+
+00:53:22.800 --> 00:53:24.750
+making any effort to
+go towards the goal.
+
+00:53:28.073 --> 00:53:29.490
+So there's a handful
+of heuristics
+
+00:53:29.490 --> 00:53:31.240
+that people use to
+make these things tick.
+
+00:53:44.100 --> 00:53:45.480
+One of them is a goal bias.
+
+00:54:01.595 --> 00:54:03.470
+I mean, there's lots of
+ways to implement it.
+
+00:54:03.470 --> 00:54:06.880
+The standard way to
+implement it is with,
+
+00:54:06.880 --> 00:54:17.170
+let's say, probability of 0.5
+or something like that, 0.05,
+
+00:54:17.170 --> 00:54:19.510
+choose my random
+sample to be the goal.
+
+00:54:24.110 --> 00:54:31.364
+Otherwise, my random sample is
+just the uniform distribution.
+
+00:54:45.992 --> 00:54:47.700
+That would certainly
+encourage the system
+
+00:54:47.700 --> 00:54:50.482
+to find its way to the goal
+a lot more efficiently.
+
+00:54:54.240 --> 00:54:57.228
+What's another possible
+way to speed this up?
+
+00:54:57.228 --> 00:54:58.613
+AUDIENCE: Bidirectional.
+
+00:54:58.613 --> 00:55:00.030
+RUSS TEDRAKE:
+Bidirectional, yeah.
+
+00:55:00.030 --> 00:55:02.280
+In fact, all of the search
+techniques, the breadth
+
+00:55:02.280 --> 00:55:04.720
+versus depth versus A star
+on discrete graph searches,
+
+00:55:04.720 --> 00:55:06.720
+a lot of times one of the
+standard things people
+
+00:55:06.720 --> 00:55:10.530
+do is they'll do
+a backward search.
+
+00:55:10.530 --> 00:55:13.980
+While you're growing out from
+the start towards the goal,
+
+00:55:13.980 --> 00:55:16.880
+you might as well start from
+the goal and go backwards.
+
+00:55:19.535 --> 00:55:20.910
+The problem with
+this is it feels
+
+00:55:20.910 --> 00:55:23.850
+like you're trying to find
+a needle in a haystack.
+
+00:55:23.850 --> 00:55:26.280
+If you can grow a tree in
+both directions, then at least
+
+00:55:26.280 --> 00:55:28.830
+you got a lot of
+needles to look for.
+
+00:55:28.830 --> 00:55:33.120
+And you just wait till the
+trees come fairly close.
+
+00:55:42.660 --> 00:55:45.600
+And even backward search
+sometimes by itself
+
+00:55:45.600 --> 00:55:46.300
+can be faster.
+
+00:55:46.300 --> 00:55:48.360
+It depends on the system.
+
+00:55:54.400 --> 00:55:57.005
+AUDIENCE: Is that
+because, if your goal is
+
+00:55:57.005 --> 00:56:01.470
+an unstable point [INAUDIBLE],,
+it's more likely to find it?
+
+00:56:01.470 --> 00:56:03.865
+Is that intuitively
+what happens?
+
+00:56:03.865 --> 00:56:05.740
+RUSS TEDRAKE: Why
+sometimes a backward search
+
+00:56:05.740 --> 00:56:06.700
+would work better?
+
+00:56:06.700 --> 00:56:09.820
+AUDIENCE: In cases
+like underactuated.
+
+00:56:09.820 --> 00:56:11.693
+RUSS TEDRAKE: It's a
+really good question.
+
+00:56:11.693 --> 00:56:13.360
+AUDIENCE: Because you
+might have trouble
+
+00:56:13.360 --> 00:56:15.880
+going to some type of fixed
+point, but that for sure
+
+00:56:15.880 --> 00:56:17.986
+already starts you out there.
+
+00:56:22.093 --> 00:56:24.010
+RUSS TEDRAKE: I won't
+put my weight behind it,
+
+00:56:24.010 --> 00:56:26.290
+but that sounds like a
+pretty good explanation.
+
+00:56:28.882 --> 00:56:31.413
+In practice, we always
+do bidirectional trees.
+
+00:56:31.413 --> 00:56:33.080
+AUDIENCE: Even when
+you want to do both,
+
+00:56:33.080 --> 00:56:34.320
+you never just go backwards.
+
+00:56:34.320 --> 00:56:34.630
+RUSS TEDRAKE: Yeah.
+
+00:56:34.630 --> 00:56:35.175
+AUDIENCE: OK.
+
+00:56:35.175 --> 00:56:37.300
+RUSS TEDRAKE: But certainly,
+in the kinematic case,
+
+00:56:37.300 --> 00:56:39.160
+you could definitely
+imagine cases where
+
+00:56:39.160 --> 00:56:40.410
+the backwards could be faster.
+
+00:56:40.410 --> 00:56:43.622
+Let's say it's hiding
+in some little island,
+
+00:56:43.622 --> 00:56:44.830
+and you just want to get out.
+
+00:56:44.830 --> 00:56:46.360
+And that's much easier
+than finding your way
+
+00:56:46.360 --> 00:56:47.485
+into the island, let's say.
+
+00:56:49.960 --> 00:56:54.400
+So certainly, we've
+noticed sensitivities
+
+00:56:54.400 --> 00:56:58.570
+to growing RRTs around
+very unstable fixed points.
+
+00:56:58.570 --> 00:57:01.660
+And it might be
+exactly what you said.
+
+00:57:01.660 --> 00:57:02.200
+It might be.
+
+00:57:02.200 --> 00:57:04.030
+Yeah.
+
+00:57:04.030 --> 00:57:07.538
+AUDIENCE: So is the Euclidean
+norm the best measure for this?
+
+00:57:07.538 --> 00:57:08.330
+RUSS TEDRAKE: Good.
+
+00:57:08.330 --> 00:57:10.540
+The Euclidean norm is a
+horrible metric for this.
+
+00:57:24.880 --> 00:57:27.144
+What do you think would
+be a better metric?
+
+00:57:27.144 --> 00:57:29.579
+AUDIENCE: Energy or
+times [INAUDIBLE]..
+
+00:57:32.414 --> 00:57:33.331
+RUSS TEDRAKE: Awesome.
+
+00:57:37.100 --> 00:57:40.517
+So energy's a good candidate.
+
+00:57:40.517 --> 00:57:43.100
+In fact, I think, depending on
+what we put on the problem set,
+
+00:57:43.100 --> 00:57:49.110
+we might ask you to try
+an energy metric to do it.
+
+00:57:49.110 --> 00:57:51.260
+So almost everybody says
+this would work better
+
+00:57:51.260 --> 00:57:53.408
+with a better distance metric.
+
+00:57:53.408 --> 00:57:55.700
+And almost nobody can tell
+you a better distance metric
+
+00:57:55.700 --> 00:57:58.640
+for these kind of systems.
+
+00:57:58.640 --> 00:58:03.440
+So we actually have
+a couple of ideas
+
+00:58:03.440 --> 00:58:05.150
+that we've been
+working on in lab.
+
+00:58:05.150 --> 00:58:09.780
+Elena has been working on some
+LQR-based distance metrics,
+
+00:58:09.780 --> 00:58:11.720
+for instance.
+
+00:58:11.720 --> 00:58:12.890
+So what did you just say?
+
+00:58:12.890 --> 00:58:15.530
+You said time to arrival.
+
+00:58:15.530 --> 00:58:17.820
+How would you compute
+a time to arrival?
+
+00:58:17.820 --> 00:58:19.570
+AUDIENCE: You have to
+do a moment in time.
+
+00:58:19.570 --> 00:58:20.403
+RUSS TEDRAKE: Right.
+
+00:58:20.403 --> 00:58:21.770
+AUDIENCE: Muscle control.
+
+00:58:21.770 --> 00:58:22.687
+RUSS TEDRAKE: Exactly.
+
+00:58:22.687 --> 00:58:23.870
+AUDIENCE: [INAUDIBLE]
+
+00:58:23.870 --> 00:58:25.370
+RUSS TEDRAKE: So
+you just guessed
+
+00:58:25.370 --> 00:58:28.190
+the one that's one of
+my favorites right now.
+
+00:58:28.190 --> 00:58:33.900
+So one idea here,
+not fully proven yet,
+
+00:58:33.900 --> 00:58:42.380
+but it's still in the oven
+here is that, every time,
+
+00:58:42.380 --> 00:58:45.960
+I pick a random sample
+point I'll linearize
+
+00:58:45.960 --> 00:58:48.560
+the system around that point.
+
+00:58:48.560 --> 00:58:51.590
+Say that's a cartoon
+of a linearization.
+
+00:58:51.590 --> 00:58:57.260
+Compute a LQR
+stabilizer around this.
+
+00:58:57.260 --> 00:59:00.870
+And then use the value function
+for a minimum time problem.
+
+00:59:00.870 --> 00:59:09.878
+So compute a min time LQR
+actually around this point.
+
+00:59:09.878 --> 00:59:12.170
+And then use the value function
+as the distance metric.
+
+00:59:27.590 --> 00:59:30.110
+So I like that idea a lot.
+
+00:59:30.110 --> 00:59:33.060
+There's a couple
+subtleties that go into it.
+
+00:59:33.060 --> 00:59:36.050
+So when you pick a random
+point in state space,
+
+00:59:36.050 --> 00:59:37.925
+if it's got a velocity or--
+
+00:59:37.925 --> 00:59:39.800
+most points you pick
+randomly in states space
+
+00:59:39.800 --> 00:59:41.670
+are not stabilizable.
+
+00:59:41.670 --> 00:59:45.200
+So you can't do an infinite
+horizon minimum time LQR.
+
+00:59:45.200 --> 00:59:48.080
+You have to do a finite horizon
+and then potentially search
+
+00:59:48.080 --> 00:59:50.960
+over horizon times, but
+you can do that, actually,
+
+00:59:50.960 --> 00:59:54.240
+pretty efficiently.
+
+00:59:54.240 --> 00:59:56.720
+The other issue about
+it is that it's actually
+
+00:59:56.720 --> 00:59:58.370
+not a proper distance metric.
+
+01:00:02.000 --> 01:00:05.245
+Why is it not a proper
+distance metric?
+
+01:00:05.245 --> 01:00:05.745
+Anybody?
+
+01:00:05.745 --> 01:00:07.997
+AUDIENCE: It
+doesn't [INAUDIBLE]..
+
+01:00:07.997 --> 01:00:09.080
+RUSS TEDRAKE: So I think--
+
+01:00:09.080 --> 01:00:10.730
+[INTERPOSING VOICES]
+
+01:00:13.260 --> 01:00:16.110
+It probably doesn't follow
+the triangle inequality.
+
+01:00:16.110 --> 01:00:17.360
+It doesn't even have symmetry.
+
+01:00:20.240 --> 01:00:22.730
+If I were to linearize
+around this point
+
+01:00:22.730 --> 01:00:24.980
+and compute its distance,
+linearize around this point,
+
+01:00:24.980 --> 01:00:27.020
+there just absolutely
+no guarantees
+
+01:00:27.020 --> 01:00:28.445
+that it would be the same.
+
+01:00:31.680 --> 01:00:34.832
+But I don't care
+about that actually.
+
+01:00:34.832 --> 01:00:36.290
+I just have to put
+it in the paper.
+
+01:00:40.535 --> 01:00:41.660
+As long as it works, right?
+
+01:00:48.290 --> 01:00:50.000
+It's also more
+expensive a little bit,
+
+01:00:50.000 --> 01:00:51.620
+but it can make a
+dramatic improvement
+
+01:00:51.620 --> 01:00:57.405
+in the way it spreads.
+
+01:00:57.405 --> 01:00:58.280
+There's another idea.
+
+01:00:58.280 --> 01:01:00.030
+I was actually planning
+to talk about some
+
+01:01:00.030 --> 01:01:03.360
+of the more subtle
+ideas next time.
+
+01:01:03.360 --> 01:01:05.330
+But since we're at it,
+the other way to do it
+
+01:01:05.330 --> 01:01:08.049
+is to change the
+sampling distribution.
+
+01:01:23.540 --> 01:01:27.490
+So Alec Shkolnik in our group
+has got a very clever way
+
+01:01:27.490 --> 01:01:37.090
+to grow these trees, where it
+uses a sampling metric that
+
+01:01:37.090 --> 01:01:39.700
+doesn't try to go
+where it can't go.
+
+01:01:39.700 --> 01:01:41.991
+Let me see if I can say
+that more carefully.
+
+01:01:53.300 --> 01:01:54.930
+I told DARPA about
+it three days ago.
+
+01:01:54.930 --> 01:01:58.990
+So I just want to
+show you the picture.
+
+01:02:26.910 --> 01:02:27.410
+OK.
+
+01:02:27.410 --> 01:02:36.725
+So this is Alec's algorithm for
+being more clever at expanding.
+
+01:02:36.725 --> 01:02:39.350
+He changes the bias to the point
+where this is the tree we just
+
+01:02:39.350 --> 01:02:41.450
+saw it, basically, right?
+
+01:02:41.450 --> 01:02:43.980
+And his new tree
+looks like that.
+
+01:02:43.980 --> 01:02:46.070
+So it looks pretty compelling.
+
+01:02:46.070 --> 01:02:46.910
+How did he do it?
+
+01:02:49.500 --> 01:02:56.120
+He does this thing he calls
+reachability guided RRTs.
+
+01:02:56.120 --> 01:03:00.080
+Every time he expands
+a node, he also
+
+01:03:00.080 --> 01:03:03.410
+expands what would happen if
+I had applied maximum torque
+
+01:03:03.410 --> 01:03:05.270
+and minimum torque.
+
+01:03:05.270 --> 01:03:08.600
+So he expands a couple
+nodes that represent
+
+01:03:08.600 --> 01:03:12.560
+a cone of feasibility.
+
+01:03:12.560 --> 01:03:14.840
+The algorithm turns
+out to be trivial.
+
+01:03:14.840 --> 01:03:16.730
+So now, I take my
+Euclidean distance metric
+
+01:03:16.730 --> 01:03:20.120
+or whatever it is, pick
+my random sample point.
+
+01:03:20.120 --> 01:03:24.950
+If the closest point is one of
+these boundary feasible things,
+
+01:03:24.950 --> 01:03:28.430
+that means there's
+room to grow the tree.
+
+01:03:28.430 --> 01:03:29.900
+If the closest
+point, however, is
+
+01:03:29.900 --> 01:03:32.060
+one of the nodes
+in my actual graph,
+
+01:03:32.060 --> 01:03:34.527
+that means I'm not feasible.
+
+01:03:34.527 --> 01:03:35.360
+I said that quickly.
+
+01:03:35.360 --> 01:03:39.390
+But long story short,
+there's a trivial check here,
+
+01:03:39.390 --> 01:03:42.410
+which effectively changes
+your sampling distribution
+
+01:03:42.410 --> 01:03:45.080
+just by saying sample a point.
+
+01:03:45.080 --> 01:03:48.980
+If the closest point on there is
+not one of my boundary regions,
+
+01:03:48.980 --> 01:03:51.020
+but one of my normal
+tree elements,
+
+01:03:51.020 --> 01:03:53.790
+then I know I can't grow there.
+
+01:03:53.790 --> 01:03:55.790
+And if I get that, I just
+throw that point away,
+
+01:03:55.790 --> 01:03:57.350
+pick another point.
+
+01:03:57.350 --> 01:03:59.060
+What that does is it
+effectively changes
+
+01:03:59.060 --> 01:04:01.220
+the sampling distribution
+to be the green region.
+
+01:04:01.220 --> 01:04:03.530
+It just throws out all
+these unnecessary points
+
+01:04:03.530 --> 01:04:06.290
+that you can't get towards
+and changes your sampling
+
+01:04:06.290 --> 01:04:07.670
+distribution, so
+it's only trying
+
+01:04:07.670 --> 01:04:10.070
+to grow in places that
+it can actually go,
+
+01:04:10.070 --> 01:04:14.150
+to where the trees got a
+chance of growing towards.
+
+01:04:14.150 --> 01:04:16.430
+So I think the
+world is still sort
+
+01:04:16.430 --> 01:04:18.500
+of small enough that
+people are still
+
+01:04:18.500 --> 01:04:21.890
+finding pretty clever little
+tricks to the RRTs that
+
+01:04:21.890 --> 01:04:24.620
+make them grow a lot better in
+constrained systems like this.
+
+01:04:27.252 --> 01:04:29.210
+So that happens to be,
+I think, a very good one
+
+01:04:29.210 --> 01:04:31.340
+for our kind of problems.
+
+01:04:35.670 --> 01:04:37.730
+But it also points out
+what RRTs are bad at.
+
+01:04:43.300 --> 01:04:45.800
+So what kind of problems would
+you expect an RRT to work on?
+
+01:04:45.800 --> 01:04:47.800
+And what would you not
+expect an RRT to work on?
+
+01:04:52.960 --> 01:04:55.600
+The classic case of something
+you shouldn't expect
+
+01:04:55.600 --> 01:05:00.080
+an RRT to do very well on is
+something that looks like this,
+
+01:05:00.080 --> 01:05:01.780
+let's say.
+
+01:05:01.780 --> 01:05:04.240
+x start is over here.
+
+01:05:04.240 --> 01:05:05.560
+x goal is over here.
+
+01:05:10.840 --> 01:05:12.470
+And my obstacles look like this.
+
+01:05:16.820 --> 01:05:22.550
+In general, I think
+it's fair to say RRTs
+
+01:05:22.550 --> 01:05:27.110
+don't like tunnels and tubes.
+
+01:05:33.650 --> 01:05:35.600
+What's going to
+happen if I run my RRT
+
+01:05:35.600 --> 01:05:38.210
+on this sort of a system?
+
+01:05:38.210 --> 01:05:40.370
+So you know, I got my tree here.
+
+01:05:40.370 --> 01:05:41.510
+Pick a point here, fine.
+
+01:05:41.510 --> 01:05:43.712
+Pick a point here, I'll
+quickly cover this area.
+
+01:05:43.712 --> 01:05:45.170
+Pick a point here,
+I throw it away.
+
+01:05:45.170 --> 01:05:46.430
+Pick a point here,
+I throw it away.
+
+01:05:46.430 --> 01:05:48.170
+Pick a point right
+here, can't get to it.
+
+01:05:48.170 --> 01:05:50.450
+It doesn't do me any good.
+
+01:05:50.450 --> 01:05:53.870
+You know, after a very
+long time, maybe I luck out
+
+01:05:53.870 --> 01:05:56.480
+and I pick a point here, right?
+
+01:05:56.480 --> 01:05:58.680
+But then I have to wait,
+and I pick point here.
+
+01:05:58.680 --> 01:05:59.840
+I can't get to it.
+
+01:05:59.840 --> 01:06:03.110
+You know, I'm just
+completely hopeless.
+
+01:06:03.110 --> 01:06:04.530
+If it's in
+two-dimensional space,
+
+01:06:04.530 --> 01:06:07.550
+then you can imagine sort
+of getting lucky enough
+
+01:06:07.550 --> 01:06:10.730
+or designing a sampling
+distribution that does this.
+
+01:06:10.730 --> 01:06:13.610
+But let's say it's in
+some 14-dimensional space
+
+01:06:13.610 --> 01:06:16.541
+that you have no idea where
+the tunnels, the tubes, are.
+
+01:06:16.541 --> 01:06:18.740
+There are some problems
+where RRTs just choke.
+
+01:06:18.740 --> 01:06:20.990
+AUDIENCE: So in general,
+when there's basic solutions,
+
+01:06:20.990 --> 01:06:22.725
+feasible solutions, it's small?
+
+01:06:22.725 --> 01:06:26.600
+It's that fair to say?
+
+01:06:26.600 --> 01:06:30.613
+Because this is a very small
+set of [INAUDIBLE] space.
+
+01:06:30.613 --> 01:06:32.780
+RUSS TEDRAKE: It's a little
+hard to say that, right?
+
+01:06:32.780 --> 01:06:37.190
+Because, I mean, lots of
+trajectories work, right?
+
+01:06:37.190 --> 01:06:39.215
+This one works this.
+
+01:06:39.215 --> 01:06:41.240
+This works, you know?
+
+01:06:41.240 --> 01:06:46.100
+But I think, when
+there's narrow passages,
+
+01:06:46.100 --> 01:06:51.005
+I think that's a more clear
+way to say it when it chokes.
+
+01:06:51.005 --> 01:06:53.270
+AUDIENCE: And so
+when you say chokes,
+
+01:06:53.270 --> 01:06:55.680
+it means it's, as
+times goes to infinity,
+
+01:06:55.680 --> 01:06:56.597
+it'll finally find it.
+
+01:06:56.597 --> 01:06:57.347
+RUSS TEDRAKE: Yes.
+
+01:06:57.347 --> 01:06:58.530
+AUDIENCE: It is [INAUDIBLE].
+
+01:06:58.530 --> 01:06:59.338
+RUSS TEDRAKE: Yes.
+
+01:06:59.338 --> 01:06:59.880
+AUDIENCE: OK.
+
+01:06:59.880 --> 01:07:02.040
+RUSS TEDRAKE: Good.
+
+01:07:02.040 --> 01:07:05.730
+So these algorithms, mostly
+what you look for in a planning
+
+01:07:05.730 --> 01:07:07.290
+algorithm is completeness.
+
+01:07:07.290 --> 01:07:11.520
+You want to know that, as
+you expand all the nodes,
+
+01:07:11.520 --> 01:07:13.620
+eventually if there's
+a path to the goal,
+
+01:07:13.620 --> 01:07:15.268
+you'll find the
+path to the goal.
+
+01:07:15.268 --> 01:07:16.810
+And even if there's
+not a path, it'll
+
+01:07:16.810 --> 01:07:19.050
+tell you there's no path, right?
+
+01:07:19.050 --> 01:07:23.370
+RRTs have probabilistic
+completeness guarantees.
+
+01:07:23.370 --> 01:07:27.030
+They say, if you expand
+enough nodes, then
+
+01:07:27.030 --> 01:07:29.220
+with the probability
+one, if there is a path,
+
+01:07:29.220 --> 01:07:30.975
+you'll find it.
+
+01:07:30.975 --> 01:07:32.850
+Probabilistic completeness
+doesn't do as much
+
+01:07:32.850 --> 01:07:35.643
+for disproving the
+existence of a path.
+
+01:07:35.643 --> 01:07:37.560
+It would take a very
+long time to disprove it.
+
+01:07:40.650 --> 01:07:42.510
+But probabilistically,
+these things
+
+01:07:42.510 --> 01:07:45.580
+will find a path to
+the goal if it exists.
+
+01:07:45.580 --> 01:07:46.080
+That's good.
+
+01:07:48.315 --> 01:07:50.190
+Maybe that'll make you
+sleep better at night.
+
+01:07:50.190 --> 01:07:52.770
+But if you have to
+wait for something
+
+01:07:52.770 --> 01:07:54.723
+to be probabilistically
+complete,
+
+01:07:54.723 --> 01:07:55.890
+it's not going to be useful.
+
+01:07:55.890 --> 01:07:58.290
+The reason these things
+are used like crazy
+
+01:07:58.290 --> 01:08:01.810
+is that, in practice,
+they're very fast.
+
+01:08:01.810 --> 01:08:06.190
+They can be very, very fast
+for finding good solutions.
+
+01:08:06.190 --> 01:08:09.360
+So really, I mean, the
+Grand Challenge vehicle
+
+01:08:09.360 --> 01:08:11.820
+is using RRTs all
+the time to consider
+
+01:08:11.820 --> 01:08:15.030
+possible future paths
+along the street,
+
+01:08:15.030 --> 01:08:17.279
+trying to avoid obstacles.
+
+01:08:17.279 --> 01:08:21.960
+It's doing it fast enough sort
+of in a receding horizon way.
+
+01:08:21.960 --> 01:08:24.899
+It's always planning
+a minute ahead.
+
+01:08:24.899 --> 01:08:28.080
+I'm not sure exactly what the
+window is in driving time.
+
+01:08:28.080 --> 01:08:31.553
+And it's doing it every DT
+roughly, re-computing its plan.
+
+01:08:31.553 --> 01:08:33.720
+These things can be really,
+really fast in practice.
+
+01:08:37.109 --> 01:08:40.800
+To some extent, the
+dynamic constraints
+
+01:08:40.800 --> 01:08:43.529
+which we're talking
+about on the pendulum
+
+01:08:43.529 --> 01:08:45.450
+are exactly this problem.
+
+01:08:50.479 --> 01:08:54.350
+Because the pendulum, like
+we said, it's coming here.
+
+01:08:54.350 --> 01:08:56.830
+We know what the phase portrait
+of the pendulum look like.
+
+01:08:56.830 --> 01:08:58.580
+And we know that, if
+we're torque limited,
+
+01:08:58.580 --> 01:09:00.979
+there's only a handful
+of places we can go.
+
+01:09:00.979 --> 01:09:05.450
+To some extent, kinodynamic
+constraints, like this,
+
+01:09:05.450 --> 01:09:10.130
+dynamics can look
+exactly like this.
+
+01:09:10.130 --> 01:09:11.630
+So if you take your
+vanilla RRT, you
+
+01:09:11.630 --> 01:09:13.463
+saw how effectively it
+grew on the pendulum.
+
+01:09:13.463 --> 01:09:17.270
+It took a lot a lot of
+nodes to find its way out.
+
+01:09:17.270 --> 01:09:19.640
+The hope is that we know
+enough about this sort
+
+01:09:19.640 --> 01:09:22.850
+of dynamical system from some
+of our other tools, like LQR,
+
+01:09:22.850 --> 01:09:25.370
+to do distance metric
+from tricks like this
+
+01:09:25.370 --> 01:09:28.580
+that we're effectively
+guiding this thing down
+
+01:09:28.580 --> 01:09:30.770
+the differential
+constraint tubes.
+
+01:09:33.003 --> 01:09:34.586
+AUDIENCE: Have you
+had any [INAUDIBLE]
+
+01:09:34.586 --> 01:09:38.890
+with relaxing the number?
+
+01:09:38.890 --> 01:09:42.350
+Like, for example, if you have
+like a 15-dimensional robot,
+
+01:09:42.350 --> 01:09:44.964
+you're going to get to
+[INAUDIBLE] position.
+
+01:09:44.964 --> 01:09:47.295
+Can you relax enough
+those dimensions
+
+01:09:47.295 --> 01:09:49.479
+and then use the
+rest [INAUDIBLE]
+
+01:09:49.479 --> 01:09:52.510
+under control in a very
+low dimensional space
+
+01:09:52.510 --> 01:09:54.500
+and then use that
+as a [INAUDIBLE]??
+
+01:09:54.500 --> 01:09:56.430
+RUSS TEDRAKE: Awesome.
+
+01:09:56.430 --> 01:09:58.550
+Yes.
+
+01:09:58.550 --> 01:10:00.330
+So Alec also had--
+
+01:10:00.330 --> 01:10:05.720
+I'll tell you what,
+my next slide,
+
+01:10:05.720 --> 01:10:08.780
+this is Alec's other
+thing about planning
+
+01:10:08.780 --> 01:10:13.070
+in a task space, which is
+exactly what you said I think.
+
+01:10:13.070 --> 01:10:14.320
+There's lots of ways to do it.
+
+01:10:14.320 --> 01:10:17.030
+And I think Alec found a
+really good way to do it.
+
+01:10:17.030 --> 01:10:21.680
+This is just an example
+of a five-link robotic arm
+
+01:10:21.680 --> 01:10:23.390
+just in configuration space.
+
+01:10:23.390 --> 01:10:27.650
+They had to find its way from
+that endpoint to the goal
+
+01:10:27.650 --> 01:10:28.320
+endpoint.
+
+01:10:28.320 --> 01:10:30.410
+So you see at the top,
+that little green arm
+
+01:10:30.410 --> 01:10:32.960
+is the resulting
+configuration of the robot.
+
+01:10:32.960 --> 01:10:35.217
+The standard RRT looked
+all over the place
+
+01:10:35.217 --> 01:10:36.425
+to try to find that solution.
+
+01:10:39.580 --> 01:10:41.900
+It's a little subtle
+how he had to do it.
+
+01:10:41.900 --> 01:10:44.720
+You had to basically change
+the Voronoi bias to live
+
+01:10:44.720 --> 01:10:48.770
+in the task space,
+but still sample
+
+01:10:48.770 --> 01:10:51.140
+uniformly from the other space.
+
+01:10:51.140 --> 01:10:53.270
+So that's not enough to
+tell you how to do it,
+
+01:10:53.270 --> 01:10:56.870
+but that's enough to tell you
+it's not completely trivial.
+
+01:10:56.870 --> 01:11:01.310
+Then he found these really,
+really elegant solutions
+
+01:11:01.310 --> 01:11:03.710
+to plan in task space.
+
+01:11:03.710 --> 01:11:06.530
+And the result, his
+sort of killer plot,
+
+01:11:06.530 --> 01:11:10.190
+is that this is
+the number of links
+
+01:11:10.190 --> 01:11:12.650
+in the robotic arm versus
+the number of nodes
+
+01:11:12.650 --> 01:11:14.360
+it took to find the goal.
+
+01:11:14.360 --> 01:11:17.240
+And the standard
+RRT went like that.
+
+01:11:17.240 --> 01:11:19.670
+And after 10 links,
+it just was hopeless.
+
+01:11:22.190 --> 01:11:26.750
+With n going to over
+1,000 dimensions,
+
+01:11:26.750 --> 01:11:29.330
+he was just planning in
+constant time basically.
+
+01:11:29.330 --> 01:11:31.330
+So, yeah, there's the
+structure in the problems.
+
+01:11:33.950 --> 01:11:36.800
+We also, using the partial
+feedback linearization task
+
+01:11:36.800 --> 01:11:41.570
+space, have tried doing it
+on underactuated systems.
+
+01:11:41.570 --> 01:11:43.070
+And that sort of works, too.
+
+01:11:43.070 --> 01:11:44.810
+Yeah.
+
+01:11:44.810 --> 01:11:47.065
+But it's not the norm, actually.
+
+01:11:47.065 --> 01:11:49.190
+It's not the accepted
+version of the algorithm yet.
+
+01:11:54.780 --> 01:11:56.580
+RRTs are beautiful
+things, right?
+
+01:11:56.580 --> 01:12:00.660
+They just grow out, find
+their way to the goal.
+
+01:12:00.660 --> 01:12:02.940
+Potentially, a complaint is,
+when you're done with it,
+
+01:12:02.940 --> 01:12:05.970
+you've got the sort of
+choppy discretized path
+
+01:12:05.970 --> 01:12:07.230
+that gets you to the goal.
+
+01:12:07.230 --> 01:12:09.600
+But then just hand it to
+your trajectory optimizer
+
+01:12:09.600 --> 01:12:12.870
+as an initial condition and
+let it smooth it out, still
+
+01:12:12.870 --> 01:12:15.270
+satisfying obstacle
+constraints, torque constraints,
+
+01:12:15.270 --> 01:12:17.075
+We know how to do that
+and smooth it out.
+
+01:12:17.075 --> 01:12:19.200
+And you've got yourself a
+good trajectory that gets
+
+01:12:19.200 --> 01:12:21.150
+from the start to the goal.
+
+01:12:21.150 --> 01:12:24.840
+It's a beautiful thing, I mean,
+I think to the point where
+
+01:12:24.840 --> 01:12:28.410
+Tomás Lozano-Pérez invented
+configuration space,
+
+01:12:28.410 --> 01:12:30.780
+did motion planning
+for however long.
+
+01:12:30.780 --> 01:12:32.670
+He actually stopped
+robotics, went off
+
+01:12:32.670 --> 01:12:34.890
+and did computational
+biology for a while.
+
+01:12:34.890 --> 01:12:37.590
+And he says he came back to
+robotics just a few years ago
+
+01:12:37.590 --> 01:12:41.310
+because these kind of algorithms
+made a difference to the point
+
+01:12:41.310 --> 01:12:46.020
+where it was worth doing
+motion planning robotics again.
+
+01:12:46.020 --> 01:12:49.320
+I don't a more dramatic
+thing to say than that.
+
+01:12:53.870 --> 01:12:54.370
+OK.
+
+01:12:54.370 --> 01:12:57.790
+So next time, I'm going
+to go a little bit more
+
+01:12:57.790 --> 01:13:00.460
+into using these planning
+algorithms and also
+
+01:13:00.460 --> 01:13:03.490
+feedback motion planning
+applied to our model systems,
+
+01:13:03.490 --> 01:13:05.440
+but I don't want to
+completely segue.
+
+01:13:05.440 --> 01:13:06.280
+That's a big idea.
+
+01:13:06.280 --> 01:13:10.540
+These RRTs-- simple
+algorithm, big idea.
+
+01:13:10.540 --> 01:13:13.690
+I mean, the idea that a
+randomized algorithm can
+
+01:13:13.690 --> 01:13:16.963
+do better than our
+explicit algorithms,
+
+01:13:16.963 --> 01:13:18.130
+it's all these funny things.
+
+01:13:18.130 --> 01:13:19.810
+There's classes on
+randomized algorithms here.
+
+01:13:19.810 --> 01:13:22.330
+Every once in a while, these
+things just really work nicely.
+
+01:13:22.330 --> 01:13:24.410
+Randomization can help.
+
+01:13:24.410 --> 01:13:25.960
+And the reason,
+roughly, may be is
+
+01:13:25.960 --> 01:13:28.660
+that it's actually pretty
+cheap to pick a sample point.
+
+01:13:28.660 --> 01:13:31.345
+It's pretty cheap to evaluate
+if it's in a collision.
+
+01:13:34.000 --> 01:13:35.440
+And so why not just pick a lot?
+
+01:13:35.440 --> 01:13:37.357
+Instead of trying to
+reason about the geometry
+
+01:13:37.357 --> 01:13:40.300
+of your obstacles, building
+configuration spaces, that's
+
+01:13:40.300 --> 01:13:43.865
+hard compared to just saying,
+OK, what if my robot was here?
+
+01:13:43.865 --> 01:13:44.740
+Was that a collision?
+
+01:13:44.740 --> 01:13:45.850
+Yeah, that's in collision.
+
+01:13:45.850 --> 01:13:46.358
+OK.
+
+01:13:46.358 --> 01:13:46.900
+Throw it out.
+
+01:13:46.900 --> 01:13:49.067
+And just sometimes randomized
+algorithms are better.
+
+01:13:51.630 --> 01:13:53.744
+OK, see you next week.

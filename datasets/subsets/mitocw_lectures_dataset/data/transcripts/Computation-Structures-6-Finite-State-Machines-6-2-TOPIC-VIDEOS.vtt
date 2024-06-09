@@ -1,0 +1,483 @@
+WEBVTT
+
+00:00:00.500 --> 00:00:03.440
+In the last chapter we
+developed sequential logic,
+
+00:00:03.440 --> 00:00:06.170
+which contains both
+combinational logic and memory
+
+00:00:06.170 --> 00:00:08.090
+components.
+
+00:00:08.090 --> 00:00:10.750
+The combinational logic
+cloud is an acyclic graph
+
+00:00:10.750 --> 00:00:13.940
+of components that obeys
+the static discipline.
+
+00:00:13.940 --> 00:00:17.290
+The static discipline guarantees
+if we supply valid and stable
+
+00:00:17.290 --> 00:00:19.900
+digital inputs, then we
+will get valid and stable
+
+00:00:19.900 --> 00:00:22.030
+digital outputs
+by some specified
+
+00:00:22.030 --> 00:00:25.490
+interval after the
+last input transition.
+
+00:00:25.490 --> 00:00:27.940
+There’s also a functional
+specification that tells us
+
+00:00:27.940 --> 00:00:30.840
+the output values for every
+possible combination of input
+
+00:00:30.840 --> 00:00:32.259
+values.
+
+00:00:32.259 --> 00:00:37.800
+In this diagram, there are
+k+m inputs and k+n outputs,
+
+00:00:37.800 --> 00:00:41.240
+so the truth table for the
+combinational logic will have
+
+00:00:41.240 --> 00:00:47.390
+2^(k+m) rows and
+k+n output columns.
+
+00:00:47.390 --> 00:00:49.060
+The job of the
+state registers is
+
+00:00:49.060 --> 00:00:52.490
+to remember the current state
+of the sequential logic.
+
+00:00:52.490 --> 00:00:55.330
+The state is encoded as
+some number k of bits,
+
+00:00:55.330 --> 00:00:59.650
+which will allow us to
+represent 2^k unique states.
+
+00:00:59.650 --> 00:01:02.000
+Recall that the state
+is used to capture,
+
+00:01:02.000 --> 00:01:05.250
+in some appropriate way, the
+relevant history of the input
+
+00:01:05.250 --> 00:01:06.300
+sequence.
+
+00:01:06.300 --> 00:01:08.960
+To the extent that previous
+input values influence
+
+00:01:08.960 --> 00:01:10.930
+the operation of the
+sequential logic,
+
+00:01:10.930 --> 00:01:14.460
+that happens through
+the stored state bits.
+
+00:01:14.460 --> 00:01:16.740
+Typically the LOAD input
+of the state registers
+
+00:01:16.740 --> 00:01:20.310
+is triggered by the rising edge
+of a periodic signal, which
+
+00:01:20.310 --> 00:01:23.060
+updates the stored state
+with the new state calculated
+
+00:01:23.060 --> 00:01:26.720
+by the combinational logic.
+
+00:01:26.720 --> 00:01:29.730
+As designers we
+have several tasks:
+
+00:01:29.730 --> 00:01:32.350
+first we must decide
+what output sequences
+
+00:01:32.350 --> 00:01:35.330
+need to be generated in
+response to the expected input
+
+00:01:35.330 --> 00:01:37.190
+sequences.
+
+00:01:37.190 --> 00:01:41.140
+A particular input may, in
+fact, generate a long sequence
+
+00:01:41.140 --> 00:01:43.370
+of output values.
+
+00:01:43.370 --> 00:01:45.360
+Or the output may
+remain unchanged
+
+00:01:45.360 --> 00:01:48.250
+while the input sequence
+is processed, step-by-step,
+
+00:01:48.250 --> 00:01:51.070
+where the FSM is remembering
+the relevant information
+
+00:01:51.070 --> 00:01:54.400
+by updating its internal state.
+
+00:01:54.400 --> 00:01:56.790
+Then we have to develop the
+functional specification
+
+00:01:56.790 --> 00:01:59.700
+for the logic so it
+calculates the correct output
+
+00:01:59.700 --> 00:02:01.630
+and next state values.
+
+00:02:01.630 --> 00:02:05.140
+Finally, we need to come up
+with an actual circuit diagram
+
+00:02:05.140 --> 00:02:07.638
+for sequential logic system.
+
+00:02:07.638 --> 00:02:09.180
+All the tasks are
+pretty interesting,
+
+00:02:09.180 --> 00:02:11.470
+so let’s get started!
+
+00:02:11.470 --> 00:02:15.760
+As an example sequential system,
+let’s make a combination lock.
+
+00:02:15.760 --> 00:02:18.280
+The lock has a
+1-bit input signal,
+
+00:02:18.280 --> 00:02:20.110
+where the user enters
+the combination
+
+00:02:20.110 --> 00:02:22.430
+as a sequence of bits.
+
+00:02:22.430 --> 00:02:24.780
+There’s one output
+signal, UNLOCK,
+
+00:02:24.780 --> 00:02:27.960
+which is 1 if and only if the
+correct combination has been
+
+00:02:27.960 --> 00:02:29.490
+entered.
+
+00:02:29.490 --> 00:02:32.750
+In this example, we want
+to assert UNLOCK, i.e.,
+
+00:02:32.750 --> 00:02:36.510
+set UNLOCK to 1, when the
+last four input values are
+
+00:02:36.510 --> 00:02:38.610
+the sequence 0-1-1-0.
+
+00:02:38.610 --> 00:02:41.830
+Mr. Blue is asking
+a good question:
+
+00:02:41.830 --> 00:02:44.670
+how many state bits do we need?
+
+00:02:44.670 --> 00:02:48.040
+Do we have to remember
+the last four input bits?
+
+00:02:48.040 --> 00:02:50.600
+In which case, we’d
+need four state bits.
+
+00:02:50.600 --> 00:02:52.870
+Or can we remember
+less information
+
+00:02:52.870 --> 00:02:54.720
+and still do our job?
+
+00:02:54.720 --> 00:02:55.440
+Aha!
+
+00:02:55.440 --> 00:02:58.140
+We don’t need the complete
+history of the last four
+
+00:02:58.140 --> 00:03:01.090
+inputs, we only need to know
+if the most recent entries
+
+00:03:01.090 --> 00:03:03.800
+represent some part of a
+partially-entered correct
+
+00:03:03.800 --> 00:03:05.380
+combination.
+
+00:03:05.380 --> 00:03:08.290
+In other words if the input
+sequence doesn’t represent
+
+00:03:08.290 --> 00:03:11.820
+a correct combination, we don’t
+need to keep track of exactly
+
+00:03:11.820 --> 00:03:16.850
+how it’s incorrect, we only
+need to know that is incorrect.
+
+00:03:16.850 --> 00:03:19.560
+With that observation in
+mind, let’s figure out how
+
+00:03:19.560 --> 00:03:23.440
+to represent the desired
+behavior of our digital system.
+
+00:03:23.440 --> 00:03:26.750
+We can characterize the behavior
+of a sequential system using
+
+00:03:26.750 --> 00:03:29.520
+a new abstraction called
+a finite state machine,
+
+00:03:29.520 --> 00:03:31.760
+or FSM for short.
+
+00:03:31.760 --> 00:03:33.770
+The goal of the
+FSM abstraction is
+
+00:03:33.770 --> 00:03:35.890
+to describe the
+input/output behavior
+
+00:03:35.890 --> 00:03:38.030
+of the sequential
+logic, independent
+
+00:03:38.030 --> 00:03:41.020
+of its actual implementation.
+
+00:03:41.020 --> 00:03:44.420
+A finite state machine has
+a periodic CLOCK input.
+
+00:03:44.420 --> 00:03:46.850
+A rising clock edge will
+trigger the transition
+
+00:03:46.850 --> 00:03:49.360
+from the current state
+to the next state.
+
+00:03:49.360 --> 00:03:51.700
+The FSM has a some
+fixed number of states,
+
+00:03:51.700 --> 00:03:53.550
+with a particular
+state designated
+
+00:03:53.550 --> 00:03:55.890
+as the initial or
+starting state when
+
+00:03:55.890 --> 00:03:58.970
+the FSM is first turned on.
+
+00:03:58.970 --> 00:04:01.780
+One of the interesting
+challenges in designing an FSM
+
+00:04:01.780 --> 00:04:04.870
+is to determine the required
+number of states since there’s
+
+00:04:04.870 --> 00:04:07.690
+often a tradeoff between
+the number of state bits
+
+00:04:07.690 --> 00:04:10.790
+and the complexity of the
+internal combinational logic
+
+00:04:10.790 --> 00:04:13.780
+required to compute the
+next state and outputs.
+
+00:04:13.780 --> 00:04:15.710
+There are some number
+of inputs, used
+
+00:04:15.710 --> 00:04:18.000
+to convey all the
+external information
+
+00:04:18.000 --> 00:04:21.370
+necessary for the
+FSM to do its job.
+
+00:04:21.370 --> 00:04:24.430
+Again, there are interesting
+design tradeoffs.
+
+00:04:24.430 --> 00:04:28.080
+Suppose the FSM required
+100 bits of input.
+
+00:04:28.080 --> 00:04:31.320
+Should we have 100 inputs
+and deliver the information
+
+00:04:31.320 --> 00:04:32.980
+all at once?
+
+00:04:32.980 --> 00:04:36.260
+Or should we have a single input
+and deliver the information
+
+00:04:36.260 --> 00:04:39.370
+as a 100-cycle sequence?
+
+00:04:39.370 --> 00:04:42.650
+In many real world situations
+where the sequential logic is
+
+00:04:42.650 --> 00:04:45.480
+*much* faster than whatever
+physical process we’re trying
+
+00:04:45.480 --> 00:04:46.510
+to control,
+
+00:04:46.510 --> 00:04:49.510
+we’ll often see the use
+of bit-serial inputs where
+
+00:04:49.510 --> 00:04:53.050
+the information arrives as a
+sequence, one bit at a time.
+
+00:04:53.050 --> 00:04:56.240
+That will allow us to use
+much less signaling hardware,
+
+00:04:56.240 --> 00:04:58.720
+at the cost of the time
+required to transmit
+
+00:04:58.720 --> 00:05:01.690
+the information sequentially.
+
+00:05:01.690 --> 00:05:04.760
+The FSM has some number
+outputs to convey the results
+
+00:05:04.760 --> 00:05:08.250
+of the sequential
+logic’s computations.
+
+00:05:08.250 --> 00:05:11.580
+The comment before about
+serial vs. parallel inputs
+
+00:05:11.580 --> 00:05:13.930
+applies equally to choosing
+how information should
+
+00:05:13.930 --> 00:05:17.180
+be encoded on the outputs.
+
+00:05:17.180 --> 00:05:18.880
+There are a set of
+transition rules,
+
+00:05:18.880 --> 00:05:21.540
+specifying how the
+next state S-prime is
+
+00:05:21.540 --> 00:05:24.970
+determined from the current
+state S and the inputs I.
+
+00:05:24.970 --> 00:05:27.110
+The specification
+must be complete,
+
+00:05:27.110 --> 00:05:30.620
+enumerating S-prime for
+every possible combination
+
+00:05:30.620 --> 00:05:32.210
+of S and I.
+
+00:05:32.210 --> 00:05:34.460
+And, finally, there’s
+the specification for how
+
+00:05:34.460 --> 00:05:37.560
+the output values
+should be determined.
+
+00:05:37.560 --> 00:05:39.910
+The FSM design is
+often a bit simpler
+
+00:05:39.910 --> 00:05:42.480
+if the outputs are strictly a
+function of the current state
+
+00:05:42.480 --> 00:05:45.590
+S, but, in general,
+the outputs can
+
+00:05:45.590 --> 00:05:49.960
+be a function of both S
+and the current inputs.
+
+00:05:49.960 --> 00:05:52.050
+Now that we have our
+abstraction in place,
+
+00:05:52.050 --> 00:05:56.580
+let’s see how to use it to
+design our combinational lock.

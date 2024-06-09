@@ -1,0 +1,4003 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.490
+The following content is
+provided under a Creative
+
+00:00:02.490 --> 00:00:03.940
+Commons license.
+
+00:00:03.940 --> 00:00:06.330
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.330 --> 00:00:10.660
+continue to offer high quality
+educational resources for free.
+
+00:00:10.660 --> 00:00:13.320
+To make a donation or
+view additional materials
+
+00:00:13.320 --> 00:00:17.160
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.160 --> 00:00:18.252
+at ocw.mit.edu.
+
+00:00:21.390 --> 00:00:22.810
+PROFESSOR: OK, welcome back.
+
+00:00:22.810 --> 00:00:26.340
+Sorry for the
+technical blip there.
+
+00:00:26.340 --> 00:00:31.611
+OK, so I guess lecture two.
+
+00:00:31.611 --> 00:00:32.910
+I challenged you.
+
+00:00:32.910 --> 00:00:35.850
+We talked about the phase
+space of the simple pendulum,
+
+00:00:35.850 --> 00:00:39.510
+and I challenged you to come
+up with a simple algorithm.
+
+00:00:39.510 --> 00:00:41.408
+I guess I didn't
+say simple, but I
+
+00:00:41.408 --> 00:00:43.200
+challenged you to come
+up with an algorithm
+
+00:00:43.200 --> 00:00:49.620
+to try to, in some
+sort of minimal way,
+
+00:00:49.620 --> 00:00:51.820
+change the phase
+plot of this system
+
+00:00:51.820 --> 00:00:55.290
+so that the fixed points
+that used to be unstable
+
+00:00:55.290 --> 00:00:57.902
+become stable and vise versa.
+
+00:00:57.902 --> 00:00:59.235
+So today we're going to do that.
+
+00:00:59.235 --> 00:01:03.042
+I don't know if anybody
+do that for fun?
+
+00:01:03.042 --> 00:01:04.220
+Yeah, OK.
+
+00:01:04.220 --> 00:01:06.610
+[LAUGHTER]
+
+00:01:06.610 --> 00:01:08.110
+OK, so today we're
+going to do that.
+
+00:01:08.110 --> 00:01:13.890
+So yeah, the question is, can
+we use optimal control now,
+
+00:01:13.890 --> 00:01:19.320
+numerical optimal control, to
+reshape these dynamics, OK.
+
+00:01:19.320 --> 00:01:24.000
+And I want to
+start by doing sort
+
+00:01:24.000 --> 00:01:27.450
+of an evil thing
+but something that's
+
+00:01:27.450 --> 00:01:30.460
+going to make thinking
+about it a lot easier.
+
+00:01:30.460 --> 00:01:33.540
+We're going to discretize
+everything, OK.
+
+00:01:33.540 --> 00:01:36.060
+So let's start by--
+
+00:01:42.000 --> 00:01:53.670
+we're going to discretize
+state, actions, and time, OK.
+
+00:01:53.670 --> 00:02:00.120
+So I'm actually going to
+take my vector of x, which
+
+00:02:00.120 --> 00:02:06.420
+lived on the real numbers,
+and start thinking
+
+00:02:06.420 --> 00:02:12.460
+about integer number of states.
+
+00:02:12.460 --> 00:02:13.680
+I'll say what I mean by that.
+
+00:02:16.580 --> 00:02:19.050
+OK.
+
+00:02:19.050 --> 00:02:27.040
+And I'm going to take my
+actions, my continuous action
+
+00:02:27.040 --> 00:02:29.860
+space, which I've
+been thinking of as u,
+
+00:02:29.860 --> 00:02:32.380
+and I'm going to turn
+that into a discrete state
+
+00:02:32.380 --> 00:02:35.290
+space, a discrete action space.
+
+00:02:35.290 --> 00:02:38.170
+And I'm going to
+take time and turn it
+
+00:02:38.170 --> 00:02:44.980
+into some integer,
+discrete time, OK.
+
+00:02:48.690 --> 00:02:51.480
+So and I'm going to try to
+be-- throughout the lectures,
+
+00:02:51.480 --> 00:02:53.730
+throughout the notes, I tried
+to be very, very careful
+
+00:02:53.730 --> 00:02:57.630
+to use X and U and time
+for continuous things
+
+00:02:57.630 --> 00:03:02.710
+and S for states, A for
+actions, N for discrete things.
+
+00:03:02.710 --> 00:03:04.800
+So we might find
+ourselves in situations
+
+00:03:04.800 --> 00:03:07.140
+where we have continuous
+state and discrete actions
+
+00:03:07.140 --> 00:03:13.112
+or some other combination,
+but that should be a code.
+
+00:03:13.112 --> 00:03:15.570
+OK, so if we want to-- if we're
+willing to discretize state
+
+00:03:15.570 --> 00:03:17.880
+and time, then maybe one
+way to think about that
+
+00:03:17.880 --> 00:03:22.960
+on this picture is by thinking
+of every one of these--
+
+00:03:22.960 --> 00:03:24.600
+this was my quick
+cartoon of the phase
+
+00:03:24.600 --> 00:03:26.700
+plot of the simple pendulum.
+
+00:03:26.700 --> 00:03:29.970
+Let's think about
+identifying each one
+
+00:03:29.970 --> 00:03:34.110
+of these possible states
+in the phase portrait
+
+00:03:34.110 --> 00:03:37.020
+as a particular state, OK.
+
+00:03:37.020 --> 00:03:40.740
+These little nodes, possible
+states we can live in.
+
+00:03:40.740 --> 00:03:48.840
+And through actions, we can
+transition to different states,
+
+00:03:48.840 --> 00:03:51.030
+if you see what I'm
+doing without drawing
+
+00:03:51.030 --> 00:03:53.950
+100,000 circles here.
+
+00:03:53.950 --> 00:03:59.560
+So let's tile the state
+space with discrete states.
+
+00:03:59.560 --> 00:04:01.470
+You could also think
+of it as drawing a grid
+
+00:04:01.470 --> 00:04:06.030
+and calling each box
+in the grid a state.
+
+00:04:06.030 --> 00:04:08.430
+And what that allows
+us to do-- we're also
+
+00:04:08.430 --> 00:04:12.640
+discretizing actions, so
+we have a finite number
+
+00:04:12.640 --> 00:04:15.780
+of possible options
+coming out of each state.
+
+00:04:15.780 --> 00:04:19.050
+It allows us to turn the
+continuous time optimal control
+
+00:04:19.050 --> 00:04:26.070
+problem into a simple
+graph search problem, OK.
+
+00:04:26.070 --> 00:04:27.930
+Graph search, we
+know how to do well.
+
+00:04:27.930 --> 00:04:30.210
+We're really good at
+that in computer science.
+
+00:04:30.210 --> 00:04:34.200
+OK, so let's see how
+far we can get first
+
+00:04:34.200 --> 00:04:39.420
+by just thinking about this very
+non-linear, very dynamic thing
+
+00:04:39.420 --> 00:04:40.950
+on a graph search, OK.
+
+00:04:45.180 --> 00:04:48.000
+So we're going to do
+numerical optimal control.
+
+00:04:48.000 --> 00:04:53.120
+This is-- in
+particular, when people
+
+00:04:53.120 --> 00:04:56.617
+talk about the dynamic
+programming algorithm,
+
+00:04:56.617 --> 00:04:59.075
+they're often talking about
+discretizing state and actions.
+
+00:05:02.270 --> 00:05:06.590
+And we're going to use the
+standard optimal control
+
+00:05:06.590 --> 00:05:08.310
+formulation.
+
+00:05:08.310 --> 00:05:16.430
+I'm going to start
+with a finite horizon
+
+00:05:16.430 --> 00:05:23.300
+and say that my cost of
+being in state x, time t
+
+00:05:23.300 --> 00:05:26.045
+is h of x at the final time.
+
+00:05:31.253 --> 00:05:33.170
+All right, this is the
+continuous time optimal
+
+00:05:33.170 --> 00:05:33.670
+control.
+
+00:05:42.690 --> 00:05:48.600
+And I'm going to start thinking
+of that now as being in state S
+
+00:05:48.600 --> 00:05:53.920
+at integer time N
+and having me be
+
+00:05:53.920 --> 00:06:02.550
+at some final cost
+on S plus a sum
+
+00:06:02.550 --> 00:06:09.300
+from N equals 0
+to N of g SA, OK.
+
+00:06:09.300 --> 00:06:12.690
+And my dynamics now are
+going to be of the form S--
+
+00:06:16.560 --> 00:06:19.050
+maybe I should even write
+more explicitly, S N plus 1
+
+00:06:19.050 --> 00:06:22.180
+is a function of SN, AN, OK.
+
+00:06:34.230 --> 00:06:41.850
+OK, so again,
+dynamic programming
+
+00:06:41.850 --> 00:06:46.320
+exploits the fact that you can
+write this in a recursive form.
+
+00:06:46.320 --> 00:06:52.830
+So if I want to find
+the optimal cost
+
+00:06:52.830 --> 00:07:03.600
+to go, which I'll call J
+star, at the final time,
+
+00:07:03.600 --> 00:07:08.610
+it's just h of S, right.
+
+00:07:08.610 --> 00:07:15.630
+And going backwards
+in time, this
+
+00:07:15.630 --> 00:07:26.130
+is just going to be the min over
+a of g S, a plus h of S prime,
+
+00:07:26.130 --> 00:07:27.120
+where S prime is.
+
+00:07:32.600 --> 00:07:33.100
+Right?
+
+00:07:33.100 --> 00:07:35.652
+I'll get one-- if N is--
+
+00:07:35.652 --> 00:07:37.360
+N minus 1, I get one
+of these, and then I
+
+00:07:37.360 --> 00:07:41.870
+get the final cost, OK.
+
+00:07:41.870 --> 00:07:49.060
+And going backwards, we
+have this recursive form,
+
+00:07:49.060 --> 00:07:58.540
+which is min over a g S, a plus
+the cost to go from S prime
+
+00:07:58.540 --> 00:08:03.340
+and n plus 1 using
+that same S prime.
+
+00:08:10.250 --> 00:08:14.440
+OK, I want to make sure
+you see why that is, why
+
+00:08:14.440 --> 00:08:16.030
+this-- this is magical, right?
+
+00:08:16.030 --> 00:08:20.110
+The fact that I can
+summarize my optimal
+
+00:08:20.110 --> 00:08:24.240
+cost to go by doing a min
+over a single action, that's
+
+00:08:24.240 --> 00:08:24.865
+really magical.
+
+00:08:27.910 --> 00:08:35.380
+Just to make that extremely
+clear, think about J star
+
+00:08:35.380 --> 00:08:40.360
+at N minus 2, let's say.
+
+00:08:40.360 --> 00:08:42.610
+So I have to minimize
+over two actions.
+
+00:08:42.610 --> 00:08:45.250
+I have to minimize over, let's
+say I'll call them a1 and a2.
+
+00:08:48.460 --> 00:08:49.810
+I have two steps left to go.
+
+00:08:49.810 --> 00:08:56.320
+So I have to minimize S
+at a1 plus g of S prime,
+
+00:08:56.320 --> 00:09:01.667
+let's call it, a2 plus
+h of S double prime.
+
+00:09:01.667 --> 00:09:03.250
+That's my minimization
+that I'm trying
+
+00:09:03.250 --> 00:09:08.620
+to solve in order to find
+the optimal cost to go,
+
+00:09:08.620 --> 00:09:13.750
+where S prime is f of S, a.
+
+00:09:13.750 --> 00:09:17.490
+S double prime is f of S prime.
+
+00:09:17.490 --> 00:09:19.540
+This is a1, and this is a2.
+
+00:09:25.615 --> 00:09:31.660
+I'm just expanding this
+sum for the last two g's.
+
+00:09:35.770 --> 00:09:39.970
+And the cool thing is that,
+because of this additive form
+
+00:09:39.970 --> 00:09:45.400
+of g, this term doesn't depend
+at all on my decision a2.
+
+00:09:49.440 --> 00:09:56.490
+I'm given a current state S, and
+I have to decide my action a1.
+
+00:09:56.490 --> 00:10:02.580
+Nothing about this term
+depends at all on a2, OK.
+
+00:10:02.580 --> 00:10:06.930
+In contrast, this one
+does depend on a1,
+
+00:10:06.930 --> 00:10:08.640
+because S prime depends on a1.
+
+00:10:11.730 --> 00:10:15.540
+This one depends on a1 and a2.
+
+00:10:15.540 --> 00:10:18.550
+This one certainly
+depends on a2.
+
+00:10:18.550 --> 00:10:19.550
+You see what I'm saying?
+
+00:10:22.630 --> 00:10:34.770
+So I can rewrite this
+as min over a1 f of S a1
+
+00:10:34.770 --> 00:10:46.530
+plus min over a2 g of S prime
+a2 plus h of S double prime.
+
+00:10:46.530 --> 00:10:48.240
+I could just move
+that min inside
+
+00:10:48.240 --> 00:10:50.310
+to the only terms that matter.
+
+00:10:54.670 --> 00:10:57.880
+This is intended to be
+a moment of clarity,
+
+00:10:57.880 --> 00:11:01.000
+and I don't see a
+clarity on your faces.
+
+00:11:01.000 --> 00:11:05.410
+Does that make sense, that
+this doesn't depend on a2?
+
+00:11:05.410 --> 00:11:09.646
+I know I'm going to- a1 is
+my action at time N minus 2.
+
+00:11:09.646 --> 00:11:13.180
+a2 is my action at N minus 1.
+
+00:11:13.180 --> 00:11:17.012
+The action I take next time
+has absolutely no effect
+
+00:11:17.012 --> 00:11:18.720
+on my current state
+or my current action.
+
+00:11:23.400 --> 00:11:30.090
+So the great thing is
+this here is just--
+
+00:11:30.090 --> 00:11:33.570
+this whole term
+right here is just
+
+00:11:33.570 --> 00:11:40.980
+J star of S prime at, I'm
+calling it, N minus 1 here.
+
+00:11:49.310 --> 00:11:51.050
+So it's really the
+fact that we're
+
+00:11:51.050 --> 00:11:56.790
+taking this min over
+this additive form that
+
+00:11:56.790 --> 00:12:04.320
+allows us to write the recursive
+statement like this that says,
+
+00:12:04.320 --> 00:12:07.335
+the best thing I can
+do with additive cost
+
+00:12:07.335 --> 00:12:12.550
+and all these things is
+to, in a single step,
+
+00:12:12.550 --> 00:12:17.850
+take the action which minimizes
+my one step cost combined
+
+00:12:17.850 --> 00:12:22.110
+with the cost I'm going to
+get from being in the state I
+
+00:12:22.110 --> 00:12:26.160
+transition to for
+the rest of time.
+
+00:12:26.160 --> 00:12:28.980
+It's a magical thing.
+
+00:12:28.980 --> 00:12:32.790
+At whatever time I'm at, I only
+have to think one action ahead
+
+00:12:32.790 --> 00:12:38.090
+if I've already got my
+J star computed, OK.
+
+00:12:38.090 --> 00:12:40.860
+Simultaneously, it's
+saying that I can
+
+00:12:40.860 --> 00:12:42.750
+compute the optimal cost to go.
+
+00:12:42.750 --> 00:12:45.690
+I could compute the optimal--
+
+00:12:45.690 --> 00:12:47.940
+I know exactly how
+much cost I'm going
+
+00:12:47.940 --> 00:12:51.600
+to incur from any state, given
+I follow the optimal policy,
+
+00:12:51.600 --> 00:12:53.460
+if I just work
+backwards in time.
+
+00:12:53.460 --> 00:12:56.095
+And when I'm in
+time N minus 1, I
+
+00:12:56.095 --> 00:12:57.720
+don't have to think
+about the actions I
+
+00:12:57.720 --> 00:12:59.790
+was going to take beforehand.
+
+00:12:59.790 --> 00:13:01.840
+As long as I know
+what state I'm in,
+
+00:13:01.840 --> 00:13:03.840
+because that state
+encompasses every action I've
+
+00:13:03.840 --> 00:13:08.640
+taken in the past, that state
+contains all the information,
+
+00:13:08.640 --> 00:13:11.490
+all I have to think
+about is the last action
+
+00:13:11.490 --> 00:13:14.580
+I'm going to take to decide
+my optimal policy one
+
+00:13:14.580 --> 00:13:17.320
+step from the end of time, OK.
+
+00:13:23.070 --> 00:13:27.720
+So the fact that you
+can solve these things
+
+00:13:27.720 --> 00:13:32.880
+backwards in time, that's the
+principle of optimality, OK.
+
+00:13:35.610 --> 00:13:37.700
+Ask questions if you
+don't like what I said.
+
+00:13:42.670 --> 00:13:45.130
+I think that the graphics
+that are about to come
+
+00:13:45.130 --> 00:13:49.520
+are going to make
+things clear, too.
+
+00:13:49.520 --> 00:13:51.673
+OK, so what does that mean?
+
+00:13:51.673 --> 00:13:53.090
+What are the
+implications of that?
+
+00:14:05.910 --> 00:14:15.100
+All right, for the
+additive costs,
+
+00:14:15.100 --> 00:14:34.200
+I can compute J star recursively
+from the end of time, which,
+
+00:14:34.200 --> 00:14:37.620
+in this case, is N back to 0.
+
+00:14:46.940 --> 00:14:50.030
+And the optimal action,
+the optimal policy,
+
+00:14:50.030 --> 00:14:54.350
+which I then want to
+call pi star, which
+
+00:14:54.350 --> 00:15:04.982
+could in general depend on the
+time, is just argmin over a.
+
+00:15:04.982 --> 00:15:08.823
+It's the action which
+minimizes that same expression.
+
+00:15:24.120 --> 00:15:29.000
+So I can compute J star
+recursively backwards in time,
+
+00:15:29.000 --> 00:15:33.180
+and if I know J star,
+then I essentially know
+
+00:15:33.180 --> 00:15:34.390
+my optimal policy.
+
+00:15:34.390 --> 00:15:37.680
+I know the best action, OK.
+
+00:15:37.680 --> 00:15:43.800
+So but for this reason, the
+fact that the cost to go,
+
+00:15:43.800 --> 00:15:46.620
+the cost I expect to
+incur given I'm in state S
+
+00:15:46.620 --> 00:15:49.103
+and I'm running from
+time N, the cost to go
+
+00:15:49.103 --> 00:15:51.270
+becomes a very central
+construct in optimal control.
+
+00:15:54.490 --> 00:15:56.850
+All right, so part
+of the goal for today
+
+00:15:56.850 --> 00:16:02.340
+is to give you some more
+intuition about J star,
+
+00:16:02.340 --> 00:16:05.560
+OK, because it's actually
+a very intuitive thing,
+
+00:16:05.560 --> 00:16:10.570
+but you can be lost, I
+think, in the equations.
+
+00:16:10.570 --> 00:16:12.838
+So let's give you more
+intuition about that.
+
+00:16:12.838 --> 00:16:14.880
+I'm going to do that by
+getting a little bit more
+
+00:16:14.880 --> 00:16:20.880
+abstract, well, simultaneously
+abstract and concrete.
+
+00:16:24.296 --> 00:16:28.200
+AUDIENCE: [INAUDIBLE]
+
+00:16:28.200 --> 00:16:31.316
+PROFESSOR: Because
+it's finite horizon.
+
+00:16:31.316 --> 00:16:32.798
+AUDIENCE: You know
+that the reward
+
+00:16:32.798 --> 00:16:35.722
+function is dependent on time.
+
+00:16:35.722 --> 00:16:37.180
+PROFESSOR: I haven't
+included that.
+
+00:16:37.180 --> 00:16:40.160
+You can make the reward
+function depend on time.
+
+00:16:40.160 --> 00:16:43.720
+But even if the reward function,
+or cost function in my world,
+
+00:16:43.720 --> 00:16:44.320
+is--
+
+00:16:44.320 --> 00:16:48.310
+there's a difference between
+optimal control people
+
+00:16:48.310 --> 00:16:50.100
+and reinforcement
+learning people.
+
+00:16:50.100 --> 00:16:51.850
+The optimal control
+people are pessimists.
+
+00:16:51.850 --> 00:16:53.710
+Everything's a cost.
+
+00:16:53.710 --> 00:16:55.600
+And the reward reinforcement
+learning people
+
+00:16:55.600 --> 00:16:56.740
+give rewards out.
+
+00:16:56.740 --> 00:16:59.350
+So I guess I'm a pessimist.
+
+00:16:59.350 --> 00:17:01.930
+So yeah, so my cost is actually
+not a function of time.
+
+00:17:01.930 --> 00:17:04.119
+I could have made it that.
+
+00:17:04.119 --> 00:17:06.760
+But because there's a
+finite horizon time,
+
+00:17:06.760 --> 00:17:09.363
+that means my policy and my
+cost to go function still
+
+00:17:09.363 --> 00:17:10.030
+depends on time.
+
+00:17:15.010 --> 00:17:17.172
+Because if time
+ends in one step,
+
+00:17:17.172 --> 00:17:19.380
+I'm going to do something
+different than if time ends
+
+00:17:19.380 --> 00:17:22.410
+arbitrarily far in the future.
+
+00:17:22.410 --> 00:17:23.700
+OK.
+
+00:17:23.700 --> 00:17:25.589
+So we're going to--
+
+00:17:25.589 --> 00:17:37.020
+my goal here is to get
+intuition about cost to go
+
+00:17:37.020 --> 00:17:41.915
+and dynamic programming, which
+I'm often going to call DP, OK.
+
+00:17:41.915 --> 00:17:44.040
+And I'm going to do it with
+the grid world example.
+
+00:17:44.040 --> 00:17:49.340
+This is right out of the
+reinforcement learning books.
+
+00:17:54.180 --> 00:17:59.550
+OK, so in that
+pendulum phase plot,
+
+00:17:59.550 --> 00:18:02.970
+I discretized the
+state space, and I
+
+00:18:02.970 --> 00:18:06.330
+started talking about
+transitions between states, OK.
+
+00:18:06.330 --> 00:18:10.570
+I can make that even more
+transparent by saying,
+
+00:18:10.570 --> 00:18:15.630
+OK, now you're a
+trashcan robot in a room.
+
+00:18:15.630 --> 00:18:19.150
+You're going to be in
+one of these tiles.
+
+00:18:19.150 --> 00:18:21.990
+You're on one of these
+blocks, so there's
+
+00:18:21.990 --> 00:18:26.760
+a finite, discrete
+state space, OK.
+
+00:18:26.760 --> 00:18:31.110
+I won't draw a trashcan
+robot, but let's say I'm here.
+
+00:18:31.110 --> 00:18:35.970
+And when you're here, you
+have five discrete actions
+
+00:18:35.970 --> 00:18:36.630
+you can take.
+
+00:18:36.630 --> 00:18:42.000
+You can move up, you can
+move right, down, left,
+
+00:18:42.000 --> 00:18:43.960
+or you can sit still.
+
+00:18:43.960 --> 00:18:44.460
+OK.
+
+00:19:01.410 --> 00:19:08.520
+And discrete states
+and discrete time.
+
+00:19:08.520 --> 00:19:11.250
+Every time you take an
+action, in the next time step,
+
+00:19:11.250 --> 00:19:14.910
+you'll be in the next grid box.
+
+00:19:19.490 --> 00:19:21.770
+OK.
+
+00:19:21.770 --> 00:19:27.950
+Let's say I've got a goal
+state somewhere in the world.
+
+00:19:27.950 --> 00:19:31.722
+Well, we can formulate plenty
+of good optimal control problems
+
+00:19:31.722 --> 00:19:32.930
+to get us to that goal state.
+
+00:19:36.200 --> 00:19:43.210
+So plenty of good
+cost to go functions
+
+00:19:43.210 --> 00:19:45.115
+in the additive form--
+
+00:19:58.280 --> 00:20:00.843
+let's say I want to do minimum--
+
+00:20:00.843 --> 00:20:02.510
+I want to get there
+in the minimum time.
+
+00:20:10.560 --> 00:20:16.020
+Well, then I can just
+set g of S, a to be--
+
+00:20:18.900 --> 00:20:21.105
+to actually have it
+in units of time,
+
+00:20:21.105 --> 00:20:30.540
+I should put a 1 if S
+is not at the goal and 0
+
+00:20:30.540 --> 00:20:34.260
+if S is in the goal, OK.
+
+00:20:40.290 --> 00:20:42.450
+And I don't actually
+care about actions.
+
+00:20:42.450 --> 00:20:44.610
+I have five discrete
+actions I can pick
+
+00:20:44.610 --> 00:20:49.330
+from whenever I'm in a state.
+
+00:20:49.330 --> 00:20:52.890
+If I'm not at the goal, I'm
+going to incur a cost of 1.
+
+00:20:52.890 --> 00:20:56.550
+So it's in my best interest
+as a trashcan robot
+
+00:20:56.550 --> 00:20:58.627
+to get to the goal.
+
+00:20:58.627 --> 00:21:00.210
+If I'm minimizing
+that cost, I'm going
+
+00:21:00.210 --> 00:21:01.710
+to get the goal as
+fast as possible.
+
+00:21:01.710 --> 00:21:03.660
+And actually, the
+units, the cost to go
+
+00:21:03.660 --> 00:21:07.635
+will tell me the number
+of steps to get there.
+
+00:21:07.635 --> 00:21:08.682
+AUDIENCE: [INAUDIBLE]
+
+00:21:08.682 --> 00:21:09.390
+PROFESSOR: Right.
+
+00:21:09.390 --> 00:21:13.140
+So I'm going to do
+that graphically.
+
+00:21:13.140 --> 00:21:15.510
+But let's say there's
+a finite horizon now,
+
+00:21:15.510 --> 00:21:17.885
+but this is how I'm going to
+get to infinite horizon, so.
+
+00:21:25.890 --> 00:21:28.510
+And let's say that
+h of S is just 0.
+
+00:21:32.027 --> 00:21:34.110
+I don't really care where
+I am at the end of time.
+
+00:21:38.360 --> 00:21:40.690
+Or I could have h of S
+be this same function.
+
+00:21:40.690 --> 00:21:41.690
+That would be fine, too.
+
+00:21:47.030 --> 00:21:47.530
+OK.
+
+00:21:51.220 --> 00:21:52.870
+How's is it going to look?
+
+00:21:52.870 --> 00:22:00.190
+What is J-- well, let's
+be specific about h.
+
+00:22:00.190 --> 00:22:04.810
+Let's make h actually
+be the same as g here.
+
+00:22:04.810 --> 00:22:09.220
+So I'll say it's g
+S with the 0 action.
+
+00:22:09.220 --> 00:22:12.770
+So since this doesn't depend
+on actions, it doesn't matter.
+
+00:22:12.770 --> 00:22:17.140
+Let's say h is the same
+function as g there.
+
+00:22:17.140 --> 00:22:22.300
+So what does my cost to
+go look like at time N?
+
+00:22:36.926 --> 00:22:40.380
+My optimal cost to go
+given I'm in some state,
+
+00:22:40.380 --> 00:22:50.040
+and it's time N. This
+is a function over S,
+
+00:22:50.040 --> 00:22:53.582
+and I'm time N. And
+what is that function?
+
+00:22:53.582 --> 00:22:54.470
+AUDIENCE: g.
+
+00:22:54.470 --> 00:22:56.100
+PROFESSOR: Yeah.
+
+00:22:56.100 --> 00:23:02.580
+Well, if I'm not in
+the goal, it's that.
+
+00:23:02.580 --> 00:23:05.430
+It's the same as g,
+or h in this case.
+
+00:23:13.080 --> 00:23:15.450
+OK.
+
+00:23:15.450 --> 00:23:19.800
+What does g star of S
+N minus 1 look like?
+
+00:23:37.500 --> 00:23:41.160
+Now I have time to
+take one action, OK.
+
+00:23:44.380 --> 00:23:44.880
+So--
+
+00:23:44.880 --> 00:23:46.864
+AUDIENCE: One step away
+from the goal is 1.
+
+00:23:46.864 --> 00:23:49.031
+If you're on the goal, it's
+0, but anywhere else, it
+
+00:23:49.031 --> 00:23:49.810
+would just be 1.
+
+00:23:49.810 --> 00:23:51.040
+PROFESSOR: Awesome.
+
+00:23:51.040 --> 00:23:52.660
+Right?
+
+00:23:52.660 --> 00:23:59.350
+If I'm on the goal, I can do
+nothing, incur zero cost to go.
+
+00:23:59.350 --> 00:24:04.600
+So the best thing for me
+to do if I'm on the goal
+
+00:24:04.600 --> 00:24:07.180
+is to stay there, OK.
+
+00:24:07.180 --> 00:24:10.690
+If I'm a long way from
+the goal, then I'm
+
+00:24:10.690 --> 00:24:12.770
+not going to get to
+the goal in two steps,
+
+00:24:12.770 --> 00:24:16.570
+so I'm going to incur
+two units of cost.
+
+00:24:20.290 --> 00:24:23.290
+I'll say loosely far from goal.
+
+00:24:28.600 --> 00:24:30.547
+And then there's this
+in-between place,
+
+00:24:30.547 --> 00:24:32.380
+which is if I'm one
+step away from the goal,
+
+00:24:32.380 --> 00:24:36.468
+I can take the right action
+and get there and incur
+
+00:24:36.468 --> 00:24:37.385
+only one unit of cost.
+
+00:24:50.053 --> 00:24:51.470
+All right, what's
+it going to be--
+
+00:24:51.470 --> 00:24:55.790
+what's J S N minus
+2 going to be?
+
+00:24:55.790 --> 00:24:58.827
+It's going to be 3,
+2, or 1, depending
+
+00:24:58.827 --> 00:25:00.410
+on how closely-- if
+I'm near the goal,
+
+00:25:00.410 --> 00:25:02.077
+I've got a chance of
+getting to the goal
+
+00:25:02.077 --> 00:25:07.100
+and stopping this
+insane adding cost.
+
+00:25:07.100 --> 00:25:08.750
+Stop the madness.
+
+00:25:08.750 --> 00:25:09.872
+Get to the goal.
+
+00:25:09.872 --> 00:25:12.080
+Otherwise, I'm going to just
+incur the cost no matter
+
+00:25:12.080 --> 00:25:14.690
+what I do, OK.
+
+00:25:14.690 --> 00:25:16.648
+So what's the optimal policy?
+
+00:25:16.648 --> 00:25:19.190
+If I'm on the goal, what's the
+best-- the best action to take
+
+00:25:19.190 --> 00:25:20.970
+is to sit still.
+
+00:25:20.970 --> 00:25:23.840
+If I'm one step away from the
+goal, the best thing to do
+
+00:25:23.840 --> 00:25:26.745
+is to move to the goal, whether
+it's up, down, left, or right.
+
+00:25:26.745 --> 00:25:27.620
+What if I'm out here?
+
+00:25:27.620 --> 00:25:29.078
+What's the best
+thing for me to do?
+
+00:25:31.780 --> 00:25:33.010
+Doesn't matter at all.
+
+00:25:33.010 --> 00:25:35.550
+I can do anything I want.
+
+00:25:35.550 --> 00:25:37.340
+I'm still going
+to incur the cost,
+
+00:25:37.340 --> 00:25:42.310
+so you might as well just choose
+your policy at random, OK.
+
+00:25:42.310 --> 00:25:45.080
+So optimal policies
+aren't necessarily unique.
+
+00:25:45.080 --> 00:25:49.420
+Sometimes multiple actions
+are equally optimal.
+
+00:25:49.420 --> 00:25:51.130
+OK, here's your world.
+
+00:25:51.130 --> 00:25:58.060
+I have put the goal always
+at 2,3, just randomly, OK.
+
+00:25:58.060 --> 00:25:59.350
+You are a blue star.
+
+00:25:59.350 --> 00:26:01.720
+The goal is a red asterisk.
+
+00:26:01.720 --> 00:26:05.990
+It's a-- take you back to the
+'80s or something, video games.
+
+00:26:05.990 --> 00:26:08.530
+OK.
+
+00:26:08.530 --> 00:26:10.970
+So let's just very simply--
+
+00:26:10.970 --> 00:26:14.410
+I'm going to run this value
+iteration algorithm on it, OK,
+
+00:26:14.410 --> 00:26:18.820
+and I'm going to plot, at every
+step of the algorithm, the cost
+
+00:26:18.820 --> 00:26:21.850
+to go, OK, and the
+policy, actually.
+
+00:26:21.850 --> 00:26:22.990
+So it's not going to be--
+
+00:26:22.990 --> 00:26:24.970
+I have my more general
+value iteration
+
+00:26:24.970 --> 00:26:28.960
+code that's not going to be
+quite as beautiful, but--
+
+00:26:33.415 --> 00:26:37.375
+[TYPING]
+
+00:26:46.105 --> 00:26:46.605
+OK.
+
+00:26:49.413 --> 00:26:50.580
+Well, that went pretty fast.
+
+00:26:50.580 --> 00:26:51.630
+There was supposed
+to be pause there.
+
+00:26:51.630 --> 00:26:52.330
+Let me get that--
+
+00:26:52.330 --> 00:26:53.705
+add a pause in
+there quick, but--
+
+00:27:07.480 --> 00:27:07.980
+OK.
+
+00:27:11.700 --> 00:27:14.700
+Here is J at time--
+
+00:27:14.700 --> 00:27:17.790
+at J at capital N.
+My cost function
+
+00:27:17.790 --> 00:27:22.380
+is 0 if I'm at the goal,
+1 everywhere else, OK.
+
+00:27:22.380 --> 00:27:25.650
+My policy, it doesn't
+matter what I choose.
+
+00:27:25.650 --> 00:27:27.180
+I've actually chosen to do--
+
+00:27:27.180 --> 00:27:28.020
+I didn't put this--
+
+00:27:28.020 --> 00:27:33.420
+I didn't give you a key, but 0
+is the do nothing action, OK.
+
+00:27:33.420 --> 00:27:35.830
+So this just has do
+nothing everywhere.
+
+00:27:35.830 --> 00:27:37.890
+This is the lazy
+policy, I guess.
+
+00:27:37.890 --> 00:27:39.840
+And the cost it's
+going to get is
+
+00:27:39.840 --> 00:27:42.360
+it's going to get no cost if
+it's at the goal, one cost
+
+00:27:42.360 --> 00:27:43.950
+if it's everywhere else.
+
+00:27:43.950 --> 00:27:47.010
+OK, if I'm now
+computing J S N minus 1,
+
+00:27:47.010 --> 00:27:48.720
+you guys told me what that is.
+
+00:27:48.720 --> 00:27:51.570
+That says it's 0
+here, it's 1 here,
+
+00:27:51.570 --> 00:27:53.910
+it's 2 everywhere else, right.
+
+00:27:53.910 --> 00:27:56.700
+And the co-- now you
+can see my key here.
+
+00:27:56.700 --> 00:28:00.090
+Orange must mean move down,
+red must mean move to the left,
+
+00:28:00.090 --> 00:28:04.410
+green must mean move to
+the right, and so on, OK.
+
+00:28:04.410 --> 00:28:07.380
+The value-- this
+backwards propagation,
+
+00:28:07.380 --> 00:28:09.570
+this dynamic
+programming propagation
+
+00:28:09.570 --> 00:28:12.660
+is a very beautiful and
+intuitive thing, OK.
+
+00:28:12.660 --> 00:28:16.770
+Every time I take a step, a few
+more states become reachable.
+
+00:28:19.440 --> 00:28:22.830
+In that amount of time,
+I can get to the goal.
+
+00:28:22.830 --> 00:28:27.313
+The resulting cost to
+go function is simple.
+
+00:28:27.313 --> 00:28:29.730
+It's just the distance, the
+number of cells from the goal,
+
+00:28:29.730 --> 00:28:30.360
+yeah.
+
+00:28:30.360 --> 00:28:32.880
+And the policy, again,
+it's not unique.
+
+00:28:32.880 --> 00:28:34.800
+But this one, just
+because of the ordering
+
+00:28:34.800 --> 00:28:37.170
+I chose, and I just do
+a min over the actions,
+
+00:28:37.170 --> 00:28:40.890
+says it's always going to
+move down in that orange area,
+
+00:28:40.890 --> 00:28:43.290
+it's always going to
+move up in the blue area,
+
+00:28:43.290 --> 00:28:45.140
+and it's just going to--
+
+00:28:45.140 --> 00:28:49.740
+so that's one of the
+optimal policies, all right.
+
+00:28:49.740 --> 00:28:52.330
+Now Alborz asked
+a good question,
+
+00:28:52.330 --> 00:28:54.570
+what's my horizon time?
+
+00:28:54.570 --> 00:28:59.340
+So I'm actually just working
+backwards from some arbitrary
+
+00:28:59.340 --> 00:29:02.220
+capital N and just
+going backwards in time
+
+00:29:02.220 --> 00:29:04.200
+further and further.
+
+00:29:04.200 --> 00:29:09.780
+But it turns out for this
+problem, and for many problems,
+
+00:29:09.780 --> 00:29:13.660
+everything converges, OK.
+
+00:29:13.660 --> 00:29:16.990
+After some amount of time,
+the optimal cost to go
+
+00:29:16.990 --> 00:29:25.170
+stops changing, and I know
+that's my optimal policy.
+
+00:29:25.170 --> 00:29:26.122
+Walk down.
+
+00:29:26.122 --> 00:29:27.080
+And this is too simple.
+
+00:29:27.080 --> 00:29:28.610
+This is painfully simple.
+
+00:29:28.610 --> 00:29:31.240
+But I think that
+intuition is going
+
+00:29:31.240 --> 00:29:34.480
+to take us a long way with
+the value methods, OK.
+
+00:29:38.720 --> 00:29:40.143
+AUDIENCE: So, Professor?
+
+00:29:40.143 --> 00:29:40.810
+PROFESSOR: Yeah.
+
+00:29:40.810 --> 00:29:44.420
+AUDIENCE: In this example, the
+optimal policy is not unique.
+
+00:29:44.420 --> 00:29:46.260
+PROFESSOR: The optimal
+policy is not unique.
+
+00:29:46.260 --> 00:29:48.843
+The guy could have just as well
+gone left first and then down.
+
+00:29:51.650 --> 00:29:54.062
+So how does that manifest
+itself in those equations?
+
+00:29:59.610 --> 00:30:02.220
+There's multiple min over a's.
+
+00:30:02.220 --> 00:30:06.960
+There's multiple a's that give
+me the same J star S and N
+
+00:30:06.960 --> 00:30:08.130
+minus-- or plus 1, whatever.
+
+00:30:12.210 --> 00:30:14.850
+Multiple actions give me
+the same long-term cost,
+
+00:30:14.850 --> 00:30:18.780
+so I could equally
+pick any of them, yeah?
+
+00:30:18.780 --> 00:30:22.470
+OK, to make a more
+careful analogy
+
+00:30:22.470 --> 00:30:26.630
+to the more
+continuous world, that
+
+00:30:26.630 --> 00:30:28.380
+was a perfectly good
+minimum time problem.
+
+00:30:28.380 --> 00:30:33.690
+I could have equally well chosen
+a different cost function.
+
+00:30:33.690 --> 00:30:37.740
+Oh wait, let's put the
+obstacles back in, all right.
+
+00:30:37.740 --> 00:30:39.338
+So the cool thing
+is obstacles aren't
+
+00:30:39.338 --> 00:30:41.130
+going to make it any
+harder for us to solve
+
+00:30:41.130 --> 00:30:43.800
+this problem in our head.
+
+00:30:43.800 --> 00:30:45.930
+It's a nice observation
+that they don't actually
+
+00:30:45.930 --> 00:30:50.488
+make it any harder for the
+algorithm to solve it either.
+
+00:30:50.488 --> 00:30:51.780
+And that's a general principle.
+
+00:30:51.780 --> 00:30:53.822
+That's something I definitely
+want you to get out
+
+00:30:53.822 --> 00:30:56.370
+of this course,
+is that when we're
+
+00:30:56.370 --> 00:30:59.790
+doing analytical optimal
+control, every piece
+
+00:30:59.790 --> 00:31:03.007
+you add to the dynamics makes
+things cripplingly difficult.
+
+00:31:03.007 --> 00:31:05.340
+And so you have to stay with
+these very simple dynamical
+
+00:31:05.340 --> 00:31:06.840
+systems.
+
+00:31:06.840 --> 00:31:08.850
+OK, the computational
+algorithms are actually
+
+00:31:08.850 --> 00:31:11.610
+pretty insensitive to how
+complex the dynamics are.
+
+00:31:11.610 --> 00:31:15.475
+They're going to break down
+in a different way, OK.
+
+00:31:15.475 --> 00:31:17.850
+So there's these different
+tools for different-- that are
+
+00:31:17.850 --> 00:31:19.017
+good for different problems.
+
+00:31:19.017 --> 00:31:22.770
+And there's a lot of problems
+which are very amenable
+
+00:31:22.770 --> 00:31:24.840
+to these computational
+tools that people aren't--
+
+00:31:24.840 --> 00:31:27.660
+I mean, you can solve brand
+new problems pretty easily
+
+00:31:27.660 --> 00:31:30.300
+with some of these algorithms.
+
+00:31:30.300 --> 00:31:32.580
+OK, so let's think of
+another cost function.
+
+00:31:35.800 --> 00:31:41.149
+Let's do the equivalent
+of a quadratic regulator.
+
+00:31:46.507 --> 00:31:48.090
+I just had that whole
+spiel and forgot
+
+00:31:48.090 --> 00:31:53.320
+to run the boundary-- the
+obstacles together in Soapbox.
+
+00:32:04.880 --> 00:32:10.580
+OK, so now I'm just going
+to put in some obstacle.
+
+00:32:10.580 --> 00:32:15.230
+And if you see-- whoops, sorry.
+
+00:32:15.230 --> 00:32:17.186
+If my state--
+
+00:32:17.186 --> 00:32:20.517
+OK, so I promised to use S and
+a in my notes and on the board,
+
+00:32:20.517 --> 00:32:22.100
+but I guess I didn't
+do it in my code.
+
+00:32:22.100 --> 00:32:22.910
+Sorry.
+
+00:32:22.910 --> 00:32:28.100
+So x equals the goal,
+then the cost to go is--
+
+00:32:28.100 --> 00:32:29.912
+the cost, instantaneous
+cost, is 0.
+
+00:32:29.912 --> 00:32:30.620
+Otherwise it's 1.
+
+00:32:30.620 --> 00:32:32.995
+If there's an obstacle, I just
+give it a high cost of 10.
+
+00:32:37.280 --> 00:32:45.310
+So if I put that obstacle
+function in there,
+
+00:32:45.310 --> 00:32:49.070
+then I've got my same
+0 cost for the goal.
+
+00:32:49.070 --> 00:32:50.570
+I've got a 1 cost
+almost everywhere,
+
+00:32:50.570 --> 00:32:51.570
+but I've got a 10 there.
+
+00:32:51.570 --> 00:32:52.700
+That's my cost function.
+
+00:32:52.700 --> 00:32:56.810
+And as I backup, a couple
+of things happened.
+
+00:32:56.810 --> 00:32:58.360
+First, this thing
+quickly figures out
+
+00:32:58.360 --> 00:33:01.510
+how to get off that
+obstacle as fast as possible
+
+00:33:01.510 --> 00:33:04.300
+and decides not to
+go there anymore.
+
+00:33:04.300 --> 00:33:06.423
+And then as you back
+up the cost function,
+
+00:33:06.423 --> 00:33:07.840
+the colors are a
+little more muted
+
+00:33:07.840 --> 00:33:09.670
+because I have this
+high color here.
+
+00:33:09.670 --> 00:33:14.140
+But the same basic
+algorithm plays out
+
+00:33:14.140 --> 00:33:15.340
+until it covers the space.
+
+00:33:18.160 --> 00:33:19.996
+And my s-- oh, that was a--
+
+00:33:19.996 --> 00:33:21.940
+[LAUGHTER]
+
+00:33:21.940 --> 00:33:25.150
+--lucky initial condition.
+
+00:33:25.150 --> 00:33:25.680
+OK, good.
+
+00:33:25.680 --> 00:33:26.680
+Now he has to go around.
+
+00:33:26.680 --> 00:33:27.180
+Wow.
+
+00:33:30.700 --> 00:33:34.873
+OK, so adding an obstacle in the
+grid world is clearly trivial.
+
+00:33:34.873 --> 00:33:37.290
+It's nice to think that adding
+an obstacle when I get back
+
+00:33:37.290 --> 00:33:39.000
+to the pendulum
+would be trivial,
+
+00:33:39.000 --> 00:33:41.375
+because that's not trivial
+for most of your other control
+
+00:33:41.375 --> 00:33:43.140
+derivations.
+
+00:33:43.140 --> 00:33:46.040
+OK, so minimum-- the
+quadratic regulator now.
+
+00:33:50.210 --> 00:33:55.320
+Now here, the cost
+I want is x of u,
+
+00:33:55.320 --> 00:34:04.620
+in the continuous world is some
+x minus x goal transpose Q x
+
+00:34:04.620 --> 00:34:05.550
+minus x goal.
+
+00:34:09.600 --> 00:34:15.210
+And you have to map that
+down into the integer
+
+00:34:15.210 --> 00:34:17.760
+world, the states.
+
+00:34:17.760 --> 00:34:21.030
+There's not a particularly
+clean way to write that,
+
+00:34:21.030 --> 00:34:22.980
+so I'm just going to
+allow you to imagine
+
+00:34:22.980 --> 00:34:26.250
+that it's trivial to code.
+
+00:34:26.250 --> 00:34:27.859
+Imagine that transition.
+
+00:34:47.820 --> 00:34:51.360
+OK, now my cost function
+is just penalizing me
+
+00:34:51.360 --> 00:34:53.310
+for being away from the goal.
+
+00:34:53.310 --> 00:34:55.139
+But it's not a 0 and 1.
+
+00:34:55.139 --> 00:34:58.270
+It's penalizing me more smoothly
+for being away from the goal.
+
+00:34:58.270 --> 00:35:00.310
+So what's the best thing to do?
+
+00:35:00.310 --> 00:35:02.310
+The best thing to do is
+still to get to the goal
+
+00:35:02.310 --> 00:35:03.840
+as quickly as possible.
+
+00:35:03.840 --> 00:35:06.840
+It actually doesn't really
+change the optimal policy here,
+
+00:35:06.840 --> 00:35:09.670
+but it's a more
+smooth cost function,
+
+00:35:09.670 --> 00:35:14.680
+which, in some problems,
+gives you nice properties.
+
+00:35:14.680 --> 00:35:17.970
+It turns out the optimal policy
+is more unique in this case.
+
+00:35:20.467 --> 00:35:22.800
+But that would have been an
+optimal for the minimum time
+
+00:35:22.800 --> 00:35:24.180
+problem, too.
+
+00:35:24.180 --> 00:35:33.607
+And it converges nicely and goes
+to the goal in the same way,
+
+00:35:33.607 --> 00:35:35.440
+and works fine with the
+obstacle, of course.
+
+00:35:39.570 --> 00:35:40.070
+OK?
+
+00:35:45.080 --> 00:35:46.370
+Good.
+
+00:35:46.370 --> 00:35:51.380
+So now you have a little
+bit more intuition
+
+00:35:51.380 --> 00:35:55.670
+to work with on these
+cost to go functions.
+
+00:35:55.670 --> 00:35:58.130
+A couple of important
+things happened there
+
+00:35:58.130 --> 00:36:01.540
+that I want to highlight.
+
+00:36:01.540 --> 00:36:04.715
+First of all, I really want
+you to think in terms of cost
+
+00:36:04.715 --> 00:36:05.690
+to go functions.
+
+00:36:05.690 --> 00:36:06.930
+They're really intuitive.
+
+00:36:10.790 --> 00:36:14.270
+The cost that I will obtain
+till the end of time,
+
+00:36:14.270 --> 00:36:18.320
+the optimal cost to go says
+if I'm acting optimally,
+
+00:36:18.320 --> 00:36:20.090
+this is the cost
+I'm going to incur.
+
+00:36:20.090 --> 00:36:24.630
+And the optimal cost to go
+gives me the optimal policy, OK.
+
+00:36:27.860 --> 00:36:31.640
+And just to calibrate
+you here, J star
+
+00:36:31.640 --> 00:36:33.980
+is called the
+optimal cost to go,
+
+00:36:33.980 --> 00:36:38.190
+but it's also sometimes called
+a value function, optimal value
+
+00:36:38.190 --> 00:36:38.690
+function.
+
+00:36:53.422 --> 00:36:55.880
+A bunch of different communities
+talk about the same things
+
+00:36:55.880 --> 00:36:59.000
+with different words.
+
+00:36:59.000 --> 00:37:00.170
+These are the optimists.
+
+00:37:00.170 --> 00:37:01.474
+These are the pessimists.
+
+00:37:08.400 --> 00:37:19.140
+OK, the other thing that we
+saw is that for many problems,
+
+00:37:19.140 --> 00:37:25.800
+the limit as N goes
+to negative infinity--
+
+00:37:30.750 --> 00:37:33.990
+I know that's a silly thing
+to say, I guess, but--
+
+00:37:37.980 --> 00:37:40.260
+that a lot of times
+this thing actually
+
+00:37:40.260 --> 00:37:48.696
+goes to some well posed J star.
+
+00:37:48.696 --> 00:37:51.930
+It doesn't have to.
+
+00:37:51.930 --> 00:37:53.010
+Sometimes it blows up.
+
+00:37:57.330 --> 00:38:05.670
+Another way to think of
+this is that I said J S of N
+
+00:38:05.670 --> 00:38:20.400
+is S of capital N. It's the
+limit of this as capital
+
+00:38:20.400 --> 00:38:25.050
+N goes to infinity, if you
+think of it in the forward way.
+
+00:38:25.050 --> 00:38:31.740
+So in order for this thing to
+converge to some nice solution,
+
+00:38:31.740 --> 00:38:35.760
+this sum had better
+converge in the limit.
+
+00:38:38.760 --> 00:38:42.180
+For my choice of g for
+the minimum time problem,
+
+00:38:42.180 --> 00:38:45.472
+and for the quadratic
+regulator, both of these
+
+00:38:45.472 --> 00:38:47.430
+had the property that
+when you get to the goal,
+
+00:38:47.430 --> 00:38:50.900
+you stop incurring cost.
+
+00:38:50.900 --> 00:38:53.570
+So that integral-- as long
+as you can get to the goal,
+
+00:38:53.570 --> 00:38:56.225
+that integral-- the sum,
+sorry, is going to converge.
+
+00:38:59.330 --> 00:39:04.190
+If I had chosen that
+I give a cost of 1
+
+00:39:04.190 --> 00:39:06.800
+when I'm at the goal and
+2 when I'm anywhere else,
+
+00:39:06.800 --> 00:39:08.630
+then it wouldn't have converged.
+
+00:39:12.100 --> 00:39:14.860
+The cost to go would have
+gone to that same shape,
+
+00:39:14.860 --> 00:39:16.360
+but then that shape
+would have just
+
+00:39:16.360 --> 00:39:18.430
+kept increasing every time
+I go farther back in time.
+
+00:39:18.430 --> 00:39:20.305
+That whole function
+would just move up by one
+
+00:39:20.305 --> 00:39:23.170
+every increment of time, OK.
+
+00:39:23.170 --> 00:39:26.140
+But for a lot of
+problems, we do have
+
+00:39:26.140 --> 00:39:32.350
+this nice limiting behavior,
+OK, and that gives rise
+
+00:39:32.350 --> 00:39:37.350
+to the infinite
+horizon problems.
+
+00:39:42.320 --> 00:39:44.740
+So so far, I had talked
+about finite horizon,
+
+00:39:44.740 --> 00:39:46.240
+but a lot of time,
+a lot of problems
+
+00:39:46.240 --> 00:39:47.448
+we write as infinite horizon.
+
+00:40:03.059 --> 00:40:03.559
+OK.
+
+00:40:06.060 --> 00:40:10.240
+When your problems are
+infinite horizon, J and J star
+
+00:40:10.240 --> 00:40:13.740
+don't depend on time anymore.
+
+00:40:13.740 --> 00:40:17.500
+And the optimal policy
+doesn't depend on time.
+
+00:40:17.500 --> 00:40:23.940
+So J star and pi, all these
+things are just functions of S,
+
+00:40:23.940 --> 00:40:26.520
+not of time, OK.
+
+00:40:37.290 --> 00:40:40.830
+And for these to be well posed,
+that sum had better converge.
+
+00:41:04.650 --> 00:41:07.590
+Now just to say it, but not to
+dwell on it, a lot of people
+
+00:41:07.590 --> 00:41:12.480
+do write other formulations
+that handle that.
+
+00:41:12.480 --> 00:41:18.660
+For instance, a lot of
+people do discounting.
+
+00:41:18.660 --> 00:41:30.570
+A lot of people like to solve
+problems of this form, OK, just
+
+00:41:30.570 --> 00:41:37.080
+to make it more likely that
+that sum's going to converge,
+
+00:41:37.080 --> 00:41:37.740
+for instance.
+
+00:41:37.740 --> 00:41:40.330
+And there's some problems which
+really do have discounting.
+
+00:41:40.330 --> 00:41:40.830
+Yeah.
+
+00:41:40.830 --> 00:41:42.980
+AUDIENCE: So that's
+less than 1 [INAUDIBLE]..
+
+00:41:42.980 --> 00:41:43.550
+PROFESSOR: Yes, thank you.
+
+00:41:43.550 --> 00:41:43.710
+Good.
+
+00:41:43.710 --> 00:41:44.343
+Good call.
+
+00:41:51.500 --> 00:41:52.000
+Thank you.
+
+00:42:05.760 --> 00:42:10.170
+OK, so you know the
+basic dynamic programming
+
+00:42:10.170 --> 00:42:12.480
+equations, no?
+
+00:42:12.480 --> 00:42:17.660
+Let me just say one word
+about implementation,
+
+00:42:17.660 --> 00:42:21.270
+if you want to go home and
+make your own '80s graphics
+
+00:42:21.270 --> 00:42:22.425
+game in Matlab.
+
+00:42:27.000 --> 00:42:42.345
+For discrete states,
+discrete actions, J,
+
+00:42:42.345 --> 00:42:47.730
+even J star of S at
+some N, it's a vector.
+
+00:42:53.550 --> 00:43:00.060
+Typically I think of it as
+sort of a dimension of S
+
+00:43:00.060 --> 00:43:01.170
+by one vector.
+
+00:43:03.990 --> 00:43:06.135
+And dimension isn't
+the right word.
+
+00:43:06.135 --> 00:43:12.620
+This is-- so the
+cardinality of S,
+
+00:43:12.620 --> 00:43:16.620
+let's say, something
+like that, a big S,
+
+00:43:16.620 --> 00:43:19.710
+the number of possible
+states by one vector.
+
+00:43:24.250 --> 00:43:30.880
+And it's very practical to write
+that recursion for all states
+
+00:43:30.880 --> 00:43:32.390
+as a vector equation.
+
+00:43:32.390 --> 00:43:38.350
+So if I think of J
+star as being a vector,
+
+00:43:38.350 --> 00:43:42.910
+I have to do a min
+over a of g S, a.
+
+00:43:42.910 --> 00:43:48.950
+But g is another vector
+which depends on a.
+
+00:43:48.950 --> 00:43:53.125
+It's an S by 1 plus--
+
+00:44:10.030 --> 00:44:11.620
+I can write it as
+a vector equation
+
+00:44:11.620 --> 00:44:13.400
+where this is a vector.
+
+00:44:13.400 --> 00:44:14.285
+This is a matrix.
+
+00:44:14.285 --> 00:44:15.535
+This is the transition matrix.
+
+00:44:24.220 --> 00:44:25.390
+And this is my vector again.
+
+00:44:28.240 --> 00:44:52.336
+And then transition
+matrix is just 1 if f iA
+
+00:44:52.336 --> 00:44:55.338
+equals J and 0 otherwise.
+
+00:45:08.050 --> 00:45:08.980
+OK.
+
+00:45:08.980 --> 00:45:12.040
+That's just a standard
+graph notation.
+
+00:45:16.830 --> 00:45:19.090
+So it's trivial to code
+these things in Matlab
+
+00:45:19.090 --> 00:45:21.786
+with just a bunch of
+matrix manipulations.
+
+00:45:24.910 --> 00:45:29.020
+OK, we understand everything
+about the grid world.
+
+00:45:29.020 --> 00:45:32.500
+I think it is a very
+helpful example, actually.
+
+00:45:32.500 --> 00:45:35.980
+Now let's think about the
+more continuous problems
+
+00:45:35.980 --> 00:45:37.180
+that I care about.
+
+00:45:37.180 --> 00:45:44.110
+What if, instead of having
+the dynamics of this
+
+00:45:44.110 --> 00:45:47.350
+moving left, right, whatever,
+my dynamics, my transitions came
+
+00:45:47.350 --> 00:45:50.020
+from my equations of motion
+from one of the systems
+
+00:45:50.020 --> 00:45:51.940
+we care about?
+
+00:45:51.940 --> 00:46:16.690
+So let's think about
+the double integrator.
+
+00:46:16.690 --> 00:46:18.640
+q double dot equals u.
+
+00:46:18.640 --> 00:46:20.185
+Let's do the min time problem.
+
+00:46:24.650 --> 00:46:29.700
+I can use the same minimum time
+cost function I did before, OK.
+
+00:46:48.126 --> 00:46:52.110
+[TYPING]
+
+00:47:03.130 --> 00:47:04.720
+OK.
+
+00:47:04.720 --> 00:47:09.190
+This one, I didn't leave
+the pause in there,
+
+00:47:09.190 --> 00:47:12.720
+but look what happens.
+
+00:47:12.720 --> 00:47:13.390
+Oops, sorry.
+
+00:47:13.390 --> 00:47:15.070
+Meant to do that.
+
+00:47:15.070 --> 00:47:15.700
+Make it bigger.
+
+00:47:18.690 --> 00:47:21.010
+I pop the same--
+
+00:47:21.010 --> 00:47:22.440
+let me turn the lights down.
+
+00:47:22.440 --> 00:47:27.120
+I pop that same exact
+set of equations.
+
+00:47:27.120 --> 00:47:30.840
+I run the same value iteration
+algorithm, dynamic programming
+
+00:47:30.840 --> 00:47:32.660
+algorithm.
+
+00:47:32.660 --> 00:47:34.410
+I should have said,
+people tend to call it
+
+00:47:34.410 --> 00:47:38.790
+value iteration for when you
+take the infinite horizon
+
+00:47:38.790 --> 00:47:42.150
+version and dynamic
+programming if you call it--
+
+00:47:42.150 --> 00:47:44.190
+if you do the finite
+horizon, but they're
+
+00:47:44.190 --> 00:47:46.150
+exactly the same thing, OK.
+
+00:47:46.150 --> 00:47:48.450
+So I might accidentally
+say value iteration
+
+00:47:48.450 --> 00:47:50.730
+because I'm used to it.
+
+00:47:50.730 --> 00:47:57.150
+OK, so I took my double
+integrator dynamics.
+
+00:47:57.150 --> 00:47:59.100
+I discretized my space.
+
+00:47:59.100 --> 00:48:01.890
+I made my cost function
+exactly the same
+
+00:48:01.890 --> 00:48:03.510
+as the minimum
+time cost function
+
+00:48:03.510 --> 00:48:05.160
+I used in the grid
+world, where there's
+
+00:48:05.160 --> 00:48:09.480
+a 0 cost of being at the
+goal and 1 everywhere else.
+
+00:48:09.480 --> 00:48:11.460
+And look what pops out.
+
+00:48:11.460 --> 00:48:14.383
+This is the cost to go function,
+is a function of state,
+
+00:48:14.383 --> 00:48:15.300
+and that's the policy.
+
+00:48:18.310 --> 00:48:20.320
+Remind you of anything?
+
+00:48:20.320 --> 00:48:21.730
+Right?
+
+00:48:21.730 --> 00:48:23.260
+Now I've got a big
+disclaimer that
+
+00:48:23.260 --> 00:48:25.780
+goes at the end of the lecture,
+but for now, let's just
+
+00:48:25.780 --> 00:48:27.505
+say that that's the
+perfect solution.
+
+00:48:30.070 --> 00:48:32.740
+The discretization is going to
+make this thing a little bit
+
+00:48:32.740 --> 00:48:34.030
+wrong.
+
+00:48:34.030 --> 00:48:35.830
+I'm going to say a
+few things about that
+
+00:48:35.830 --> 00:48:37.240
+at the end of the class.
+
+00:48:37.240 --> 00:48:41.560
+But the cool thing is that
+I pop my cost function in.
+
+00:48:41.560 --> 00:48:43.670
+I pop my continuous
+dynamical system.
+
+00:48:43.670 --> 00:48:44.965
+It's discretized.
+
+00:48:44.965 --> 00:48:47.920
+[CLICK] Run dynamic programming.
+
+00:48:47.920 --> 00:48:50.890
+As I back it up, it
+converges to some--
+
+00:48:50.890 --> 00:48:53.230
+as N goes back, it
+does converge for this.
+
+00:48:53.230 --> 00:48:54.850
+It was the minimum time problem.
+
+00:48:54.850 --> 00:48:56.740
+And I get my optimal
+policy out, which
+
+00:48:56.740 --> 00:48:59.488
+is a bang bang policy,
+which is decelerate
+
+00:48:59.488 --> 00:49:01.030
+when you're at the
+bottom, accelerate
+
+00:49:01.030 --> 00:49:02.030
+when you're at that top.
+
+00:49:02.030 --> 00:49:03.908
+And that switching
+surface shows up in green
+
+00:49:03.908 --> 00:49:05.200
+just because it's interpolated.
+
+00:49:05.200 --> 00:49:12.520
+But when you know it, that's
+what we know about bang bang
+
+00:49:12.520 --> 00:49:14.110
+controllers, OK.
+
+00:49:14.110 --> 00:49:14.650
+Yeah.
+
+00:49:14.650 --> 00:49:17.455
+AUDIENCE: Did you have to
+encode that your only three
+
+00:49:17.455 --> 00:49:20.315
+actions were full forward,
+full backward, and--
+
+00:49:20.315 --> 00:49:21.940
+PROFESSOR: The minimum
+over a is always
+
+00:49:21.940 --> 00:49:24.670
+going to choose the rails.
+
+00:49:24.670 --> 00:49:26.462
+In fact, in this
+implementation, they
+
+00:49:26.462 --> 00:49:28.420
+could have chosen in
+between things, and that's
+
+00:49:28.420 --> 00:49:29.740
+what it did right on the
+switching surface because
+
+00:49:29.740 --> 00:49:30.550
+of some--
+
+00:49:30.550 --> 00:49:31.360
+it chose 0.
+
+00:49:31.360 --> 00:49:32.860
+AUDIENCE: OK, so you left
+the general just as--
+
+00:49:32.860 --> 00:49:34.068
+PROFESSOR: I left it general.
+
+00:49:34.068 --> 00:49:35.410
+Yeah.
+
+00:49:35.410 --> 00:49:37.870
+So always, when I
+discretize the state
+
+00:49:37.870 --> 00:49:40.300
+and I discretize the actions
+of these continuous problems,
+
+00:49:40.300 --> 00:49:41.890
+I'm left with a
+finite set of states,
+
+00:49:41.890 --> 00:49:43.040
+a finite set of actions.
+
+00:49:43.040 --> 00:49:44.260
+So it can't pick unbounded.
+
+00:49:44.260 --> 00:49:49.210
+It's fundamentally bounded in
+actions that it can choose,
+
+00:49:49.210 --> 00:49:51.210
+and it chose those bounds.
+
+00:49:51.210 --> 00:49:53.760
+AUDIENCE: [INAUDIBLE]
+
+00:49:53.760 --> 00:49:54.760
+PROFESSOR: Say it again.
+
+00:49:54.760 --> 00:49:58.040
+AUDIENCE: How do you define
+the transition model?
+
+00:49:58.040 --> 00:49:58.930
+PROFESSOR: Good.
+
+00:49:58.930 --> 00:50:00.100
+I'm going to say some words
+about that in a minute,
+
+00:50:00.100 --> 00:50:01.300
+too, OK.
+
+00:50:01.300 --> 00:50:03.700
+Yeah.
+
+00:50:03.700 --> 00:50:04.240
+But not yet.
+
+00:50:04.240 --> 00:50:05.740
+Just give me a minute.
+
+00:50:05.740 --> 00:50:09.400
+OK, let's say we
+want to solve the LQR
+
+00:50:09.400 --> 00:50:13.060
+problem, the quadratic
+regulator cost for this.
+
+00:50:18.880 --> 00:50:22.760
+[TYPING]
+
+00:50:28.580 --> 00:50:35.120
+So I animated the brick for
+you just to keep it exciting.
+
+00:50:35.120 --> 00:50:37.460
+OK, so what pops out?
+
+00:50:37.460 --> 00:50:41.690
+This beautiful quadratic
+cost to go function, OK.
+
+00:50:41.690 --> 00:50:44.120
+Now this is a little bit off.
+
+00:50:44.120 --> 00:50:45.980
+It's supposed to be
+a linear function.
+
+00:50:45.980 --> 00:50:48.920
+It almost is, but there's
+some saturation because
+
+00:50:48.920 --> 00:50:51.890
+of my actuator limits, OK.
+
+00:50:51.890 --> 00:50:56.670
+But within the resolution of
+sort of my discrete actions,
+
+00:50:56.670 --> 00:51:00.720
+that's what we expected, OK.
+
+00:51:00.720 --> 00:51:02.550
+So I can do this for the brick.
+
+00:51:02.550 --> 00:51:04.010
+I'm going to tell you the
+caveats again in a minute,
+
+00:51:04.010 --> 00:51:06.343
+and I'm going to tell you the
+interpolation in a minute.
+
+00:51:06.343 --> 00:51:09.660
+But first I just want to
+help you realize that this--
+
+00:51:09.660 --> 00:51:12.148
+we can pop these
+equations in if we're
+
+00:51:12.148 --> 00:51:14.190
+willing to discretize the
+state and action space.
+
+00:51:14.190 --> 00:51:17.760
+Even for pretty hard problems,
+I can just [CLICK] let it go.
+
+00:51:17.760 --> 00:51:19.110
+It's pretty fast, too, actually.
+
+00:51:23.340 --> 00:51:25.650
+OK.
+
+00:51:25.650 --> 00:51:28.380
+So now why not--
+
+00:51:28.380 --> 00:51:30.990
+analytically, we had a hard
+time doing the pendulum,
+
+00:51:30.990 --> 00:51:33.660
+those nonlinear equations, OK.
+
+00:51:33.660 --> 00:51:36.000
+But if we tile the space,
+turn it into a graph,
+
+00:51:36.000 --> 00:51:37.800
+then I can run the
+exact same algorithm
+
+00:51:37.800 --> 00:51:40.710
+on the simple pendulum, OK.
+
+00:51:40.710 --> 00:51:41.850
+So let's do that.
+
+00:51:46.700 --> 00:51:50.580
+[TYPING]
+
+00:51:55.540 --> 00:51:58.560
+What am I going to get here?
+
+00:51:58.560 --> 00:52:02.000
+So minimum time for
+the simple pendulum.
+
+00:52:04.520 --> 00:52:08.540
+I've got my pause back in here.
+
+00:52:08.540 --> 00:52:10.280
+It's hard to see, but
+there's actually--
+
+00:52:10.280 --> 00:52:13.460
+it's 1 everywhere except for
+0 at the goal, which is the--
+
+00:52:13.460 --> 00:52:17.540
+now I'm in phase space,
+so that's pi at 0.
+
+00:52:17.540 --> 00:52:21.110
+That's my unsteady
+fixed point, OK.
+
+00:52:21.110 --> 00:52:25.670
+I've got a blue 0 there,
+1 everywhere else.
+
+00:52:25.670 --> 00:52:28.640
+At the end of time, my
+action is just do nothing,
+
+00:52:28.640 --> 00:52:31.070
+because there's no
+benefit to doing anything.
+
+00:52:31.070 --> 00:52:36.238
+And as I back up in time, this
+will give you a key to what--
+
+00:52:36.238 --> 00:52:38.780
+you can see a little bit about
+my interpolation as I do this.
+
+00:52:38.780 --> 00:52:45.710
+OK, then it starts giving
+me incentive to move.
+
+00:52:45.710 --> 00:52:48.170
+Again, when you can't
+get to the goal,
+
+00:52:48.170 --> 00:52:51.890
+that's actually
+just noise there.
+
+00:52:51.890 --> 00:52:54.740
+But this thing
+quickly figures out--
+
+00:53:00.920 --> 00:53:01.420
+oops.
+
+00:53:04.380 --> 00:53:11.530
+Let me do the same thing and
+let it not plot every time.
+
+00:53:22.060 --> 00:53:25.370
+Figures out a cost
+to go function,
+
+00:53:25.370 --> 00:53:28.150
+the optimal cost to go
+function, and an optimal policy.
+
+00:53:28.150 --> 00:53:30.530
+Now it looks a
+little noisy there.
+
+00:53:30.530 --> 00:53:32.530
+Again, we're going to
+talk about the sensitivity
+
+00:53:32.530 --> 00:53:33.760
+to discretization.
+
+00:53:33.760 --> 00:53:36.190
+But this is very
+much a bang bang
+
+00:53:36.190 --> 00:53:39.550
+policy, with the
+blue area being,
+
+00:53:39.550 --> 00:53:43.105
+do one action, the red area
+doing the other action.
+
+00:53:43.105 --> 00:53:48.200
+The switching surface is
+actually pretty complicated.
+
+00:53:48.200 --> 00:53:51.610
+It's some complicated
+function of state,
+
+00:53:51.610 --> 00:53:56.190
+but it gets this beautifully
+smooth cost to go function, OK.
+
+00:54:03.880 --> 00:54:06.850
+Now let's take a second and
+look at the phase plots here.
+
+00:54:09.802 --> 00:54:12.440
+Let me actually do
+it in order here.
+
+00:54:12.440 --> 00:54:26.450
+So this is the phase plot of
+the damped passive pendulum,
+
+00:54:26.450 --> 00:54:30.960
+OK, the original one we
+thought about in class.
+
+00:54:30.960 --> 00:54:33.450
+I just drew a few
+lines to help you.
+
+00:54:33.450 --> 00:54:36.620
+So if I start at
+downright position
+
+00:54:36.620 --> 00:54:40.220
+with a little bit of velocity,
+I'd slow down and stop.
+
+00:54:40.220 --> 00:54:43.940
+If I start near an
+unstable fixed point
+
+00:54:43.940 --> 00:54:47.180
+with near 0 velocity,
+then I actually
+
+00:54:47.180 --> 00:54:50.870
+fall down and go like this
+and end up standing still
+
+00:54:50.870 --> 00:54:54.860
+near the closest
+unstable fixed point, OK.
+
+00:54:57.380 --> 00:55:03.740
+Now if I do my feedback
+linearization invert gravity
+
+00:55:03.740 --> 00:55:06.732
+controller to stabilize
+the fixed point, then
+
+00:55:06.732 --> 00:55:08.440
+what's the phase plot
+going to look like?
+
+00:55:13.233 --> 00:55:14.650
+It's going to look
+just like this,
+
+00:55:14.650 --> 00:55:17.640
+but it's going to be
+moved over there, right?
+
+00:55:17.640 --> 00:55:19.460
+So let's make sure that's true.
+
+00:55:23.810 --> 00:55:26.065
+Ah, what did I call it?
+
+00:55:26.065 --> 00:55:26.690
+Invert gravity.
+
+00:55:30.940 --> 00:55:32.080
+OK, yeah.
+
+00:55:32.080 --> 00:55:34.525
+So I see the exact same things.
+
+00:55:34.525 --> 00:55:36.650
+Used to be my stable fixed
+point are now going over
+
+00:55:36.650 --> 00:55:39.790
+to the closest unstable one.
+
+00:55:39.790 --> 00:55:40.625
+This works great.
+
+00:55:40.625 --> 00:55:42.250
+The only objection
+to it is it required
+
+00:55:42.250 --> 00:55:44.530
+an enormous amount of
+torque to just pretend
+
+00:55:44.530 --> 00:55:46.670
+like you're inverted gravity.
+
+00:55:46.670 --> 00:55:50.580
+OK, so what's the minimum time
+solution going to look like?
+
+00:56:02.710 --> 00:56:04.293
+AUDIENCE: It's going
+to depend on what
+
+00:56:04.293 --> 00:56:05.600
+your torque constraint is.
+
+00:56:05.600 --> 00:56:07.433
+PROFESSOR: It's going
+to depend on my torque
+
+00:56:07.433 --> 00:56:10.220
+constraint is, yeah.
+
+00:56:10.220 --> 00:56:13.000
+So for whatever torque
+constraint I have now,
+
+00:56:13.000 --> 00:56:15.500
+you could even figure
+out the units here.
+
+00:56:15.500 --> 00:56:17.510
+My torque constraint was
+chosen to be something
+
+00:56:17.510 --> 00:56:23.190
+like half of the stall torque
+required to hold out like this.
+
+00:56:23.190 --> 00:56:24.800
+Then let's see what happens.
+
+00:56:29.380 --> 00:56:33.840
+This is the minimum
+time solution,
+
+00:56:33.840 --> 00:56:35.070
+which is exactly right.
+
+00:56:35.070 --> 00:56:37.390
+If I had more torque
+to give, it could
+
+00:56:37.390 --> 00:56:39.450
+have gotten out there quicker.
+
+00:56:39.450 --> 00:56:43.350
+And this added enough that,
+after going around once,
+
+00:56:43.350 --> 00:56:45.460
+it could get up to the top, OK.
+
+00:56:54.520 --> 00:56:55.190
+Let me see.
+
+00:56:55.190 --> 00:56:56.740
+Why is it not drawing anymore?
+
+00:56:56.740 --> 00:56:58.211
+I've got this [INAUDIBLE].
+
+00:57:05.085 --> 00:57:06.080
+Oop.
+
+00:57:06.080 --> 00:57:08.600
+So that was-- that's a
+random initial condition.
+
+00:57:08.600 --> 00:57:10.580
+So from the one I had
+shown, it took one pump.
+
+00:57:10.580 --> 00:57:15.080
+That one took two pumps,
+and that gets it to the top.
+
+00:57:15.080 --> 00:57:17.420
+OK, but now, remember,
+my original challenge
+
+00:57:17.420 --> 00:57:20.632
+was to not just get to
+the top in minimum time.
+
+00:57:20.632 --> 00:57:22.340
+This is minimum time
+with bounded torque,
+
+00:57:22.340 --> 00:57:23.900
+so that's a little
+bit more satisfying.
+
+00:57:23.900 --> 00:57:25.358
+I don't want to
+pump in more torque
+
+00:57:25.358 --> 00:57:27.290
+than I could possibly implement.
+
+00:57:27.290 --> 00:57:30.758
+But what if I want to be
+sensitive about the torque?
+
+00:57:30.758 --> 00:57:32.300
+I want to get to
+the top, but I don't
+
+00:57:32.300 --> 00:57:34.520
+want to use a bunch of energy.
+
+00:57:34.520 --> 00:57:37.270
+OK, now the quadratic cost
+function makes a lot of sense,
+
+00:57:37.270 --> 00:57:38.300
+OK.
+
+00:57:38.300 --> 00:57:40.040
+So I'm going to put
+a quadratic cost
+
+00:57:40.040 --> 00:57:42.560
+on being away from the
+top and a big quadratic
+
+00:57:42.560 --> 00:57:44.900
+cost on using actions.
+
+00:57:44.900 --> 00:57:48.650
+So that'll give me some sense of
+minimally stabilizing the top,
+
+00:57:48.650 --> 00:57:49.310
+OK.
+
+00:57:49.310 --> 00:57:50.768
+What's that one
+going to look like?
+
+00:57:53.900 --> 00:57:56.360
+Would you expect
+it to look like--
+
+00:57:56.360 --> 00:57:57.212
+phase plot going.
+
+00:57:57.212 --> 00:57:58.670
+AUDIENCE: Basically
+in phase space,
+
+00:57:58.670 --> 00:58:01.717
+it will more turns to get up
+there on the top [INAUDIBLE]..
+
+00:58:01.717 --> 00:58:02.300
+PROFESSOR: OK.
+
+00:58:02.300 --> 00:58:03.633
+What about if it's near the top?
+
+00:58:03.633 --> 00:58:06.143
+Is there going to look like
+a damp pendulum at the top?
+
+00:58:06.143 --> 00:58:07.060
+What's it going to do?
+
+00:58:10.120 --> 00:58:12.600
+AUDIENCE: Well, if it's headed
+the wrong way near the top,
+
+00:58:12.600 --> 00:58:14.350
+it will probably swing
+all the way around.
+
+00:58:14.350 --> 00:58:15.250
+PROFESSOR: Good.
+
+00:58:15.250 --> 00:58:16.060
+Right.
+
+00:58:16.060 --> 00:58:18.750
+AUDIENCE: But if you put
+too much cost on distance,
+
+00:58:18.750 --> 00:58:22.050
+it might end up quickest
+on the [INAUDIBLE]..
+
+00:58:22.050 --> 00:58:23.730
+PROFESSOR: Perfect, OK.
+
+00:58:23.730 --> 00:58:30.990
+So let's switch this to be
+my quadratic regulator cost.
+
+00:58:43.410 --> 00:58:45.360
+Right, so that's what you said.
+
+00:58:45.360 --> 00:58:46.557
+Took more pumps to get up.
+
+00:58:46.557 --> 00:58:48.390
+And if you plot the
+phase plot from a couple
+
+00:58:48.390 --> 00:58:49.930
+of these different places--
+
+00:58:49.930 --> 00:58:51.240
+oh.
+
+00:58:51.240 --> 00:58:51.840
+Crap, sorry.
+
+00:58:51.840 --> 00:58:53.010
+I thought I picked initial
+conditions that were
+
+00:58:53.010 --> 00:58:54.630
+far enough to show you that.
+
+00:58:54.630 --> 00:58:55.770
+This is what you said, OK.
+
+00:58:55.770 --> 00:58:58.228
+This one happens to be close
+enough that it got to the top.
+
+00:59:00.570 --> 00:59:03.750
+This one took a lot of
+pumps and got out there.
+
+00:59:03.750 --> 00:59:05.500
+But the point I was
+trying to illustrate--
+
+00:59:05.500 --> 00:59:08.680
+I guess I need to either
+penalize torque a little bit
+
+00:59:08.680 --> 00:59:09.180
+more or--
+
+00:59:23.400 --> 00:59:25.087
+I never change things
+by a factor of 2.
+
+00:59:25.087 --> 00:59:25.670
+It's too slow.
+
+00:59:29.318 --> 00:59:30.943
+Oh, I made it not move.
+
+00:59:30.943 --> 00:59:31.770
+[LAUGHTER]
+
+00:59:31.770 --> 00:59:32.840
+Sorry.
+
+00:59:32.840 --> 00:59:34.220
+But it showed my point, OK.
+
+00:59:34.220 --> 00:59:37.543
+So yeah, it has no incentive
+to move from the bottom.
+
+00:59:37.543 --> 00:59:39.710
+It says, I'm going to incur
+more cost by moving than
+
+00:59:39.710 --> 00:59:41.930
+by getting close to the goal.
+
+00:59:41.930 --> 00:59:42.740
+Not getting close.
+
+00:59:42.740 --> 00:59:46.730
+OK, but up at the
+top, it is able to--
+
+00:59:46.730 --> 00:59:50.630
+given it was near the
+top with some velocity,
+
+00:59:50.630 --> 00:59:53.330
+with a little effort, it's worth
+going around and stabilizing
+
+00:59:53.330 --> 00:59:55.960
+itself at the top.
+
+00:59:55.960 --> 00:59:56.550
+Yeah?
+
+00:59:56.550 --> 00:59:57.050
+OK.
+
+01:00:00.170 --> 01:00:00.957
+Good.
+
+01:00:00.957 --> 01:00:02.582
+AUDIENCE: If you
+iterate it far enough,
+
+01:00:02.582 --> 01:00:05.852
+it should go at the top, but--
+
+01:00:05.852 --> 01:00:06.630
+PROFESSOR: No.
+
+01:00:06.630 --> 01:00:07.130
+Let's see.
+
+01:00:07.130 --> 01:00:08.453
+So--
+
+01:00:08.453 --> 01:00:10.036
+AUDIENCE: It's because
+of the damping.
+
+01:00:10.036 --> 01:00:11.190
+PROFESSOR: It's
+because of the damping.
+
+01:00:11.190 --> 01:00:11.898
+AUDIENCE: Oh, OK.
+
+01:00:11.898 --> 01:00:13.087
+PROFESSOR: Yeah, good.
+
+01:00:13.087 --> 01:00:15.170
+Because that is actually
+the steady state solution
+
+01:00:15.170 --> 01:00:15.637
+I'm plotting.
+
+01:00:15.637 --> 01:00:16.179
+AUDIENCE: Oh.
+
+01:00:16.179 --> 01:00:18.440
+PROFESSOR: Mm-hmm.
+
+01:00:18.440 --> 01:00:20.754
+OK.
+
+01:00:20.754 --> 01:00:24.682
+[RUSTLING]
+
+01:00:33.030 --> 01:00:34.800
+So if you care about
+simple pendula--
+
+01:00:34.800 --> 01:00:37.928
+sorry-- and you want
+optimal solutions,
+
+01:00:37.928 --> 01:00:39.970
+this looks like a pretty
+satisfying way to do it.
+
+01:00:39.970 --> 01:00:42.510
+You could up with your
+arbitrary cost functions
+
+01:00:42.510 --> 01:00:43.815
+and see what you get.
+
+01:00:43.815 --> 01:00:47.250
+It runs in no time
+on my laptop, and you
+
+01:00:47.250 --> 01:00:50.145
+get things that look like
+optimal policies, nice phase
+
+01:00:50.145 --> 01:00:53.712
+plots, you name it, OK.
+
+01:00:53.712 --> 01:00:54.420
+What's the catch?
+
+01:00:54.420 --> 01:00:58.050
+First catch is, how do
+I do the interpolation?
+
+01:00:58.050 --> 01:00:59.760
+How do I make that
+transition matrix?
+
+01:01:22.280 --> 01:01:27.200
+So on my pendulum example,
+I discretized some states.
+
+01:01:27.200 --> 01:01:30.050
+I have a handful--
+
+01:01:30.050 --> 01:01:32.990
+I've already
+discretized actions,
+
+01:01:32.990 --> 01:01:35.690
+and I've got some
+other states over here
+
+01:01:35.690 --> 01:01:38.600
+that they've
+already discretized.
+
+01:01:38.600 --> 01:01:41.960
+I'd have to be pretty
+remarkably lucky to have it
+
+01:01:41.960 --> 01:01:44.450
+that the random
+actions that I chose,
+
+01:01:44.450 --> 01:01:46.838
+integrated for some
+small amount of time,
+
+01:01:46.838 --> 01:01:49.130
+actually landed right on top
+of one of my other states.
+
+01:01:53.480 --> 01:01:55.880
+In fact, they tend to land
+in between the states,
+
+01:01:55.880 --> 01:01:59.480
+OK, so we do a little bit of
+interpolation between them.
+
+01:01:59.480 --> 01:02:03.710
+And one of the reasons I showed
+you that transition matrix
+
+01:02:03.710 --> 01:02:09.260
+form is that it's actually
+quite OK, quite standard,
+
+01:02:09.260 --> 01:02:16.610
+to say that my transition
+matrix, my T from S
+
+01:02:16.610 --> 01:02:22.505
+to S prime as a
+function of a is some--
+
+01:02:22.505 --> 01:02:24.650
+let me just handwave it here--
+
+01:02:24.650 --> 01:02:40.518
+but is some interpolated
+set of weights for S1 close.
+
+01:02:40.518 --> 01:02:44.390
+[LAUGHS] OK.
+
+01:02:44.390 --> 01:02:47.480
+Zach just showed me a sign
+that said, the pendulum works.
+
+01:02:47.480 --> 01:02:49.250
+Having Matlab licensing issues.
+
+01:02:49.250 --> 01:02:50.420
+So we might--
+
+01:02:50.420 --> 01:02:51.680
+I was hoping to run these
+on the real pendulum.
+
+01:02:51.680 --> 01:02:53.197
+We'll do it on
+Tuesday if not today.
+
+01:02:53.197 --> 01:02:56.930
+[LAUGHS] I don't know whey
+he didn't just say that,
+
+01:02:56.930 --> 01:03:00.680
+but there's a big
+bright green sign.
+
+01:03:00.680 --> 01:03:09.170
+So let me write it like
+this for the moment, OK.
+
+01:03:09.170 --> 01:03:14.510
+So if I end up being near
+some states in two dimensions,
+
+01:03:14.510 --> 01:03:19.670
+I tend to interpolate between
+the three closest states, OK.
+
+01:03:19.670 --> 01:03:21.540
+So I'll call those Sy and S1--
+
+01:03:21.540 --> 01:03:27.380
+Si, Sj, Sk, and I get some
+interpolants, W1, W2, and W3.
+
+01:03:27.380 --> 01:03:36.200
+They'd better sum to one, OK.
+
+01:03:36.200 --> 01:03:38.280
+And there's actually
+lots of ways to do that.
+
+01:03:38.280 --> 01:03:40.610
+So actually, in previous
+times I've given the class,
+
+01:03:40.610 --> 01:03:42.210
+I went into some
+detail about that.
+
+01:03:42.210 --> 01:03:43.308
+I think that you could--
+
+01:03:43.308 --> 01:03:45.600
+if you care about it, there's
+a lot of ways to do that.
+
+01:03:45.600 --> 01:03:48.440
+You could use the
+Matlab interp2 function.
+
+01:03:48.440 --> 01:03:52.250
+The one we use is called
+barycentric interpolation.
+
+01:03:59.450 --> 01:04:02.600
+In the RL community, that was
+popularized by Munoz and Moore.
+
+01:04:07.650 --> 01:04:09.410
+That'll be cited in the notes.
+
+01:04:12.650 --> 01:04:15.170
+And it uses-- if
+you're operating
+
+01:04:15.170 --> 01:04:18.920
+in an N-dimensional space, it
+uses N plus 1 interpolants.
+
+01:04:18.920 --> 01:04:21.290
+So in a two-dimensional
+space, it
+
+01:04:21.290 --> 01:04:22.880
+uses the three closest points.
+
+01:04:22.880 --> 01:04:24.463
+If you're in a
+four-dimensional space,
+
+01:04:24.463 --> 01:04:27.890
+it uses the five
+closest points, OK.
+
+01:04:27.890 --> 01:04:32.030
+And there's a very
+clean, simple algorithm
+
+01:04:32.030 --> 01:04:38.510
+to find the factors of
+that interpolant, OK.
+
+01:04:38.510 --> 01:04:44.870
+The caveat is that
+everything spreads out.
+
+01:04:44.870 --> 01:04:49.070
+If I simulate my dynamics,
+my graph dynamics,
+
+01:04:49.070 --> 01:04:52.070
+what it's roughly saying is that
+if I started from this state,
+
+01:04:52.070 --> 01:04:53.540
+I'm going to be a little bit
+in that state, a little bit
+
+01:04:53.540 --> 01:04:54.360
+in that--
+
+01:04:54.360 --> 01:04:57.980
+a little bit in state 48,
+a little bit in state 52.
+
+01:04:57.980 --> 01:05:00.230
+And then my transition's
+out of there,
+
+01:05:00.230 --> 01:05:04.805
+so I get this diffusion across
+my graph of where my state is,
+
+01:05:04.805 --> 01:05:06.100
+if that makes sense.
+
+01:05:06.100 --> 01:05:07.220
+Yeah?
+
+01:05:07.220 --> 01:05:09.590
+And that's why you get some
+of the smoothing effects
+
+01:05:09.590 --> 01:05:14.310
+that you saw in the plots, OK.
+
+01:05:19.840 --> 01:05:22.630
+There's a bigger
+problem with that.
+
+01:05:22.630 --> 01:05:28.210
+The smoothing effects a lot of
+times don't look too dangerous,
+
+01:05:28.210 --> 01:05:33.670
+but they can do bad
+things to your solution
+
+01:05:33.670 --> 01:05:37.210
+if you're not careful, OK.
+
+01:05:37.210 --> 01:05:42.280
+So the big caveat
+is the solution
+
+01:05:42.280 --> 01:05:51.595
+you get is optimal only
+for the discrete system.
+
+01:06:01.690 --> 01:06:12.670
+We hope that it's approximately
+optimal for continuous,
+
+01:06:12.670 --> 01:06:16.120
+but compared to the
+finite element analysis
+
+01:06:16.120 --> 01:06:18.687
+world or the computational
+fluid dynamics world,
+
+01:06:18.687 --> 01:06:20.770
+or other people that solve
+these kind of problems,
+
+01:06:20.770 --> 01:06:26.320
+we have relatively less
+strict understanding of when--
+
+01:06:26.320 --> 01:06:30.820
+of how bad this approximation
+can be compared--
+
+01:06:30.820 --> 01:06:32.170
+based on the discretization.
+
+01:06:32.170 --> 01:06:34.420
+There might actually be
+people out there that know it.
+
+01:06:34.420 --> 01:06:37.630
+I don't know how to
+tell you how bad it's
+
+01:06:37.630 --> 01:06:41.350
+going to get with the appro--
+with the discretization.
+
+01:06:41.350 --> 01:06:43.630
+But I will ask you
+on your problem set
+
+01:06:43.630 --> 01:06:47.080
+to plot the bang bang solution
+of the double pendulum--
+
+01:06:47.080 --> 01:06:49.570
+or, sorry, of the
+double integrator,
+
+01:06:49.570 --> 01:06:52.210
+and plot the analytical
+solution on top of it.
+
+01:06:52.210 --> 01:06:54.310
+And you'll see that
+if you're not careful,
+
+01:06:54.310 --> 01:06:55.870
+it's not just a
+little bit wrong.
+
+01:06:55.870 --> 01:06:57.285
+It can be systematically wrong.
+
+01:06:57.285 --> 01:06:59.410
+The switching surface turns
+out in the wrong place.
+
+01:06:59.410 --> 01:07:03.000
+And we'll ask you to think a
+little bit about why that is,
+
+01:07:03.000 --> 01:07:03.500
+OK.
+
+01:07:07.620 --> 01:07:11.628
+That's really the
+only caveat if you
+
+01:07:11.628 --> 01:07:12.920
+about low dimensional problems.
+
+01:07:16.990 --> 01:07:20.100
+The more cited one,
+though, of course,
+
+01:07:20.100 --> 01:07:22.225
+is that there's this
+curse of dimensionality.
+
+01:07:32.420 --> 01:07:36.980
+The only reason that everybody
+doesn't use this stuff
+
+01:07:36.980 --> 01:07:41.270
+is because if I had a 10
+degree of freedom robot
+
+01:07:41.270 --> 01:07:44.120
+and I had to break up
+that 10-dimensional space
+
+01:07:44.120 --> 01:07:47.840
+in discrete points, discrete
+buckets, and made a graph,
+
+01:07:47.840 --> 01:07:49.655
+I would need a bigger computer.
+
+01:07:49.655 --> 01:07:53.150
+Not just a little bit bigger, an
+exponentially bigger computer,
+
+01:07:53.150 --> 01:07:53.650
+OK.
+
+01:07:56.440 --> 01:07:58.488
+So you have to be able
+to discretize your space,
+
+01:07:58.488 --> 01:08:00.280
+and discretizing the
+space is exponentially
+
+01:08:00.280 --> 01:08:04.930
+expensive in the
+number of states, OK.
+
+01:08:04.930 --> 01:08:08.200
+But so people
+actually-- historically,
+
+01:08:08.200 --> 01:08:14.020
+value methods were very
+popular in the '80s, say.
+
+01:08:14.020 --> 01:08:15.520
+And there's a lot
+of work that we're
+
+01:08:15.520 --> 01:08:17.920
+going to talk about that
+continues to be popular,
+
+01:08:17.920 --> 01:08:19.870
+about using approximations,
+where you don't
+
+01:08:19.870 --> 01:08:21.990
+do a strict
+discretization, but you
+
+01:08:21.990 --> 01:08:24.026
+do it so to try to
+approximate these costs,
+
+01:08:24.026 --> 01:08:26.109
+these dynamic programming
+algorithms with function
+
+01:08:26.109 --> 01:08:28.713
+approximation.
+
+01:08:28.713 --> 01:08:30.880
+But because of this sort
+of curse of dimensionality,
+
+01:08:30.880 --> 01:08:33.040
+a lot of people switched
+gears to a different class
+
+01:08:33.040 --> 01:08:37.120
+of optimization algorithms
+based more on the Pontryagin
+
+01:08:37.120 --> 01:08:41.620
+principle and more
+on gradient methods.
+
+01:08:41.620 --> 01:08:45.470
+We're going to talk
+about those, too.
+
+01:08:45.470 --> 01:08:49.060
+But I think we have to
+remember that since the 1980s,
+
+01:08:49.060 --> 01:08:51.770
+our computers actually
+got a lot better, OK.
+
+01:08:51.770 --> 01:08:54.220
+Sounds silly, but
+so in the '80s,
+
+01:08:54.220 --> 01:08:56.080
+they could tile
+two-dimensional spaces,
+
+01:08:56.080 --> 01:08:58.510
+and three-dimensional hurt.
+
+01:08:58.510 --> 01:09:02.240
+Now we could probably do four,
+five, six-dimensional spaces,
+
+01:09:02.240 --> 01:09:03.640
+OK.
+
+01:09:03.640 --> 01:09:06.370
+We actually did for--
+
+01:09:06.370 --> 01:09:08.170
+we made that airplane
+land on a perch
+
+01:09:08.170 --> 01:09:10.810
+by just tiling the state
+space and doing brute force
+
+01:09:10.810 --> 01:09:13.300
+computation on that, OK.
+
+01:09:13.300 --> 01:09:14.470
+So you should look around.
+
+01:09:14.470 --> 01:09:16.840
+If there's some hard
+control problems that
+
+01:09:16.840 --> 01:09:20.649
+are four-dimensional or
+less that you consider
+
+01:09:20.649 --> 01:09:22.390
+to be unsolved,
+you could probably
+
+01:09:22.390 --> 01:09:24.059
+just hand them the
+dynamic programming
+
+01:09:24.059 --> 01:09:26.692
+and get a very
+nice solution, OK.
+
+01:09:26.692 --> 01:09:28.609
+And say, hey, you couldn't
+do it 10 years ago,
+
+01:09:28.609 --> 01:09:30.067
+but I can do it
+today on my laptop.
+
+01:09:33.960 --> 01:09:34.540
+Awesome.
+
+01:09:34.540 --> 01:09:35.040
+OK.
+
+01:09:35.040 --> 01:09:37.950
+So unless Zach
+appears here, there's
+
+01:09:37.950 --> 01:09:39.700
+only one last thing
+I want to say,
+
+01:09:39.700 --> 01:09:42.025
+and that is I want
+to observe quickly--
+
+01:09:52.740 --> 01:09:55.410
+we talked about the fact
+that optimal policies are not
+
+01:09:55.410 --> 01:09:55.910
+unique.
+
+01:09:58.980 --> 01:10:01.950
+But there's more things
+you can learn by staring
+
+01:10:01.950 --> 01:10:03.150
+at these guys a little bit.
+
+01:10:09.590 --> 01:10:12.600
+Let's put my R down to
+something more manageable.
+
+01:10:21.420 --> 01:10:22.480
+Go, go, go.
+
+01:10:25.810 --> 01:10:27.670
+OK.
+
+01:10:27.670 --> 01:10:28.690
+Can you see it in this?
+
+01:10:28.690 --> 01:10:31.270
+It's a little bit
+hard to see it.
+
+01:10:31.270 --> 01:10:34.810
+I think you can see it if
+I turn the lights down.
+
+01:10:34.810 --> 01:10:37.710
+This is the quadratic
+regulator again.
+
+01:10:42.740 --> 01:10:45.740
+Now this isn't quite
+the quadratic regulator
+
+01:10:45.740 --> 01:10:47.960
+from the double integrator.
+
+01:10:47.960 --> 01:10:52.950
+This is now a quadratic
+cost function on a nonlinear
+
+01:10:52.950 --> 01:10:55.020
+dynamical system, OK.
+
+01:10:55.020 --> 01:10:57.780
+In this case, the
+dynamics are smooth.
+
+01:10:57.780 --> 01:10:59.820
+They're non-linear,
+but they're smooth.
+
+01:10:59.820 --> 01:11:02.700
+There's nothing that changes
+abruptly in the derivatives.
+
+01:11:02.700 --> 01:11:05.400
+And the cost function
+is smooth, but you
+
+01:11:05.400 --> 01:11:08.130
+can find that the optimal
+policy can actually still
+
+01:11:08.130 --> 01:11:12.660
+be discontinuous, OK.
+
+01:11:12.660 --> 01:11:16.140
+So costs-- so why
+is it discontinuous?
+
+01:11:16.140 --> 01:11:19.560
+In this case, because if I'm
+here and I'm going this way,
+
+01:11:19.560 --> 01:11:22.800
+I want to push up, but at some
+point, I have to change my mind
+
+01:11:22.800 --> 01:11:26.250
+and go the opposite way to pump
+up energy and get to the top.
+
+01:11:26.250 --> 01:11:33.660
+So this pump up strategy is
+inherently discontinuous, OK.
+
+01:11:33.660 --> 01:11:39.360
+So this is the Gordian
+knot of optimal control,
+
+01:11:39.360 --> 01:11:42.930
+is as soon as things
+stop being linear,
+
+01:11:42.930 --> 01:11:47.730
+computing optimal cost to go
+functions can get arbitrarily
+
+01:11:47.730 --> 01:11:49.260
+hard, OK.
+
+01:11:49.260 --> 01:11:51.420
+And that's why computation's
+so great, because it
+
+01:11:51.420 --> 01:11:53.635
+does that stuff for me.
+
+01:11:53.635 --> 01:11:55.510
+But know that it doesn't
+take much to make it
+
+01:11:55.510 --> 01:11:58.387
+so the cost to go function
+gets a lot more subtle.
+
+01:11:58.387 --> 01:11:58.887
+Mm-hmm.
+
+01:12:04.050 --> 01:12:04.830
+Good.
+
+01:12:04.830 --> 01:12:09.960
+So the class will proceed taking
+these methods as far as we can,
+
+01:12:09.960 --> 01:12:12.030
+breaking them, and
+then showing you
+
+01:12:12.030 --> 01:12:15.930
+approximation methods that work
+in higher dimensional spaces.
+
+01:12:15.930 --> 01:12:17.910
+And when we give up on
+optimality all together,
+
+01:12:17.910 --> 01:12:19.770
+we'll do motion
+planning, and we're
+
+01:12:19.770 --> 01:12:21.812
+going to get to more and
+more interesting robots.
+
+01:12:21.812 --> 01:12:25.020
+But this is really a key idea.
+
+01:12:25.020 --> 01:12:30.240
+So I hope that the
+intuition came through and--
+
+01:12:30.240 --> 01:12:31.470
+through your problems set.
+
+01:12:31.470 --> 01:12:35.130
+And I can share some of
+this code and everything.
+
+01:12:35.130 --> 01:12:36.990
+I hope you play with
+it, and think about it,
+
+01:12:36.990 --> 01:12:40.020
+and change cost functions,
+and see what happens.
+
+01:12:40.020 --> 01:12:42.350
+OK, see you next week.

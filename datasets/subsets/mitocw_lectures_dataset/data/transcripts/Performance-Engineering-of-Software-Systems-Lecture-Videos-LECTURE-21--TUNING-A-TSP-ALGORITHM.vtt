@@ -1,0 +1,6707 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT OpenCourseWare
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high-quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:18.140
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:18.140 --> 00:00:19.026
+at ocw.mit.edu.
+
+00:00:22.456 --> 00:00:24.300
+CHARLES LEISERSON: It
+is my great pleasure
+
+00:00:24.300 --> 00:00:31.320
+to welcome Jon Bentley,
+now retired from Bell Labs.
+
+00:00:31.320 --> 00:00:35.580
+Jon was my PhD thesis
+supervisor at Carnegie Mellon.
+
+00:00:35.580 --> 00:00:36.970
+I actually had two supervisors.
+
+00:00:36.970 --> 00:00:40.680
+The other one was HT Kung,
+who is now at Harvard.
+
+00:00:40.680 --> 00:00:43.650
+I guess people flee Carnegie
+Mellon like the plague
+
+00:00:43.650 --> 00:00:44.552
+or something.
+
+00:00:47.500 --> 00:00:51.360
+So Jon is, as you
+know because you've
+
+00:00:51.360 --> 00:00:59.100
+studied some of his work, is a
+pioneer in software performance
+
+00:00:59.100 --> 00:00:59.970
+engineering.
+
+00:00:59.970 --> 00:01:05.760
+And he's going to talk today
+about a particularly neat piece
+
+00:01:05.760 --> 00:01:08.940
+of algorithmic
+engineering sets that
+
+00:01:08.940 --> 00:01:13.260
+centers around the so-called
+traveling salesperson problem,
+
+00:01:13.260 --> 00:01:15.480
+which is an NP-hard problem.
+
+00:01:15.480 --> 00:01:17.970
+NP-complete problem in fact.
+
+00:01:17.970 --> 00:01:21.660
+And so, without further
+ado, Jon, why don't you
+
+00:01:21.660 --> 00:01:24.090
+tell us what you've got to say?
+
+00:01:24.090 --> 00:01:26.340
+JON BENTLEY: As
+Charles mentioned,
+
+00:01:26.340 --> 00:01:27.460
+I want to talk with you--
+
+00:01:27.460 --> 00:01:31.750
+I want to tell you a story
+about a cool problem.
+
+00:01:31.750 --> 00:01:34.860
+This is a problem that I first
+heard when I was a young nerd--
+
+00:01:34.860 --> 00:01:39.000
+not much older than this little
+pile of nerds in front of me--
+
+00:01:39.000 --> 00:01:42.120
+in high school, the traveling
+salesperson problem.
+
+00:01:42.120 --> 00:01:45.413
+Who here has heard of
+the TSP at some point?
+
+00:01:45.413 --> 00:01:47.580
+I heard about this in high
+school, one of the things
+
+00:01:47.580 --> 00:01:49.170
+you read about it
+in the math books.
+
+00:01:49.170 --> 00:01:52.710
+And a few years later, I
+had a chance to work on it.
+
+00:01:52.710 --> 00:01:55.080
+In 1980, I was doing
+some consulting,
+
+00:01:55.080 --> 00:01:59.230
+and I said, well, what you
+need to do is solve a TSP.
+
+00:01:59.230 --> 00:02:01.200
+Then I went home and
+realized that all
+
+00:02:01.200 --> 00:02:04.038
+of the stuff that I learned
+about it was sort of relevant
+
+00:02:04.038 --> 00:02:05.580
+but it didn't solve
+the problem, so I
+
+00:02:05.580 --> 00:02:08.280
+started working on it then.
+
+00:02:08.280 --> 00:02:11.287
+Our colleague,
+Christos Papadimitriou,
+
+00:02:11.287 --> 00:02:12.870
+who's been at Berkeley
+for a long time
+
+00:02:12.870 --> 00:02:14.580
+after being at a
+lot of other places,
+
+00:02:14.580 --> 00:02:18.490
+once told me the TSP
+is not a problem.
+
+00:02:18.490 --> 00:02:19.890
+It is an addiction.
+
+00:02:19.890 --> 00:02:24.150
+So I've been hooked for
+coming up on 40 years now.
+
+00:02:24.150 --> 00:02:27.730
+And I want to tell you one story
+about a really cool program I
+
+00:02:27.730 --> 00:02:28.230
+wrote.
+
+00:02:28.230 --> 00:02:30.460
+Because this is one of the--
+
+00:02:30.460 --> 00:02:33.540
+I've been paid to be a computer
+programmer for coming up
+
+00:02:33.540 --> 00:02:36.690
+on 50 years, since I've been
+doing it for 48 years now.
+
+00:02:36.690 --> 00:02:39.870
+This is probably the most
+fun, the coolest program
+
+00:02:39.870 --> 00:02:42.180
+I've written over a
+couple day period.
+
+00:02:42.180 --> 00:02:43.620
+I want to tell you a story.
+
+00:02:43.620 --> 00:02:46.410
+Start off with what
+recursive generation is.
+
+00:02:46.410 --> 00:02:48.810
+Then the TSP, what it is.
+
+00:02:48.810 --> 00:02:51.330
+Then I'll start
+with one program,
+
+00:02:51.330 --> 00:02:54.450
+and we'll make it faster
+and faster and faster.
+
+00:02:54.450 --> 00:02:56.910
+Again, I spend my whole
+life squeezing performance.
+
+00:02:56.910 --> 00:02:59.430
+This is the biggest
+squeeze ever.
+
+00:02:59.430 --> 00:03:01.800
+And then some
+principles behind that.
+
+00:03:01.800 --> 00:03:06.510
+We'll start, though,
+with how do you enumerate
+
+00:03:06.510 --> 00:03:09.330
+all the elements in a set?
+
+00:03:09.330 --> 00:03:10.770
+If I want to count--
+
+00:03:10.770 --> 00:03:13.950
+enumerate the guys between 1
+and a hundred, I just count.
+
+00:03:13.950 --> 00:03:15.060
+That's no big deal.
+
+00:03:15.060 --> 00:03:17.760
+But how can I, for
+instance, enumerate
+
+00:03:17.760 --> 00:03:23.130
+all subsets of the set from
+the integers from 1 to 5?
+
+00:03:23.130 --> 00:03:26.700
+How many subsets are there
+of integers from 1 to 5?
+
+00:03:26.700 --> 00:03:27.680
+AUDIENCE: 2 to the 5.
+
+00:03:27.680 --> 00:03:28.170
+JON BENTLEY: Pardon me?
+
+00:03:28.470 --> 00:03:29.520
+AUDIENCE: 2 to the 5.
+
+00:03:29.520 --> 00:03:32.095
+JON BENTLEY: 2 to the 5, 32.
+
+00:03:32.095 --> 00:03:33.720
+But how do you say
+which ones they are?
+
+00:03:33.720 --> 00:03:35.280
+How do you go through
+and count them?
+
+00:03:35.280 --> 00:03:40.220
+Well, you have to decide
+how you represent it.
+
+00:03:40.220 --> 00:03:43.470
+You guys know all about
+set representations.
+
+00:03:43.470 --> 00:03:46.890
+We'll stick with bit
+vectors for the time being.
+
+00:03:46.890 --> 00:03:49.770
+An iterative solution
+is you just count--
+
+00:03:49.770 --> 00:03:55.290
+0, 1, 2, 3, 4, 5, up to 31.
+
+00:03:55.290 --> 00:03:56.848
+That's pretty easy.
+
+00:03:56.848 --> 00:03:58.140
+But what does it mean to count?
+
+00:03:58.140 --> 00:04:02.400
+What does it mean to go from
+one integer to the next?
+
+00:04:02.400 --> 00:04:05.380
+How do you go from a given
+integer to the next one?
+
+00:04:05.380 --> 00:04:08.700
+What's the rule for that?
+
+00:04:08.700 --> 00:04:10.650
+It's pretty easy, actually.
+
+00:04:10.650 --> 00:04:14.760
+You just scan over all the
+0's, turning the-- you start
+
+00:04:14.760 --> 00:04:17.339
+at the right-hand side, the
+least significant digit,
+
+00:04:17.339 --> 00:04:21.694
+scan over all the
+0's, turn it to 1.
+
+00:04:21.694 --> 00:04:23.330
+Oh, I lied to you.
+
+00:04:23.330 --> 00:04:26.430
+You scan over all the
+1's, turning them to 0
+
+00:04:26.430 --> 00:04:28.620
+until you get to the first 0.
+
+00:04:28.620 --> 00:04:30.700
+And then you turn that to a 1.
+
+00:04:30.700 --> 00:04:32.490
+So this one goes to 10.
+
+00:04:32.490 --> 00:04:33.990
+This one goes to 11.
+
+00:04:33.990 --> 00:04:36.870
+This one goes-- that one
+becomes 0, that one becomes 0.
+
+00:04:36.870 --> 00:04:40.230
+Then it becomes 00100.
+
+00:04:40.230 --> 00:04:41.820
+So a pretty easy algorithm.
+
+00:04:41.820 --> 00:04:43.680
+You could do it that way.
+
+00:04:43.680 --> 00:04:46.470
+Just scan over all
+the 1's, turn them
+
+00:04:46.470 --> 00:04:49.290
+to 0's, take that first
+one and flip it around.
+
+00:04:49.290 --> 00:04:52.050
+But that doesn't
+generalize nicely.
+
+00:04:52.050 --> 00:04:54.940
+We're going to see a method
+that generalizes very nicely.
+
+00:04:54.940 --> 00:04:59.910
+This is a recursive
+solution to enumerate all 2
+
+00:04:59.910 --> 00:05:03.630
+to the n subsets
+of a set of size n.
+
+00:05:03.630 --> 00:05:09.420
+And the answer is this
+all sets of size m
+
+00:05:09.420 --> 00:05:12.510
+is just put a 0 at
+this end, enumerate
+
+00:05:12.510 --> 00:05:14.085
+all sets of size m minus 1.
+
+00:05:14.085 --> 00:05:16.290
+How many of these will there be?
+
+00:05:16.290 --> 00:05:17.550
+2 to the m minus 1.
+
+00:05:17.550 --> 00:05:19.425
+How many of those
+2 to the m minus 1?
+
+00:05:19.425 --> 00:05:20.535
+What do they add up to?
+
+00:05:20.535 --> 00:05:21.433
+2 to the m.
+
+00:05:21.433 --> 00:05:23.100
+But all of these have
+the 0 at that end,
+
+00:05:23.100 --> 00:05:24.585
+and the one at that end.
+
+00:05:24.585 --> 00:05:26.835
+Everyone see that recursive
+sketch and how that works?
+
+00:05:29.740 --> 00:05:32.410
+Here's the example.
+
+00:05:32.410 --> 00:05:35.150
+A period with 0's at this
+end and you fill it out.
+
+00:05:35.150 --> 00:05:37.155
+You have the 1 at that
+and you fill that out.
+
+00:05:37.155 --> 00:05:39.030
+If you do that, you
+notice that in fact we're
+
+00:05:39.030 --> 00:05:40.410
+just counting backwards--
+
+00:05:40.410 --> 00:05:47.610
+000, 001, 010, 3, 4, 5, 6, 7.
+
+00:05:47.610 --> 00:05:48.990
+That's the algorithm.
+
+00:05:48.990 --> 00:05:53.400
+And the cool thing is the
+code is really simple.
+
+00:05:53.400 --> 00:05:56.250
+I could probably write a program
+like that in most languages
+
+00:05:56.250 --> 00:05:58.110
+and get it correct.
+
+00:05:58.110 --> 00:06:02.400
+So if m equals 0 in generate
+all subsets of size m,
+
+00:06:02.400 --> 00:06:03.700
+this doesn't occur at 1.
+
+00:06:03.700 --> 00:06:05.590
+You have a pointer
+going down the array.
+
+00:06:05.590 --> 00:06:11.010
+Otherwise, set the
+rightmost bit to 0,
+
+00:06:11.010 --> 00:06:14.520
+generate all subsets
+recursively, set it to 1,
+
+00:06:14.520 --> 00:06:16.380
+do it again recursively.
+
+00:06:16.380 --> 00:06:18.870
+That's a starting program.
+
+00:06:18.870 --> 00:06:20.670
+If you understand
+this, everything else
+
+00:06:20.670 --> 00:06:22.390
+is going to be pretty
+straightforward.
+
+00:06:22.390 --> 00:06:26.040
+If you don't, please speak up.
+
+00:06:26.040 --> 00:06:31.290
+One thing that-- you
+people have suffered
+
+00:06:31.290 --> 00:06:36.990
+the tragedy of 14 or 15 or 16
+years of educational system
+
+00:06:36.990 --> 00:06:39.460
+that has sort of beaten
+the creativity out of you
+
+00:06:39.460 --> 00:06:41.435
+and you're afraid to speak up.
+
+00:06:41.435 --> 00:06:43.560
+So even if something-- even
+if I'm up here spouting
+
+00:06:43.560 --> 00:06:46.570
+total bullshit, you'll
+ignore that fact and just
+
+00:06:46.570 --> 00:06:48.810
+sort of politely
+stare at me and nod.
+
+00:06:48.810 --> 00:06:50.310
+But this is important.
+
+00:06:50.310 --> 00:06:51.650
+I want you to understand this.
+
+00:06:51.650 --> 00:06:56.970
+If you don't understand this,
+speak now or forever hold it.
+
+00:06:56.970 --> 00:06:58.960
+Anyone have any questions?
+
+00:06:58.960 --> 00:06:59.980
+Please, please.
+
+00:06:59.980 --> 00:07:02.460
+AUDIENCE: What does
+mean, [INAUDIBLE]??
+
+00:07:07.332 --> 00:07:08.290
+JON BENTLEY: I'm sorry.
+
+00:07:08.290 --> 00:07:09.790
+Why did we set p to the--
+
+00:07:09.790 --> 00:07:11.176
+AUDIENCE: [INAUDIBLE].
+
+00:07:14.410 --> 00:07:17.560
+JON BENTLEY: So here, first I
+go out to the extreme rightmost
+
+00:07:17.560 --> 00:07:18.820
+and I set it to 0.
+
+00:07:18.820 --> 00:07:20.500
+Then I recursively
+fill those in.
+
+00:07:20.500 --> 00:07:25.150
+Then I change it from a 0 to a 1
+there, and I fill all those in.
+
+00:07:25.150 --> 00:07:27.640
+So this is a program
+that will go through,
+
+00:07:27.640 --> 00:07:30.490
+and as it enumerates
+a subset, it
+
+00:07:30.490 --> 00:07:34.390
+will call the visit procedure
+a total of 2 to the m times,
+
+00:07:34.390 --> 00:07:36.760
+then it comes down to the
+bottom of the recursion.
+
+00:07:36.760 --> 00:07:38.210
+Thank you, great question.
+
+00:07:38.210 --> 00:07:41.080
+Any other questions
+about how this works?
+
+00:07:41.080 --> 00:07:44.080
+OK, we'll come back to this.
+
+00:07:44.080 --> 00:07:46.270
+The traveling
+salesperson problem.
+
+00:07:46.270 --> 00:07:47.560
+I apologize.
+
+00:07:50.230 --> 00:07:53.600
+I will really try to say the
+traveling salesperson problem,
+
+00:07:53.600 --> 00:07:56.080
+but I will slip because I
+was raised with this being
+
+00:07:56.080 --> 00:07:58.240
+the traveling salesman problem.
+
+00:07:58.240 --> 00:08:01.390
+No connotations, no
+intentionality there,
+
+00:08:01.390 --> 00:08:04.510
+just senility galloping along.
+
+00:08:04.510 --> 00:08:06.310
+It's a cool problem.
+
+00:08:06.310 --> 00:08:09.890
+Abraham Lincoln faced this
+very problem in the years
+
+00:08:09.890 --> 00:08:13.330
+1847 to 1853 when he--
+
+00:08:13.330 --> 00:08:16.420
+everyone here has heard
+of circuit courts?
+
+00:08:16.420 --> 00:08:19.542
+Why do they call
+them circuit courts?
+
+00:08:19.542 --> 00:08:21.250
+Because the court used
+to go out and ride
+
+00:08:21.250 --> 00:08:23.470
+a circuit to go to a
+whole bunch of cities.
+
+00:08:23.470 --> 00:08:25.570
+Now people in the cities
+come to the court.
+
+00:08:25.570 --> 00:08:29.200
+But back in the day, in
+1847 to 1853, Lincoln
+
+00:08:29.200 --> 00:08:31.720
+and all of his homies
+would hop on their horses--
+
+00:08:31.720 --> 00:08:34.929
+a judge, defense lawyers,
+prosecutors-- and go around
+
+00:08:34.929 --> 00:08:36.784
+and ride the circuit here.
+
+00:08:36.784 --> 00:08:39.159
+And so this is the actual
+route that they rode where they
+
+00:08:39.159 --> 00:08:41.520
+wanted to do this effectively.
+
+00:08:41.520 --> 00:08:44.800
+It would be really stupid
+to start here in Springfield
+
+00:08:44.800 --> 00:08:46.900
+and go over there,
+then to come back here,
+
+00:08:46.900 --> 00:08:48.880
+then to go over
+there back and forth.
+
+00:08:48.880 --> 00:08:51.670
+What they did was
+try to find a circuit
+
+00:08:51.670 --> 00:08:54.790
+that minimized the total
+amount of distance traveled.
+
+00:08:54.790 --> 00:08:57.200
+That is the traveling
+salesperson problem.
+
+00:08:57.200 --> 00:08:59.320
+We're given a set of n things.
+
+00:08:59.320 --> 00:09:00.760
+It might be a general graph.
+
+00:09:00.760 --> 00:09:02.630
+These happen to be in the plane.
+
+00:09:02.630 --> 00:09:06.550
+But you really-- helicopter
+service was really bad
+
+00:09:06.550 --> 00:09:09.190
+in those days, so they didn't
+fly there from point to point.
+
+00:09:09.190 --> 00:09:11.440
+Whether they stayed on roads,
+what really matters here
+
+00:09:11.440 --> 00:09:13.100
+is the graph embedded in here.
+
+00:09:13.100 --> 00:09:14.680
+I'm going to speak at this.
+
+00:09:14.680 --> 00:09:17.140
+Everything I say will
+be true for a graph.
+
+00:09:17.140 --> 00:09:19.210
+It will be true for geometry.
+
+00:09:19.210 --> 00:09:20.980
+I'll be sloppy about that.
+
+00:09:20.980 --> 00:09:23.710
+We'll see interfaces, how
+you handle both, but just cut
+
+00:09:23.710 --> 00:09:25.710
+me some slack for that.
+
+00:09:25.710 --> 00:09:31.060
+I have actually face this
+myself when I worked on a system
+
+00:09:31.060 --> 00:09:33.070
+where we had a big
+mechanical plotter
+
+00:09:33.070 --> 00:09:35.230
+and we wanted to draw
+these beautiful maps where
+
+00:09:35.230 --> 00:09:36.550
+the maps would fill in dots.
+
+00:09:36.550 --> 00:09:38.110
+They happened to be precincts.
+
+00:09:38.110 --> 00:09:40.810
+Some of them were red,
+some of them were blue.
+
+00:09:40.810 --> 00:09:43.510
+And you wanted to draw all the
+red dots first and go around
+
+00:09:43.510 --> 00:09:44.170
+here.
+
+00:09:44.170 --> 00:09:46.600
+And, in fact, the plotter
+would draw this red dot,
+
+00:09:46.600 --> 00:09:48.880
+then that red dot, then
+this one, then that one.
+
+00:09:48.880 --> 00:09:53.140
+The plotter took an
+hour to draw the map.
+
+00:09:53.140 --> 00:09:54.580
+I was consulted on this.
+
+00:09:54.580 --> 00:09:57.580
+Aha, you have a traveling
+salesperson problem.
+
+00:09:57.580 --> 00:09:58.150
+I went down.
+
+00:09:58.150 --> 00:10:02.170
+I reduced the length to about
+1/10 of the original length.
+
+00:10:02.170 --> 00:10:04.450
+If it took an hour before,
+how long would it take now?
+
+00:10:07.480 --> 00:10:09.610
+Well, it took
+about half an hour.
+
+00:10:09.610 --> 00:10:12.070
+And the reason is that the
+plotter took about half
+
+00:10:12.070 --> 00:10:15.250
+of its time moving around
+about, 30 minutes moving around,
+
+00:10:15.250 --> 00:10:17.980
+and about 30 minutes
+just drawing the symbols.
+
+00:10:17.980 --> 00:10:20.260
+I didn't reduce the time
+drawing the symbols at all,
+
+00:10:20.260 --> 00:10:22.360
+but I reduced the time
+moving things around
+
+00:10:22.360 --> 00:10:24.790
+from about 30 minutes
+to about 3 minutes.
+
+00:10:24.790 --> 00:10:26.270
+That was still a big difference.
+
+00:10:26.270 --> 00:10:28.090
+So I fixed it there.
+
+00:10:28.090 --> 00:10:29.830
+When I worked at
+Bell Labs, we had
+
+00:10:29.830 --> 00:10:32.100
+drills that would go
+around, laser drills,
+
+00:10:32.100 --> 00:10:34.330
+move around on printed
+circuit boards to drill holes.
+
+00:10:34.330 --> 00:10:37.060
+They wanted to move it that way
+
+00:10:37.060 --> 00:10:40.580
+I talked to people at
+General Motors at one point.
+
+00:10:40.580 --> 00:10:43.120
+On any day, they might
+have a thousand cars
+
+00:10:43.120 --> 00:10:45.340
+go through an assembly line.
+
+00:10:45.340 --> 00:10:49.090
+Some of the cars are red, some
+are white, some are green,
+
+00:10:49.090 --> 00:10:50.140
+some are yellow.
+
+00:10:50.140 --> 00:10:51.550
+You have to change the paint.
+
+00:10:51.550 --> 00:10:53.980
+Some of them have V6,
+some of them have V8.
+
+00:10:53.980 --> 00:10:56.830
+Some of them are two doors,
+some of them are four doors.
+
+00:10:56.830 --> 00:10:58.930
+In what order do you
+want to build those cars?
+
+00:10:58.930 --> 00:11:01.210
+Well, every time you
+change one part of the car,
+
+00:11:01.210 --> 00:11:03.160
+you have to change the line.
+
+00:11:03.160 --> 00:11:06.040
+And what you want
+to do is examine,
+
+00:11:06.040 --> 00:11:09.130
+as it were, all n factorial
+permutations of putting
+
+00:11:09.130 --> 00:11:12.250
+the cars through and choose
+the one that involves
+
+00:11:12.250 --> 00:11:14.710
+the minimum amount of change.
+
+00:11:14.710 --> 00:11:17.500
+And the change from
+one car to another
+
+00:11:17.500 --> 00:11:19.030
+is a well-defined function.
+
+00:11:19.030 --> 00:11:23.770
+Everyone see how that
+weird TSP is in fact a TSP?
+
+00:11:23.770 --> 00:11:27.970
+So all of these
+are cool problems.
+
+00:11:27.970 --> 00:11:31.540
+Furthermore, as a
+computer scientist,
+
+00:11:31.540 --> 00:11:34.300
+it's the prototypical problem.
+
+00:11:34.300 --> 00:11:40.660
+It's the E. coli of
+algorithmic problems.
+
+00:11:40.660 --> 00:11:43.120
+It was literally one
+of the first problems
+
+00:11:43.120 --> 00:11:45.040
+to be proven to be NP-hard.
+
+00:11:45.040 --> 00:11:50.700
+Held-Karp gave a polynomial
+time algorithm for it.
+
+00:11:50.700 --> 00:11:52.540
+There are approximation
+algorithms of this.
+
+00:11:52.540 --> 00:11:54.820
+Kernighan-Lin have
+given heuristics.
+
+00:11:54.820 --> 00:11:56.800
+It's a really famous problem.
+
+00:11:56.800 --> 00:11:57.760
+It's worth studying.
+
+00:12:00.950 --> 00:12:03.140
+But here is what
+really happened to me.
+
+00:12:03.140 --> 00:12:04.970
+Here's why I'm standing
+in front of you
+
+00:12:04.970 --> 00:12:06.440
+today talking about this.
+
+00:12:06.440 --> 00:12:11.240
+My friend Mike Shamos,
+in his 1978 PhD thesis
+
+00:12:11.240 --> 00:12:13.605
+on computational
+geometry, talked
+
+00:12:13.605 --> 00:12:14.730
+about a number of problems.
+
+00:12:14.730 --> 00:12:16.810
+One of them was the TSP.
+
+00:12:16.810 --> 00:12:20.460
+And he shows us and he gives
+an example of this tour.
+
+00:12:20.460 --> 00:12:22.620
+He says, here's a
+set of 16 points.
+
+00:12:22.620 --> 00:12:24.230
+Here's a tour through them.
+
+00:12:24.230 --> 00:12:26.360
+Here's a traveling
+salesperson tour through them.
+
+00:12:26.360 --> 00:12:29.750
+And then he says in
+a footnote, in fact,
+
+00:12:29.750 --> 00:12:32.060
+I'm not sure if it's
+a really optimal tour.
+
+00:12:32.060 --> 00:12:34.070
+I applied a heuristic
+several times.
+
+00:12:34.070 --> 00:12:37.460
+I'm not positive it's
+the shortest tour.
+
+00:12:37.460 --> 00:12:39.920
+If you wrote a
+thesis, it would be
+
+00:12:39.920 --> 00:12:42.890
+sort of nice to know
+what's going on there.
+
+00:12:42.890 --> 00:12:45.650
+Can you solve a
+problem that was--
+
+00:12:45.650 --> 00:12:48.020
+this tiny little
+16-element problem,
+
+00:12:48.020 --> 00:12:49.790
+16 points in the plane.
+
+00:12:49.790 --> 00:12:53.180
+Can you really figure out
+what the TSP is to that?
+
+00:12:53.180 --> 00:12:57.560
+At the time, my colleague, our
+colleague, a really smart guy,
+
+00:12:57.560 --> 00:12:58.190
+couldn't do it.
+
+00:12:58.190 --> 00:13:01.610
+It was computationally
+beyond the bounds for him.
+
+00:13:01.610 --> 00:13:05.030
+Well, in 1997 I
+came back to this,
+
+00:13:05.030 --> 00:13:08.480
+and I really wondered
+is it possible now?
+
+00:13:08.480 --> 00:13:10.922
+Computers are a whole lot
+faster in the 20 years.
+
+00:13:10.922 --> 00:13:12.630
+We were talking about
+that earlier today.
+
+00:13:12.630 --> 00:13:14.690
+20 years, computers got faster.
+
+00:13:14.690 --> 00:13:16.070
+A lot of things got better.
+
+00:13:16.070 --> 00:13:17.780
+Have things changed
+enough so I can
+
+00:13:17.780 --> 00:13:20.678
+write a quick little
+program to solve this?
+
+00:13:20.678 --> 00:13:21.220
+I don't know.
+
+00:13:21.220 --> 00:13:23.150
+We'll see.
+
+00:13:23.150 --> 00:13:23.690
+I did that.
+
+00:13:23.690 --> 00:13:25.620
+I talked about it.
+
+00:13:25.620 --> 00:13:28.700
+I gave a talk at Lehigh
+University 20 years ago.
+
+00:13:28.700 --> 00:13:29.300
+They liked it.
+
+00:13:29.300 --> 00:13:31.490
+They incorporated it
+into an algorithms class.
+
+00:13:31.490 --> 00:13:34.730
+The same professor gave it
+time and time and time again.
+
+00:13:34.730 --> 00:13:36.230
+Eventually, he retired.
+
+00:13:36.230 --> 00:13:39.470
+They asked me to come over
+and give this talk to them.
+
+00:13:39.470 --> 00:13:41.870
+I can't give a talk about
+20-year-old material.
+
+00:13:41.870 --> 00:13:43.620
+Computer science
+doesn't work that way.
+
+00:13:43.620 --> 00:13:46.070
+So I coded things.
+
+00:13:46.070 --> 00:13:48.640
+I wanted to see how things
+changed in two years.
+
+00:13:48.640 --> 00:13:50.660
+So this talk is about
+a lot of things,
+
+00:13:50.660 --> 00:13:53.270
+but especially it's
+about how has performance
+
+00:13:53.270 --> 00:13:55.057
+changed in 40 years.
+
+00:13:55.057 --> 00:13:56.640
+So that's one of the
+reasons we were--
+
+00:13:56.640 --> 00:14:00.515
+one of things we were
+talking about earlier today.
+
+00:14:00.515 --> 00:14:02.390
+I could give a bunch of
+titles for this talk.
+
+00:14:02.390 --> 00:14:04.825
+For you, the title
+I give is a sampler
+
+00:14:04.825 --> 00:14:06.830
+of performance engineering.
+
+00:14:06.830 --> 00:14:10.550
+It could be-- next week
+I'll give it at Lehigh.
+
+00:14:10.550 --> 00:14:12.898
+This is their final class in--
+
+00:14:12.898 --> 00:14:15.440
+one of their final classes in
+algorithms and data structures.
+
+00:14:15.440 --> 00:14:17.690
+I'm going to try to tie
+everything they learn together.
+
+00:14:17.690 --> 00:14:19.190
+It could be all
+these other things--
+
+00:14:19.190 --> 00:14:22.700
+implementing algorithms, a
+lot of recursive generation,
+
+00:14:22.700 --> 00:14:24.510
+applying algorithms, really--
+
+00:14:27.410 --> 00:14:29.510
+Charles is a fancy
+dancy academic.
+
+00:14:29.510 --> 00:14:32.030
+He's a professor at the
+Massachusetts Institute
+
+00:14:32.030 --> 00:14:32.990
+of Technology.
+
+00:14:32.990 --> 00:14:35.180
+I'm just a poor dumb
+computer programmer,
+
+00:14:35.180 --> 00:14:38.180
+but boy this is a fun program.
+
+00:14:38.180 --> 00:14:41.390
+What it is not is it's not
+state-of-the-art TSP algorithm.
+
+00:14:41.390 --> 00:14:43.940
+People have studied the problem
+for well over a century.
+
+00:14:43.940 --> 00:14:45.530
+They have beautiful algorithms.
+
+00:14:45.530 --> 00:14:47.030
+I am not going to
+tell you about any
+
+00:14:47.030 --> 00:14:48.920
+of those algorithms
+for the simple reason
+
+00:14:48.920 --> 00:14:51.200
+that I don't know them.
+
+00:14:51.200 --> 00:14:54.020
+I could look them up in books,
+but I've never really lived
+
+00:14:54.020 --> 00:14:55.940
+the fancy state-of-the-art
+algorithms.
+
+00:14:55.940 --> 00:14:58.700
+And I'm also going to just
+show you getting the answer.
+
+00:14:58.700 --> 00:14:59.660
+I could analyze it.
+
+00:14:59.660 --> 00:15:01.190
+I've analyzed much of these.
+
+00:15:01.190 --> 00:15:04.050
+If I had another hour or
+three, I could do the analysis.
+
+00:15:04.050 --> 00:15:07.280
+But I can't, so I'm
+just going to do the--
+
+00:15:07.280 --> 00:15:12.240
+show you some anecdotal speeds
+without really the analysis.
+
+00:15:12.240 --> 00:15:14.390
+Let's talk about some programs.
+
+00:15:14.390 --> 00:15:16.340
+A simple C program.
+
+00:15:16.340 --> 00:15:19.690
+MAXN is a maximum
+number, n int is going
+
+00:15:19.690 --> 00:15:21.410
+to be n, the number of cities.
+
+00:15:21.410 --> 00:15:23.630
+I'm going to have a
+permutation vector, where
+
+00:15:23.630 --> 00:15:27.740
+if I have the tour going
+from city 1 to 7 to 3 to 4,
+
+00:15:27.740 --> 00:15:31.770
+it says 1734.
+
+00:15:31.770 --> 00:15:33.580
+The distance between
+cities is going
+
+00:15:33.580 --> 00:15:35.450
+to be given by a
+distance function.
+
+00:15:35.450 --> 00:15:38.160
+There is this
+distance d of i, j,
+
+00:15:38.160 --> 00:15:41.630
+the distance from
+city i to city j.
+
+00:15:41.630 --> 00:15:43.590
+Here's the first algorithm.
+
+00:15:43.590 --> 00:15:47.780
+What I'm going to do is generate
+all intact real permutations,
+
+00:15:47.780 --> 00:15:50.420
+look at them, and
+find the best one.
+
+00:15:50.420 --> 00:15:53.750
+It's not rocket science.
+
+00:15:53.750 --> 00:15:56.150
+The way I'm going to do
+this is a recursive function
+
+00:15:56.150 --> 00:15:57.290
+where I happened--
+
+00:15:57.290 --> 00:16:00.920
+I could have done it
+from left to right.
+
+00:16:00.920 --> 00:16:02.450
+I am a C programmer.
+
+00:16:02.450 --> 00:16:04.970
+I always count down towards 0.
+
+00:16:04.970 --> 00:16:08.110
+So I'm going to count down that
+way, where all of these cities
+
+00:16:08.110 --> 00:16:08.860
+are already fixed.
+
+00:16:08.860 --> 00:16:10.580
+I'm going to permute these.
+
+00:16:10.580 --> 00:16:12.530
+Here's the program.
+
+00:16:12.530 --> 00:16:15.770
+To search for m--
+
+00:16:15.770 --> 00:16:17.600
+all of these have
+already been fixed.
+
+00:16:17.600 --> 00:16:20.580
+What I'm going to do is if
+m equals 1, then I check it.
+
+00:16:20.580 --> 00:16:24.530
+Otherwise, for i equals 0 up
+to m, for each value from 0
+
+00:16:24.530 --> 00:16:27.320
+to minus 1, I take
+the ith element.
+
+00:16:27.320 --> 00:16:28.640
+I swap it.
+
+00:16:28.640 --> 00:16:31.520
+swap 3, 7 takes the third
+and seventh positions
+
+00:16:31.520 --> 00:16:32.780
+and swaps them.
+
+00:16:32.780 --> 00:16:34.640
+I swap that to the final thing.
+
+00:16:34.640 --> 00:16:36.220
+I call it recursively.
+
+00:16:36.220 --> 00:16:40.400
+I then swap it back to leave
+it in exactly the same state I
+
+00:16:40.400 --> 00:16:42.380
+found it, and I continue.
+
+00:16:42.380 --> 00:16:47.900
+So here it's going to generate,
+first, all nine permuta--
+
+00:16:47.900 --> 00:16:50.060
+put all nine digits
+in the last position.
+
+00:16:50.060 --> 00:16:52.130
+Then for each one
+of those, I'll put
+
+00:16:52.130 --> 00:16:55.760
+all eight digits in the last
+position, and go on down.
+
+00:16:55.760 --> 00:16:59.210
+This is really interesting,
+important, and subtle.
+
+00:16:59.210 --> 00:17:01.650
+If you don't follow this part,
+it's going to be difficult.
+
+00:17:01.650 --> 00:17:04.200
+Are there any questions
+at all about this?
+
+00:17:04.200 --> 00:17:06.599
+Have I lied to you
+yet about this?
+
+00:17:06.599 --> 00:17:08.383
+You're honest enough
+to tell me if I have.
+
+00:17:08.383 --> 00:17:09.300
+AUDIENCE: You're good.
+
+00:17:09.300 --> 00:17:10.258
+JON BENTLEY: Thank you.
+
+00:17:10.258 --> 00:17:13.085
+Anyone else?
+
+00:17:13.085 --> 00:17:15.272
+AUDIENCE: [INAUDIBLE].
+
+00:17:15.272 --> 00:17:16.230
+JON BENTLEY: I'm sorry.
+
+00:17:16.230 --> 00:17:16.589
+Please.
+
+00:17:16.589 --> 00:17:17.256
+AUDIENCE: Sorry.
+
+00:17:17.256 --> 00:17:20.444
+I'm not really understanding
+the part that's fixed
+
+00:17:20.444 --> 00:17:23.819
+and what you're permuting,
+and why is that hard to fix.
+
+00:17:23.819 --> 00:17:27.290
+JON BENTLEY: So, so far,
+as I recur down with--
+
+00:17:27.290 --> 00:17:29.980
+as m moves down,
+all these are fixed.
+
+00:17:29.980 --> 00:17:31.410
+So I'm going to
+fix these things,
+
+00:17:31.410 --> 00:17:34.230
+and then I'm going to take
+care of all these later.
+
+00:17:34.230 --> 00:17:37.390
+So, originally, I'm going
+to have this array be
+
+00:17:37.390 --> 00:17:40.960
+0-- if I have a nine-city TSP,
+it will be 0, 1 2, 3, 4, 5, 6,
+
+00:17:40.960 --> 00:17:42.120
+7, 8, 9.
+
+00:17:42.120 --> 00:17:45.930
+And first I put 0 in
+the end and do the rest.
+
+00:17:45.930 --> 00:17:48.330
+Then I put 1 in the end,
+[INAUDIBLE] 9 in the end,
+
+00:17:48.330 --> 00:17:49.770
+and recur down.
+
+00:17:49.770 --> 00:17:52.650
+But as the program
+is progressing,
+
+00:17:52.650 --> 00:17:54.690
+if you stop the
+program at any time
+
+00:17:54.690 --> 00:17:56.430
+and look at a glance
+at the program,
+
+00:17:56.430 --> 00:18:00.450
+you can see that, given the
+value of m, this parameter,
+
+00:18:00.450 --> 00:18:02.880
+the recursive function.
+
+00:18:02.880 --> 00:18:04.740
+So this is a way
+that I'm essentially
+
+00:18:04.740 --> 00:18:07.560
+building this tree where
+at the top of the tree
+
+00:18:07.560 --> 00:18:09.120
+the branching factor is 9.
+
+00:18:09.120 --> 00:18:11.162
+At each of those nine
+nodes, the branching factor
+
+00:18:11.162 --> 00:18:13.280
+is 8, then 7 and 6.
+
+00:18:13.280 --> 00:18:15.710
+It's going to be a big tree.
+
+00:18:15.710 --> 00:18:18.780
+If n is 10, how big is
+that tree going to be?
+
+00:18:18.780 --> 00:18:19.980
+What's 10 factorial?
+
+00:18:23.300 --> 00:18:26.010
+Pardon me?
+
+00:18:26.010 --> 00:18:28.380
+When I was a nerd,
+we used to try
+
+00:18:28.380 --> 00:18:31.260
+to impress people of
+appropriate genders
+
+00:18:31.260 --> 00:18:37.320
+by going off saying
+things like 3628800.
+
+00:18:37.320 --> 00:18:41.580
+You can probably guess
+how effective that was.
+
+00:18:41.580 --> 00:18:43.710
+So 3.6 million.
+
+00:18:43.710 --> 00:18:44.910
+It's going to be a big tree.
+
+00:18:44.910 --> 00:18:47.560
+Any questions about that?
+
+00:18:47.560 --> 00:18:49.680
+Let's go.
+
+00:18:49.680 --> 00:18:52.470
+When I check things, I
+just compute the sum there.
+
+00:18:52.470 --> 00:18:54.750
+I start off with the sum
+being the distance from 0
+
+00:18:54.750 --> 00:18:55.583
+to p n minus first.
+
+00:18:55.583 --> 00:18:57.750
+Then I go through and add
+up all the pairwise things
+
+00:18:57.750 --> 00:18:58.650
+and save it.
+
+00:18:58.650 --> 00:18:59.910
+What does it mean to say it?
+
+00:18:59.910 --> 00:19:02.520
+If the sum is less than
+the minimum sum so far,
+
+00:19:02.520 --> 00:19:05.040
+I just copy those over,
+change the minsum.
+
+00:19:05.040 --> 00:19:08.430
+And to solve the whole thing,
+I do a search of size n.
+
+00:19:08.430 --> 00:19:11.422
+This is a simple but
+powerful recursive program.
+
+00:19:11.422 --> 00:19:13.380
+You should all feel very
+comfortable with this.
+
+00:19:17.010 --> 00:19:17.760
+Is it correct?
+
+00:19:17.760 --> 00:19:20.790
+Does it work?
+
+00:19:20.790 --> 00:19:22.260
+Is it possible to
+write a program
+
+00:19:22.260 --> 00:19:25.290
+with about two dozen
+lines of code that works?
+
+00:19:25.290 --> 00:19:26.230
+Not the first time.
+
+00:19:26.230 --> 00:19:29.100
+But after you get rid of a few
+syntax errors, you check it.
+
+00:19:29.100 --> 00:19:31.530
+How do you make sure it works?
+
+00:19:31.530 --> 00:19:34.442
+I start with n equals
+3, and I put 3.
+
+00:19:34.442 --> 00:19:35.400
+Does it give me a tour?
+
+00:19:35.400 --> 00:19:36.425
+Well, it works.
+
+00:19:36.425 --> 00:19:37.050
+Think about it.
+
+00:19:37.050 --> 00:19:40.350
+For 3, 3 factorial,
+they're all the same tour.
+
+00:19:40.350 --> 00:19:41.580
+That part wasn't hard.
+
+00:19:41.580 --> 00:19:44.550
+4, now that's interesting.
+
+00:19:44.550 --> 00:19:45.870
+That one works too.
+
+00:19:45.870 --> 00:19:47.310
+This program, in fact, can work.
+
+00:19:51.710 --> 00:19:54.710
+Is it going to be
+a fast program?
+
+00:19:54.710 --> 00:19:57.482
+How long will it
+take if n equals 10?
+
+00:19:57.482 --> 00:19:58.190
+How many seconds?
+
+00:20:01.490 --> 00:20:02.120
+I'm sorry.
+
+00:20:02.120 --> 00:20:04.020
+What class have I stumbled into?
+
+00:20:04.020 --> 00:20:08.390
+Is this in fact Greek Art 303?
+
+00:20:08.390 --> 00:20:10.954
+How long will this
+take for n equals 10?
+
+00:20:10.954 --> 00:20:11.930
+AUDIENCE: [INAUDIBLE].
+
+00:20:11.930 --> 00:20:13.350
+JON BENTLEY: Pardon me?
+
+00:20:13.350 --> 00:20:14.350
+AUDIENCE: 1 second.
+
+00:20:14.350 --> 00:20:16.060
+JON BENTLEY: About a second.
+
+00:20:16.060 --> 00:20:17.480
+Pretty cool.
+
+00:20:17.480 --> 00:20:19.120
+For equal 20, how
+long will it take?
+
+00:20:24.110 --> 00:20:25.490
+A lot longer.
+
+00:20:25.490 --> 00:20:29.103
+Technically speaking, it's
+going to take a boatload longer.
+
+00:20:29.103 --> 00:20:30.770
+So what I'm going to
+do here is-- notice
+
+00:20:30.770 --> 00:20:32.840
+that there are n
+factorial permutations.
+
+00:20:32.840 --> 00:20:35.780
+You do n of those at
+each, total of that,
+
+00:20:35.780 --> 00:20:40.220
+on this fairly fast laptop
+from a few years ago.
+
+00:20:40.220 --> 00:20:43.970
+But now they're
+all about the same.
+
+00:20:43.970 --> 00:20:46.490
+At 8 seconds, it took that.
+
+00:20:46.490 --> 00:20:49.430
+At 9 seconds, what should
+be the ratio-- what would
+
+00:20:49.430 --> 00:20:51.500
+you expect to be the ratio
+between its time at 8
+
+00:20:51.500 --> 00:20:54.650
+and time at 9?
+
+00:20:54.650 --> 00:20:56.430
+Well, about a factor
+of 9, you'd hope.
+
+00:20:56.430 --> 00:20:58.906
+Is 0.5 times 9 about 0.34?
+
+00:20:58.906 --> 00:21:01.820
+Yes, close enough.
+
+00:21:01.820 --> 00:21:08.450
+Here, going down, for 10
+it's 4 seconds, 46 seconds.
+
+00:21:08.450 --> 00:21:10.220
+Yes, it's going up by a factor--
+
+00:21:10.220 --> 00:21:12.470
+so here I've run
+all my examples.
+
+00:21:12.470 --> 00:21:14.660
+I ran out to 1
+minute of CPU time.
+
+00:21:14.660 --> 00:21:16.010
+After that, I estimate.
+
+00:21:16.010 --> 00:21:18.290
+If this one takes
+3/4 of a minute,
+
+00:21:18.290 --> 00:21:20.050
+12 times that is 12 minutes--
+
+00:21:20.050 --> 00:21:23.120
+3/4 of that is 9 minutes.
+
+00:21:23.120 --> 00:21:24.960
+For 13, it's 2 hours.
+
+00:21:24.960 --> 00:21:26.580
+How long should
+14 take, ballpark?
+
+00:21:31.440 --> 00:21:33.360
+A day, ballpark.
+
+00:21:33.360 --> 00:21:36.046
+How long will 15 take
+if 14 takes a day?
+
+00:21:36.046 --> 00:21:37.040
+AUDIENCE: Two weeks.
+
+00:21:37.040 --> 00:21:37.998
+JON BENTLEY: Two weeks.
+
+00:21:37.998 --> 00:21:41.320
+How long will 16 take?
+
+00:21:41.320 --> 00:21:42.850
+Eight months.
+
+00:21:42.850 --> 00:21:43.600
+You get the idea.
+
+00:21:43.600 --> 00:21:45.040
+Are you going to go
+out to 20 for this one?
+
+00:21:45.040 --> 00:21:45.577
+No.
+
+00:21:45.577 --> 00:21:47.410
+Are you going to go out
+to 16 with this one?
+
+00:21:47.410 --> 00:21:50.380
+Can you just put this
+into a thesis right now?
+
+00:21:50.380 --> 00:21:51.190
+No.
+
+00:21:51.190 --> 00:21:54.650
+The problem is it's fast for
+really small values of n.
+
+00:21:54.650 --> 00:21:57.370
+As it becomes bigger--
+
+00:21:57.370 --> 00:22:00.330
+how can you make
+the program faster?
+
+00:22:00.330 --> 00:22:02.080
+If you wanted to make
+this program faster,
+
+00:22:02.080 --> 00:22:02.860
+what would you do?
+
+00:22:02.860 --> 00:22:03.640
+What are some ideas?
+
+00:22:03.640 --> 00:22:04.765
+Give me some ideas, please.
+
+00:22:04.765 --> 00:22:06.220
+This is performance engineering.
+
+00:22:06.220 --> 00:22:07.300
+You should know this.
+
+00:22:07.300 --> 00:22:09.580
+Ideas for making it faster.
+
+00:22:09.580 --> 00:22:10.551
+Please.
+
+00:22:10.551 --> 00:22:12.435
+AUDIENCE: You can start
+with arbitrary nodes.
+
+00:22:12.435 --> 00:22:18.090
+So if you take the tour, you
+can start anywhere, right?
+
+00:22:18.090 --> 00:22:19.380
+JON BENTLEY: OK.
+
+00:22:19.380 --> 00:22:27.240
+So you're saying
+just choose one start
+
+00:22:27.240 --> 00:22:29.550
+and ignore that,
+ignore all the others.
+
+00:22:29.550 --> 00:22:31.350
+You don't need to take
+each random start.
+
+00:22:31.350 --> 00:22:32.360
+Fantastic.
+
+00:22:32.360 --> 00:22:33.750
+A factor of n.
+
+00:22:33.750 --> 00:22:36.017
+My friend in the gray T-shirt
+just got a factor of n.
+
+00:22:36.017 --> 00:22:37.350
+How else can you make it faster?
+
+00:22:37.350 --> 00:22:38.308
+What ideas do you have?
+
+00:22:40.870 --> 00:22:42.196
+Please.
+
+00:22:42.196 --> 00:22:45.670
+AUDIENCE: You can
+start by the distance,
+
+00:22:45.670 --> 00:22:52.000
+and then reject things
+that were [INAUDIBLE]..
+
+00:22:52.000 --> 00:22:54.130
+JON BENTLEY: Be greedy.
+
+00:22:54.130 --> 00:22:55.630
+Follow the pig principle.
+
+00:22:55.630 --> 00:22:57.610
+If it feels good, do it.
+
+00:22:57.610 --> 00:23:00.075
+Do just local optimization.
+
+00:23:00.075 --> 00:23:01.450
+We'll get to that
+in a long time,
+
+00:23:01.450 --> 00:23:03.340
+but, boy, would that be
+a powerful technique.
+
+00:23:03.340 --> 00:23:04.462
+Other ideas, please?
+
+00:23:04.462 --> 00:23:05.920
+AUDIENCE: Parallelize
+[INAUDIBLE]..
+
+00:23:05.920 --> 00:23:07.540
+JON BENTLEY: Ah.
+
+00:23:07.540 --> 00:23:08.777
+Parallelize.
+
+00:23:08.777 --> 00:23:11.110
+I would write that out, but
+the first I would have to do
+
+00:23:11.110 --> 00:23:14.110
+is remember how many R's and
+L's there are in various places.
+
+00:23:14.110 --> 00:23:16.180
+So I'll write that much.
+
+00:23:16.180 --> 00:23:18.020
+But we'll have a comment
+on that at the end.
+
+00:23:18.020 --> 00:23:18.770
+People tried that.
+
+00:23:18.770 --> 00:23:19.327
+Sir?
+
+00:23:19.327 --> 00:23:20.494
+AUDIENCE: Clock the machine.
+
+00:23:20.494 --> 00:23:23.940
+[STUDENTS LAUGH]
+
+00:23:23.940 --> 00:23:26.250
+JON BENTLEY: Unlike you,
+Charles and I, at one point,
+
+00:23:26.250 --> 00:23:30.020
+attended a real
+engineering school
+
+00:23:30.020 --> 00:23:32.795
+at Carnegie Mellon,
+formerly known as CIT,
+
+00:23:32.795 --> 00:23:34.170
+Carnegie Institute
+of Technology.
+
+00:23:34.170 --> 00:23:35.902
+Charles, do you
+remember the cheer?
+
+00:23:35.902 --> 00:23:37.110
+CHARLES LEISERSON: The cheer?
+
+00:23:37.110 --> 00:23:37.680
+JON BENTLEY: The cheer.
+
+00:23:37.680 --> 00:23:39.555
+CHARLES LEISERSON: I
+don't know how to cheer.
+
+00:23:39.555 --> 00:23:43.470
+JON BENTLEY: 3.14159,
+tangent, secant, cosine, sine.
+
+00:23:43.470 --> 00:23:45.195
+Square root, cube
+root, log of e.
+
+00:23:45.195 --> 00:23:48.720
+Water-cooled slipstick, CIT.
+
+00:23:48.720 --> 00:23:50.603
+What's a water-cooled slipstick?
+
+00:23:50.603 --> 00:23:51.520
+AUDIENCE: [INAUDIBLE].
+
+00:23:51.520 --> 00:23:53.573
+JON BENTLEY: Pardon me?
+
+00:23:53.573 --> 00:23:54.490
+AUDIENCE: [INAUDIBLE].
+
+00:23:54.490 --> 00:23:56.800
+JON BENTLEY: It's a slide
+rule that you run so fast.
+
+00:23:56.800 --> 00:23:58.050
+It has to be water-cooled.
+
+00:23:58.050 --> 00:24:00.390
+So if you can just
+overclock the machine,
+
+00:24:00.390 --> 00:24:02.490
+just spray it with
+a garden hose.
+
+00:24:02.490 --> 00:24:05.910
+And as long as it makes
+over the finish line,
+
+00:24:05.910 --> 00:24:08.490
+you don't care if it
+dies when it collapses.
+
+00:24:08.490 --> 00:24:10.933
+So, sure, you can
+get faster machines.
+
+00:24:10.933 --> 00:24:11.850
+We'll talk about that.
+
+00:24:15.513 --> 00:24:16.930
+How else can you
+make this faster?
+
+00:24:21.840 --> 00:24:23.847
+Other ideas?
+
+00:24:23.847 --> 00:24:24.930
+These are all great ideas.
+
+00:24:24.930 --> 00:24:27.210
+We'll try it.
+
+00:24:27.210 --> 00:24:30.360
+Let's see some ideas.
+
+00:24:30.360 --> 00:24:32.100
+Compiler optimizations.
+
+00:24:32.100 --> 00:24:34.890
+I just said gcc and I ran it.
+
+00:24:34.890 --> 00:24:38.430
+What should I have said instead?
+
+00:24:38.430 --> 00:24:41.338
+Instead of just gcc?
+
+00:24:41.338 --> 00:24:42.310
+AUDIENCE: O3.
+
+00:24:42.310 --> 00:24:43.702
+JON BENTLEY: O3.
+
+00:24:43.702 --> 00:24:45.160
+How much difference
+will that make?
+
+00:24:48.360 --> 00:24:50.070
+I used to know the
+answers to all these.
+
+00:24:50.070 --> 00:24:52.650
+[INAUDIBLE] turn on
+optimization, 10%.
+
+00:24:52.650 --> 00:24:55.980
+Sometimes,
+whoopee-freaking-do, 15%.
+
+00:24:55.980 --> 00:25:00.240
+Does turning on O3 still
+make it a 15% difference?
+
+00:25:00.240 --> 00:25:01.560
+We'll see.
+
+00:25:01.560 --> 00:25:02.650
+You could do that.
+
+00:25:02.650 --> 00:25:03.900
+A faster hardware.
+
+00:25:03.900 --> 00:25:05.260
+I did this 20 years ago.
+
+00:25:05.260 --> 00:25:06.870
+I had all that number there.
+
+00:25:06.870 --> 00:25:08.580
+I'll show you some
+of those numbers.
+
+00:25:08.580 --> 00:25:09.810
+Modify the C code.
+
+00:25:09.810 --> 00:25:11.487
+We'll talk about
+all those options,
+
+00:25:11.487 --> 00:25:13.320
+but let's start with
+compiler optimizations.
+
+00:25:13.320 --> 00:25:15.450
+With no options there--
+how much faster will
+
+00:25:15.450 --> 00:25:17.083
+it be if I turn on optimization?
+
+00:25:17.083 --> 00:25:18.750
+This is a performance
+engineering class.
+
+00:25:18.750 --> 00:25:19.770
+You should know that thing.
+
+00:25:19.770 --> 00:25:20.687
+Does it matter at all?
+
+00:25:20.687 --> 00:25:22.020
+Is it going to be 15%?
+
+00:25:22.020 --> 00:25:23.580
+Is it going to
+not matter at all?
+
+00:25:23.580 --> 00:25:25.852
+How much will it matter
+to turn on optimization?
+
+00:25:25.852 --> 00:25:27.270
+AUDIENCE: [INAUDIBLE] a lot.
+
+00:25:27.270 --> 00:25:30.420
+JON BENTLEY: How much is a lot?
+
+00:25:30.420 --> 00:25:33.450
+I know this isn't the real
+engineering school of CIT,
+
+00:25:33.450 --> 00:25:35.548
+but pretend like this
+is kind of a semi--
+
+00:25:35.548 --> 00:25:36.840
+one of the engineering schools.
+
+00:25:36.840 --> 00:25:38.010
+Give me a number for this.
+
+00:25:38.010 --> 00:25:39.150
+AUDIENCE: More than 15%.
+
+00:25:39.150 --> 00:25:42.780
+JON BENTLEY: More than 15%
+Do I hear more than 16%?
+
+00:25:42.780 --> 00:25:44.580
+I was surprised.
+
+00:25:44.580 --> 00:25:49.560
+If I enabled O3, it went
+from 4 seconds to 12--
+
+00:25:49.560 --> 00:25:50.790
+I couldn't even time it here.
+
+00:25:50.790 --> 00:25:52.165
+It wasn't enough
+to time it here.
+
+00:25:52.165 --> 00:25:54.230
+45 seconds to 1.6 seconds.
+
+00:25:54.230 --> 00:25:56.070
+I can get real times down there.
+
+00:25:56.070 --> 00:25:59.610
+I observed, ballpark here,
+about a factor of 25.
+
+00:26:02.130 --> 00:26:05.100
+Holy tamale.
+
+00:26:05.100 --> 00:26:07.530
+On a Raspberry Pi, it
+was only a factor of 6,
+
+00:26:07.530 --> 00:26:10.380
+and on other machines it was
+somewhere between the two.
+
+00:26:10.380 --> 00:26:12.150
+Turning on optimization
+really matters.
+
+00:26:12.150 --> 00:26:14.010
+Enabling that really matters.
+
+00:26:14.010 --> 00:26:16.780
+For now on, I'm only going to
+show you full optimization.
+
+00:26:16.780 --> 00:26:17.910
+It's cheating not to.
+
+00:26:17.910 --> 00:26:22.050
+But just think about
+that, a factor of 25.
+
+00:26:22.050 --> 00:26:23.855
+How else can I make if faster?
+
+00:26:27.250 --> 00:26:28.520
+Two machines.
+
+00:26:28.520 --> 00:26:31.280
+Back in the day, I happened to
+have some data laying around
+
+00:26:31.280 --> 00:26:34.340
+of running it on a Pentium
+Pro at 20 megahertz.
+
+00:26:34.340 --> 00:26:35.630
+Nowadays, I had this.
+
+00:26:35.630 --> 00:26:38.270
+How much faster will this
+machine be 20 years later?
+
+00:26:42.000 --> 00:26:44.910
+Again, pretend like you're
+at a real engineering school.
+
+00:26:44.910 --> 00:26:46.370
+What will it be?
+
+00:26:46.370 --> 00:26:47.205
+Please.
+
+00:26:47.205 --> 00:26:48.540
+AUDIENCE: 20 times faster?
+
+00:26:48.540 --> 00:26:49.970
+JON BENTLEY: 20 times faster?
+
+00:26:49.970 --> 00:26:51.840
+How did you get 20 times faster?
+
+00:26:51.840 --> 00:26:53.965
+AUDIENCE: Well, the clock
+speed is 10 times faster.
+
+00:26:53.965 --> 00:26:55.548
+JON BENTLEY: The
+clock speed about 10.
+
+00:26:55.548 --> 00:26:57.022
+AUDIENCE: But I'm
+guessing that it
+
+00:26:57.022 --> 00:26:59.240
+has much better instructions.
+
+00:26:59.240 --> 00:27:00.620
+JON BENTLEY: Here's
+what I found.
+
+00:27:00.620 --> 00:27:05.780
+On this machine, it
+went from a factor--
+
+00:27:05.780 --> 00:27:08.660
+there is about a hundred--
+
+00:27:08.660 --> 00:27:10.880
+these factors, I
+found, consistently
+
+00:27:10.880 --> 00:27:15.215
+were about, over the 20
+years, about a factor of 150.
+
+00:27:15.215 --> 00:27:17.780
+From Moore's law,
+what would it be
+
+00:27:17.780 --> 00:27:21.230
+if you had 20 years if
+you doubled every two?
+
+00:27:21.230 --> 00:27:22.670
+That's 10 doublings.
+
+00:27:22.670 --> 00:27:24.233
+What is 2 to the 10th?
+
+00:27:24.233 --> 00:27:25.316
+AUDIENCE: It's a thousand.
+
+00:27:25.316 --> 00:27:26.960
+JON BENTLEY: A thousand.
+
+00:27:26.960 --> 00:27:28.700
+So Moore's law
+predicts a thousand.
+
+00:27:28.700 --> 00:27:30.350
+It's more than a factor of 20.
+
+00:27:30.350 --> 00:27:33.890
+I got a factor of
+150 here, which
+
+00:27:33.890 --> 00:27:36.140
+is close to what Moore's
+law might predict,
+
+00:27:36.140 --> 00:27:38.000
+but there is some
+slowing down at the end.
+
+00:27:38.000 --> 00:27:40.840
+I'm not at all
+traumatized by this.
+
+00:27:40.840 --> 00:27:44.120
+A speed-up of about a factor of
+150, where does that come from?
+
+00:27:44.120 --> 00:27:46.280
+My guess is you
+get about a factor
+
+00:27:46.280 --> 00:27:49.970
+of 12 due to a faster clock
+speed, and another factor of 12
+
+00:27:49.970 --> 00:27:52.667
+due to things like
+wider data paths.
+
+00:27:52.667 --> 00:27:54.500
+You don't have to try
+to its cram everything
+
+00:27:54.500 --> 00:27:55.730
+into 16-bit funnel.
+
+00:27:55.730 --> 00:27:57.740
+You have 64-bit
+data paths there.
+
+00:27:57.740 --> 00:28:00.500
+Deeper pipelines, more
+appropriate instruction
+
+00:28:00.500 --> 00:28:03.440
+sets, and compilers that
+exploit those instruction sets
+
+00:28:03.440 --> 00:28:04.790
+if O3 is enabled.
+
+00:28:04.790 --> 00:28:08.510
+If O3 is not enabled,
+sucks to be you.
+
+00:28:08.510 --> 00:28:10.350
+Questions about that?
+
+00:28:10.350 --> 00:28:11.450
+Let's go.
+
+00:28:11.450 --> 00:28:14.210
+So we have constant
+factor improvements,
+
+00:28:14.210 --> 00:28:17.290
+external, modern machines,
+turn on optimization.
+
+00:28:17.290 --> 00:28:23.568
+But a factor of 150 and
+a factor 25 is a lot.
+
+00:28:23.568 --> 00:28:24.860
+We were starting off with that.
+
+00:28:24.860 --> 00:28:26.690
+That is a good start.
+
+00:28:29.630 --> 00:28:32.840
+Back in the day, if you change
+things from doubles to floats,
+
+00:28:32.840 --> 00:28:33.770
+it got way faster.
+
+00:28:33.770 --> 00:28:35.690
+From floats, the
+answer was faster yet.
+
+00:28:35.690 --> 00:28:39.060
+Does that change make
+much difference nowadays?
+
+00:28:39.060 --> 00:28:39.560
+No.
+
+00:28:39.560 --> 00:28:43.280
+Exactly the same runtime.
+
+00:28:43.280 --> 00:28:45.710
+One thing that does
+make a difference
+
+00:28:45.710 --> 00:28:51.320
+is-- this is the definition
+of the geometric distance.
+
+00:28:51.320 --> 00:28:55.910
+My j is the square root
+of the sum of the squares
+
+00:28:55.910 --> 00:28:57.230
+of the differences.
+
+00:28:57.230 --> 00:29:01.270
+That's doing an array access, a
+subtraction, a multiplication,
+
+00:29:01.270 --> 00:29:04.800
+multiplication, two array
+accesses, subtraction,
+
+00:29:04.800 --> 00:29:07.670
+multiplication, addition,
+and a square root.
+
+00:29:07.670 --> 00:29:09.150
+That used to take a long time.
+
+00:29:09.150 --> 00:29:11.570
+If I replace that
+with a table lookup
+
+00:29:11.570 --> 00:29:15.350
+by filling out
+this sort of table,
+
+00:29:15.350 --> 00:29:17.990
+the distance for
+algorithm 2 is just
+
+00:29:17.990 --> 00:29:20.360
+the distance arrays of i sub j.
+
+00:29:20.360 --> 00:29:23.060
+That gave me a speedup
+factor of 2 and 1/2 or 3.
+
+00:29:23.060 --> 00:29:26.000
+Back in the day, that was
+a speedup factor of 25.
+
+00:29:26.000 --> 00:29:27.500
+For you as
+performance engineers,
+
+00:29:27.500 --> 00:29:30.590
+you have all this intuition.
+
+00:29:30.590 --> 00:29:32.630
+Every piece of intuition
+you have, that I had,
+
+00:29:32.630 --> 00:29:38.360
+that was really appropriate 10
+years ago is irrelevant now.
+
+00:29:38.360 --> 00:29:40.637
+You have to go back and
+get models to figure out
+
+00:29:40.637 --> 00:29:41.720
+how much each thing costs.
+
+00:29:44.600 --> 00:29:48.410
+But, still, it's another
+speedup factor of 3 just
+
+00:29:48.410 --> 00:29:54.380
+by replacing this arithmetic
+with a table lookup.
+
+00:29:54.380 --> 00:29:56.970
+Algorithm 3.
+
+00:29:56.970 --> 00:30:00.920
+What we're going to do is choose
+the ones we need to start with.
+
+00:30:05.140 --> 00:30:06.690
+So we'll start at city 1.
+
+00:30:06.690 --> 00:30:10.560
+We'll leave 9, if we
+have a 9-element problem,
+
+00:30:10.560 --> 00:30:14.843
+in that position, and
+just search of n minus 1.
+
+00:30:14.843 --> 00:30:16.260
+It doesn't matter
+where you start.
+
+00:30:16.260 --> 00:30:18.177
+You're going to go back
+to it, so you can just
+
+00:30:18.177 --> 00:30:20.490
+choose one to start with.
+
+00:30:20.490 --> 00:30:21.690
+Not a lot of code.
+
+00:30:21.690 --> 00:30:24.210
+Permutations are now
+that, distance at each.
+
+00:30:24.210 --> 00:30:28.230
+So now you've reduced n times
+n factorial to n factorial.
+
+00:30:28.230 --> 00:30:34.050
+Algorithm 4 is I'm computing
+the same sum each time.
+
+00:30:34.050 --> 00:30:36.510
+Is there a way to avoid
+computing the same darn sum
+
+00:30:36.510 --> 00:30:38.770
+each time?
+
+00:30:38.770 --> 00:30:40.740
+We'll carry that
+sum along with you.
+
+00:30:40.740 --> 00:30:43.950
+Instead of recomputing the same
+thing over and over and over,
+
+00:30:43.950 --> 00:30:47.550
+start off with the sum being 0.
+
+00:30:47.550 --> 00:30:51.090
+The parameters are now m and
+the distance so far. s Then you
+
+00:30:51.090 --> 00:30:55.270
+just add in these remaining
+pieces at each point,
+
+00:30:55.270 --> 00:30:56.700
+and you solve it that way.
+
+00:30:56.700 --> 00:31:01.110
+And there it's sort of a
+nice piece of mathematics.
+
+00:31:01.110 --> 00:31:03.280
+I wish I had the
+time to analyze it.
+
+00:31:03.280 --> 00:31:06.780
+I did a spreadsheet where I
+said, what's the ratio of this?
+
+00:31:06.780 --> 00:31:15.990
+And it started off as 3, 3
+and 1/2, 3.6, 3.65, 3.7--
+
+00:31:15.990 --> 00:31:18.510
+3.718281828.
+
+00:31:18.510 --> 00:31:23.910
+What does that mean if you
+see a constant 3.718281828?
+
+00:31:23.910 --> 00:31:25.380
+It's 1 plus e.
+
+00:31:25.380 --> 00:31:27.030
+And once I knew
+what the answer was,
+
+00:31:27.030 --> 00:31:30.390
+even I, in my
+mathematical frailty,
+
+00:31:30.390 --> 00:31:34.080
+was able to prove that it's
+1 plus e times n factorial.
+
+00:31:34.080 --> 00:31:36.510
+I'm not giving you the
+proof, but it's very cool.
+
+00:31:36.510 --> 00:31:37.780
+You run across these things.
+
+00:31:37.780 --> 00:31:41.160
+So here are the four
+algorithms so far.
+
+00:31:41.160 --> 00:31:45.000
+On an entirely different
+semi-fast machine,
+
+00:31:45.000 --> 00:31:46.470
+the runtime--
+
+00:31:46.470 --> 00:31:49.440
+here the real clock
+times on this machine
+
+00:31:49.440 --> 00:31:51.630
+were 10, 11, 12, 13.
+
+00:31:51.630 --> 00:31:55.500
+Real times in bold
+are measured times.
+
+00:31:55.500 --> 00:31:58.110
+These other times are
+approximate estimates.
+
+00:31:58.110 --> 00:32:01.290
+And you can see now
+that for size 13,
+
+00:32:01.290 --> 00:32:05.100
+you go from taking a
+fraction of an hour to taking
+
+00:32:05.100 --> 00:32:07.000
+a third of a minute.
+
+00:32:07.000 --> 00:32:08.730
+We've made some programs faster.
+
+00:32:08.730 --> 00:32:10.880
+That's pretty cool.
+
+00:32:10.880 --> 00:32:11.880
+We feel good about this.
+
+00:32:11.880 --> 00:32:12.672
+This is what we do.
+
+00:32:16.500 --> 00:32:19.030
+Any questions at all?
+
+00:32:19.030 --> 00:32:20.807
+We got to go faster.
+
+00:32:20.807 --> 00:32:21.640
+How do we go faster?
+
+00:32:24.300 --> 00:32:27.030
+To say precisely, for
+all these experiments,
+
+00:32:27.030 --> 00:32:28.770
+I took one data set.
+
+00:32:28.770 --> 00:32:32.190
+And if I say that
+runtime for size 15,
+
+00:32:32.190 --> 00:32:34.470
+I take the first 15
+elements of that data set.
+
+00:32:34.470 --> 00:32:36.420
+For 16, I take the
+first 16 elements.
+
+00:32:36.420 --> 00:32:38.130
+17, and so on and so forth.
+
+00:32:38.130 --> 00:32:39.373
+It's not great science.
+
+00:32:39.373 --> 00:32:41.040
+I've done the experiments
+where I did it
+
+00:32:41.040 --> 00:32:42.490
+on lots of random data.
+
+00:32:42.490 --> 00:32:45.110
+The trends are the same.
+
+00:32:45.110 --> 00:32:47.360
+It smooths out some of the
+curves, but we'll see this.
+
+00:32:47.360 --> 00:32:51.018
+The times are for initial
+sequence of one random set.
+
+00:32:51.018 --> 00:32:51.810
+It's pretty robust.
+
+00:32:54.790 --> 00:32:58.290
+But the problem has factorial
+growth. it started factorial.
+
+00:32:58.290 --> 00:33:00.940
+It's still factorial.
+
+00:33:00.940 --> 00:33:03.660
+What does that mean?
+
+00:33:03.660 --> 00:33:07.110
+Each factor of n allows us to
+increase the problem size by 1
+
+00:33:07.110 --> 00:33:08.700
+in about the same time.
+
+00:33:08.700 --> 00:33:12.120
+Faster machine and all that,
+we can now push into the teens.
+
+00:33:12.120 --> 00:33:14.250
+What does that mean?
+
+00:33:14.250 --> 00:33:16.410
+You can take Abraham
+Lincoln's problem,
+
+00:33:16.410 --> 00:33:19.110
+and they got a tour
+with this length.
+
+00:33:19.110 --> 00:33:22.560
+The optimal tour looks sort
+of the same on this side,
+
+00:33:22.560 --> 00:33:25.920
+but it's really
+different over here.
+
+00:33:25.920 --> 00:33:29.143
+Charles, what figure is that?
+
+00:33:29.143 --> 00:33:31.560
+I've mentioned yesterday that
+if you work on the traveling
+
+00:33:31.560 --> 00:33:35.180
+salesman, every instance you
+see turns into a Rorschach test.
+
+00:33:35.180 --> 00:33:38.190
+CHARLES LEISERSON: The first
+one is a bunny hopping,
+
+00:33:38.190 --> 00:33:41.013
+and the second one is just
+the head of the bunny.
+
+00:33:41.013 --> 00:33:42.180
+JON BENTLEY: The bunny head.
+
+00:33:42.180 --> 00:33:43.260
+Everyone see that?
+
+00:33:43.260 --> 00:33:45.300
+Those are in fact
+the correct answers.
+
+00:33:45.300 --> 00:33:47.400
+He is a psychologically
+sound human being.
+
+00:33:47.400 --> 00:33:50.560
+Does anyone else want to
+give their Rorschach answers?
+
+00:33:50.560 --> 00:33:53.640
+A free diagnosis.
+
+00:33:53.640 --> 00:33:54.670
+Absolutely no charge.
+
+00:33:54.670 --> 00:33:59.760
+I'll completely diagnose
+you. but the bunny hopping
+
+00:33:59.760 --> 00:34:03.030
+and the bunny head are in fact
+the correct answers for here.
+
+00:34:03.030 --> 00:34:05.860
+We'll see more later.
+
+00:34:05.860 --> 00:34:09.060
+So Abraham Lincoln, you've
+solved his problem now.
+
+00:34:09.060 --> 00:34:12.360
+My friend Mike Shamos
+could solve his problem.
+
+00:34:12.360 --> 00:34:14.880
+Did he get the optimal tour?
+
+00:34:14.880 --> 00:34:16.710
+Well, over here he
+got a big part of it.
+
+00:34:16.710 --> 00:34:23.420
+But over here it's really
+sort of a different character.
+
+00:34:23.420 --> 00:34:25.159
+It's a fairly
+different character.
+
+00:34:25.159 --> 00:34:26.239
+Is it far off?
+
+00:34:26.239 --> 00:34:28.760
+Yes, about a third
+of a percent off.
+
+00:34:28.760 --> 00:34:31.770
+So his approach was within
+a third of a percent.
+
+00:34:31.770 --> 00:34:33.249
+I've always worked--
+I spent much
+
+00:34:33.249 --> 00:34:36.440
+of my career working on
+approximate solutions to TSPs.
+
+00:34:36.440 --> 00:34:38.688
+Those are often good enough.
+
+00:34:38.688 --> 00:34:40.730
+This algorithm, you can
+prove-- that he applied--
+
+00:34:40.730 --> 00:34:42.199
+is within 50%.
+
+00:34:42.199 --> 00:34:44.630
+In the real world, it got
+within a third of a percent.
+
+00:34:44.630 --> 00:34:45.230
+Wow.
+
+00:34:45.230 --> 00:34:48.170
+But now we can go out and we
+can solve the whole problem
+
+00:34:48.170 --> 00:34:49.281
+in 16 hours.
+
+00:34:49.281 --> 00:34:51.739
+If you were writing the thesis
+and you happened to do this,
+
+00:34:51.739 --> 00:34:56.150
+would it be worthwhile now
+to sink 16 hours of CPU time
+
+00:34:56.150 --> 00:34:57.208
+into this?
+
+00:34:57.208 --> 00:34:58.750
+You're going to go
+away for a weekend
+
+00:34:58.750 --> 00:35:00.230
+and leave your machine running.
+
+00:35:00.230 --> 00:35:01.940
+At the time,
+Charles, when we had
+
+00:35:01.940 --> 00:35:05.510
+one big computer for 60 or
+70 people in that department,
+
+00:35:05.510 --> 00:35:09.290
+could we have dreamt about
+using 16 hours for that?
+
+00:35:09.290 --> 00:35:10.370
+On the very border.
+
+00:35:10.370 --> 00:35:12.630
+If you made it a really
+mellow background process,
+
+00:35:12.630 --> 00:35:15.980
+it might finish in
+a week or three.
+
+00:35:15.980 --> 00:35:17.638
+All of these things change.
+
+00:35:17.638 --> 00:35:18.680
+The computers get faster.
+
+00:35:18.680 --> 00:35:19.730
+They get more available.
+
+00:35:19.730 --> 00:35:23.660
+You can devote a machine
+to dump 16 hours down this.
+
+00:35:23.660 --> 00:35:25.250
+But can we make it faster yet?
+
+00:35:25.250 --> 00:35:27.920
+Can we ever analyze,
+say, all permutations
+
+00:35:27.920 --> 00:35:29.480
+of a deck of cards?
+
+00:35:29.480 --> 00:35:31.587
+How many permutations are
+there of a deck of cards
+
+00:35:31.587 --> 00:35:32.795
+if you take out those jokers?
+
+00:35:36.338 --> 00:35:37.130
+What's that number?
+
+00:35:41.405 --> 00:35:44.300
+AUDIENCE: 15 zeros?
+
+00:35:44.300 --> 00:35:46.170
+JON BENTLEY: 1 with
+15 zeros after it?
+
+00:35:46.170 --> 00:35:48.760
+It's a big number, 2 to the--
+
+00:35:48.760 --> 00:35:50.370
+52 factorial.
+
+00:35:50.370 --> 00:35:55.417
+I want to teach you how
+big 52 factorial is.
+
+00:35:55.417 --> 00:35:57.500
+People say, that problem
+is growing exponentially.
+
+00:35:57.500 --> 00:35:58.333
+What does that mean?
+
+00:35:58.333 --> 00:36:01.080
+It's quick is what people
+usually mean by it.
+
+00:36:01.080 --> 00:36:03.720
+In mathematics, it's
+some constant to the n
+
+00:36:03.720 --> 00:36:06.450
+for some defined time period n.
+
+00:36:06.450 --> 00:36:11.220
+Factorial growth-- is factorial
+growth exponential growth?
+
+00:36:11.220 --> 00:36:11.790
+Why not?
+
+00:36:11.790 --> 00:36:13.764
+Why isn't a factorial
+exponential?
+
+00:36:13.764 --> 00:36:15.420
+AUDIENCE: It's more
+than exponential?
+
+00:36:15.420 --> 00:36:17.087
+JON BENTLEY: It's
+more than exponential.
+
+00:36:17.087 --> 00:36:18.270
+It's super exponential.
+
+00:36:18.270 --> 00:36:20.190
+We'll talk about
+the details here.
+
+00:36:20.190 --> 00:36:25.830
+By Sterling's approximation,
+you have seen in other classes
+
+00:36:25.830 --> 00:36:30.695
+that log of n factorial is n
+log n minus n plus O of log
+
+00:36:30.695 --> 00:36:32.560
+n for the natural log.
+
+00:36:32.560 --> 00:36:38.130
+The log base 2 of n factorial
+is about n log n minus 1.386n.
+
+00:36:38.130 --> 00:36:40.950
+Where have you seen
+this number before?
+
+00:36:44.190 --> 00:36:45.810
+n log n minus 1--
+
+00:36:45.810 --> 00:36:50.130
+In an algorithms class, you
+did a lower bound on a decision
+
+00:36:50.130 --> 00:36:51.330
+tree model of sorting.
+
+00:36:51.330 --> 00:36:53.250
+There were n factorial
+leaves to sort.
+
+00:36:53.250 --> 00:36:56.010
+A sort algorithm must take
+at least as much time.
+
+00:36:56.010 --> 00:36:57.270
+So that gives you that bound.
+
+00:36:57.270 --> 00:37:01.290
+And merge sort is n log n minus
+n, so you're really narrow.
+
+00:37:01.290 --> 00:37:05.070
+Where else have you seen 1.386n?
+
+00:37:05.070 --> 00:37:06.712
+That's the runtime
+of quick sort.
+
+00:37:06.712 --> 00:37:08.670
+All these things are
+coming back together here,
+
+00:37:08.670 --> 00:37:11.422
+because it's the
+natural log of e--
+
+00:37:11.422 --> 00:37:15.870
+I'm sorry-- the log base 2 of e.
+
+00:37:15.870 --> 00:37:18.950
+So n factorial is
+not 2 to the n.
+
+00:37:18.950 --> 00:37:20.370
+It's 2 to the n log n.
+
+00:37:20.370 --> 00:37:22.110
+It's about n to the n.
+
+00:37:22.110 --> 00:37:28.110
+It's faster than any
+exponential function.
+
+00:37:28.110 --> 00:37:30.520
+How big is 52 factorial?
+
+00:37:30.520 --> 00:37:32.930
+You guessed 10 to the 15th?
+
+00:37:32.930 --> 00:37:33.636
+Was that--
+
+00:37:33.636 --> 00:37:34.583
+AUDIENCE: Yes.
+
+00:37:34.583 --> 00:37:35.250
+JON BENTLEY: OK.
+
+00:37:35.250 --> 00:37:38.310
+If we see here, it's going
+to be something like 2
+
+00:37:38.310 --> 00:37:40.470
+to the n log n.
+
+00:37:40.470 --> 00:37:41.640
+n is 52.
+
+00:37:41.640 --> 00:37:43.820
+Log of 52 is about six.
+
+00:37:43.820 --> 00:37:45.610
+So that's 2 to the 300.
+
+00:37:45.610 --> 00:37:47.070
+But there's a minus n term.
+
+00:37:47.070 --> 00:37:50.460
+Maybe 2 to the 250.
+
+00:37:50.460 --> 00:37:55.200
+It's about 2 to the 225,
+which is 10 to the 67th.
+
+00:37:55.200 --> 00:37:56.700
+That's a big number.
+
+00:37:56.700 --> 00:37:57.810
+How big is it?
+
+00:37:57.810 --> 00:38:00.960
+Let me put it in everyday terms.
+
+00:38:00.960 --> 00:38:04.350
+Try this after class.
+
+00:38:04.350 --> 00:38:10.003
+Set a timer to count down
+52 factorial nanoseconds, 10
+
+00:38:10.003 --> 00:38:11.340
+to the 67th.
+
+00:38:11.340 --> 00:38:12.900
+Stand on the equator--
+
+00:38:12.900 --> 00:38:14.670
+watch out where you are--
+
+00:38:14.670 --> 00:38:16.860
+and take one step forward
+every million years.
+
+00:38:16.860 --> 00:38:18.120
+Don't rush into this.
+
+00:38:18.120 --> 00:38:21.420
+I don't want you to get
+all hyper about this.
+
+00:38:21.420 --> 00:38:23.910
+Eventually, when you
+circle the Earth once,
+
+00:38:23.910 --> 00:38:26.040
+take a drop of water
+from the Pacific Ocean,
+
+00:38:26.040 --> 00:38:27.870
+and keep on going.
+
+00:38:27.870 --> 00:38:29.205
+Be careful about this.
+
+00:38:29.205 --> 00:38:30.430
+But this is an experiment.
+
+00:38:30.430 --> 00:38:31.350
+You're nerds.
+
+00:38:31.350 --> 00:38:32.340
+It's OK.
+
+00:38:32.340 --> 00:38:34.620
+When the Pacific Ocean
+is empty, at that point
+
+00:38:34.620 --> 00:38:38.430
+lay a sheet of paper down,
+refill the ocean, and carry on.
+
+00:38:38.430 --> 00:38:40.410
+Now keep on doing that.
+
+00:38:40.410 --> 00:38:42.420
+When you're stack of
+paper reaches the Moon,
+
+00:38:42.420 --> 00:38:43.500
+check the timer.
+
+00:38:43.500 --> 00:38:46.240
+You're almost done.
+
+00:38:46.240 --> 00:38:48.150
+This is how big
+10 to the 52nd is.
+
+00:38:48.150 --> 00:38:51.390
+The age of the universe
+so far is about 10
+
+00:38:51.390 --> 00:38:54.300
+to the 26th nanoseconds.
+
+00:38:54.300 --> 00:38:57.180
+10 to the 52nd is a long time.
+
+00:38:57.180 --> 00:38:59.610
+Can we ever solve a problem
+if we look at all 10
+
+00:38:59.610 --> 00:39:01.590
+to the 52nd options?
+
+00:39:01.590 --> 00:39:04.170
+What do we have to do instead?
+
+00:39:04.170 --> 00:39:05.520
+AUDIENCE: Quantum computing?
+
+00:39:05.520 --> 00:39:06.500
+JON BENTLEY: Pardon me?
+
+00:39:06.500 --> 00:39:07.667
+AUDIENCE: Quantum computing.
+
+00:39:07.667 --> 00:39:09.230
+JON BENTLEY: Quantum computing.
+
+00:39:09.230 --> 00:39:10.090
+OK.
+
+00:39:10.090 --> 00:39:10.980
+That's great.
+
+00:39:10.980 --> 00:39:13.580
+And I have a really cool bridge
+across this river out here
+
+00:39:13.580 --> 00:39:15.240
+that I'll sell you after class.
+
+00:39:15.240 --> 00:39:18.050
+Let's talk about that.
+
+00:39:18.050 --> 00:39:21.750
+Is there a nice quantum
+approach to this problem?
+
+00:39:21.750 --> 00:39:22.290
+Maybe.
+
+00:39:22.290 --> 00:39:24.915
+Maybe you could actually phrase
+this as an optimization problem
+
+00:39:24.915 --> 00:39:27.040
+where you could maybe get
+some mileage out of that.
+
+00:39:27.040 --> 00:39:27.750
+But we'll see.
+
+00:39:27.750 --> 00:39:29.640
+So one approach is
+quantum computing.
+
+00:39:29.640 --> 00:39:31.200
+What's another approach?
+
+00:39:31.200 --> 00:39:35.310
+What are we going to have to
+do to make our program surmount
+
+00:39:35.310 --> 00:39:37.810
+this obstacle?
+
+00:39:37.810 --> 00:39:38.310
+Please.
+
+00:39:38.310 --> 00:39:39.827
+AUDIENCE: Limit
+the search space?
+
+00:39:39.827 --> 00:39:40.785
+JON BENTLEY: Pardon me?
+
+00:39:40.785 --> 00:39:42.180
+AUDIENCE: [INAUDIBLE].
+
+00:39:42.180 --> 00:39:44.638
+JON BENTLEY: We're going to
+have to limit our search space.
+
+00:39:44.638 --> 00:39:49.620
+We're going to have to
+prune the search space.
+
+00:39:53.070 --> 00:39:54.630
+That's the idea.
+
+00:39:54.630 --> 00:39:57.403
+Let's try it.
+
+00:39:57.403 --> 00:39:58.320
+Here's a cool problem.
+
+00:39:58.320 --> 00:40:01.023
+I was at a ceremony
+a few weeks ago.
+
+00:40:01.023 --> 00:40:02.940
+A friend of mine said
+here's this cool problem
+
+00:40:02.940 --> 00:40:05.148
+that his daughter just
+brought home from high school.
+
+00:40:05.148 --> 00:40:06.990
+How do you solve it?
+
+00:40:06.990 --> 00:40:09.660
+Find all permutations
+of the 10 integer--
+
+00:40:09.660 --> 00:40:11.640
+the nine integers
+1 through n such
+
+00:40:11.640 --> 00:40:15.960
+that each initial substring
+of length m is divisible by m.
+
+00:40:15.960 --> 00:40:18.910
+So the whole darn thing
+is divisible by 9.
+
+00:40:18.910 --> 00:40:24.730
+Is any permutation of integers
+1 through 9 divisible by 9?
+
+00:40:24.730 --> 00:40:27.870
+Well, they all sum up to
+numbers divisible by 9.
+
+00:40:27.870 --> 00:40:29.100
+You work that.
+
+00:40:29.100 --> 00:40:30.780
+Is it divisible--
+are the first eight
+
+00:40:30.780 --> 00:40:33.740
+characters divisible by 8?
+
+00:40:33.740 --> 00:40:35.130
+But let's start
+with an easy one.
+
+00:40:35.130 --> 00:40:39.870
+If you were doing it
+for size 3, 321 works.
+
+00:40:39.870 --> 00:40:42.430
+Is 321 divisible by 3?
+
+00:40:42.430 --> 00:40:44.280
+Is 32 divisible by 2?
+
+00:40:44.280 --> 00:40:45.940
+Is 3 divisible by 1?
+
+00:40:45.940 --> 00:40:47.530
+Thinking, then, it works.
+
+00:40:47.530 --> 00:40:50.110
+Is 132 divisible by 3?
+
+00:40:50.110 --> 00:40:50.880
+Yes.
+
+00:40:50.880 --> 00:40:52.844
+Is 13 divisible by 2?
+
+00:40:52.844 --> 00:40:56.530
+[MAKES BUZZER SOUND]
+That doesn't work.
+
+00:40:56.530 --> 00:40:58.690
+So we're going to try
+to solve this problem.
+
+00:40:58.690 --> 00:41:05.170
+My friend Greg Conti, a really
+great computer security guy,
+
+00:41:05.170 --> 00:41:06.860
+gave me this problem.
+
+00:41:06.860 --> 00:41:08.470
+How do you solve it?
+
+00:41:08.470 --> 00:41:10.120
+How would you
+solve this problem?
+
+00:41:10.120 --> 00:41:12.730
+If this high school
+kid says, here's
+
+00:41:12.730 --> 00:41:17.410
+a problem I brought home from
+school, how do I solve it?
+
+00:41:17.410 --> 00:41:20.090
+What would you do?
+
+00:41:20.090 --> 00:41:20.590
+Ideas?
+
+00:41:23.930 --> 00:41:24.770
+I'm sorry.
+
+00:41:24.770 --> 00:41:26.227
+Please.
+
+00:41:26.227 --> 00:41:26.810
+AUDIENCE: Yes.
+
+00:41:26.810 --> 00:41:31.760
+You could write a program where
+the state could be [INAUDIBLE]..
+
+00:41:31.760 --> 00:41:35.225
+Or actually just like
+a subset [INAUDIBLE]..
+
+00:41:35.225 --> 00:41:39.748
+Then you iterate
+over [INAUDIBLE]..
+
+00:41:39.748 --> 00:41:40.540
+JON BENTLEY: Great.
+
+00:41:40.540 --> 00:41:41.950
+So there are two
+main approaches.
+
+00:41:41.950 --> 00:41:43.690
+One is write a program.
+
+00:41:43.690 --> 00:41:47.740
+So you can either think
+or you can compute.
+
+00:41:47.740 --> 00:41:50.770
+Who in this room enjoys
+writing programs?
+
+00:41:50.770 --> 00:41:52.133
+Who enjoys thinking?
+
+00:41:52.133 --> 00:41:55.990
+Oh, that's an easy call.
+
+00:41:55.990 --> 00:41:58.420
+What's the right approach here?
+
+00:41:58.420 --> 00:42:00.970
+Well, the right answer
+is you think for a while.
+
+00:42:00.970 --> 00:42:02.800
+If you solve it in the
+first three minutes,
+
+00:42:02.800 --> 00:42:03.990
+don't write a program.
+
+00:42:03.990 --> 00:42:05.948
+If you spend much more
+than five minutes on it,
+
+00:42:05.948 --> 00:42:08.490
+let's write a program and see
+what we learn from the program.
+
+00:42:08.490 --> 00:42:09.550
+We'll go back and forth.
+
+00:42:09.550 --> 00:42:11.170
+Never think when you
+should compute, never
+
+00:42:11.170 --> 00:42:12.400
+compute when you should think.
+
+00:42:12.400 --> 00:42:13.540
+How do you know which one to do?
+
+00:42:13.540 --> 00:42:14.080
+Try each.
+
+00:42:14.080 --> 00:42:15.663
+See which one gets
+you further faster.
+
+00:42:18.190 --> 00:42:19.840
+If you write a
+program for this, What
+
+00:42:19.840 --> 00:42:21.880
+are the basic structures
+you have to deal with?
+
+00:42:25.010 --> 00:42:28.150
+You have to deal with
+nine-digit strings that
+
+00:42:28.150 --> 00:42:30.850
+are also nine-digit numbers.
+
+00:42:30.850 --> 00:42:33.280
+What's a good language
+for dealing with that?
+
+00:42:33.280 --> 00:42:35.740
+What would you-- if you had
+to write a program to do this,
+
+00:42:35.740 --> 00:42:37.032
+what language would you choose?
+
+00:42:40.840 --> 00:42:42.430
+We'll see.
+
+00:42:42.430 --> 00:42:44.680
+How do you generate all
+intact real permutations
+
+00:42:44.680 --> 00:42:45.940
+of the string?
+
+00:42:45.940 --> 00:42:47.770
+Well, I hope you can see this.
+
+00:42:47.770 --> 00:42:49.640
+Here's the way that
+I chose to do it.
+
+00:42:49.640 --> 00:42:52.900
+I chose to have a
+recursive procedure search.
+
+00:42:52.900 --> 00:42:57.940
+And I'm going to have right be
+the part that's already fixed,
+
+00:42:57.940 --> 00:42:59.835
+left be the part that
+you're going to vary.
+
+00:42:59.835 --> 00:43:01.210
+I could've done
+it the other way,
+
+00:43:01.210 --> 00:43:02.860
+but I'll choose
+to do it this way.
+
+00:43:02.860 --> 00:43:06.760
+I start with left equals
+that, right equals that.
+
+00:43:06.760 --> 00:43:09.280
+I end when the left is empty.
+
+00:43:09.280 --> 00:43:11.890
+So I have to recur down, just
+like we've been doing so far,
+
+00:43:11.890 --> 00:43:15.410
+but I'm going to do that
+with strings instead.
+
+00:43:15.410 --> 00:43:21.920
+And if I get to the call search
+of 56-- of 356 with 421978--
+
+00:43:21.920 --> 00:43:23.050
+these are all fixed--
+
+00:43:23.050 --> 00:43:26.140
+I'll take each one of
+these in turn, 3, 5, and 6,
+
+00:43:26.140 --> 00:43:28.730
+put it into here.
+
+00:43:28.730 --> 00:43:31.510
+So I'll call search of 56
+with that, search of 36
+
+00:43:31.510 --> 00:43:34.720
+with that, search
+of 35 with that.
+
+00:43:34.720 --> 00:43:36.550
+Everyone see how that works?
+
+00:43:36.550 --> 00:43:40.090
+How long will the code be
+in your favorite language?
+
+00:43:43.160 --> 00:43:45.580
+Here's the code in
+my favorite language.
+
+00:43:45.580 --> 00:43:48.520
+Has anyone here ever used
+the AWK programming language,
+
+00:43:48.520 --> 00:43:50.410
+written by Aho,
+Weinberger, and Kernighan?
+
+00:43:50.410 --> 00:43:53.740
+They observed that
+naming a language
+
+00:43:53.740 --> 00:43:55.600
+after the initials
+of the authors
+
+00:43:55.600 --> 00:43:58.300
+shows a certain
+paucity of imagination.
+
+00:43:58.300 --> 00:43:59.900
+But it works.
+
+00:43:59.900 --> 00:44:02.350
+So a function search
+of left, right,
+
+00:44:02.350 --> 00:44:05.440
+that, if left equals 0--
+is null, I'll check it.
+
+00:44:05.440 --> 00:44:07.310
+Otherwise, what will I do here?
+
+00:44:11.850 --> 00:44:13.320
+The details don't matter.
+
+00:44:13.320 --> 00:44:15.750
+For i equals 1 up to the
+length of the left-hand side
+
+00:44:15.750 --> 00:44:18.090
+of the string,
+search the substring
+
+00:44:18.090 --> 00:44:21.600
+at the left starting at
+1, going for i minus 1,
+
+00:44:21.600 --> 00:44:24.210
+concatenated with the
+substring at the left
+
+00:44:24.210 --> 00:44:25.740
+starting at i plus 1.
+
+00:44:25.740 --> 00:44:27.510
+And then take the
+substring in the middle,
+
+00:44:27.510 --> 00:44:28.980
+put it out in
+front of the right.
+
+00:44:28.980 --> 00:44:30.780
+Do that for all i values.
+
+00:44:30.780 --> 00:44:32.160
+Any questions about that?
+
+00:44:32.160 --> 00:44:33.840
+The details don't matter.
+
+00:44:33.840 --> 00:44:35.265
+It's not a big program.
+
+00:44:37.860 --> 00:44:40.830
+If I do this, and at the
+end, for i equal 1 to length,
+
+00:44:40.830 --> 00:44:46.250
+if the substring of the right
+mod i is nonzero, then return.
+
+00:44:46.250 --> 00:44:48.270
+If it's not that,
+you print it out.
+
+00:44:48.270 --> 00:44:50.490
+If I run this program,
+how long, ballpark,
+
+00:44:50.490 --> 00:44:54.465
+will this program take
+for 9 factorial, ballpark?
+
+00:44:57.483 --> 00:44:58.650
+What was your answer before?
+
+00:44:58.650 --> 00:44:59.580
+AUDIENCE: A second.
+
+00:44:59.580 --> 00:45:00.497
+JON BENTLEY: A second.
+
+00:45:00.497 --> 00:45:01.050
+Great.
+
+00:45:01.050 --> 00:45:02.160
+Well, we'll recycle that.
+
+00:45:02.160 --> 00:45:03.510
+Reduce, reuse, recycle.
+
+00:45:03.510 --> 00:45:05.420
+We'll recycle your answers.
+
+00:45:05.420 --> 00:45:08.610
+If I call it originally
+with that string,
+
+00:45:08.610 --> 00:45:12.000
+it takes about 3 seconds.
+
+00:45:12.000 --> 00:45:15.150
+And it found that there
+was-- it searched all 9
+
+00:45:15.150 --> 00:45:19.380
+factorial, 362880,
+362,000 strings,
+
+00:45:19.380 --> 00:45:22.546
+and found only one string
+there that matches that.
+
+00:45:22.546 --> 00:45:23.046
+Whoops.
+
+00:45:26.040 --> 00:45:27.790
+Are these divisible by 9?
+
+00:45:27.790 --> 00:45:29.940
+Well, they sum to a
+multiple of 9, sure.
+
+00:45:29.940 --> 00:45:33.510
+Is the string that ends
+in 72 divisible by 8?
+
+00:45:33.510 --> 00:45:34.770
+Yes, that works.
+
+00:45:34.770 --> 00:45:36.750
+7, I'm not going to bother with.
+
+00:45:36.750 --> 00:45:40.160
+All the way down, is
+38 divisible by 2?
+
+00:45:40.160 --> 00:45:42.270
+Is 381 divisible by 3?
+
+00:45:42.270 --> 00:45:43.930
+This one works.
+
+00:45:43.930 --> 00:45:47.423
+That's a pretty cool problem
+for a high school afternoon.
+
+00:45:51.130 --> 00:45:53.840
+Is 3 seconds fast enough?
+
+00:45:53.840 --> 00:45:55.050
+Yes.
+
+00:45:55.050 --> 00:45:57.310
+The trade-off of
+thinking and programming.
+
+00:45:57.310 --> 00:45:58.620
+Write the darn program.
+
+00:45:58.620 --> 00:45:59.220
+You're done.
+
+00:45:59.220 --> 00:46:01.380
+It's cool.
+
+00:46:01.380 --> 00:46:05.350
+If you wanted to make it faster,
+how could you make it faster?
+
+00:46:05.350 --> 00:46:07.013
+That's what this
+course is all about?
+
+00:46:07.013 --> 00:46:09.180
+Always think about how you
+could make things faster.
+
+00:46:09.180 --> 00:46:09.680
+Please.
+
+00:46:09.680 --> 00:46:13.290
+AUDIENCE: Well, if you just
+stop searching once you know
+
+00:46:13.290 --> 00:46:15.340
+one number isn't going to work.
+
+00:46:15.340 --> 00:46:17.560
+JON BENTLEY: How early
+can you stop searching?
+
+00:46:17.560 --> 00:46:18.690
+That's great.
+
+00:46:18.690 --> 00:46:21.090
+So you could get
+constant factor speedups.
+
+00:46:21.090 --> 00:46:25.350
+Like don't check for
+divisibility by 1 at the end.
+
+00:46:25.350 --> 00:46:26.770
+You can change
+language, all that.
+
+00:46:26.770 --> 00:46:28.560
+But those are never
+going to matter.
+
+00:46:28.560 --> 00:46:31.200
+The big win is going to come
+from pruning the search.
+
+00:46:31.200 --> 00:46:33.750
+How can you put in the search?
+
+00:46:33.750 --> 00:46:37.845
+Any winning string must have
+some properties of this string.
+
+00:46:37.845 --> 00:46:39.720
+What are some properties
+that that string has
+
+00:46:39.720 --> 00:46:40.928
+that you can check for early?
+
+00:46:44.300 --> 00:46:45.158
+Please.
+
+00:46:45.158 --> 00:46:51.640
+AUDIENCE: The second from the
+left [INAUDIBLE] 2, 4, 6 or 8.
+
+00:46:51.640 --> 00:46:56.130
+JON BENTLEY: The eighth position
+has to be a multiple of 2.
+
+00:46:56.130 --> 00:46:57.880
+Furthermore, if you
+really think about it,
+
+00:46:57.880 --> 00:46:59.005
+you can get more than that.
+
+00:46:59.005 --> 00:47:01.580
+It has to be divisible by 4.
+
+00:47:01.580 --> 00:47:05.200
+So an even number has to
+be in the eighth position.
+
+00:47:05.200 --> 00:47:07.303
+Anywhere else you're going
+to need an even number?
+
+00:47:07.303 --> 00:47:09.210
+AUDIENCE: [INAUDIBLE].
+
+00:47:09.210 --> 00:47:10.960
+JON BENTLEY: This
+position has to be even,
+
+00:47:10.960 --> 00:47:14.820
+that has to be even, that has
+to be even, that has to be even.
+
+00:47:14.820 --> 00:47:17.122
+In general, what's
+the general rule?
+
+00:47:17.122 --> 00:47:20.770
+AUDIENCE: All the even
+positions [INAUDIBLE]..
+
+00:47:20.770 --> 00:47:24.040
+JON BENTLEY: Every even position
+has to contain an even number.
+
+00:47:24.040 --> 00:47:26.615
+There are four even numbers,
+there are five odd numbers.
+
+00:47:26.615 --> 00:47:28.240
+What other rule might
+you come up with?
+
+00:47:31.102 --> 00:47:32.973
+AUDIENCE: The fifth
+position has to be 5.
+
+00:47:32.973 --> 00:47:33.640
+JON BENTLEY: OK.
+
+00:47:33.640 --> 00:47:38.710
+Every odd position has
+to be an odd number.
+
+00:47:38.710 --> 00:47:44.620
+And, in particular, the
+fifth position has to be a 5.
+
+00:47:44.620 --> 00:47:47.080
+So those are a few rules.
+
+00:47:47.080 --> 00:47:50.500
+Even digits in even positions,
+odd digits in odd positions,
+
+00:47:50.500 --> 00:47:52.780
+digit 5 in position 5.
+
+00:47:52.780 --> 00:47:54.280
+Three simple rules.
+
+00:47:54.280 --> 00:47:55.582
+You can test those easily.
+
+00:47:55.582 --> 00:47:57.040
+The code is pretty
+straightforward.
+
+00:47:57.040 --> 00:47:59.260
+Will that shrink the
+size of the search space
+
+00:47:59.260 --> 00:48:02.640
+much at all really?
+
+00:48:02.640 --> 00:48:04.140
+How big was the
+search space before?
+
+00:48:07.890 --> 00:48:09.220
+9 for the first one.
+
+00:48:09.220 --> 00:48:10.650
+Now how big is the search space?
+
+00:48:10.650 --> 00:48:13.680
+For the first, if you
+just had the three rules--
+
+00:48:13.680 --> 00:48:17.700
+evens going evens, odds in
+odds, and 5 in the middle--
+
+00:48:17.700 --> 00:48:20.078
+how many choices do you
+have for the first one?
+
+00:48:20.078 --> 00:48:22.207
+AUDIENCE: For the first,
+we have [INAUDIBLE]..
+
+00:48:22.207 --> 00:48:23.290
+JON BENTLEY: Four choices.
+
+00:48:23.290 --> 00:48:26.202
+For the second one, you have?
+
+00:48:26.202 --> 00:48:28.202
+AUDIENCE: [INAUDIBLE].
+
+00:48:28.202 --> 00:48:29.410
+JON BENTLEY: It can't be a 5.
+
+00:48:29.410 --> 00:48:31.000
+It has to be an odd
+number, not a 5.
+
+00:48:31.000 --> 00:48:32.692
+You have a 4.
+
+00:48:32.692 --> 00:48:36.880
+So it's 4 by 4 times 3 times 3
+times 1 times 2 times 2 times
+
+00:48:36.880 --> 00:48:37.600
+1 times--
+
+00:48:37.600 --> 00:48:38.710
+everyone see that?
+
+00:48:38.710 --> 00:48:41.380
+We've reduce the size
+of the search space
+
+00:48:41.380 --> 00:48:45.610
+from a third of a million
+to half a thousand.
+
+00:48:45.610 --> 00:48:47.790
+Isn't it going to be a lot
+of hassle to code that?
+
+00:48:47.790 --> 00:48:50.500
+I mean, is it going to take
+a major software development
+
+00:48:50.500 --> 00:48:51.850
+effort to code that?
+
+00:48:51.850 --> 00:48:55.450
+Well, yes, if you define that
+as a major software development
+
+00:48:55.450 --> 00:48:57.110
+effort.
+
+00:48:57.110 --> 00:49:01.600
+If the parity of
+the string length
+
+00:49:01.600 --> 00:49:07.130
+is equal to the parity of the
+digit, then you can continue.
+
+00:49:07.130 --> 00:49:09.580
+If you don't have these
+things, you can't continue.
+
+00:49:09.580 --> 00:49:13.790
+Three lines of code
+allow you to do this.
+
+00:49:13.790 --> 00:49:15.910
+That's the story.
+
+00:49:15.910 --> 00:49:18.080
+Factorial grows quickly.
+
+00:49:18.080 --> 00:49:20.780
+You can never visit the
+entire search space.
+
+00:49:20.780 --> 00:49:22.660
+The key to speed is
+pruning the search.
+
+00:49:22.660 --> 00:49:27.760
+We're doing just a baby
+branch-and-bound, it's called.
+
+00:49:27.760 --> 00:49:30.760
+Some fancy algorithms can be
+implemented in little code.
+
+00:49:30.760 --> 00:49:32.530
+That's our break.
+
+00:49:32.530 --> 00:49:34.540
+We've learned a
+couple of things.
+
+00:49:34.540 --> 00:49:37.713
+We're going to go
+back into the fray.
+
+00:49:37.713 --> 00:49:39.130
+Any questions about
+this diversion
+
+00:49:39.130 --> 00:49:41.893
+before we go back to the TSP?
+
+00:49:41.893 --> 00:49:43.060
+These are important lessons.
+
+00:49:43.060 --> 00:49:44.227
+We'll try to apply them now.
+
+00:49:51.310 --> 00:49:55.600
+I got great advice
+yesterday from people
+
+00:49:55.600 --> 00:50:00.720
+about how to do this.
+
+00:50:00.720 --> 00:50:04.220
+And I seem to have skipped--
+
+00:50:04.220 --> 00:50:05.120
+OK, here it is.
+
+00:50:05.120 --> 00:50:07.340
+I've got it.
+
+00:50:07.340 --> 00:50:08.690
+How do we prune our search?
+
+00:50:08.690 --> 00:50:10.980
+Here we had these conditions.
+
+00:50:10.980 --> 00:50:13.970
+How can we prune the search?
+
+00:50:13.970 --> 00:50:16.480
+How can I make the
+program faster?
+
+00:50:16.480 --> 00:50:20.960
+What's the way I can
+stop doing the search?
+
+00:50:20.960 --> 00:50:24.260
+Simplest way, don't keep
+doing what doesn't work.
+
+00:50:24.260 --> 00:50:27.830
+If the sum that
+you have so far is
+
+00:50:27.830 --> 00:50:30.380
+greater than the minimum
+sum, by adding more to it,
+
+00:50:30.380 --> 00:50:32.180
+are you going to make it less?
+
+00:50:32.180 --> 00:50:34.280
+What can you do?
+
+00:50:34.280 --> 00:50:36.383
+You can stop the
+search right there.
+
+00:50:36.383 --> 00:50:38.300
+Is the resulting algorithm
+going to be faster?
+
+00:50:41.260 --> 00:50:41.830
+Maybe.
+
+00:50:41.830 --> 00:50:42.850
+It's a trade-off.
+
+00:50:42.850 --> 00:50:45.370
+I'm doing more work,
+which takes some time,
+
+00:50:45.370 --> 00:50:47.410
+but I might be able to
+prune the search space.
+
+00:50:47.410 --> 00:50:52.210
+The question is, is this
+benefit worth this cost?
+
+00:50:52.210 --> 00:50:53.170
+What do you think?
+
+00:50:53.170 --> 00:51:02.253
+Well, on the same machine,
+algorithm 4 at size 12
+
+00:51:02.253 --> 00:51:03.520
+took 0.6 seconds.
+
+00:51:03.520 --> 00:51:08.020
+Now it's a factor of 60
+faster, a factor of 40
+
+00:51:08.020 --> 00:51:12.400
+faster, a factor of 100 faster.
+
+00:51:12.400 --> 00:51:15.100
+Just by-- if it doesn't work,
+if you've already screwed up,
+
+00:51:15.100 --> 00:51:17.230
+just don't keep
+what doesn't work.
+
+00:51:17.230 --> 00:51:19.840
+That makes the thing
+a whole lot faster.
+
+00:51:19.840 --> 00:51:21.700
+Everyone see that?
+
+00:51:21.700 --> 00:51:24.640
+That's the first big win.
+
+00:51:24.640 --> 00:51:26.628
+Can we do even better than that?
+
+00:51:26.628 --> 00:51:29.170
+Is there any way of stopping
+the search with more information
+
+00:51:29.170 --> 00:51:31.200
+other than, whoops, I've
+already gone too far?
+
+00:51:34.637 --> 00:51:35.619
+Please.
+
+00:51:35.619 --> 00:51:37.910
+AUDIENCE: If the nodes
+you visited previously--
+
+00:51:37.910 --> 00:51:38.660
+JON BENTLEY: Wait.
+
+00:51:38.660 --> 00:51:39.530
+Command voice.
+
+00:51:39.530 --> 00:51:40.210
+Speak loudly,
+
+00:51:40.210 --> 00:51:43.150
+AUDIENCE: If the nodes
+you visited previously
+
+00:51:43.150 --> 00:51:45.870
+are the same, like
+the same subset
+
+00:51:45.870 --> 00:51:49.270
+but a different word than a
+search you've done before,
+
+00:51:49.270 --> 00:51:51.360
+then the answer [INAUDIBLE].
+
+00:51:51.360 --> 00:51:53.110
+JON BENTLEY: That's a
+really powerful idea
+
+00:51:53.110 --> 00:51:55.710
+that Held and Karp used
+to reduce it from n
+
+00:51:55.710 --> 00:51:58.780
+factorial time to n
+squared 2 to the n time.
+
+00:51:58.780 --> 00:51:59.682
+We'll get to that.
+
+00:51:59.682 --> 00:52:02.140
+That's really powerful, but
+now we're looking for something
+
+00:52:02.140 --> 00:52:03.770
+not quite that sophisticated.
+
+00:52:03.770 --> 00:52:06.400
+But that's a great idea.
+
+00:52:06.400 --> 00:52:10.570
+Can I somehow prune the search
+if a sum plus a lower bound
+
+00:52:10.570 --> 00:52:13.360
+on the remaining cities is
+greater than the minimum sum?
+
+00:52:16.510 --> 00:52:18.190
+What kind of lower
+bound could I get?
+
+00:52:18.190 --> 00:52:21.292
+Well, I could computed
+a TSP path through them.
+
+00:52:21.292 --> 00:52:22.250
+That's really powerful.
+
+00:52:22.250 --> 00:52:23.833
+That will give me a
+really good bound,
+
+00:52:23.833 --> 00:52:26.960
+but it's really
+expensive to compute.
+
+00:52:26.960 --> 00:52:30.640
+So I could-- if this is
+a city I've done so far,
+
+00:52:30.640 --> 00:52:34.420
+I could compute a TSP
+path to the rest, which
+
+00:52:34.420 --> 00:52:41.200
+might in this case looks
+like this, and hook it up.
+
+00:52:41.200 --> 00:52:43.380
+That's going to be a
+really powerful heuristic,
+
+00:52:43.380 --> 00:52:46.380
+but it's going to be really
+expensive to compute.
+
+00:52:46.380 --> 00:52:50.220
+On the other hand, I could
+take just the distance
+
+00:52:50.220 --> 00:52:52.440
+between two random points.
+
+00:52:52.440 --> 00:53:00.210
+I'm going to choose this
+point and this point
+
+00:53:00.210 --> 00:53:03.420
+I happened to get the
+diameter of the set.
+
+00:53:06.100 --> 00:53:07.440
+And that's a lower bound.
+
+00:53:07.440 --> 00:53:09.840
+It's going to be
+at least that long.
+
+00:53:09.840 --> 00:53:11.600
+And it's really
+cheap to compute,
+
+00:53:11.600 --> 00:53:14.215
+but is it very effective?
+
+00:53:14.215 --> 00:53:16.740
+Nyah.
+
+00:53:16.740 --> 00:53:21.220
+So the first choice is
+effective but too expensive.
+
+00:53:21.220 --> 00:53:23.700
+The second point is
+really inexpensive but not
+
+00:53:23.700 --> 00:53:25.090
+very effective.
+
+00:53:25.090 --> 00:53:27.630
+I could also compute the
+nearest neighbor of each city.
+
+00:53:27.630 --> 00:53:29.880
+From this city, if I just
+compute its nearest neighbor
+
+00:53:29.880 --> 00:53:31.470
+among here, so it's that.
+
+00:53:31.470 --> 00:53:32.400
+This one is that.
+
+00:53:32.400 --> 00:53:35.190
+That one has its own
+nearest neighbor.
+
+00:53:35.190 --> 00:53:36.960
+I could compute these distances.
+
+00:53:39.660 --> 00:53:42.012
+And that's pretty
+inexpensive to compute,
+
+00:53:42.012 --> 00:53:43.470
+and it's a pretty
+good lower bound.
+
+00:53:43.470 --> 00:53:44.280
+That would work.
+
+00:53:47.640 --> 00:53:52.030
+Who here knows what a
+minimum spanning tree is?
+
+00:53:52.030 --> 00:53:53.310
+Good.
+
+00:53:53.310 --> 00:53:56.970
+What I'll do here is I'll take
+here a minimum spanning tree.
+
+00:53:56.970 --> 00:54:02.490
+In cities, a tree
+is n minus 1 edges.
+
+00:54:02.490 --> 00:54:04.110
+This tree is n minus 1 edges.
+
+00:54:04.110 --> 00:54:06.750
+This is a spanning tree
+because it touches--
+
+00:54:06.750 --> 00:54:08.070
+it connects all cities.
+
+00:54:08.070 --> 00:54:10.410
+And, furthermore, it's
+a minimum spanning tree,
+
+00:54:10.410 --> 00:54:12.600
+because, of all
+spanning trees, This one
+
+00:54:12.600 --> 00:54:15.670
+has the minimum total distance.
+
+00:54:15.670 --> 00:54:19.080
+Now, the tour is
+going to be less--
+
+00:54:19.080 --> 00:54:22.290
+or greater in distance than
+the minimum spanning tree.
+
+00:54:22.290 --> 00:54:23.460
+Why is that?
+
+00:54:23.460 --> 00:54:31.870
+If I get a tour of
+this, I can just
+
+00:54:31.870 --> 00:54:33.220
+knock off the longest edge.
+
+00:54:42.160 --> 00:54:45.670
+And that now becomes a
+minimum spanning tree.
+
+00:54:45.670 --> 00:54:47.975
+So the minimum spanning
+tree is a pretty good bound,
+
+00:54:47.975 --> 00:54:49.810
+a lower bound.
+
+00:54:49.810 --> 00:54:51.285
+It's cheap to compute.
+
+00:54:51.285 --> 00:54:53.660
+Who here has ever seen an
+algorithm for computing minimum
+
+00:54:53.660 --> 00:54:55.720
+spanning trees?
+
+00:54:55.720 --> 00:54:56.800
+Good, good.
+
+00:54:56.800 --> 00:54:59.680
+Some of you are awake in
+some of their classes.
+
+00:54:59.680 --> 00:55:01.000
+What are the odds of that?
+
+00:55:01.000 --> 00:55:04.810
+I mean, what an
+amazing coincidence.
+
+00:55:04.810 --> 00:55:09.340
+So what we'll do is say now
+that a better lower bound
+
+00:55:09.340 --> 00:55:12.250
+is to add the minimum spanning
+tree's remaining points.
+
+00:55:12.250 --> 00:55:18.940
+So I change this program to
+if sum plus the MST distance.
+
+00:55:18.940 --> 00:55:20.350
+And now I'm going to do a trick.
+
+00:55:20.350 --> 00:55:22.750
+I'm going to use
+word parallelism.
+
+00:55:22.750 --> 00:55:25.030
+I'm going to have
+the representation
+
+00:55:25.030 --> 00:55:27.600
+of the subset of the
+cities as a mask, a bit
+
+00:55:27.600 --> 00:55:30.460
+mask in which if the
+appropriate city is on,
+
+00:55:30.460 --> 00:55:31.420
+the bit is turned on.
+
+00:55:31.420 --> 00:55:32.830
+Otherwise, it's turned off.
+
+00:55:32.830 --> 00:55:37.540
+And I just OR bits
+into it, and say
+
+00:55:37.540 --> 00:55:42.550
+if I compute the minimum
+spanning tree of this set,
+
+00:55:42.550 --> 00:55:44.830
+I can cut the search and return.
+
+00:55:44.830 --> 00:55:49.000
+And then I just compute the MST
+and bring this along with me,
+
+00:55:49.000 --> 00:55:54.400
+turning things off and on in
+the bit mask as I go down.
+
+00:55:54.400 --> 00:55:55.760
+Pretty straightforward.
+
+00:55:55.760 --> 00:55:57.730
+How much code will
+it cost to compute
+
+00:55:57.730 --> 00:55:58.810
+a minimum spanning tree?
+
+00:56:02.590 --> 00:56:04.960
+Ballpark?
+
+00:56:04.960 --> 00:56:05.608
+Yes.
+
+00:56:05.608 --> 00:56:07.480
+AUDIENCE: 30 or
+20 lines of code.
+
+00:56:07.480 --> 00:56:11.835
+JON BENTLEY: About that
+many lines of code.
+
+00:56:11.835 --> 00:56:13.210
+This is the
+Prim-Dijkstra method.
+
+00:56:13.210 --> 00:56:14.770
+It takes quadratic time.
+
+00:56:14.770 --> 00:56:17.410
+For computing an
+MST of n points,
+
+00:56:17.410 --> 00:56:21.250
+it takes n squared time.
+
+00:56:21.250 --> 00:56:22.730
+It's quite simple.
+
+00:56:22.730 --> 00:56:27.790
+You can do it in
+e log log b time.
+
+00:56:27.790 --> 00:56:29.260
+But this is a simple code.
+
+00:56:29.260 --> 00:56:32.800
+It's pretty straightforward.
+
+00:56:32.800 --> 00:56:35.395
+Will this make the program
+run slower or faster?
+
+00:56:38.290 --> 00:56:42.280
+What would the argument be
+that it might run slower?
+
+00:56:42.280 --> 00:56:43.000
+Holy moly.
+
+00:56:43.000 --> 00:56:44.718
+At every node I'm
+computing an MST.
+
+00:56:44.718 --> 00:56:46.510
+That takes long time
+and I will run slower.
+
+00:56:46.510 --> 00:56:50.350
+What's the argument to be
+that it might run faster?
+
+00:56:50.350 --> 00:56:52.900
+Yes, but I'm getting a
+much more powerful pruning.
+
+00:56:52.900 --> 00:56:54.757
+Is it worth it?
+
+00:56:54.757 --> 00:56:57.340
+I should point out that I'm only
+showing the wins here to you.
+
+00:56:57.340 --> 00:57:00.002
+When I redid this myself, I
+went down a few wrong paths.
+
+00:57:00.002 --> 00:57:01.960
+I wish I would have
+documented them better now.
+
+00:57:01.960 --> 00:57:04.410
+But I might go back and
+see if I can find them.
+
+00:57:04.410 --> 00:57:07.120
+That would be a good thing.
+
+00:57:07.120 --> 00:57:09.830
+But here it is.
+
+00:57:09.830 --> 00:57:11.440
+It used to take 17 seconds.
+
+00:57:11.440 --> 00:57:12.940
+Now it takes-- or 4 seconds.
+
+00:57:12.940 --> 00:57:14.860
+Now it takes 0.
+
+00:57:14.860 --> 00:57:18.240
+You like algorithms
+to take 0 seconds.
+
+00:57:18.240 --> 00:57:21.760
+You'd like to live in
+the rounding error.
+
+00:57:21.760 --> 00:57:24.280
+4.40 to 0.2.
+
+00:57:24.280 --> 00:57:27.790
+Down here, this program
+is not only faster,
+
+00:57:27.790 --> 00:57:30.510
+it's a boatload faster.
+
+00:57:30.510 --> 00:57:32.850
+And so now we can
+go out in this.
+
+00:57:32.850 --> 00:57:35.980
+And notice here
+that as you go out,
+
+00:57:35.980 --> 00:57:38.440
+the times usually get
+bigger, but they are bumpy,
+
+00:57:38.440 --> 00:57:41.422
+from 2.4 seconds to 0.7
+seconds, to 1.8 seconds.
+
+00:57:41.422 --> 00:57:43.130
+It's because you're
+doing that one thing.
+
+00:57:43.130 --> 00:57:45.040
+It's just the matter
+of the geometry.
+
+00:57:45.040 --> 00:57:48.310
+The times that were originally
+really smooth now turn bumpy.
+
+00:57:48.310 --> 00:57:51.460
+I've done experiments where
+I do 10 different data sets,
+
+00:57:51.460 --> 00:57:55.180
+randomly drawing each one,
+and it's a nice smooth line.
+
+00:57:55.180 --> 00:57:59.470
+But I missed doing
+it here to be easy.
+
+00:57:59.470 --> 00:58:01.810
+Before we can go out to size 17.
+
+00:58:01.810 --> 00:58:05.290
+Now we can go out to size 30.
+
+00:58:05.290 --> 00:58:06.160
+Wow.
+
+00:58:06.160 --> 00:58:07.030
+How cool is that?
+
+00:58:07.030 --> 00:58:07.988
+That's pretty powerful.
+
+00:58:14.500 --> 00:58:15.270
+Can I make this--
+
+00:58:15.270 --> 00:58:15.930
+please.
+
+00:58:15.930 --> 00:58:18.840
+AUDIENCE: So is it possible
+that the [INAUDIBLE]
+
+00:58:18.840 --> 00:58:22.072
+is chosen in such a way that
+this thing doesn't actually
+
+00:58:22.072 --> 00:58:25.540
+prune any bad permutations?
+
+00:58:25.540 --> 00:58:27.040
+JON BENTLEY: That's
+absolutely true.
+
+00:58:27.040 --> 00:58:29.560
+And I've tried this both
+on random point sets.
+
+00:58:29.560 --> 00:58:31.450
+I've tried it on
+distance matrices.
+
+00:58:31.450 --> 00:58:33.730
+I've tried on points
+where they're randomly
+
+00:58:33.730 --> 00:58:37.520
+distributed around the
+perimeter of a circle.
+
+00:58:37.520 --> 00:58:40.060
+And so this could
+be a lot of time.
+
+00:58:40.060 --> 00:58:43.100
+Almost always, it's
+pretty effective.
+
+00:58:43.100 --> 00:58:45.010
+Again, if I had more
+time, I'd talk about it.
+
+00:58:45.010 --> 00:58:50.215
+But in fact we're going
+to go until 3:45, Charles?
+
+00:58:50.215 --> 00:58:51.460
+CHARLES LEISERSON: 3:55.
+
+00:58:51.460 --> 00:58:52.960
+JON BENTLEY: 3:55?
+
+00:58:52.960 --> 00:58:55.570
+When the big hand is on the 11?
+
+00:58:55.570 --> 00:58:56.560
+Oh.
+
+00:58:56.560 --> 00:58:58.270
+Sucks to be you.
+
+00:58:58.270 --> 00:59:01.630
+[STUDENTS LAUGH]
+
+00:59:01.630 --> 00:59:05.950
+I profiled this bad boy, and
+it shows that most of the time
+
+00:59:05.950 --> 00:59:08.320
+is in building minimum
+spanning trees.
+
+00:59:08.320 --> 00:59:10.330
+Your fear that it
+might take a long time,
+
+00:59:10.330 --> 00:59:12.620
+it might make it
+slower, has a basis.
+
+00:59:12.620 --> 00:59:14.110
+That's where all
+the time is going.
+
+00:59:14.110 --> 00:59:16.130
+How can I reduce the
+time spent in building
+
+00:59:16.130 --> 00:59:17.220
+minimum spanning trees?
+
+00:59:20.640 --> 00:59:22.683
+As I search this-- please.
+
+00:59:22.683 --> 00:59:25.945
+AUDIENCE: Maybe don't
+do it every time?
+
+00:59:25.945 --> 00:59:28.320
+JON BENTLEY: I could do some
+incremental minimum spanning
+
+00:59:28.320 --> 00:59:29.910
+trees because they change a lot.
+
+00:59:29.910 --> 00:59:31.630
+And so there are
+several responses.
+
+00:59:31.630 --> 00:59:34.620
+One is whenever you're building
+something over again, rather
+
+00:59:34.620 --> 00:59:36.733
+than building it from
+scratch, see if you can do
+
+00:59:36.733 --> 00:59:38.400
+an incremental
+algorithm, where you just
+
+00:59:38.400 --> 00:59:40.350
+change one bit of the
+minimum spanning tree.
+
+00:59:40.350 --> 00:59:42.300
+If I just add one
+edge into the graph,
+
+00:59:42.300 --> 00:59:44.040
+always try an
+incremental algorithm.
+
+00:59:44.040 --> 00:59:45.090
+That's cool.
+
+00:59:45.090 --> 00:59:47.220
+That's one
+sophisticated approach.
+
+00:59:47.220 --> 00:59:50.910
+What is one-- what was another
+pretty idiot simpler approach?
+
+00:59:50.910 --> 00:59:53.100
+Whenever you compute
+something over and over again,
+
+00:59:53.100 --> 00:59:56.410
+what can you do to reduce
+the time spent computing it?
+
+00:59:56.410 --> 00:59:57.330
+AUDIENCE: Store it?
+
+00:59:57.330 --> 00:59:58.680
+JON BENTLEY: Store it.
+
+00:59:58.680 --> 01:00:01.500
+Do I ever compute the same
+MST over and over again?
+
+01:00:01.500 --> 01:00:02.560
+I don't know.
+
+01:00:02.560 --> 01:00:06.670
+I think maybe it's worth a try.
+
+01:00:06.670 --> 01:00:10.260
+So what I'll do is
+return of caching.
+
+01:00:10.260 --> 01:00:12.090
+Store rather than recompute.
+
+01:00:12.090 --> 01:00:15.300
+Cache MST distances rather
+than computing them.
+
+01:00:15.300 --> 01:00:16.870
+The code looks like this.
+
+01:00:16.870 --> 01:00:19.140
+The new mask is that.
+
+01:00:19.140 --> 01:00:22.260
+If the MST distance
+array is less than 0,
+
+01:00:22.260 --> 01:00:23.800
+initialize everything to 0.
+
+01:00:23.800 --> 01:00:27.120
+Here I'm just going to store
+them all in a table of size 2
+
+01:00:27.120 --> 01:00:27.940
+to the n.
+
+01:00:27.940 --> 01:00:30.310
+I can do direct indexing.
+
+01:00:30.310 --> 01:00:33.200
+If it's less than 0, compute
+it, fill in the value.
+
+01:00:33.200 --> 01:00:35.490
+If sum plus that, return.
+
+01:00:35.490 --> 01:00:37.200
+Not much code.
+
+01:00:37.200 --> 01:00:39.270
+But do you really
+want to store--
+
+01:00:39.270 --> 01:00:41.580
+to blast it out
+and to use a lazy--
+
+01:00:41.580 --> 01:00:44.070
+I'm using lazy evaluation
+of this table here.
+
+01:00:44.070 --> 01:00:47.310
+Only when I need it
+do I fill in a value.
+
+01:00:47.310 --> 01:00:49.410
+That's not effective.
+
+01:00:49.410 --> 01:00:52.140
+Rather than storing
+all 2 to the n tables,
+
+01:00:52.140 --> 01:00:54.330
+what can I do instead?
+
+01:00:54.330 --> 01:00:58.680
+What's our favorite data
+structure for storing stuff?
+
+01:00:58.680 --> 01:01:00.060
+Hash table.
+
+01:01:00.060 --> 01:01:01.320
+A cache via hash.
+
+01:01:01.320 --> 01:01:03.960
+So the key to happiness.
+
+01:01:03.960 --> 01:01:06.150
+You can write that down too.
+
+01:01:06.150 --> 01:01:07.650
+Store them in a hash table.
+
+01:01:07.650 --> 01:01:10.030
+If sum plus MST
+distance lookup--
+
+01:01:10.030 --> 01:01:12.870
+oh, but I have to
+implement a hash table now.
+
+01:01:12.870 --> 01:01:16.640
+How much code is
+that going to be?
+
+01:01:16.640 --> 01:01:17.140
+Ballpark?
+
+01:01:19.880 --> 01:01:22.830
+What does it cost to
+build a hash table?
+
+01:01:22.830 --> 01:01:23.330
+Roughly.
+
+01:01:23.330 --> 01:01:25.920
+Come on.
+
+01:01:25.920 --> 01:01:26.420
+Yes.
+
+01:01:26.420 --> 01:01:29.090
+About that many lines.
+
+01:01:29.090 --> 01:01:35.060
+So just go down the hash table.
+
+01:01:35.060 --> 01:01:36.290
+If you find it, return it.
+
+01:01:36.290 --> 01:01:39.080
+Otherwise, make a new
+node, compute the distance,
+
+01:01:39.080 --> 01:01:42.060
+put it in there, fill in
+the values, and you're done.
+
+01:01:42.060 --> 01:01:43.170
+Is it going to be faster?
+
+01:01:43.170 --> 01:01:44.390
+Oh, we'll see.
+
+01:01:44.390 --> 01:01:47.600
+Who reads xkcd on
+a regular basis?
+
+01:01:47.600 --> 01:01:50.420
+The rest of you are
+bad, bad, bad people,
+
+01:01:50.420 --> 01:01:52.550
+and you should feel
+very guilty until you
+
+01:01:52.550 --> 01:01:55.895
+go to xkcd.com and start
+reading this on a regular basis.
+
+01:01:58.970 --> 01:02:00.140
+I mean, like wow.
+
+01:02:00.140 --> 01:02:01.790
+This is two deep
+psychological insights
+
+01:02:01.790 --> 01:02:04.340
+in one lecture for
+no additional fee.
+
+01:02:04.340 --> 01:02:04.840
+Sir.
+
+01:02:04.840 --> 01:02:06.840
+CHARLES LEISERSON: Were
+you resolving collisions
+
+01:02:06.840 --> 01:02:07.738
+by chaining them?
+
+01:02:07.738 --> 01:02:09.280
+JON BENTLEY: Right,
+by chaining, yes.
+
+01:02:09.280 --> 01:02:10.530
+CHARLES LEISERSON: Why bother?
+
+01:02:10.530 --> 01:02:13.530
+Why not just store
+the place value
+
+01:02:13.530 --> 01:02:17.100
+and keep a key to make sure
+that it's the value associated
+
+01:02:17.100 --> 01:02:18.740
+with the one that you want?
+
+01:02:18.740 --> 01:02:20.528
+JON BENTLEY: That
+is a great question,
+
+01:02:20.528 --> 01:02:22.820
+and the answer is left as an
+exercise for the listener.
+
+01:02:25.570 --> 01:02:28.940
+We've got about 20
+minutes, Charles.
+
+01:02:28.940 --> 01:02:30.800
+CHARLES LEISERSON:
+Code, less code.
+
+01:02:30.800 --> 01:02:32.450
+JON BENTLEY: It would be, yes.
+
+01:02:32.450 --> 01:02:35.030
+And it's well worth a try.
+
+01:02:35.030 --> 01:02:38.190
+All of these things are
+empirical questions.
+
+01:02:38.190 --> 01:02:39.740
+One thing that's
+really important
+
+01:02:39.740 --> 01:02:42.650
+to learn as a
+performance engineer
+
+01:02:42.650 --> 01:02:45.840
+is that your intuition
+is almost always wrong.
+
+01:02:45.840 --> 01:02:49.670
+Always try to experiment to see.
+
+01:02:49.670 --> 01:02:51.360
+It's a great question.
+
+01:02:51.360 --> 01:02:54.020
+When I get home, I'll
+actually-- when I leave here,
+
+01:02:54.020 --> 01:02:56.420
+I'm going to go up to try
+to climb Mount Monadnock.
+
+01:02:56.420 --> 01:02:58.680
+Who here has ever
+climbed Mount Monadnock?
+
+01:02:58.680 --> 01:02:59.240
+Yes.
+
+01:02:59.240 --> 01:03:04.015
+I finished climbing all
+115 4,000-foot peaks
+
+01:03:04.015 --> 01:03:05.390
+in the Northeastern
+US last year.
+
+01:03:05.390 --> 01:03:06.890
+I've never climbed Monadnock.
+
+01:03:06.890 --> 01:03:09.820
+I'm really eager to
+give it a try tomorrow.
+
+01:03:09.820 --> 01:03:11.000
+xkcd.
+
+01:03:11.000 --> 01:03:13.690
+Brute force n factorial.
+
+01:03:13.690 --> 01:03:15.950
+The Held-Karp dynamic
+programming algorithm
+
+01:03:15.950 --> 01:03:19.390
+uses the grown-up version
+of dynamic programming for n
+
+01:03:19.390 --> 01:03:23.390
+squared 2 to the
+n, but even better.
+
+01:03:26.960 --> 01:03:30.337
+Algorithm 6 looks like
+that if I cache the TSPs.
+
+01:03:30.337 --> 01:03:31.420
+Does it have to be faster?
+
+01:03:31.420 --> 01:03:31.920
+No.
+
+01:03:31.920 --> 01:03:33.761
+Is it faster?
+
+01:03:33.761 --> 01:03:36.350
+Oh, by about a
+factor of 15 there.
+
+01:03:36.350 --> 01:03:42.170
+By about a factor of
+25 there, 26 there.
+
+01:03:42.170 --> 01:03:46.580
+You can go out now
+much further, 6 and 8.
+
+01:03:46.580 --> 01:03:49.790
+So we've done that.
+
+01:03:49.790 --> 01:03:52.190
+Is there any other way to
+make this program faster?
+
+01:03:52.190 --> 01:03:55.430
+We've pruned the
+search like crazy.
+
+01:03:55.430 --> 01:03:56.850
+Any other way to make it faster?
+
+01:03:56.850 --> 01:03:57.350
+Please.
+
+01:03:57.350 --> 01:03:58.649
+AUDIENCE: [INAUDIBLE].
+
+01:04:03.222 --> 01:04:04.930
+JON BENTLEY: I forget
+what happens at 39.
+
+01:04:04.930 --> 01:04:06.510
+Let's see.
+
+01:04:06.510 --> 01:04:10.274
+At 39, it went over a minute.
+
+01:04:10.274 --> 01:04:13.122
+And, like I said, this
+thing goes up and down.
+
+01:04:13.122 --> 01:04:16.623
+I guess it just hit some weird
+bumps in the search space.
+
+01:04:16.623 --> 01:04:17.540
+That's something else.
+
+01:04:17.540 --> 01:04:20.220
+The first algorithm is
+completely predictable.
+
+01:04:20.220 --> 01:04:21.470
+The other algorithms, you
+have to get more and more
+
+01:04:21.470 --> 01:04:22.130
+into analysis.
+
+01:04:22.130 --> 01:04:23.820
+And now the times
+go up and down.
+
+01:04:23.820 --> 01:04:25.280
+There is a trend.
+
+01:04:25.280 --> 01:04:28.370
+And, basically, I'm taking an
+exponent and I'm lowering--
+
+01:04:28.370 --> 01:04:30.950
+I turned it from super
+exponential to exponential,
+
+01:04:30.950 --> 01:04:35.090
+and then I'm being down
+on the exponent right now.
+
+01:04:35.090 --> 01:04:36.740
+Can you make this run faster?
+
+01:04:36.740 --> 01:04:40.085
+What we're going to do is take
+this idea of a greedy search.
+
+01:04:43.010 --> 01:04:45.428
+I've can have
+smarter researching.
+
+01:04:45.428 --> 01:04:46.970
+Better than a random
+order, I'm going
+
+01:04:46.970 --> 01:04:48.590
+to do a better starting tour.
+
+01:04:48.590 --> 01:04:51.980
+And what I'm going to do is
+always at each point sort
+
+01:04:51.980 --> 01:04:54.940
+the points to look at the
+nearest one to the current one
+
+01:04:54.940 --> 01:04:55.440
+first.
+
+01:04:55.440 --> 01:04:56.750
+Start with a random one.
+
+01:04:56.750 --> 01:04:58.250
+Then for the next
+one, always look
+
+01:04:58.250 --> 01:05:00.140
+at the nearest point first,
+then the second nearest,
+
+01:05:00.140 --> 01:05:01.480
+the third nearest, et cetera.
+
+01:05:01.480 --> 01:05:02.720
+So I'll go in that order.
+
+01:05:02.720 --> 01:05:04.400
+That should make
+the search smarter,
+
+01:05:04.400 --> 01:05:06.442
+and that should guide
+me rather quickly
+
+01:05:06.442 --> 01:05:07.650
+to the initial starting tour.
+
+01:05:07.650 --> 01:05:09.467
+Rather than just a
+random tour, I'll
+
+01:05:09.467 --> 01:05:12.050
+have a good one that will give
+me a better prune of the search
+
+01:05:12.050 --> 01:05:13.373
+space.
+
+01:05:13.373 --> 01:05:14.540
+Will that make a difference?
+
+01:05:14.540 --> 01:05:16.280
+We'll have to include a sort.
+
+01:05:16.280 --> 01:05:18.890
+I'll get two birds
+with one modification.
+
+01:05:18.890 --> 01:05:22.190
+By a really dumb insertion
+sort, which takes up
+
+01:05:22.190 --> 01:05:25.760
+that many lines of code,
+I'll visit the nearest city
+
+01:05:25.760 --> 01:05:27.530
+first, then others in order.
+
+01:05:27.530 --> 01:05:31.220
+If I do that, here
+it's a factor of 2,
+
+01:05:31.220 --> 01:05:34.850
+there it's a factor
+of 8, a factor of 4.
+
+01:05:34.850 --> 01:05:36.170
+But it seems to work.
+
+01:05:36.170 --> 01:05:37.620
+It gives you some--
+
+01:05:37.620 --> 01:05:39.230
+as you go out especially.
+
+01:05:39.230 --> 01:05:45.380
+I can now go out further.
+
+01:05:45.380 --> 01:05:46.080
+I lied.
+
+01:05:46.080 --> 01:05:49.640
+I didn't stop my search
+at 60 seconds there.
+
+01:05:49.640 --> 01:05:53.100
+But I can now go up further,
+and it seems to be a lot faster.
+
+01:05:53.100 --> 01:05:58.490
+So in 1997, 20 years ago, I was
+really happy to get out to 30.
+
+01:05:58.490 --> 01:06:00.830
+The question now is,
+in 20 more years,
+
+01:06:00.830 --> 01:06:02.390
+how much bigger can I go?
+
+01:06:02.390 --> 01:06:05.330
+If I just depend on Moore's
+law alone, in 20 years
+
+01:06:05.330 --> 01:06:06.560
+a factor of a thousand.
+
+01:06:09.200 --> 01:06:13.100
+At 30, 30 times 31
+times 32, that's
+
+01:06:13.100 --> 01:06:15.140
+a factor I can go
+up by Moore's law.
+
+01:06:15.140 --> 01:06:18.830
+With a [INAUDIBLE] algorithm,
+it would give me two more cities
+
+01:06:18.830 --> 01:06:21.410
+at this size in 20 years.
+
+01:06:21.410 --> 01:06:25.700
+Can I get from 30 on to anything
+interesting by combining
+
+01:06:25.700 --> 01:06:28.760
+Moore's law, and compiler
+technology, and all
+
+01:06:28.760 --> 01:06:29.750
+the algorithms.
+
+01:06:29.750 --> 01:06:30.958
+How far can I go?
+
+01:06:30.958 --> 01:06:32.750
+Well, I was going to
+give a talk at Lehigh.
+
+01:06:35.330 --> 01:06:37.130
+So I could go out--
+in under a minute,
+
+01:06:37.130 --> 01:06:39.110
+I could go to the 45-city tour.
+
+01:06:39.110 --> 01:06:43.310
+Charles answered this yesterday,
+so he is completely clear.
+
+01:06:43.310 --> 01:06:45.030
+Rorschach test.
+
+01:06:45.030 --> 01:06:46.130
+Who's willing to go out--
+
+01:06:46.130 --> 01:06:47.748
+what do you see there?
+
+01:06:47.748 --> 01:06:49.050
+AUDIENCE: A puppy.
+
+01:06:49.050 --> 01:06:50.353
+JON BENTLEY: Dancing doggy.
+
+01:06:50.353 --> 01:06:51.770
+That was my answer,
+dancing doggy.
+
+01:06:51.770 --> 01:06:52.760
+I like that a lot.
+
+01:06:52.760 --> 01:06:53.843
+That's the obvious answer.
+
+01:06:53.843 --> 01:06:59.420
+But Charles-- and this shows
+a profoundly profound mind.
+
+01:06:59.420 --> 01:07:02.742
+Professor Leiserson,
+what is this?
+
+01:07:02.742 --> 01:07:09.320
+CHARLES LEISERSON: This is a dog
+doing his business [INAUDIBLE]..
+
+01:07:09.320 --> 01:07:10.040
+JON BENTLEY: OK.
+
+01:07:10.040 --> 01:07:17.350
+So any Freudians, you feel
+free to go to town on that one.
+
+01:07:17.350 --> 01:07:19.460
+45-city tour, it's pretty cool.
+
+01:07:19.460 --> 01:07:20.960
+Dancing doggy.
+
+01:07:20.960 --> 01:07:22.940
+How far can it go?
+
+01:07:22.940 --> 01:07:25.630
+I got out to 45
+in under a minute.
+
+01:07:25.630 --> 01:07:29.510
+46-- I broke my rule of this--
+
+01:07:29.510 --> 01:07:31.550
+I went over the minute boundary.
+
+01:07:31.550 --> 01:07:34.490
+This was my Thanksgiving
+2016 cycle test.
+
+01:07:34.490 --> 01:07:36.440
+I was just going hog wild.
+
+01:07:36.440 --> 01:07:38.030
+I was willing to spend the--
+
+01:07:38.030 --> 01:07:39.265
+I had to give a--
+
+01:07:39.265 --> 01:07:40.640
+I was doing this
+Wednesday night.
+
+01:07:40.640 --> 01:07:42.890
+I had to give a
+lecture on Monday.
+
+01:07:42.890 --> 01:07:44.870
+A hundred hours of CPU time.
+
+01:07:44.870 --> 01:07:46.640
+How far can I go?
+
+01:07:46.640 --> 01:07:48.530
+47.
+
+01:07:48.530 --> 01:07:49.430
+Yes.
+
+01:07:49.430 --> 01:07:50.980
+Yikes, factor of 5.
+
+01:07:50.980 --> 01:07:51.800
+When do I think?
+
+01:07:51.800 --> 01:07:52.397
+When do I run?
+
+01:07:52.397 --> 01:07:53.980
+Should I go back and
+[? work on it. ?]
+
+01:07:53.980 --> 01:07:57.380
+52-- wouldn't it be sweet to be
+able to go out to 52 factorial?
+
+01:07:57.380 --> 01:07:59.390
+Wouldn't that be cool?
+
+01:07:59.390 --> 01:08:01.850
+48-- that's not bad.
+
+01:08:01.850 --> 01:08:04.130
+That's looking pretty
+good there, actually.
+
+01:08:04.130 --> 01:08:06.560
+Oh, ouch, ouch.
+
+01:08:06.560 --> 01:08:08.090
+That's going to take a--
+
+01:08:08.090 --> 01:08:10.670
+so that about 2
+hours right there.
+
+01:08:10.670 --> 01:08:15.190
+But 50, whoo, edge of my seat.
+
+01:08:15.190 --> 01:08:19.020
+The turkey was
+smelling good, but 51.
+
+01:08:19.020 --> 01:08:20.413
+And can I get to 52?
+
+01:08:20.413 --> 01:08:21.080
+Will it make it?
+
+01:08:21.080 --> 01:08:22.452
+Will I have to go back to my--
+
+01:08:22.452 --> 01:08:23.750
+whew.
+
+01:08:23.750 --> 01:08:25.490
+3 hours and 7 minutes.
+
+01:08:25.490 --> 01:08:27.590
+By combining all
+of these things,
+
+01:08:27.590 --> 01:08:30.319
+we're able to go out to
+something that is just obscene.
+
+01:08:30.319 --> 01:08:32.420
+52 is obscenely huge.
+
+01:08:32.420 --> 01:08:35.060
+We're able to get out there
+by a combination of all
+
+01:08:35.060 --> 01:08:40.040
+of these things, of some really
+simple performance engineering
+
+01:08:40.040 --> 01:08:40.939
+techniques.
+
+01:08:40.939 --> 01:08:44.090
+If you're going to work on a
+real TSP, read the literature,
+
+01:08:44.090 --> 01:08:45.098
+study that.
+
+01:08:45.098 --> 01:08:46.640
+I hope we can come
+across some things
+
+01:08:46.640 --> 01:08:48.800
+that I've written about
+approximation algorithms.
+
+01:08:48.800 --> 01:08:51.788
+But if you really need them,
+forget the approximation
+
+01:08:51.788 --> 01:08:53.330
+algorithms because
+they're too short.
+
+01:08:53.330 --> 01:08:54.649
+There's a huge literature.
+
+01:08:54.649 --> 01:08:56.270
+I haven't told you any of that.
+
+01:08:56.270 --> 01:08:57.859
+Everything that
+I've done here are
+
+01:08:57.859 --> 01:09:01.340
+things that you, as a person
+who has completed this class,
+
+01:09:01.340 --> 01:09:02.930
+should be able to do.
+
+01:09:02.930 --> 01:09:06.260
+All these things are well
+within your scope of practice,
+
+01:09:06.260 --> 01:09:07.670
+as we say.
+
+01:09:07.670 --> 01:09:09.560
+You will not be sued
+for malpractice.
+
+01:09:09.560 --> 01:09:11.630
+How much code is
+the final thing?
+
+01:09:11.630 --> 01:09:13.880
+About that much.
+
+01:09:13.880 --> 01:09:14.750
+You build an MST.
+
+01:09:14.750 --> 01:09:16.490
+You had a hash table.
+
+01:09:16.490 --> 01:09:18.649
+Charles points
+out you could nuke
+
+01:09:18.649 --> 01:09:20.180
+three or four of those lines.
+
+01:09:20.180 --> 01:09:22.510
+You have the sort here.
+
+01:09:22.510 --> 01:09:24.950
+Altogether about 160 lines.
+
+01:09:24.950 --> 01:09:26.120
+Where have we been?
+
+01:09:26.120 --> 01:09:30.050
+We started we could
+get out to 11.
+
+01:09:30.050 --> 01:09:31.979
+Store the distances.
+
+01:09:31.979 --> 01:09:32.899
+Out to 12.
+
+01:09:32.899 --> 01:09:33.859
+Fix the starting city.
+
+01:09:33.859 --> 01:09:35.240
+That was a big one.
+
+01:09:35.240 --> 01:09:37.020
+Accumulate distance
+along the way.
+
+01:09:37.020 --> 01:09:37.460
+These were all good.
+
+01:09:37.460 --> 01:09:38.899
+But then by pruning
+the search, we
+
+01:09:38.899 --> 01:09:40.279
+started making the big things.
+
+01:09:40.279 --> 01:09:44.399
+Add the MST, store the
+distances in a hash table,
+
+01:09:44.399 --> 01:09:46.590
+visit the cities in
+a greedy algorithm.
+
+01:09:46.590 --> 01:09:49.319
+Each one of these gave
+us more and more and more
+
+01:09:49.319 --> 01:09:51.510
+power as we went out
+there, till we're finally
+
+01:09:51.510 --> 01:09:54.940
+able to go out pretty far.
+
+01:09:54.940 --> 01:09:57.030
+There are a lot of
+things you can do.
+
+01:09:57.030 --> 01:10:00.900
+Parallelism, faster
+machines, more code tuning,
+
+01:10:00.900 --> 01:10:02.520
+better hashing.
+
+01:10:02.520 --> 01:10:06.210
+That malloc is just
+begging to be removed.
+
+01:10:06.210 --> 01:10:09.900
+Better pruning, a better
+starting tour, better bounds.
+
+01:10:09.900 --> 01:10:12.920
+I can take the MST
+length plus the nearest--
+
+01:10:12.920 --> 01:10:14.460
+that's why I do this MST--
+
+01:10:14.460 --> 01:10:17.130
+plus the nearest neighbor
+to each of the ends.
+
+01:10:17.130 --> 01:10:18.150
+I can get that.
+
+01:10:18.150 --> 01:10:19.650
+Would that make
+a big difference?
+
+01:10:19.650 --> 01:10:20.550
+Empirical question.
+
+01:10:20.550 --> 01:10:22.770
+Easy to find out.
+
+01:10:22.770 --> 01:10:25.410
+Can I move by pruning
+tests earlier?
+
+01:10:25.410 --> 01:10:26.640
+Better sorting.
+
+01:10:26.640 --> 01:10:28.530
+This is really cool.
+
+01:10:28.530 --> 01:10:31.083
+Can I maybe just sort
+once for each city
+
+01:10:31.083 --> 01:10:33.000
+to get that sorted list,
+then go through that,
+
+01:10:33.000 --> 01:10:37.020
+precompute and sort, and
+select the things in order?
+
+01:10:37.020 --> 01:10:39.930
+Is that going to be a
+win in this context?
+
+01:10:39.930 --> 01:10:44.160
+The main ideas here are caching,
+precomputing, storing this,
+
+01:10:44.160 --> 01:10:44.970
+avoiding the work.
+
+01:10:44.970 --> 01:10:48.750
+Can I change that n squared
+algorithm to just a linear time
+
+01:10:48.750 --> 01:10:50.400
+selection?
+
+01:10:50.400 --> 01:10:53.160
+All of these things are
+really fun to look at.
+
+01:10:55.768 --> 01:10:57.810
+I've tried to tell you
+about incremental software
+
+01:10:57.810 --> 01:10:58.860
+development.
+
+01:10:58.860 --> 01:11:02.610
+I started off with around
+30, 40 lines of code.
+
+01:11:02.610 --> 01:11:03.780
+It grew to 160.
+
+01:11:03.780 --> 01:11:06.360
+But altogether all
+the versions come
+
+01:11:06.360 --> 01:11:10.380
+to about 600 lines of code.
+
+01:11:10.380 --> 01:11:12.780
+You've now seen
+more than you need
+
+01:11:12.780 --> 01:11:17.280
+for one life about
+recursive generation.
+
+01:11:17.280 --> 01:11:19.470
+It's a surprisingly
+powerful technique
+
+01:11:19.470 --> 01:11:21.130
+if you ever need to use it.
+
+01:11:21.130 --> 01:11:22.530
+No excuses now.
+
+01:11:22.530 --> 01:11:25.770
+You're obligated to
+build it immediately.
+
+01:11:25.770 --> 01:11:30.510
+Storing precomputed results,
+partial sums, early cut-offs.
+
+01:11:30.510 --> 01:11:32.290
+Algorithms and data structures.
+
+01:11:32.290 --> 01:11:35.010
+These are things that sounded
+fancy in your algorithms class,
+
+01:11:35.010 --> 01:11:36.927
+but you just pull them
+out when you need them.
+
+01:11:36.927 --> 01:11:40.110
+Vectors, strings,
+arrays and bit vectors,
+
+01:11:40.110 --> 01:11:44.130
+minimum spanning trees,
+hash tables, insertion sort.
+
+01:11:44.130 --> 01:11:44.910
+It's easy.
+
+01:11:44.910 --> 01:11:49.453
+It's a dozen lines of code here.
+two dozen lines of code there.
+
+01:11:49.453 --> 01:11:51.120
+I believe that Charles
+may had mentioned
+
+01:11:51.120 --> 01:11:54.420
+earlier that I wrote a book
+in 1982 about code tuning.
+
+01:11:54.420 --> 01:11:57.570
+At the time, you did these
+in the smaller programs.
+
+01:11:57.570 --> 01:11:59.830
+Now compilers do
+all that for you.
+
+01:11:59.830 --> 01:12:02.490
+But these ideas-- some of
+these ideas still apply.
+
+01:12:02.490 --> 01:12:04.350
+Store precomputed results.
+
+01:12:04.350 --> 01:12:08.370
+Rather than [INAUDIBLE]
+elimination in an expression,
+
+01:12:08.370 --> 01:12:10.800
+you now put interpoint
+distances in a matrix
+
+01:12:10.800 --> 01:12:12.900
+or a table of MST lengths.
+
+01:12:12.900 --> 01:12:14.610
+Lazy evaluation.
+
+01:12:14.610 --> 01:12:17.250
+You compute the n
+squared distances eagerly
+
+01:12:17.250 --> 01:12:19.170
+but only the MSTs that you need.
+
+01:12:19.170 --> 01:12:20.640
+Don't bother computing them all.
+
+01:12:20.640 --> 01:12:23.370
+That's essentially what
+Held and Karp does.
+
+01:12:23.370 --> 01:12:26.070
+Short-circuiting monotone
+functions, reordering tests,
+
+01:12:26.070 --> 01:12:27.540
+word parallelism.
+
+01:12:27.540 --> 01:12:30.780
+These are the things that
+you as performance engineers
+
+01:12:30.780 --> 01:12:34.590
+can do quite readily.
+
+01:12:34.590 --> 01:12:36.330
+I had a lot of tools
+behind the scenes.
+
+01:12:36.330 --> 01:12:37.903
+I wish I could come
+back and give you
+
+01:12:37.903 --> 01:12:39.570
+another hour about
+how I really did this
+
+01:12:39.570 --> 01:12:42.210
+with the analysis and
+the tools that I used.
+
+01:12:42.210 --> 01:12:44.520
+I had a driver to make
+the experiments easy,
+
+01:12:44.520 --> 01:12:46.320
+a whole bunch of profilers.
+
+01:12:46.320 --> 01:12:47.910
+Where is the time
+really going here?
+
+01:12:47.910 --> 01:12:49.620
+What should I focus on?
+
+01:12:49.620 --> 01:12:52.410
+Cost models that allowed
+me to estimate those,
+
+01:12:52.410 --> 01:12:55.410
+how much does an MST cost.
+
+01:12:55.410 --> 01:12:56.910
+A spreadsheet was
+my lab notebook
+
+01:12:56.910 --> 01:13:01.320
+for graphs of performance,
+all sorts of curve fitting.
+
+01:13:01.320 --> 01:13:05.370
+But these are the main things
+I wanted to tell you about.
+
+01:13:05.370 --> 01:13:10.560
+The big hand is getting about
+nine minutes away from the 11.
+
+01:13:10.560 --> 01:13:12.580
+Professor Leiserson,
+is there anything else
+
+01:13:12.580 --> 01:13:15.690
+that these fine, young
+semi-humanoids need
+
+01:13:15.690 --> 01:13:18.465
+to know about this material?
+
+01:13:18.465 --> 01:13:20.048
+CHARLES LEISERSON:
+Does anybody happen
+
+01:13:20.048 --> 01:13:26.759
+to see any analogies with
+the current project 4.
+
+01:13:26.759 --> 01:13:29.214
+Maybe people could
+chat a little bit
+
+01:13:29.214 --> 01:13:33.920
+about where they see
+analogies [INAUDIBLE]..
+
+01:13:33.920 --> 01:13:36.890
+JON BENTLEY: I don't
+know it, but one
+
+01:13:36.890 --> 01:13:39.320
+of my first exposures
+to MIT was when
+
+01:13:39.320 --> 01:13:43.190
+I had Donovan as a
+software systems book,
+
+01:13:43.190 --> 01:13:47.540
+and it was dedicated to
+6.51 graduate students.
+
+01:13:47.540 --> 01:13:50.340
+I saw that I thought,
+that bastard.
+
+01:13:50.340 --> 01:13:53.000
+I'm sure that the six students
+really worked hard on it,
+
+01:13:53.000 --> 01:13:56.780
+but to say that the seventh
+student worked only a little
+
+01:13:56.780 --> 01:13:59.150
+much more over
+halfway and then to be
+
+01:13:59.150 --> 01:14:02.062
+so precise, that's just cruel.
+
+01:14:02.062 --> 01:14:03.770
+What a son of a bitch
+that guy had to be.
+
+01:14:03.770 --> 01:14:10.140
+So I don't know what project
+4 is, but is it Leiserchess?
+
+01:14:10.140 --> 01:14:10.640
+Oh, great.
+
+01:14:10.640 --> 01:14:11.870
+I know what that is.
+
+01:14:11.870 --> 01:14:15.920
+So what things-- have you
+used any of these techniques?
+
+01:14:15.920 --> 01:14:17.540
+Did you ever prune searches?
+
+01:14:17.540 --> 01:14:19.460
+Did you ever store results?
+
+01:14:19.460 --> 01:14:21.316
+What did you do in project 4?
+
+01:14:29.420 --> 01:14:31.130
+You're delegating this.
+
+01:14:31.130 --> 01:14:32.850
+That's a natural
+leader right there.
+
+01:14:35.850 --> 01:14:38.350
+AUDIENCE: We talked about search
+pruning-- we already have--
+
+01:14:38.350 --> 01:14:39.960
+JON BENTLEY: Speak up so all
+of them can hear, please.
+
+01:14:39.960 --> 01:14:40.800
+AUDIENCE: Commander voice.
+
+01:14:40.800 --> 01:14:42.745
+So we already have
+--everybody in this room
+
+01:14:42.745 --> 01:14:43.870
+knows-- alpha-beta pruning.
+
+01:14:43.870 --> 01:14:46.800
+[INAUDIBLE] It's got search.
+
+01:14:46.800 --> 01:14:49.990
+I don't know how many teams
+are already working on search
+
+01:14:49.990 --> 01:14:52.490
+but at least my team
+is working on changing
+
+01:14:52.490 --> 01:14:53.615
+order representation first.
+
+01:14:53.615 --> 01:14:57.090
+So we haven't gotten
+into pruning search yet,
+
+01:14:57.090 --> 01:14:59.885
+but that's definitely on
+the horizon [INAUDIBLE]..
+
+01:14:59.885 --> 01:15:01.260
+JON BENTLEY: Is
+there anyone here
+
+01:15:01.260 --> 01:15:03.120
+from the state of California?
+
+01:15:03.120 --> 01:15:05.130
+I was born in California.
+
+01:15:05.130 --> 01:15:08.160
+When you hear alpha beta,
+apart from the search,
+
+01:15:08.160 --> 01:15:09.816
+what do you think of?
+
+01:15:09.816 --> 01:15:11.100
+AUDIENCE: The grocery store.
+
+01:15:11.100 --> 01:15:13.642
+JON BENTLEY: There's a grocery
+store there called Alpha Beta.
+
+01:15:13.642 --> 01:15:15.570
+And when Knuth wrote
+a paper on that topic,
+
+01:15:15.570 --> 01:15:18.020
+he went out and bought
+a box of Alpha Beta
+
+01:15:18.020 --> 01:15:21.150
+prunes that he had in his desk.
+
+01:15:21.150 --> 01:15:25.230
+So he was an expert in two
+senses on alpha beta pruning.
+
+01:15:25.230 --> 01:15:28.200
+So good.
+
+01:15:28.200 --> 01:15:29.400
+Other techniques?
+
+01:15:33.300 --> 01:15:33.800
+Please.
+
+01:15:33.800 --> 01:15:35.276
+AUDIENCE: The hashing.
+
+01:15:35.276 --> 01:15:42.164
+There's one function
+[INAUDIBLE] takes a long time,
+
+01:15:42.164 --> 01:15:44.624
+and suggested maybe
+you could somehow
+
+01:15:44.624 --> 01:15:48.300
+keep track of the laser path
+with a hash table [INAUDIBLE]..
+
+01:15:53.320 --> 01:15:54.580
+JON BENTLEY: Great.
+
+01:15:54.580 --> 01:15:57.880
+Did you resolve
+collisions at all?
+
+01:15:57.880 --> 01:16:00.340
+Or did you just have one
+element there with a key?
+
+01:16:00.340 --> 01:16:04.105
+How did you address the problem
+that Charles mentioned of--
+
+01:16:04.105 --> 01:16:05.480
+what kind of
+hashing did you use?
+
+01:16:05.480 --> 01:16:09.940
+AUDIENCE: So we haven't
+used caching yet.
+
+01:16:09.940 --> 01:16:11.230
+JON BENTLEY: Other techniques?
+
+01:16:11.230 --> 01:16:11.380
+CHARLES LEISERSON: Yes.
+
+01:16:11.380 --> 01:16:13.930
+That's a classic example
+of the fastest way
+
+01:16:13.930 --> 01:16:16.210
+to compute is not
+to compute at all.
+
+01:16:20.440 --> 01:16:23.050
+JON BENTLEY: In general, in
+life no problem is so big
+
+01:16:23.050 --> 01:16:25.450
+that it can't be run away from.
+
+01:16:25.450 --> 01:16:28.430
+These things about avoiding
+work and being lazy
+
+01:16:28.430 --> 01:16:31.020
+are certainly models for
+organizing your own life.
+
+01:16:31.020 --> 01:16:37.510
+The lazy evaluation really
+works in the real world.
+
+01:16:37.510 --> 01:16:40.540
+Other questions?
+
+01:16:40.540 --> 01:16:43.934
+Was that a question or a
+random obscene hand gesture?
+
+01:16:43.934 --> 01:16:45.560
+AUDIENCE: [INAUDIBLE].
+
+01:16:45.560 --> 01:16:47.740
+JON BENTLEY: Please.
+
+01:16:47.740 --> 01:16:50.740
+AUDIENCE: [INAUDIBLE]
+state-of the-art [INAUDIBLE]??
+
+01:16:50.740 --> 01:16:51.610
+JON BENTLEY: Oh.
+
+01:16:51.610 --> 01:16:52.780
+That's a great question.
+
+01:16:52.780 --> 01:16:57.550
+I worked on this problem
+a lot in the early 1990s
+
+01:16:57.550 --> 01:16:59.800
+with my colleague David
+Johnson, who literally wrote
+
+01:16:59.800 --> 01:17:01.440
+the book on NP-completeness.
+
+01:17:01.440 --> 01:17:05.020
+An MIT PhD guy.
+
+01:17:05.020 --> 01:17:07.810
+We were really happy we're in--
+
+01:17:07.810 --> 01:17:10.510
+at the time, in a couple
+of hours of CPU time
+
+01:17:10.510 --> 01:17:14.140
+we could solve 100,000
+city problems to
+
+01:17:14.140 --> 01:17:15.610
+within a few percent.
+
+01:17:15.610 --> 01:17:18.910
+We were able to solve a million
+city problems in a day of CPU
+
+01:17:18.910 --> 01:17:20.980
+time to within a few percent.
+
+01:17:20.980 --> 01:17:22.640
+And we were ecstatic.
+
+01:17:22.640 --> 01:17:23.500
+That was really big.
+
+01:17:23.500 --> 01:17:27.100
+So we could go out that big
+to within a few percent.
+
+01:17:27.100 --> 01:17:28.960
+If we worked
+really, really hard,
+
+01:17:28.960 --> 01:17:32.710
+we can get 10,000 problems
+down within a half a percent.
+
+01:17:32.710 --> 01:17:34.750
+But if you want
+to go all the way
+
+01:17:34.750 --> 01:17:37.930
+to have not only the optimal
+solution but a proof that it's
+
+01:17:37.930 --> 01:17:40.780
+optimal, for a while
+people bragged about
+
+01:17:40.780 --> 01:17:42.490
+we finally solved that problem.
+
+01:17:42.490 --> 01:17:44.770
+This will let you see
+about what was done.
+
+01:17:44.770 --> 01:17:49.510
+We solved the problem of
+all 48 state capitals.
+
+01:17:49.510 --> 01:17:52.450
+So for a while that was
+the state of the art.
+
+01:17:52.450 --> 01:17:54.370
+And then that number
+has crept over time.
+
+01:17:54.370 --> 01:17:55.940
+And now you can
+get exact solutions
+
+01:17:55.940 --> 01:17:58.810
+to some famous problems
+into the tens of thousands
+
+01:17:58.810 --> 01:18:04.470
+by using lots and lots of
+really clever searching
+
+01:18:04.470 --> 01:18:07.330
+the branching down with
+really clever lower bounds
+
+01:18:07.330 --> 01:18:08.320
+to guide it up.
+
+01:18:08.320 --> 01:18:12.430
+And you at one point get a tour,
+and you can make that tour.
+
+01:18:12.430 --> 01:18:14.980
+But then you get a proof
+of a lower bound along
+
+01:18:14.980 --> 01:18:16.720
+with it to do that.
+
+01:18:16.720 --> 01:18:18.577
+CHARLES LEISERSON:
+Hey, old man, I
+
+01:18:18.577 --> 01:18:20.410
+want to let you know
+that there are actually
+
+01:18:20.410 --> 01:18:22.896
+now 50 states in the union.
+
+01:18:22.896 --> 01:18:23.563
+JON BENTLEY: No.
+
+01:18:28.280 --> 01:18:29.480
+What time did this happen?
+
+01:18:32.370 --> 01:18:36.570
+You can tell that I am much,
+much, much older than Charles,
+
+01:18:36.570 --> 01:18:40.330
+and he never lets me
+hear the end of it.
+
+01:18:40.330 --> 01:18:41.850
+I trust that the
+rest of you-- this
+
+01:18:41.850 --> 01:18:44.240
+is like the third free
+deep psychology insight,
+
+01:18:44.240 --> 01:18:48.030
+is be kind to old people
+ignore the example
+
+01:18:48.030 --> 01:18:52.460
+that the kid over there
+sets and show some class
+
+01:18:52.460 --> 01:18:56.120
+and respect to me and
+my fellow geezers.
+
+01:18:56.120 --> 01:18:58.740
+CHARLES LEISERSON: We
+were both born in 1953.
+
+01:18:58.740 --> 01:19:05.130
+JON BENTLEY: But I was born
+in the good part of 1953.
+
+01:19:05.130 --> 01:19:09.390
+In particular, I was
+born before Her Majesty
+
+01:19:09.390 --> 01:19:12.393
+the Queen of England
+assumed the throne.
+
+01:19:12.393 --> 01:19:13.560
+Can you make the same claim?
+
+01:19:13.560 --> 01:19:15.120
+CHARLES LEISERSON: I
+cannot make the same claim.
+
+01:19:15.120 --> 01:19:15.540
+JON BENTLEY: I'm sorry.
+
+01:19:15.540 --> 01:19:17.730
+He can, but only because
+he's a sneaky bastard.
+
+01:19:17.730 --> 01:19:19.490
+Can you make it
+truthfully is the question
+
+01:19:19.490 --> 01:19:20.880
+that I should have asked.
+
+01:19:20.880 --> 01:19:23.040
+Other questions?
+
+01:19:23.040 --> 01:19:25.480
+This class can be
+very important.
+
+01:19:25.480 --> 01:19:27.240
+Like I said, I spent
+the past almost half
+
+01:19:27.240 --> 01:19:29.880
+century as a working
+computer programmer.
+
+01:19:29.880 --> 01:19:31.920
+The majority of that
+thing I've done most
+
+01:19:31.920 --> 01:19:33.540
+is performance engineering.
+
+01:19:33.540 --> 01:19:36.960
+It's allowed me to do a number
+of really interesting things.
+
+01:19:36.960 --> 01:19:40.920
+I've been able to dabble in all
+sorts of computational systems,
+
+01:19:40.920 --> 01:19:43.890
+ranging from automated
+gerrymandering.
+
+01:19:43.890 --> 01:19:46.560
+Every time you make a
+telephone call in this country,
+
+01:19:46.560 --> 01:19:52.020
+if it's, say, a call from inside
+an institution like a hospital
+
+01:19:52.020 --> 01:19:55.350
+of a university, it uses
+some code that I wrote,
+
+01:19:55.350 --> 01:19:57.005
+some of the performance things.
+
+01:19:57.005 --> 01:19:58.380
+If you make a
+long-distance call,
+
+01:19:58.380 --> 01:19:59.700
+it uses code that I wrote.
+
+01:19:59.700 --> 01:20:02.730
+If you've ever used something
+called Google internet
+
+01:20:02.730 --> 01:20:07.290
+search or maps, or
+stocks or anything else,
+
+01:20:07.290 --> 01:20:09.240
+that uses some
+algorithms I've done.
+
+01:20:09.240 --> 01:20:11.130
+It's incredibly satisfying.
+
+01:20:11.130 --> 01:20:13.950
+It's been a very, very
+fulfilling way for me
+
+01:20:13.950 --> 01:20:17.250
+to spend a big chunk of my life.
+
+01:20:17.250 --> 01:20:18.780
+I am grateful.
+
+01:20:18.780 --> 01:20:22.440
+It's allowed me to
+make friends, whom
+
+01:20:22.440 --> 01:20:24.690
+I've known for almost
+half a century,
+
+01:20:24.690 --> 01:20:27.510
+and to our wonderful
+dear people.
+
+01:20:27.510 --> 01:20:30.390
+And it's been a great
+way for my life.
+
+01:20:30.390 --> 01:20:32.820
+I hope that performance
+engineering is as good to you
+
+01:20:32.820 --> 01:20:33.900
+as it has been to me.
+
+01:20:33.900 --> 01:20:35.310
+Anything else, professor?
+
+01:20:38.217 --> 01:20:40.050
+CHARLES LEISERSON: Thank
+you very much, Jon.
+
+01:20:40.050 --> 01:20:41.250
+JON BENTLEY: Thank you.
+
+01:20:41.250 --> 01:20:45.200
+[STUDENTS APPLAUD]

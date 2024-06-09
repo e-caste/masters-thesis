@@ -1,0 +1,760 @@
+WEBVTT
+
+1
+00:00:00.680 --> 00:00:04.300 
+Hi everyone and welcome to this
+second video on Grover's algorithm.
+
+2
+00:00:04.330 --> 00:00:09.010 
+As we have seen in the last video
+here is this quantum circuit
+
+3
+00:00:09.040 --> 00:00:13.580 
+that we use to implement Grover's algorithm,
+which basically consists of three parts.
+
+4
+00:00:13.610 --> 00:00:17.220 
+First putting all items in superposition,
+then applying the phase Oracle,
+
+5
+00:00:17.240 --> 00:00:20.620 
+and then performing the reflection,
+the so called Diffuser.
+
+6
+00:00:20.650 --> 00:00:25.940 
+Now, let's see how we can
+implement that with Qiskit.
+
+7
+00:00:25.970 --> 00:00:29.780 
+The first step we need
+to do our typical imports.
+
+8
+00:00:29.810 --> 00:00:31.420 
+So let's run that's all.
+
+9
+00:00:31.450 --> 00:00:35.540 
+And then we have our three different
+functions that we're going to define.
+
+10
+00:00:35.570 --> 00:00:38.860 
+The first one is what we
+call the Phase Oracle.
+
+11
+00:00:38.890 --> 00:00:43.320 
+So, this is the function that gives us
+the minus one phase instead of a plus one
+
+12
+00:00:43.350 --> 00:00:46.660 
+phase that applies the phase
+to the element that we have marked.
+
+13
+00:00:46.680 --> 00:00:48.580 
+So, what we need to give that function as
+
+14
+00:00:48.610 --> 00:00:52.540 
+input is first N,
+the number of qubits that we need to use,
+
+15
+00:00:52.570 --> 00:00:56.700 
+then the index or potentially also
+multiple indices that we want to mark,
+
+16
+00:00:56.730 --> 00:00:59.420 
+which is the element
+that we're looking for.
+
+17
+00:00:59.450 --> 00:01:02.740 
+And then we give it a name,
+just Oracle in this case.
+
+18
+00:01:02.770 --> 00:01:05.700 
+So, we start as always,
+by building a quantum circuit.
+
+19
+00:01:05.730 --> 00:01:11.980 
+We call it QC, it's a quantum circuit
+on N qubits with the name Oracle.
+
+20
+00:01:12.010 --> 00:01:14.460 
+And then we create a matrix which is
+
+21
+00:01:14.490 --> 00:01:18.340 
+in the end going to be the one
+that applies our Oracle.
+
+22
+00:01:18.370 --> 00:01:25.660 
+And in this matrix we change the element
+that we want to mark to minus one.
+
+23
+00:01:25.690 --> 00:01:28.020 
+Because then if we apply now this matrix,
+
+24
+00:01:28.050 --> 00:01:33.400 
+what it does,
+the matrix we created was identity matrix.
+
+25
+00:01:33.430 --> 00:01:37.460 
+So, it has once anyway anywhere,
+which means that if we would not change
+
+26
+00:01:37.480 --> 00:01:40.210 
+any element and we just apply
+that matrix, nothing happens.
+
+27
+00:01:40.240 --> 00:01:41.820 
+If we now put a minus one somewhere,
+
+28
+00:01:41.850 --> 00:01:45.140 
+then for that element it will get a minus
+one phase
+
+29
+00:01:45.170 --> 00:01:51.490 
+and we turn this matrix into an operator,
+so into unitary gate and we return it.
+
+30
+00:01:51.520 --> 00:01:55.460 
+Then we have the second
+function which is our Diffuser.
+
+31
+00:01:55.490 --> 00:01:58.930 
+In the Diffuser what one can
+show how to implement it.
+
+32
+00:01:58.960 --> 00:02:01.210 
+I didn't go into the details here,
+
+33
+00:02:01.240 --> 00:02:06.180 
+but you saw that in a quantum circuit, is
+you first apply hadamard gate on all qubits,
+
+34
+00:02:06.210 --> 00:02:09.500 
+then we have applied the Oracle,
+another phase Oracle,
+
+35
+00:02:09.530 --> 00:02:13.340 
+but in that case just the phase Oracle
+that changes the first element.
+
+36
+00:02:13.370 --> 00:02:17.580 
+So the zero element
+that gives that one a minus one phase.
+
+37
+00:02:17.610 --> 00:02:20.100 
+And then again a bunch of Hadamard gates.
+
+38
+00:02:20.120 --> 00:02:21.450 
+Don't worry, it's really not obvious
+
+39
+00:02:21.480 --> 00:02:24.660 
+that this does this diffusion,
+that this does this reflection around
+
+40
+00:02:24.690 --> 00:02:27.940 
+the average amplitude,
+but mathematically one can show that.
+
+41
+00:02:27.970 --> 00:02:30.220 
+So, just trust me with that.
+
+42
+00:02:30.250 --> 00:02:32.340 
+And then the last function we define is
+
+43
+00:02:32.370 --> 00:02:35.610 
+the Grover algorithm where we
+now put everything together.
+
+44
+00:02:35.640 --> 00:02:38.700 
+We initially start by creating this
+
+45
+00:02:38.730 --> 00:02:42.980 
+quantum circuit with N qubits and N
+classical bits for the readout.
+
+46
+00:02:43.010 --> 00:02:46.520 
+Then we determine our R,
+which is just another mathematical
+
+47
+00:02:46.520 --> 00:02:48.140 
+function that you don't
+need to worry about.
+
+48
+00:02:48.170 --> 00:02:50.980 
+Just to see how many rounds we have to run
+
+49
+00:02:51.010 --> 00:02:56.160 
+the second and third step,
+as you have seen in the circuit.
+
+50
+00:02:56.520 --> 00:02:57.980 
+Then we basically initialize.
+
+51
+00:02:58.000 --> 00:02:59.220 
+We start with the first step.
+
+52
+00:02:59.250 --> 00:03:04.180 
+The first step, as always, is just
+applying Hadamard gates to all of the qubits.
+
+53
+00:03:04.210 --> 00:03:07.940 
+So, QC.h and then R times.
+
+54
+00:03:07.970 --> 00:03:10.060 
+So, this is just a dummy index here.
+
+55
+00:03:10.080 --> 00:03:11.860 
+So, we just repeat this whole thing R
+
+56
+00:03:11.890 --> 00:03:16.060 
+times, which is appending the phase
+Oracle and appending the Diffuser.
+
+57
+00:03:16.090 --> 00:03:20.860 
+In the end, we measure all N qubits
+and return the quantum circuit.
+
+58
+00:03:20.880 --> 00:03:22.380 
+And while we can, for example,
+
+59
+00:03:22.410 --> 00:03:26.740 
+see now how it looks like if
+we have N equal to five qubits,
+
+60
+00:03:26.770 --> 00:03:31.180 
+and we just choose one random element
+that should be marked, which we call X,
+
+61
+00:03:31.210 --> 00:03:35.660 
+and then we give this element into the
+Grover algorithm and draw this circuit.
+
+62
+00:03:35.690 --> 00:03:38.940 
+Let's have a look, here we
+can see how it looks like.
+
+63
+00:03:38.970 --> 00:03:41.080 
+We have our first step with creating
+
+64
+00:03:41.110 --> 00:03:43.900 
+the superposition by applying
+all the Hadamard gates.
+
+65
+00:03:43.930 --> 00:03:45.860 
+And then we have a couple of times.
+
+66
+00:03:45.890 --> 00:03:49.700 
+In this case,
+we need four rounds in which we applied
+
+67
+00:03:49.730 --> 00:03:55.460 
+Oracle Diffuser, Oracle Diffuser four
+times and then measurements in the end.
+
+68
+00:03:55.490 --> 00:03:58.140 
+Now, of course,
+we're interested in the results.
+
+69
+00:03:58.170 --> 00:04:01.180 
+So, let's again first choose the simulator.
+
+70
+00:04:01.210 --> 00:04:06.540 
+So we get the Qasm simulator as backend,
+and then we execute the result by giving
+
+71
+00:04:06.570 --> 00:04:10.900 
+the quantum circuit QC,
+giving the backend,
+
+72
+00:04:10.930 --> 00:04:13.000 
+the simulator, determine our number
+
+73
+00:04:13.030 --> 00:04:18.540 
+of shots, which I now put to be 10,000,
+and then get the counts from that which we
+
+74
+00:04:18.570 --> 00:04:23.760 
+have done before as well,
+and we plot the histogram.
+
+75
+00:04:24.200 --> 00:04:27.060 
+And here we can see how it looks like.
+
+76
+00:04:27.090 --> 00:04:31.140 
+So now, the reason I chose actually 10,000
+shots is because as we can see,
+
+77
+00:04:31.160 --> 00:04:36.860 
+we have a very high number to get
+the outcome here, 1101,
+
+78
+00:04:36.890 --> 00:04:43.020 
+which is the binary representation of 29,
+which is the Mark element here.
+
+79
+00:04:43.040 --> 00:04:48.300 
+However, so if we had less than 10,000,
+if we had only a 100 counts,
+
+80
+00:04:48.320 --> 00:04:51.200 
+probably all of them would have given us
+the result and we would not see
+
+81
+00:04:51.220 --> 00:04:56.660 
+that there's any other elements that get
+some chance of being drawn as well.
+
+82
+00:04:56.680 --> 00:05:00.300 
+However, in this case, it's a simulator,
+so we don't have any noise, right?
+
+83
+00:05:00.330 --> 00:05:03.020 
+Well, so the reason we have other elements
+
+84
+00:05:03.040 --> 00:05:06.780 
+is not due to the fact that we have noise,
+because we don't have any,
+
+85
+00:05:06.800 --> 00:05:11.980 
+but it is due to the fact that the Grover
+algorithm, as you may remember
+
+86
+00:05:12.010 --> 00:05:15.900 
+from the last video we saw,
+how the amplitude decreases and decreases
+
+87
+00:05:15.920 --> 00:05:18.460 
+and decreases for all
+the elements that we don't want.
+
+88
+00:05:18.480 --> 00:05:21.140 
+But usually it's not really possible
+
+89
+00:05:21.160 --> 00:05:24.420 
+to hit exactly zero,
+but just a very small number.
+
+90
+00:05:24.450 --> 00:05:28.500 
+But this is fine enough, I think from that
+we can tell what the result is, right?
+
+91
+00:05:28.530 --> 00:05:32.540 
+So, this is how it looks
+like on the simulator.
+
+92
+00:05:32.570 --> 00:05:37.780 
+But now you might wonder why we
+actually chose R equal to four rounds.
+
+93
+00:05:37.800 --> 00:05:40.180 
+So, mathematically,
+one can determine this number.
+
+94
+00:05:40.210 --> 00:05:43.580 
+But let's have a look what happens
+if we would only run it once.
+
+95
+00:05:43.600 --> 00:05:48.000 
+So, I define a function that just
+run it like round wise.
+
+96
+00:05:48.030 --> 00:05:52.140 
+So, just one round for now and we
+can see how it looks in this case.
+
+97
+00:05:52.170 --> 00:05:54.380 
+In, this case we can already identify our
+
+98
+00:05:54.410 --> 00:06:00.860 
+mark element, however,
+it has only a 26% chance to be drawn.
+
+99
+00:06:00.880 --> 00:06:04.320 
+As you may remember from the plot that I
+showed regarding the amplitude
+
+100
+00:06:04.350 --> 00:06:08.260 
+amplification, the other elements still
+have some probability that is just
+
+101
+00:06:08.290 --> 00:06:12.780 
+smaller, so one could still
+identify what the element is.
+
+102
+00:06:12.800 --> 00:06:15.820 
+But well, if we now look how it evolves,
+
+103
+00:06:15.850 --> 00:06:19.860 
+for one, it's a blue line here
+that we can now hardly see anymore.
+
+104
+00:06:19.880 --> 00:06:23.120 
+For two, it's a red line, for three,
+the purple, and for four we get this
+
+105
+00:06:23.150 --> 00:06:29.060 
+orange line which has almost
+100% chance to give us the right element.
+
+106
+00:06:29.090 --> 00:06:30.340 
+So, since we have,
+
+107
+00:06:30.360 --> 00:06:33.840 
+when we run it on an actual device,
+since we will have noise,
+
+108
+00:06:33.860 --> 00:06:38.100 
+then it's better to just optimize this
+number of rounds and go for the value
+
+109
+00:06:38.130 --> 00:06:42.740 
+that is optimal that we can determine
+to then have the highest chance possible
+
+110
+00:06:42.770 --> 00:06:45.260 
+because with noise it
+will anyway decrease.
+
+111
+00:06:45.280 --> 00:06:46.680 
+And well, speaking of noise,
+
+112
+00:06:46.710 --> 00:06:51.180 
+let us now have a look at how it looks
+like when we run it on a device.
+
+113
+00:06:51.210 --> 00:06:53.300 
+And this time, so we only run it on three
+
+114
+00:06:53.330 --> 00:06:56.500 
+qubits to decrease a bit,
+the chance of noise and stuff.
+
+115
+00:06:56.530 --> 00:07:00.740 
+But then also let us choose
+two marked elements this time.
+
+116
+00:07:00.760 --> 00:07:03.900 
+So I choose not just X but X and Y
+which are both random numbers.
+
+117
+00:07:03.920 --> 00:07:06.140 
+And here we just make sure that they are
+
+118
+00:07:06.170 --> 00:07:10.340 
+different, that we get two different
+marked elements and we construct our
+
+119
+00:07:10.360 --> 00:07:14.340 
+quantum circuit with these two
+marked elements this time.
+
+120
+00:07:14.360 --> 00:07:17.380 
+Then we can again choose some backend.
+
+121
+00:07:17.410 --> 00:07:20.740 
+Either as before,
+either we choose a specific one or we just
+
+122
+00:07:20.760 --> 00:07:23.000 
+choose the least busy one,
+which is what I'm going to do here.
+
+123
+00:07:23.030 --> 00:07:29.060 
+Now, we run the job watches so we can track
+our job and see where it is in the queue.
+
+124
+00:07:29.080 --> 00:07:29.880 
+Number of shots,
+
+125
+00:07:29.910 --> 00:07:35.420 
+I just put 20,000 now while we want to have
+a big number, so for some devices,
+
+126
+00:07:35.450 --> 00:07:38.260 
+this is the maximum,
+some have higher numbers of shots
+
+127
+00:07:38.290 --> 00:07:42.580 
+possible, so can just check
+and then we execute the job.
+
+128
+00:07:42.600 --> 00:07:43.740 
+Again, we could potentially,
+
+129
+00:07:43.760 --> 00:07:46.260 
+if we're interested, also give
+the layout and run it on the layout.
+
+130
+00:07:46.290 --> 00:07:48.540 
+But I think if we just choose the least
+
+131
+00:07:48.570 --> 00:07:51.700 
+busy device,
+then we just take the optimization level
+
+132
+00:07:51.730 --> 00:07:56.340 
+equal three and we don't need
+to give the layout extra.
+
+133
+00:07:56.360 --> 00:07:58.100 
+So, let's run it.
+
+134
+00:07:58.130 --> 00:08:04.140 
+We see we have two marked states
+and there should be a window soon
+
+135
+00:08:04.170 --> 00:08:09.740 
+popping up that shows us the job ID
+and how the job is in the queue.
+
+136
+00:08:09.770 --> 00:08:14.220 
+But okay, again, let's not wait
+for these results to be executed.
+
+137
+00:08:14.250 --> 00:08:19.100 
+But I ran it before just to show you
+and so I ran it on the Hanoi device.
+
+138
+00:08:19.120 --> 00:08:21.540 
+Okay.
+And so now here we can see the job ID
+
+139
+00:08:21.570 --> 00:08:26.980 
+that was now sent to the IBM Quito device,
+which we can track later on.
+
+140
+00:08:27.010 --> 00:08:30.420 
+And here's the job that I
+prepared in advance for you.
+
+141
+00:08:30.440 --> 00:08:33.580 
+We can see the histogram here and you can
+clearly identify what the two marked
+
+142
+00:08:33.610 --> 00:08:37.340 
+elements were that, well, we got,
+we had the element one and two in this
+
+143
+00:08:37.370 --> 00:08:40.140 
+case, but of course we
+have much more noise.
+
+144
+00:08:40.170 --> 00:08:43.740 
+So, this is not just the chance that small
+
+145
+00:08:43.770 --> 00:08:49.340 
+probabilities that we get because we can't
+get it with 100% chance, but actually,
+
+146
+00:08:49.370 --> 00:08:54.660 
+this is also a lot of noise here, but it's
+still good enough to see the results.
+
+147
+00:08:54.690 --> 00:08:56.900 
+So, one thing I want to remark now,
+
+148
+00:08:56.930 --> 00:09:00.900 
+to hopefully get you excited for the next
+video is that of course,
+
+149
+00:09:00.930 --> 00:09:05.340 
+in this oracle now, we actually had
+to give the element that we marked.
+
+150
+00:09:05.370 --> 00:09:07.820 
+So, the oracle that we created was created
+
+151
+00:09:07.850 --> 00:09:10.260 
+in a way that we feed
+at the marked element.
+
+152
+00:09:10.290 --> 00:09:14.020 
+This, however, might not be very useful
+because if any way I have to create
+
+153
+00:09:14.050 --> 00:09:18.140 
+an oracle that knows the answer,
+I can just have the answer, right?
+
+154
+00:09:18.170 --> 00:09:22.040 
+So, what I mentioned already in the last
+video is that instead of these kind
+
+155
+00:09:22.060 --> 00:09:27.380 
+of oracles, what is a more suitable
+problem is these so-called satisfiability
+
+156
+00:09:27.400 --> 00:09:30.860 
+problems where we are given some
+constraints and then we have an oracle
+
+157
+00:09:30.880 --> 00:09:33.740 
+that just checks whether these
+constraints are satisfied or not.
+
+158
+00:09:33.760 --> 00:09:34.960 
+And, well, this is what we're going
+
+159
+00:09:34.990 --> 00:09:40.340 
+to talk about in the next video where we
+will implement a satisfiability problem.
+
+160
+00:09:40.370 --> 00:09:41.080 
+So, stay tuned!

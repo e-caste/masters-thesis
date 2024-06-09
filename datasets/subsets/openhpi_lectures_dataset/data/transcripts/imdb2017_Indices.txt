@@ -1,0 +1,666 @@
+WEBVTT
+
+1
+00:00:00.400 --> 00:00:03.700 
+Welcome to our lecture about in memory
+databases, my name is Martin and
+
+2
+00:00:03.700 --> 00:00:05.900 
+I'm going to talk to
+you about indices today.
+
+3
+00:00:06.100 --> 00:00:09.130 
+So let's look how indices
+fit into our database
+
+4
+00:00:09.130 --> 00:00:13.170 
+system, we have highlighted
+them in red here and you can see
+
+5
+00:00:13.170 --> 00:00:16.200 
+that the dictionaries
+in the delta partition
+
+6
+00:00:16.200 --> 00:00:20.240 
+are affected as well as the
+index, in an additional index in
+
+7
+00:00:20.240 --> 00:00:23.270 
+the delta petition and a
+specialized index structure in the
+
+8
+00:00:23.270 --> 00:00:28.320 
+main partition. If you look at
+indices in the field of databases
+
+9
+00:00:28.320 --> 00:00:31.350 
+we have the same word for
+different meanings, often.
+
+10
+00:00:32.360 --> 00:00:36.400 
+So a classic database index can
+be a clustered index, for example,
+
+11
+00:00:36.400 --> 00:00:39.430 
+which is the sort order of
+tuples in the primary storage,
+
+12
+00:00:39.430 --> 00:00:42.460 
+then you have primary keys which
+are enforced versus an index
+
+13
+00:00:42.460 --> 00:00:46.500 
+on the primary key attribute,
+which often is also the clustered
+
+14
+00:00:46.500 --> 00:00:51.550 
+index. You have secondary indices
+which establish a separate sort
+
+15
+00:00:51.550 --> 00:00:54.580 
+order of a table by
+replicating the data into
+
+16
+00:00:54.580 --> 00:00:57.610 
+an index structure and allowing
+you to access the added attribute
+
+17
+00:00:57.610 --> 00:01:01.650 
+very quickly. You have a distinction
+between tree and hash based
+
+18
+00:01:01.650 --> 00:01:03.670 
+indices, while the tree
+indices allow you to
+
+19
+00:01:04.680 --> 00:01:07.710 
+access a different
+range of values
+
+20
+00:01:07.710 --> 00:01:10.740 
+and a hash index only allows
+you to access a single tuple,
+
+21
+00:01:10.740 --> 00:01:15.790 
+or single value. Inverted indices
+from the text retrieval space
+
+22
+00:01:15.790 --> 00:01:19.830 
+basically map terms to document
+IDs but the concept is pretty
+
+23
+00:01:19.830 --> 00:01:22.860 
+general. Additionally if you
+come from application side
+
+24
+00:01:23.870 --> 00:01:26.900 
+you often will hear that there are
+application maintained indices which
+
+25
+00:01:26.900 --> 00:01:29.930 
+is nothing else than a separate
+table, a different sort order,
+
+26
+00:01:29.930 --> 00:01:32.960 
+or table with a subset of data
+that is optimized for a specific
+
+27
+00:01:32.960 --> 00:01:35.990 
+access path. So for
+example, if you look at an
+
+28
+00:01:35.990 --> 00:01:39.103 
+ERP application you will find
+that often you have open items
+
+29
+00:01:39.103 --> 00:01:41.105 
+in a separate table for
+allowing a quick access.
+
+30
+00:01:42.106 --> 00:01:45.109 
+In our database system we will
+first talk about the delta index
+
+31
+00:01:45.109 --> 00:01:49.113 
+which allows us to access
+the unsorted dictionary
+
+32
+00:01:49.113 --> 00:01:53.117 
+under delta in a fast manner.
+Remember when we do an insert
+
+33
+00:01:53.117 --> 00:01:56.120 
+we need to translate the
+value to an actual value id
+
+34
+00:01:56.120 --> 00:01:59.123 
+but because we have an unsorted
+dictionary we want to avoid
+
+35
+00:01:59.123 --> 00:02:01.125 
+scanning that dictionary
+from the front to the end
+
+36
+00:02:01.125 --> 00:02:05.129 
+to translate the value to value
+ID. So to optimize that we have
+
+37
+00:02:05.129 --> 00:02:09.133 
+a separate index structure
+that indexes the value
+
+38
+00:02:09.133 --> 00:02:12.136 
+IDs according to their
+value sort order.
+
+39
+00:02:12.136 --> 00:02:15.139 
+So looking at the delta storage
+index here, we can follow the
+
+40
+00:02:15.139 --> 00:02:20.144 
+tree to find a specific
+point in the dictionary where
+
+41
+00:02:20.144 --> 00:02:25.149 
+we would insert our value
+and return the value ID.
+
+42
+00:02:25.149 --> 00:02:28.152 
+So we can find, for example,
+if we want to insert
+
+43
+00:02:28.152 --> 00:02:32.156 
+"Berkeley" we can
+find the index structure
+
+44
+00:02:32.156 --> 00:02:35.159 
+very quickly that already
+exists in the delta and returned
+
+45
+00:02:35.159 --> 00:02:39.163 
+is the value ID and adding
+that to the delta partition.
+
+46
+00:02:40.164 --> 00:02:43.167 
+Additionally we can
+add to that index
+
+47
+00:02:43.167 --> 00:02:48.172 
+the row IDs of a specific value
+and by that also return, doing
+
+48
+00:02:48.172 --> 00:02:51.175 
+search, the tuple that
+matches a specific query.
+
+49
+00:02:54.178 --> 00:02:57.181 
+On the main partition we have to
+remember that the main partition
+
+50
+00:02:57.181 --> 00:03:00.184 
+is read only during a regular
+processing. So between two
+
+51
+00:03:00.184 --> 00:03:03.187 
+merge processes is not much
+happening on the read partition,
+
+52
+00:03:04.188 --> 00:03:08.192 
+on the main partition, so our index
+should reflect that architecture.
+
+53
+00:03:08.192 --> 00:03:12.196 
+Our index is built in a way that
+is a very compressed structure
+
+54
+00:03:12.196 --> 00:03:16.200 
+that allows us to reduce to
+tuples for a specific value.
+
+55
+00:03:16.200 --> 00:03:19.203 
+It is essentially a mapping
+from values to positions
+
+56
+00:03:20.204 --> 00:03:23.207 
+and it allows us to
+leverage the dictionary
+
+57
+00:03:23.207 --> 00:03:29.213 
+to find the according value IDs.
+So I want to show an example
+
+58
+00:03:29.213 --> 00:03:33.217 
+of the lookup of Berlin and
+how it works with the index.
+
+59
+00:03:34.218 --> 00:03:37.221 
+So lets consider we want to
+perform the query select stuff
+
+60
+00:03:37.221 --> 00:03:41.225 
+from our table where city
+is Berlin. So the first step
+
+61
+00:03:41.225 --> 00:03:44.228 
+would be to find the according
+value in the dictionary,
+
+62
+00:03:45.229 --> 00:03:47.231 
+so that basically means we
+have to perform a binary search
+
+63
+00:03:47.231 --> 00:03:51.235 
+on a sorted array and
+return the value ID
+
+64
+00:03:51.235 --> 00:03:55.239 
+of Berlin, which is one in our
+case. With that value ID we can
+
+65
+00:03:55.239 --> 00:03:58.242 
+directly jump into the
+index offset vector
+
+66
+00:03:58.242 --> 00:04:03.247 
+and find the position one
+in this offset vector.
+
+67
+00:04:03.247 --> 00:04:06.250 
+The index is built in a way
+that we now have to retrieve the
+
+68
+00:04:06.250 --> 00:04:10.254 
+next value from the index to
+find out how many values we have
+
+69
+00:04:10.254 --> 00:04:13.257 
+to read from the positions
+vector. So now we
+
+70
+00:04:14.258 --> 00:04:17.261 
+read one and three there
+and now that our search
+
+71
+00:04:17.261 --> 00:04:21.265 
+interval would be one and
+until three exclusive.
+
+72
+00:04:21.265 --> 00:04:25.269 
+So we can read these two
+positions from the index positions
+
+73
+00:04:25.269 --> 00:04:30.274 
+vector and come up with four and
+six which is directly the according
+
+74
+00:04:30.274 --> 00:04:32.276 
+positions in our
+attribute vector
+
+75
+00:04:32.276 --> 00:04:35.279 
+and directly the result which
+our column scan would have
+
+76
+00:04:35.279 --> 00:04:37.281 
+had if he had scanned
+the attribute vector.
+
+77
+00:04:40.284 --> 00:04:43.287 
+So let's look at when
+to use this main index,
+
+78
+00:04:44.288 --> 00:04:47.291 
+we have the assumption throughout
+the lecture that memory transfer
+
+79
+00:04:47.291 --> 00:04:51.295 
+is a good cost measure to
+evaluate the scan speed
+
+80
+00:04:51.295 --> 00:04:54.298 
+of queries or to evaluate
+the cost of queries,
+
+81
+00:04:54.298 --> 00:04:58.302 
+so let's look at the index here.
+When we look at the index we
+
+82
+00:04:58.302 --> 00:05:01.305 
+have to, can clearly see
+that for a single look up
+
+83
+00:05:02.306 --> 00:05:06.000 
+the index is always beneficial
+basically. Because you have to retrieve
+
+84
+00:05:06.000 --> 00:05:08.312 
+only a single position instead of
+scanning dual attribute vector.
+
+85
+00:05:09.313 --> 00:05:12.316 
+But if you look at a range
+query then the question is
+
+86
+00:05:12.316 --> 00:05:16.320 
+how big has the range to be
+for the index to not make sense
+
+87
+00:05:16.320 --> 00:05:18.322 
+anymore, basically.
+So we want to find out
+
+88
+00:05:19.323 --> 00:05:22.326 
+when an index helps us,
+so when it is faster than
+
+89
+00:05:22.326 --> 00:05:25.329 
+a column scan. For that
+we have to remember
+
+90
+00:05:25.329 --> 00:05:28.332 
+that the index maps to
+positions and positions
+
+91
+00:05:28.332 --> 00:05:32.336 
+can only be compressed with a
+higher number of bits than the
+
+92
+00:05:32.336 --> 00:05:35.339 
+attribute vector because we
+typically have less distinct values
+
+93
+00:05:35.339 --> 00:05:38.342 
+than you have values so that leads
+to the problem that the index
+
+94
+00:05:38.342 --> 00:05:41.345 
+itself can grow bigger
+than the column vector
+
+95
+00:05:42.346 --> 00:05:45.349 
+and if you look into
+that into perspective
+
+96
+00:05:46.350 --> 00:05:49.353 
+then we will
+find out that
+
+97
+00:05:49.353 --> 00:05:52.356 
+for the index to make sense
+basically we have to have a very
+
+98
+00:05:52.356 --> 00:05:55.359 
+strong filter criteria and to
+have a very strong filter criteria
+
+99
+00:05:55.359 --> 00:05:58.362 
+basically we have to have
+many distinct values that
+
+100
+00:05:58.362 --> 00:06:03.367 
+we can filter on and the offset
+or the point where it makes
+
+101
+00:06:03.367 --> 00:06:06.370 
+sense to use the index is basically
+after five distinct values.
+
+102
+00:06:07.371 --> 00:06:11.375 
+But remember that for
+that you also have to
+
+103
+00:06:11.375 --> 00:06:16.380 
+like maintain an additional
+index so what to take away here
+
+104
+00:06:16.380 --> 00:06:19.383 
+is that of course the more distinct
+values if the more beneficial
+
+105
+00:06:19.383 --> 00:06:21.385 
+an index can be if you
+query on that column.
+
+106
+00:06:24.388 --> 00:06:27.391 
+Lets have a look at when to use an
+index and when not, according to
+
+107
+00:06:27.391 --> 00:06:31.395 
+a workload classification. So if we
+look at a classical transactional
+
+108
+00:06:31.395 --> 00:06:35.399 
+workload that retrieves single
+line item from the database
+
+109
+00:06:35.399 --> 00:06:40.404 
+an index almost always makes sense.
+So when our speed requirement
+
+110
+00:06:40.404 --> 00:06:43.407 
+is that we want to retrieve a
+single tuple or a few tuples
+
+111
+00:06:43.407 --> 00:06:47.411 
+within microseconds because we
+want to have many many concurrent
+
+112
+00:06:47.411 --> 00:06:49.413 
+queries on the same
+database for many users
+
+113
+00:06:50.414 --> 00:06:52.416 
+then there is no alternative
+to using an index
+
+114
+00:06:53.417 --> 00:06:57.421 
+and that basically is for
+every thing that returns
+
+115
+00:06:57.421 --> 00:07:01.425 
+queries by a primary key. So
+if we want to achieve maximum
+
+116
+00:07:01.425 --> 00:07:03.427 
+throughput we have to have an
+index on that kind of primary
+
+117
+00:07:03.427 --> 00:07:06.430 
+key. On the right-hand
+side of the table
+
+118
+00:07:06.430 --> 00:07:10.434 
+on the other hand, we want to
+look at analytical queries and
+
+119
+00:07:11.435 --> 00:07:14.438 
+analytical queries are not very
+easy to anticipate so we don't
+
+120
+00:07:14.438 --> 00:07:17.441 
+know yet what
+queries will be there
+
+121
+00:07:17.441 --> 00:07:20.444 
+and we don't know yet which
+indices we might or might not need
+
+122
+00:07:20.444 --> 00:07:24.448 
+for that. Then also analytical
+queries look at large fractions
+
+123
+00:07:24.448 --> 00:07:28.452 
+of the database and have usually
+very loose filter criteria.
+
+124
+00:07:29.453 --> 00:07:31.455 
+So there, often, index
+does not make sense
+
+125
+00:07:32.456 --> 00:07:34.458 
+and is beneficial to
+scan the whole column
+
+126
+00:07:35.459 --> 00:07:39.463 
+and be fully flexible there.
+If you look at the ground in
+
+127
+00:07:39.463 --> 00:07:43.467 
+the middle and the mixed workload
+then we can basically say that
+
+128
+00:07:44.468 --> 00:07:47.471 
+it depends on
+the query at hand
+
+129
+00:07:47.471 --> 00:07:50.474 
+and the query optimizer should
+use indices that are there any
+
+130
+00:07:50.474 --> 00:07:54.478 
+ways but we should not enable
+more indices there or create
+
+131
+00:07:54.478 --> 00:07:58.482 
+other indices to benefit
+that kind of workload.
+
+132
+00:07:58.482 --> 00:08:01.485 
+But nevertheless we should use
+the ones that we already have
+
+133
+00:08:01.485 --> 00:08:04.488 
+to maintain our high
+transactional throughput.

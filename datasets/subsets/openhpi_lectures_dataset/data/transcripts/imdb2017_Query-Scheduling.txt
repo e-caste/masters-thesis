@@ -1,0 +1,686 @@
+WEBVTT
+
+1
+00:00:04.400 --> 00:00:09.900 
+Yeah, scheduling, so now
+that we have our perfect
+
+2
+00:00:09.900 --> 00:00:14.140 
+or near optimal or even
+maybe optimal query plan,
+
+3
+00:00:14.140 --> 00:00:17.170 
+next question is how
+do we execute that on
+
+4
+00:00:17.170 --> 00:00:21.210 
+our server. If you
+look at modern servers,
+
+5
+00:00:22.220 --> 00:00:24.240 
+we have talked about that
+a lot of times this week,
+
+6
+00:00:24.240 --> 00:00:27.270 
+you see that we have
+dozens of cores, we have
+
+7
+00:00:27.270 --> 00:00:30.300 
+NUMA system so we have different
+latencies accessing the
+
+8
+00:00:30.300 --> 00:00:36.360 
+main memory, we have just
+rather complex architectures.
+
+9
+00:00:37.370 --> 00:00:40.400 
+What the scheduler
+now needs to do
+
+10
+00:00:40.400 --> 00:00:44.440 
+is basically
+to balance all
+
+11
+00:00:44.440 --> 00:00:46.460 
+the things that we
+have that we can't use,
+
+12
+00:00:46.460 --> 00:00:49.490 
+another process or concurrent
+process for every query if we
+
+13
+00:00:49.490 --> 00:00:51.510 
+have too much queries, we
+have too much concurrent
+
+14
+00:00:51.510 --> 00:00:54.540 
+processes. This is going
+to slow down our system
+
+15
+00:00:54.540 --> 00:00:57.570 
+but still we need
+to, obviously need to
+
+16
+00:00:57.570 --> 00:01:01.610 
+parallelize operations if we
+have 400 or more cores in our
+
+17
+00:01:01.610 --> 00:01:05.650 
+system. Then also what we need
+to do is we need to balance
+
+18
+00:01:05.650 --> 00:01:09.690 
+the throughput versus latency.
+Usually on a lot cases is
+
+19
+00:01:09.690 --> 00:01:14.740 
+better to, if you optimise the latency
+you're gonna batch some queries
+
+20
+00:01:14.740 --> 00:01:17.770 
+but this will hurt your latency (incorrect).
+Sorry: if you optimize your throughput,
+
+21
+00:01:17.770 --> 00:01:20.800 
+you are going to batch queries but
+this will hurt latency and the other
+
+22
+00:01:20.800 --> 00:01:23.830 
+way around. What your
+scheduler needs to do there
+
+23
+00:01:23.830 --> 00:01:26.860 
+is to balance all these
+different aspects of the systems
+
+24
+00:01:26.860 --> 00:01:28.880 
+and also to optimize it
+
+25
+00:01:28.880 --> 00:01:30.000 
+to the given hardware.
+
+26
+00:01:32.920 --> 00:01:35.950 
+What are the scheduling
+units that you usually
+
+27
+00:01:35.950 --> 00:01:37.970 
+talk about when
+we talk about
+
+28
+00:01:38.980 --> 00:01:41.101 
+query scheduling.
+First we have the
+
+29
+00:01:41.101 --> 00:01:45.105 
+physical query plan where
+we have the operators.
+
+30
+00:01:45.105 --> 00:01:48.108 
+Each instance or each call,
+each of the execution of that
+
+31
+00:01:48.108 --> 00:01:52.112 
+operator is an operator
+instance and we can divide
+
+32
+00:01:52.112 --> 00:01:55.115 
+each operator instance
+into one or more tasks.
+
+33
+00:01:57.117 --> 00:02:01.121 
+Then we have so-called workers
+in pretty much every database
+
+34
+00:02:01.121 --> 00:02:04.124 
+and depending on your
+architecture and depending on your
+
+35
+00:02:04.124 --> 00:02:08.128 
+implementation, this might be a
+process, might be a thread or something
+
+36
+00:02:08.128 --> 00:02:12.132 
+else. As I have said, you
+don't want to spawn a new
+
+37
+00:02:12.132 --> 00:02:14.134 
+worker or new thread for
+every little task you have
+
+38
+00:02:14.134 --> 00:02:17.137 
+in case you have tens of
+thousands of queries per second.
+
+39
+00:02:17.137 --> 00:02:19.139 
+Usually what every
+database uses
+
+40
+00:02:20.140 --> 00:02:23.143 
+is they have a fixed-sized pool
+of workers, threads, processes
+
+41
+00:02:23.143 --> 00:02:24.144 
+and use them.
+
+42
+00:02:27.147 --> 00:02:30.150 
+So what kind of parallelism do we
+have? Depending on the database, on the
+
+43
+00:02:30.150 --> 00:02:32.152 
+workload there might be different
+models of how to parallelize queries.
+
+44
+00:02:32.152 --> 00:02:38.158 
+A pretty simple one that
+every, pretty much every
+
+45
+00:02:38.158 --> 00:02:41.161 
+modern database uses is that
+we have one task per query,
+
+46
+00:02:41.161 --> 00:02:44.164 
+so queries can be
+executed concurrently.
+
+47
+00:02:45.165 --> 00:02:48.168 
+This is the most simple approach
+where basically we have two queries
+
+48
+00:02:48.168 --> 00:02:52.172 
+two cores, we execute both
+queries on one or the other
+
+49
+00:02:52.172 --> 00:02:55.175 
+core, so this is so called inter
+query parallelism. We parallelize
+
+50
+00:02:55.175 --> 00:03:01.181 
+between queries. This
+is obviously not perfect
+
+51
+00:03:01.181 --> 00:03:04.184 
+if we have really expensive queries
+that scan a lot of data where
+
+52
+00:03:04.184 --> 00:03:07.187 
+we have expensive joins,
+expensive filters.
+
+53
+00:03:07.187 --> 00:03:11.191 
+The next step would be to have,
+for example, one task operator
+
+54
+00:03:12.192 --> 00:03:15.195 
+so that in the previous example
+we have seen two filters on
+
+55
+00:03:15.195 --> 00:03:18.198 
+two table so we could
+execute both filters of that
+
+56
+00:03:18.198 --> 00:03:23.203 
+one query in parallel, this is the
+so called intra-query parallelism.
+
+57
+00:03:23.203 --> 00:03:26.206 
+The last step what for
+example HANA does or also
+
+58
+00:03:26.206 --> 00:03:30.210 
+Hyrise does is the
+intra-operator parallelism,
+
+59
+00:03:30.210 --> 00:03:34.214 
+so on top of parallelizing
+the queries and operators
+
+60
+00:03:34.214 --> 00:03:37.217 
+we also might
+
+61
+00:03:37.217 --> 00:03:41.221 
+parallelize an
+operator itself.
+
+62
+00:03:41.221 --> 00:03:44.224 
+Then we have talked a lot
+about NUMA systems recently,
+
+63
+00:03:44.224 --> 00:03:49.229 
+the last days. As
+you have all learned,
+
+64
+00:03:49.229 --> 00:03:52.232 
+each worker should primarily
+work on the data that is local
+
+65
+00:03:52.232 --> 00:03:56.236 
+to himself. Each worker, if he
+sits on core one, he should work
+
+66
+00:03:56.236 --> 00:03:58.238 
+on the data that sits
+on his socket and not
+
+67
+00:03:59.239 --> 00:04:02.242 
+work a lot or
+access the data
+
+68
+00:04:02.242 --> 00:04:06.246 
+from other sockets because you
+usually have a lot of costs on latency
+
+69
+00:04:06.246 --> 00:04:10.250 
+added if you
+access remote data.
+
+70
+00:04:11.251 --> 00:04:14.254 
+The goal of the scheduler
+here would be to
+
+71
+00:04:14.254 --> 00:04:16.256 
+spawn the task
+where the data is
+
+72
+00:04:18.258 --> 00:04:22.262 
+and what most NUMA databases
+do, for example also Hyrise,
+
+73
+00:04:22.262 --> 00:04:26.266 
+is that we will spawn per
+socket, a pool of workers, a pool
+
+74
+00:04:26.266 --> 00:04:30.270 
+of threads, usually might be one or
+two, the factors depends on the cores
+
+75
+00:04:30.270 --> 00:04:35.275 
+that we have there and then
+bind these pools to this
+
+76
+00:04:35.275 --> 00:04:38.278 
+core so there is not, the
+OS is not going to migrate
+
+77
+00:04:39.279 --> 00:04:41.281 
+some threads there to
+another core because
+
+78
+00:04:41.281 --> 00:04:44.284 
+it thinks it makes sense. Now we
+want to have that bound to the
+
+79
+00:04:44.284 --> 00:04:47.287 
+workers and then move
+the task accordingly.
+
+80
+00:04:50.290 --> 00:04:55.295 
+This picture
+shows you a simple
+
+81
+00:04:56.296 --> 00:04:59.299 
+visualization of that
+architecture, so we have a four
+
+82
+00:04:59.299 --> 00:05:02.302 
+socket NUMA system here,
+each with four cores again
+
+83
+00:05:02.302 --> 00:05:06.306 
+and then we have  a
+socket local task queue.
+
+84
+00:05:07.307 --> 00:05:10.310 
+If you have a task where
+most of the data for this
+
+85
+00:05:10.310 --> 00:05:14.314 
+task is on socket one, we would
+obviously put this task in the task
+
+86
+00:05:14.314 --> 00:05:19.319 
+queue of socket one and now
+every core here on the socket
+
+87
+00:05:19.319 --> 00:05:23.323 
+one puts task from
+his local work queue.
+
+88
+00:05:24.000 --> 00:05:28.328 
+What we see in real life
+
+89
+00:05:28.328 --> 00:05:31.331 
+is usually never this kind
+of uniform distribution
+
+90
+00:05:31.331 --> 00:05:34.334 
+so in real life applications,
+we always have the problem with
+
+91
+00:05:34.334 --> 00:05:38.338 
+high workload queues so what
+you can see regular here is
+
+92
+00:05:38.338 --> 00:05:40.340 
+that we have for example
+socket four here which is
+
+93
+00:05:41.341 --> 00:05:43.343 
+idling because there's
+not a lot of tasks
+
+94
+00:05:44.344 --> 00:05:47.347 
+assigned to the socket, maybe
+because the data that we put there
+
+95
+00:05:47.347 --> 00:05:49.349 
+isn't regularly
+scanned or accessed
+
+96
+00:05:50.350 --> 00:05:53.353 
+and socket three on the
+other hand has a lot of work
+
+97
+00:05:53.353 --> 00:05:56.356 
+to do because there might
+be one table on that socket
+
+98
+00:05:56.356 --> 00:05:59.359 
+which is accessed
+by lot of users.
+
+99
+00:05:59.359 --> 00:06:02.362 
+One thing that most
+systems do then
+
+100
+00:06:03.363 --> 00:06:06.366 
+if they think it makes sense,
+is so-called work-stealing.
+
+101
+00:06:07.000 --> 00:06:09.369 
+In this case what we see, ok
+this socket does not have enough
+
+102
+00:06:09.369 --> 00:06:14.374 
+work. We would
+go to another
+
+103
+00:06:14.374 --> 00:06:18.378 
+task queue, take the latency hit
+and take the hit of accessing
+
+104
+00:06:18.378 --> 00:06:21.381 
+remote data but still makes
+sense for the database in case
+
+105
+00:06:21.381 --> 00:06:24.384 
+we are idling here. We would
+steal basically that data,
+
+106
+00:06:24.384 --> 00:06:28.388 
+steal that work, will be
+slower on our socket but still
+
+107
+00:06:28.388 --> 00:06:31.391 
+the overall performance
+of the system will go up.
+
+108
+00:06:35.395 --> 00:06:38.398 
+Yes I have said, so for NUMA-aware
+system, the workers should
+
+109
+00:06:38.398 --> 00:06:41.401 
+primarily access data
+that is local to their
+
+110
+00:06:41.401 --> 00:06:45.405 
+socket. Usually what you
+don't want to do there is
+
+111
+00:06:45.405 --> 00:06:47.407 
+let the database decide
+where your data is.
+
+112
+00:06:47.407 --> 00:06:50.410 
+Data placement is
+another topic that you
+
+113
+00:06:51.411 --> 00:06:53.413 
+have to keep in mind when
+you talk about NUMA systems.
+
+114
+00:06:54.414 --> 00:06:56.416 
+What a database usually does
+is first-touch or interleaved,
+
+115
+00:06:57.417 --> 00:07:00.420 
+but when your database
+engine isn't really aware
+
+116
+00:07:00.420 --> 00:07:04.424 
+what the database decided
+before, it's hard to schedule
+
+117
+00:07:04.424 --> 00:07:07.427 
+a particular task where the
+data is because you probably
+
+118
+00:07:07.427 --> 00:07:10.430 
+usually don't know. What
+you try to do there is not
+
+119
+00:07:11.000 --> 00:07:14.434 
+use the OS or not let OS decide
+and do that on your own. That's
+
+120
+00:07:14.434 --> 00:07:16.436 
+pretty much the same
+that databases did for
+
+121
+00:07:17.437 --> 00:07:19.439 
+a lot of years now when they do
+their own buffer management and
+
+122
+00:07:19.439 --> 00:07:23.443 
+so on, they don't let the OS
+do it via nmap or something,
+
+123
+00:07:23.443 --> 00:07:26.446 
+they do it on their own because
+they just need the control to
+
+124
+00:07:26.446 --> 00:07:30.450 
+optimize the processes.
+What have we learned? We
+
+125
+00:07:30.450 --> 00:07:33.453 
+learned that the balancing
+is hard, we learned that the
+
+126
+00:07:33.453 --> 00:07:36.456 
+diverse memory hierarchies
+are hard to manage.
+
+127
+00:07:37.457 --> 00:07:40.460 
+This was the example
+with the query, with
+
+128
+00:07:40.460 --> 00:07:44.464 
+the task stealing, so what
+you need to be aware of
+
+129
+00:07:44.464 --> 00:07:46.466 
+how far is data that
+I want to access away?
+
+130
+00:07:47.467 --> 00:07:49.469 
+Does it make sense to do
+tasks? It does not make sense
+
+131
+00:07:49.469 --> 00:07:53.473 
+for small tasks. Probably want
+to have a large sequential scans
+
+132
+00:07:53.473 --> 00:07:56.476 
+for example or computational bound
+tasks where it makes more sense
+
+133
+00:07:56.476 --> 00:07:58.478 
+to steal data, not
+just single access.
+
+134
+00:07:59.479 --> 00:08:03.483 
+It is a really tough
+issue for, especially
+
+135
+00:08:03.483 --> 00:08:07.487 
+for mixed work loads, where you have
+both kind of queries, so we have really
+
+136
+00:08:07.487 --> 00:08:10.490 
+simple queries, OLTP queries, that
+access your data via an index,
+
+137
+00:08:10.490 --> 00:08:14.494 
+so they are short running, and
+then you have these long running
+
+138
+00:08:14.494 --> 00:08:17.497 
+queries, analytical queries with
+a lot scans, joins, and so on.

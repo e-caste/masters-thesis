@@ -1,0 +1,743 @@
+WEBVTT
+
+1
+00:00:01.160 --> 00:00:02.300 
+Welcome back everyone!
+
+2
+00:00:02.320 --> 00:00:06.140 
+I'm very happy that now that you learned
+the basics, we can actually start
+
+3
+00:00:06.170 --> 00:00:09.460 
+implementing our very
+first quantum algorithm.
+
+4
+00:00:09.490 --> 00:00:12.060 
+So, before I go into the implementation
+
+5
+00:00:12.090 --> 00:00:17.040 
+with Qiskit, I would first like to show
+you how how the algorithm works and what
+
+6
+00:00:17.060 --> 00:00:21.240 
+the goal of it is and how we
+can get the quantum advantage.
+
+7
+00:00:21.480 --> 00:00:23.700 
+So, the Deutsche-Jozsa algorithm was
+
+8
+00:00:23.730 --> 00:00:30.380 
+proposed in 1992 and the way it works is
+that suppose you are given a function f,
+
+9
+00:00:30.400 --> 00:00:36.620 
+which takes as an input, an n bit string,
+and then it outputs either a constant or
+
+10
+00:00:36.640 --> 00:00:39.660 
+a balanced function,
+so we can see it as a black box.
+
+11
+00:00:39.680 --> 00:00:44.060 
+We do not know how that function operates,
+but we are promised that the output is
+
+12
+00:00:44.080 --> 00:00:46.300 
+either constant, so it's
+given by a single bit.
+
+13
+00:00:46.330 --> 00:00:50.900 
+So it could be either constantly zero or
+it could be constantly one,
+
+14
+00:00:50.930 --> 00:00:55.120 
+or it could be balanced,
+which means that half of the inputs lead
+
+15
+00:00:55.150 --> 00:00:58.900 
+to a zero and half
+of the inputs lead to a one.
+
+16
+00:00:58.930 --> 00:01:04.200 
+Now, the goal is that we want to determine
+if f is constant or balanced.
+
+17
+00:01:04.320 --> 00:01:06.900 
+So, if we look at a classical algorithm,
+
+18
+00:01:06.930 --> 00:01:10.660 
+well, let's say we call the function once
+and we get a zero,
+
+19
+00:01:10.690 --> 00:01:14.290 
+then we have no idea whether the function
+now is constant or balanced.
+
+20
+00:01:14.320 --> 00:01:16.340 
+We actually need to call it again.
+
+21
+00:01:16.360 --> 00:01:19.520 
+If we get a one, then we know, OK,
+we have two different outputs,
+
+22
+00:01:19.520 --> 00:01:22.060 
+so it cannot be constant,
+but it has to be balanced.
+
+23
+00:01:22.090 --> 00:01:24.740 
+So we need at least two periods.
+
+24
+00:01:24.770 --> 00:01:26.820 
+However, in the case where we get again
+
+25
+00:01:26.840 --> 00:01:29.900 
+a zero, we still do not know
+whether it's constant or balanced.
+
+26
+00:01:29.930 --> 00:01:31.140 
+We need to ask again.
+
+27
+00:01:31.170 --> 00:01:36.660 
+And if we get a zero again, then again,
+and so on, at most we need to ask it.
+
+28
+00:01:36.690 --> 00:01:38.800 
+Well, we need to give it half of the input
+
+29
+00:01:38.830 --> 00:01:44.060 
+bits plus one, half of the possible bit
+strings that we can feed it plus one.
+
+30
+00:01:44.090 --> 00:01:46.660 
+And well, if we look at n bit strings,
+
+31
+00:01:46.690 --> 00:01:50.490 
+then in total we could have two
+to the power n different ones.
+
+32
+00:01:50.520 --> 00:01:54.980 
+So two to the power n minus one
+is then half of it plus one.
+
+33
+00:01:55.010 --> 00:01:57.700 
+Now, the quantum algorithm needs only
+
+34
+00:01:57.730 --> 00:02:01.980 
+exactly one query,
+and so this algorithm was one of the very
+
+35
+00:02:02.010 --> 00:02:06.460 
+first examples to show the speed up
+that quantum algorithms can give.
+
+36
+00:02:06.480 --> 00:02:08.060 
+You can see here also the circuit
+
+37
+00:02:08.090 --> 00:02:12.940 
+representation, as you remember, hopefully
+we start from the left to the right.
+
+38
+00:02:12.970 --> 00:02:15.780 
+So you can see we have here some qubits,
+
+39
+00:02:15.810 --> 00:02:20.980 
+we can have n qubits, and they're
+all in the state zero initially.
+
+40
+00:02:21.010 --> 00:02:22.380 
+Then, as I told you,
+
+41
+00:02:22.410 --> 00:02:25.540 
+every quantum algorithm starts
+with a bunch of Hadamard gates.
+
+42
+00:02:25.570 --> 00:02:31.580 
+So, on each of these qubits we apply
+a Hadamard gate given by the orange H.
+
+43
+00:02:31.610 --> 00:02:35.940 
+Then we have our oracle,
+the function UF here.
+
+44
+00:02:35.970 --> 00:02:37.100 
+That's a big box.
+
+45
+00:02:37.130 --> 00:02:39.170 
+You can think of it as this black box
+
+46
+00:02:39.200 --> 00:02:41.680 
+that I'm giving to you,
+that implements the function that I
+
+47
+00:02:41.680 --> 00:02:44.820 
+promise to you is either constant or
+balance, but that you do not really know
+
+48
+00:02:44.850 --> 00:02:47.980 
+what it is that you want
+to figure out what it does.
+
+49
+00:02:48.010 --> 00:02:50.140 
+Then we apply again a bunch of Hadamard
+
+50
+00:02:50.170 --> 00:02:53.260 
+gates and in the end
+we apply measurements.
+
+51
+00:02:53.290 --> 00:02:56.860 
+So the green boxes correspond
+to measurements, so each of the qubits we
+
+52
+00:02:56.890 --> 00:02:59.940 
+measure and then even if we are
+in a superposition before,
+
+53
+00:02:59.970 --> 00:03:03.180 
+each of the measurements will
+give us either a zero or one.
+
+54
+00:03:03.210 --> 00:03:09.260 
+So, the output bit string, which we
+call y would be an n bit string.
+
+55
+00:03:09.290 --> 00:03:13.900 
+Now, if we go through the mathematics,
+we can see that the outcome of this
+
+56
+00:03:13.930 --> 00:03:18.100 
+circuit equals exactly
+the zero bit string.
+
+57
+00:03:18.130 --> 00:03:23.660 
+So, all outputs will be zero if and only
+if the function f is constant.
+
+58
+00:03:23.690 --> 00:03:28.180 
+If the output is anything different,
+then we know it is balanced.
+
+59
+00:03:28.200 --> 00:03:30.120 
+We can unfortunately not go through all
+
+60
+00:03:30.150 --> 00:03:33.940 
+the mathematics now,
+but you just have to believe me that
+
+61
+00:03:33.970 --> 00:03:39.460 
+now let us look at how we
+implemented with Qiskit.
+
+62
+00:03:39.490 --> 00:03:44.180 
+So we're using the IBM quantum lab
+that you have seen in previous videos.
+
+63
+00:03:44.210 --> 00:03:47.520 
+And while in the very beginning what we
+
+64
+00:03:47.550 --> 00:03:51.060 
+have to do is import our
+basic Qiskit libraries.
+
+65
+00:03:51.090 --> 00:03:53.220 
+So, we run the very first cell where we
+
+66
+00:03:53.250 --> 00:03:58.610 
+just have some basic imports
+and then we define our oracle.
+
+67
+00:03:58.640 --> 00:04:00.610 
+We call it the Deutsche-Jozsa Oracle.
+
+68
+00:04:00.640 --> 00:04:02.340 
+We define it as a function that depends
+
+69
+00:04:02.370 --> 00:04:06.940 
+on the number of bits n
+and on the oracle number.
+
+70
+00:04:06.970 --> 00:04:09.940 
+So, that can be just some integer.
+
+71
+00:04:09.970 --> 00:04:15.610 
+Now, we actually imported here also a
+function called Deutsche-Jozsa problem oracle.
+
+72
+00:04:15.640 --> 00:04:17.540 
+And this function is really nice because
+
+73
+00:04:17.570 --> 00:04:21.860 
+it just directly gives us a random oracle
+or well actually it's not random,
+
+74
+00:04:21.890 --> 00:04:25.320 
+it gives us an oracle,
+one out of four different oracles that we
+
+75
+00:04:25.340 --> 00:04:29.900 
+can specify by giving an oracle
+number between one and four.
+
+76
+00:04:29.920 --> 00:04:33.380 
+Now we call this oracle
+the Deutsche-Jozsa Oracle.
+
+77
+00:04:33.400 --> 00:04:36.420 
+This is just the name that it
+displays when we display the circuit.
+
+78
+00:04:36.450 --> 00:04:39.020 
+And then we return this oracle.
+
+79
+00:04:39.040 --> 00:04:42.340 
+Let's run that function,
+just the definition.
+
+80
+00:04:42.360 --> 00:04:45.180 
+Then we define the complete algorithm,
+
+81
+00:04:45.210 --> 00:04:49.500 
+the Deutsche-Jozsa algorithm, which again
+depends on n and on the oracle number.
+
+82
+00:04:49.530 --> 00:04:51.620 
+However, I put here oracle number equals
+
+83
+00:04:51.650 --> 00:04:55.220 
+zero, which means in the case where you
+don't specify the number,
+
+84
+00:04:55.240 --> 00:04:58.340 
+so where you do not put any number between
+one and four in there,
+
+85
+00:04:58.360 --> 00:05:03.100 
+but leave it just blank,
+in that case we will have the case zero
+
+86
+00:05:03.130 --> 00:05:06.980 
+by default, which I later on defined
+to just give me a random oracle.
+
+87
+00:05:07.000 --> 00:05:08.380 
+So, in that case you can test,
+
+88
+00:05:08.410 --> 00:05:12.620 
+if you don't know what your
+oracle is, you can test it.
+
+89
+00:05:12.650 --> 00:05:15.980 
+So, okay, let us start
+by creating the circuit.
+
+90
+00:05:16.010 --> 00:05:20.420 
+We start by creating a quantum circuit
+just with a basic command quantum circuit
+
+91
+00:05:20.450 --> 00:05:25.420 
+and we need n plus one qubits,
+where I did not yet tell you that,
+
+92
+00:05:25.450 --> 00:05:29.460 
+but so for the circuit that you saw
+before, we have this function that I
+
+93
+00:05:29.480 --> 00:05:33.940 
+called UF, that I told you, it's just
+this black box acting as an oracle.
+
+94
+00:05:33.970 --> 00:05:35.140 
+And so this function.
+
+95
+00:05:35.170 --> 00:05:37.760 
+Actually we add an additional qubit
+
+96
+00:05:37.790 --> 00:05:43.840 
+on that so that we can
+turn our function rather than having a bit
+
+97
+00:05:43.860 --> 00:05:49.140 
+oracle, which the function usually would
+be that we can turn it into a phase oracle.
+
+98
+00:05:49.170 --> 00:05:50.700 
+So, we will encode the outcome
+
+99
+00:05:50.730 --> 00:05:56.380 
+of the Oracle rather as instead of having
+it as a bit, we will encode it as a phase.
+
+100
+00:05:56.400 --> 00:05:57.900 
+So, if we input a superposition,
+
+101
+00:05:57.920 --> 00:06:00.300 
+we will have different phases
+for the different states.
+
+102
+00:06:00.320 --> 00:06:03.040 
+But don't worry about that too much,
+it's just why I have here n plus one.
+
+103
+00:06:03.060 --> 00:06:06.860 
+It's because of this special extra qubit
+that we need for the implementation.
+
+104
+00:06:06.890 --> 00:06:09.620 
+And then the second number n here
+
+105
+00:06:09.650 --> 00:06:14.280 
+shows us how many classical bits we need,
+which is for the measurement. I told you we
+
+106
+00:06:14.300 --> 00:06:17.900 
+want to measure in the end
+all of our N normal qubits.
+
+107
+00:06:17.920 --> 00:06:24.460 
+So for those we need those N outcomes,
+classical registers to store them.
+
+108
+00:06:24.480 --> 00:06:30.300 
+Now, in the beginning of the circuit we do
+Hadamard gates, which you just do by calling
+
+109
+00:06:30.330 --> 00:06:35.400 
+our circuit H for Hadamard and then identify
+the number of the qubits that we want
+
+110
+00:06:35.420 --> 00:06:38.720 
+to apply to and we want
+to apply to all of our N qubits.
+
+111
+00:06:38.750 --> 00:06:42.860 
+That's why we say make
+a for loop for range n.
+
+112
+00:06:42.890 --> 00:06:47.700 
+Then we set up this special output qubit,
+the one that we don't care about too much,
+
+113
+00:06:47.730 --> 00:06:51.260 
+the one that just turns our
+bit oracle into phase oracle.
+
+114
+00:06:51.290 --> 00:06:53.420 
+We need to prepare the minus state.
+
+115
+00:06:53.450 --> 00:06:57.100 
+So we need to prepare first apply
+an X gate and then an H gate.
+
+116
+00:06:57.120 --> 00:06:58.620 
+But as I said, don't worry about that too
+
+117
+00:06:58.650 --> 00:07:02.860 
+much, it's just to get the superposition
+to then get some phases.
+
+118
+00:07:02.890 --> 00:07:04.960 
+Now, what we do next is here,
+
+119
+00:07:04.980 --> 00:07:07.860 
+I mentioned before,
+if we do not specify the Oracle number
+
+120
+00:07:07.890 --> 00:07:12.420 
+but we want to have a surprise,
+then we just do nothing.
+
+121
+00:07:12.450 --> 00:07:15.380 
+We do not identify a number here,
+we just set at zero.
+
+122
+00:07:15.410 --> 00:07:17.860 
+And in that case we take a random number
+
+123
+00:07:17.890 --> 00:07:21.820 
+that gives us either a constant
+or a balanced oracle.
+
+124
+00:07:21.850 --> 00:07:28.060 
+Now, of course we've added
+the Hadamard gates on all our qubits.
+
+125
+00:07:28.080 --> 00:07:30.180 
+What we need to do next is we need to call
+
+126
+00:07:30.210 --> 00:07:34.940 
+our function the Oracle,
+the function UF that we defined before.
+
+127
+00:07:34.970 --> 00:07:37.540 
+So, we just call the show the Oracle
+
+128
+00:07:37.570 --> 00:07:41.380 
+with our inputs and then we appended
+to the circuit.
+
+129
+00:07:41.410 --> 00:07:45.300 
+In the end, if you remember the picture I
+showed you before we had Hadamard gates
+
+130
+00:07:45.330 --> 00:07:48.540 
+the function UF, you have again Hadamard
+gates and then measurements.
+
+131
+00:07:48.570 --> 00:07:51.540 
+So, now we have the Hadamard
+gates and the Oracle.
+
+132
+00:07:51.570 --> 00:07:56.020 
+We add again a bunch of Hadamard gates
+and measurements on each qubit.
+
+133
+00:07:56.040 --> 00:07:59.100 
+Each qubit means here we measure a qubit I
+
+134
+00:07:59.120 --> 00:08:01.060 
+and we store it in the
+classical register I.
+
+135
+00:08:01.090 --> 00:08:03.100 
+That's why we have two I's here.
+
+136
+00:08:03.130 --> 00:08:06.800 
+And well, in the end
+we return the circuit.
+
+137
+00:08:07.120 --> 00:08:11.180 
+And now we have defined this function,
+but now we would like to see doesn't
+
+138
+00:08:11.210 --> 00:08:13.740 
+actually look what we
+expect it to look like.
+
+139
+00:08:13.770 --> 00:08:18.020 
+So, we specify the number
+of qubits n equal to four.
+
+140
+00:08:18.040 --> 00:08:21.620 
+And then we choose the Oracle number,
+
+141
+00:08:21.640 --> 00:08:24.980 
+which we can either, for example,
+choose to be random between one and four.
+
+142
+00:08:25.010 --> 00:08:27.220 
+So, if I put one comma five,
+
+143
+00:08:27.250 --> 00:08:30.420 
+since it's with Python,
+you don't go to the last number.
+
+144
+00:08:30.440 --> 00:08:33.500 
+So, that would mean we have a random
+number between one and four.
+
+145
+00:08:33.530 --> 00:08:37.540 
+But I can also just say, okay, I want
+to have Oracle number one as I wish.
+
+146
+00:08:37.560 --> 00:08:40.380 
+I call the circuit and I just say circuit.draw
+
+147
+00:08:40.410 --> 00:08:45.660 
+and then it draws the circuit and
+well, here we go with our nice circuit.
+
+148
+00:08:45.680 --> 00:08:48.620 
+We can see the Hadamard gates,
+as expected on the four qubits.
+
+149
+00:08:48.650 --> 00:08:49.900 
+Then the oracle.
+
+150
+00:08:49.920 --> 00:08:51.380 
+Here this extra qubit that we don't care
+
+151
+00:08:51.410 --> 00:08:55.380 
+about, we don't even measure it,
+which we needed for the phases.
+
+152
+00:08:55.410 --> 00:08:59.460 
+Then again, a bunch of Hadamard
+gates and the measurements.
+
+153
+00:08:59.490 --> 00:09:02.460 
+So, I hope this already gave you a good
+
+154
+00:09:02.480 --> 00:09:05.760 
+idea of how we can actually implement
+a given circuit where we know
+
+155
+00:09:05.790 --> 00:09:09.060 
+theoretically how it looks
+like on a quantum computer.
+
+156
+00:09:09.080 --> 00:09:13.900 
+Now, in the next video,
+you will see how we can then run it both
+
+157
+00:09:13.930 --> 00:09:16.740 
+on the simulator and on
+an actual quantum device.
+
+158
+00:09:16.760 --> 00:09:18.160 
+So stay tuned for the next video.

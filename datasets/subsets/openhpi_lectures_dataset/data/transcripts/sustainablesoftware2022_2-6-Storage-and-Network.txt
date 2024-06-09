@@ -1,0 +1,485 @@
+WEBVTT
+
+1
+00:00:00.760 --> 00:00:03.850 
+So far, we mostly talked about how to make your computations
+
+2
+00:00:03.850 --> 00:00:08.090 
+as efficient as possible and while CPU usage certainly has
+
+3
+00:00:08.110 --> 00:00:11.420 
+the biggest impact on energy consumption, the aspects of storage and
+
+4
+00:00:11.420 --> 00:00:13.780 
+network though must not be disregarded either.
+
+5
+00:00:14.380 --> 00:00:17.440 
+In the following, we will talk about how to keep the size of
+
+6
+00:00:17.440 --> 00:00:21.380 
+your application itself preferably small and why doing so is even important.
+
+7
+00:00:22.080 --> 00:00:25.310 
+We'll talk about how to optimize the amount of network bandwidth
+
+8
+00:00:25.310 --> 00:00:28.860 
+consumed by your application and you will learn about the trade-off
+
+9
+00:00:28.860 --> 00:00:33.470 
+between recomputing data versus keeping it stored in memory, which then eventually
+
+10
+00:00:33.680 --> 00:00:37.570 
+leads to a crucial topic with regard to efficiency, which is caching.
+
+11
+00:00:38.040 --> 00:00:38.870 
+Let's get started.
+
+12
+00:00:42.470 --> 00:00:47.250 
+As we saw earlier, in contrast to computation, memory is comparatively cheap
+
+13
+00:00:47.450 --> 00:00:51.920 
+in terms of energy. But still, hard drives and SSDs consume electricity
+
+14
+00:00:52.210 --> 00:00:55.790 
+and the more storage space you use the higher the energy consumption will be.
+
+15
+00:00:56.460 --> 00:00:59.890 
+The same is true for network. Every transfer of data across a network
+
+16
+00:01:00.100 --> 00:01:03.560 
+consumes energy on the server side, on the client side and at
+
+17
+00:01:03.560 --> 00:01:05.640 
+every hop in between, for instance routers.
+
+18
+00:01:06.450 --> 00:01:09.850 
+A study from twenty eighteen estimates one gigabyte of internet
+
+19
+00:01:09.850 --> 00:01:14.050 
+traffic to require approximately sixty watt hours or two hundred
+
+20
+00:01:14.050 --> 00:01:17.640 
+and sixteen kilo joules of energy. So it makes sense to think
+
+21
+00:01:17.640 --> 00:01:20.500 
+about minimizing the size of any kind of resources.
+
+22
+00:01:21.930 --> 00:01:26.540 
+First of all, with regard to storage space, you have to distinguish between two things -
+
+23
+00:01:27.060 --> 00:01:30.650 
+first the amount of data your application handles and stores
+
+24
+00:01:30.810 --> 00:01:34.360 
+as part of its business logic. For instance customer data, images,
+
+25
+00:01:34.370 --> 00:01:38.990 
+videos and the like. And the second one is the size of your application itself,
+
+26
+00:01:39.300 --> 00:01:40.480 
+that is its code.
+
+27
+00:01:41.680 --> 00:01:45.370 
+Both things have potential for optimization, however, we want
+
+28
+00:01:45.370 --> 00:01:46.730 
+to focus on the latter here.
+
+29
+00:01:48.850 --> 00:01:52.460 
+Think about this. If you're developing a reasonably big application
+
+30
+00:01:52.730 --> 00:01:55.780 
+chances are high that not all code will be written by yourself.
+
+31
+00:01:56.080 --> 00:01:59.020 
+Instead you will rely upon external libraries that you pull
+
+32
+00:01:59.020 --> 00:02:01.030 
+in as dependencies to the application code.
+
+33
+00:02:01.660 --> 00:02:04.640 
+Say you want to use a particular sorting algorithm in your code.
+
+34
+00:02:05.150 --> 00:02:07.790 
+You wouldn't want to implement this yourself but instead use
+
+35
+00:02:07.790 --> 00:02:10.320 
+a robust already existing implementation of it.
+
+36
+00:02:10.890 --> 00:02:13.460 
+However keep in mind to be a bit careful with these libraries.
+
+37
+00:02:13.790 --> 00:02:15.920 
+Try to pull in only as much as you really need.
+
+38
+00:02:16.480 --> 00:02:19.610 
+For instance, if your preferred sorting algorithm comes together
+
+39
+00:02:19.610 --> 00:02:22.360 
+in a library with eighty four other sorting algorithms which
+
+40
+00:02:22.360 --> 00:02:25.220 
+you won't be using at all, it is arguably inefficient.
+
+41
+00:02:25.720 --> 00:02:28.980 
+For compiled programs not only will it ramp up your code size,
+
+42
+00:02:29.210 --> 00:02:32.590 
+but also the compile time. And for web applications it will
+
+43
+00:02:32.590 --> 00:02:35.000 
+increase the amount of data a user needs to download.
+
+44
+00:02:37.120 --> 00:02:40.330 
+I previously mentioned web applications already. Let's now dig
+
+45
+00:02:40.330 --> 00:02:43.990 
+a bit deeper into them because code size is especially important on the web.
+
+46
+00:02:44.750 --> 00:02:47.660 
+If you take a look at how an average website is composed, you'll
+
+47
+00:02:47.660 --> 00:02:50.810 
+find that images and javascript code are the biggest players here.
+
+48
+00:02:51.990 --> 00:02:53.710 
+Let us do a quick life demo.
+
+49
+00:02:55.360 --> 00:02:57.890 
+If we bring up our browser and open the dev tools,
+
+50
+00:02:59.450 --> 00:03:01.210 
+and especially the network tab here,
+
+51
+00:03:02.260 --> 00:03:05.400 
+and then browse to, for instance, the website of New York times.
+
+52
+00:03:07.310 --> 00:03:09.510 
+What you can see here is, basically,
+
+53
+00:03:10.310 --> 00:03:13.970 
+all requests that are made by your browser to the website of New York times
+
+54
+00:03:14.590 --> 00:03:16.650 
+and especially you can also inspect
+
+55
+00:03:17.410 --> 00:03:19.190 
+the size of the resources.
+
+56
+00:03:20.060 --> 00:03:22.760 
+And in this case you can see that to bring up the front page
+
+57
+00:03:22.760 --> 00:03:26.310 
+of New York times, a total of 10 megabytes of resources are
+
+58
+00:03:26.310 --> 00:03:27.710 
+downloaded by your browser.
+
+59
+00:03:28.560 --> 00:03:31.110 
+This is made up of javascript code for instance,
+
+60
+00:03:32.170 --> 00:03:36.760 
+which makes up 5.8 megabytes of resources and
+
+61
+00:03:38.050 --> 00:03:39.010 
+then there are images
+
+62
+00:03:39.680 --> 00:03:43.800 
+which in this case contribute a total of 1.8 eight megabytes.
+
+63
+00:03:44.870 --> 00:03:48.050 
+So a total of 10 megabytes just to bring up the front page
+
+64
+00:03:48.050 --> 00:03:50.480 
+of New York times is arguably quite big.
+
+65
+00:03:55.440 --> 00:03:58.090 
+So, not only does this data have to be stored somewhere and be
+
+66
+00:03:58.090 --> 00:03:59.870 
+transferred over the network to your browser,
+
+67
+00:04:00.280 --> 00:04:03.590 
+but in addition your browser also has to process all the data in some way
+
+68
+00:04:03.790 --> 00:04:05.950 
+which again consumes computer resources.
+
+69
+00:04:08.750 --> 00:04:12.020 
+Moreover, it can be observed that the median size of image and
+
+70
+00:04:12.020 --> 00:04:14.210 
+javascript content on the web keeps increasing.
+
+71
+00:04:14.840 --> 00:04:18.270 
+Do you remember Wirth's law from earlier chapters? It states that
+
+72
+00:04:18.290 --> 00:04:21.760 
+software is getting slower more rapidly than hardware is becoming faster.
+
+73
+00:04:22.240 --> 00:04:26.130 
+Something similar might even be true for application size and network speed.
+
+74
+00:04:27.460 --> 00:04:31.240 
+So you may ask how can we optimize things here. How
+
+75
+00:04:31.430 --> 00:04:33.680 
+can we reduce the weight of web applications.
+
+76
+00:04:34.170 --> 00:04:36.500 
+In the following I'll show you a few measures.
+
+77
+00:04:38.590 --> 00:04:42.170 
+So the first thing you can do is simply reduce the number of
+
+78
+00:04:42.170 --> 00:04:46.510 
+dependencies of your application. I already mentioned it before, be minimalist here.
+
+79
+00:04:46.790 --> 00:04:50.470 
+Only pull in what you really need. In the case of javascript also
+
+80
+00:04:50.700 --> 00:04:53.360 
+most bundlers come with a mechanism called tree shaking
+
+81
+00:04:53.960 --> 00:04:57.010 
+and what it does is it scans through your application code
+
+82
+00:04:57.260 --> 00:05:00.650 
+to find which parts of a library are actually in use and then
+
+83
+00:05:00.650 --> 00:05:02.890 
+strips out all unused parts of that library.
+
+84
+00:05:03.490 --> 00:05:06.240 
+Similar techniques might even exist for other
+
+85
+00:05:06.740 --> 00:05:08.220 
+programming languages as well.
+
+86
+00:05:09.680 --> 00:05:14.090 
+The second trick is, it basically aims at reducing the amount
+
+87
+00:05:14.090 --> 00:05:17.430 
+of data to transfer over the network and this one really is
+
+88
+00:05:17.430 --> 00:05:21.730 
+a low hanging fruit. Basically, just turn on compression at your web server
+
+89
+00:05:22.080 --> 00:05:25.330 
+and request resources in a compressed form from the client side.
+
+90
+00:05:26.130 --> 00:05:29.820 
+Usually, this is already the default settings in modern browsers
+
+91
+00:05:29.820 --> 00:05:34.060 
+and most web servers. However it is better to double check, especially
+
+92
+00:05:34.060 --> 00:05:35.960 
+with regard to API calls and the like.
+
+93
+00:05:37.920 --> 00:05:41.430 
+The third trick is quite an easy one as well. Just make sure
+
+94
+00:05:41.670 --> 00:05:43.030 
+to use browser caching.
+
+95
+00:05:43.810 --> 00:05:48.890 
+Caching in a nutshell means to temporarily temporarily store resources locally
+
+96
+00:05:49.320 --> 00:05:53.130 
+and just not request them again the next time as long as they
+
+97
+00:05:53.130 --> 00:05:54.390 
+are not expected to change.
+
+98
+00:05:55.170 --> 00:05:57.660 
+Again usually caching is used by default
+
+99
+00:05:58.100 --> 00:06:01.520 
+but only for assets like images and javascript or CSS
+
+100
+00:06:02.170 --> 00:06:06.630 
+and for application specific data, you will need to take care of caching yourself.
+
+101
+00:06:07.440 --> 00:06:10.440 
+To do so there are dedicated HTTP headers for this.
+
+102
+00:06:15.580 --> 00:06:19.560 
+So earlier, we learned that images contribute the biggest portion
+
+103
+00:06:19.560 --> 00:06:22.960 
+of your web application's weight. So let's talk about images
+
+104
+00:06:22.960 --> 00:06:24.150 
+now a bit more deeper.
+
+105
+00:06:25.310 --> 00:06:29.530 
+First thing is, always resize your images to an appropriate resolution.
+
+106
+00:06:30.180 --> 00:06:32.930 
+If you know that an image is never going to be displayed larger
+
+107
+00:06:32.930 --> 00:06:36.210 
+than fifty pixels wide on your page then just don't deliver
+
+108
+00:06:36.210 --> 00:06:38.640 
+a five hundred pixels big file.
+
+109
+00:06:39.530 --> 00:06:43.080 
+And this is even more important for very small assets, for instance icons.
+
+110
+00:06:45.010 --> 00:06:48.860 
+The next trick, browsers have several built in techniques to help
+
+111
+00:06:48.860 --> 00:06:51.480 
+developers optimize their applications for performance.
+
+112
+00:06:52.210 --> 00:06:55.700 
+One of them is to instruct the browser to lazily load images.
+
+113
+00:06:56.250 --> 00:07:00.290 
+That is, only fetch an image from a server once it becomes
+
+114
+00:07:00.910 --> 00:07:03.730 
+once it moves into the visible part of a page. For instance,
+
+115
+00:07:03.740 --> 00:07:05.920 
+after a user scrolls down in an article.
+
+116
+00:07:07.520 --> 00:07:10.250 
+Last but not least there are pretty good tools on the internet
+
+117
+00:07:10.500 --> 00:07:14.050 
+to help developers get insights about the performance of their applications.
+
+118
+00:07:14.670 --> 00:07:18.970 
+For example, google page insights which analyzes your website,
+
+119
+00:07:19.240 --> 00:07:22.640 
+assigns a performance rating between zero and hundred and then
+
+120
+00:07:22.820 --> 00:07:26.300 
+also gives a lot of useful tips of what can be improved.
+
+121
+00:07:26.740 --> 00:07:28.680 
+Make sure to utilize these tools.

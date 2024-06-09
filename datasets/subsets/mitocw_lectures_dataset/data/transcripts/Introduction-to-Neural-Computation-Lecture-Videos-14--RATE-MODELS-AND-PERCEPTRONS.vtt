@@ -1,0 +1,4803 @@
+WEBVTT
+
+00:00:16.467 --> 00:00:18.400
+MICHALE FEE: So for
+the next few lectures,
+
+00:00:18.400 --> 00:00:24.030
+we're going to be looking at
+developing methods of studying
+
+00:00:24.030 --> 00:00:27.003
+the computational properties
+of networks of neurons.
+
+00:00:27.003 --> 00:00:28.920
+This is the outline for
+the next few lectures.
+
+00:00:28.920 --> 00:00:34.530
+Today we are going to introduce
+a method of studying networks
+
+00:00:34.530 --> 00:00:40.500
+called a rate model where
+we basically replace
+
+00:00:40.500 --> 00:00:42.990
+spike trains with
+firing rates in order
+
+00:00:42.990 --> 00:00:45.780
+to develop simple
+mathematical descriptions
+
+00:00:45.780 --> 00:00:47.380
+of neural networks.
+
+00:00:47.380 --> 00:00:51.660
+And we're going to start by
+introducing that technique
+
+00:00:51.660 --> 00:00:55.560
+to the problem of studying
+feed-forward neural networks.
+
+00:00:55.560 --> 00:00:58.080
+And we'll introduce the
+idea of perceptrons trance
+
+00:00:58.080 --> 00:01:01.710
+as a method of
+developing networks that
+
+00:01:01.710 --> 00:01:04.709
+can classify their inputs.
+
+00:01:04.709 --> 00:01:06.360
+Then in the next
+lecture, we're going
+
+00:01:06.360 --> 00:01:13.290
+to turn to largely describing
+mathematical tools based
+
+00:01:13.290 --> 00:01:18.450
+on matrix operations and
+the idea of basis sets.
+
+00:01:18.450 --> 00:01:21.450
+Matrix operations are very
+important for studying
+
+00:01:21.450 --> 00:01:22.260
+neural networks.
+
+00:01:22.260 --> 00:01:25.020
+But they're also
+a fundamental tool
+
+00:01:25.020 --> 00:01:27.780
+for analyzing data
+and doing things
+
+00:01:27.780 --> 00:01:31.780
+like reducing the dimensionality
+of high dimensional data sets,
+
+00:01:31.780 --> 00:01:36.600
+including methods such as
+principal components analysis.
+
+00:01:36.600 --> 00:01:40.680
+So it's a very
+powerful set of methods
+
+00:01:40.680 --> 00:01:43.680
+that apply both to
+studying the brain
+
+00:01:43.680 --> 00:01:49.530
+and to analyzing the data that
+we get when we study the brain.
+
+00:01:49.530 --> 00:01:54.360
+And then finally we'll turn
+to a few lectures that focus
+
+00:01:54.360 --> 00:01:55.680
+on recurrent neural networks.
+
+00:01:55.680 --> 00:01:59.610
+These are networks where
+the neurons connect
+
+00:01:59.610 --> 00:02:03.060
+to each other densely
+in a recurrent way,
+
+00:02:03.060 --> 00:02:05.280
+meaning a neuron will
+connect to another neuron.
+
+00:02:05.280 --> 00:02:07.650
+And that neuron will connect
+back to the first neuron.
+
+00:02:07.650 --> 00:02:10.050
+And networks that
+have that property
+
+00:02:10.050 --> 00:02:13.830
+have very interesting
+computational abilities.
+
+00:02:13.830 --> 00:02:16.260
+And we're going to study
+that in the context of line
+
+00:02:16.260 --> 00:02:23.280
+attractors and short-term
+memory and hopfield networks.
+
+00:02:23.280 --> 00:02:29.340
+So for today, the plan is
+to develop the rate model.
+
+00:02:29.340 --> 00:02:33.660
+We're going to show how we
+can build receptive fields
+
+00:02:33.660 --> 00:02:36.840
+with feed forward
+networks that we've
+
+00:02:36.840 --> 00:02:38.580
+described with the rate model.
+
+00:02:38.580 --> 00:02:42.090
+We're going to take
+a little detour
+
+00:02:42.090 --> 00:02:44.850
+and describe vector notation
+and vector algebra, which
+
+00:02:44.850 --> 00:02:49.320
+is very important for these
+models, and also for building
+
+00:02:49.320 --> 00:02:51.930
+up to the matrix
+methods that we'll
+
+00:02:51.930 --> 00:02:54.720
+talk about in the next lecture.
+
+00:02:54.720 --> 00:02:57.390
+Again, we'll talk about neural
+networks for classification
+
+00:02:57.390 --> 00:02:59.740
+and introduce the
+idea of a perceptron.
+
+00:02:59.740 --> 00:03:02.490
+So that's for today.
+
+00:03:02.490 --> 00:03:06.840
+So I've already talked
+about most of this.
+
+00:03:06.840 --> 00:03:09.480
+Why is it that we want
+to develop a simplified
+
+00:03:09.480 --> 00:03:12.930
+mathematical model of neurons
+that we can study analytically?
+
+00:03:12.930 --> 00:03:17.130
+Well, the reason is that we can
+really develop our intuition
+
+00:03:17.130 --> 00:03:19.710
+about how networks work.
+
+00:03:19.710 --> 00:03:22.500
+And that intuition
+applies not just
+
+00:03:22.500 --> 00:03:25.260
+to the very simplified
+mathematical model that we're
+
+00:03:25.260 --> 00:03:27.420
+developing, but also
+applies more broadly
+
+00:03:27.420 --> 00:03:30.180
+to real networks
+with real neurons
+
+00:03:30.180 --> 00:03:33.210
+that actually generate spikes
+and interact with each other
+
+00:03:33.210 --> 00:03:36.450
+by the more complex
+biophysical mechanisms that
+
+00:03:36.450 --> 00:03:37.960
+are going on in the brain.
+
+00:03:37.960 --> 00:03:39.960
+So a good example
+of this is how we
+
+00:03:39.960 --> 00:03:42.715
+simplified the detailed
+spiking neurons
+
+00:03:42.715 --> 00:03:46.740
+of the Hodgkin-Huxley
+model and approximate that
+
+00:03:46.740 --> 00:03:48.720
+as an integrate and
+fire model, which
+
+00:03:48.720 --> 00:03:52.500
+captures a lot of the
+properties of real neurons.
+
+00:03:52.500 --> 00:03:55.680
+Simplifies it enough to
+develop an intuition,
+
+00:03:55.680 --> 00:03:59.310
+but captures a lot of
+the important properties
+
+00:03:59.310 --> 00:04:03.210
+of real neural circuits.
+
+00:04:03.210 --> 00:04:06.860
+All right, so let's
+start by developing
+
+00:04:06.860 --> 00:04:09.232
+the basic idea of a rate model.
+
+00:04:09.232 --> 00:04:10.440
+Let's start with two neurons.
+
+00:04:10.440 --> 00:04:13.110
+We have an input neuron
+and an output neuron.
+
+00:04:13.110 --> 00:04:18.329
+The input neuron has some
+firing rate given by u.
+
+00:04:18.329 --> 00:04:22.079
+And the output neuron has
+some firing rate given by v.
+
+00:04:22.079 --> 00:04:27.330
+So we're going to essentially
+ignore the times of the spikes
+
+00:04:27.330 --> 00:04:30.750
+and describe the inputs
+and outputs of this network
+
+00:04:30.750 --> 00:04:33.150
+just with firing rates.
+
+00:04:33.150 --> 00:04:35.760
+You can think of the rate
+as just having units have
+
+00:04:35.760 --> 00:04:38.430
+spikes per second, for example.
+
+00:04:38.430 --> 00:04:40.860
+Those neurons, the input
+neuron and the output neuron,
+
+00:04:40.860 --> 00:04:43.290
+are connected to each
+other by a synapse.
+
+00:04:43.290 --> 00:04:47.370
+And we're going to replace
+all of the complex structure
+
+00:04:47.370 --> 00:04:55.650
+of synapses, vesicle release,
+neurotransmitter receptors,
+
+00:04:55.650 --> 00:05:00.750
+long-term depression
+and paired spike
+
+00:05:00.750 --> 00:05:02.940
+facilitation and
+depression, all that stuff
+
+00:05:02.940 --> 00:05:04.530
+we're just going to ignore.
+
+00:05:04.530 --> 00:05:08.460
+And we're going to replace that
+synapse with a synaptic weight
+
+00:05:08.460 --> 00:05:08.960
+w.
+
+00:05:13.380 --> 00:05:16.470
+Just to give you the simplest
+intuition of how a rate
+
+00:05:16.470 --> 00:05:20.100
+model works, there are
+models where we can just
+
+00:05:20.100 --> 00:05:22.890
+treat the firing rate
+of the output neuron,
+
+00:05:22.890 --> 00:05:26.500
+for example, as
+linear in its input.
+
+00:05:26.500 --> 00:05:30.180
+And we can simplify
+this even to the point
+
+00:05:30.180 --> 00:05:33.630
+where we can describe the
+firing rate of the output neuron
+
+00:05:33.630 --> 00:05:38.280
+as the synaptic weight w times
+the firing rate of the input
+
+00:05:38.280 --> 00:05:39.160
+neuron.
+
+00:05:39.160 --> 00:05:43.690
+So that's just to give you a
+flavor of where we're heading.
+
+00:05:43.690 --> 00:05:47.820
+And I'm going to justify
+how we can do this
+
+00:05:47.820 --> 00:05:50.310
+and/or why we can do this.
+
+00:05:50.310 --> 00:05:52.290
+And then we're going
+to build this up
+
+00:05:52.290 --> 00:05:56.220
+from the case of one input
+neuron and one output neuron
+
+00:05:56.220 --> 00:05:58.410
+to the case where we can
+have many input neurons
+
+00:05:58.410 --> 00:05:59.630
+and many output neurons.
+
+00:06:03.050 --> 00:06:07.280
+So how do we justify going
+from spikes to firing rates?
+
+00:06:07.280 --> 00:06:12.860
+So remember that the response
+of a real output neuron,
+
+00:06:12.860 --> 00:06:16.850
+a real neuron, to a
+single spike at its input,
+
+00:06:16.850 --> 00:06:19.610
+is some change in the
+postsynaptic conductance that
+
+00:06:19.610 --> 00:06:20.960
+follows an input spike.
+
+00:06:20.960 --> 00:06:23.480
+And in our model
+of a synapse, we
+
+00:06:23.480 --> 00:06:29.420
+described that the input spike
+produces a transient increase
+
+00:06:29.420 --> 00:06:31.730
+in the synaptic conductance.
+
+00:06:31.730 --> 00:06:34.100
+And that synaptic
+conductance we modeled
+
+00:06:34.100 --> 00:06:37.940
+as a simple step increase
+in the conductance
+
+00:06:37.940 --> 00:06:42.350
+followed by an exponential
+decay as the neurotransmitter
+
+00:06:42.350 --> 00:06:47.450
+gradually unbinds from the
+neurotransmitter receptors.
+
+00:06:47.450 --> 00:06:51.260
+So we have a transient change
+in the synaptic conductance.
+
+00:06:51.260 --> 00:06:53.180
+That's just a
+maximum conductance
+
+00:06:53.180 --> 00:06:56.990
+times an exponential decay.
+
+00:06:56.990 --> 00:06:59.930
+Now remember that we wrote
+down the postsynaptic--
+
+00:06:59.930 --> 00:07:02.660
+we can write down the
+postsynaptic current that
+
+00:07:02.660 --> 00:07:07.100
+results from this synaptic input
+as the synaptic conductance
+
+00:07:07.100 --> 00:07:12.680
+times v minus e synapse, the
+synaptic reversal potential.
+
+00:07:17.530 --> 00:07:19.850
+In moving forward
+in this model, we're
+
+00:07:19.850 --> 00:07:23.610
+not going to worry about
+synaptic saturation.
+
+00:07:23.610 --> 00:07:26.540
+So we're just going to imagine
+that the synaptic current is
+
+00:07:26.540 --> 00:07:33.440
+just proportional to the
+synaptic conductance.
+
+00:07:33.440 --> 00:07:35.480
+So now we can write
+the conductance
+
+00:07:35.480 --> 00:07:43.070
+as just some weight times
+a kernel that is just
+
+00:07:43.070 --> 00:07:45.270
+some kernel of unit area.
+
+00:07:45.270 --> 00:07:48.680
+So what we've done here is we've
+just taken the synaptic current
+
+00:07:48.680 --> 00:07:51.080
+and we've written
+it as a constant,
+
+00:07:51.080 --> 00:07:54.980
+a synaptic weight, times
+an exponentially decaying
+
+00:07:54.980 --> 00:07:57.040
+kernel of area, area 1.
+
+00:08:01.170 --> 00:08:05.040
+So now if we have a train of
+spikes at the input instead
+
+00:08:05.040 --> 00:08:07.620
+of a single spike,
+we can write down
+
+00:08:07.620 --> 00:08:09.810
+that train of spikes,
+the spike train,
+
+00:08:09.810 --> 00:08:11.610
+as a sum of delta
+functions where
+
+00:08:11.610 --> 00:08:14.430
+the spike times are t sub i.
+
+00:08:14.430 --> 00:08:18.180
+And if you want to plot
+the synaptic current
+
+00:08:18.180 --> 00:08:20.100
+as a function of
+time, you would just
+
+00:08:20.100 --> 00:08:23.490
+take that spike train
+input and do what
+
+00:08:23.490 --> 00:08:25.050
+with that linear kernel?
+
+00:08:25.050 --> 00:08:26.610
+We would convolve it, right?
+
+00:08:26.610 --> 00:08:28.340
+So we would take
+that spike train,
+
+00:08:28.340 --> 00:08:32.039
+convolve it with that
+little exponential kernel.
+
+00:08:32.039 --> 00:08:34.470
+And that would give us
+the synaptic current that
+
+00:08:34.470 --> 00:08:36.929
+results from that spike train.
+
+00:08:39.960 --> 00:08:42.809
+So let's think for
+a moment about what
+
+00:08:42.809 --> 00:08:44.159
+this quantity is right here.
+
+00:08:44.159 --> 00:08:49.500
+What is k, this k which
+is a little kernel that
+
+00:08:49.500 --> 00:08:53.190
+has an exponential step, and
+then an exponential decay?
+
+00:08:53.190 --> 00:08:55.530
+What do you get
+when you convolve
+
+00:08:55.530 --> 00:09:02.078
+that kind of smooth kernel
+with this spike train here?
+
+00:09:02.078 --> 00:09:03.120
+What does that look like?
+
+00:09:03.120 --> 00:09:06.140
+We did that at one point
+when we were in class
+
+00:09:06.140 --> 00:09:09.560
+when we were talking about how
+you would estimate something
+
+00:09:09.560 --> 00:09:12.210
+from a spike train.
+
+00:09:12.210 --> 00:09:13.200
+What is that?
+
+00:09:13.200 --> 00:09:15.190
+What is that
+quantity right there?
+
+00:09:15.190 --> 00:09:18.630
+It's sort of a smoothed
+version of a spike train,
+
+00:09:18.630 --> 00:09:21.510
+which is how you would
+calculate what, Habiba?
+
+00:09:21.510 --> 00:09:24.611
+AUDIENCE: Is it a window
+for the spike train?
+
+00:09:24.611 --> 00:09:25.810
+MICHALE FEE: Yeah.
+
+00:09:25.810 --> 00:09:28.870
+It's windowed, but what is
+it that you are calculating
+
+00:09:28.870 --> 00:09:31.360
+when you take a spike
+train and you convolve it
+
+00:09:31.360 --> 00:09:33.580
+with some smooth window?
+
+00:09:33.580 --> 00:09:34.771
+AUDIENCE: Low-pass window?
+
+00:09:34.771 --> 00:09:37.300
+MICHALE FEE: It's like
+a low-pass version
+
+00:09:37.300 --> 00:09:38.230
+of the spike train.
+
+00:09:38.230 --> 00:09:43.900
+And remember in the
+lecture on firing rates,
+
+00:09:43.900 --> 00:09:45.640
+we talked about how
+that's a good way
+
+00:09:45.640 --> 00:09:50.870
+to get a time-dependent estimate
+of the firing rate of a neuron.
+
+00:09:50.870 --> 00:09:53.500
+We take the spike train
+and just convolve it
+
+00:09:53.500 --> 00:09:55.390
+with a smooth window.
+
+00:09:55.390 --> 00:09:58.630
+And if the area of that
+smooth window is 1,
+
+00:09:58.630 --> 00:10:00.340
+then what we're doing
+is we're estimating
+
+00:10:00.340 --> 00:10:05.330
+the firing rate of the
+neuron as a function of time.
+
+00:10:05.330 --> 00:10:06.210
+Does that make sense?
+
+00:10:06.210 --> 00:10:06.710
+Yes?
+
+00:10:06.710 --> 00:10:09.510
+AUDIENCE: So k is just a kernel?
+
+00:10:09.510 --> 00:10:12.540
+MICHALE FEE: k is just is
+smooth kernel that happens
+
+00:10:12.540 --> 00:10:14.561
+to have this exponential shape.
+
+00:10:14.561 --> 00:10:18.710
+AUDIENCE: Is it like [INAUDIBLE]
+
+00:10:18.710 --> 00:10:23.530
+MICHALE FEE: Well, that's
+our model for how a synapse--
+
+00:10:23.530 --> 00:10:26.080
+basically, what I'm
+saying is that when
+
+00:10:26.080 --> 00:10:28.570
+you take a spike train and
+put it through a synapse, what
+
+00:10:28.570 --> 00:10:30.838
+comes out the other end
+is a smoothed version
+
+00:10:30.838 --> 00:10:31.630
+of the spike train.
+
+00:10:31.630 --> 00:10:32.172
+AUDIENCE: OK.
+
+00:10:32.172 --> 00:10:34.000
+MICHALE FEE: That's
+all this is saying.
+
+00:10:34.000 --> 00:10:35.090
+AUDIENCE: OK.
+
+00:10:35.090 --> 00:10:39.470
+[INAUDIBLE] they have
+this area or quantity?
+
+00:10:39.470 --> 00:10:40.560
+MICHALE FEE: Yep.
+
+00:10:40.560 --> 00:10:47.530
+If k has-- you remember that
+if k has an area 1, then when
+
+00:10:47.530 --> 00:10:50.510
+you convolve evolve that
+kernel with the spike train,
+
+00:10:50.510 --> 00:10:58.160
+you get a number that has
+units of spikes per second.
+
+00:10:58.160 --> 00:11:04.040
+And that quantity is an
+estimate of the local firing
+
+00:11:04.040 --> 00:11:06.685
+rate of the neuron.
+
+00:11:06.685 --> 00:11:07.560
+Does that make sense?
+
+00:11:11.780 --> 00:11:14.280
+So basically, we can
+take this spike train,
+
+00:11:14.280 --> 00:11:16.270
+and by convolve it
+with a smooth window,
+
+00:11:16.270 --> 00:11:19.090
+we can estimate the
+number of spikes
+
+00:11:19.090 --> 00:11:22.970
+per second in that window.
+
+00:11:22.970 --> 00:11:24.380
+So what do we have here?
+
+00:11:24.380 --> 00:11:28.120
+We have that the current
+is just a constant times
+
+00:11:28.120 --> 00:11:32.870
+an estimate of the
+firing rate at that time.
+
+00:11:32.870 --> 00:11:36.260
+If k is a kernel, a
+smooth kernel with an area
+
+00:11:36.260 --> 00:11:39.800
+normalized to 1, then
+this quantity is just
+
+00:11:39.800 --> 00:11:41.960
+an estimate of the firing rate.
+
+00:11:41.960 --> 00:11:44.460
+So let's take a look at that.
+
+00:11:44.460 --> 00:11:48.020
+So here I have just made
+a sample spike train
+
+00:11:48.020 --> 00:11:51.500
+with a bunch of spikes
+that look like they're
+
+00:11:51.500 --> 00:11:54.410
+increasing in firing rate and
+decreasing in firing rate.
+
+00:11:54.410 --> 00:11:57.950
+If we take that spike train and
+convolve it with this kernel,
+
+00:11:57.950 --> 00:12:01.100
+you can see that you get
+this sort of broad bump
+
+00:12:01.100 --> 00:12:04.310
+that looks like it gets higher
+in the middle where the firing
+
+00:12:04.310 --> 00:12:04.970
+rate is higher.
+
+00:12:04.970 --> 00:12:07.430
+And it's lower at the edges
+where the firing rate is lower.
+
+00:12:12.080 --> 00:12:16.180
+So the point is that you
+can take a spike train
+
+00:12:16.180 --> 00:12:17.800
+and put it into a neuron.
+
+00:12:17.800 --> 00:12:24.100
+The response of the neuron
+is a smooth low-pass version
+
+00:12:24.100 --> 00:12:28.580
+of the rate of this
+input spike train.
+
+00:12:28.580 --> 00:12:33.170
+And so you can think about
+writing down the input
+
+00:12:33.170 --> 00:12:39.540
+to this neuron as a weight times
+the firing rate of the input.
+
+00:12:39.540 --> 00:12:46.560
+So that was a way of writing
+down the input to this output
+
+00:12:46.560 --> 00:12:52.900
+neuron from the input
+neuron, the current input.
+
+00:12:52.900 --> 00:12:57.880
+Now what is the firing rate of
+the output neuron in response
+
+00:12:57.880 --> 00:13:00.970
+to that current injection?
+
+00:13:00.970 --> 00:13:02.680
+So that's what we're
+going to ask next.
+
+00:13:02.680 --> 00:13:06.400
+And you can remember that when
+we talked about the integrate
+
+00:13:06.400 --> 00:13:13.640
+and fire model, we
+saw that neurons
+
+00:13:13.640 --> 00:13:16.310
+in the approximation
+of large inputs
+
+00:13:16.310 --> 00:13:19.340
+have firing rate as
+a function of current
+
+00:13:19.340 --> 00:13:20.230
+that looks like this.
+
+00:13:20.230 --> 00:13:24.530
+It's zero for inputs below
+the threshold current.
+
+00:13:24.530 --> 00:13:27.470
+For input currents that
+aren't large enough
+
+00:13:27.470 --> 00:13:29.270
+to drive the neuron
+to threshold,
+
+00:13:29.270 --> 00:13:31.550
+the neuron doesn't spike at all.
+
+00:13:31.550 --> 00:13:34.190
+And then above some
+threshold, the neuron
+
+00:13:34.190 --> 00:13:39.470
+fires approximately linearly
+at higher input currents.
+
+00:13:42.490 --> 00:13:44.770
+So the way that we
+think about this
+
+00:13:44.770 --> 00:13:48.880
+is that the input on is
+spiking at some rate.
+
+00:13:48.880 --> 00:13:50.740
+It goes through a synapse.
+
+00:13:50.740 --> 00:13:55.060
+That synapse smooths the input
+and produces some current
+
+00:13:55.060 --> 00:13:57.070
+in the postsynaptic
+neuron that's
+
+00:13:57.070 --> 00:13:59.890
+proportional approximately to
+the firing rate of the input
+
+00:13:59.890 --> 00:14:00.940
+neuron.
+
+00:14:00.940 --> 00:14:04.750
+And the output neuron has
+some output firing rate
+
+00:14:04.750 --> 00:14:06.835
+that's some function
+of the input current.
+
+00:14:10.050 --> 00:14:13.320
+So we can write down the firing
+rate of our output neuron,
+
+00:14:13.320 --> 00:14:18.270
+v. It's just equal to
+some function of the input
+
+00:14:18.270 --> 00:14:23.380
+current, which is just some
+function of w times the firing
+
+00:14:23.380 --> 00:14:26.370
+rate of the input neuron.
+
+00:14:26.370 --> 00:14:30.690
+And that right there
+is the basic equation
+
+00:14:30.690 --> 00:14:33.290
+of the rate model.
+
+00:14:33.290 --> 00:14:37.940
+The output firing
+rate is some function
+
+00:14:37.940 --> 00:14:42.440
+of a weight times the firing
+rate of the input neuron.
+
+00:14:47.610 --> 00:14:50.710
+And everything else
+about the rate model
+
+00:14:50.710 --> 00:14:56.740
+is just different rate models
+have different numbers of input
+
+00:14:56.740 --> 00:15:00.100
+neurons where we have more than
+one contribution to the input
+
+00:15:00.100 --> 00:15:01.390
+current.
+
+00:15:01.390 --> 00:15:03.640
+They can have many
+output neurons.
+
+00:15:03.640 --> 00:15:07.300
+They can have different FI
+curves for the output neurons.
+
+00:15:07.300 --> 00:15:09.940
+Some of them are
+non-linear like this.
+
+00:15:09.940 --> 00:15:10.940
+Some of them are linear.
+
+00:15:10.940 --> 00:15:13.090
+And we're going to
+come back and talk
+
+00:15:13.090 --> 00:15:18.310
+about the function of
+different FI curves
+
+00:15:18.310 --> 00:15:20.928
+and why different FYI
+curves are useful.
+
+00:15:20.928 --> 00:15:21.970
+Any questions about this?
+
+00:15:21.970 --> 00:15:23.190
+That's the basic idea.
+
+00:15:25.760 --> 00:15:28.230
+All right, good.
+
+00:15:28.230 --> 00:15:35.010
+So let's take one
+particularly simple version
+
+00:15:35.010 --> 00:15:37.830
+of the rate model called
+a linear rate model.
+
+00:15:37.830 --> 00:15:42.570
+And the linear rate model
+has a particular FI curve.
+
+00:15:42.570 --> 00:15:48.090
+That FI curve says that the
+firing rate of the neuron
+
+00:15:48.090 --> 00:15:50.790
+is linear in the input current.
+
+00:15:50.790 --> 00:15:56.640
+Now why is this a really
+weird model of a neuron?
+
+00:15:56.640 --> 00:16:02.460
+What's fundamentally
+non-biological about this?
+
+00:16:02.460 --> 00:16:04.310
+AUDIENCE: Negative firing rate.
+
+00:16:04.310 --> 00:16:06.360
+MICHALE FEE: I'm hearing
+a bunch of right answers
+
+00:16:06.360 --> 00:16:07.140
+at the same time.
+
+00:16:07.140 --> 00:16:08.432
+AUDIENCE: Negative firing rate.
+
+00:16:08.432 --> 00:16:12.800
+MICHALE FEE: This
+neuron is allowed
+
+00:16:12.800 --> 00:16:15.710
+to fire at a
+negative firing rate
+
+00:16:15.710 --> 00:16:18.302
+if the input
+current is negative.
+
+00:16:22.000 --> 00:16:24.680
+That's a pretty
+crazy thing to do.
+
+00:16:24.680 --> 00:16:26.430
+Why do you think we
+would want to do that?
+
+00:16:30.786 --> 00:16:33.206
+AUDIENCE: [INAUDIBLE]?
+
+00:16:33.206 --> 00:16:35.580
+MICHALE FEE: Well,
+no actually we do.
+
+00:16:35.580 --> 00:16:41.400
+So you can have
+inhibitory inputs
+
+00:16:41.400 --> 00:16:45.480
+that produce outward currents
+that hyperpolarize the neuron.
+
+00:16:45.480 --> 00:16:49.380
+Any thoughts about that?
+
+00:16:49.380 --> 00:16:53.880
+It turns out that as soon as
+you have your output neurons
+
+00:16:53.880 --> 00:16:58.200
+have this kind of FI
+curve, a linear FI curve,
+
+00:16:58.200 --> 00:17:01.630
+then the math
+becomes super simple.
+
+00:17:01.630 --> 00:17:05.700
+You can write down very
+complex networks of neurons
+
+00:17:05.700 --> 00:17:09.780
+with a bunch of linear
+differential equations.
+
+00:17:09.780 --> 00:17:12.720
+And it becomes very
+easy to write down
+
+00:17:12.720 --> 00:17:18.060
+what the solution is to
+how a network behaves
+
+00:17:18.060 --> 00:17:20.740
+as a function of its inputs.
+
+00:17:20.740 --> 00:17:24.819
+And we're going to spend
+a lot of time working
+
+00:17:24.819 --> 00:17:30.780
+with network models that have
+linear FI curves because you
+
+00:17:30.780 --> 00:17:33.960
+can develop a lot of intuition
+about how networks behave
+
+00:17:33.960 --> 00:17:35.790
+by using models like this.
+
+00:17:35.790 --> 00:17:38.310
+As soon as you have
+models like this,
+
+00:17:38.310 --> 00:17:42.750
+you can't solve the behavior
+of the network analytically.
+
+00:17:42.750 --> 00:17:44.820
+You have to do everything
+on the computer.
+
+00:17:44.820 --> 00:17:49.320
+And it becomes very hard
+to derive general solutions
+
+00:17:49.320 --> 00:17:51.560
+for how things behave.
+
+00:17:51.560 --> 00:17:55.860
+So we're going to
+use this model a lot.
+
+00:18:01.450 --> 00:18:06.130
+And in this case again, for the
+case of this two-neuron network
+
+00:18:06.130 --> 00:18:10.300
+where we have one output neuron
+that receives a synaptic input
+
+00:18:10.300 --> 00:18:12.940
+from an input neuron, the
+firing rate of the output neuron
+
+00:18:12.940 --> 00:18:15.850
+is just w, the synaptic
+weight times the firing rate
+
+00:18:15.850 --> 00:18:16.851
+of the input neuron.
+
+00:18:20.040 --> 00:18:23.730
+And we're going to come
+back to non-linear neurons
+
+00:18:23.730 --> 00:18:26.010
+because that
+non-linearity actually
+
+00:18:26.010 --> 00:18:27.390
+does really important things.
+
+00:18:27.390 --> 00:18:31.770
+And we're going to talk
+about what that does.
+
+00:18:31.770 --> 00:18:34.830
+So now let's look at the
+case where our output neuron
+
+00:18:34.830 --> 00:18:37.560
+has not just one
+input but actually
+
+00:18:37.560 --> 00:18:40.440
+many inputs from a
+bunch of input neurons.
+
+00:18:40.440 --> 00:18:44.841
+So here we have what
+we call an input layer,
+
+00:18:44.841 --> 00:18:48.330
+a layer of neurons
+in the input layer.
+
+00:18:48.330 --> 00:18:51.240
+Each one of those neurons
+has a firing rate--
+
+00:18:51.240 --> 00:18:53.910
+u1, u2, u3, u4, u5.
+
+00:18:58.050 --> 00:19:01.710
+Each of those neurons sends a
+synapse onto our output neuron.
+
+00:19:01.710 --> 00:19:05.140
+Each one of those synapses
+has a synaptic weight.
+
+00:19:05.140 --> 00:19:07.620
+This weight is w1.
+
+00:19:07.620 --> 00:19:10.445
+And that's w2, w3, w4, and w5.
+
+00:19:13.360 --> 00:19:18.180
+Now you can see that the total
+input, the total current,
+
+00:19:18.180 --> 00:19:20.010
+to this output
+neuron is just going
+
+00:19:20.010 --> 00:19:26.560
+to be a sum of the inputs from
+each of the input neurons.
+
+00:19:26.560 --> 00:19:29.640
+The total input is just
+a sum of the inputs
+
+00:19:29.640 --> 00:19:31.040
+from each of the input neuron.
+
+00:19:31.040 --> 00:19:33.900
+So the synaptic current--
+
+00:19:33.900 --> 00:19:35.610
+total synaptic current
+into this neuron
+
+00:19:35.610 --> 00:19:44.860
+is w1 times u1, plus w2
+times u2, plus w3 times u3,
+
+00:19:44.860 --> 00:19:47.100
+plus all the rest.
+
+00:19:47.100 --> 00:19:54.510
+So the response of
+our linear neuron,
+
+00:19:54.510 --> 00:19:56.760
+the firing rate of
+our linear neuron,
+
+00:19:56.760 --> 00:20:02.540
+is just a sum over
+all of those inputs.
+
+00:20:02.540 --> 00:20:04.910
+So again, in this
+case, we're going
+
+00:20:04.910 --> 00:20:08.060
+to say that the total input
+current to this neuron
+
+00:20:08.060 --> 00:20:10.040
+is the sum over this.
+
+00:20:10.040 --> 00:20:14.000
+But then because this
+is a linear neuron,
+
+00:20:14.000 --> 00:20:18.465
+the firing rate is just
+equal to that current input.
+
+00:20:18.465 --> 00:20:19.340
+Does that make sense?
+
+00:20:22.660 --> 00:20:26.020
+So you can see that this
+description of the firing
+
+00:20:26.020 --> 00:20:30.010
+rate of the output
+neuron is a sum over all
+
+00:20:30.010 --> 00:20:31.120
+of those contributions.
+
+00:20:31.120 --> 00:20:35.380
+It turns out that
+this actually can
+
+00:20:35.380 --> 00:20:38.988
+be written in a much more
+compact way in vector notation.
+
+00:20:38.988 --> 00:20:40.030
+What does that look like?
+
+00:20:40.030 --> 00:20:42.630
+Does anyone know in vector
+notation what that looks like?
+
+00:20:42.630 --> 00:20:43.700
+AUDIENCE: Dot product.
+
+00:20:43.700 --> 00:20:45.117
+MICHALE FEE: That's
+a dot product.
+
+00:20:45.117 --> 00:20:46.120
+That's right.
+
+00:20:46.120 --> 00:20:51.040
+So in general, it's much
+easier to write these responses
+
+00:20:51.040 --> 00:20:51.832
+in vector notation.
+
+00:20:51.832 --> 00:20:53.207
+And so I'm just
+going to walk you
+
+00:20:53.207 --> 00:20:54.910
+through some basics
+of vector notation
+
+00:20:54.910 --> 00:20:57.565
+for those of you who might
+need a few minutes of reminder.
+
+00:21:00.510 --> 00:21:02.490
+Actually before we get
+to the vector notation,
+
+00:21:02.490 --> 00:21:05.550
+I just want to
+describe how we can
+
+00:21:05.550 --> 00:21:09.970
+use a simple network like this
+to build a receptive field.
+
+00:21:09.970 --> 00:21:12.240
+So you remember that
+when we were talking
+
+00:21:12.240 --> 00:21:14.290
+about receptive
+fields of neurons,
+
+00:21:14.290 --> 00:21:17.940
+we described how
+a neuron can have
+
+00:21:17.940 --> 00:21:22.300
+a maximal response to a
+particular pattern of input.
+
+00:21:22.300 --> 00:21:24.090
+So let's say we
+have a neuron that's
+
+00:21:24.090 --> 00:21:26.140
+sensitive to visual inputs.
+
+00:21:26.140 --> 00:21:27.900
+And as a function
+of one dimension,
+
+00:21:27.900 --> 00:21:29.880
+let's say along the
+retina, this neuron
+
+00:21:29.880 --> 00:21:34.110
+has a big response if light
+comes in central field,
+
+00:21:34.110 --> 00:21:37.260
+some inhibitory responsive
+light comes in outside
+
+00:21:37.260 --> 00:21:39.990
+of that central lobe.
+
+00:21:39.990 --> 00:21:42.720
+Well, it turns out
+that a very simple way
+
+00:21:42.720 --> 00:21:48.150
+to build neurons that have
+receptive fields like this,
+
+00:21:48.150 --> 00:21:53.200
+for example, is to have
+an input layer that
+
+00:21:53.200 --> 00:21:58.150
+projects to this neuron that
+has this receptive field
+
+00:21:58.150 --> 00:22:00.910
+and has a pattern
+of synaptic inputs
+
+00:22:00.910 --> 00:22:05.620
+that corresponds to that
+pattern in the field.
+
+00:22:05.620 --> 00:22:08.120
+So you can see that
+if this neuron--
+
+00:22:08.120 --> 00:22:10.300
+so let's say these are
+neurons in the retina,
+
+00:22:10.300 --> 00:22:12.740
+let's say retinal
+ganglion cells,
+
+00:22:12.740 --> 00:22:15.320
+and this neuron is
+in the thalamus,
+
+00:22:15.320 --> 00:22:17.390
+we can build a
+thalamic neuron that
+
+00:22:17.390 --> 00:22:21.890
+has a center-surround
+receptive field like this
+
+00:22:21.890 --> 00:22:26.420
+by having let's
+say this neuron has
+
+00:22:26.420 --> 00:22:30.730
+a strong positive excitatory
+synaptic weight onto our output
+
+00:22:30.730 --> 00:22:31.230
+neuron.
+
+00:22:31.230 --> 00:22:35.330
+So you can see that
+if you have light here
+
+00:22:35.330 --> 00:22:38.810
+that corresponds to this neuron
+having a high firing rate,
+
+00:22:38.810 --> 00:22:42.570
+that neuron is very effective
+at driving the output neuron.
+
+00:22:42.570 --> 00:22:45.920
+And so the output neuron
+has a positive component
+
+00:22:45.920 --> 00:22:48.630
+of its receptor field
+right there in the middle.
+
+00:22:48.630 --> 00:22:52.910
+Now if this neuron here, which
+is in this part of the retina,
+
+00:22:52.910 --> 00:22:56.150
+if that neuron has a negative
+weight onto the output neuron,
+
+00:22:56.150 --> 00:23:00.980
+then light coming in here
+driving this neuron will
+
+00:23:00.980 --> 00:23:03.960
+inhibit the output neuron.
+
+00:23:03.960 --> 00:23:08.130
+So if you have a pattern of
+weights that looks like this,
+
+00:23:08.130 --> 00:23:12.220
+0 minus 1, 2 minus 1,
+0, that this neuron
+
+00:23:12.220 --> 00:23:16.460
+will have a receptive
+field that looks like that
+
+00:23:16.460 --> 00:23:17.690
+as a function of its inputs.
+
+00:23:20.870 --> 00:23:24.592
+So that's a
+on-dimensional example.
+
+00:23:24.592 --> 00:23:26.050
+And you can see
+that you write down
+
+00:23:26.050 --> 00:23:28.990
+the output here
+as a weighted sum
+
+00:23:28.990 --> 00:23:30.850
+of each one of those inputs.
+
+00:23:30.850 --> 00:23:34.190
+This also works for two
+dimensional receptive fields.
+
+00:23:34.190 --> 00:23:37.060
+For example, if we have
+input from the retina that
+
+00:23:37.060 --> 00:23:39.220
+looks like this where we have--
+
+00:23:39.220 --> 00:23:43.150
+I guess this was excitatory
+here in the center,
+
+00:23:43.150 --> 00:23:46.510
+inhibitory around, you
+can make a neuron that
+
+00:23:46.510 --> 00:23:49.750
+has a two-dimensional
+receptor field like this
+
+00:23:49.750 --> 00:23:53.500
+by having inputs to
+this neuron from all
+
+00:23:53.500 --> 00:23:58.180
+of those different regions
+of the visual field that
+
+00:23:58.180 --> 00:24:01.780
+have different weights
+corresponding to positive
+
+00:24:01.780 --> 00:24:02.860
+in the center.
+
+00:24:02.860 --> 00:24:06.490
+So neurons in the
+positive synaptic weights
+
+00:24:06.490 --> 00:24:07.690
+under the output neuron.
+
+00:24:07.690 --> 00:24:13.270
+And neurons around the edges
+have negative synaptic weights.
+
+00:24:13.270 --> 00:24:18.430
+So we can build any receptive
+field we want into a neuron
+
+00:24:18.430 --> 00:24:22.420
+by just plugging in-- by
+putting in the right set
+
+00:24:22.420 --> 00:24:25.320
+of synaptic weights.
+
+00:24:25.320 --> 00:24:25.950
+Yes?
+
+00:24:25.950 --> 00:24:38.404
+AUDIENCE: So would you
+rule out [INAUDIBLE]
+
+00:24:38.404 --> 00:24:41.480
+MICHALE FEE: So in real life,
+I assume you mean in the brain?
+
+00:24:41.480 --> 00:24:42.386
+AUDIENCE: Yeah.
+
+00:24:42.386 --> 00:24:45.820
+MICHALE FEE: So in the
+brain, we don't really
+
+00:24:45.820 --> 00:24:48.650
+know how these
+weights are built.
+
+00:24:48.650 --> 00:24:54.790
+So one idea is that
+there are rules that
+
+00:24:54.790 --> 00:24:58.540
+control the development
+of these circuits,
+
+00:24:58.540 --> 00:25:05.010
+let's say, connections
+of bipolar cells
+
+00:25:05.010 --> 00:25:06.960
+in the retina to
+retinal ganglion cells
+
+00:25:06.960 --> 00:25:11.010
+that control how these
+weights are determined
+
+00:25:11.010 --> 00:25:12.270
+to be positive or negative.
+
+00:25:12.270 --> 00:25:17.250
+Negative weights are implemented
+by bipolar cells connected
+
+00:25:17.250 --> 00:25:20.820
+to amacrine cells,
+which are inhibitory,
+
+00:25:20.820 --> 00:25:24.250
+and then connect to
+the retinal ganglion.
+
+00:25:24.250 --> 00:25:26.730
+So there's a whole
+circuit that gets
+
+00:25:26.730 --> 00:25:29.400
+built in the retina that
+controls whether these weights
+
+00:25:29.400 --> 00:25:30.780
+are positive or negative.
+
+00:25:30.780 --> 00:25:36.450
+And those can be programmed by
+genetic developmental programs.
+
+00:25:36.450 --> 00:25:44.560
+They can also be controlled by
+experience with visual stimuli.
+
+00:25:44.560 --> 00:25:47.430
+So there's a lot
+we don't understand
+
+00:25:47.430 --> 00:25:51.300
+about how these
+weights are controlled
+
+00:25:51.300 --> 00:25:54.300
+or set up or programmed.
+
+00:25:54.300 --> 00:25:58.290
+But the way we think
+about how receptive fields
+
+00:25:58.290 --> 00:26:02.400
+of these neurons emerge is
+by controlling the weight
+
+00:26:02.400 --> 00:26:04.500
+of those synaptic input.
+
+00:26:04.500 --> 00:26:06.570
+That's the message here--
+
+00:26:06.570 --> 00:26:12.450
+that receptive fields
+emerge from the pattern
+
+00:26:12.450 --> 00:26:15.960
+of weights from an input
+layer onto an output layer.
+
+00:26:18.930 --> 00:26:27.840
+AUDIENCE: [INAUDIBLE]
+how many [INAUDIBLE]
+
+00:26:27.840 --> 00:26:29.860
+MICHALE FEE: If you're
+going to build a model,
+
+00:26:29.860 --> 00:26:32.430
+let's say, of the retina.
+
+00:26:32.430 --> 00:26:35.780
+So it just depends on how
+realistic you want it to be.
+
+00:26:39.100 --> 00:26:41.720
+If you wanted to make a model
+of a retinal ganglion cell,
+
+00:26:41.720 --> 00:26:45.770
+you could try to build a
+model that has as many bipolar
+
+00:26:45.770 --> 00:26:52.040
+neurons as are actually
+in the receptive field
+
+00:26:52.040 --> 00:26:55.190
+of that retinal ganglion cell.
+
+00:26:55.190 --> 00:26:58.460
+Or you could make a
+simplified model that
+
+00:26:58.460 --> 00:27:01.760
+only has 10 or 100 neurons.
+
+00:27:01.760 --> 00:27:05.300
+Depends on what
+you want to study.
+
+00:27:05.300 --> 00:27:06.995
+All right any other questions?
+
+00:27:12.320 --> 00:27:17.240
+And again, even for these
+more complex models,
+
+00:27:17.240 --> 00:27:20.150
+you can still write
+down a simple rate model
+
+00:27:20.150 --> 00:27:22.490
+formulation of the firing
+rate of the output neuron.
+
+00:27:22.490 --> 00:27:26.400
+It's just a weighted sum
+of the input firing rate.
+
+00:27:26.400 --> 00:27:32.010
+So each neuron in the input
+layer fires at some rate.
+
+00:27:32.010 --> 00:27:33.425
+It has a weight w.
+
+00:27:36.970 --> 00:27:39.003
+To get the contribution
+of this neuron
+
+00:27:39.003 --> 00:27:40.670
+to the firing rate
+of the output neuron,
+
+00:27:40.670 --> 00:27:44.720
+you just take that input firing
+rate times the synaptic weight,
+
+00:27:44.720 --> 00:27:48.040
+and add that up then for
+all the input layer neurons.
+
+00:27:53.360 --> 00:27:55.760
+So as I said, we've
+been describing
+
+00:27:55.760 --> 00:27:58.760
+the response of our linear
+neuron as this weighted sum.
+
+00:27:58.760 --> 00:28:03.030
+And that's a little bit
+cumbersome to carry around.
+
+00:28:03.030 --> 00:28:06.260
+So we're going to start using
+vector notation and matrix
+
+00:28:06.260 --> 00:28:08.840
+notation to describe networks.
+
+00:28:08.840 --> 00:28:12.080
+It's just much more compact.
+
+00:28:12.080 --> 00:28:16.040
+So we're going to take a little
+detour, talk about vectors.
+
+00:28:16.040 --> 00:28:18.920
+So a vector is just a
+collection of numbers.
+
+00:28:18.920 --> 00:28:21.382
+The number of numbers is
+called the dimensionality
+
+00:28:21.382 --> 00:28:21.965
+of the vector.
+
+00:28:25.130 --> 00:28:27.710
+If a vector has
+only two numbers,
+
+00:28:27.710 --> 00:28:32.435
+then we can just plot
+that vector in a plane.
+
+00:28:35.000 --> 00:28:40.100
+So for a 2D vector, if that
+vector has two components, x1
+
+00:28:40.100 --> 00:28:41.750
+and x2, then we can
+plot that vector
+
+00:28:41.750 --> 00:28:47.330
+in that space of x1 and
+x2, put the origin at zero.
+
+00:28:47.330 --> 00:28:49.850
+In this case, the vector
+has two vector components
+
+00:28:49.850 --> 00:28:52.820
+or elements, x1 and x2.
+
+00:28:52.820 --> 00:28:57.500
+And in two dimensions we
+describe that as spaces,
+
+00:28:57.500 --> 00:29:00.920
+as R2, the space of
+two real numbers.
+
+00:29:00.920 --> 00:29:06.620
+We can write down that vector
+as a row in row vector notation.
+
+00:29:06.620 --> 00:29:11.010
+So x is x1, x2.
+
+00:29:11.010 --> 00:29:15.080
+We can write it as a
+column vector, x1, x2,
+
+00:29:15.080 --> 00:29:18.020
+organized on top of
+each other, like this.
+
+00:29:18.020 --> 00:29:21.630
+Vector sums are very simple.
+
+00:29:21.630 --> 00:29:24.860
+So if you have two
+vectors, x and y,
+
+00:29:24.860 --> 00:29:29.870
+you can write down the sum
+of x and y is x plus y.
+
+00:29:29.870 --> 00:29:31.460
+That's called the resultant.
+
+00:29:31.460 --> 00:29:36.310
+X plus y it can be written like
+this in column vector notation.
+
+00:29:36.310 --> 00:29:38.960
+You can see that
+the sum of x and y
+
+00:29:38.960 --> 00:29:45.220
+is just an element by element
+sum of the vector elements.
+
+00:29:45.220 --> 00:29:48.050
+It's called element
+by element addition.
+
+00:29:48.050 --> 00:29:49.440
+Let's look at vector product.
+
+00:29:49.440 --> 00:29:52.040
+So there are multiple
+ways of taking
+
+00:29:52.040 --> 00:29:54.680
+the product of two vectors.
+
+00:29:54.680 --> 00:29:58.340
+There's an element by element
+product, an inner product,
+
+00:29:58.340 --> 00:30:03.320
+an outer product that we'll
+cover in later lectures.
+
+00:30:03.320 --> 00:30:06.080
+And also, something
+called the cross product
+
+00:30:06.080 --> 00:30:07.790
+that's very common in physics.
+
+00:30:07.790 --> 00:30:13.100
+But I have not yet seen the
+application of a cross product
+
+00:30:13.100 --> 00:30:14.460
+to neuroscience.
+
+00:30:14.460 --> 00:30:20.150
+If anybody can find one of
+those, I'll give extra credit.
+
+00:30:22.860 --> 00:30:26.550
+Element by element product
+is called a Hadamard product.
+
+00:30:26.550 --> 00:30:30.780
+So x times y is just the
+element-by-element product
+
+00:30:30.780 --> 00:30:35.888
+of the elements in
+the two vectors.
+
+00:30:35.888 --> 00:30:38.980
+In Matlab, that
+element-by-element product
+
+00:30:38.980 --> 00:30:42.610
+you compute by x dot star y.
+
+00:30:48.360 --> 00:30:51.280
+Inner product or dot
+product looks like this.
+
+00:30:51.280 --> 00:30:54.030
+So if we have two
+column vectors,
+
+00:30:54.030 --> 00:30:57.630
+the dot product of
+x and y is the sum
+
+00:30:57.630 --> 00:31:01.710
+of the element-by-element
+products.
+
+00:31:01.710 --> 00:31:07.950
+So x dot y is just x1
+times y1 plus x2 times y2,
+
+00:31:07.950 --> 00:31:11.640
+and so on, plus xn times yn.
+
+00:31:11.640 --> 00:31:19.790
+And that's that sum that we
+saw earlier in our feed forward
+
+00:31:19.790 --> 00:31:20.710
+network.
+
+00:31:20.710 --> 00:31:21.210
+OK.
+
+00:31:21.210 --> 00:31:24.870
+So notice that the dot
+product is a scalar.
+
+00:31:24.870 --> 00:31:26.250
+It's a single number.
+
+00:31:26.250 --> 00:31:29.760
+It's no longer a vector.
+
+00:31:29.760 --> 00:31:31.927
+Products have some
+nice properties.
+
+00:31:31.927 --> 00:31:32.760
+They're commutative.
+
+00:31:32.760 --> 00:31:36.160
+So x.y is equal to y.x.
+
+00:31:36.160 --> 00:31:39.690
+They're distributive
+so that vector w dotted
+
+00:31:39.690 --> 00:31:44.520
+into the sum of two vectors
+is just the sum of the two
+
+00:31:44.520 --> 00:31:46.320
+separate dot products.
+
+00:31:46.320 --> 00:31:51.050
+So w dot x plus y
+is just w.x, w.y.
+
+00:31:51.050 --> 00:31:53.010
+And it's also linear.
+
+00:31:53.010 --> 00:32:00.000
+So if you have a x dot y
+that is equal to a times
+
+00:32:00.000 --> 00:32:00.870
+the quantity x.y.
+
+00:32:03.470 --> 00:32:07.340
+So if you have vector x and
+y dotted into each other,
+
+00:32:07.340 --> 00:32:09.680
+if you make one of those
+vectors twice as long,
+
+00:32:09.680 --> 00:32:11.630
+then the dot product
+is just twice as big.
+
+00:32:14.790 --> 00:32:17.030
+A little bit more
+about inner products.
+
+00:32:17.030 --> 00:32:19.700
+So we can also write
+down the inner product
+
+00:32:19.700 --> 00:32:21.140
+in matrix notation.
+
+00:32:21.140 --> 00:32:28.070
+So x.y is a matrix
+product of a row vector.
+
+00:32:28.070 --> 00:32:31.820
+Column vector, you remember
+how to multiply two matrices.
+
+00:32:31.820 --> 00:32:38.060
+You multiply the elements of
+each row times the elements
+
+00:32:38.060 --> 00:32:39.240
+of each column.
+
+00:32:39.240 --> 00:32:41.570
+So you can see that
+this in matrix notation
+
+00:32:41.570 --> 00:32:44.830
+is just the dot product
+of those two vectors.
+
+00:32:44.830 --> 00:32:48.670
+In matrix notation,
+this is a 1 by n matrix.
+
+00:32:48.670 --> 00:32:50.200
+This is an n by 1.
+
+00:32:50.200 --> 00:32:58.600
+So 1 row by n columns,
+times n rows by 1 column.
+
+00:32:58.600 --> 00:33:04.030
+And that is equal to a 1 by 1
+matrix, which is just a scalar.
+
+00:33:04.030 --> 00:33:06.190
+All right, in
+Matlab, let me just
+
+00:33:06.190 --> 00:33:09.590
+show you how to write
+down these components.
+
+00:33:09.590 --> 00:33:15.610
+So in this case, x is a column
+vector, a 1 by 3 column vector.
+
+00:33:15.610 --> 00:33:17.920
+y is a 1 by 3 column vector.
+
+00:33:17.920 --> 00:33:20.920
+You can calculate those
+vectors like this.
+
+00:33:20.920 --> 00:33:26.680
+And z is x transpose times y.
+
+00:33:26.680 --> 00:33:28.930
+And so that's how
+you can write down
+
+00:33:28.930 --> 00:33:33.520
+the dot product of two vectors.
+
+00:33:40.140 --> 00:33:44.380
+What is the dot product
+of a vector with itself?
+
+00:33:44.380 --> 00:33:49.410
+It's the square
+magnitude of the vector.
+
+00:33:49.410 --> 00:33:54.890
+So x is just the norm or
+magnitude of the vector.
+
+00:33:54.890 --> 00:33:59.000
+And you can see that the
+norm of the vector is just--
+
+00:33:59.000 --> 00:34:00.770
+you can think
+about this as being
+
+00:34:00.770 --> 00:34:06.500
+analogous to the
+Pythagorean theorem.
+
+00:34:06.500 --> 00:34:11.150
+The length of one
+side of a triangle
+
+00:34:11.150 --> 00:34:17.610
+is just the sum of the
+squares of all the sides,
+
+00:34:17.610 --> 00:34:18.620
+the square root of that.
+
+00:34:22.510 --> 00:34:27.010
+So a unit vector is a
+vector that has length 1.
+
+00:34:27.010 --> 00:34:30.370
+So a unit vector
+by definition has
+
+00:34:30.370 --> 00:34:32.710
+a magnitude of 1,
+which means its dot
+
+00:34:32.710 --> 00:34:34.960
+product with itself is 1.
+
+00:34:34.960 --> 00:34:37.150
+We can turn any vector
+into a unit vector
+
+00:34:37.150 --> 00:34:41.290
+by just taking that vector,
+dividing by its norm.
+
+00:34:41.290 --> 00:34:45.280
+I'm going to always use this
+notation with this little caret
+
+00:34:45.280 --> 00:34:47.870
+symbol to represent
+a unit vector.
+
+00:34:47.870 --> 00:34:50.830
+So if you see a vector
+with that little hat on it,
+
+00:34:50.830 --> 00:34:54.239
+that means it's a unit vector.
+
+00:34:54.239 --> 00:35:00.600
+You can express any vector as a
+product of a scalar, a length,
+
+00:35:00.600 --> 00:35:04.661
+times a unit vector
+in that direction.
+
+00:35:07.430 --> 00:35:11.780
+We can find the projection
+or component of any vector
+
+00:35:11.780 --> 00:35:15.390
+in the direction of this
+unit vector as follows.
+
+00:35:15.390 --> 00:35:18.260
+So if we have a
+unit vector x, we
+
+00:35:18.260 --> 00:35:23.600
+can find the projection
+of a vector y
+
+00:35:23.600 --> 00:35:25.130
+onto that unit vector x.
+
+00:35:25.130 --> 00:35:26.010
+How do we do that?
+
+00:35:26.010 --> 00:35:31.550
+We just find the normal
+projection of that vector.
+
+00:35:31.550 --> 00:35:35.570
+That distance right there
+is called the scalar
+
+00:35:35.570 --> 00:35:38.015
+projection of y onto x.
+
+00:35:42.470 --> 00:35:45.380
+If you write down the
+length of the vector y,
+
+00:35:45.380 --> 00:35:49.280
+the norm of the vector y in
+the angle between y and x,
+
+00:35:49.280 --> 00:35:54.170
+then the dot product y.x is
+just equal to the magnitude
+
+00:35:54.170 --> 00:35:58.670
+of y times the cosine of the
+angle between the two vectors.
+
+00:35:58.670 --> 00:36:03.490
+Just simple trigonometry.
+
+00:36:03.490 --> 00:36:07.260
+We can also define what's called
+the vector projection of y
+
+00:36:07.260 --> 00:36:09.700
+onto x as follows.
+
+00:36:09.700 --> 00:36:12.370
+So we just draw
+that same picture.
+
+00:36:12.370 --> 00:36:16.140
+So we can find the
+projection of y onto x
+
+00:36:16.140 --> 00:36:18.840
+and add that as a vector.
+
+00:36:18.840 --> 00:36:22.830
+And that's just this
+scalar projection of y
+
+00:36:22.830 --> 00:36:27.960
+onto x times a unit
+vector in the x direction.
+
+00:36:27.960 --> 00:36:31.180
+So x actually is a unit
+vector in this example.
+
+00:36:31.180 --> 00:36:35.130
+So this vector projection
+of y to x is just
+
+00:36:35.130 --> 00:36:39.030
+defined as y dot x times x.
+
+00:36:39.030 --> 00:36:42.240
+Any questions about that?
+
+00:36:42.240 --> 00:36:45.730
+I'm guessing most of you have
+seen all of this stuff already.
+
+00:36:45.730 --> 00:36:48.870
+But we're going to be
+using these things a lot.
+
+00:36:48.870 --> 00:36:51.370
+So I just want to make sure
+that we're all on the same page.
+
+00:36:54.930 --> 00:36:57.670
+And that's just a scalar
+times a unit vector.
+
+00:37:01.070 --> 00:37:03.800
+Let me just give you a
+little bit of intuition
+
+00:37:03.800 --> 00:37:05.550
+about dot products here.
+
+00:37:05.550 --> 00:37:08.810
+So a dot product is
+related to the cosine
+
+00:37:08.810 --> 00:37:10.370
+of the angle
+between two vectors,
+
+00:37:10.370 --> 00:37:12.330
+as we talked about before.
+
+00:37:12.330 --> 00:37:13.940
+The dot product
+is just magnitude
+
+00:37:13.940 --> 00:37:16.430
+of x times the magnitude
+of y times the cosine
+
+00:37:16.430 --> 00:37:18.300
+of the angle between them.
+
+00:37:18.300 --> 00:37:22.150
+So the cosine of the
+angle between two vectors
+
+00:37:22.150 --> 00:37:28.570
+is just the dot product divided
+by the product of the magnitude
+
+00:37:28.570 --> 00:37:30.470
+of each of the two vectors.
+
+00:37:30.470 --> 00:37:33.580
+So if x and y are unit
+vectors, the cosine
+
+00:37:33.580 --> 00:37:36.010
+of the angle between them
+is just the dot product
+
+00:37:36.010 --> 00:37:39.110
+of the unit vectors.
+
+00:37:39.110 --> 00:37:41.110
+So again, if x and
+y are unit vectors,
+
+00:37:41.110 --> 00:37:45.670
+then that dot product is
+just the cosine of the angle.
+
+00:37:45.670 --> 00:37:46.280
+Orthogonality.
+
+00:37:46.280 --> 00:37:50.680
+So two vectors are orthogonal,
+are perpendicular, if
+
+00:37:50.680 --> 00:37:52.640
+and only if their
+dot product is 0.
+
+00:37:52.640 --> 00:37:55.970
+So if we have two
+vectors x and y,
+
+00:37:55.970 --> 00:37:59.350
+they are orthogonal if the angle
+between them is 90 degrees.
+
+00:37:59.350 --> 00:38:03.320
+x.y is just proportional
+to the cosine of the angle.
+
+00:38:03.320 --> 00:38:05.740
+Cosine of 90 degrees is zero.
+
+00:38:05.740 --> 00:38:08.890
+So if two vectors
+are orthogonal,
+
+00:38:08.890 --> 00:38:10.990
+then their dot
+product will be zero.
+
+00:38:10.990 --> 00:38:13.160
+If their dot product
+is zero, then they're
+
+00:38:13.160 --> 00:38:16.490
+orthogonal with each other.
+
+00:38:16.490 --> 00:38:19.610
+And using the notation
+we just developed,
+
+00:38:19.610 --> 00:38:22.670
+the vector projection
+of y along x
+
+00:38:22.670 --> 00:38:27.500
+is the zero vector, if those
+two vectors are orthogonal.
+
+00:38:27.500 --> 00:38:30.620
+There is an intuition
+that one can
+
+00:38:30.620 --> 00:38:34.760
+think about in terms of the
+relation between dot product
+
+00:38:34.760 --> 00:38:36.330
+and correlation.
+
+00:38:36.330 --> 00:38:39.830
+So the dot product is related
+to the statistical correlation
+
+00:38:39.830 --> 00:38:42.210
+between the elements
+of those two vectors.
+
+00:38:42.210 --> 00:38:46.740
+So if you have a
+vector x and y, you
+
+00:38:46.740 --> 00:38:49.470
+can write down the cosine of
+the angle between those two
+
+00:38:49.470 --> 00:38:53.540
+vectors, again, as x.y over
+the product of the norms.
+
+00:38:53.540 --> 00:38:56.250
+And if you write
+that out as sums,
+
+00:38:56.250 --> 00:38:58.080
+you can see that
+this is just the sum
+
+00:38:58.080 --> 00:39:00.340
+of the element-by-element
+products--
+
+00:39:00.340 --> 00:39:01.740
+that's the dot product--
+
+00:39:01.740 --> 00:39:05.940
+divided by the norm of
+x and the norm of y.
+
+00:39:05.940 --> 00:39:09.190
+And if you have taken
+a statistics class,
+
+00:39:09.190 --> 00:39:12.480
+you will recognize that
+as just the Pearson
+
+00:39:12.480 --> 00:39:18.330
+correlation of a set of numbers
+x and a set of numbers y.
+
+00:39:18.330 --> 00:39:21.210
+The dot product
+is closely related
+
+00:39:21.210 --> 00:39:25.920
+to the correlation between
+two sets of numbers.
+
+00:39:29.250 --> 00:39:33.030
+One other thing that
+I want to point out
+
+00:39:33.030 --> 00:39:36.330
+coming back to the
+idea of using this feed
+
+00:39:36.330 --> 00:39:39.960
+forward network as a
+way of receptive field,
+
+00:39:39.960 --> 00:39:44.970
+you can see that the response
+of a neuron in this model
+
+00:39:44.970 --> 00:39:50.510
+is just the dot product
+of the stimulus vector u.
+
+00:39:50.510 --> 00:39:55.620
+The vector of input firing
+rates represents the stimulus,
+
+00:39:55.620 --> 00:39:57.660
+the dot product of
+the stimulus vector u
+
+00:39:57.660 --> 00:39:59.400
+with the weight vector w.
+
+00:39:59.400 --> 00:40:03.890
+So the firing rate of the
+output neuron is just w.u.
+
+00:40:08.190 --> 00:40:10.830
+So you can see that
+what this means is
+
+00:40:10.830 --> 00:40:15.020
+that the firing rate
+of the output neuron
+
+00:40:15.020 --> 00:40:20.750
+will be high if there is
+a high degree of overlap
+
+00:40:20.750 --> 00:40:24.410
+between the input, the
+pattern of the input,
+
+00:40:24.410 --> 00:40:28.220
+and the pattern of synaptic
+weights from the input layer
+
+00:40:28.220 --> 00:40:31.750
+to the output neuron.
+
+00:40:31.750 --> 00:40:38.330
+We can see that w.u is big
+when w and u are parallel,
+
+00:40:38.330 --> 00:40:44.060
+are highly correlated, which
+means a neuron fires a lot when
+
+00:40:44.060 --> 00:40:47.990
+the stimulus matches the pattern
+of those synaptic weights.
+
+00:40:51.190 --> 00:40:54.280
+Now, so you can see
+that for a given amount
+
+00:40:54.280 --> 00:40:56.890
+of power in the stimulus--
+
+00:40:56.890 --> 00:41:01.180
+so the power is just the
+square magnitude of u--
+
+00:41:01.180 --> 00:41:04.150
+the stimulus that has the best
+overlap with the receptive
+
+00:41:04.150 --> 00:41:08.320
+field, where cosine
+of that angle is 1,
+
+00:41:08.320 --> 00:41:09.880
+produces the largest response.
+
+00:41:12.960 --> 00:41:15.890
+And so we now have
+actually a definition
+
+00:41:15.890 --> 00:41:19.760
+of the optimal stimulus
+of a neuron in terms
+
+00:41:19.760 --> 00:41:22.370
+of the pattern of
+synaptic weights.
+
+00:41:22.370 --> 00:41:25.580
+In other words, the
+optimal stimulus
+
+00:41:25.580 --> 00:41:29.030
+is one that's essentially
+proportional to the weight
+
+00:41:29.030 --> 00:41:31.060
+matrix.
+
+00:41:31.060 --> 00:41:33.210
+Any questions so far?
+
+00:41:33.210 --> 00:41:37.420
+All right, so now let's
+turn to the question of how
+
+00:41:37.420 --> 00:41:44.440
+we use neural networks to do
+some interesting computation.
+
+00:41:44.440 --> 00:41:49.960
+So classification is a
+very important computation
+
+00:41:49.960 --> 00:41:54.880
+that neural networks
+do in the brain
+
+00:41:54.880 --> 00:41:57.700
+and actually in the
+application of neural networks
+
+00:41:57.700 --> 00:42:00.160
+for technology.
+
+00:42:02.810 --> 00:42:04.810
+So what does
+classification mean?
+
+00:42:04.810 --> 00:42:07.130
+So how does the brain--
+
+00:42:07.130 --> 00:42:15.260
+how does a neural circuit
+decide how a particular input--
+
+00:42:15.260 --> 00:42:20.170
+let's say that it looks
+like you might eat it.
+
+00:42:20.170 --> 00:42:21.340
+How do we decide--
+
+00:42:21.340 --> 00:42:23.590
+how do the neural
+circuits in our brain
+
+00:42:23.590 --> 00:42:25.690
+decide whether that
+thing that we're seeing
+
+00:42:25.690 --> 00:42:30.970
+is something edible or
+something that will make us sick
+
+00:42:30.970 --> 00:42:32.800
+based on past experience?
+
+00:42:32.800 --> 00:42:36.010
+If we see something that
+looks like an animal or a dog,
+
+00:42:36.010 --> 00:42:42.070
+how do we know whether that's a
+friendly puppy or a or a wolf?
+
+00:42:42.070 --> 00:42:45.920
+So these are
+classification problems.
+
+00:42:45.920 --> 00:42:47.950
+And feed forward
+circuits actually
+
+00:42:47.950 --> 00:42:50.170
+can be very good
+at classification.
+
+00:42:50.170 --> 00:42:55.600
+In fact, recent advances
+in training neural networks
+
+00:42:55.600 --> 00:42:59.860
+have actually resulted in feed
+forward neural networks that
+
+00:42:59.860 --> 00:43:02.860
+actually approach human
+performance in terms
+
+00:43:02.860 --> 00:43:07.120
+of their ability to make
+decisions like this.
+
+00:43:10.930 --> 00:43:11.680
+All right.
+
+00:43:11.680 --> 00:43:17.560
+So basically, a
+feed forward circuit
+
+00:43:17.560 --> 00:43:19.240
+that does
+classification like this
+
+00:43:19.240 --> 00:43:21.890
+typically has an input layer.
+
+00:43:21.890 --> 00:43:26.320
+It has a bunch of inputs that
+represent sensory stimulus.
+
+00:43:26.320 --> 00:43:29.680
+And a bunch of output
+neurons that represent
+
+00:43:29.680 --> 00:43:34.420
+different categorizations
+of that input stimulus.
+
+00:43:34.420 --> 00:43:37.300
+So you can have a
+retinal input here.
+
+00:43:37.300 --> 00:43:40.210
+Going to other
+layers of a network.
+
+00:43:40.210 --> 00:43:41.710
+And then at the end
+of that, you can
+
+00:43:41.710 --> 00:43:45.310
+have a network that starts
+firing when that input was
+
+00:43:45.310 --> 00:43:47.650
+a dog, or starts firing
+another neuron that
+
+00:43:47.650 --> 00:43:52.780
+starts firing when that input
+was a cat, or something else.
+
+00:43:52.780 --> 00:43:56.810
+Now in general,
+classification networks
+
+00:43:56.810 --> 00:43:59.810
+that have one input layer
+and one output layer
+
+00:43:59.810 --> 00:44:01.820
+can't do this problem.
+
+00:44:01.820 --> 00:44:07.040
+You can't take a visual
+input and have connections
+
+00:44:07.040 --> 00:44:10.370
+to another layer of
+neurons that just light up
+
+00:44:10.370 --> 00:44:13.760
+when the picture that the
+network is seeing is a dog.
+
+00:44:13.760 --> 00:44:16.470
+Another neuron lights
+up when it's a cat.
+
+00:44:16.470 --> 00:44:22.970
+Generally, there are many
+layers of neurons in between.
+
+00:44:22.970 --> 00:44:27.470
+But today, we're going to
+talk about a very simplified
+
+00:44:27.470 --> 00:44:30.250
+version of the
+classification problem
+
+00:44:30.250 --> 00:44:33.710
+and build up to the sorts of
+networks that can actually
+
+00:44:33.710 --> 00:44:36.980
+do those more complex problems.
+
+00:44:36.980 --> 00:44:44.090
+So I just want to point out
+that the obviously our brains
+
+00:44:44.090 --> 00:44:46.400
+are very good at
+recognizing things.
+
+00:44:46.400 --> 00:44:48.650
+We do this all the time.
+
+00:44:48.650 --> 00:44:51.650
+There are hundreds of objects
+in every visual scene.
+
+00:44:51.650 --> 00:44:54.960
+And we're able to recognize
+every one of those objects.
+
+00:44:54.960 --> 00:44:58.310
+But it turns out that there
+are individual neurons--
+
+00:44:58.310 --> 00:45:01.490
+so in this case, I
+alluded to the idea
+
+00:45:01.490 --> 00:45:04.490
+that there are individual
+nones in this network that
+
+00:45:04.490 --> 00:45:07.190
+light up when the
+sensory input is a dog
+
+00:45:07.190 --> 00:45:10.920
+or light up when the
+input is an elephant.
+
+00:45:10.920 --> 00:45:14.840
+And it turns out that that's
+actually true in the brain.
+
+00:45:14.840 --> 00:45:18.740
+So there have
+recently been studies
+
+00:45:18.740 --> 00:45:22.080
+where it's been
+possible to record
+
+00:45:22.080 --> 00:45:25.680
+in parts of the human brain in
+patients that are undergoing
+
+00:45:25.680 --> 00:45:29.550
+brain surgery for the
+treatment of epilepsy
+
+00:45:29.550 --> 00:45:35.240
+or tumors or things like
+that where you have to go in
+
+00:45:35.240 --> 00:45:39.660
+and find parts of the
+brain that are defective,
+
+00:45:39.660 --> 00:45:41.560
+find parts of the
+brain that are healthy.
+
+00:45:41.560 --> 00:45:43.530
+So when you do a
+surgery, you can
+
+00:45:43.530 --> 00:45:47.760
+be very careful to just
+do surgery on the damaged
+
+00:45:47.760 --> 00:45:50.550
+parts of the brain
+and not impact parts
+
+00:45:50.550 --> 00:45:52.090
+of the brain that are healthy.
+
+00:45:52.090 --> 00:45:55.920
+So there are cases now,
+more and more commonly,
+
+00:45:55.920 --> 00:45:58.920
+where neuroscientists can
+work with neurosurgeons
+
+00:45:58.920 --> 00:46:02.580
+to actually record from
+neurons in the brain
+
+00:46:02.580 --> 00:46:09.000
+in these patients who are
+in preparation for surgery.
+
+00:46:09.000 --> 00:46:10.530
+And so it's been
+possible to record
+
+00:46:10.530 --> 00:46:12.210
+from neurons in the brain.
+
+00:46:12.210 --> 00:46:19.340
+This was a study from
+Itzhak Frieds lab at UCLA.
+
+00:46:19.340 --> 00:46:22.710
+And this shows recording in
+the right anterior hippocampus.
+
+00:46:22.710 --> 00:46:28.720
+And what this lab did
+was to find neurons.
+
+00:46:28.720 --> 00:46:30.720
+So these were electrodes
+implanted in the brain.
+
+00:46:30.720 --> 00:46:33.150
+And then they basically
+take these patients
+
+00:46:33.150 --> 00:46:36.450
+and they show them thousands
+of pictures and look
+
+00:46:36.450 --> 00:46:40.132
+at how their brains respond
+to different visual inputs.
+
+00:46:40.132 --> 00:46:42.090
+So let me just show you
+what you're looking at.
+
+00:46:42.090 --> 00:46:46.320
+These are just different
+pictures of celebrities.
+
+00:46:46.320 --> 00:46:54.795
+There's Luke Skywalker, Mother
+Teresa, and some others.
+
+00:46:57.508 --> 00:46:59.550
+This paper is getting old
+enough that you may not
+
+00:46:59.550 --> 00:47:01.860
+recognize most of these people.
+
+00:47:01.860 --> 00:47:05.640
+But if you record from
+neurons in the brain,
+
+00:47:05.640 --> 00:47:06.950
+you can see that--
+
+00:47:06.950 --> 00:47:10.245
+so what do you see here?
+
+00:47:10.245 --> 00:47:11.120
+I think that's Oprah.
+
+00:47:11.120 --> 00:47:14.820
+The image is flashed up on
+the screen for about a second.
+
+00:47:14.820 --> 00:47:17.430
+You record this neuron spiking.
+
+00:47:17.430 --> 00:47:19.900
+Here you see a couple spikes.
+
+00:47:19.900 --> 00:47:22.230
+Here's when the image
+was actually presented.
+
+00:47:22.230 --> 00:47:24.300
+And here's where the
+image was turned off.
+
+00:47:24.300 --> 00:47:26.053
+You can see different trials.
+
+00:47:26.053 --> 00:47:27.720
+So this neuron actually
+had a little bit
+
+00:47:27.720 --> 00:47:29.550
+of a response
+right there shortly
+
+00:47:29.550 --> 00:47:33.130
+after the stimulus
+was turned on.
+
+00:47:33.130 --> 00:47:38.260
+But you can see there's not that
+much response in these neurons.
+
+00:47:38.260 --> 00:47:41.800
+But when they flashed
+a different stimulus--
+
+00:47:41.800 --> 00:47:45.060
+anybody know who that is?
+
+00:47:45.060 --> 00:47:46.020
+That's Halle Berry.
+
+00:47:48.660 --> 00:47:51.480
+Look at this neuron.
+
+00:47:51.480 --> 00:47:52.890
+Every time you
+show this picture,
+
+00:47:52.890 --> 00:47:57.430
+that neuron fires off a
+couple spikes very precisely.
+
+00:47:57.430 --> 00:47:59.730
+If you look at the
+histogram, these
+
+00:47:59.730 --> 00:48:04.200
+are histograms underneath
+showing as a function of time
+
+00:48:04.200 --> 00:48:06.090
+relative to the onset
+of the stimulus,
+
+00:48:06.090 --> 00:48:08.670
+you could see that this
+neuron very reliably spikes.
+
+00:48:08.670 --> 00:48:11.010
+There's a different
+picture of Halle Berry.
+
+00:48:11.010 --> 00:48:12.300
+Neuron spikes.
+
+00:48:12.300 --> 00:48:14.490
+Different picture,
+neuron spikes.
+
+00:48:14.490 --> 00:48:16.450
+Another picture, neuron spikes.
+
+00:48:19.890 --> 00:48:25.040
+A line drawing of Halle
+Berry, the neuron spikes.
+
+00:48:25.040 --> 00:48:30.380
+Catwoman, the neuron spikes.
+
+00:48:30.380 --> 00:48:33.760
+The text, Halle Berry,
+the neuron spikes.
+
+00:48:38.903 --> 00:48:39.445
+It's amazing.
+
+00:48:43.430 --> 00:48:48.710
+So this group got a
+lot of press for this
+
+00:48:48.710 --> 00:48:54.050
+because they also found
+Jennifer Aniston neurons.
+
+00:48:54.050 --> 00:48:57.490
+They found other celebrities.
+
+00:48:57.490 --> 00:49:00.570
+This is like some celebrity
+part of the brain.
+
+00:49:00.570 --> 00:49:02.300
+No, it's actually
+a part of the brain
+
+00:49:02.300 --> 00:49:05.600
+where you have neurons that
+have very sparse responses
+
+00:49:05.600 --> 00:49:08.180
+to a wide range of things.
+
+00:49:08.180 --> 00:49:14.240
+But they're extremely
+specific to particular people
+
+00:49:14.240 --> 00:49:18.510
+or categories or objects.
+
+00:49:18.510 --> 00:49:24.860
+And it actually is consistent
+with this old notion of what's
+
+00:49:24.860 --> 00:49:26.960
+called the grandmother cell.
+
+00:49:26.960 --> 00:49:30.680
+So back before people
+were able to record
+
+00:49:30.680 --> 00:49:34.190
+in the human brain like
+this, there was speculation
+
+00:49:34.190 --> 00:49:36.260
+that there might be
+neurons in the brain that
+
+00:49:36.260 --> 00:49:38.870
+are so specific for
+particular things,
+
+00:49:38.870 --> 00:49:41.120
+that there might be one
+neuron in your brain
+
+00:49:41.120 --> 00:49:44.240
+that responds when you
+see your grandmother.
+
+00:49:44.240 --> 00:49:47.240
+And so it turns out
+it's actually true.
+
+00:49:47.240 --> 00:49:48.740
+There are neurons
+in your brain that
+
+00:49:48.740 --> 00:49:55.920
+respond very specifically to
+particular concepts or people
+
+00:49:55.920 --> 00:49:58.360
+or things.
+
+00:49:58.360 --> 00:50:04.170
+So the question of how
+these kinds of neurons
+
+00:50:04.170 --> 00:50:07.595
+acquire their responses is
+really cool and interesting.
+
+00:50:12.010 --> 00:50:18.490
+So that leads us to the
+idea of perceptrons.
+
+00:50:18.490 --> 00:50:23.140
+Perceptron is the simplest
+notion of how you can have
+
+00:50:23.140 --> 00:50:27.700
+a neuron that responds to a
+particular thing that detects
+
+00:50:27.700 --> 00:50:31.410
+a particular thing and
+responds when it sees it
+
+00:50:31.410 --> 00:50:33.190
+and doesn't respond
+when it doesn't.
+
+00:50:35.720 --> 00:50:41.150
+So let's start with the
+simplest notion of a perceptron.
+
+00:50:41.150 --> 00:50:44.530
+So how do we make a neuron that
+fires when it sees something--
+
+00:50:44.530 --> 00:50:47.020
+let's say a dog--
+
+00:50:47.020 --> 00:50:49.080
+and doesn't fire
+when there is no dog?
+
+00:50:53.330 --> 00:50:55.800
+So in order to think about
+this a little bit more,
+
+00:50:55.800 --> 00:51:00.320
+so we can begin thinking
+about this in the case
+
+00:51:00.320 --> 00:51:04.550
+where we have a single neuron
+input and a single output
+
+00:51:04.550 --> 00:51:05.460
+neuron.
+
+00:51:05.460 --> 00:51:08.750
+So if we have a single input
+neuron, then what comes in
+
+00:51:08.750 --> 00:51:09.650
+has to be--
+
+00:51:09.650 --> 00:51:10.970
+it can't be an image right?
+
+00:51:10.970 --> 00:51:13.280
+An image is a high
+dimensional thing that
+
+00:51:13.280 --> 00:51:17.570
+has many thousands of pixels.
+
+00:51:17.570 --> 00:51:22.550
+So you can't write that
+down as a simple model
+
+00:51:22.550 --> 00:51:25.560
+with a single input neuron
+and a single output neuron.
+
+00:51:25.560 --> 00:51:27.770
+So you need to do this
+classification problem
+
+00:51:27.770 --> 00:51:28.750
+in one-dimension.
+
+00:51:28.750 --> 00:51:30.440
+So we can imagine
+that we have an input
+
+00:51:30.440 --> 00:51:37.165
+neuron that comes from, let's
+say, some set of numbers--
+
+00:51:37.165 --> 00:51:39.140
+I'll make up a story
+here-- some set
+
+00:51:39.140 --> 00:51:43.670
+of neurons that measure
+the dogginess of an input.
+
+00:51:43.670 --> 00:51:47.030
+So let's say that we
+have a single input that
+
+00:51:47.030 --> 00:51:51.320
+fires like crazy when it sees
+this cute little guy here.
+
+00:51:51.320 --> 00:51:56.210
+And fires at a
+negative rate when
+
+00:51:56.210 --> 00:52:00.630
+it sees that thing, which
+doesn't look much like a dog.
+
+00:52:00.630 --> 00:52:05.960
+So we have a single input
+that's a measure of dogginess.
+
+00:52:05.960 --> 00:52:09.475
+And now let's say that we
+take this dogginess detector
+
+00:52:09.475 --> 00:52:10.850
+and we point it
+around the world.
+
+00:52:10.850 --> 00:52:13.590
+And we walk around outside
+with our dogginess detector
+
+00:52:13.590 --> 00:52:16.700
+and we make a bunch
+of measurements.
+
+00:52:16.700 --> 00:52:19.042
+So we're going to see
+something that looks like this.
+
+00:52:19.042 --> 00:52:20.750
+We're going to see a
+lot of measurements,
+
+00:52:20.750 --> 00:52:22.880
+a lot of observations
+down here that
+
+00:52:22.880 --> 00:52:24.860
+are close to zero dogginess.
+
+00:52:24.860 --> 00:52:27.560
+And we're going to
+see a bump of things
+
+00:52:27.560 --> 00:52:29.300
+up here that correspond to dogs.
+
+00:52:29.300 --> 00:52:31.877
+Whenever we point our
+dogginess detector at a dog,
+
+00:52:31.877 --> 00:52:33.710
+it's going to give us
+a measurement up here.
+
+00:52:33.710 --> 00:52:35.690
+And we're going to
+get a bunch of those.
+
+00:52:35.690 --> 00:52:38.450
+And those things
+correspond to dogs.
+
+00:52:38.450 --> 00:52:41.270
+So we need to build
+a network that
+
+00:52:41.270 --> 00:52:44.900
+fires when the input is
+up here and doesn't fire
+
+00:52:44.900 --> 00:52:46.150
+when the input is down there.
+
+00:52:48.770 --> 00:52:51.890
+So how do we do that?
+
+00:52:51.890 --> 00:52:56.090
+So the central feature
+of classification
+
+00:52:56.090 --> 00:53:00.470
+is this notion of binariness,
+of decision-making.
+
+00:53:00.470 --> 00:53:04.100
+That it fires when you
+see a dog and doesn't
+
+00:53:04.100 --> 00:53:06.380
+fire when you don't see a dog.
+
+00:53:06.380 --> 00:53:09.170
+So there exists a
+classification boundary
+
+00:53:09.170 --> 00:53:10.490
+in this stimulus space.
+
+00:53:10.490 --> 00:53:13.550
+You can imagine that there's
+some points along this
+
+00:53:13.550 --> 00:53:17.480
+dimension above which you'll
+say that that input is a dog,
+
+00:53:17.480 --> 00:53:20.600
+below which you
+say that it isn't.
+
+00:53:20.600 --> 00:53:24.410
+And we can imagine that
+that classification boundary
+
+00:53:24.410 --> 00:53:25.470
+is right here.
+
+00:53:25.470 --> 00:53:27.060
+It's a particular number.
+
+00:53:27.060 --> 00:53:30.560
+It's a particular value
+of our dogginess detector,
+
+00:53:30.560 --> 00:53:32.460
+above which we're
+going to call it a dog,
+
+00:53:32.460 --> 00:53:37.430
+and below which we're going
+to call it something else.
+
+00:53:37.430 --> 00:53:43.440
+How do we make this
+neuron respond by firing
+
+00:53:43.440 --> 00:53:46.620
+when there's a dog and not
+firing when there's no dog?
+
+00:53:46.620 --> 00:53:48.060
+Can we use a linear neuron?
+
+00:53:51.700 --> 00:53:54.340
+Can we use one of
+our linear neurons
+
+00:53:54.340 --> 00:53:57.430
+that we just talked
+about before?
+
+00:53:57.430 --> 00:54:01.760
+We can't do that because a
+linear neuron will always fire
+
+00:54:01.760 --> 00:54:04.450
+more the bigger the input is.
+
+00:54:04.450 --> 00:54:07.300
+And it will fire less
+if the dogginess is 0.
+
+00:54:07.300 --> 00:54:09.220
+And it will even
+fire more negatively
+
+00:54:09.220 --> 00:54:11.690
+if the dogginess
+input is negative.
+
+00:54:11.690 --> 00:54:14.350
+So a linear neuron is
+terrible for actually
+
+00:54:14.350 --> 00:54:16.090
+making any decisions.
+
+00:54:16.090 --> 00:54:21.670
+Linear neurons always go,
+ah, well, maybe that's a dog.
+
+00:54:21.670 --> 00:54:22.750
+Not really.
+
+00:54:22.750 --> 00:54:25.270
+There's no decisions.
+
+00:54:25.270 --> 00:54:27.220
+So in order to
+have a decision, we
+
+00:54:27.220 --> 00:54:30.670
+need to have a particular
+kind of neuron.
+
+00:54:30.670 --> 00:54:36.310
+And that kind of neuron
+uses something very natural.
+
+00:54:36.310 --> 00:54:40.100
+In biophysics, it's the
+spike threshold of neurons.
+
+00:54:40.100 --> 00:54:45.580
+Neurons only fire when the
+input is above some threshold,
+
+00:54:45.580 --> 00:54:46.180
+generally.
+
+00:54:46.180 --> 00:54:48.013
+There are neurons that
+are tonically active.
+
+00:54:48.013 --> 00:54:49.570
+But let's not worry about those.
+
+00:54:49.570 --> 00:54:51.970
+So many neurons only
+fire when the input
+
+00:54:51.970 --> 00:54:53.900
+is above some threshold.
+
+00:54:53.900 --> 00:54:56.770
+So for decision-making
+and classification,
+
+00:54:56.770 --> 00:55:03.520
+a commonly used kind of neuron
+takes this idea to an extreme.
+
+00:55:03.520 --> 00:55:06.760
+So for perceptrons, we're
+going to use a simplified
+
+00:55:06.760 --> 00:55:09.010
+model of a neuron
+that's particularly
+
+00:55:09.010 --> 00:55:10.570
+good at making decisions.
+
+00:55:10.570 --> 00:55:13.830
+There's no if, ands,
+or buts about it.
+
+00:55:13.830 --> 00:55:16.540
+It's either off or on.
+
+00:55:16.540 --> 00:55:19.170
+It's called a binary unit.
+
+00:55:19.170 --> 00:55:23.010
+And a binary unit uses
+what's called a step
+
+00:55:23.010 --> 00:55:26.610
+function for its FI curve.
+
+00:55:26.610 --> 00:55:29.170
+That step function is 0--
+
+00:55:29.170 --> 00:55:33.240
+the output is 0 if the
+input is zero or below.
+
+00:55:33.240 --> 00:55:39.090
+And the output is 1 if
+the input is above 0.
+
+00:55:41.960 --> 00:55:45.500
+We can use that step
+function to create
+
+00:55:45.500 --> 00:55:48.410
+a neuron that responds
+when the input is
+
+00:55:48.410 --> 00:55:51.620
+above any threshold we want.
+
+00:55:51.620 --> 00:55:58.430
+So we can write down the output
+firing rate is this function,
+
+00:55:58.430 --> 00:56:03.050
+a step function-- that
+function of a quantity that's
+
+00:56:03.050 --> 00:56:07.700
+given by w times u, the synaptic
+weight times the input firing
+
+00:56:07.700 --> 00:56:10.430
+rate, minus that threshold.
+
+00:56:10.430 --> 00:56:13.040
+So you can see if
+w times u, which
+
+00:56:13.040 --> 00:56:17.860
+is the input synaptic current,
+if that synaptic current is
+
+00:56:17.860 --> 00:56:25.080
+above theta, then this
+argument to this function
+
+00:56:25.080 --> 00:56:28.200
+is greater than 0,
+then the neuron spikes.
+
+00:56:28.200 --> 00:56:31.970
+If this argument is negative,
+then the neuron doesn't spike.
+
+00:56:31.970 --> 00:56:37.950
+So by changing theta, we can put
+that decision boundary anywhere
+
+00:56:37.950 --> 00:56:39.475
+we want.
+
+00:56:39.475 --> 00:56:40.350
+Does that make sense?
+
+00:56:49.440 --> 00:56:54.480
+Usually the way we do
+this is we pick a theta.
+
+00:56:54.480 --> 00:56:57.870
+We say our neuron
+has a theta of 1.
+
+00:56:57.870 --> 00:57:00.690
+And then we do everything else--
+
+00:57:00.690 --> 00:57:02.730
+we do everything else
+we're going to do
+
+00:57:02.730 --> 00:57:05.230
+with this network with a theta.
+
+00:57:05.230 --> 00:57:07.830
+So what I'm going to talk
+about today are just two cases.
+
+00:57:07.830 --> 00:57:11.270
+Where theta is a fixed
+number that's non-zero,
+
+00:57:11.270 --> 00:57:14.085
+or theta that's a fixed
+number that is equal to 0.
+
+00:57:14.085 --> 00:57:15.960
+So we're going to talk
+about those two cases.
+
+00:57:19.050 --> 00:57:21.120
+So the neuron fires
+when the input w
+
+00:57:21.120 --> 00:57:22.660
+u is greater than theta.
+
+00:57:22.660 --> 00:57:25.540
+And it doesn't fire
+when it's less.
+
+00:57:25.540 --> 00:57:29.410
+So now the output neuron fires
+whenever the input neuron
+
+00:57:29.410 --> 00:57:33.920
+has a firing rate greater
+than this decision boundary.
+
+00:57:33.920 --> 00:57:37.720
+So the decision boundary,
+the u threshold,
+
+00:57:37.720 --> 00:57:39.970
+is equal to theta divided by w.
+
+00:57:39.970 --> 00:57:41.020
+Does that make sense?
+
+00:57:41.020 --> 00:57:44.680
+U threshold is the
+neuron fires when
+
+00:57:44.680 --> 00:57:47.290
+u is greater than
+theta divided by w.
+
+00:57:51.030 --> 00:57:55.510
+So the way we learn, the
+way this network learns
+
+00:57:55.510 --> 00:58:01.270
+to fire when that u is above
+this classification boundary
+
+00:58:01.270 --> 00:58:03.940
+is simply by
+changing the weight.
+
+00:58:03.940 --> 00:58:05.180
+Does that make sense?
+
+00:58:05.180 --> 00:58:08.380
+So we're going to
+learn the weight such
+
+00:58:08.380 --> 00:58:12.130
+that this network fires whenever
+the input says there's a dog.
+
+00:58:12.130 --> 00:58:14.790
+And it doesn't fire whenever
+the input says there's no dog.
+
+00:58:18.250 --> 00:58:22.650
+So let's see what happens
+when w is really small.
+
+00:58:22.650 --> 00:58:25.390
+If w is really small,
+then what happens
+
+00:58:25.390 --> 00:58:28.360
+is all of these-- remember,
+this is the input.
+
+00:58:28.360 --> 00:58:32.170
+That's that the
+dogginess detector.
+
+00:58:32.170 --> 00:58:34.810
+If w is really small,
+then all these inputs
+
+00:58:34.810 --> 00:58:40.780
+get collapsed to a small input
+current into our output neuron.
+
+00:58:40.780 --> 00:58:43.780
+Does that make sense?
+
+00:58:43.780 --> 00:58:47.520
+So all those different
+inputs, dogs and non-dogs,
+
+00:58:47.520 --> 00:58:50.490
+gets multiplied
+by a small number.
+
+00:58:50.490 --> 00:58:53.790
+And all those inputs
+are close to 0.
+
+00:58:53.790 --> 00:58:55.860
+And if all those
+inputs are close to 0,
+
+00:58:55.860 --> 00:59:00.320
+they're all below the threshold
+for making this neuron spike.
+
+00:59:00.320 --> 00:59:04.610
+So this network is not
+good for detecting dogs
+
+00:59:04.610 --> 00:59:08.390
+because it says it never
+fires, whether the input
+
+00:59:08.390 --> 00:59:11.420
+is a dog or a non-dog.
+
+00:59:11.420 --> 00:59:14.570
+Now what happens
+if w is too big?
+
+00:59:14.570 --> 00:59:21.710
+If w is really big, then this
+range of dogginess values
+
+00:59:21.710 --> 00:59:24.910
+gets multiplied by a big number.
+
+00:59:24.910 --> 00:59:31.355
+And you can see that a bunch of
+non-dogs make the neuron fire.
+
+00:59:31.355 --> 00:59:32.230
+Does that make sense?
+
+00:59:32.230 --> 00:59:36.450
+So now this one fires
+for dogs plus doggie-ish
+
+00:59:36.450 --> 00:59:38.350
+looking things,
+which, I don't know,
+
+00:59:38.350 --> 00:59:40.478
+maybe it'll fire
+when it sees a cat.
+
+00:59:40.478 --> 00:59:41.145
+That's terrible.
+
+00:59:43.860 --> 00:59:49.590
+So you have to choose w to make
+this classification network
+
+00:59:49.590 --> 00:59:51.180
+function properly.
+
+00:59:51.180 --> 00:59:52.260
+Does that make sense?
+
+00:59:52.260 --> 00:59:56.630
+And if you choose
+w just right, then
+
+00:59:56.630 --> 01:00:00.360
+that classification
+boundary lands
+
+01:00:00.360 --> 01:00:03.220
+right on the threshold
+of the neuron.
+
+01:00:03.220 --> 01:00:07.300
+And now the neuron spikes
+whenever there is a dog.
+
+01:00:07.300 --> 01:00:10.510
+And it doesn't spike
+whenever there's not a dog.
+
+01:00:10.510 --> 01:00:12.590
+So what's the message here?
+
+01:00:12.590 --> 01:00:16.450
+The message is we can
+have a neuron that
+
+01:00:16.450 --> 01:00:21.310
+has this binary threshold.
+
+01:00:21.310 --> 01:00:25.510
+And what we can do is simply
+by changing the weight,
+
+01:00:25.510 --> 01:00:29.350
+we can make that
+threshold land anywhere
+
+01:00:29.350 --> 01:00:30.700
+on this space of inputs.
+
+01:00:34.820 --> 01:00:38.370
+And we can actually use the
+error to set the weight.
+
+01:00:38.370 --> 01:00:41.030
+So let's say that
+we made errors here.
+
+01:00:41.030 --> 01:00:46.280
+We classify dogs as non-dogs
+because the neuron didn't fire.
+
+01:00:46.280 --> 01:00:50.190
+You can see that this was the
+case when w was too small.
+
+01:00:50.190 --> 01:00:54.290
+So if you classify
+dogs as non-dogs,
+
+01:00:54.290 --> 01:00:57.300
+then you need to make w bigger.
+
+01:00:57.300 --> 01:01:01.100
+And if you classify
+non-dogs as dogs,
+
+01:01:01.100 --> 01:01:03.930
+you need to make w smaller.
+
+01:01:03.930 --> 01:01:08.310
+And by measuring what
+kind of errors you make,
+
+01:01:08.310 --> 01:01:14.460
+you can actually fix the weights
+to get to the right answer.
+
+01:01:14.460 --> 01:01:17.480
+So this is a method
+called supervised
+
+01:01:17.480 --> 01:01:22.380
+learning where you
+set w randomly.
+
+01:01:22.380 --> 01:01:24.210
+You take a guess.
+
+01:01:24.210 --> 01:01:26.940
+And then you look at
+the mistakes you make.
+
+01:01:26.940 --> 01:01:31.450
+And you use those
+mistakes to fix the w.
+
+01:01:31.450 --> 01:01:37.310
+In other words, you
+just look at the world
+
+01:01:37.310 --> 01:01:40.460
+and you say, oh, that's a dog.
+
+01:01:40.460 --> 01:01:42.350
+And then your mom
+says, no, that's not
+
+01:01:42.350 --> 01:01:44.970
+a dog, that's something else.
+
+01:01:44.970 --> 01:01:46.265
+And you adjust your weights.
+
+01:01:48.790 --> 01:01:50.520
+I think that was the
+example I just gave.
+
+01:01:50.520 --> 01:01:52.470
+You're going to
+make that w smaller.
+
+01:01:52.470 --> 01:01:54.720
+In another case, you'll make
+the other kind of mistake
+
+01:01:54.720 --> 01:01:55.860
+and you'll fix the weights.
+
+01:01:59.010 --> 01:02:01.650
+So this is called a perceptron.
+
+01:02:01.650 --> 01:02:04.590
+And the way you learn the
+weights in a perceptron is you
+
+01:02:04.590 --> 01:02:08.680
+just classify things and you
+figure out what kind of mistake
+
+01:02:08.680 --> 01:02:11.840
+you made and you use that
+to adjust the weights.
+
+01:02:11.840 --> 01:02:15.790
+So that's the basic idea of
+a perceptron and perceptron
+
+01:02:15.790 --> 01:02:16.690
+learning.
+
+01:02:16.690 --> 01:02:19.480
+And there's a lot of
+mathematical formalism
+
+01:02:19.480 --> 01:02:21.760
+that goes into how
+that learning happens.
+
+01:02:21.760 --> 01:02:26.170
+And we're going to
+get to that in more
+
+01:02:26.170 --> 01:02:29.420
+detail in the next lecture.
+
+01:02:29.420 --> 01:02:33.340
+But before we do that,
+I want to go from having
+
+01:02:33.340 --> 01:02:34.630
+a one-dimensional case.
+
+01:02:34.630 --> 01:02:37.300
+So here we had a one-dimensional
+network that was just
+
+01:02:37.300 --> 01:02:40.630
+operating on dogginess.
+
+01:02:40.630 --> 01:02:43.030
+And then we have a
+single neuron that
+
+01:02:43.030 --> 01:02:46.170
+says, was that a dog or not.
+
+01:02:46.170 --> 01:02:49.290
+But in general, you're
+not classifying things
+
+01:02:49.290 --> 01:02:51.420
+based on one input.
+
+01:02:51.420 --> 01:02:54.840
+Like for example when you
+have to identify a dog,
+
+01:02:54.840 --> 01:02:59.350
+you have a whole
+image of something.
+
+01:02:59.350 --> 01:03:01.970
+And you have to classify
+that based on an image.
+
+01:03:01.970 --> 01:03:03.790
+So let's go from the
+one-dimensional case
+
+01:03:03.790 --> 01:03:05.080
+to a two-dimensional case.
+
+01:03:05.080 --> 01:03:08.260
+So the classification isn't
+done on one-dimension,
+
+01:03:08.260 --> 01:03:11.650
+but it's based on many
+different features.
+
+01:03:11.650 --> 01:03:15.720
+So let's say that we have
+two features, furriness
+
+01:03:15.720 --> 01:03:17.500
+and bad breath.
+
+01:03:17.500 --> 01:03:21.160
+That dog doesn't really
+look like it has bad breath.
+
+01:03:21.160 --> 01:03:24.790
+but mine does.
+
+01:03:24.790 --> 01:03:27.550
+So you can have two
+different features, furriness
+
+01:03:27.550 --> 01:03:28.220
+and bad breath.
+
+01:03:28.220 --> 01:03:32.190
+And dogs are generally,
+let's say, up here.
+
+01:03:32.190 --> 01:03:34.990
+Now you can have other animals.
+
+01:03:34.990 --> 01:03:37.960
+This guy is
+definitely not furry.
+
+01:03:37.960 --> 01:03:39.480
+So he's down here somewhere.
+
+01:03:39.480 --> 01:03:41.830
+And you can have
+this guy up here.
+
+01:03:41.830 --> 01:03:44.700
+He's definitely furry.
+
+01:03:44.700 --> 01:03:47.310
+So you have these two
+dimensions and a bunch
+
+01:03:47.310 --> 01:03:49.800
+of observations in
+those two dimensions,
+
+01:03:49.800 --> 01:03:51.920
+in those higher dimensions.
+
+01:03:51.920 --> 01:03:55.470
+And you can see
+that, in this case,
+
+01:03:55.470 --> 01:04:01.590
+you can't actually apply that
+one-dimensional decision-making
+
+01:04:01.590 --> 01:04:06.670
+circuit to discriminate dogs
+from these other animals.
+
+01:04:06.670 --> 01:04:07.630
+Why is that?
+
+01:04:07.630 --> 01:04:11.950
+Because if I apply my
+one-dimensional perceptron
+
+01:04:11.950 --> 01:04:14.050
+to this problem,
+you can see that I
+
+01:04:14.050 --> 01:04:18.600
+could put a boundary
+here and it will
+
+01:04:18.600 --> 01:04:23.480
+misclassify some of these
+non-furry animals as dogs.
+
+01:04:23.480 --> 01:04:26.130
+Or I could put my
+classifier here
+
+01:04:26.130 --> 01:04:30.420
+and it will misclassify
+some of these cats as dogs.
+
+01:04:30.420 --> 01:04:35.110
+So how would I separate dogs
+from these other animals
+
+01:04:35.110 --> 01:04:37.710
+if I had this
+two-dimensional space?
+
+01:04:37.710 --> 01:04:39.770
+What would I do?
+
+01:04:39.770 --> 01:04:42.160
+How would I put a
+classification bound?
+
+01:04:42.160 --> 01:04:47.270
+If this doesn't work and this
+doesn't work, what would I do?
+
+01:04:47.270 --> 01:04:50.090
+You could put a
+boundary right there.
+
+01:04:50.090 --> 01:04:51.890
+So in this little
+toy problem, that
+
+01:04:51.890 --> 01:04:55.100
+would perfectly separate
+dogs from all these non-dogs.
+
+01:04:58.390 --> 01:05:01.000
+So how do we do that?
+
+01:05:01.000 --> 01:05:08.290
+Well, what we want is some
+way of projecting these inputs
+
+01:05:08.290 --> 01:05:12.310
+onto some other
+direction so that we
+
+01:05:12.310 --> 01:05:16.470
+can put a classification
+boundary right there.
+
+01:05:16.470 --> 01:05:20.010
+And it turns out there's a very
+simple network that does that.
+
+01:05:20.010 --> 01:05:21.423
+It looks like this.
+
+01:05:21.423 --> 01:05:25.620
+We take each one of those
+detectors, a furriness detector
+
+01:05:25.620 --> 01:05:31.470
+and a bad breath detector,
+and we have those two inputs.
+
+01:05:31.470 --> 01:05:34.500
+We have those inputs synapse
+onto our output neuron
+
+01:05:34.500 --> 01:05:37.800
+with some weight w1
+and some weight w2,
+
+01:05:37.800 --> 01:05:41.200
+and we calculate the
+firing rate of this neuron.
+
+01:05:41.200 --> 01:05:46.080
+Now we have this problem of
+how do we place this decision
+
+01:05:46.080 --> 01:05:48.730
+boundary correctly.
+
+01:05:48.730 --> 01:05:49.800
+What's the answer?
+
+01:05:49.800 --> 01:05:51.645
+Well, in the
+one-dimensional example,
+
+01:05:51.645 --> 01:05:52.770
+what is it that we learned?
+
+01:05:57.400 --> 01:05:59.690
+What was it that we
+were actually changing?
+
+01:05:59.690 --> 01:06:02.830
+We were taking guesses.
+
+01:06:02.830 --> 01:06:05.530
+And if we were right
+or wrong, we did what?
+
+01:06:05.530 --> 01:06:08.170
+We changed the weight.
+
+01:06:08.170 --> 01:06:09.880
+And that's exactly
+what we do here.
+
+01:06:09.880 --> 01:06:14.320
+We're going to learn to
+change these weights to put
+
+01:06:14.320 --> 01:06:16.150
+that boundary in
+the right place.
+
+01:06:18.830 --> 01:06:21.260
+If we just take a random
+guess for these weights,
+
+01:06:21.260 --> 01:06:25.580
+that line is just going to
+be some random position.
+
+01:06:25.580 --> 01:06:28.160
+But we can learn to
+place that line exactly
+
+01:06:28.160 --> 01:06:32.480
+in the right place to
+separate dogs from non-dogs.
+
+01:06:32.480 --> 01:06:34.040
+So let's just think
+a little bit more
+
+01:06:34.040 --> 01:06:39.020
+about how that
+decision boundary looks
+
+01:06:39.020 --> 01:06:41.030
+as a function of the weight.
+
+01:06:41.030 --> 01:06:43.640
+So let's look at this case
+where we have two inputs.
+
+01:06:43.640 --> 01:06:51.700
+So now you can see that the
+input to this neuron is w.u.
+
+01:06:51.700 --> 01:06:56.950
+So now if we use our binary
+neuron with a threshold,
+
+01:06:56.950 --> 01:07:00.370
+we can see that the firing
+rate of this output neuron
+
+01:07:00.370 --> 01:07:05.610
+is this step function
+operating on or acting
+
+01:07:05.610 --> 01:07:08.550
+on this input, w.u minus theta.
+
+01:07:12.750 --> 01:07:14.270
+So now what does that look like?
+
+01:07:14.270 --> 01:07:16.160
+The decision
+boundary happens when
+
+01:07:16.160 --> 01:07:20.100
+this quantity is pulled to 0.
+
+01:07:20.100 --> 01:07:22.620
+When this input is greater
+than 0, the neuron fires.
+
+01:07:22.620 --> 01:07:25.470
+When this input is less
+than 0, it doesn't fire.
+
+01:07:25.470 --> 01:07:28.135
+So what does that look like?
+
+01:07:28.135 --> 01:07:29.760
+So you can see the
+decision boundary is
+
+01:07:29.760 --> 01:07:32.180
+when w.u minus theta equals 0.
+
+01:07:32.180 --> 01:07:33.840
+Does anyone know what that is?
+
+01:07:37.688 --> 01:07:40.420
+Remember, u is our input space.
+
+01:07:40.420 --> 01:07:43.600
+That's what we're asking,
+where is this decision
+
+01:07:43.600 --> 01:07:45.790
+boundary in the input space.
+
+01:07:45.790 --> 01:07:48.610
+w is some weights that
+are fixed right now,
+
+01:07:48.610 --> 01:07:51.860
+but we're gradually going
+to change them later.
+
+01:07:51.860 --> 01:07:55.290
+So what is that an equation for?
+
+01:07:55.290 --> 01:07:57.930
+It's a line.
+
+01:07:57.930 --> 01:07:59.310
+That's an equation for a line.
+
+01:07:59.310 --> 01:08:07.880
+If u is our input, you
+can see w.u equals theta.
+
+01:08:07.880 --> 01:08:11.520
+That's an equation
+for a line, base of u.
+
+01:08:11.520 --> 01:08:14.750
+The slope and
+position of that line
+
+01:08:14.750 --> 01:08:20.109
+are controlled by the weights
+w and the threshold theta.
+
+01:08:20.109 --> 01:08:26.140
+So you can see this is w1,
+u1, plus w2, u2 equals theta.
+
+01:08:26.140 --> 01:08:30.880
+In the space of u1 and
+u2, that's just a line.
+
+01:08:30.880 --> 01:08:34.600
+So let's look at the case
+where theta equals 0.
+
+01:08:34.600 --> 01:08:39.410
+You can see that if you have
+this input space, u1 and u2,
+
+01:08:39.410 --> 01:08:44.890
+if you take a particular
+input u and dot it into w--
+
+01:08:44.890 --> 01:08:48.720
+so let's just pick a w in
+some random direction--
+
+01:08:48.720 --> 01:08:52.270
+the neuron fires when the
+projection of u along w
+
+01:08:52.270 --> 01:08:52.970
+is positive.
+
+01:08:52.970 --> 01:08:56.439
+So you can see here, the
+projection of u along w
+
+01:08:56.439 --> 01:09:00.020
+is positive.
+
+01:09:00.020 --> 01:09:02.870
+So in this case for this
+u the neuron will fire.
+
+01:09:05.800 --> 01:09:11.350
+So any u that has a
+positive projection along w
+
+01:09:11.350 --> 01:09:14.260
+will make the neuron spike.
+
+01:09:14.260 --> 01:09:17.500
+So you can see that
+all of these inputs
+
+01:09:17.500 --> 01:09:20.390
+will make the neuron spike.
+
+01:09:20.390 --> 01:09:24.423
+All of these inputs will
+make the neuron not spike.
+
+01:09:24.423 --> 01:09:26.300
+Does that make sense?
+
+01:09:26.300 --> 01:09:30.430
+So you can see that the
+decision boundary, this boundary
+
+01:09:30.430 --> 01:09:32.560
+between the inputs
+that make the neuron
+
+01:09:32.560 --> 01:09:37.390
+spike and the inputs that
+don't make the neuron spike,
+
+01:09:37.390 --> 01:09:42.245
+is a line that's
+orthogonal to w.
+
+01:09:42.245 --> 01:09:43.120
+Does that make sense?
+
+01:09:47.490 --> 01:09:50.930
+Because you can see
+that any u, any input,
+
+01:09:50.930 --> 01:09:54.050
+along this line will
+have zero projection,
+
+01:09:54.050 --> 01:09:55.900
+will be orthogonal to w.
+
+01:09:55.900 --> 01:09:57.560
+Will have zero projection.
+
+01:09:57.560 --> 01:10:02.840
+And that's going to correspond
+to that decision boundary.
+
+01:10:06.940 --> 01:10:12.230
+So let's just look
+at a couple of cases.
+
+01:10:12.230 --> 01:10:17.920
+So here a set of points that
+correspond to our non-dogs.
+
+01:10:17.920 --> 01:10:20.570
+Here are a set of points
+that correspond to our dog.
+
+01:10:20.570 --> 01:10:23.740
+You can see that if you have
+a w in this direction, that
+
+01:10:23.740 --> 01:10:26.500
+produces a decision boundary
+that nicely separates
+
+01:10:26.500 --> 01:10:28.980
+the dogs from the non-dogs.
+
+01:10:28.980 --> 01:10:32.590
+So what is that w?
+that w is 1, comma, 0.
+
+01:10:32.590 --> 01:10:36.790
+And we're going to consider
+the case where theta is 0.
+
+01:10:36.790 --> 01:10:38.140
+Let's look at this case here.
+
+01:10:38.140 --> 01:10:40.210
+So you can see that
+here are all the dogs.
+
+01:10:40.210 --> 01:10:41.590
+Here are all the non-dogs.
+
+01:10:41.590 --> 01:10:44.080
+You can see that if you drew
+a line in this direction,
+
+01:10:44.080 --> 01:10:47.380
+that would be a good
+decision boundary
+
+01:10:47.380 --> 01:10:49.330
+for that classification problem.
+
+01:10:49.330 --> 01:10:51.940
+You can see that
+a w corresponding
+
+01:10:51.940 --> 01:10:56.200
+to solving that problem
+is 1, comma, minus 1,
+
+01:10:56.200 --> 01:10:57.420
+and theta equals 0.
+
+01:11:02.990 --> 01:11:06.430
+Let's look at the case
+where theta is not 0.
+
+01:11:06.430 --> 01:11:09.730
+So here we have w.u minus theta.
+
+01:11:09.730 --> 01:11:13.660
+When theta is not 0, then
+the decision boundary is w.u
+
+01:11:13.660 --> 01:11:15.760
+equals some non-zero theta.
+
+01:11:15.760 --> 01:11:16.870
+That's also a line.
+
+01:11:16.870 --> 01:11:20.150
+It's a equation for a line.
+
+01:11:20.150 --> 01:11:22.240
+When theta is 0, that
+decision boundary
+
+01:11:22.240 --> 01:11:23.980
+goes through the origin.
+
+01:11:23.980 --> 01:11:26.310
+When theta is not 0,
+the decision boundary
+
+01:11:26.310 --> 01:11:29.050
+is offset from the origin.
+
+01:11:29.050 --> 01:11:31.840
+So we could see that
+when we had theta is 0,
+
+01:11:31.840 --> 01:11:33.850
+the decision boundary--
+that network only
+
+01:11:33.850 --> 01:11:37.900
+works if the decision boundary
+is going through the origin.
+
+01:11:37.900 --> 01:11:40.570
+In general, though, we can put
+the decision boundary anywhere
+
+01:11:40.570 --> 01:11:44.740
+we want by having
+this non-zero theta.
+
+01:11:44.740 --> 01:11:46.170
+So here's an example.
+
+01:11:46.170 --> 01:11:48.740
+Here are a set of points
+that are the dogs.
+
+01:11:48.740 --> 01:11:52.390
+Here are a set of points
+that are the non-dogs.
+
+01:11:52.390 --> 01:11:55.030
+If we wanted to
+design a network that
+
+01:11:55.030 --> 01:11:57.640
+separates the dogs
+from the non-dogs,
+
+01:11:57.640 --> 01:12:00.820
+we could just draw a line
+that cleanly separates
+
+01:12:00.820 --> 01:12:03.880
+the green from the red dots.
+
+01:12:03.880 --> 01:12:07.120
+And now we can calculate
+w that gives us
+
+01:12:07.120 --> 01:12:08.740
+that decision boundary.
+
+01:12:08.740 --> 01:12:10.460
+How do we do that?
+
+01:12:10.460 --> 01:12:13.360
+So the decision boundary
+is w minus u.theta.
+
+01:12:13.360 --> 01:12:15.250
+Let's say that we
+want to calculate
+
+01:12:15.250 --> 01:12:17.730
+this weight vector w1 and w2.
+
+01:12:17.730 --> 01:12:22.470
+And let's just say that our
+neuron has a threshold of 1.
+
+01:12:22.470 --> 01:12:25.080
+So we can see that we have
+two points on the decision
+
+01:12:25.080 --> 01:12:26.250
+boundary.
+
+01:12:26.250 --> 01:12:30.660
+We have one point here,
+a, comma, 0, right there.
+
+01:12:30.660 --> 01:12:34.380
+We have another point
+here, 0, comma, b.
+
+01:12:34.380 --> 01:12:36.960
+And we can calculate
+the decision boundary
+
+01:12:36.960 --> 01:12:43.200
+using ua.w equals theta,
+ub.w equals theta.
+
+01:12:43.200 --> 01:12:50.040
+That's two equations and
+two unknowns, w1 and w2.
+
+01:12:50.040 --> 01:12:57.090
+So if I gave you a set of points
+and I said calculate a weight
+
+01:12:57.090 --> 01:13:02.040
+for this perceptron that will
+separate one set of points
+
+01:13:02.040 --> 01:13:06.370
+from another set of
+points, and I give you
+
+01:13:06.370 --> 01:13:10.200
+a theta for the output
+neuron, all you have to do
+
+01:13:10.200 --> 01:13:12.960
+is draw a line that
+separates them,
+
+01:13:12.960 --> 01:13:15.690
+and then solve those
+two equations to get
+
+01:13:15.690 --> 01:13:20.632
+w1 and w2 for that network.
+
+01:13:20.632 --> 01:13:24.070
+It's very easy to do
+this in two dimensions.
+
+01:13:24.070 --> 01:13:26.920
+You can just draw a
+line and calculate
+
+01:13:26.920 --> 01:13:32.260
+the w that corresponds to
+that decision boundary.
+
+01:13:32.260 --> 01:13:34.290
+Any questions about that?
+
+01:13:34.290 --> 01:13:36.860
+Just that, if you
+have questions,
+
+01:13:36.860 --> 01:13:40.120
+you should ask because
+that's going to be
+
+01:13:40.120 --> 01:13:41.450
+a question you ought to solve.
+
+01:13:47.000 --> 01:13:50.450
+So you can see in two dimensions
+you can just look at the data,
+
+01:13:50.450 --> 01:13:52.760
+decide where's the decision
+boundary, draw a line,
+
+01:13:52.760 --> 01:13:55.790
+and calculate the weights w.
+
+01:13:55.790 --> 01:13:59.150
+But in higher dimensions,
+it's a really hard problem.
+
+01:13:59.150 --> 01:14:03.380
+In high dimensions,
+first of all,
+
+01:14:03.380 --> 01:14:07.190
+remember in high dimensions
+you've got images.
+
+01:14:07.190 --> 01:14:10.460
+Each pixel in that image
+is a different dimension
+
+01:14:10.460 --> 01:14:13.400
+in the classification problem.
+
+01:14:13.400 --> 01:14:17.750
+So how do you write
+down a set of weights?
+
+01:14:17.750 --> 01:14:22.430
+So imagine that's an
+image, that's an image.
+
+01:14:22.430 --> 01:14:24.560
+And you want to find
+a set of weights
+
+01:14:24.560 --> 01:14:27.530
+so that this neuron fires
+when you have the dog,
+
+01:14:27.530 --> 01:14:30.170
+but doesn't fire when
+you have the cat.
+
+01:14:30.170 --> 01:14:32.110
+That's a really hard problem.
+
+01:14:32.110 --> 01:14:34.130
+You can't look at
+those things and decide
+
+01:14:34.130 --> 01:14:35.600
+what that w should be.
+
+01:14:38.950 --> 01:14:48.740
+So there's a way of taking
+inputs and taking the answer,
+
+01:14:48.740 --> 01:14:52.020
+like a 1 for a dog
+and a 0 for non-dogs,
+
+01:14:52.020 --> 01:14:55.440
+and actually finding a set
+of weights that will properly
+
+01:14:55.440 --> 01:14:57.510
+classify those inputs.
+
+01:14:57.510 --> 01:15:00.300
+And that's called the
+perceptron learning rule.
+
+01:15:00.300 --> 01:15:05.580
+And we're going to talk about
+that in the next lecture.
+
+01:15:05.580 --> 01:15:08.070
+So that's what we did today.
+
+01:15:08.070 --> 01:15:10.170
+And we're going to
+continue working
+
+01:15:10.170 --> 01:15:14.880
+on developing methods
+for understanding
+
+01:15:14.880 --> 01:15:17.930
+neural networks next time.

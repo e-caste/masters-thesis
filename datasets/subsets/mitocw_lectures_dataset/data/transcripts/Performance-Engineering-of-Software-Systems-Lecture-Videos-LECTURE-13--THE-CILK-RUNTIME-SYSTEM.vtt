@@ -1,0 +1,5872 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT OpenCourseWare
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:18.140
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:18.140 --> 00:00:19.026
+at ocw.mit.edu.
+
+00:00:22.001 --> 00:00:24.910
+PROFESSOR: Hey, everybody.
+
+00:00:24.910 --> 00:00:28.090
+It's my pleasure
+once again to welcome
+
+00:00:28.090 --> 00:00:35.590
+TB Schardl, who is the author
+of your taper compiler,
+
+00:00:35.590 --> 00:00:41.072
+to talk about the
+Cilk runtime system.
+
+00:00:41.072 --> 00:00:42.280
+TAO SCHARDL: Thanks, Charles.
+
+00:00:42.280 --> 00:00:46.110
+Can anyone hear me in
+the back, seem good?
+
+00:00:46.110 --> 00:00:48.253
+OK.
+
+00:00:48.253 --> 00:00:49.420
+Thanks for the introduction.
+
+00:00:49.420 --> 00:00:52.448
+Today I'll be talking about
+the Cilk runtime system.
+
+00:00:52.448 --> 00:00:53.740
+This is pretty exciting for me.
+
+00:00:53.740 --> 00:00:56.080
+This is a lecture that's
+not about compilers.
+
+00:00:56.080 --> 00:01:00.410
+I get to talk about something
+a little different for once.
+
+00:01:00.410 --> 00:01:01.840
+It should be a fun lecture.
+
+00:01:01.840 --> 00:01:03.790
+Recently, as I
+understand it, you've
+
+00:01:03.790 --> 00:01:07.180
+been looking at
+storage allocation,
+
+00:01:07.180 --> 00:01:10.870
+both in the serial case as
+well as the parallel case.
+
+00:01:10.870 --> 00:01:15.520
+And you've already done Cilk
+programming for a while,
+
+00:01:15.520 --> 00:01:17.200
+at this point.
+
+00:01:17.200 --> 00:01:19.270
+This lecture, honestly,
+is a bit of a non
+
+00:01:19.270 --> 00:01:25.600
+sequitur in terms of the
+overall flow of the course.
+
+00:01:25.600 --> 00:01:27.460
+And it's also an advanced topic.
+
+00:01:27.460 --> 00:01:30.400
+The Cilk runtime system is
+a pretty complicated piece
+
+00:01:30.400 --> 00:01:31.310
+of software.
+
+00:01:31.310 --> 00:01:35.560
+But nevertheless, I believe you
+should have enough background
+
+00:01:35.560 --> 00:01:39.070
+to at least start to
+understand and appreciate
+
+00:01:39.070 --> 00:01:42.940
+some of the aspects of the
+design of the Cilk runtime
+
+00:01:42.940 --> 00:01:44.240
+system.
+
+00:01:44.240 --> 00:01:47.770
+So that's why we're
+talking about that today.
+
+00:01:47.770 --> 00:01:50.950
+Just to quickly recall
+something that you're all,
+
+00:01:50.950 --> 00:01:55.120
+I'm sure, intimately familiar
+with by this point, what's
+
+00:01:55.120 --> 00:01:56.965
+Cilk programming all about?
+
+00:01:56.965 --> 00:01:58.840
+Well, Cilk is a parallel
+programming language
+
+00:01:58.840 --> 00:02:02.770
+that allows you to make
+your software run faster
+
+00:02:02.770 --> 00:02:04.960
+using parallel processors.
+
+00:02:04.960 --> 00:02:07.810
+And to use Cilk, it's
+pretty straightforward.
+
+00:02:07.810 --> 00:02:10.570
+You may start with
+some serial code that
+
+00:02:10.570 --> 00:02:13.870
+runs in some running time--
+we'll denote that as Ts
+
+00:02:13.870 --> 00:02:15.910
+for certain parts
+of the lecture.
+
+00:02:15.910 --> 00:02:18.580
+If you wanted to run
+in parallel using Cilk,
+
+00:02:18.580 --> 00:02:22.390
+you just insert Cilk
+keywords in choice locations.
+
+00:02:22.390 --> 00:02:24.910
+For example, you can
+parallelize the outer loop
+
+00:02:24.910 --> 00:02:28.870
+in this matrix multiply kernel,
+and that will let your code run
+
+00:02:28.870 --> 00:02:32.450
+in time Tp on P processors.
+
+00:02:32.450 --> 00:02:36.580
+And ideally, Tp should
+be less than Ts.
+
+00:02:36.580 --> 00:02:39.040
+Now, just adding
+keywords is all you
+
+00:02:39.040 --> 00:02:42.370
+need to do to tell
+Cilk to execute
+
+00:02:42.370 --> 00:02:43.930
+the computation in parallel.
+
+00:02:43.930 --> 00:02:46.630
+What does Cilk do in
+light of those keywords?
+
+00:02:46.630 --> 00:02:52.270
+At a very high level, Cilk and
+specifically its runtime system
+
+00:02:52.270 --> 00:02:55.120
+takes care of the task
+of scheduling and load
+
+00:02:55.120 --> 00:02:58.570
+balancing the computation
+on the parallel processors
+
+00:02:58.570 --> 00:03:01.610
+and on the multicore
+system in general.
+
+00:03:01.610 --> 00:03:04.500
+So after you've denoted logical
+parallel in the program using
+
+00:03:04.500 --> 00:03:07.140
+spawn, Cilk spawn, Cilk
+sync, and Cilk four,
+
+00:03:07.140 --> 00:03:09.700
+the Cilk scheduler
+maps that computation
+
+00:03:09.700 --> 00:03:10.930
+onto the processors.
+
+00:03:10.930 --> 00:03:12.700
+And it does so
+dynamically at runtime,
+
+00:03:12.700 --> 00:03:15.460
+based on whatever
+processing resources happen
+
+00:03:15.460 --> 00:03:19.300
+to be available, and still
+uses a randomized work stealing
+
+00:03:19.300 --> 00:03:23.790
+scheduler which guarantees
+that that mapping is efficient
+
+00:03:23.790 --> 00:03:27.670
+and the execution
+runs efficiently.
+
+00:03:27.670 --> 00:03:30.190
+Now you've all been using the
+Cilk platform for a while.
+
+00:03:30.190 --> 00:03:33.850
+In its basic usage, you write
+some Cilk code, possibly
+
+00:03:33.850 --> 00:03:36.370
+by parallelizing
+ordinary serial code,
+
+00:03:36.370 --> 00:03:38.570
+you feed that to a
+compiler, you get a binary,
+
+00:03:38.570 --> 00:03:44.240
+you run the binary the binary
+with some particular input
+
+00:03:44.240 --> 00:03:45.940
+on a multicore system.
+
+00:03:45.940 --> 00:03:47.710
+You get parallel performance.
+
+00:03:47.710 --> 00:03:51.910
+Today, we're going to look at
+how exactly does Cilk work?
+
+00:03:51.910 --> 00:03:54.850
+What's the magic
+that goes on, hidden
+
+00:03:54.850 --> 00:03:58.490
+by the boxes on this diagram?
+
+00:03:58.490 --> 00:04:02.470
+And the very first thing to
+note is that this picture
+
+00:04:02.470 --> 00:04:04.860
+is a little bit--
+
+00:04:04.860 --> 00:04:07.420
+the first simplification
+that we're going to break
+
+00:04:07.420 --> 00:04:10.900
+is that it's not really just
+Cilk source and the Cilk
+
+00:04:10.900 --> 00:04:11.830
+compiler.
+
+00:04:11.830 --> 00:04:17.470
+There's also a runtime system
+library, libcilkrts.so, in case
+
+00:04:17.470 --> 00:04:19.750
+you've seen that
+file or messages
+
+00:04:19.750 --> 00:04:21.760
+about that file on your system.
+
+00:04:21.760 --> 00:04:24.280
+And really it's the compiler
+and the runtime library,
+
+00:04:24.280 --> 00:04:28.180
+that work together to implement
+Cilk's runtime system,
+
+00:04:28.180 --> 00:04:31.180
+to do the work stealing and
+do the efficient scheduling
+
+00:04:31.180 --> 00:04:34.600
+and load balancing.
+
+00:04:34.600 --> 00:04:39.810
+Now we might suspect that if
+you just take a look at the code
+
+00:04:39.810 --> 00:04:42.060
+that you get when you
+compile a Cilk program,
+
+00:04:42.060 --> 00:04:45.120
+that might tell you something
+about how Cilk works.
+
+00:04:45.120 --> 00:04:50.100
+Here's C pseudocode for the
+results when you compile
+
+00:04:50.100 --> 00:04:53.570
+a simple piece of Cilk code.
+
+00:04:53.570 --> 00:04:55.335
+It's a bit complicated.
+
+00:04:55.335 --> 00:04:56.460
+I think that's fair to say.
+
+00:04:56.460 --> 00:04:57.813
+There's a lot going on here.
+
+00:04:57.813 --> 00:04:59.730
+There is one function
+in the original program,
+
+00:04:59.730 --> 00:05:01.000
+now there are two.
+
+00:05:01.000 --> 00:05:02.700
+There's some new
+variables, there's
+
+00:05:02.700 --> 00:05:06.840
+some calls to functions that
+look a little bit strange,
+
+00:05:06.840 --> 00:05:09.300
+there's a lot going on
+in the compiled results.
+
+00:05:09.300 --> 00:05:12.810
+This isn't exactly easy to
+interpret or understand,
+
+00:05:12.810 --> 00:05:15.720
+and this doesn't even bring into
+the picture the runtime system
+
+00:05:15.720 --> 00:05:16.235
+library.
+
+00:05:16.235 --> 00:05:18.360
+The runtime system library,
+you can find the source
+
+00:05:18.360 --> 00:05:19.290
+code online.
+
+00:05:19.290 --> 00:05:21.720
+It's a little less than
+20,000 lines of code.
+
+00:05:21.720 --> 00:05:24.090
+It's also kind of complicated.
+
+00:05:24.090 --> 00:05:26.490
+So rather than dive
+into the code directly,
+
+00:05:26.490 --> 00:05:30.120
+what we're going to
+do today is an attempt
+
+00:05:30.120 --> 00:05:32.370
+at a top-down approach
+to understanding
+
+00:05:32.370 --> 00:05:34.080
+how the Cilk runtime
+system works,
+
+00:05:34.080 --> 00:05:36.460
+and some of the
+design considerations.
+
+00:05:36.460 --> 00:05:38.430
+So we're going to start
+by talking about some
+
+00:05:38.430 --> 00:05:41.640
+of the required functionality
+that we need out of the Cilk
+
+00:05:41.640 --> 00:05:44.010
+runtime system, as well
+as some performance
+
+00:05:44.010 --> 00:05:48.030
+considerations for how the
+runtime system should work.
+
+00:05:48.030 --> 00:05:51.390
+And then we'll take a look at
+how the worker deques in Cilk
+
+00:05:51.390 --> 00:05:54.480
+get implemented, how
+spawning actually works,
+
+00:05:54.480 --> 00:05:56.910
+how stealing a
+computation works,
+
+00:05:56.910 --> 00:06:01.350
+and how synchronization
+works within Cilk.
+
+00:06:01.350 --> 00:06:02.370
+That all sound good?
+
+00:06:02.370 --> 00:06:04.070
+Any questions so far?
+
+00:06:04.070 --> 00:06:06.630
+This should all be
+review, more or less.
+
+00:06:10.890 --> 00:06:15.550
+OK, so let's talk a little bit
+about required functionality.
+
+00:06:15.550 --> 00:06:18.210
+You've seen this
+picture before, I hope.
+
+00:06:18.210 --> 00:06:20.670
+This picture illustrated
+the execution model
+
+00:06:20.670 --> 00:06:21.450
+of a Cilk program.
+
+00:06:21.450 --> 00:06:25.110
+Here we have everyone's favorite
+exponential time Fibonacci
+
+00:06:25.110 --> 00:06:27.370
+routine, parallelized
+using Cilk.
+
+00:06:27.370 --> 00:06:30.010
+This is not an efficient way
+to compute Fibonacci numbers,
+
+00:06:30.010 --> 00:06:32.670
+but it's a nice didactic
+example for understanding
+
+00:06:32.670 --> 00:06:35.940
+parallel computation,
+especially the Cilk model.
+
+00:06:35.940 --> 00:06:39.360
+And as we saw many
+lectures ago, when
+
+00:06:39.360 --> 00:06:41.700
+you run this program
+on a given input,
+
+00:06:41.700 --> 00:06:43.170
+the execution of
+the program can be
+
+00:06:43.170 --> 00:06:47.070
+modeled as a computation dag.
+
+00:06:47.070 --> 00:06:50.040
+And this computation
+dag unfolds dynamically
+
+00:06:50.040 --> 00:06:53.050
+as the program executes.
+
+00:06:53.050 --> 00:06:56.250
+But I want to stop
+and take a hard look
+
+00:06:56.250 --> 00:07:00.390
+at exactly what that dynamic
+execution looks like when we've
+
+00:07:00.390 --> 00:07:06.668
+got parallel processors and work
+stealing all coming into play.
+
+00:07:06.668 --> 00:07:08.460
+So we'll stick with
+this Fibonacci routine,
+
+00:07:08.460 --> 00:07:11.370
+and we'll imagine we've just
+got one processor on the system,
+
+00:07:11.370 --> 00:07:12.080
+to start.
+
+00:07:12.080 --> 00:07:13.580
+And we're just going
+to use this one
+
+00:07:13.580 --> 00:07:16.160
+processor to execute fib(4).
+
+00:07:16.160 --> 00:07:18.420
+And it's going to take
+some time to do it,
+
+00:07:18.420 --> 00:07:24.410
+just to make the
+story interesting.
+
+00:07:24.410 --> 00:07:28.420
+So we start executing
+this computation,
+
+00:07:28.420 --> 00:07:31.760
+and that one processor is just
+going to execute the Fibonacci
+
+00:07:31.760 --> 00:07:35.330
+routine from beginning up
+to the Cilk spawn statement,
+
+00:07:35.330 --> 00:07:37.850
+as if it's ordinary
+serial code, because it
+
+00:07:37.850 --> 00:07:40.730
+is ordinary serial code.
+
+00:07:40.730 --> 00:07:43.640
+At this point the processor
+hits the Cilk spawn statement.
+
+00:07:43.640 --> 00:07:46.903
+What happens now?
+
+00:07:46.903 --> 00:07:47.570
+Anyone remember?
+
+00:07:50.170 --> 00:07:51.170
+What happens to the dag?
+
+00:08:05.322 --> 00:08:09.047
+AUDIENCE: It branches
+down [INAUDIBLE]
+
+00:08:09.047 --> 00:08:10.880
+TAO SCHARDL: It branches
+downward and spawns
+
+00:08:10.880 --> 00:08:13.960
+another process, more or less.
+
+00:08:13.960 --> 00:08:16.300
+The way we model that--
+
+00:08:16.300 --> 00:08:19.855
+the Cilk spawn is of a
+routine fib of n minus 1.
+
+00:08:19.855 --> 00:08:22.330
+In this case, that'll be fib(3).
+
+00:08:22.330 --> 00:08:24.520
+And so, like an
+ordinary function call,
+
+00:08:24.520 --> 00:08:27.078
+we're going to get a brand
+new frame for fib(3).
+
+00:08:27.078 --> 00:08:28.870
+And that's going to
+have some strand that's
+
+00:08:28.870 --> 00:08:30.310
+available to execute.
+
+00:08:30.310 --> 00:08:32.830
+But the spawn is not your
+typical function call.
+
+00:08:32.830 --> 00:08:37.059
+It actually allows some other
+computation to run in parallel.
+
+00:08:37.059 --> 00:08:38.980
+And so the way we model
+that in this picture
+
+00:08:38.980 --> 00:08:41.500
+is that we get a new
+frame for fib(3).
+
+00:08:41.500 --> 00:08:43.780
+There's a strand available
+to execute there.
+
+00:08:43.780 --> 00:08:47.110
+And the continuation,
+the green strand,
+
+00:08:47.110 --> 00:08:52.540
+is now available in
+the frame fib(4).
+
+00:08:52.540 --> 00:08:54.190
+But no one's necessarily
+executing it.
+
+00:08:54.190 --> 00:08:57.940
+It's just kind of
+faded in the picture.
+
+00:08:57.940 --> 00:08:59.530
+So once the spawn
+has occurred, what's
+
+00:08:59.530 --> 00:09:00.613
+the processor going to do?
+
+00:09:00.613 --> 00:09:02.950
+The processor is actually
+going to dive in and start
+
+00:09:02.950 --> 00:09:07.090
+executing fib(3), as if it
+were an ordinary function call.
+
+00:09:07.090 --> 00:09:10.630
+Yes, there's a strand available
+within the frame of fib(4),
+
+00:09:10.630 --> 00:09:13.230
+but the processor isn't going
+to worry about that strand.
+
+00:09:13.230 --> 00:09:15.920
+It's just going to say,
+oh, fib(4) calls fib(3),
+
+00:09:15.920 --> 00:09:18.490
+going to start
+computing for fib(3).
+
+00:09:18.490 --> 00:09:21.250
+Sound good?
+
+00:09:21.250 --> 00:09:24.790
+And so the processor
+dives down from pink
+
+00:09:24.790 --> 00:09:26.320
+strand to pink strand.
+
+00:09:26.320 --> 00:09:28.570
+The instruction pointer
+for the processor
+
+00:09:28.570 --> 00:09:30.910
+returns to the beginning
+of the fib routine,
+
+00:09:30.910 --> 00:09:34.780
+because we're now
+calling fib once again.
+
+00:09:34.780 --> 00:09:37.120
+And this process repeats.
+
+00:09:37.120 --> 00:09:40.570
+It executes the pink strand
+up until the Cilk spawn,
+
+00:09:40.570 --> 00:09:42.340
+just like ordinary serial code.
+
+00:09:42.340 --> 00:09:45.460
+The spawn occurs-- and we've
+already seen this picture
+
+00:09:45.460 --> 00:09:46.600
+before--
+
+00:09:46.600 --> 00:09:49.205
+the spawn allows another
+strand to execute in parallel.
+
+00:09:49.205 --> 00:09:50.830
+But it also creates
+a frame for fib(2).
+
+00:09:53.430 --> 00:09:56.560
+And the processor
+dives into fib(2),
+
+00:09:56.560 --> 00:10:00.220
+resetting the instruction
+pointer to the beginning fib,
+
+00:10:00.220 --> 00:10:02.890
+P1 executes up to the spawn.
+
+00:10:02.890 --> 00:10:05.290
+Once again, we get
+another string to execute,
+
+00:10:05.290 --> 00:10:07.810
+as well as an
+invocation of fib(1).
+
+00:10:07.810 --> 00:10:10.880
+Processor dives even further.
+
+00:10:10.880 --> 00:10:11.650
+So that's fine.
+
+00:10:11.650 --> 00:10:14.110
+This is just the processor
+doing more or less
+
+00:10:14.110 --> 00:10:16.810
+ordinary serial execution
+of this fib routine,
+
+00:10:16.810 --> 00:10:19.120
+but it's also
+allowing some strands
+
+00:10:19.120 --> 00:10:21.040
+to be executed in parallel.
+
+00:10:21.040 --> 00:10:23.230
+This is the one
+processor situation,
+
+00:10:23.230 --> 00:10:24.310
+looks pretty good so far.
+
+00:10:28.110 --> 00:10:29.910
+Right, and in the
+fib(1) case, it
+
+00:10:29.910 --> 00:10:32.010
+doesn't make it as far
+through the pink strand
+
+00:10:32.010 --> 00:10:34.860
+because, in fact, we
+hit the base case.
+
+00:10:34.860 --> 00:10:36.750
+But now let's bring in
+some more processors.
+
+00:10:36.750 --> 00:10:39.000
+Suppose that another
+processor finally
+
+00:10:39.000 --> 00:10:42.870
+shows up, says I'm bored,
+I want to do some work,
+
+00:10:42.870 --> 00:10:44.690
+and decides to steal
+some computation.
+
+00:10:44.690 --> 00:10:49.500
+It's going to discover the green
+strand in the frame fib(4),
+
+00:10:49.500 --> 00:10:51.090
+and P2 is just going
+to jump in there
+
+00:10:51.090 --> 00:10:53.460
+and start executing that strand.
+
+00:10:53.460 --> 00:10:56.820
+And if we think really
+hard about what this means,
+
+00:10:56.820 --> 00:10:59.010
+P2 is another processor
+on the system.
+
+00:10:59.010 --> 00:11:00.990
+It has its own set of registers.
+
+00:11:00.990 --> 00:11:02.940
+It has its own
+instruction pointer.
+
+00:11:02.940 --> 00:11:05.880
+And so what Cilk
+somehow allows to happen
+
+00:11:05.880 --> 00:11:09.720
+is for P2 to just jump
+right into the middle
+
+00:11:09.720 --> 00:11:12.870
+of this fib(4) routine,
+which is already executing.
+
+00:11:12.870 --> 00:11:14.370
+It just sets the
+instruction pointer
+
+00:11:14.370 --> 00:11:17.370
+to point at that
+green instruction,
+
+00:11:17.370 --> 00:11:20.730
+at the call to fib of n minus 2.
+
+00:11:20.730 --> 00:11:24.240
+And it's just going to pick
+up where processor 1 left off,
+
+00:11:24.240 --> 00:11:30.270
+when it executed up to this
+point in fib(4), somehow.
+
+00:11:30.270 --> 00:11:32.670
+In this case, it executes
+fib of n minus 2.
+
+00:11:32.670 --> 00:11:35.520
+That calls fib(2),
+creates a new strand,
+
+00:11:35.520 --> 00:11:37.760
+it's just an ordinary
+function call.
+
+00:11:37.760 --> 00:11:39.510
+It's going to descend
+into that new frame.
+
+00:11:39.510 --> 00:11:42.630
+It's going to return to
+the beginning of fib.
+
+00:11:42.630 --> 00:11:45.043
+All that's well and good.
+
+00:11:45.043 --> 00:11:47.460
+Another processor might come
+along and steal another piece
+
+00:11:47.460 --> 00:11:48.780
+of the computation.
+
+00:11:48.780 --> 00:11:52.080
+It steals another green
+strand, and so once again,
+
+00:11:52.080 --> 00:11:55.170
+this processor needs to jump
+into the middle of an executing
+
+00:11:55.170 --> 00:11:56.658
+function.
+
+00:11:56.658 --> 00:11:58.200
+Its instruction
+pointer is just going
+
+00:11:58.200 --> 00:12:01.350
+to point at this call
+of the fib of n minus 2.
+
+00:12:01.350 --> 00:12:03.660
+Somehow, it's going to have
+the state of this executing
+
+00:12:03.660 --> 00:12:07.320
+function available, despite
+having independent registers.
+
+00:12:07.320 --> 00:12:09.960
+And it needs to just
+start from this location,
+
+00:12:09.960 --> 00:12:13.205
+with all the parameters
+set appropriately,
+
+00:12:13.205 --> 00:12:14.580
+and start executing
+this function
+
+00:12:14.580 --> 00:12:16.860
+as if it's an ordinary function.
+
+00:12:16.860 --> 00:12:21.630
+It calls fib(3) minus 2 is 1.
+
+00:12:21.630 --> 00:12:24.390
+And now these processors might
+start executing in parallel.
+
+00:12:24.390 --> 00:12:28.180
+P1 might return from
+its base case routine
+
+00:12:28.180 --> 00:12:30.378
+up to the parent call
+of fib of n minus 2
+
+00:12:30.378 --> 00:12:31.920
+and start executing
+its continuation,
+
+00:12:31.920 --> 00:12:33.210
+because that wasn't stolen.
+
+00:12:33.210 --> 00:12:36.180
+Meanwhile, P3 descends into
+the execution of fib(1).
+
+00:12:39.290 --> 00:12:41.970
+And then in another
+step, P3 and P2
+
+00:12:41.970 --> 00:12:44.190
+make some progress
+executing their computation.
+
+00:12:44.190 --> 00:12:46.650
+P2 encounters a Cilk
+spawn statement,
+
+00:12:46.650 --> 00:12:49.360
+which creates a new frame
+and allows another strand
+
+00:12:49.360 --> 00:12:50.870
+to execute in parallel.
+
+00:12:50.870 --> 00:12:54.520
+P3 encounters the base
+case routine and says,
+
+00:12:54.520 --> 00:12:55.915
+OK, it's time to return.
+
+00:12:55.915 --> 00:12:57.540
+And all of that can
+happen in parallel,
+
+00:12:57.540 --> 00:13:01.990
+and somehow the Cilk system
+has to coordinate all of this.
+
+00:13:01.990 --> 00:13:03.420
+But we already have one mystery.
+
+00:13:03.420 --> 00:13:06.570
+How does a processor start
+executing from the middle
+
+00:13:06.570 --> 00:13:08.490
+of a running function?
+
+00:13:08.490 --> 00:13:13.380
+The running function and it's
+state lived on P1 initially,
+
+00:13:13.380 --> 00:13:17.580
+and then P2 and P3
+somehow find that state,
+
+00:13:17.580 --> 00:13:19.200
+hop into the middle
+of the function,
+
+00:13:19.200 --> 00:13:21.690
+and just start running.
+
+00:13:21.690 --> 00:13:22.680
+That's kind of strange.
+
+00:13:22.680 --> 00:13:23.700
+How does that happen?
+
+00:13:23.700 --> 00:13:25.870
+How does the Cilk runtime
+system make that happen?
+
+00:13:25.870 --> 00:13:27.120
+This is one thing to consider.
+
+00:13:29.905 --> 00:13:31.280
+Another thing to
+consider is what
+
+00:13:31.280 --> 00:13:32.600
+happens when we hit a sync.
+
+00:13:32.600 --> 00:13:35.270
+We'll talk about how these
+issues get addressed later on,
+
+00:13:35.270 --> 00:13:38.990
+but let's lay out all of
+the considerations upfront,
+
+00:13:38.990 --> 00:13:41.990
+before we-- just see how
+bad the problem is before we
+
+00:13:41.990 --> 00:13:46.350
+try to solve it bit by bit.
+
+00:13:46.350 --> 00:13:48.915
+So now, let's take this
+picture again and progress it
+
+00:13:48.915 --> 00:13:49.790
+a little bit further.
+
+00:13:49.790 --> 00:13:52.910
+Let's suppose that
+processor three
+
+00:13:52.910 --> 00:13:54.720
+decides to execute the return.
+
+00:13:54.720 --> 00:13:58.670
+It's going to return to
+an invocation of fib(3).
+
+00:13:58.670 --> 00:14:05.030
+And the return statement
+is a Cilk sync statement.
+
+00:14:05.030 --> 00:14:08.330
+But processor three
+can't execute the sync
+
+00:14:08.330 --> 00:14:13.310
+because the computation
+of fib(2) in this case--
+
+00:14:13.310 --> 00:14:14.810
+that's being done
+by processor one--
+
+00:14:14.810 --> 00:14:16.790
+that computation
+is not done yet.
+
+00:14:16.790 --> 00:14:19.790
+So the execution can
+proceed past the sync.
+
+00:14:19.790 --> 00:14:23.920
+So somehow P3 needs to say,
+OK, there is a sync statement,
+
+00:14:23.920 --> 00:14:26.420
+but we can't execute
+beyond this point
+
+00:14:26.420 --> 00:14:29.780
+because, specifically, it's
+waiting on processor one.
+
+00:14:29.780 --> 00:14:31.670
+It doesn't care what
+processor two is doing.
+
+00:14:31.670 --> 00:14:34.610
+Processor two is having a
+dandy time executing fib(2)
+
+00:14:34.610 --> 00:14:35.980
+on the other side of the tree.
+
+00:14:35.980 --> 00:14:37.748
+Processor three shouldn't care.
+
+00:14:37.748 --> 00:14:39.290
+So processor three
+can't do something
+
+00:14:39.290 --> 00:14:41.960
+like, OK, all
+processors need to stop,
+
+00:14:41.960 --> 00:14:44.330
+get to this point in the
+code, and then the execution
+
+00:14:44.330 --> 00:14:44.830
+can proceed.
+
+00:14:44.830 --> 00:14:47.430
+No, no, it just needs to
+wait on processor one.
+
+00:14:47.430 --> 00:14:51.920
+Somehow the Cilk system has
+to allow that fine grain
+
+00:14:51.920 --> 00:14:56.150
+synchronization to happen
+in this nested pattern.
+
+00:14:56.150 --> 00:14:59.420
+So how does a Cilk sync
+wait on only the nested sub
+
+00:14:59.420 --> 00:15:01.670
+computations within the program?
+
+00:15:01.670 --> 00:15:03.420
+How does it figure
+out how to do that?
+
+00:15:03.420 --> 00:15:06.717
+How does the Cilk runtime
+system implement this?
+
+00:15:06.717 --> 00:15:08.050
+So that's another consideration.
+
+00:15:08.050 --> 00:15:11.780
+OK, so at this point, we have
+three top level considerations.
+
+00:15:11.780 --> 00:15:14.300
+A single worker needs to be
+able to execute this program as
+
+00:15:14.300 --> 00:15:15.980
+if it's an ordinary
+serial program.
+
+00:15:15.980 --> 00:15:18.830
+Thieves have to be able to jump
+into the middle of executing
+
+00:15:18.830 --> 00:15:21.950
+functions and pick up
+from where they left off,
+
+00:15:21.950 --> 00:15:24.550
+from where other processors
+in the system left off.
+
+00:15:24.550 --> 00:15:28.310
+Syncs have to be able to
+stall functions appropriately,
+
+00:15:28.310 --> 00:15:34.880
+based only on those functions'
+nested child sub computations.
+
+00:15:34.880 --> 00:15:36.860
+So we have three
+big considerations
+
+00:15:36.860 --> 00:15:39.950
+that we need to
+pick apart so far.
+
+00:15:39.950 --> 00:15:42.080
+That's not the
+whole story, though.
+
+00:15:42.080 --> 00:15:44.330
+Any ideas what other
+functionality we
+
+00:15:44.330 --> 00:15:47.960
+need to worry about, for
+implementing this Cilk system?
+
+00:15:47.960 --> 00:15:51.230
+It's kind of an open ended
+question, but any thoughts?
+
+00:16:07.660 --> 00:16:13.180
+We have serial execution,
+spawning, stealing, and syncing
+
+00:16:13.180 --> 00:16:15.790
+as top level concerns.
+
+00:16:15.790 --> 00:16:18.850
+Anyone remember some
+other features of Cilk
+
+00:16:18.850 --> 00:16:23.140
+that the runtime system
+magically makes happen,
+
+00:16:23.140 --> 00:16:25.025
+correctly?
+
+00:16:25.025 --> 00:16:27.150
+It's probably been a while
+since you've seen those.
+
+00:16:27.150 --> 00:16:27.720
+Yeah.
+
+00:16:27.720 --> 00:16:29.820
+AUDIENCE: Cilk for loops
+divide and conquer?
+
+00:16:29.820 --> 00:16:32.770
+TAO SCHARDL: The Cilk for
+loops divide and conquer.
+
+00:16:32.770 --> 00:16:38.170
+Somehow, the runtime system does
+have to implement Cilk fours.
+
+00:16:38.170 --> 00:16:41.200
+The Cilk fours end up getting
+implemented internally,
+
+00:16:41.200 --> 00:16:42.490
+with spawns and syncs.
+
+00:16:42.490 --> 00:16:46.090
+That's courtesy of the compiler.
+
+00:16:46.090 --> 00:16:49.180
+Yeah, courtesy of the compiler.
+
+00:16:49.180 --> 00:16:51.490
+So we wont look too
+hard at Cilk fors today,
+
+00:16:51.490 --> 00:16:54.820
+but that's definitely
+one concern.
+
+00:16:54.820 --> 00:16:56.090
+Good observation.
+
+00:16:56.090 --> 00:17:00.580
+Any other thoughts, sort
+of low level system details
+
+00:17:00.580 --> 00:17:04.118
+that Cilk needs to
+implement correctly?
+
+00:17:09.380 --> 00:17:12.500
+Cache coherence--
+it actually doesn't
+
+00:17:12.500 --> 00:17:15.470
+need to worry too much
+about cache coherence
+
+00:17:15.470 --> 00:17:19.790
+although, given the
+latest performance numbers
+
+00:17:19.790 --> 00:17:22.010
+I've seen from Cilk,
+maybe it should worry more
+
+00:17:22.010 --> 00:17:24.613
+about the cache.
+
+00:17:24.613 --> 00:17:26.030
+But it turns out
+the hardware does
+
+00:17:26.030 --> 00:17:28.700
+a pretty good job maintaining
+the cache coherence
+
+00:17:28.700 --> 00:17:30.320
+protocol itself.
+
+00:17:30.320 --> 00:17:31.670
+But good guess .
+
+00:17:40.645 --> 00:17:42.020
+It's not really
+a tough question,
+
+00:17:42.020 --> 00:17:48.080
+because it's really just calling
+back memories of old lectures.
+
+00:17:48.080 --> 00:17:50.270
+I think you recently had
+a quiz on this material,
+
+00:17:50.270 --> 00:17:53.300
+so it's probably safe to say
+that all that material has
+
+00:17:53.300 --> 00:17:57.680
+been paged out of your
+brain at this point.
+
+00:17:57.680 --> 00:18:01.070
+So I'll just spoil
+the fun for you.
+
+00:18:01.070 --> 00:18:03.700
+Cilk has a notion
+of a cactus stack.
+
+00:18:03.700 --> 00:18:05.730
+So we talked a little
+bit about processors
+
+00:18:05.730 --> 00:18:07.730
+jumping into the middle
+of an executing function
+
+00:18:07.730 --> 00:18:13.220
+and somehow having the state
+of that function available.
+
+00:18:13.220 --> 00:18:14.960
+One consideration
+is registered state,
+
+00:18:14.960 --> 00:18:17.720
+but another consideration
+is the stack itself.
+
+00:18:17.720 --> 00:18:20.810
+And Cilk supports the
+C's rule for pointers,
+
+00:18:20.810 --> 00:18:25.850
+namely that children can see
+pointers into parent frames,
+
+00:18:25.850 --> 00:18:29.150
+but parents can't see
+pointers into child frames.
+
+00:18:29.150 --> 00:18:32.030
+Now each processor, each
+worker in a Cilk system,
+
+00:18:32.030 --> 00:18:35.330
+needs to have its own
+view of the stack.
+
+00:18:35.330 --> 00:18:38.180
+But those views aren't
+necessarily independent.
+
+00:18:38.180 --> 00:18:41.420
+In this picture,
+all five processors
+
+00:18:41.420 --> 00:18:47.900
+share the same view of the frame
+for Function A instantiation A,
+
+00:18:47.900 --> 00:18:50.000
+then processors three
+through five all share
+
+00:18:50.000 --> 00:18:53.120
+the same view for the
+instantiation of C.
+
+00:18:53.120 --> 00:18:56.330
+So somehow, Cilk has to
+make all of those views
+
+00:18:56.330 --> 00:19:01.310
+available and consistent
+but not quite the same, sort
+
+00:19:01.310 --> 00:19:05.450
+of consistent as we get
+with cache coherence.
+
+00:19:05.450 --> 00:19:08.630
+Cilk somehow has to
+implement this cactus stack.
+
+00:19:08.630 --> 00:19:13.455
+So that's another consideration
+that we have to worry about.
+
+00:19:13.455 --> 00:19:16.130
+And then there's one more
+kind of funny detail.
+
+00:19:16.130 --> 00:19:19.735
+If we take another look
+at work stealing itself--
+
+00:19:19.735 --> 00:19:23.300
+you may remember we had this
+picture from several lectures
+
+00:19:23.300 --> 00:19:25.910
+ago where we have
+processors on the system,
+
+00:19:25.910 --> 00:19:29.780
+each maintains its
+own deck of frames,
+
+00:19:29.780 --> 00:19:33.710
+and workers are allowed to
+steal frames from each other.
+
+00:19:33.710 --> 00:19:37.760
+But if we take a look
+at how this all unfolds,
+
+00:19:37.760 --> 00:19:40.910
+yes we may have a processor
+that performs a call,
+
+00:19:40.910 --> 00:19:44.090
+and that'll push another
+frame for a called function
+
+00:19:44.090 --> 00:19:46.480
+onto its deque on the bottom.
+
+00:19:46.480 --> 00:19:48.770
+It may spawn, and that'll
+push a spawn frame
+
+00:19:48.770 --> 00:19:50.600
+onto the bottom of its deck.
+
+00:19:50.600 --> 00:19:52.580
+But if we fast
+forward a little bit
+
+00:19:52.580 --> 00:19:55.070
+and we get in up with a
+worker with nothing to do,
+
+00:19:55.070 --> 00:19:56.870
+that worker is going
+to go ahead and steal,
+
+00:19:56.870 --> 00:20:01.750
+picking another worker
+in the system at random.
+
+00:20:01.750 --> 00:20:04.120
+And it's going to steal
+from the top of the deque.
+
+00:20:04.120 --> 00:20:07.400
+But it's not just going to steal
+the topmost item on the deque.
+
+00:20:07.400 --> 00:20:10.760
+It's actually going to steal a
+chunk of items from the deque.
+
+00:20:10.760 --> 00:20:15.170
+In particular, if it
+selects the third processor
+
+00:20:15.170 --> 00:20:18.530
+in this picture,
+third from the left,
+
+00:20:18.530 --> 00:20:23.570
+this thief is going
+to steal everything
+
+00:20:23.570 --> 00:20:27.160
+through the parent of
+the next spawned frame.
+
+00:20:27.160 --> 00:20:29.940
+It needs to take this
+whole stack of frames,
+
+00:20:29.940 --> 00:20:33.470
+and it's not clear a
+priori how many frames
+
+00:20:33.470 --> 00:20:37.335
+the worker is going to
+have to steal in this case.
+
+00:20:37.335 --> 00:20:39.460
+But nevertheless, it needs
+to take all those frames
+
+00:20:39.460 --> 00:20:40.420
+and resume execution.
+
+00:20:40.420 --> 00:20:44.080
+After all, that bottom was a
+call frame that it just stole.
+
+00:20:44.080 --> 00:20:45.700
+That's where there's
+a continuation
+
+00:20:45.700 --> 00:20:48.460
+with work available to
+be done in parallel.
+
+00:20:51.440 --> 00:20:53.233
+And so, if we think
+about it, there
+
+00:20:53.233 --> 00:20:54.650
+are a lot of
+questions that arise.
+
+00:20:54.650 --> 00:20:56.890
+What's involved in
+stealing frames?
+
+00:20:56.890 --> 00:21:00.280
+What synchronization does
+this system have to implement?
+
+00:21:00.280 --> 00:21:02.100
+What happens to the stack?
+
+00:21:02.100 --> 00:21:04.600
+It looks like we just shifted
+some frames from one processor
+
+00:21:04.600 --> 00:21:07.390
+to another, but the first
+processor, the victim,
+
+00:21:07.390 --> 00:21:09.820
+still needs access to
+the data in that stack.
+
+00:21:09.820 --> 00:21:13.300
+So how does that part work, and
+how does any of this actually
+
+00:21:13.300 --> 00:21:16.360
+become efficient?
+
+00:21:16.360 --> 00:21:19.060
+So now we have a pretty
+decent list of functionality
+
+00:21:19.060 --> 00:21:21.340
+that we need out of the
+Cilk runtime system.
+
+00:21:21.340 --> 00:21:23.650
+We need serial
+execution to work.
+
+00:21:23.650 --> 00:21:26.350
+We need thieves to be able to
+jump into the middle of running
+
+00:21:26.350 --> 00:21:27.310
+functions.
+
+00:21:27.310 --> 00:21:32.290
+We need sinks to synchronize
+in this nested, fine grain way.
+
+00:21:32.290 --> 00:21:36.190
+We need to implement a cactus
+stack for all the workers
+
+00:21:36.190 --> 00:21:37.570
+to see.
+
+00:21:37.570 --> 00:21:41.860
+And these have to deal with
+mixtures of spawned frames
+
+00:21:41.860 --> 00:21:45.190
+and called frames
+that may be available
+
+00:21:45.190 --> 00:21:48.730
+when they steal a computation.
+
+00:21:48.730 --> 00:21:50.770
+So that's a bunch
+of considerations.
+
+00:21:50.770 --> 00:21:53.380
+Is this the whole picture?
+
+00:21:53.380 --> 00:21:55.600
+Well, there's a little
+bit more to it than that.
+
+00:21:55.600 --> 00:21:57.100
+So before I give
+you an answers, I'm
+
+00:21:57.100 --> 00:22:00.008
+just going to keep
+raising questions.
+
+00:22:00.008 --> 00:22:02.050
+And now I want to raise
+some questions concerning
+
+00:22:02.050 --> 00:22:03.430
+the performance of the system.
+
+00:22:03.430 --> 00:22:06.310
+How do we want to
+design the system
+
+00:22:06.310 --> 00:22:12.580
+to get good parallel
+execution times?
+
+00:22:12.580 --> 00:22:15.080
+Well if we take a look at the
+work stealing bounds for Cilk,
+
+00:22:15.080 --> 00:22:17.480
+the Cilk's work
+stealing scheduler
+
+00:22:17.480 --> 00:22:20.830
+achieves an expected
+running time of Tp,
+
+00:22:20.830 --> 00:22:24.770
+on P processors, which is
+proportional to the work
+
+00:22:24.770 --> 00:22:27.200
+of the computation divided
+by the number of processors,
+
+00:22:27.200 --> 00:22:31.160
+plus something on the order of
+the span of the computation.
+
+00:22:31.160 --> 00:22:34.490
+Now if we take a look at
+this running time bound,
+
+00:22:34.490 --> 00:22:37.500
+we can decompose
+it into two pieces.
+
+00:22:37.500 --> 00:22:40.280
+The T1 over P part,
+that's really the time
+
+00:22:40.280 --> 00:22:44.960
+that the parallel workers on the
+system spend doing actual work.
+
+00:22:44.960 --> 00:22:48.170
+They're P of those workers,
+they're all making progress
+
+00:22:48.170 --> 00:22:50.000
+on the work of the computation.
+
+00:22:50.000 --> 00:22:52.760
+That comes out to
+T of one over P.
+
+00:22:52.760 --> 00:22:55.450
+The other part of the bound,
+order T infinity, that's
+
+00:22:55.450 --> 00:22:58.040
+a time that turns out to
+be the time that workers
+
+00:22:58.040 --> 00:23:01.940
+spend stealing computation
+from each other.
+
+00:23:01.940 --> 00:23:04.880
+And ideally, what we want when
+we paralyze a program using
+
+00:23:04.880 --> 00:23:09.440
+Cilk, is we want to see this
+program achieve linear speedup.
+
+00:23:09.440 --> 00:23:14.870
+That means that if we give the
+program more processors to run,
+
+00:23:14.870 --> 00:23:17.960
+if we increase P, we want
+to see the execution time
+
+00:23:17.960 --> 00:23:21.820
+decrease, linearly, with P.
+
+00:23:21.820 --> 00:23:26.310
+And that means we want the of
+the workers in the Cilk system
+
+00:23:26.310 --> 00:23:28.460
+to spend most of the
+time doing useful work.
+
+00:23:28.460 --> 00:23:30.470
+We don't want the workers
+spending a lot of time
+
+00:23:30.470 --> 00:23:31.512
+stealing from each other.
+
+00:23:34.660 --> 00:23:38.060
+In fact, we want
+even more than this.
+
+00:23:38.060 --> 00:23:41.650
+We don't just want work divided
+by number of processors.
+
+00:23:41.650 --> 00:23:44.290
+We really care about how
+the performance compares
+
+00:23:44.290 --> 00:23:47.950
+to the running time of
+the original serial code
+
+00:23:47.950 --> 00:23:50.140
+that we were given,
+that we parallelized.
+
+00:23:50.140 --> 00:23:53.800
+That original serial
+code ran in time Ts of S.
+
+00:23:53.800 --> 00:23:56.200
+And now we paralyze it
+using Cilk spawn, Cilk sync,
+
+00:23:56.200 --> 00:23:59.090
+or in this case, Cilk for.
+
+00:23:59.090 --> 00:24:01.583
+And ideally, with
+sufficient parallelism,
+
+00:24:01.583 --> 00:24:03.250
+we'll guarantee that
+the running time is
+
+00:24:03.250 --> 00:24:07.320
+going to be Ts of P proportional
+to the work of a processor, T1
+
+00:24:07.320 --> 00:24:10.780
+divided by P. But we really
+want to speed up compared
+
+00:24:10.780 --> 00:24:14.200
+to Ts of S. So that's our goal.
+
+00:24:14.200 --> 00:24:18.130
+We want Tp to be proportional
+to Ts of S over P.
+
+00:24:18.130 --> 00:24:20.620
+That says that we want
+the serial running time
+
+00:24:20.620 --> 00:24:24.580
+to be pretty close to the work
+of the parallel computation.
+
+00:24:24.580 --> 00:24:28.120
+So the one processor running
+time of our Cilk code, ideally,
+
+00:24:28.120 --> 00:24:31.390
+should look pretty close
+to the running time
+
+00:24:31.390 --> 00:24:32.590
+of the original serial code.
+
+00:24:35.610 --> 00:24:38.090
+So just to put these
+pieces together,
+
+00:24:38.090 --> 00:24:41.180
+if we were originally
+given a serial program that
+
+00:24:41.180 --> 00:24:44.330
+ran on time Ts of S, and we
+parallelize it using Cilk,
+
+00:24:44.330 --> 00:24:46.430
+we end up with a parallel
+program with work T1
+
+00:24:46.430 --> 00:24:48.050
+and span T infinity.
+
+00:24:48.050 --> 00:24:51.410
+We want to achieve linear
+speed up on P processors,
+
+00:24:51.410 --> 00:24:54.320
+compared to the original
+serial running time.
+
+00:24:54.320 --> 00:24:56.490
+In order to do that,
+we need two things.
+
+00:24:56.490 --> 00:24:58.260
+We need ample parallelism.
+
+00:24:58.260 --> 00:25:01.220
+T1 one over T infinity should
+be a lot bigger than P.
+
+00:25:01.220 --> 00:25:05.780
+And we've seen why that's
+the case in lectures past.
+
+00:25:05.780 --> 00:25:08.690
+We also want what's called
+high work efficiency.
+
+00:25:08.690 --> 00:25:11.060
+We want the ratio of the
+serial running time divided
+
+00:25:11.060 --> 00:25:13.670
+by the work of the
+still computation
+
+00:25:13.670 --> 00:25:15.755
+to be pretty close to
+one, as close as possible.
+
+00:25:19.330 --> 00:25:23.670
+Now, the Cilk runtime system
+is designed with these two
+
+00:25:23.670 --> 00:25:25.020
+observations in mind.
+
+00:25:25.020 --> 00:25:27.330
+And in particular, the
+Cilk runtime system
+
+00:25:27.330 --> 00:25:29.910
+says, suppose that we
+have a Cilk program that
+
+00:25:29.910 --> 00:25:31.950
+has ample parallelism.
+
+00:25:31.950 --> 00:25:33.600
+It has efficient
+parallelism to make
+
+00:25:33.600 --> 00:25:38.280
+good use of the available
+parallel processors.
+
+00:25:38.280 --> 00:25:40.020
+Then in implementing
+the Cilk runtime,
+
+00:25:40.020 --> 00:25:44.298
+we have a goal to maintain
+high work efficiency.
+
+00:25:44.298 --> 00:25:45.840
+And to maintain high
+work efficiency,
+
+00:25:45.840 --> 00:25:48.000
+the Cilk runtime
+system abides by what's
+
+00:25:48.000 --> 00:25:50.460
+called the work first
+principle, which
+
+00:25:50.460 --> 00:25:53.550
+is to optimize the
+ordinary serial execution
+
+00:25:53.550 --> 00:25:57.280
+of the program, even at the
+expense of some additional cost
+
+00:25:57.280 --> 00:25:57.780
+to steals.
+
+00:26:01.570 --> 00:26:06.372
+Now at 30,000 feet, the way
+that the Cilk runtime system
+
+00:26:06.372 --> 00:26:07.830
+implements the work
+first principle
+
+00:26:07.830 --> 00:26:10.150
+and makes all these
+components work
+
+00:26:10.150 --> 00:26:14.200
+is by dividing the job
+between both the compiler
+
+00:26:14.200 --> 00:26:16.870
+and the runtime system library.
+
+00:26:16.870 --> 00:26:20.990
+The compiler uses a handful
+of small data structures,
+
+00:26:20.990 --> 00:26:23.110
+including workers
+and stack frames,
+
+00:26:23.110 --> 00:26:25.270
+and implements
+optimized fast paths
+
+00:26:25.270 --> 00:26:28.840
+for execution of
+functions, which should be
+
+00:26:28.840 --> 00:26:31.630
+executed when no steals occur.
+
+00:26:31.630 --> 00:26:34.213
+The runtime system
+library handles issues
+
+00:26:34.213 --> 00:26:35.380
+with the parallel execution.
+
+00:26:35.380 --> 00:26:38.320
+And uses larger data structures
+that maintain parallel
+
+00:26:38.320 --> 00:26:40.110
+running time state.
+
+00:26:40.110 --> 00:26:42.760
+And it handles slower
+paths of execution,
+
+00:26:42.760 --> 00:26:46.180
+in particular when
+seals actually occur.
+
+00:26:46.180 --> 00:26:47.680
+So those are all
+the considerations.
+
+00:26:47.680 --> 00:26:49.927
+We have a lot of
+functionality requirements
+
+00:26:49.927 --> 00:26:51.760
+and we have some
+performance considerations.
+
+00:26:51.760 --> 00:26:53.650
+We want to optimize
+the work, even
+
+00:26:53.650 --> 00:26:56.020
+at the expense of some steals.
+
+00:26:56.020 --> 00:26:59.050
+Let's finally take a
+look at how Cilk works.
+
+00:26:59.050 --> 00:27:02.140
+How do we deal with
+all these problems?
+
+00:27:02.140 --> 00:27:07.150
+I imagine some you may have
+some ideas as to how you might
+
+00:27:07.150 --> 00:27:13.418
+tackle one issue or another, but
+let's see what really happens.
+
+00:27:13.418 --> 00:27:14.710
+Let's start from the beginning.
+
+00:27:14.710 --> 00:27:16.590
+How do we implement
+a worker deque?
+
+00:27:20.650 --> 00:27:22.630
+Now for this
+discussion, we're going
+
+00:27:22.630 --> 00:27:26.050
+to use a running example
+with just a really, really
+
+00:27:26.050 --> 00:27:27.350
+simple, Cilk routine.
+
+00:27:27.350 --> 00:27:29.830
+It's not even as
+complicated as fib.
+
+00:27:29.830 --> 00:27:33.010
+We're going to have a function
+foo that, at one point,
+
+00:27:33.010 --> 00:27:36.880
+spawns a function bar, in
+the continuation calls baz,
+
+00:27:36.880 --> 00:27:39.670
+performs a sync,
+and then returns.
+
+00:27:39.670 --> 00:27:42.130
+And just to establish
+some terminology,
+
+00:27:42.130 --> 00:27:44.980
+foo will be what we call
+a spawning function,
+
+00:27:44.980 --> 00:27:48.300
+meaning that foo is capable
+of executing a Cilk spawn
+
+00:27:48.300 --> 00:27:49.630
+statement.
+
+00:27:49.630 --> 00:27:52.720
+The function bar
+is spawned by foo.
+
+00:27:52.720 --> 00:27:55.870
+We can see that from the
+Cilk spawn in front of bar.
+
+00:27:55.870 --> 00:27:58.870
+And the call to baz occurs in
+the continuation of that Cilk
+
+00:27:58.870 --> 00:28:03.835
+spawn, simple picture.
+
+00:28:03.835 --> 00:28:05.140
+Everyone good so far?
+
+00:28:05.140 --> 00:28:07.630
+Any questions about the
+functionality requirements,
+
+00:28:07.630 --> 00:28:10.447
+terminology, performance
+considerations?
+
+00:28:13.020 --> 00:28:13.520
+OK.
+
+00:28:16.290 --> 00:28:19.750
+So now we're going to take a
+hard look at just one worker
+
+00:28:19.750 --> 00:28:21.480
+and we're going to
+say, conceptually, we
+
+00:28:21.480 --> 00:28:24.810
+have this deque-like structure
+which has spawned frames
+
+00:28:24.810 --> 00:28:25.805
+and called frames.
+
+00:28:25.805 --> 00:28:27.930
+Let's ignore the rest of
+the workers on the system.
+
+00:28:27.930 --> 00:28:29.160
+Let's not worry about--
+
+00:28:29.160 --> 00:28:32.490
+well, we'll worry a little
+bit about how steals can work,
+
+00:28:32.490 --> 00:28:35.100
+but we're just going
+to focus on the actions
+
+00:28:35.100 --> 00:28:37.200
+that one worker performs.
+
+00:28:37.200 --> 00:28:39.857
+How do we implement this deque?
+
+00:28:39.857 --> 00:28:41.940
+And we want the worker to
+operate on its own deck,
+
+00:28:41.940 --> 00:28:42.930
+a lot like a stack.
+
+00:28:42.930 --> 00:28:44.972
+It's going to push and
+pop frames from the bottom
+
+00:28:44.972 --> 00:28:45.930
+up the deque.
+
+00:28:45.930 --> 00:28:47.820
+Steals need to be
+able to transfer
+
+00:28:47.820 --> 00:28:50.370
+ownership of several
+consecutive frames
+
+00:28:50.370 --> 00:28:52.410
+from the top of the deque.
+
+00:28:52.410 --> 00:28:54.908
+And thieves need to be able
+to resume a continuation.
+
+00:28:57.660 --> 00:29:01.510
+So the way that the
+Cilk system does this,
+
+00:29:01.510 --> 00:29:04.783
+to bring this concept
+into an implementation,
+
+00:29:04.783 --> 00:29:06.950
+is that it's going to
+implement the deque externally
+
+00:29:06.950 --> 00:29:08.510
+from the actual call stack.
+
+00:29:08.510 --> 00:29:11.660
+Those frames will still
+be in a stack somewhere
+
+00:29:11.660 --> 00:29:14.690
+and they'll be managed,
+roughly speaking,
+
+00:29:14.690 --> 00:29:18.710
+with a standard
+calling convention.
+
+00:29:18.710 --> 00:29:21.800
+But the worker is going to
+maintain a separate deque data
+
+00:29:21.800 --> 00:29:27.170
+structure, which will contain
+pointers into this stack.
+
+00:29:27.170 --> 00:29:29.540
+And the worker itself
+will maintain the deque
+
+00:29:29.540 --> 00:29:30.860
+using head and tail pointers.
+
+00:29:33.840 --> 00:29:37.080
+Now in addition to this
+picture, the frames
+
+00:29:37.080 --> 00:29:38.668
+that are available
+to be stolen--
+
+00:29:38.668 --> 00:29:40.710
+the frames that have
+computation that a thief can
+
+00:29:40.710 --> 00:29:42.600
+come along and execute--
+
+00:29:42.600 --> 00:29:46.470
+those frames will store an
+additional local structure
+
+00:29:46.470 --> 00:29:49.260
+that will contain information
+as necessary for stealing
+
+00:29:49.260 --> 00:29:51.370
+to occur.
+
+00:29:51.370 --> 00:29:52.380
+Does this make sense?
+
+00:29:52.380 --> 00:29:54.810
+Questions so far?
+
+00:29:54.810 --> 00:29:57.870
+Ordinary call stack,
+deque lives outside of it,
+
+00:29:57.870 --> 00:30:02.340
+worker points at the deque,
+pretty simple design.
+
+00:30:09.230 --> 00:30:13.620
+So I mentioned that the compiler
+used relatively lightweight
+
+00:30:13.620 --> 00:30:16.050
+structures.
+
+00:30:16.050 --> 00:30:17.440
+This is essentially one of them.
+
+00:30:17.440 --> 00:30:21.450
+And if we take a look at the
+implementation of the Cilk
+
+00:30:21.450 --> 00:30:25.440
+runtime system, this
+is the essence of it.
+
+00:30:25.440 --> 00:30:28.110
+There are some additional
+implementation details,
+
+00:30:28.110 --> 00:30:30.750
+but these are the core--
+
+00:30:30.750 --> 00:30:35.083
+this is, in a sense, the
+core piece of the design.
+
+00:30:35.083 --> 00:30:36.250
+So the rest is just details.
+
+00:30:36.250 --> 00:30:37.940
+The Intel Cilk
+Plus runtime system
+
+00:30:37.940 --> 00:30:43.620
+takes this design and elaborates
+on it in a variety of ways.
+
+00:30:43.620 --> 00:30:46.115
+And we're going to take a
+look at those elaborations.
+
+00:30:46.115 --> 00:30:47.490
+First off, what
+we'll see is that
+
+00:30:47.490 --> 00:30:49.410
+every spawned
+subcomputation ends up
+
+00:30:49.410 --> 00:30:52.650
+being executed within its
+own helper function, which
+
+00:30:52.650 --> 00:30:54.720
+the compiler will generate.
+
+00:30:54.720 --> 00:30:57.680
+That's called a spawn
+helper function.
+
+00:30:57.680 --> 00:30:59.180
+And then the runtime
+system is going
+
+00:30:59.180 --> 00:31:03.300
+to maintain a few basic data
+structures as the workers
+
+00:31:03.300 --> 00:31:04.185
+execute their work.
+
+00:31:04.185 --> 00:31:06.060
+There'll be a structure
+for the worker, which
+
+00:31:06.060 --> 00:31:08.610
+will look similar to what we
+just saw in the previous slide.
+
+00:31:08.610 --> 00:31:11.280
+There'll be a Cilk
+stack frame structure
+
+00:31:11.280 --> 00:31:14.970
+for each instantiation
+of a spawning function,
+
+00:31:14.970 --> 00:31:16.765
+some function that
+can perform and spawn.
+
+00:31:16.765 --> 00:31:18.390
+And there'll be a
+stack-frame structure
+
+00:31:18.390 --> 00:31:25.150
+for each spawn helper, each
+instantiation that is spawned.
+
+00:31:25.150 --> 00:31:27.400
+Now if we take another
+look at the compiled code
+
+00:31:27.400 --> 00:31:31.180
+we had before, some of it
+starts to make some sense.
+
+00:31:31.180 --> 00:31:35.710
+Originally, we had our spawning
+function foo and a statement
+
+00:31:35.710 --> 00:31:38.200
+that spawned off, called a bar.
+
+00:31:38.200 --> 00:31:41.450
+And in the C pseudocode
+of the compiled results,
+
+00:31:41.450 --> 00:31:43.400
+we see that we
+have two functions.
+
+00:31:43.400 --> 00:31:44.627
+The first function foo--
+
+00:31:44.627 --> 00:31:46.960
+that's our spawning function--
+it's got a bunch of stuff
+
+00:31:46.960 --> 00:31:50.578
+in it, and we'll figure out
+what that's doing in a second.
+
+00:31:50.578 --> 00:31:52.870
+But there's a second function,
+and that second function
+
+00:31:52.870 --> 00:31:55.380
+is the spawn helper.
+
+00:31:55.380 --> 00:31:57.190
+And that spawn helper
+actually contains
+
+00:31:57.190 --> 00:32:02.890
+a statement which calls bar and
+ultimately saves the result.
+
+00:32:02.890 --> 00:32:03.730
+Make sense?
+
+00:32:03.730 --> 00:32:08.880
+Now we're starting to understand
+some of the confusing C
+
+00:32:08.880 --> 00:32:10.110
+pseudocode we saw before.
+
+00:32:16.470 --> 00:32:19.270
+And if we take a look at each
+of these routines we see,
+
+00:32:19.270 --> 00:32:23.360
+indeed, there is a
+stack frame structure.
+
+00:32:23.360 --> 00:32:27.340
+And so in Intel Cilk Plus it's
+called a Cilk RTS stack frame,
+
+00:32:27.340 --> 00:32:29.180
+very creative name, I know.
+
+00:32:29.180 --> 00:32:31.570
+And it's just added as
+an extra local variable
+
+00:32:31.570 --> 00:32:33.012
+in each of these functions.
+
+00:32:33.012 --> 00:32:34.720
+You got one inside of
+foo, because that's
+
+00:32:34.720 --> 00:32:37.720
+a spawning function, and you get
+one inside of the spawn helper.
+
+00:32:41.120 --> 00:32:43.940
+Now if we dive into the Cilk
+stack frame structure itself,
+
+00:32:43.940 --> 00:32:47.660
+by cracking open the source
+code for the Intel Cilk Plus
+
+00:32:47.660 --> 00:32:51.120
+runtime, we see that there are a
+lot of fields in the structure.
+
+00:32:51.120 --> 00:32:55.280
+The main fields are as follows--
+there is a buffer, a context
+
+00:32:55.280 --> 00:32:58.160
+buffer, and that's going to
+contain enough information
+
+00:32:58.160 --> 00:33:01.190
+to resume a function
+at a continuation,
+
+00:33:01.190 --> 00:33:03.800
+particularly to mean after
+a Cilk spawn or, in fact,
+
+00:33:03.800 --> 00:33:05.990
+after a Cilk sync statement.
+
+00:33:05.990 --> 00:33:09.500
+There's an additional integer
+in the stack frame called flags,
+
+00:33:09.500 --> 00:33:12.580
+which will summarize the
+state of the Cilk stack rate,
+
+00:33:12.580 --> 00:33:14.750
+and we'll see a little
+bit more about that later.
+
+00:33:14.750 --> 00:33:17.540
+And there's going to be a
+pointer to a parent Cilk stack
+
+00:33:17.540 --> 00:33:21.980
+frame that's somewhere above
+this Cilk RTS stack frame,
+
+00:33:21.980 --> 00:33:23.600
+somewhere in the call stack.
+
+00:33:23.600 --> 00:33:25.460
+So these Cilk RTS
+stack frames, these
+
+00:33:25.460 --> 00:33:30.740
+are the extra bit of state that
+the Cilk runtime system adds
+
+00:33:30.740 --> 00:33:32.150
+to the ordinary call stack.
+
+00:33:35.073 --> 00:33:37.240
+So if we take a look at the
+actual worker structure,
+
+00:33:37.240 --> 00:33:38.800
+it's a lot like
+what we saw before.
+
+00:33:38.800 --> 00:33:41.560
+We have a deque that's
+external to the call stack.
+
+00:33:41.560 --> 00:33:46.700
+The Cilk worker maintains head
+and tail pointers to the deque.
+
+00:33:46.700 --> 00:33:49.030
+The Cilk workers are also
+going to maintain a pointer
+
+00:33:49.030 --> 00:33:52.150
+to the current Cilk
+RTS stack frame, which
+
+00:33:52.150 --> 00:33:56.560
+will tend to be somewhere
+near the bottom of the stack.
+
+00:34:02.880 --> 00:34:05.860
+OK, so those are the basic data
+structures that a single worker
+
+00:34:05.860 --> 00:34:07.650
+is going to maintain.
+
+00:34:07.650 --> 00:34:09.239
+That includes the deque.
+
+00:34:09.239 --> 00:34:12.420
+Let's see them all
+in action, shall we?
+
+00:34:12.420 --> 00:34:15.120
+Any questions about
+that so far, before we
+
+00:34:15.120 --> 00:34:17.050
+start watching pointers fly?
+
+00:34:17.050 --> 00:34:17.616
+Yeah.
+
+00:34:17.616 --> 00:34:19.830
+AUDIENCE: I guess with
+the previous slide,
+
+00:34:19.830 --> 00:34:22.480
+there were arrows on
+the workers' call stack.
+
+00:34:22.480 --> 00:34:25.920
+What do you [INAUDIBLE]?
+
+00:34:25.920 --> 00:34:29.580
+TAO SCHARDL: What do the arrows
+among the elements on the call
+
+00:34:29.580 --> 00:34:31.050
+stack mean?
+
+00:34:31.050 --> 00:34:33.540
+So in this picture
+of the call stack,
+
+00:34:33.540 --> 00:34:35.850
+function instantiations
+are actually in green,
+
+00:34:35.850 --> 00:34:39.360
+and local variables--
+specifically the Cilk RTS stack
+
+00:34:39.360 --> 00:34:41.010
+frames--
+
+00:34:41.010 --> 00:34:43.139
+those show up in beige.
+
+00:34:43.139 --> 00:34:48.900
+So foo SF is the Cilk RTS stack
+frame inside the instantiation
+
+00:34:48.900 --> 00:34:49.777
+of foo.
+
+00:34:49.777 --> 00:34:51.360
+It's just a local
+variable that's also
+
+00:34:51.360 --> 00:34:53.880
+stored in the stack, right?
+
+00:34:53.880 --> 00:34:58.440
+Now, the Cilk RTS stack frame
+maintains a parent pointer,
+
+00:34:58.440 --> 00:35:02.170
+and it maintains a pointer
+up to some Cilk RTS stack
+
+00:35:02.170 --> 00:35:03.660
+frame above it on the stack.
+
+00:35:03.660 --> 00:35:06.090
+It's just another local
+variable, also stored
+
+00:35:06.090 --> 00:35:07.570
+in the stack.
+
+00:35:07.570 --> 00:35:10.290
+So when we step away and
+look at the whole call stack
+
+00:35:10.290 --> 00:35:14.640
+with all the function frames
+and the Cilk RTS stack frames,
+
+00:35:14.640 --> 00:35:17.715
+that's where we get the
+pointers climbing up the stack.
+
+00:35:17.715 --> 00:35:20.735
+We're good?
+
+00:35:20.735 --> 00:35:22.208
+Other questions?
+
+00:35:27.610 --> 00:35:30.880
+All right, let's make
+some pointers fly.
+
+00:35:30.880 --> 00:35:32.680
+OK, this is going to
+be kind of a letdown,
+
+00:35:32.680 --> 00:35:35.780
+because the first thing we're
+going to look at is some code.
+
+00:35:35.780 --> 00:35:37.947
+So we're not going to have
+pointers flying just yet.
+
+00:35:40.540 --> 00:35:43.900
+We can take a look at the code
+for the spawning function foo,
+
+00:35:43.900 --> 00:35:45.630
+at this point.
+
+00:35:45.630 --> 00:35:48.970
+And there's a lot of extra
+code in here, clearly.
+
+00:35:48.970 --> 00:35:51.490
+I've highlighted a lot
+of stuff on this slide,
+
+00:35:51.490 --> 00:35:53.980
+and all the
+highlighted material is
+
+00:35:53.980 --> 00:35:58.340
+related to the execution
+of the Cilk runtime system.
+
+00:35:58.340 --> 00:36:00.140
+But basically, if we
+look at this code,
+
+00:36:00.140 --> 00:36:03.880
+we can understand
+each of these pieces.
+
+00:36:03.880 --> 00:36:07.160
+Each of them has some role to
+play in making the Cilk runtime
+
+00:36:07.160 --> 00:36:08.020
+system work.
+
+00:36:08.020 --> 00:36:10.870
+So at the very beginning,
+we have our Cilk stack frame
+
+00:36:10.870 --> 00:36:11.920
+structure.
+
+00:36:11.920 --> 00:36:15.310
+And there's a call
+to this enter frame
+
+00:36:15.310 --> 00:36:17.560
+function, which all
+that really does
+
+00:36:17.560 --> 00:36:19.510
+is initialize the stack frame.
+
+00:36:19.510 --> 00:36:21.610
+That's all the
+function is doing.
+
+00:36:21.610 --> 00:36:24.490
+Later on, we find that there's
+this set jump routine--
+
+00:36:24.490 --> 00:36:26.920
+we'll talk a lot more
+about set jump in a bit--
+
+00:36:26.920 --> 00:36:30.820
+that, at this point, we can
+say the set jump prepares
+
+00:36:30.820 --> 00:36:32.840
+the function for a spawn.
+
+00:36:32.840 --> 00:36:37.960
+And inside the
+conditional, where
+
+00:36:37.960 --> 00:36:39.730
+the set jump occurs
+as a predicate,
+
+00:36:39.730 --> 00:36:41.508
+we have a call to spawn bar.
+
+00:36:41.508 --> 00:36:43.300
+If we remember from a
+couple of slides ago,
+
+00:36:43.300 --> 00:36:45.530
+spawn bar was our
+spawn helper function.
+
+00:36:45.530 --> 00:36:48.520
+So we're here, we're just
+invoking the spawn helper.
+
+00:36:48.520 --> 00:36:51.100
+Later on in the code,
+we have another blob
+
+00:36:51.100 --> 00:36:55.510
+of conditionals with a Cilk
+RTS sync call, deep inside.
+
+00:36:55.510 --> 00:36:57.100
+All that code performs a sync.
+
+00:36:57.100 --> 00:37:01.150
+We'll talk about that a bit
+near the end of lecture.
+
+00:37:01.150 --> 00:37:03.940
+And finally, at the end
+of the spawning function,
+
+00:37:03.940 --> 00:37:07.570
+we have a call to pop
+frame, which just cleans up
+
+00:37:07.570 --> 00:37:12.070
+the Cilk stack frame structure
+within this function.
+
+00:37:12.070 --> 00:37:14.680
+And then there's a call to
+leave frame, which essentially
+
+00:37:14.680 --> 00:37:17.990
+cleans up the deque.
+
+00:37:17.990 --> 00:37:20.310
+That's the spawning function.
+
+00:37:20.310 --> 00:37:21.560
+This is the spawn helper.
+
+00:37:21.560 --> 00:37:22.710
+It looks somewhat similar.
+
+00:37:22.710 --> 00:37:26.000
+I've added extra whitespace
+just to make the slide
+
+00:37:26.000 --> 00:37:28.550
+a little bit prettier.
+
+00:37:28.550 --> 00:37:30.890
+And in some ways, it's similar
+to the spawning function
+
+00:37:30.890 --> 00:37:31.400
+itself.
+
+00:37:31.400 --> 00:37:34.430
+We have a Cilk RTS stack frame
+[INAUDIBLE] spawn helper,
+
+00:37:34.430 --> 00:37:36.258
+another call to
+enter frame, which
+
+00:37:36.258 --> 00:37:37.550
+is just a little bit different.
+
+00:37:37.550 --> 00:37:42.000
+But essentially, it
+initializes the stack frame.
+
+00:37:42.000 --> 00:37:45.260
+Its reason to be is
+similar to the enter frame
+
+00:37:45.260 --> 00:37:47.400
+call we saw before.
+
+00:37:47.400 --> 00:37:49.790
+There's a call to
+Cilk RTS detach,
+
+00:37:49.790 --> 00:37:53.280
+which performs a bunch
+of updates on the deque.
+
+00:37:53.280 --> 00:37:54.770
+Then there is the
+actual invocation
+
+00:37:54.770 --> 00:37:56.570
+of the spawn subroutine.
+
+00:37:56.570 --> 00:37:58.653
+This is where we're calling bar.
+
+00:37:58.653 --> 00:38:00.320
+And finally, at the
+end of the function,
+
+00:38:00.320 --> 00:38:03.650
+there is a call to pop frame,
+to clean up the stack structure,
+
+00:38:03.650 --> 00:38:06.920
+and a call to leave frame,
+which will clean up the deck
+
+00:38:06.920 --> 00:38:08.750
+and possibly return.
+
+00:38:08.750 --> 00:38:10.127
+It'll try to return.
+
+00:38:10.127 --> 00:38:11.210
+We'll see more about that.
+
+00:38:14.510 --> 00:38:17.050
+So let's watch all
+of this in action.
+
+00:38:17.050 --> 00:38:18.500
+Question?
+
+00:38:18.500 --> 00:38:19.020
+OK, cool.
+
+00:38:22.390 --> 00:38:23.870
+Let's see all of this in action.
+
+00:38:23.870 --> 00:38:25.840
+We'll start off with a
+pretty boring picture.
+
+00:38:25.840 --> 00:38:28.190
+All we've got on our
+call stack is main,
+
+00:38:28.190 --> 00:38:30.225
+and our Cilk worker has
+nothing on its deque.
+
+00:38:33.190 --> 00:38:36.100
+But now we suppose that main
+calls our responding function
+
+00:38:36.100 --> 00:38:38.590
+foo, and the
+spawning function foo
+
+00:38:38.590 --> 00:38:41.813
+contains a Cilk RTS stack frame.
+
+00:38:41.813 --> 00:38:44.230
+What we're going to do in the
+Cilk worker, what that enter
+
+00:38:44.230 --> 00:38:48.153
+frame call is going to
+perform, all it's going to do
+
+00:38:48.153 --> 00:38:49.570
+is update the
+current stack frame.
+
+00:38:49.570 --> 00:38:51.520
+We now have a Cilk
+RTS stack frame,
+
+00:38:51.520 --> 00:38:56.460
+make sure the worker
+points at it, that's all.
+
+00:38:56.460 --> 00:38:59.250
+Fast forward a little
+bit, and foo encounters
+
+00:38:59.250 --> 00:39:02.100
+this call to Cilk spawn a bar.
+
+00:39:02.100 --> 00:39:04.890
+And in the C pseudocode
+that's compiled for foo,
+
+00:39:04.890 --> 00:39:07.410
+we have a set jump routine.
+
+00:39:07.410 --> 00:39:11.083
+This set jump is kind
+of a magical function.
+
+00:39:11.083 --> 00:39:12.750
+This is the function
+that allows thieves
+
+00:39:12.750 --> 00:39:15.210
+to steal the continuation.
+
+00:39:15.210 --> 00:39:19.290
+And in particular, the set
+jump takes, as an argument,
+
+00:39:19.290 --> 00:39:20.160
+a buffer.
+
+00:39:20.160 --> 00:39:21.750
+In this case, it's
+the context buffer
+
+00:39:21.750 --> 00:39:24.322
+that we have in the
+Cilk RTS stack frame.
+
+00:39:24.322 --> 00:39:25.780
+And what the set
+jump will do is it
+
+00:39:25.780 --> 00:39:28.920
+will store information
+that's necessary to resume
+
+00:39:28.920 --> 00:39:32.850
+the function at the
+location of the set jump.
+
+00:39:32.850 --> 00:39:35.280
+And it stores that
+information into the buffer.
+
+00:39:35.280 --> 00:39:37.620
+Can anyone guess what
+that information might be?
+
+00:39:45.900 --> 00:39:49.900
+AUDIENCE: The instruction
+points at [INAUDIBLE]..
+
+00:39:49.900 --> 00:39:52.870
+TAO SCHARDL: Instruction
+pointer or stock pointer,
+
+00:39:52.870 --> 00:39:55.678
+I believe both of
+those are in the frame.
+
+00:39:55.678 --> 00:39:57.220
+Yeah, both of those
+are in the frame.
+
+00:39:57.220 --> 00:39:58.210
+Good, what else?
+
+00:40:06.421 --> 00:40:09.820
+AUDIENCE: All the
+registers are in use.
+
+00:40:09.820 --> 00:40:12.830
+TAO SCHARDL: All the registers
+are currently in use.
+
+00:40:12.830 --> 00:40:14.800
+Does it need all the registers?
+
+00:40:14.800 --> 00:40:17.352
+You're absolutely
+on the right track,
+
+00:40:17.352 --> 00:40:19.810
+but is there any way it could
+restrict the set of registers
+
+00:40:19.810 --> 00:40:20.530
+it needs to save?
+
+00:40:25.420 --> 00:40:29.318
+AUDIENCE: The registers are
+used later in the execution.
+
+00:40:29.318 --> 00:40:30.610
+TAO SCHARDL: That's part of it.
+
+00:40:30.610 --> 00:40:32.260
+Set jump isn't
+that clever though,
+
+00:40:32.260 --> 00:40:37.120
+so it just stores a
+predetermined set of registers.
+
+00:40:37.120 --> 00:40:39.230
+But there is another
+way to restrict the set.
+
+00:40:46.146 --> 00:40:50.468
+AUDIENCE: [INAUDIBLE]
+
+00:40:50.468 --> 00:40:52.260
+TAO SCHARDL: Only
+registers uses parameters
+
+00:40:52.260 --> 00:40:57.880
+in the called function,
+yeah, close enough.
+
+00:40:57.880 --> 00:41:00.590
+Callee-saved registers.
+
+00:41:00.590 --> 00:41:04.460
+So registers that
+the function might--
+
+00:41:04.460 --> 00:41:08.390
+that it's the responsibility
+of foo to save,
+
+00:41:08.390 --> 00:41:12.290
+this goes all the way back to
+that discussion in lecture,
+
+00:41:12.290 --> 00:41:15.140
+I don't remember which
+small number, talking
+
+00:41:15.140 --> 00:41:17.785
+about the calling convention.
+
+00:41:17.785 --> 00:41:19.160
+These registers
+need to be saved,
+
+00:41:19.160 --> 00:41:21.620
+as well as the instruction
+pointer and various stack
+
+00:41:21.620 --> 00:41:22.400
+pointers.
+
+00:41:22.400 --> 00:41:24.830
+Those are what gets
+saved into the buffer.
+
+00:41:24.830 --> 00:41:27.343
+The other registers, well,
+we're about to call a function,
+
+00:41:27.343 --> 00:41:29.510
+it's up to that other
+function to save the registers
+
+00:41:29.510 --> 00:41:30.680
+appropriately.
+
+00:41:30.680 --> 00:41:32.780
+So we don't need to
+worry about those.
+
+00:41:36.936 --> 00:41:37.488
+So all good?
+
+00:41:37.488 --> 00:41:38.530
+Any questions about that?
+
+00:41:42.820 --> 00:41:45.290
+All right, so this
+set jump routine,
+
+00:41:45.290 --> 00:41:47.290
+let's take it for
+granted that when
+
+00:41:47.290 --> 00:41:51.790
+we call a set jump on this
+given buffer, it returns zero.
+
+00:41:51.790 --> 00:41:53.682
+That's a good lie for now.
+
+00:41:53.682 --> 00:41:54.640
+We'll just run with it.
+
+00:41:54.640 --> 00:41:56.430
+So set jump returs zero.
+
+00:41:56.430 --> 00:41:58.690
+The condition
+says, if not zero--
+
+00:41:58.690 --> 00:42:00.760
+which turns out to be true--
+
+00:42:00.760 --> 00:42:02.380
+and so the next
+thing that happens
+
+00:42:02.380 --> 00:42:06.010
+is this call to the
+spawn helper, spawn_bar,
+
+00:42:06.010 --> 00:42:07.410
+in this case.
+
+00:42:07.410 --> 00:42:11.990
+When we call spawn_bar,
+what happens to our stack?
+
+00:42:11.990 --> 00:42:14.455
+So this should look
+pretty routine.
+
+00:42:14.455 --> 00:42:16.900
+We're doing a function
+call, and so we
+
+00:42:16.900 --> 00:42:20.950
+push the frame for the called
+function onto the stack.
+
+00:42:20.950 --> 00:42:23.380
+And that called
+function, spawn bar,
+
+00:42:23.380 --> 00:42:25.652
+contains a local
+variable, which is
+
+00:42:25.652 --> 00:42:26.860
+this [INAUDIBLE] stack frame.
+
+00:42:26.860 --> 00:42:29.072
+So that also gets
+pushed onto the stack,
+
+00:42:29.072 --> 00:42:30.030
+pretty straightforward.
+
+00:42:30.030 --> 00:42:33.460
+We've seen function
+calls many times before.
+
+00:42:33.460 --> 00:42:35.650
+This should look
+pretty familiar.
+
+00:42:35.650 --> 00:42:39.113
+Now we do this Cilk RTS
+enter frame fast routine.
+
+00:42:39.113 --> 00:42:40.780
+And I mentioned before
+that that's going
+
+00:42:40.780 --> 00:42:44.200
+to update the worker structure.
+
+00:42:48.638 --> 00:42:49.930
+So what's going to happen here?
+
+00:42:49.930 --> 00:42:54.250
+Well, we have a brand new Cilk
+RTS stack frame on the stack.
+
+00:42:54.250 --> 00:42:57.070
+Any guesses as to
+what change we make?
+
+00:43:02.430 --> 00:43:04.380
+What would enter frame do?
+
+00:43:04.380 --> 00:43:07.687
+AUDIENCE: [INAUDIBLE]
+
+00:43:07.687 --> 00:43:09.270
+TAO SCHARDL: Point
+current stack frame
+
+00:43:09.270 --> 00:43:11.327
+to spawn in bar stack
+frame, you're right.
+
+00:43:11.327 --> 00:43:11.910
+Anything else?
+
+00:43:18.306 --> 00:43:20.110
+Hope I got this animation right.
+
+00:43:30.550 --> 00:43:34.840
+What are the various fields
+within the stack frame?
+
+00:43:34.840 --> 00:43:36.820
+And what did-- sorry,
+I don't know your name.
+
+00:43:36.820 --> 00:43:37.528
+What's your name?
+
+00:43:40.407 --> 00:43:41.330
+AUDIENCE: I'm Greg.
+
+00:43:41.330 --> 00:43:44.370
+TAO SCHARDL: Greg, what
+did Greg ask about before,
+
+00:43:44.370 --> 00:43:46.460
+when we saw an earlier
+picture of the call stack?
+
+00:43:58.292 --> 00:44:00.760
+AUDIENCE: Set a
+pointer to the parent.
+
+00:44:00.760 --> 00:44:03.803
+TAO SCHARDL: Set a pointer
+to the parent, exactly.
+
+00:44:03.803 --> 00:44:05.220
+So what we're going
+to do is we're
+
+00:44:05.220 --> 00:44:06.980
+going to take this
+call stack, we'll
+
+00:44:06.980 --> 00:44:09.120
+do the enter frame fast routine.
+
+00:44:09.120 --> 00:44:12.870
+That establishes this parent
+pointer in our brand new stack
+
+00:44:12.870 --> 00:44:14.010
+frame.
+
+00:44:14.010 --> 00:44:16.637
+And we update the worker's
+current stack frame to point
+
+00:44:16.637 --> 00:44:17.220
+at the bottom.
+
+00:44:17.220 --> 00:44:18.754
+Yeah, question?
+
+00:44:18.754 --> 00:44:21.870
+AUDIENCE: How does enter
+frame know what the parent is?
+
+00:44:21.870 --> 00:44:24.870
+TAO SCHARDL: How does enter
+frame know what the parent is?
+
+00:44:24.870 --> 00:44:25.740
+Good question.
+
+00:44:25.740 --> 00:44:29.950
+Enter frame knows the worker.
+
+00:44:29.950 --> 00:44:33.510
+Or rather, enter frame can do a
+call, which will give it access
+
+00:44:33.510 --> 00:44:35.915
+to the Cilk worker structure.
+
+00:44:35.915 --> 00:44:38.100
+And because it can
+do a call, it can
+
+00:44:38.100 --> 00:44:41.553
+read the current stack
+frame pointer in the worker.
+
+00:44:41.553 --> 00:44:43.220
+AUDIENCE: So we do
+[INAUDIBLE] before we
+
+00:44:43.220 --> 00:44:46.990
+change the current [INAUDIBLE]?
+
+00:44:46.990 --> 00:44:50.320
+TAO SCHARDL: Yeah,
+in this case we do.
+
+00:44:50.320 --> 00:44:55.950
+So we add the parent pointer,
+then we delete and update.
+
+00:44:55.950 --> 00:44:59.505
+So, good catch.
+
+00:44:59.505 --> 00:45:00.948
+Any other questions?
+
+00:45:05.560 --> 00:45:06.060
+Cool.
+
+00:45:08.640 --> 00:45:11.190
+All right, now we encounter
+this thing, Cilk RTS detach.
+
+00:45:11.190 --> 00:45:13.080
+This one's kind of exciting.
+
+00:45:13.080 --> 00:45:18.720
+Finally we get to do
+something to the deque.
+
+00:45:18.720 --> 00:45:20.280
+Any guesses what we do?
+
+00:45:20.280 --> 00:45:22.770
+How do we update the deque?
+
+00:45:22.770 --> 00:45:23.870
+Here's a hint.
+
+00:45:23.870 --> 00:45:27.450
+Cilk RTS detach allows--
+
+00:45:27.450 --> 00:45:31.380
+this is the function that allows
+some computation to be stolen.
+
+00:45:31.380 --> 00:45:35.810
+Once Cilk RTS detach
+is done executing,
+
+00:45:35.810 --> 00:45:38.610
+a thief could come along
+and steal the continuation
+
+00:45:38.610 --> 00:45:40.320
+of the Cilk spawn.
+
+00:45:40.320 --> 00:45:46.350
+So what would Cilk RTS
+detach do to our worker
+
+00:45:46.350 --> 00:45:47.260
+and its structures?
+
+00:45:52.060 --> 00:45:52.810
+Yeah, in the back.
+
+00:45:52.810 --> 00:45:55.750
+AUDIENCE: Push the stack
+frame to the worker deque?
+
+00:45:55.750 --> 00:45:58.510
+TAO SCHARDL: Push the stack
+frame to the worker deque,
+
+00:45:58.510 --> 00:46:00.220
+specifically at the tail.
+
+00:46:03.100 --> 00:46:05.725
+Right, I gave it away by
+clicking the animation,
+
+00:46:05.725 --> 00:46:07.690
+oh well.
+
+00:46:07.690 --> 00:46:11.920
+Now the thing that's available
+to be stolen is inside of foo.
+
+00:46:11.920 --> 00:46:14.350
+So what ends up getting
+pushed onto the deque
+
+00:46:14.350 --> 00:46:16.660
+is not the current
+stack frame, but in fact
+
+00:46:16.660 --> 00:46:20.590
+its immediate parent, so
+the stack frame of foo.
+
+00:46:20.590 --> 00:46:23.270
+That gets pushed onto
+the tail of the deque.
+
+00:46:23.270 --> 00:46:27.340
+And we now push something
+onto the tail of a deque.
+
+00:46:27.340 --> 00:46:30.610
+And so we advance
+the tail pointer.
+
+00:46:30.610 --> 00:46:32.110
+Still good, everyone?
+
+00:46:32.110 --> 00:46:33.730
+I see some nods.
+
+00:46:33.730 --> 00:46:35.158
+I see at least one nod.
+
+00:46:35.158 --> 00:46:35.700
+I'll take it.
+
+00:46:37.980 --> 00:46:39.730
+But feel free to ask
+questions, of course.
+
+00:46:43.120 --> 00:46:46.540
+And then of course there
+is this invocation of bar.
+
+00:46:46.540 --> 00:46:48.340
+This does what you might expect.
+
+00:46:48.340 --> 00:46:51.310
+It calls bar, no magic here.
+
+00:46:51.310 --> 00:46:54.890
+Well, no new magic here.
+
+00:46:54.890 --> 00:46:58.360
+OK, fast forward, let's suppose
+that bar finally returns.
+
+00:46:58.360 --> 00:47:00.280
+And now we return
+to the statement
+
+00:47:00.280 --> 00:47:02.500
+after bar in the spawn helper.
+
+00:47:02.500 --> 00:47:04.630
+That statement is the pop frame.
+
+00:47:07.210 --> 00:47:10.120
+Actually, since we
+just returned from bar,
+
+00:47:10.120 --> 00:47:12.100
+we need to get rid of
+bar from the stack frame.
+
+00:47:12.100 --> 00:47:14.410
+Good, now we can
+execute the pop frame.
+
+00:47:14.410 --> 00:47:17.050
+What would the pop frame do?
+
+00:47:17.050 --> 00:47:19.220
+It's going to clean up
+the stack frame structure.
+
+00:47:19.220 --> 00:47:22.370
+So what would that
+entail, any guesses?
+
+00:47:27.140 --> 00:47:29.640
+AUDIENCE: I guess it would move
+the current stack frame back
+
+00:47:29.640 --> 00:47:31.338
+to the parent stack frame?
+
+00:47:31.338 --> 00:47:33.880
+TAO SCHARDL: Move the current
+stack frame back to the parent,
+
+00:47:33.880 --> 00:47:36.030
+very good.
+
+00:47:36.030 --> 00:47:43.330
+I think that's largely it.
+
+00:47:43.330 --> 00:47:45.780
+I guess there's one
+other thing it can do.
+
+00:47:45.780 --> 00:47:47.710
+It's kind of optional,
+given that it's going
+
+00:47:47.710 --> 00:47:51.870
+to garbage the memory anyway.
+
+00:47:51.870 --> 00:47:54.690
+So it updates the current stack
+frame to point to the parent,
+
+00:47:54.690 --> 00:47:56.648
+and now it no longer
+needs that parent pointer.
+
+00:47:56.648 --> 00:48:00.360
+So it can clean that
+up, in principle.
+
+00:48:00.360 --> 00:48:03.000
+And then there's this call
+to Cilk RTS leave frame.
+
+00:48:03.000 --> 00:48:07.590
+This is magic-- well, not
+really, but it's not obvious.
+
+00:48:07.590 --> 00:48:10.782
+This is a function call
+that may or may not return.
+
+00:48:10.782 --> 00:48:12.240
+Welcome to the Cilk
+runtime system.
+
+00:48:12.240 --> 00:48:14.150
+You end up with
+calls to functions
+
+00:48:14.150 --> 00:48:15.990
+that you may never return from.
+
+00:48:15.990 --> 00:48:19.620
+This happens all the time.
+
+00:48:19.620 --> 00:48:23.490
+And the Cilk RTS leave
+frame may or may not
+
+00:48:23.490 --> 00:48:26.730
+return, based entirely
+on what's on the status
+
+00:48:26.730 --> 00:48:29.610
+of the deque, what
+content is currently
+
+00:48:29.610 --> 00:48:33.870
+sitting on the workers' deque.
+
+00:48:33.870 --> 00:48:35.880
+Anyone have a guess as
+to why the leave frame
+
+00:48:35.880 --> 00:48:40.560
+routine might not return,
+in the conventional sense?
+
+00:48:43.133 --> 00:48:45.300
+AUDIENCE: There's nothing
+else for the worker to do,
+
+00:48:45.300 --> 00:48:48.958
+so it'll sit there spinning.
+
+00:48:48.958 --> 00:48:51.250
+TAO SCHARDL: If there's
+nothing left to do on the deck,
+
+00:48:51.250 --> 00:48:53.040
+then it's going to--
+sorry, say again?
+
+00:48:53.040 --> 00:48:57.190
+AUDIENCE: It'll just wait until
+there's work you can steal?
+
+00:48:57.190 --> 00:48:59.540
+TAO SCHARDL: Right, if
+there's nothing on the deque,
+
+00:48:59.540 --> 00:49:02.540
+then it has nowhere
+to return to.
+
+00:49:02.540 --> 00:49:08.003
+And so naturally, as we've seen
+from Cilk workers in the past,
+
+00:49:08.003 --> 00:49:10.420
+it discovers there's nothing
+on the deque, there's no work
+
+00:49:10.420 --> 00:49:12.520
+to do, time to turn
+to a life of crime,
+
+00:49:12.520 --> 00:49:14.680
+and try to steal work
+from someone else.
+
+00:49:17.330 --> 00:49:18.880
+So there are two
+possible scenarios.
+
+00:49:18.880 --> 00:49:23.350
+The pop could succeed and
+execution continues as normal,
+
+00:49:23.350 --> 00:49:26.140
+or it fails and it
+becomes a thief.
+
+00:49:26.140 --> 00:49:28.900
+Now which of these
+two cases do you
+
+00:49:28.900 --> 00:49:32.091
+think is more important for
+the runtime system to optimize?
+
+00:49:40.440 --> 00:49:44.750
+Success, case one,
+exactly, so why is that?
+
+00:49:50.074 --> 00:49:52.943
+AUDIENCE: [INAUDIBLE]
+
+00:49:52.943 --> 00:49:54.610
+TAO SCHARDL: At least,
+we hope so, yeah.
+
+00:49:54.610 --> 00:49:58.330
+We assume-- this hearkens all
+the way back to that work first
+
+00:49:58.330 --> 00:49:59.440
+principle--
+
+00:49:59.440 --> 00:50:01.690
+we assume that in
+the common case,
+
+00:50:01.690 --> 00:50:03.520
+workers are doing
+useful work, they're
+
+00:50:03.520 --> 00:50:06.850
+not just spending their time
+stealing from each other.
+
+00:50:06.850 --> 00:50:11.470
+And therefore, ideally,
+we want to assume
+
+00:50:11.470 --> 00:50:15.400
+that the worker will
+do what's normal,
+
+00:50:15.400 --> 00:50:17.970
+just an ordinary
+serial execution.
+
+00:50:17.970 --> 00:50:20.120
+In a normal serial
+execution, there
+
+00:50:20.120 --> 00:50:25.280
+is something on the deque, the
+pop succeeds, that's case one.
+
+00:50:25.280 --> 00:50:28.060
+So what we'll see is that
+the runtime system, in fact,
+
+00:50:28.060 --> 00:50:31.557
+does a little bit of
+optimization on case one.
+
+00:50:31.557 --> 00:50:33.640
+Let's talk about something
+a little more exciting.
+
+00:50:33.640 --> 00:50:35.545
+How about stealing computation.
+
+00:50:35.545 --> 00:50:39.060
+We like stealing
+stuff from each other.
+
+00:50:39.060 --> 00:50:41.096
+Yes?
+
+00:50:41.096 --> 00:50:53.803
+AUDIENCE: [INAUDIBLE]
+
+00:50:53.803 --> 00:50:55.720
+TAO SCHARDL: Where does
+it return the results?
+
+00:50:55.720 --> 00:50:59.770
+So where does it return the
+result in the spawn bar?
+
+00:50:59.770 --> 00:51:05.600
+The answer you can kind of
+see two lines above this.
+
+00:51:05.600 --> 00:51:08.060
+So in this case, in
+the original Cilk code,
+
+00:51:08.060 --> 00:51:11.150
+we had X equals
+Cilk spawn of bar.
+
+00:51:11.150 --> 00:51:15.200
+And here, what are the
+parameters to our spawn bar
+
+00:51:15.200 --> 00:51:15.700
+function?
+
+00:51:24.150 --> 00:51:29.760
+X and N. Now N is the
+input to bar, right?
+
+00:51:29.760 --> 00:51:30.570
+So what's X?
+
+00:51:39.300 --> 00:51:45.163
+AUDIENCE: [INAUDIBLE]
+
+00:51:45.163 --> 00:51:46.830
+TAO SCHARDL: You can
+rewind a little bit
+
+00:51:46.830 --> 00:51:50.300
+and see that you are correct.
+
+00:51:50.300 --> 00:51:51.850
+There we go.
+
+00:51:51.850 --> 00:51:56.190
+Yeah, so the original Cilk code,
+we had X equals Cilk spawn bar.
+
+00:51:56.190 --> 00:51:59.700
+That's the same X.
+All that Cilk does
+
+00:51:59.700 --> 00:52:02.850
+is pass a pointer to
+the memory allocated
+
+00:52:02.850 --> 00:52:07.680
+for that variable down
+to the spawn helper.
+
+00:52:07.680 --> 00:52:11.550
+And now the spawn helper, when
+it calls bar and that returns,
+
+00:52:11.550 --> 00:52:16.530
+it gets stored into that storage
+in the parent stack frame.
+
+00:52:16.530 --> 00:52:18.780
+Good catch.
+
+00:52:18.780 --> 00:52:20.190
+Good observation.
+
+00:52:20.190 --> 00:52:21.555
+Any questions about that?
+
+00:52:21.555 --> 00:52:25.060
+Does that make sense?
+
+00:52:25.060 --> 00:52:25.560
+Cool.
+
+00:52:30.520 --> 00:52:32.620
+Probably used too many
+animations in these slides.
+
+00:52:36.980 --> 00:52:40.070
+All right, now let's
+talk about stealing.
+
+00:52:40.070 --> 00:52:43.190
+How does a worker
+steal computation?
+
+00:52:43.190 --> 00:52:47.000
+Now the conceptual
+diagram we had before
+
+00:52:47.000 --> 00:52:49.730
+saw this one worker, with
+nothing on its deque,
+
+00:52:49.730 --> 00:52:52.160
+take a couple of frames
+from another workers deque
+
+00:52:52.160 --> 00:52:55.130
+and just slide them on over.
+
+00:52:55.130 --> 00:52:58.590
+What does that actually look
+like in the implementation?
+
+00:52:58.590 --> 00:53:01.940
+Well, we're still going to
+take from the top of the deque,
+
+00:53:01.940 --> 00:53:05.600
+but now we have a picture
+that's a little bit more
+
+00:53:05.600 --> 00:53:09.050
+accurate in terms of the
+structures that are really
+
+00:53:09.050 --> 00:53:10.260
+implemented in the system.
+
+00:53:10.260 --> 00:53:13.220
+So we have the call
+stack of the victim,
+
+00:53:13.220 --> 00:53:16.520
+and the victim also has a
+deque data structure and a Cilk
+
+00:53:16.520 --> 00:53:18.860
+worker data structure,
+with head and tail pointers
+
+00:53:18.860 --> 00:53:21.860
+and a current stack frame.
+
+00:53:21.860 --> 00:53:25.470
+So what happens when a thief
+comes along out of nowhere?
+
+00:53:25.470 --> 00:53:27.530
+It's bored, it has
+nothing on its deque.
+
+00:53:27.530 --> 00:53:29.720
+Head and tail pointers
+both point to the top.
+
+00:53:29.720 --> 00:53:32.330
+Current stack frame has nothing.
+
+00:53:32.330 --> 00:53:34.270
+What's the thief going to do?
+
+00:53:34.270 --> 00:53:34.910
+Any guesses?
+
+00:53:57.300 --> 00:53:59.490
+How does this thief
+take the content
+
+00:53:59.490 --> 00:54:00.790
+from the worker's deque?
+
+00:54:11.190 --> 00:54:14.200
+AUDIENCE: The worker sets
+their current stack frame
+
+00:54:14.200 --> 00:54:22.150
+to the one that [INAUDIBLE]
+
+00:54:22.150 --> 00:54:26.410
+TAO SCHARDL:
+Exactly right, yeah.
+
+00:54:26.410 --> 00:54:27.220
+Sorry, was that--
+
+00:54:27.220 --> 00:54:29.540
+I didn't mean to interrupt.
+
+00:54:29.540 --> 00:54:30.400
+All right, cool.
+
+00:54:30.400 --> 00:54:34.210
+So the red highlighting should
+give a little bit of a hint.
+
+00:54:34.210 --> 00:54:37.780
+The current stack
+frame in the thief
+
+00:54:37.780 --> 00:54:39.790
+is going to end up
+pointing to the stack frame
+
+00:54:39.790 --> 00:54:43.210
+at the top of the deque, pointed
+to by the top of the deque.
+
+00:54:43.210 --> 00:54:47.060
+And the head of the deque
+needs to be updated.
+
+00:54:47.060 --> 00:54:51.220
+So let's just see all
+those pointers shuffle.
+
+00:54:51.220 --> 00:54:54.920
+The thief is going to target
+the head of the deque.
+
+00:54:54.920 --> 00:54:59.862
+It's going to deque that item
+from the top of the deck.
+
+00:54:59.862 --> 00:55:01.570
+It's going to set the
+current stack frame
+
+00:55:01.570 --> 00:55:05.680
+to point to that item, and
+it will delete the pointer
+
+00:55:05.680 --> 00:55:08.530
+on the deque.
+
+00:55:08.530 --> 00:55:11.160
+That make sense?
+
+00:55:11.160 --> 00:55:12.300
+Cool.
+
+00:55:12.300 --> 00:55:17.640
+Now the victim and the thief
+are on different processors,
+
+00:55:17.640 --> 00:55:20.310
+and this scenario involves
+shuffling a lot of pointers
+
+00:55:20.310 --> 00:55:21.620
+around.
+
+00:55:21.620 --> 00:55:25.050
+So if we think
+about this process,
+
+00:55:25.050 --> 00:55:27.240
+there needs to be
+some way to handle
+
+00:55:27.240 --> 00:55:30.188
+the concurrent accesses
+that are going to occur
+
+00:55:30.188 --> 00:55:31.230
+on the head of the deque.
+
+00:55:33.993 --> 00:55:35.660
+You haven't talked
+about synchronization
+
+00:55:35.660 --> 00:55:38.160
+yet in this class, that's going
+to be a couple lectures down
+
+00:55:38.160 --> 00:55:39.733
+the road.
+
+00:55:39.733 --> 00:55:41.150
+I'll give you a
+couple of spoilers
+
+00:55:41.150 --> 00:55:42.980
+for those
+synchronization lectures.
+
+00:55:42.980 --> 00:55:45.650
+First off, synchronization
+is expensive.
+
+00:55:45.650 --> 00:55:48.290
+And second, reasoning
+about synchronization
+
+00:55:48.290 --> 00:55:52.598
+is a source of
+massive headaches.
+
+00:55:52.598 --> 00:55:54.640
+Congratulations, you now
+know those two lectures.
+
+00:55:54.640 --> 00:55:55.515
+No, I'm just kidding.
+
+00:55:55.515 --> 00:55:58.820
+Go to the lectures, you'll
+learn a lot, they're great.
+
+00:55:58.820 --> 00:56:02.540
+In the Cilk runtime
+system, the way
+
+00:56:02.540 --> 00:56:07.820
+that those concurrent
+accesses are handled
+
+00:56:07.820 --> 00:56:11.930
+is by using a protocol
+known as the THE protocol.
+
+00:56:11.930 --> 00:56:17.570
+This is pseudo code for most of
+the logic in the THE protocol.
+
+00:56:17.570 --> 00:56:20.630
+There's a protocol that
+the worker, executing work
+
+00:56:20.630 --> 00:56:21.910
+normally, follows.
+
+00:56:21.910 --> 00:56:23.905
+And there is the
+protocol for the thief.
+
+00:56:23.905 --> 00:56:26.030
+I'm not going to walk
+through all the lines of code
+
+00:56:26.030 --> 00:56:28.490
+here and describe what they do.
+
+00:56:28.490 --> 00:56:32.390
+I'll just give you the very high
+level view of this protocol.
+
+00:56:32.390 --> 00:56:34.610
+From the thief's
+perspective, the thief
+
+00:56:34.610 --> 00:56:38.660
+always grabs a lock on the deque
+before doing any operations
+
+00:56:38.660 --> 00:56:40.340
+on the deque.
+
+00:56:40.340 --> 00:56:43.430
+Always acquire the lock first.
+
+00:56:43.430 --> 00:56:48.160
+For the worker, it's a
+little bit more optimized.
+
+00:56:48.160 --> 00:56:51.460
+So what the worker will
+do is optimistically try
+
+00:56:51.460 --> 00:56:55.120
+to pop something from
+the bottom of the deque.
+
+00:56:55.120 --> 00:56:58.720
+And only if it looks like
+that pop operation fails
+
+00:56:58.720 --> 00:57:01.120
+does the worker do
+something more complicated.
+
+00:57:01.120 --> 00:57:04.490
+Only then does it try to
+acquire a lock on the deque,
+
+00:57:04.490 --> 00:57:08.350
+then try to pop something
+off, see if it really
+
+00:57:08.350 --> 00:57:13.810
+succeeds or fails, and possibly
+turn to a life of crime.
+
+00:57:13.810 --> 00:57:15.860
+So the worker's
+protocol looks longer,
+
+00:57:15.860 --> 00:57:19.930
+but that's just because
+the worker implements
+
+00:57:19.930 --> 00:57:24.880
+a special case, which is
+optimized for the common case.
+
+00:57:24.880 --> 00:57:28.420
+This is essentially where
+the leave frame routine,
+
+00:57:28.420 --> 00:57:33.010
+that we saw before, is optimized
+for case one, optimized
+
+00:57:33.010 --> 00:57:36.730
+for the pop from the
+deque succeeding.
+
+00:57:36.730 --> 00:57:39.390
+Any questions about that?
+
+00:57:39.390 --> 00:57:43.775
+Seem clear from 30,000 feet?
+
+00:57:43.775 --> 00:57:46.190
+Cool.
+
+00:57:46.190 --> 00:57:49.280
+OK, so that's how a
+worker steals work
+
+00:57:49.280 --> 00:57:53.510
+from the top of
+the victim's deque.
+
+00:57:53.510 --> 00:57:56.330
+Now, that thief needs to
+resume a continuation.
+
+00:57:56.330 --> 00:57:59.900
+And this is that whole process
+about jumping into the middle
+
+00:57:59.900 --> 00:58:01.550
+of an executing function.
+
+00:58:01.550 --> 00:58:03.470
+It already has a
+frame, it already
+
+00:58:03.470 --> 00:58:05.630
+has a [INAUDIBLE]
+state going on,
+
+00:58:05.630 --> 00:58:09.340
+and all that was established
+by a different processor.
+
+00:58:09.340 --> 00:58:13.220
+So somehow that thief
+has to magically come up
+
+00:58:13.220 --> 00:58:16.880
+with the right state and
+start executing that function.
+
+00:58:16.880 --> 00:58:18.780
+How does that happen?
+
+00:58:18.780 --> 00:58:21.200
+Well, this has to do
+with a routine that's
+
+00:58:21.200 --> 00:58:24.920
+the complement of the set
+jump routine we saw before.
+
+00:58:24.920 --> 00:58:28.580
+The complement of set jump
+is what's called long jump.
+
+00:58:28.580 --> 00:58:30.902
+So Cilk uses, in
+particular Cilk thieves,
+
+00:58:30.902 --> 00:58:32.360
+use the long jump
+function in order
+
+00:58:32.360 --> 00:58:34.550
+to resume a stolen continuation.
+
+00:58:34.550 --> 00:58:36.830
+Previously, in our
+spawning function foo,
+
+00:58:36.830 --> 00:58:39.970
+we had this set jump call.
+
+00:58:39.970 --> 00:58:44.390
+And that set jump saved some
+state to a local buffer,
+
+00:58:44.390 --> 00:58:49.160
+in particular the buffer
+in the stack frame of foo.
+
+00:58:49.160 --> 00:58:53.420
+Now the thief has just created
+this Cilk worker structure,
+
+00:58:53.420 --> 00:58:56.540
+where the current
+stack frame is pointing
+
+00:58:56.540 --> 00:58:59.720
+at the stack frame of foo.
+
+00:58:59.720 --> 00:59:02.850
+And so what the thief will
+do is it'll execute a call,
+
+00:59:02.850 --> 00:59:07.970
+it'll execute the statement,
+it will execute the long jump
+
+00:59:07.970 --> 00:59:11.920
+function, passing that
+particular stack frame's buffer
+
+00:59:11.920 --> 00:59:15.190
+and an additional argument,
+and that long jump
+
+00:59:15.190 --> 00:59:18.010
+will take the registered
+state stored in the buffer,
+
+00:59:18.010 --> 00:59:20.840
+put that registered
+state into the worker,
+
+00:59:20.840 --> 00:59:24.190
+and then let the worker proceed.
+
+00:59:24.190 --> 00:59:25.400
+That make sense?
+
+00:59:25.400 --> 00:59:26.475
+Any questions about that?
+
+00:59:31.030 --> 00:59:34.660
+This is kind of a wacky routine
+because, if you remember,
+
+00:59:34.660 --> 00:59:37.840
+one of the registers
+stored in that buffer
+
+00:59:37.840 --> 00:59:39.970
+is an instruction pointer.
+
+00:59:39.970 --> 00:59:42.627
+And so it's going to read
+the instruction pointer out
+
+00:59:42.627 --> 00:59:43.210
+of the buffer.
+
+00:59:43.210 --> 00:59:45.585
+It's also going to read a
+bunch of callee-saved registers
+
+00:59:45.585 --> 00:59:47.980
+and stack pointers
+out of the buffer.
+
+00:59:47.980 --> 00:59:51.760
+And it is going to say,
+that's my register state now,
+
+00:59:51.760 --> 00:59:53.170
+that's what the thief says.
+
+00:59:53.170 --> 00:59:55.350
+It just stole that
+register state.
+
+00:59:55.350 --> 01:00:01.030
+And it's going to set its RAP
+to be the RAP it just read.
+
+01:00:01.030 --> 01:00:07.375
+So what does that mean for where
+the long jump routine returns?
+
+01:00:16.452 --> 01:00:18.160
+AUDIENCE: It returns
+into the stack frame
+
+01:00:18.160 --> 01:00:21.790
+above the [INAUDIBLE]
+
+01:00:21.790 --> 01:00:23.290
+TAO SCHARDL: Returns
+the stack frame
+
+01:00:23.290 --> 01:00:25.690
+above the one it just stole.
+
+01:00:25.690 --> 01:00:29.020
+More or less, but
+more specifically,
+
+01:00:29.020 --> 01:00:32.222
+where in that function
+does it return?
+
+01:00:32.222 --> 01:00:33.870
+AUDIENCE: Just after the call.
+
+01:00:33.870 --> 01:00:35.396
+TAO SCHARDL: Which call?
+
+01:00:35.396 --> 01:00:37.690
+AUDIENCE: [INAUDIBLE]
+
+01:00:37.690 --> 01:00:43.870
+TAO SCHARDL: To the
+spawn bar, here?
+
+01:00:43.870 --> 01:00:50.000
+Almost, very, very
+close, very, very close.
+
+01:00:50.000 --> 01:00:52.840
+What ends up happening is
+that the long jump effectively
+
+01:00:52.840 --> 01:00:55.375
+returns from the set
+jump a second time.
+
+01:00:57.980 --> 01:01:02.260
+This is the weird protocol
+between set jump and long jump.
+
+01:01:02.260 --> 01:01:05.320
+Set jump, you pass it a buffer,
+it saves and registers state,
+
+01:01:05.320 --> 01:01:06.370
+and then it returns.
+
+01:01:06.370 --> 01:01:09.220
+And it returns immediately,
+and on its directed vocation,
+
+01:01:09.220 --> 01:01:12.280
+that set jump call
+returns the value zero,
+
+01:01:12.280 --> 01:01:14.380
+as we mentioned before.
+
+01:01:14.380 --> 01:01:19.270
+Now if you invoke a long
+jump using the same buffer,
+
+01:01:19.270 --> 01:01:23.950
+that causes the processor
+to effectively return
+
+01:01:23.950 --> 01:01:26.800
+from the same set jump call.
+
+01:01:26.800 --> 01:01:29.320
+They use the same buffer.
+
+01:01:29.320 --> 01:01:31.570
+But now it's going to return
+with a different value,
+
+01:01:31.570 --> 01:01:33.700
+and it's going to return
+with the value specified
+
+01:01:33.700 --> 01:01:35.200
+in the second argument.
+
+01:01:35.200 --> 01:01:38.290
+So invoking long jump
+of buffer X returns
+
+01:01:38.290 --> 01:01:40.900
+from that set jump
+with the value
+
+01:01:40.900 --> 01:01:47.320
+X. So when the thief
+executes a long jump
+
+01:01:47.320 --> 01:01:51.520
+with the appropriate buffer,
+and the second argument is one,
+
+01:01:51.520 --> 01:01:53.097
+what happens?
+
+01:01:53.097 --> 01:01:54.430
+Can anyone walk me through this?
+
+01:01:54.430 --> 01:01:56.250
+Oh, it's on the slide, OK.
+
+01:01:59.770 --> 01:02:03.850
+So now that set jump effectively
+returns a second time,
+
+01:02:03.850 --> 01:02:07.430
+but now it returns
+with a value one.
+
+01:02:07.430 --> 01:02:09.760
+And now the predicate
+gets evaluated.
+
+01:02:09.760 --> 01:02:14.200
+So if not one, which
+would be if false,
+
+01:02:14.200 --> 01:02:17.380
+well don't do the consequent,
+because the predicate
+
+01:02:17.380 --> 01:02:18.880
+was false.
+
+01:02:18.880 --> 01:02:21.930
+And that means it's going to
+skip the call to spawn bar,
+
+01:02:21.930 --> 01:02:25.360
+and it'll just fall through
+and execute the stuff right
+
+01:02:25.360 --> 01:02:29.950
+after that conditional,
+which happens to be
+
+01:02:29.950 --> 01:02:33.670
+the continuation of the spawn.
+
+01:02:33.670 --> 01:02:36.100
+That's kind of neat.
+
+01:02:36.100 --> 01:02:38.024
+I think that's kind of
+neat, being unbiased.
+
+01:02:38.024 --> 01:02:39.607
+Anyone else think
+that's kind of neat?
+
+01:02:43.270 --> 01:02:44.230
+Excellent.
+
+01:02:44.230 --> 01:02:46.980
+Anyone desperately confused
+about this set jump, long jump
+
+01:02:46.980 --> 01:02:47.480
+nonsense?
+
+01:02:52.650 --> 01:02:55.170
+Any questions you
+want to ask, or just
+
+01:02:55.170 --> 01:02:57.420
+generally confused
+about why these things
+
+01:02:57.420 --> 01:02:58.950
+exist in modern computing?
+
+01:03:02.310 --> 01:03:02.964
+Yeah.
+
+01:03:02.964 --> 01:03:04.386
+AUDIENCE: Is there any
+reason you couldn't just
+
+01:03:04.386 --> 01:03:06.344
+add, like, [INAUDIBLE]
+to the instruction point
+
+01:03:06.344 --> 01:03:09.137
+and jump over the call, instead?
+
+01:03:09.137 --> 01:03:11.220
+TAO SCHARDL: Is there any
+reason you couldn't just
+
+01:03:11.220 --> 01:03:14.190
+add some fixed offset to
+the instruction pointer
+
+01:03:14.190 --> 01:03:16.500
+to jump over the call?
+
+01:03:16.500 --> 01:03:20.070
+In principle, I think,
+if you can statically
+
+01:03:20.070 --> 01:03:22.800
+compute the distance
+you need to jump,
+
+01:03:22.800 --> 01:03:26.550
+then you can just add that
+to RIP and let the long jump
+
+01:03:26.550 --> 01:03:28.200
+do its thing.
+
+01:03:28.200 --> 01:03:31.630
+Or rather, the thief
+will just adopt that RIP
+
+01:03:31.630 --> 01:03:32.880
+and end up in the right place.
+
+01:03:37.150 --> 01:03:40.870
+What's done here is--
+
+01:03:40.870 --> 01:03:43.750
+basically, this was the
+protocol that the existing set
+
+01:03:43.750 --> 01:03:46.150
+jump and long jump
+routines implement.
+
+01:03:46.150 --> 01:03:52.120
+And I imagine it's a bit
+more flexible of a protocol
+
+01:03:52.120 --> 01:03:55.890
+than what you strictly
+need for the Cilk runtime.
+
+01:03:55.890 --> 01:03:58.183
+And so, you know, it
+ends up working out.
+
+01:03:58.183 --> 01:04:00.100
+But if you can statically
+compute that offset,
+
+01:04:00.100 --> 01:04:01.892
+there's no reason in
+principle you couldn't
+
+01:04:01.892 --> 01:04:03.950
+adopt a different approach.
+
+01:04:03.950 --> 01:04:05.742
+So, good observation.
+
+01:04:08.940 --> 01:04:09.970
+Any questions?
+
+01:04:09.970 --> 01:04:12.113
+Any other questions?
+
+01:04:12.113 --> 01:04:13.530
+It's fine to be
+generally confused
+
+01:04:13.530 --> 01:04:15.390
+why their routines,
+set jump and long jump,
+
+01:04:15.390 --> 01:04:17.220
+with this wacky behavior.
+
+01:04:17.220 --> 01:04:21.090
+Compiler writers have that
+reaction all the time.
+
+01:04:21.090 --> 01:04:24.750
+These are a
+nightmare to compile.
+
+01:04:24.750 --> 01:04:30.990
+Anyway, OK, so we've seen how a
+thief can take some computation
+
+01:04:30.990 --> 01:04:33.210
+off of a victim's
+deque, and we've
+
+01:04:33.210 --> 01:04:36.570
+seen how the thief
+can jump right
+
+01:04:36.570 --> 01:04:38.460
+into the middle of
+an executing function
+
+01:04:38.460 --> 01:04:41.242
+with the appropriate
+register state.
+
+01:04:41.242 --> 01:04:42.450
+Is this the end of the story?
+
+01:04:42.450 --> 01:04:44.460
+Is there anything else
+we need to talk about,
+
+01:04:44.460 --> 01:04:47.280
+with respect to stealing?
+
+01:04:47.280 --> 01:04:50.078
+Or, more pointedly, what else
+do we not need to talk about
+
+01:04:50.078 --> 01:04:51.120
+with respect to stealing?
+
+01:05:02.020 --> 01:05:04.760
+You're welcome to
+answer, if you like.
+
+01:05:04.760 --> 01:05:05.260
+OK.
+
+01:05:08.092 --> 01:05:09.550
+Hey, remember that
+list of concerns
+
+01:05:09.550 --> 01:05:13.180
+we had at the beginning?
+
+01:05:13.180 --> 01:05:16.162
+List of requirements
+is what it was called.
+
+01:05:21.960 --> 01:05:25.260
+We will talk about
+syncs, but not just yet.
+
+01:05:28.230 --> 01:05:31.080
+What other thing was brought up?
+
+01:05:31.080 --> 01:05:33.060
+Remember this slide
+from a previous lecture?
+
+01:05:35.797 --> 01:05:36.630
+Here's another hint.
+
+01:05:36.630 --> 01:05:39.090
+So the register
+state is certainly
+
+01:05:39.090 --> 01:05:41.520
+part of the state of
+an executing function.
+
+01:05:41.520 --> 01:05:44.930
+What else defines a state
+of an executing function?
+
+01:05:44.930 --> 01:05:48.073
+Where doe the other state
+of the function live?
+
+01:05:52.710 --> 01:05:55.280
+It lives on the stack,
+so what is there to talk
+
+01:05:55.280 --> 01:05:56.890
+about regarding the stack?
+
+01:06:00.890 --> 01:06:02.321
+AUDIENCE: Cactus stack.
+
+01:06:02.321 --> 01:06:05.800
+TAO SCHARDL: The
+cactus stack, exactly.
+
+01:06:05.800 --> 01:06:08.380
+So you mentioned
+before that thieves
+
+01:06:08.380 --> 01:06:11.600
+need to implement this
+cactus stack abstraction
+
+01:06:11.600 --> 01:06:13.840
+for the Cilk runtime system.
+
+01:06:16.840 --> 01:06:19.510
+Why exactly do we need
+this cactus stack?
+
+01:06:19.510 --> 01:06:24.380
+What's wrong with just having
+the thief use the victim's
+
+01:06:24.380 --> 01:06:24.880
+stack?
+
+01:06:32.640 --> 01:06:40.422
+AUDIENCE: [INAUDIBLE]
+
+01:06:40.422 --> 01:06:42.880
+TAO SCHARDL: The victim might
+just free up a bunch of stuff
+
+01:06:42.880 --> 01:06:45.680
+and then it's no
+longer accessible.
+
+01:06:45.680 --> 01:06:49.960
+So it can free some amount of
+stuff, in particular everything
+
+01:06:49.960 --> 01:06:53.860
+up to the function
+foo, but in fact
+
+01:06:53.860 --> 01:06:55.900
+it can't return from
+the function foo
+
+01:06:55.900 --> 01:06:57.430
+because some other--
+
+01:06:57.430 --> 01:07:01.060
+well, assuming that the
+Cilk RTS leave frame thing
+
+01:07:01.060 --> 01:07:02.628
+is implemented--
+
+01:07:02.628 --> 01:07:04.420
+the function foo is no
+longer in the stack,
+
+01:07:04.420 --> 01:07:06.490
+it won't ever reach it.
+
+01:07:06.490 --> 01:07:09.430
+So it won't return
+from the function foo
+
+01:07:09.430 --> 01:07:13.180
+while another worker
+is working on it.
+
+01:07:13.180 --> 01:07:14.890
+But good observation.
+
+01:07:14.890 --> 01:07:17.440
+There is something
+else that can go wrong
+
+01:07:17.440 --> 01:07:20.895
+if the thief just directly
+uses the victim's stack.
+
+01:07:30.880 --> 01:07:33.130
+Well, let's take a hint from
+the slide we have so far.
+
+01:07:33.130 --> 01:07:35.010
+So the example that's
+going to be shown
+
+01:07:35.010 --> 01:07:38.660
+is that the thief steals
+the continuation of foo,
+
+01:07:38.660 --> 01:07:40.785
+and then the thief is going
+to call a function baz.
+
+01:07:44.180 --> 01:07:46.910
+So the thief is using
+the victim's stack,
+
+01:07:46.910 --> 01:07:48.860
+and then it calls
+a function baz.
+
+01:07:48.860 --> 01:07:49.790
+What goes wrong?
+
+01:07:57.020 --> 01:07:58.920
+AUDIENCE: The victim
+has called something,
+
+01:07:58.920 --> 01:08:02.430
+but underneath, there
+is some other function
+
+01:08:02.430 --> 01:08:05.790
+stack [INAUDIBLE]
+
+01:08:05.790 --> 01:08:06.960
+TAO SCHARDL: Exactly.
+
+01:08:06.960 --> 01:08:10.110
+The victim in this
+picture, for example,
+
+01:08:10.110 --> 01:08:13.680
+has some other functions
+on its stack below foo.
+
+01:08:13.680 --> 01:08:17.729
+So if the thief does any
+function calls and is using
+
+01:08:17.729 --> 01:08:21.660
+the same stack, it's going to
+scribble all over the state
+
+01:08:21.660 --> 01:08:24.000
+of, in this case
+spawn bar, and bar,
+
+01:08:24.000 --> 01:08:27.609
+which the victim is trying
+to use and maintain.
+
+01:08:27.609 --> 01:08:31.160
+So the thief will end up
+corrupting the victim stack.
+
+01:08:31.160 --> 01:08:33.660
+And if you think about it, it's
+also possible for the victim
+
+01:08:33.660 --> 01:08:35.010
+to call the thief stack.
+
+01:08:35.010 --> 01:08:37.950
+They can't share
+a stack, but they
+
+01:08:37.950 --> 01:08:42.149
+do want to share some
+amount of data on the stack.
+
+01:08:42.149 --> 01:08:44.520
+They do both care
+about the state of foo,
+
+01:08:44.520 --> 01:08:48.310
+and that needs to be consistent
+across all the workers.
+
+01:08:48.310 --> 01:08:53.370
+But we at least need a separate
+call stack for the thief.
+
+01:08:53.370 --> 01:08:55.500
+We'd rather not do
+unnecessary work
+
+01:08:55.500 --> 01:08:59.399
+in order to initialize
+this call stack, however.
+
+01:08:59.399 --> 01:09:03.660
+We really need this call stack
+for things that the thief might
+
+01:09:03.660 --> 01:09:07.439
+invoke, local variables
+the thief might need,
+
+01:09:07.439 --> 01:09:10.970
+or functions that the
+thief might call or spawn.
+
+01:09:10.970 --> 01:09:15.000
+OK, so how do we implement
+the cactus stack?
+
+01:09:15.000 --> 01:09:17.680
+We have a victim stack,
+we have a thief stack,
+
+01:09:17.680 --> 01:09:22.500
+and we have a pretty cute
+trick, in my opinion.
+
+01:09:22.500 --> 01:09:25.160
+So the thief steals
+its continuation.
+
+01:09:25.160 --> 01:09:29.100
+It's going to do a little bit of
+magic with its stack pointers.
+
+01:09:29.100 --> 01:09:31.229
+What it's going to
+do is it's going
+
+01:09:31.229 --> 01:09:34.470
+to use the RBP it was given,
+which points out the victim
+
+01:09:34.470 --> 01:09:37.800
+stack, and it's going
+to set the stack pointer
+
+01:09:37.800 --> 01:09:40.260
+to point at its own stack.
+
+01:09:40.260 --> 01:09:44.670
+So RBP is over there,
+and RSP, for the thief,
+
+01:09:44.670 --> 01:09:48.600
+is pointing to the beginning
+of the thief's call stack.
+
+01:09:48.600 --> 01:09:50.850
+And that is basically fine.
+
+01:09:50.850 --> 01:09:54.570
+The thief can access all the
+state in the function foo,
+
+01:09:54.570 --> 01:09:57.570
+as offsets from RBP,
+but if the thief
+
+01:09:57.570 --> 01:10:00.060
+needs to do any
+function calls, we
+
+01:10:00.060 --> 01:10:02.760
+have a calling
+convention that involves
+
+01:10:02.760 --> 01:10:08.830
+saving RBP and updating RSP
+in order to execute the call.
+
+01:10:08.830 --> 01:10:12.060
+So in particular, the thief
+calls the function baz,
+
+01:10:12.060 --> 01:10:16.260
+it saves its current value
+of RBP onto its own stack,
+
+01:10:16.260 --> 01:10:20.040
+it advances RSP, it
+says RBP equals RSP,
+
+01:10:20.040 --> 01:10:22.740
+it pushes the stack frame
+for baz onto the stack,
+
+01:10:22.740 --> 01:10:25.460
+and it advances RSP
+a little bit further.
+
+01:10:25.460 --> 01:10:31.020
+And just like that, the thief is
+churning away on its own stack.
+
+01:10:31.020 --> 01:10:33.970
+So just with this magic of
+RBP pointing there and RSP
+
+01:10:33.970 --> 01:10:39.575
+pointing here, we
+got our cactus stack.
+
+01:10:39.575 --> 01:10:40.450
+Everyone follow that?
+
+01:10:47.100 --> 01:10:49.780
+Anyone desperately confused
+by this stack pointer?
+
+01:10:54.430 --> 01:10:58.320
+Who thinks this is
+kind of a neat trick?
+
+01:10:58.320 --> 01:11:00.657
+All right, cool.
+
+01:11:00.657 --> 01:11:02.490
+Anyone think this is a
+really mundane trick?
+
+01:11:02.490 --> 01:11:05.810
+Hopefully no one thinks
+it's a mundane trick.
+
+01:11:05.810 --> 01:11:10.080
+OK, there's like half a
+hand there, that's fine.
+
+01:11:10.080 --> 01:11:12.450
+I think this is a neat
+trick, just messing around
+
+01:11:12.450 --> 01:11:13.530
+with the stack pointers.
+
+01:11:13.530 --> 01:11:17.340
+Are there any worries about
+using RBP and RSP this way?
+
+01:11:17.340 --> 01:11:24.210
+Any concerns that you might
+think of from using these two
+
+01:11:24.210 --> 01:11:28.020
+stack pointers as described?
+
+01:11:28.020 --> 01:11:31.470
+In a past lecture,
+briefly mentioned
+
+01:11:31.470 --> 01:11:35.790
+was a compiler optimization
+for dealing with stacks.
+
+01:11:35.790 --> 01:11:36.455
+Yeah.
+
+01:11:36.455 --> 01:11:45.152
+AUDIENCE: [INAUDIBLE] We
+were offsetting [INAUDIBLE]
+
+01:11:45.152 --> 01:11:47.360
+TAO SCHARDL: Right, there
+was a compiler optimization
+
+01:11:47.360 --> 01:11:51.290
+that said, in certain cases
+you don't need both the base
+
+01:11:51.290 --> 01:11:52.820
+pointer and the stack pointer.
+
+01:11:52.820 --> 01:11:54.337
+You can do all offsets.
+
+01:11:54.337 --> 01:11:56.170
+I think it's actually
+off the stack pointer,
+
+01:11:56.170 --> 01:11:57.545
+and then the base
+pointer becomes
+
+01:11:57.545 --> 01:11:59.990
+an additional general
+purpose register.
+
+01:11:59.990 --> 01:12:02.660
+That optimization
+clearly does not
+
+01:12:02.660 --> 01:12:05.960
+work if you need the base
+pointer stack pointer
+
+01:12:05.960 --> 01:12:08.510
+to do this wacky trick.
+
+01:12:11.150 --> 01:12:15.950
+The answer is that the
+Cilk compiler specifically
+
+01:12:15.950 --> 01:12:18.170
+says, if this function
+has a continuation that
+
+01:12:18.170 --> 01:12:21.530
+could be stolen, don't
+do that optimization.
+
+01:12:21.530 --> 01:12:26.665
+It's super illegal, it's very
+bad, don't do the optimization.
+
+01:12:26.665 --> 01:12:28.040
+So that ends up
+being the answer.
+
+01:12:28.040 --> 01:12:30.190
+And it costs us a
+general purpose register
+
+01:12:30.190 --> 01:12:32.450
+for Cilk functions,
+not the biggest loss
+
+01:12:32.450 --> 01:12:35.983
+in the world, all right.
+
+01:12:35.983 --> 01:12:37.400
+There's a little
+bit of time left,
+
+01:12:37.400 --> 01:12:41.897
+so we can talk about
+synchronizing computation.
+
+01:12:41.897 --> 01:12:43.480
+I'll give you a brief
+version of this.
+
+01:12:43.480 --> 01:12:46.300
+This part gets
+fairly complicated,
+
+01:12:46.300 --> 01:12:48.820
+and so I'll give you
+a high level summary
+
+01:12:48.820 --> 01:12:51.560
+of how all of this works.
+
+01:12:51.560 --> 01:12:54.920
+So just to page back
+in some context,
+
+01:12:54.920 --> 01:12:57.520
+we have this scenario where
+different processors are
+
+01:12:57.520 --> 01:13:01.150
+executing different parts
+of our computation dag,
+
+01:13:01.150 --> 01:13:04.300
+and one processor might
+encounter a Cilk sync statement
+
+01:13:04.300 --> 01:13:07.600
+that it can't execute because
+some other processor is busy
+
+01:13:07.600 --> 01:13:11.320
+executing a spawn
+subcomputation.
+
+01:13:11.320 --> 01:13:14.500
+Now, in this case,
+P3 is waiting on P1
+
+01:13:14.500 --> 01:13:18.430
+to finish its execution
+before the sync can proceed.
+
+01:13:18.430 --> 01:13:20.770
+And synchronization
+needs to happen, really,
+
+01:13:20.770 --> 01:13:24.040
+only on the subcomputation
+that P1 is executing.
+
+01:13:24.040 --> 01:13:26.380
+P2 shouldn't play
+a role in this.
+
+01:13:29.420 --> 01:13:31.835
+So what exactly happens
+when a worker reaches a Cilk
+
+01:13:31.835 --> 01:13:34.810
+sync before all the spawned
+subcomputations return?
+
+01:13:34.810 --> 01:13:37.750
+Well, we'd like the
+worker to become a thief.
+
+01:13:37.750 --> 01:13:39.550
+We'd rather the worker
+not just sit there
+
+01:13:39.550 --> 01:13:43.030
+and wait until all the spawned
+subcomputations return.
+
+01:13:43.030 --> 01:13:46.920
+That's a waste of a
+perfectly good worker.
+
+01:13:46.920 --> 01:13:49.900
+But we also can't let the
+worker's current function
+
+01:13:49.900 --> 01:13:51.390
+frame disappear.
+
+01:13:51.390 --> 01:13:53.140
+There is a spawned
+subcomputation
+
+01:13:53.140 --> 01:13:54.460
+that's using that frame.
+
+01:13:54.460 --> 01:13:56.110
+That frame is its parent.
+
+01:13:56.110 --> 01:13:57.850
+It may be accessing
+state in that frame,
+
+01:13:57.850 --> 01:14:00.220
+it may be trying to
+save a return value
+
+01:14:00.220 --> 01:14:03.280
+to some location in that frame.
+
+01:14:03.280 --> 01:14:06.730
+And so the frame
+has to persist, even
+
+01:14:06.730 --> 01:14:09.100
+if the worker that's
+working on the frame
+
+01:14:09.100 --> 01:14:11.980
+goes off and becomes a thief.
+
+01:14:11.980 --> 01:14:15.210
+Moreover, in the future, that
+subcomputation, we believe,
+
+01:14:15.210 --> 01:14:17.560
+should return.
+
+01:14:17.560 --> 01:14:20.350
+And that worker must
+resume the frame
+
+01:14:20.350 --> 01:14:24.910
+and actually execute
+past the Cilk sync.
+
+01:14:24.910 --> 01:14:26.650
+Finally, the Cilk
+sync should only
+
+01:14:26.650 --> 01:14:28.810
+apply to the nested
+subcomputations
+
+01:14:28.810 --> 01:14:31.470
+underneath its function,
+not the program in general.
+
+01:14:31.470 --> 01:14:36.460
+And so we don't allow ourselves
+synchronization, just among all
+
+01:14:36.460 --> 01:14:38.120
+the workers, wholesale.
+
+01:14:38.120 --> 01:14:40.120
+We don't say, OK,
+we've hit a sync,
+
+01:14:40.120 --> 01:14:42.910
+every worker in the
+system must reach
+
+01:14:42.910 --> 01:14:44.410
+some point in the execution.
+
+01:14:44.410 --> 01:14:49.930
+We only care about this
+nested synchronization.
+
+01:14:49.930 --> 01:14:51.430
+So if we think about
+this, and we're
+
+01:14:51.430 --> 01:14:53.410
+talking about nested
+synchronization
+
+01:14:53.410 --> 01:14:56.500
+for computations
+under a function,
+
+01:14:56.500 --> 01:14:58.300
+we have this notion
+of cactus stack,
+
+01:14:58.300 --> 01:15:03.280
+we have this notion of a
+tree of function invocations.
+
+01:15:03.280 --> 01:15:05.660
+We may immediately
+start to think about,
+
+01:15:05.660 --> 01:15:09.130
+well, what if we just maintain
+some state, in a tree,
+
+01:15:09.130 --> 01:15:12.250
+to keep track of who needs
+this to synchronize with whom,
+
+01:15:12.250 --> 01:15:14.590
+which computations
+are waiting on which
+
+01:15:14.590 --> 01:15:16.690
+other computations to finish?
+
+01:15:16.690 --> 01:15:18.940
+And, in fact, that's essentially
+what the Cilk runtime
+
+01:15:18.940 --> 01:15:19.690
+system does.
+
+01:15:19.690 --> 01:15:24.760
+It maintains a tree of
+states called full frames,
+
+01:15:24.760 --> 01:15:26.740
+and those full
+frames store state
+
+01:15:26.740 --> 01:15:28.480
+for the parallel
+subcomputations.
+
+01:15:28.480 --> 01:15:31.900
+And those full frames
+keep track of which
+
+01:15:31.900 --> 01:15:36.950
+subcomputations are standing and
+how they relate to each other.
+
+01:15:36.950 --> 01:15:39.550
+This is a high level
+picture of a full frame.
+
+01:15:39.550 --> 01:15:43.870
+There are lots of details
+highlighted, to be honest.
+
+01:15:43.870 --> 01:15:46.300
+But at 30,000 feet,
+a full frame keeps
+
+01:15:46.300 --> 01:15:49.930
+track of a bunch of information
+for the parallel execution--
+
+01:15:49.930 --> 01:15:53.060
+I know, I'm giving you the
+quick version of this--
+
+01:15:53.060 --> 01:15:55.930
+including pointers
+to parent frames
+
+01:15:55.930 --> 01:15:58.810
+and possibly pointers to child
+frames, or at least the number
+
+01:15:58.810 --> 01:16:01.967
+of outstanding child frames.
+
+01:16:01.967 --> 01:16:03.550
+The processors, when
+there's a system,
+
+01:16:03.550 --> 01:16:05.740
+work on what are called
+active full frames.
+
+01:16:05.740 --> 01:16:07.750
+In the diagram,
+those full frames
+
+01:16:07.750 --> 01:16:12.350
+are the rounded rectangles
+highlighted in dark blue.
+
+01:16:12.350 --> 01:16:15.960
+Other full frames in the system
+are, what we call, suspended.
+
+01:16:15.960 --> 01:16:20.830
+They're waiting on some
+subcomputation to return.
+
+01:16:20.830 --> 01:16:23.440
+That's what a full frame
+tree can look like under,
+
+01:16:23.440 --> 01:16:24.650
+some execution.
+
+01:16:24.650 --> 01:16:28.390
+Let's see how a full frame
+tree can come into being, just
+
+01:16:28.390 --> 01:16:31.450
+by working through an animation.
+
+01:16:31.450 --> 01:16:33.940
+So suppose we have some
+worker with a bunch of spawned
+
+01:16:33.940 --> 01:16:35.620
+and called frames on its deque.
+
+01:16:35.620 --> 01:16:39.880
+No other workers have
+anything on their deques.
+
+01:16:39.880 --> 01:16:45.320
+And finally, some
+worker wants to steal.
+
+01:16:45.320 --> 01:16:50.380
+And I'll admit, this animation
+is crafted slightly, just
+
+01:16:50.380 --> 01:16:54.460
+to make the pictures
+a little bit nicer.
+
+01:16:54.460 --> 01:16:56.380
+It can look more
+complicated in practice,
+
+01:16:56.380 --> 01:17:00.460
+don't worry, if that was
+actually a worry of yours.
+
+01:17:00.460 --> 01:17:02.500
+So what's going to
+happen, the thief
+
+01:17:02.500 --> 01:17:06.430
+is going to take some frames
+from the top of the victim's
+
+01:17:06.430 --> 01:17:07.108
+deque.
+
+01:17:07.108 --> 01:17:09.400
+And it's actually going to
+steal not just those frames,
+
+01:17:09.400 --> 01:17:12.727
+but the whole full frame
+structure along with it.
+
+01:17:12.727 --> 01:17:14.560
+The full frame structure
+is just represented
+
+01:17:14.560 --> 01:17:15.830
+with this rounded rectangle.
+
+01:17:15.830 --> 01:17:19.390
+In fact, it's a
+constant size thing.
+
+01:17:19.390 --> 01:17:22.570
+But the thief is going to take
+the whole full frame structure.
+
+01:17:22.570 --> 01:17:27.580
+And it's going to give the
+victim a brand new full frame
+
+01:17:27.580 --> 01:17:33.700
+and establish the child to
+parent pointer in the victim's
+
+01:17:33.700 --> 01:17:35.980
+new full frame.
+
+01:17:35.980 --> 01:17:37.270
+That's kind of weird.
+
+01:17:37.270 --> 01:17:40.420
+It's not obvious why the thief
+would take the full frame
+
+01:17:40.420 --> 01:17:45.520
+as it's stealing computation,
+at least not from one step.
+
+01:17:45.520 --> 01:17:48.700
+But we can see why it helps,
+just given one more step.
+
+01:17:48.700 --> 01:17:51.000
+So let's fast forward
+this picture a little bit,
+
+01:17:51.000 --> 01:17:56.350
+and now we have another worker
+try to steal some computation,
+
+01:17:56.350 --> 01:17:59.650
+and we have a little
+bit more stuff going on.
+
+01:17:59.650 --> 01:18:02.170
+So this worker might randomly
+select the last worker
+
+01:18:02.170 --> 01:18:05.880
+on the right, steal computation
+from the top of its deque,
+
+01:18:05.880 --> 01:18:08.920
+and it's going to steal
+the full frame along
+
+01:18:08.920 --> 01:18:14.350
+with the deque frames.
+
+01:18:14.350 --> 01:18:17.680
+And because it stole
+the full frame,
+
+01:18:17.680 --> 01:18:21.910
+all pointers to that full frame
+from any child subcomputations
+
+01:18:21.910 --> 01:18:24.170
+are still valid.
+
+01:18:24.170 --> 01:18:26.470
+The child's
+computation on the left
+
+01:18:26.470 --> 01:18:30.120
+still points to the
+correct full frame.
+
+01:18:30.120 --> 01:18:33.340
+The full frame that was
+stolen has the parent context
+
+01:18:33.340 --> 01:18:35.650
+of that child, and so
+we need to make sure
+
+01:18:35.650 --> 01:18:39.330
+that pointer is still good.
+
+01:18:39.330 --> 01:18:42.310
+If it created a new
+full frame for itself,
+
+01:18:42.310 --> 01:18:45.730
+then you would have to update
+the child pointers somehow,
+
+01:18:45.730 --> 01:18:48.670
+and that requires more
+synchronization and a more
+
+01:18:48.670 --> 01:18:50.800
+complicated protocol.
+
+01:18:50.800 --> 01:18:54.010
+Synchronization is expensive,
+protocols are complicated.
+
+01:18:54.010 --> 01:18:57.970
+This ends up saving
+some complexity.
+
+01:18:57.970 --> 01:19:01.710
+And then it creates a
+frame for the child,
+
+01:19:01.710 --> 01:19:03.200
+and we can see
+this process unfold
+
+01:19:03.200 --> 01:19:07.170
+just a little bit further.
+
+01:19:07.170 --> 01:19:10.800
+And we'll hold off for a few
+steals, we end up with a tree.
+
+01:19:10.800 --> 01:19:14.550
+We have two children
+pointing to one parent,
+
+01:19:14.550 --> 01:19:18.580
+and one of those children
+has its own child.
+
+01:19:18.580 --> 01:19:20.010
+Great.
+
+01:19:20.010 --> 01:19:22.680
+Now suppose that some worker
+says, oh, I encountered a sync,
+
+01:19:22.680 --> 01:19:24.240
+can I synchronize?
+
+01:19:24.240 --> 01:19:27.120
+In this case, the worker has an
+outstanding child computation
+
+01:19:27.120 --> 01:19:30.400
+so it can't synchronize.
+
+01:19:30.400 --> 01:19:32.490
+And so we can't
+recycle the full frame,
+
+01:19:32.490 --> 01:19:36.350
+we can't recycle any of
+the stack for this child.
+
+01:19:36.350 --> 01:19:39.700
+And so, instead, the worker
+will suspend this full frame,
+
+01:19:39.700 --> 01:19:42.486
+turning it from dark blue to
+light blue in our picture,
+
+01:19:42.486 --> 01:19:44.470
+and it goes and becomes a thief.
+
+01:19:48.440 --> 01:19:50.340
+The program has
+ample parallelism.
+
+01:19:50.340 --> 01:19:52.590
+What do we expect to typically
+happen when the program
+
+01:19:52.590 --> 01:19:54.858
+execution reaches a Cilk sync?
+
+01:19:54.858 --> 01:19:56.400
+We're kind of out
+of time, so I think
+
+01:19:56.400 --> 01:19:58.830
+I'm just going to spoil the
+answer for this, unless anyone
+
+01:19:58.830 --> 01:20:00.700
+has a guess handy.
+
+01:20:06.280 --> 01:20:08.830
+So what's the common
+case for a Cilk sync?
+
+01:20:17.000 --> 01:20:19.690
+For the sake of
+time, the common case
+
+01:20:19.690 --> 01:20:22.443
+is that the executing function
+has no outstanding children.
+
+01:20:22.443 --> 01:20:23.860
+All the workers
+on the system were
+
+01:20:23.860 --> 01:20:26.140
+busy doing their
+own thing, there
+
+01:20:26.140 --> 01:20:29.166
+is no synchronization
+that's necessary.
+
+01:20:29.166 --> 01:20:32.140
+And so how does the
+runtime optimize this case?
+
+01:20:32.140 --> 01:20:36.980
+It ends up having
+the full frame,
+
+01:20:36.980 --> 01:20:40.360
+uses some bits of an
+associated stack frame,
+
+01:20:40.360 --> 01:20:43.470
+in particular the flag field.
+
+01:20:43.470 --> 01:20:46.090
+And that's why, when we look
+at the compiled code for a Cilk
+
+01:20:46.090 --> 01:20:50.170
+sync, we see some conditions
+that evaluate the flags
+
+01:20:50.170 --> 01:20:53.380
+within the local stack frame.
+
+01:20:53.380 --> 01:20:56.410
+That's just an optimization to
+say, if you don't need a sync,
+
+01:20:56.410 --> 01:21:01.960
+don't do any computation,
+otherwise some steals really
+
+01:21:01.960 --> 01:21:07.237
+did occur, go ahead and execute
+the Cilk RTS sync routine.
+
+01:21:07.237 --> 01:21:09.070
+There are a bunch of
+other runtime features.
+
+01:21:09.070 --> 01:21:11.260
+If you take a look at that
+picture for a long time,
+
+01:21:11.260 --> 01:21:15.130
+you may be dissatisfied with
+what that implies about some
+
+01:21:15.130 --> 01:21:16.642
+of the protocols.
+
+01:21:16.642 --> 01:21:18.850
+And there's a lot more code
+within the runtime system
+
+01:21:18.850 --> 01:21:21.490
+itself, to implement a
+variety of other features such
+
+01:21:21.490 --> 01:21:25.360
+as support for C++ exceptions,
+reducer hyperobjects,
+
+01:21:25.360 --> 01:21:29.920
+and a form of IDs
+called pedigrees.
+
+01:21:29.920 --> 01:21:32.170
+We won't talk about that today.
+
+01:21:32.170 --> 01:21:34.460
+I'm actually all out of time.
+
+01:21:34.460 --> 01:21:38.510
+Thanks for listening to all this
+about the Cilk runtime system.
+
+01:21:38.510 --> 01:21:41.250
+Feel free to ask any
+questions after class.

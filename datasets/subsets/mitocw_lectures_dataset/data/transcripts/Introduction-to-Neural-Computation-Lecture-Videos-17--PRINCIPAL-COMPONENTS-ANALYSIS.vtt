@@ -1,0 +1,4645 @@
+WEBVTT
+
+00:00:16.990 --> 00:00:18.990
+MICHALE FEE: OK, let's
+go ahead and get started.
+
+00:00:18.990 --> 00:00:23.060
+So today we're turning
+to a new topic called
+
+00:00:23.060 --> 00:00:25.940
+that basically focused
+on principal components
+
+00:00:25.940 --> 00:00:29.750
+analysis, which is a very
+cool way of analyzing
+
+00:00:29.750 --> 00:00:32.990
+high-dimensional data.
+
+00:00:32.990 --> 00:00:36.110
+Along the way, we're going
+to learn a little bit
+
+00:00:36.110 --> 00:00:38.250
+more linear algebra.
+
+00:00:38.250 --> 00:00:41.810
+So today, I'm going to talk
+to you about eigenvectors
+
+00:00:41.810 --> 00:00:46.580
+and eigenvalues which are one
+of the most fundamental concepts
+
+00:00:46.580 --> 00:00:48.710
+in linear algebra.
+
+00:00:48.710 --> 00:00:53.360
+And it's extremely important
+and widely applicable to a lot
+
+00:00:53.360 --> 00:00:55.490
+of different things.
+
+00:00:55.490 --> 00:00:58.700
+So eigenvalues and eigenvectors
+are important for everything
+
+00:00:58.700 --> 00:01:05.030
+from understanding energy
+levels and quantum mechanics
+
+00:01:05.030 --> 00:01:09.320
+to understanding the vibrational
+modes of a musical instrument,
+
+00:01:09.320 --> 00:01:11.870
+to analyzing the
+dynamics of differential
+
+00:01:11.870 --> 00:01:17.540
+equations of the sort that
+you find that describe
+
+00:01:17.540 --> 00:01:25.280
+neural circuits in the brain,
+and also for analyzing data
+
+00:01:25.280 --> 00:01:28.010
+and doing dimensionality
+reduction.
+
+00:01:28.010 --> 00:01:30.980
+So understanding
+eigenvectors and eigenvalues
+
+00:01:30.980 --> 00:01:33.200
+are very important
+for doing things
+
+00:01:33.200 --> 00:01:36.050
+like principal
+components analysis.
+
+00:01:36.050 --> 00:01:40.790
+So along the way, we're going
+to talk a little bit more
+
+00:01:40.790 --> 00:01:41.930
+about variance.
+
+00:01:41.930 --> 00:01:44.900
+We're going to extend
+the notion of variance
+
+00:01:44.900 --> 00:01:47.840
+that we're all familiar
+with in one dimension,
+
+00:01:47.840 --> 00:01:52.250
+like the width of a Gaussian
+or the width of a distribution
+
+00:01:52.250 --> 00:01:56.120
+of data to the case of
+multivariate Gaussian
+
+00:01:56.120 --> 00:01:58.940
+distributions or multivariate--
+
+00:01:58.940 --> 00:02:01.280
+which means, it's
+basically the same thing
+
+00:02:01.280 --> 00:02:04.040
+as high-dimensional data.
+
+00:02:04.040 --> 00:02:08.300
+We're going to talk about how
+to compute a covariance matrix
+
+00:02:08.300 --> 00:02:14.420
+from data which describes
+how the different dimensions
+
+00:02:14.420 --> 00:02:17.540
+of the data are correlated
+with each other, what
+
+00:02:17.540 --> 00:02:19.338
+the variance in
+different dimensions is,
+
+00:02:19.338 --> 00:02:21.380
+and how those different
+dimensions are correlated
+
+00:02:21.380 --> 00:02:22.560
+with each other.
+
+00:02:22.560 --> 00:02:24.830
+And finally, we'll
+go through actually
+
+00:02:24.830 --> 00:02:28.310
+how to implement principal
+components analysis, which
+
+00:02:28.310 --> 00:02:32.090
+is useful for a huge
+number of things.
+
+00:02:32.090 --> 00:02:35.570
+I'll come back to many of
+the different applications
+
+00:02:35.570 --> 00:02:37.700
+of principal components
+analysis at the end.
+
+00:02:37.700 --> 00:02:41.840
+But I just want to mention
+that it's very commonly used
+
+00:02:41.840 --> 00:02:46.070
+in understanding
+high-dimensional data
+
+00:02:46.070 --> 00:02:47.030
+and neural circuits.
+
+00:02:47.030 --> 00:02:50.600
+So it's a very important
+way of describing
+
+00:02:50.600 --> 00:02:54.420
+how the state of the brain
+evolves as a function of time.
+
+00:02:54.420 --> 00:02:57.020
+So nowadays, you can
+record from hundreds
+
+00:02:57.020 --> 00:03:00.080
+or even thousands or tens
+of thousands of neurons
+
+00:03:00.080 --> 00:03:02.130
+simultaneously.
+
+00:03:02.130 --> 00:03:04.250
+And if you just look
+at all that data,
+
+00:03:04.250 --> 00:03:06.710
+it just looks like
+a complete mess.
+
+00:03:06.710 --> 00:03:11.390
+But somehow, underneath
+of all of that,
+
+00:03:11.390 --> 00:03:13.430
+the circuitry in
+the brain is going
+
+00:03:13.430 --> 00:03:18.350
+through discrete trajectories
+in some low-dimensional space
+
+00:03:18.350 --> 00:03:24.120
+within that high-dimensional
+mess of data.
+
+00:03:24.120 --> 00:03:29.810
+So our brains have something
+like 100 billion neurons
+
+00:03:29.810 --> 00:03:35.780
+in them-- about the same as the
+number of stars in our galaxy--
+
+00:03:35.780 --> 00:03:38.240
+and yet, somehow all of
+those different neurons
+
+00:03:38.240 --> 00:03:40.850
+communicate with each
+other in a way that
+
+00:03:40.850 --> 00:03:45.410
+constrains the state of
+the brain to evolve along
+
+00:03:45.410 --> 00:03:48.890
+the low-dimensional trajectories
+that are our thoughts
+
+00:03:48.890 --> 00:03:51.450
+and perceptions.
+
+00:03:51.450 --> 00:03:55.400
+And so it's important to be able
+to visualize those trajectories
+
+00:03:55.400 --> 00:03:58.040
+in order to understand how
+that machine is working.
+
+00:04:02.390 --> 00:04:05.090
+OK, and then one more comment
+about principal components
+
+00:04:05.090 --> 00:04:11.930
+analysis, it's not
+actually the best way
+
+00:04:11.930 --> 00:04:15.530
+often of doing this kind of
+dimensionality reduction.
+
+00:04:15.530 --> 00:04:18.470
+But the basic idea
+of how principal
+
+00:04:18.470 --> 00:04:22.580
+components analysis works
+is so fundamental to all
+
+00:04:22.580 --> 00:04:24.260
+of the other techniques.
+
+00:04:24.260 --> 00:04:28.250
+It's sort of the base on which
+all of those other techniques
+
+00:04:28.250 --> 00:04:30.890
+are built conceptually.
+
+00:04:30.890 --> 00:04:33.560
+So that's why we're going
+to spend a lot of time
+
+00:04:33.560 --> 00:04:36.260
+talking about this.
+
+00:04:36.260 --> 00:04:39.283
+OK, so let's start with
+eigenvectors and eigenvalues.
+
+00:04:39.283 --> 00:04:41.200
+So remember, we've been
+talking about the idea
+
+00:04:41.200 --> 00:04:45.500
+that matrix multiplication
+performs a transformation.
+
+00:04:45.500 --> 00:04:49.360
+So we can have a vector
+x that we multiply it
+
+00:04:49.360 --> 00:04:52.810
+by matrix A. It transforms
+that set of vectors
+
+00:04:52.810 --> 00:04:55.750
+x into some other
+set of vectors y.
+
+00:04:55.750 --> 00:05:01.510
+And we can go from y back to x
+by multiplying by A inverse--
+
+00:05:01.510 --> 00:05:06.130
+if the determinant of that
+matrix A is not equal to zero.
+
+00:05:06.130 --> 00:05:08.620
+So we've talked about a number
+of different kinds of matrix
+
+00:05:08.620 --> 00:05:11.620
+transformations by
+introducing perturbations
+
+00:05:11.620 --> 00:05:12.900
+on the identity matrix.
+
+00:05:12.900 --> 00:05:16.750
+So if we have diagonal matrices,
+where one of the elements
+
+00:05:16.750 --> 00:05:23.950
+is slightly larger than 1,
+the other diagonal element
+
+00:05:23.950 --> 00:05:29.200
+is equal to 1, you get a stretch
+of this set of input vectors
+
+00:05:29.200 --> 00:05:32.840
+along the x-axis.
+
+00:05:32.840 --> 00:05:36.670
+Now, that process of
+stretching vectors
+
+00:05:36.670 --> 00:05:41.200
+along a particular
+direction has built into it
+
+00:05:41.200 --> 00:05:46.000
+the idea that there are special
+directions in this matrix
+
+00:05:46.000 --> 00:05:47.230
+transformation.
+
+00:05:47.230 --> 00:05:49.250
+So what do I mean by that?
+
+00:05:49.250 --> 00:05:53.200
+So most of these vectors here,
+each one of these red dots
+
+00:05:53.200 --> 00:05:56.560
+is one of those x's, one
+of those initial vectors--
+
+00:05:56.560 --> 00:05:58.120
+if you look at
+the transformation
+
+00:05:58.120 --> 00:06:02.150
+from x to y going--
+
+00:06:02.150 --> 00:06:05.620
+so that's the x that we put
+into this matrix transformation.
+
+00:06:05.620 --> 00:06:08.920
+When we multiply by y,
+we see that that vector
+
+00:06:08.920 --> 00:06:12.320
+has been stretched
+along the x direction.
+
+00:06:12.320 --> 00:06:16.000
+So for most of these
+vectors, that stretch
+
+00:06:16.000 --> 00:06:19.150
+involves a change in the
+direction of the vector.
+
+00:06:19.150 --> 00:06:23.380
+Going from x to y means that
+the vector has been rotated.
+
+00:06:23.380 --> 00:06:28.800
+So you can see that the green
+vector is at a different angle
+
+00:06:28.800 --> 00:06:30.490
+than the red vector.
+
+00:06:30.490 --> 00:06:33.970
+So there's been a rotation,
+as well as a stretch.
+
+00:06:33.970 --> 00:06:37.480
+So you can see that's true
+for that vector, that vector,
+
+00:06:37.480 --> 00:06:38.930
+and so on.
+
+00:06:38.930 --> 00:06:42.220
+So you can see, though, that
+there are other directions that
+
+00:06:42.220 --> 00:06:43.840
+are not rotated.
+
+00:06:43.840 --> 00:06:45.700
+So here's another.
+
+00:06:45.700 --> 00:06:47.470
+I just drew that same
+picture over again.
+
+00:06:47.470 --> 00:06:50.290
+But now, let's look at
+this particular vector,
+
+00:06:50.290 --> 00:06:51.640
+this particular red vector.
+
+00:06:51.640 --> 00:06:54.340
+You can see that when
+that red vector is
+
+00:06:54.340 --> 00:06:59.340
+stretched by this
+matrix, it's not rotated.
+
+00:06:59.340 --> 00:07:02.170
+It's simply scaled.
+
+00:07:02.170 --> 00:07:04.720
+Same for this vector right here.
+
+00:07:04.720 --> 00:07:06.790
+That vector is not rotated.
+
+00:07:06.790 --> 00:07:08.710
+It's just scaled,
+in this case, by 1.
+
+00:07:11.650 --> 00:07:13.870
+But let's take a look at
+this other transformation.
+
+00:07:13.870 --> 00:07:19.990
+So this transformation produces
+a stretch in the y direction
+
+00:07:19.990 --> 00:07:23.890
+and a compression
+in the x direction.
+
+00:07:23.890 --> 00:07:27.520
+So I'm just showing you a
+subset of those vectors now.
+
+00:07:27.520 --> 00:07:31.120
+You can see that,
+again, this vector is
+
+00:07:31.120 --> 00:07:33.520
+rotated by that transformation.
+
+00:07:33.520 --> 00:07:36.700
+This vector is rotated
+by that transformation.
+
+00:07:36.700 --> 00:07:38.590
+But other vectors
+are not rotated.
+
+00:07:38.590 --> 00:07:42.360
+So again, this
+vector is compressed.
+
+00:07:42.360 --> 00:07:45.430
+It's simply scaled,
+but it's not rotated.
+
+00:07:45.430 --> 00:07:47.240
+And this vector is stretched.
+
+00:07:47.240 --> 00:07:51.290
+It's scaled but not rotated.
+
+00:07:51.290 --> 00:07:53.500
+Does that make sense?
+
+00:07:53.500 --> 00:07:56.910
+OK, so these
+transformations here
+
+00:07:56.910 --> 00:08:01.080
+are given by a diagonal matrices
+where the off-diagonal elements
+
+00:08:01.080 --> 00:08:01.650
+are zero.
+
+00:08:01.650 --> 00:08:03.780
+And the diagonal elements
+are just some constant.
+
+00:08:09.720 --> 00:08:15.540
+So for all diagonal matrices,
+these special directions,
+
+00:08:15.540 --> 00:08:19.200
+the directions on which
+vectors are simply scaled
+
+00:08:19.200 --> 00:08:25.680
+but not rotated by that
+matrix by that transformation,
+
+00:08:25.680 --> 00:08:28.770
+it's the vectors along
+the axes that are scaled
+
+00:08:28.770 --> 00:08:30.150
+and not rotated--
+
+00:08:30.150 --> 00:08:32.370
+along the x-axis or the y-axis.
+
+00:08:35.230 --> 00:08:39.230
+And you can see that by
+taking this matrix A,
+
+00:08:39.230 --> 00:08:42.799
+this general diagonal
+matrix, multiplying it
+
+00:08:42.799 --> 00:08:47.420
+by a vector along
+the x-axis, and you
+
+00:08:47.420 --> 00:08:50.330
+can see that that is
+just a constant, lambda
+
+00:08:50.330 --> 00:08:53.190
+1, times that vector.
+
+00:08:53.190 --> 00:08:57.320
+So we take this times
+this, plus this times this,
+
+00:08:57.320 --> 00:08:59.120
+is equal to lambda 1.
+
+00:08:59.120 --> 00:09:02.270
+This times this plus this
+times this is equal to zero.
+
+00:09:02.270 --> 00:09:05.420
+So you can see that A times
+that vector in the x direction
+
+00:09:05.420 --> 00:09:08.960
+is simply a scaled version of
+the vector in the x direction.
+
+00:09:08.960 --> 00:09:12.712
+And the scaling factor
+is simply the constant
+
+00:09:12.712 --> 00:09:13.670
+that's on the diagonal.
+
+00:09:17.950 --> 00:09:20.770
+So we can write this
+in matrix notation
+
+00:09:20.770 --> 00:09:28.810
+as this lambda, this stretch
+vector, this diagonal matrix,
+
+00:09:28.810 --> 00:09:33.280
+times a unit vector
+in the x direction.
+
+00:09:33.280 --> 00:09:35.390
+That's the standard
+basis vector,
+
+00:09:35.390 --> 00:09:36.940
+the first standard basis vector.
+
+00:09:36.940 --> 00:09:40.030
+So that's a unit vector
+in the x direction
+
+00:09:40.030 --> 00:09:44.486
+is equal to lambda 1 times
+a vector in the x direction.
+
+00:09:47.430 --> 00:09:49.230
+And if we do that
+same multiplication
+
+00:09:49.230 --> 00:09:52.320
+for a vector in
+the y direction, we
+
+00:09:52.320 --> 00:09:57.370
+see that we get a constant times
+that vector in the y direction.
+
+00:09:57.370 --> 00:09:59.380
+So we have another equation.
+
+00:09:59.380 --> 00:10:04.080
+So this particular matrix,
+this diagonal matrix,
+
+00:10:04.080 --> 00:10:11.000
+has two vectors that are in
+special directions in the sense
+
+00:10:11.000 --> 00:10:12.470
+that they aren't rotated.
+
+00:10:12.470 --> 00:10:15.690
+They're just stretched.
+
+00:10:15.690 --> 00:10:18.690
+So diagonal matrices
+have the property
+
+00:10:18.690 --> 00:10:23.830
+that they map any vector
+parallel to the standard basis
+
+00:10:23.830 --> 00:10:26.295
+into another vector
+along the standard basis.
+
+00:10:30.680 --> 00:10:37.130
+So that now is a general
+n-dimensional diagonal matrix
+
+00:10:37.130 --> 00:10:40.910
+with these lambdas,
+which are just scalar
+
+00:10:40.910 --> 00:10:43.070
+constants along the diagonal.
+
+00:10:43.070 --> 00:10:46.220
+And there are n
+equations that look
+
+00:10:46.220 --> 00:10:51.650
+like this that say that
+this matrix times a vector
+
+00:10:51.650 --> 00:10:54.830
+in the direction of a
+standard basis vector
+
+00:10:54.830 --> 00:10:57.050
+is equal to a
+constant times that
+
+00:10:57.050 --> 00:11:00.520
+vector in the standard
+basis direction.
+
+00:11:00.520 --> 00:11:02.660
+Any questions about that?
+
+00:11:02.660 --> 00:11:06.240
+Everything else just flows
+from this very easily.
+
+00:11:06.240 --> 00:11:10.930
+So if you have any questions
+about that, just ask.
+
+00:11:10.930 --> 00:11:17.110
+OK, that equation is called
+the eigenvalue equation.
+
+00:11:17.110 --> 00:11:25.560
+And it describes a property
+of this matrix lambda.
+
+00:11:29.190 --> 00:11:35.060
+So any vector v that's
+mapped by a matrix A
+
+00:11:35.060 --> 00:11:39.910
+onto a parallel vector
+lambda v is called
+
+00:11:39.910 --> 00:11:44.660
+an eigenvector of this matrix.
+
+00:11:44.660 --> 00:11:49.330
+So we're going to generalize
+now from diagonal matrices that
+
+00:11:49.330 --> 00:11:57.670
+look like this to an arbitrary
+matrix A. So the statement
+
+00:11:57.670 --> 00:12:01.060
+is that any vector, that
+when you multiply it
+
+00:12:01.060 --> 00:12:07.190
+by a matrix A that gets
+transformed into a vector
+
+00:12:07.190 --> 00:12:12.600
+parallel to v, it's called
+an eigenvector of A.
+
+00:12:12.600 --> 00:12:18.600
+And the one vector that
+this is true for that
+
+00:12:18.600 --> 00:12:21.240
+isn't called an eigenvector
+is the zero vector
+
+00:12:21.240 --> 00:12:29.910
+because you can see that a zero
+vector here times any matrix
+
+00:12:29.910 --> 00:12:33.440
+is equal to zero.
+
+00:12:33.440 --> 00:12:35.520
+OK, so we exclude
+the zero vector.
+
+00:12:35.520 --> 00:12:38.707
+We don't call the zero
+vector an eigenvector.
+
+00:12:43.220 --> 00:12:50.510
+So typically a matrix,
+an n-dimensional matrix,
+
+00:12:50.510 --> 00:12:53.300
+has n eigenvectors
+and n eigenvalues.
+
+00:12:53.300 --> 00:12:55.400
+Oh, and I forgot to say
+that the scale factor
+
+00:12:55.400 --> 00:13:04.860
+lambda is called the eigenvalue
+associated with that vector v.
+
+00:13:04.860 --> 00:13:08.580
+So now, let's take
+a look at a matrix
+
+00:13:08.580 --> 00:13:12.380
+that's a little more complicated
+than our diagonal matrix.
+
+00:13:12.380 --> 00:13:16.980
+Let's take one of these
+rotated stretch matrices.
+
+00:13:16.980 --> 00:13:19.370
+So remember, in
+the last class, we
+
+00:13:19.370 --> 00:13:22.040
+built a matrix like
+this that produces
+
+00:13:22.040 --> 00:13:26.690
+a stretch of a factor of
+2 along a 45-degree axis.
+
+00:13:26.690 --> 00:13:31.790
+And we built that matrix
+by multiplying it together
+
+00:13:31.790 --> 00:13:36.410
+by basically taking
+this set of vectors,
+
+00:13:36.410 --> 00:13:40.670
+rotating them, stretching them,
+and then rotating them back.
+
+00:13:40.670 --> 00:13:44.600
+So we did that by three
+separate transformations
+
+00:13:44.600 --> 00:13:47.330
+that we applied successively.
+
+00:13:47.330 --> 00:13:53.270
+And we did that by multiplying
+phi transpose lambda and then
+
+00:13:53.270 --> 00:13:54.920
+phi.
+
+00:13:54.920 --> 00:14:00.890
+So let's see what the special
+directions are for this matrix
+
+00:14:00.890 --> 00:14:02.720
+transformation.
+
+00:14:02.720 --> 00:14:06.140
+So you can see that most
+of these vectors that we've
+
+00:14:06.140 --> 00:14:08.645
+multiplied by this
+matrix get rotated.
+
+00:14:13.320 --> 00:14:16.170
+And you can see
+that even vectors
+
+00:14:16.170 --> 00:14:20.940
+along the standard basis
+directions get rotated.
+
+00:14:20.940 --> 00:14:23.830
+So what are the special
+directions for this matrix?
+
+00:14:23.830 --> 00:14:27.460
+Well, they're going to be
+these vectors right here.
+
+00:14:27.460 --> 00:14:30.330
+So this vector along
+this 45-degree line
+
+00:14:30.330 --> 00:14:32.910
+gets transformed.
+
+00:14:32.910 --> 00:14:34.270
+It's not rotated.
+
+00:14:34.270 --> 00:14:36.990
+It gets stretched
+by a factor of 1.
+
+00:14:36.990 --> 00:14:39.240
+And this vector
+here gets stretched.
+
+00:14:42.720 --> 00:14:47.330
+OK, so you can see that
+this matrix has eigenvectors
+
+00:14:47.330 --> 00:14:52.190
+that are along this 45-degree
+axis and that 45-degree axis.
+
+00:14:55.510 --> 00:14:59.890
+So in general,
+let's calculate what
+
+00:14:59.890 --> 00:15:05.150
+are the eigenvectors
+and eigenvalues
+
+00:15:05.150 --> 00:15:09.475
+for a general rotated
+transformation matrix.
+
+00:15:12.620 --> 00:15:13.460
+So let's do that.
+
+00:15:13.460 --> 00:15:19.990
+Let's take this matrix A and
+multiply it by a vector x.
+
+00:15:19.990 --> 00:15:22.210
+And we're going to
+ask what vectors
+
+00:15:22.210 --> 00:15:27.100
+x satisfy the properties that,
+when they're multiplied by A,
+
+00:15:27.100 --> 00:15:29.770
+are equal to a constant times x.
+
+00:15:29.770 --> 00:15:33.700
+So we're going to ask what are
+the eigenvectors of this matrix
+
+00:15:33.700 --> 00:15:36.520
+A that we've constructed
+in this form?
+
+00:15:40.533 --> 00:15:41.950
+So what we're going
+to do is we're
+
+00:15:41.950 --> 00:15:47.620
+going to replace A with this
+product of matrices, of three
+
+00:15:47.620 --> 00:15:49.700
+matrices.
+
+00:15:49.700 --> 00:15:53.300
+We're going to multiply
+this equation on both sides
+
+00:15:53.300 --> 00:15:58.250
+by phi transpose on the
+left side, by phi transpose.
+
+00:15:58.250 --> 00:16:05.980
+OK, so phi transpose times
+this, is equal to A sabai, x
+
+00:16:05.980 --> 00:16:10.390
+subai, times 5
+transpose on the left.
+
+00:16:10.390 --> 00:16:11.320
+What happens here?
+
+00:16:14.590 --> 00:16:17.030
+Remember phi is a
+rotation matrix.
+
+00:16:17.030 --> 00:16:20.850
+What is phi transpose phi?
+
+00:16:20.850 --> 00:16:22.820
+Anybody remember?
+
+00:16:22.820 --> 00:16:23.390
+Good.
+
+00:16:23.390 --> 00:16:27.110
+Because for rotation
+matrix, the inverse,
+
+00:16:27.110 --> 00:16:31.160
+the transpose of a rotation
+matrix, is its inverse.
+
+00:16:31.160 --> 00:16:35.360
+And so phi transpose phi is just
+equal to the identity matrix.
+
+00:16:35.360 --> 00:16:37.400
+So that goes away.
+
+00:16:37.400 --> 00:16:40.220
+And we're left with
+lambda phi transpose
+
+00:16:40.220 --> 00:16:43.490
+x equals A phi transpose x.
+
+00:16:49.380 --> 00:16:55.030
+So remember that
+we just wrote down
+
+00:16:55.030 --> 00:16:59.380
+that if we have
+a diagonal matrix
+
+00:16:59.380 --> 00:17:05.065
+lambda, that the eigenvectors
+are the standard basis vectors.
+
+00:17:12.780 --> 00:17:14.790
+So what does that mean?
+
+00:17:14.790 --> 00:17:17.280
+If we look at this
+equation here,
+
+00:17:17.280 --> 00:17:24.930
+and we look at
+this equation here,
+
+00:17:24.930 --> 00:17:31.850
+it seems like phi transpose x is
+an eigenvector of this equation
+
+00:17:31.850 --> 00:17:36.010
+as long as phi transpose
+x is equal to one
+
+00:17:36.010 --> 00:17:38.170
+of the standard basis vectors.
+
+00:17:38.170 --> 00:17:39.200
+Does that make sense?
+
+00:17:41.980 --> 00:17:46.290
+So we know this
+solution is satisfied
+
+00:17:46.290 --> 00:17:50.250
+by phi transpose x is equal
+to one of the standard basis
+
+00:17:50.250 --> 00:17:51.195
+vectors.
+
+00:17:51.195 --> 00:17:52.320
+Does that make sense?
+
+00:18:01.430 --> 00:18:06.080
+So if we replace phi transpose
+x with one of the standard basis
+
+00:18:06.080 --> 00:18:08.405
+vectors, then that
+solves this equation.
+
+00:18:13.610 --> 00:18:18.020
+So what that means
+is that the solution
+
+00:18:18.020 --> 00:18:22.570
+to this eigenvalue equation
+is that the eigenvalues
+
+00:18:22.570 --> 00:18:27.380
+A are simply the diagonal
+elements of this lambda here.
+
+00:18:30.790 --> 00:18:35.100
+And the eigenvectors
+are just x, where
+
+00:18:35.100 --> 00:18:40.800
+x is equal to phi times
+the standard basis vectors.
+
+00:18:40.800 --> 00:18:44.520
+We just solve for x by
+multiplying both sides
+
+00:18:44.520 --> 00:18:47.900
+by phi transpose inverse.
+
+00:18:47.900 --> 00:18:50.055
+What's phi transpose inverse?
+
+00:18:50.055 --> 00:18:50.555
+phi.
+
+00:18:53.080 --> 00:18:55.120
+So we multiply
+both sides by phi.
+
+00:18:55.120 --> 00:18:58.700
+This becomes the
+identity matrix.
+
+00:18:58.700 --> 00:19:03.220
+And we have x equals phi times
+this set of standard basis
+
+00:19:03.220 --> 00:19:05.760
+vectors.
+
+00:19:05.760 --> 00:19:07.440
+Any questions about that?
+
+00:19:07.440 --> 00:19:11.570
+That probably went
+by pretty fast.
+
+00:19:11.570 --> 00:19:17.080
+But does everyone believe this?
+
+00:19:17.080 --> 00:19:18.430
+We went through that.
+
+00:19:18.430 --> 00:19:22.930
+We went through both examples
+of how this equation is
+
+00:19:22.930 --> 00:19:27.730
+true for the case where
+lambda is a diagonal matrix
+
+00:19:27.730 --> 00:19:32.180
+and the e's are the
+standard basis vectors.
+
+00:19:32.180 --> 00:19:38.320
+And if we solve for the
+eigenvectors of this equation
+
+00:19:38.320 --> 00:19:43.090
+where A has this form of
+phi lambda phi transpose,
+
+00:19:43.090 --> 00:19:45.880
+you can see that
+the eigenvectors
+
+00:19:45.880 --> 00:19:54.890
+are given by this matrix
+times a standard basis vector.
+
+00:19:54.890 --> 00:19:57.320
+So any standard basis
+vector times phi
+
+00:19:57.320 --> 00:20:00.050
+will give you an eigenvector
+of this equation here.
+
+00:20:13.460 --> 00:20:16.380
+Let's push on.
+
+00:20:16.380 --> 00:20:19.640
+And the eigenvalues are
+just these diagonal elements
+
+00:20:19.640 --> 00:20:21.110
+of this lambda.
+
+00:20:27.730 --> 00:20:29.780
+What are these?
+
+00:20:29.780 --> 00:20:32.890
+So now, we're going to figure
+out what these things are,
+
+00:20:32.890 --> 00:20:37.450
+and how to just
+see what they are.
+
+00:20:37.450 --> 00:20:43.150
+These eigenvectors
+here are given by phi
+
+00:20:43.150 --> 00:20:46.540
+times a standard basis vector.
+
+00:20:46.540 --> 00:20:51.200
+So phi is a rotation
+matrix, right?
+
+00:20:51.200 --> 00:20:55.430
+So phi times a standard
+basis vector is just what?
+
+00:20:55.430 --> 00:20:57.950
+It's just a standard
+basis vector rotated.
+
+00:21:02.010 --> 00:21:06.350
+So let's just solve
+for these two x's.
+
+00:21:06.350 --> 00:21:09.990
+We're going to take phi, which
+was this 45-degree rotation
+
+00:21:09.990 --> 00:21:12.270
+matrix, and we're
+going to multiply it
+
+00:21:12.270 --> 00:21:17.860
+by the standard basis
+vector in the x direction.
+
+00:21:17.860 --> 00:21:19.870
+So what is that?
+
+00:21:19.870 --> 00:21:21.060
+Just multiply this out.
+
+00:21:21.060 --> 00:21:25.870
+You'll see that this is just a
+vector along a 45-degree line.
+
+00:21:30.380 --> 00:21:34.370
+So this eigenvector, this
+first eigenvector here,
+
+00:21:34.370 --> 00:21:39.080
+is just a vector on the
+45-degree line, 1 over root 2.
+
+00:21:39.080 --> 00:21:40.130
+It's a unit vector.
+
+00:21:40.130 --> 00:21:43.880
+That's why it's got the
+1 over root 2 in it.
+
+00:21:43.880 --> 00:21:47.550
+The second eigenvector
+is just phi times e2.
+
+00:21:47.550 --> 00:21:55.580
+So it's a rotated version of the
+y standard basis vector, which
+
+00:21:55.580 --> 00:21:59.588
+is 1 over root 2 minus 1, 1.
+
+00:21:59.588 --> 00:22:01.520
+That's this vector.
+
+00:22:04.140 --> 00:22:12.020
+So our two eigenvectors we
+derived for this matrix that
+
+00:22:12.020 --> 00:22:15.860
+produces this stretch along
+a 45-degree line, the two
+
+00:22:15.860 --> 00:22:21.110
+eigenvectors are the
+vector, 45-degree vector
+
+00:22:21.110 --> 00:22:23.720
+in this quadrant, and
+the 45-degree vector
+
+00:22:23.720 --> 00:22:25.550
+in that quadrant.
+
+00:22:25.550 --> 00:22:29.330
+Notice it's just a
+rotated basis set.
+
+00:22:36.800 --> 00:22:41.560
+So notice that the
+eigenvectors are just
+
+00:22:41.560 --> 00:22:49.140
+the columns of our
+rotated matrix.
+
+00:22:49.140 --> 00:22:50.165
+So let me recap.
+
+00:22:52.680 --> 00:22:58.460
+If you have a matrix that
+you've constructed like this,
+
+00:22:58.460 --> 00:23:07.460
+as a matrix that produces a
+stretch in a rotated frame,
+
+00:23:07.460 --> 00:23:11.300
+the eigenvalues are just the
+diagonal elements of the lambda
+
+00:23:11.300 --> 00:23:14.510
+matrix that you put in
+there to build that thing,
+
+00:23:14.510 --> 00:23:17.120
+to build that matrix.
+
+00:23:17.120 --> 00:23:21.020
+And the eigenvectors
+are just the columns
+
+00:23:21.020 --> 00:23:22.175
+of the rotation matrix.
+
+00:23:29.420 --> 00:23:32.290
+OK, so let me summarize.
+
+00:23:32.290 --> 00:23:38.510
+A symmetric matrix can
+always be written like this,
+
+00:23:38.510 --> 00:23:40.530
+where phi is a rotation matrix.
+
+00:23:40.530 --> 00:23:42.480
+And lambda is a
+diagonal matrix that
+
+00:23:42.480 --> 00:23:45.870
+tells you how much the
+different axes are stretched.
+
+00:23:49.010 --> 00:23:53.150
+The eigenvectors of this matrix
+A are the columns of phi.
+
+00:23:53.150 --> 00:23:57.970
+They are the basis vectors,
+the new basis vectors,
+
+00:23:57.970 --> 00:24:00.190
+in this rotated basis set.
+
+00:24:04.510 --> 00:24:07.150
+So remember, we can
+[AUDIO OUT] this rotation
+
+00:24:07.150 --> 00:24:14.100
+matrix as a set of basis
+vectors, as the columns.
+
+00:24:14.100 --> 00:24:18.300
+And that set of basis
+vectors are the eigenvectors
+
+00:24:18.300 --> 00:24:23.690
+of any matrix that you
+construct like this.
+
+00:24:23.690 --> 00:24:27.590
+And the eigenvalues are just the
+diagonal elements of the lambda
+
+00:24:27.590 --> 00:24:30.390
+that you put in there.
+
+00:24:30.390 --> 00:24:31.930
+All right, any
+questions about that?
+
+00:24:34.970 --> 00:24:38.960
+For the most part,
+we're going to be
+
+00:24:38.960 --> 00:24:44.300
+working with matrices
+that are symmetric,
+
+00:24:44.300 --> 00:24:46.830
+that can be built like this.
+
+00:25:00.090 --> 00:25:04.150
+So eigenvectors are not unique.
+
+00:25:04.150 --> 00:25:15.030
+So if x eigenvector of A,
+then any scaled version of x
+
+00:25:15.030 --> 00:25:16.590
+is also an eigenvector.
+
+00:25:16.590 --> 00:25:21.240
+Remember, an
+eigenvector is a vector
+
+00:25:21.240 --> 00:25:24.150
+that when you multiply
+it by a matrix
+
+00:25:24.150 --> 00:25:27.900
+just gets stretched
+and not rotated.
+
+00:25:27.900 --> 00:25:31.080
+What that means is that any
+vector in that direction
+
+00:25:31.080 --> 00:25:33.960
+will also be stretched
+and not rotated.
+
+00:25:33.960 --> 00:25:36.810
+So eigenvectors are not unique.
+
+00:25:36.810 --> 00:25:39.210
+Any scaled version
+of an eigenvector
+
+00:25:39.210 --> 00:25:42.930
+is also an eigenvector.
+
+00:25:42.930 --> 00:25:45.780
+When we write down
+eigenvectors of a matrix,
+
+00:25:45.780 --> 00:25:48.240
+we usually write
+down unit vectors
+
+00:25:48.240 --> 00:25:51.960
+to avoid this ambiguity.
+
+00:25:56.350 --> 00:25:59.920
+So we usually write
+eigenvectors as unit vectors.
+
+00:25:59.920 --> 00:26:03.280
+For matrices of n
+dimensions, there
+
+00:26:03.280 --> 00:26:06.820
+are typically n different
+unit eigenvectors--
+
+00:26:06.820 --> 00:26:09.880
+n different vectors in
+different directions that
+
+00:26:09.880 --> 00:26:12.520
+have the special properties
+that they're just stretched
+
+00:26:12.520 --> 00:26:13.420
+and not rotated.
+
+00:26:16.100 --> 00:26:21.770
+So for our two-dimensional
+matrices that produce stretch
+
+00:26:21.770 --> 00:26:24.200
+in one direction, the
+special directions are--
+
+00:26:27.440 --> 00:26:32.130
+sorry, so here is a
+two-dimensional, two-by-two
+
+00:26:32.130 --> 00:26:34.630
+matrix that produces a
+stretch in this direction.
+
+00:26:34.630 --> 00:26:37.830
+There are two eigenvectors,
+two unit eigenvectors,
+
+00:26:37.830 --> 00:26:40.392
+one in this direction and
+one in that direction.
+
+00:26:44.550 --> 00:26:49.140
+And notice, that because
+the eigenvectors are
+
+00:26:49.140 --> 00:26:52.980
+the columns of this
+rotation matrix,
+
+00:26:52.980 --> 00:26:59.110
+the eigenvectors form a
+complete orthonormal basis set.
+
+00:26:59.110 --> 00:27:01.260
+And that is true.
+
+00:27:01.260 --> 00:27:05.310
+That statement is true
+only for symmetric matrices
+
+00:27:05.310 --> 00:27:08.500
+that are constructed like this.
+
+00:27:17.100 --> 00:27:20.250
+So now, let's calculate
+what the eigenvalues are
+
+00:27:20.250 --> 00:27:28.040
+for a general two-dimensional
+matrix A. So here's our matrix
+
+00:27:28.040 --> 00:27:32.100
+A. That's an eigenvector.
+
+00:27:32.100 --> 00:27:35.220
+Any vector x that
+satisfies that equation
+
+00:27:35.220 --> 00:27:36.900
+is called an eigenvector.
+
+00:27:36.900 --> 00:27:39.540
+And that's the
+eigenvalue associated
+
+00:27:39.540 --> 00:27:41.670
+with that eigenvector.
+
+00:27:41.670 --> 00:27:44.820
+We can rewrite this
+equation as A times
+
+00:27:44.820 --> 00:27:49.000
+x equals lambda i times x--
+
+00:27:49.000 --> 00:27:54.600
+just like A equals b,
+then equals 1 times b.
+
+00:27:57.180 --> 00:28:01.700
+We can subtract that
+from both sides,
+
+00:28:01.700 --> 00:28:05.990
+and we get A minus lambda
+i times x equals zero.
+
+00:28:05.990 --> 00:28:09.905
+So that is a different way of
+writing an eigenvalue equation.
+
+00:28:13.120 --> 00:28:14.850
+Now, what we're to
+do is we're going
+
+00:28:14.850 --> 00:28:19.650
+to solve for lambdas that
+satisfy this equation.
+
+00:28:19.650 --> 00:28:22.560
+And we only want solutions
+where x is not equal to zero.
+
+00:28:32.160 --> 00:28:33.990
+So this is just a matrix.
+
+00:28:33.990 --> 00:28:38.490
+A minus lambda i
+is just a matrix.
+
+00:28:38.490 --> 00:28:48.290
+So how do we know whether
+this matrix has solutions
+
+00:28:48.290 --> 00:28:50.340
+where x is not equal to zero?
+
+00:28:56.590 --> 00:28:59.410
+Any ideas?
+
+00:28:59.410 --> 00:29:00.422
+[INAUDIBLE]
+
+00:29:00.422 --> 00:29:02.210
+AUDIENCE: [INAUDIBLE]
+
+00:29:02.210 --> 00:29:06.020
+MICHALE FEE: Is, so what do
+we need the determinant to do?
+
+00:29:06.020 --> 00:29:10.970
+AUDIENCE: [INAUDIBLE]
+
+00:29:10.970 --> 00:29:14.030
+MICHALE FEE: Has to be zero.
+
+00:29:14.030 --> 00:29:21.540
+If the determinant of this
+matrix is not equal to zero,
+
+00:29:21.540 --> 00:29:24.610
+then the only solution to this
+equation is x equals zero.
+
+00:29:24.610 --> 00:29:29.100
+OK, so we solve this equation.
+
+00:29:29.100 --> 00:29:34.680
+We ask what values of
+lambda give us a zero
+
+00:29:34.680 --> 00:29:38.490
+determinant in this matrix.
+
+00:29:38.490 --> 00:29:40.980
+So let's write down
+an arbitrary A,
+
+00:29:40.980 --> 00:29:46.720
+an arbitrary two-dimensional
+matrix A, 2D, 2 by 2.
+
+00:29:46.720 --> 00:29:50.780
+We can write A minus
+lambda i like this.
+
+00:29:50.780 --> 00:29:57.170
+Remember, lambda i is just
+lambdas on the diagonals.
+
+00:29:57.170 --> 00:30:00.100
+The determinant of
+A minus lambda i
+
+00:30:00.100 --> 00:30:03.200
+is just the product of
+the diagonal elements
+
+00:30:03.200 --> 00:30:07.660
+minus the product of the
+off-diagonal elements.
+
+00:30:07.660 --> 00:30:10.510
+And we set that equal to zero.
+
+00:30:10.510 --> 00:30:11.760
+And we solve for lambda.
+
+00:30:15.150 --> 00:30:18.390
+And that just looks
+like a polynomial.
+
+00:30:26.650 --> 00:30:30.830
+OK, so the solutions
+to that polynomial
+
+00:30:30.830 --> 00:30:33.560
+solve what's called the
+characteristic equation
+
+00:30:33.560 --> 00:30:39.620
+of this matrix A. And
+those are the eigenvalues
+
+00:30:39.620 --> 00:30:45.710
+of this arbitrary matrix A,
+this 2D, two-by-two matrix.
+
+00:30:45.710 --> 00:30:47.850
+So there is
+characteristic equation.
+
+00:30:47.850 --> 00:30:50.270
+There is the
+characteristic polynomial.
+
+00:30:50.270 --> 00:30:56.340
+We can solve for lambda just
+by using the quadratic formula.
+
+00:30:56.340 --> 00:31:06.560
+And those are the eigenvalues
+of A. Notice, first of all,
+
+00:31:06.560 --> 00:31:09.700
+there are two of them
+given by the two roots
+
+00:31:09.700 --> 00:31:15.310
+of this quadratic equation.
+
+00:31:15.310 --> 00:31:21.250
+And notice that they
+can be real or complex.
+
+00:31:21.250 --> 00:31:22.270
+They can be complex.
+
+00:31:22.270 --> 00:31:23.620
+They are complex in general.
+
+00:31:29.710 --> 00:31:32.500
+And they can be
+real, or imaginary,
+
+00:31:32.500 --> 00:31:36.110
+or have real and
+imaginary components.
+
+00:31:39.160 --> 00:31:43.730
+And that just depends on
+this quantity right here.
+
+00:31:43.730 --> 00:31:47.870
+If what's inside this
+square root is negative,
+
+00:31:47.870 --> 00:31:51.020
+then eigenvalues
+will be complex.
+
+00:31:51.020 --> 00:31:55.690
+If what's inside the
+square root is positive,
+
+00:31:55.690 --> 00:31:57.180
+then the eigenvector
+will be real.
+
+00:32:00.600 --> 00:32:05.830
+So let's find the eigenvalues
+for a symmetric matrix.
+
+00:32:05.830 --> 00:32:10.930
+a, d on the diagonals and
+b on the off-diagonals.
+
+00:32:10.930 --> 00:32:12.080
+So let's see what happens.
+
+00:32:12.080 --> 00:32:14.680
+Let's plug these
+into this equation.
+
+00:32:14.680 --> 00:32:19.440
+The 4bc becomes 4b squared.
+
+00:32:19.440 --> 00:32:23.030
+And you can see
+that this thing has
+
+00:32:23.030 --> 00:32:27.570
+to be greater than zero
+because a minus d squared has
+
+00:32:27.570 --> 00:32:30.770
+[INAUDIBLE] has to be positive.
+
+00:32:30.770 --> 00:32:33.810
+And b squared has
+to be positive.
+
+00:32:33.810 --> 00:32:37.160
+And so that quantity has
+to be greater than zero.
+
+00:32:37.160 --> 00:32:39.500
+And so what we find is
+that the eigenvalues
+
+00:32:39.500 --> 00:32:41.960
+of a symmetric matrix
+are always real.
+
+00:32:46.270 --> 00:32:48.670
+So let's just take
+this particular--
+
+00:32:48.670 --> 00:32:54.800
+just an example-- and let's
+plug those into this equation.
+
+00:32:54.800 --> 00:32:59.760
+And what we find is
+that the eigenvalues are
+
+00:32:59.760 --> 00:33:05.370
+1 plus or minus root 2 over 2.
+
+00:33:05.370 --> 00:33:08.050
+So two real eigenvalues.
+
+00:33:12.070 --> 00:33:16.540
+So let's consider a special
+case of a symmetric matrix.
+
+00:33:16.540 --> 00:33:20.470
+Let's consider a matrix where
+the diagonal elements are
+
+00:33:20.470 --> 00:33:23.350
+equal, and the off-diagonal
+elements are equal.
+
+00:33:26.570 --> 00:33:30.880
+So we can update this
+equation for the case
+
+00:33:30.880 --> 00:33:32.670
+where the diagonal
+elements are equal.
+
+00:33:32.670 --> 00:33:35.470
+So a equals d.
+
+00:33:35.470 --> 00:33:38.020
+And what you find is
+that the eigenvalues are
+
+00:33:38.020 --> 00:33:44.920
+just a plus b and a minus b--
+so a plus b and a minus b.
+
+00:33:44.920 --> 00:33:50.180
+And the eigenvectors
+can be found just
+
+00:33:50.180 --> 00:33:55.220
+by plugging these eigenvalues
+into the eigenvalue equation
+
+00:33:55.220 --> 00:33:58.700
+and solving for
+the eigenvectors.
+
+00:33:58.700 --> 00:34:01.160
+So I'll just go through
+that real quick--
+
+00:34:01.160 --> 00:34:02.750
+a times x.
+
+00:34:02.750 --> 00:34:05.360
+So we found two
+eigenvalues, so there are
+
+00:34:05.360 --> 00:34:07.460
+going to be two eigenvectors.
+
+00:34:07.460 --> 00:34:11.480
+We can just plug that
+first eigenvalue into here,
+
+00:34:11.480 --> 00:34:12.620
+call it lambda plus.
+
+00:34:12.620 --> 00:34:15.980
+And now, we can solve for
+the eigenvector associated
+
+00:34:15.980 --> 00:34:18.290
+with that eigenvalue.
+
+00:34:18.290 --> 00:34:20.810
+Just plug that in, solve for x.
+
+00:34:20.810 --> 00:34:25.190
+What you find is that the x
+associated with that eigenvalue
+
+00:34:25.190 --> 00:34:30.350
+is 1, 1-- if you just
+go through the algebra.
+
+00:34:30.350 --> 00:34:32.900
+So that's the
+eigenvector associated
+
+00:34:32.900 --> 00:34:35.150
+with that eigenvalue.
+
+00:34:35.150 --> 00:34:37.909
+And that is the
+eigenvector associated
+
+00:34:37.909 --> 00:34:39.440
+with that eigenvalue.
+
+00:34:42.150 --> 00:34:45.060
+So I'll just give you a hint.
+
+00:34:45.060 --> 00:34:47.690
+In most of the
+problems that I'll
+
+00:34:47.690 --> 00:34:53.810
+give you to deal with
+on an exam or many
+
+00:34:53.810 --> 00:34:55.400
+of the ones in the
+problem sets, I
+
+00:34:55.400 --> 00:34:59.650
+think, in the
+problem set will have
+
+00:34:59.650 --> 00:35:03.580
+a form like this and
+[INAUDIBLE] eigenvectors
+
+00:35:03.580 --> 00:35:06.520
+along a 45-degree axis.
+
+00:35:06.520 --> 00:35:09.700
+So if you see a
+matrix like that,
+
+00:35:09.700 --> 00:35:11.590
+you don't have to
+plug it into MATLAB
+
+00:35:11.590 --> 00:35:13.690
+to extract the eigenvalues.
+
+00:35:13.690 --> 00:35:16.870
+You just know that
+the eigenvectors
+
+00:35:16.870 --> 00:35:18.605
+are on the 45-degree axis.
+
+00:35:24.310 --> 00:35:31.200
+So the process of writing
+a matrix as phi lambda phi
+
+00:35:31.200 --> 00:35:35.220
+transpose is called
+eigen-decomposition
+
+00:35:35.220 --> 00:35:40.140
+of this matrix A. So
+if you have a matrix
+
+00:35:40.140 --> 00:35:42.290
+that you can write
+down like this,
+
+00:35:42.290 --> 00:35:44.910
+that you can write
+in that form, it's
+
+00:35:44.910 --> 00:35:49.100
+called eigen-decomposition.
+
+00:35:49.100 --> 00:35:54.660
+And the lambdas, the diagonal
+elements of this lambda matrix,
+
+00:35:54.660 --> 00:35:55.410
+are real.
+
+00:35:55.410 --> 00:35:57.900
+And they're the eigenvalues.
+
+00:35:57.900 --> 00:36:02.460
+The columns of phi
+are the eigenvalues,
+
+00:36:02.460 --> 00:36:04.625
+and they form an
+orthogonal basis set.
+
+00:36:11.190 --> 00:36:13.650
+And this, if you
+take this equation
+
+00:36:13.650 --> 00:36:16.950
+and you multiply it
+on both sides by phi,
+
+00:36:16.950 --> 00:36:20.550
+you can write down that equation
+in a slightly different form--
+
+00:36:20.550 --> 00:36:24.180
+A times phi equals phi lambda.
+
+00:36:24.180 --> 00:36:30.900
+This is a matrix way,
+a matrix equivalent,
+
+00:36:30.900 --> 00:36:35.460
+to the set of equations
+that we wrote down earlier.
+
+00:36:35.460 --> 00:36:40.670
+So remember, we wrote down
+this eigenvalue equation that
+
+00:36:40.670 --> 00:36:44.970
+describes that when you
+multiply this matrix A times
+
+00:36:44.970 --> 00:36:50.210
+an eigenvector equals lambda
+times the eigenvector,
+
+00:36:50.210 --> 00:36:55.530
+this is equivalent to writing
+down this matrix equation.
+
+00:36:55.530 --> 00:36:59.130
+So you'll often
+see this equation
+
+00:36:59.130 --> 00:37:02.550
+to describe the form of
+the eigenvalue equation
+
+00:37:02.550 --> 00:37:03.700
+rather than this form.
+
+00:37:03.700 --> 00:37:04.200
+Why?
+
+00:37:04.200 --> 00:37:05.283
+Because it's more compact.
+
+00:37:08.238 --> 00:37:09.280
+Any questions about that?
+
+00:37:09.280 --> 00:37:13.060
+We've just piled up all of
+these different f vectors
+
+00:37:13.060 --> 00:37:17.730
+into the columns of this
+rotation matrix phi.
+
+00:37:21.540 --> 00:37:24.240
+So if you see an
+equation like that,
+
+00:37:24.240 --> 00:37:25.740
+you'll know that
+you're just looking
+
+00:37:25.740 --> 00:37:30.410
+at an eigenvalue
+equation just like this.
+
+00:37:30.410 --> 00:37:34.580
+Now in general, when you want
+to do eigen-decomposition,
+
+00:37:34.580 --> 00:37:36.980
+when you have a symmetric
+matrix that you want
+
+00:37:36.980 --> 00:37:39.530
+to write down in this form.
+
+00:37:39.530 --> 00:37:40.720
+It's really simple.
+
+00:37:40.720 --> 00:37:44.450
+You don't have to go
+through all of this stuff
+
+00:37:44.450 --> 00:37:47.990
+with the characteristic
+equation,
+
+00:37:47.990 --> 00:37:53.180
+and solve for the eigenvalues,
+and then plug them in here,
+
+00:37:53.180 --> 00:37:55.730
+and solve for the eigenvectors.
+
+00:37:55.730 --> 00:37:58.160
+You can do that if
+you really want to.
+
+00:37:58.160 --> 00:38:02.400
+But most people don't because in
+two dimensions, you can do it.
+
+00:38:02.400 --> 00:38:08.010
+But in higher dimensions,
+it's very hard or impossible.
+
+00:38:08.010 --> 00:38:11.510
+So what you typically do is just
+use the eig function in MATLAB.
+
+00:38:11.510 --> 00:38:15.050
+If you just use this
+function eig on a matrix,
+
+00:38:15.050 --> 00:38:18.440
+it will return the
+eigenvectors and eigenvalues.
+
+00:38:18.440 --> 00:38:21.290
+So here, I'm just
+constructing a matrix A--
+
+00:38:21.290 --> 00:38:28.220
+1.5, 0.5, 0.5, and
+1.5, like that.
+
+00:38:28.220 --> 00:38:31.720
+And if you just use
+the eig function,
+
+00:38:31.720 --> 00:38:36.700
+it returns the eigenvectors
+as the columns of the matrix
+
+00:38:36.700 --> 00:38:40.780
+and the eigenvalues as the
+diagonals of this matrix.
+
+00:38:40.780 --> 00:38:42.400
+So you have to pass it.
+
+00:38:42.400 --> 00:38:46.510
+Arguments F and V
+equals eig of A.
+
+00:38:46.510 --> 00:38:51.490
+And it returns eigenvectors
+and eigenvalues.
+
+00:38:51.490 --> 00:38:52.580
+Any questions about that?
+
+00:38:58.950 --> 00:39:06.220
+So let's push on toward doing
+principal components analysis.
+
+00:39:06.220 --> 00:39:10.110
+So this is just the
+machinery that you use.
+
+00:39:10.110 --> 00:39:13.210
+Oh, and I think I had one more
+panel here just to show you
+
+00:39:13.210 --> 00:39:17.440
+that if you take F and
+V, you can reconstruct A.
+
+00:39:17.440 --> 00:39:22.030
+So A is just F, V, F transpose.
+
+00:39:22.030 --> 00:39:26.230
+F is just phi in the
+previous equation.
+
+00:39:26.230 --> 00:39:28.240
+And V is the lambda.
+
+00:39:28.240 --> 00:39:30.520
+Sorry, they didn't
+have phi and lambda,
+
+00:39:30.520 --> 00:39:33.670
+and they're not options.
+
+00:39:33.670 --> 00:39:36.860
+For variable names,
+I used F and V.
+
+00:39:36.860 --> 00:39:45.990
+And you can see that F, V, F
+transpose is just equal to A.
+
+00:39:45.990 --> 00:39:48.310
+Any questions about that?
+
+00:39:48.310 --> 00:39:49.500
+No?
+
+00:39:49.500 --> 00:39:53.930
+All right, so let's
+turn to how do
+
+00:39:53.930 --> 00:39:58.790
+you use eigenvectors and
+eigenvalues to describe data.
+
+00:40:01.730 --> 00:40:05.540
+So I'm going to briefly
+review the notion of variance,
+
+00:40:05.540 --> 00:40:08.270
+what that means in
+higher dimensions,
+
+00:40:08.270 --> 00:40:13.010
+and how you use a covariance
+matrix to describe data
+
+00:40:13.010 --> 00:40:14.870
+in high dimensions.
+
+00:40:14.870 --> 00:40:17.210
+So let's say that we have
+a bunch of observations
+
+00:40:17.210 --> 00:40:19.490
+of a variable x--
+
+00:40:19.490 --> 00:40:22.760
+so this is now just a scaler.
+
+00:40:22.760 --> 00:40:26.390
+So, we have m
+different observations,
+
+00:40:26.390 --> 00:40:31.160
+x superscript j is the j-th
+observation of that data.
+
+00:40:31.160 --> 00:40:35.270
+And you can see that if you make
+a bunch of measurements of most
+
+00:40:35.270 --> 00:40:38.480
+things in the world,
+you'll find a distribution
+
+00:40:38.480 --> 00:40:43.070
+of those measurements.
+
+00:40:43.070 --> 00:40:45.605
+Often, they will be
+distributed in a bump.
+
+00:40:49.220 --> 00:40:52.790
+You can write down the
+mean of that distribution
+
+00:40:52.790 --> 00:40:56.270
+just as the average value
+overall distributions
+
+00:40:56.270 --> 00:40:58.490
+by summing together
+all those distributions
+
+00:40:58.490 --> 00:41:01.490
+and dividing by the
+number of observations.
+
+00:41:01.490 --> 00:41:06.320
+You can also write down the
+variance of that distribution
+
+00:41:06.320 --> 00:41:10.580
+by subtracting the mean from
+all of those observations,
+
+00:41:10.580 --> 00:41:14.330
+squaring that difference
+from the mean,
+
+00:41:14.330 --> 00:41:17.180
+summing up over
+all observations,
+
+00:41:17.180 --> 00:41:18.260
+and dividing by m.
+
+00:41:22.580 --> 00:41:28.940
+So let's say that we now have
+m different observations of two
+
+00:41:28.940 --> 00:41:32.771
+variables, pressure
+and temperature.
+
+00:41:36.540 --> 00:41:42.860
+We have a distribution
+of those quantities.
+
+00:41:42.860 --> 00:41:49.970
+We can describe that observation
+of x1 and x2 as a vector.
+
+00:41:49.970 --> 00:41:54.290
+And we have m different
+observations of that vector.
+
+00:41:54.290 --> 00:41:58.760
+You can write down the mean
+and variance of x1 and x2.
+
+00:41:58.760 --> 00:42:02.480
+So for x1, we can write
+down the mean as mu1.
+
+00:42:02.480 --> 00:42:05.330
+We can write down
+the variance of x1.
+
+00:42:05.330 --> 00:42:09.396
+We can write down the
+mean and variance of x2,
+
+00:42:09.396 --> 00:42:11.290
+of the x2 observation.
+
+00:42:14.720 --> 00:42:16.250
+And sometimes,
+that will give you
+
+00:42:16.250 --> 00:42:20.630
+a pretty good description
+of this two-dimensional
+
+00:42:20.630 --> 00:42:23.700
+observation.
+
+00:42:23.700 --> 00:42:26.420
+But sometimes, it won't.
+
+00:42:26.420 --> 00:42:31.570
+So in many cases, those
+variables, x1 and x2,
+
+00:42:31.570 --> 00:42:33.220
+are not correlated
+with each other.
+
+00:42:33.220 --> 00:42:36.300
+They're independent variables.
+
+00:42:36.300 --> 00:42:42.120
+In many cases, though, x1 and
+x2 are dependent on each other.
+
+00:42:42.120 --> 00:42:45.810
+The observations of x1 and x2
+are correlated with each other,
+
+00:42:45.810 --> 00:42:49.320
+so that if x1 is big,
+x2 also tends to be big.
+
+00:42:52.580 --> 00:42:56.000
+In these two cases, x1 can
+have the same variance.
+
+00:43:00.060 --> 00:43:02.600
+x2 can have the same variance.
+
+00:43:02.600 --> 00:43:05.480
+But there's clearly
+something different here.
+
+00:43:05.480 --> 00:43:08.270
+So we need something
+more than just describing
+
+00:43:08.270 --> 00:43:12.440
+the variance of x1 and x2
+to describe these data.
+
+00:43:12.440 --> 00:43:16.680
+And that thing is
+the covariance.
+
+00:43:16.680 --> 00:43:20.790
+It just says how do
+x1 and x2 covary?
+
+00:43:20.790 --> 00:43:25.730
+If x1 is big, does x2
+also tend to be big?
+
+00:43:25.730 --> 00:43:28.550
+In this case, the
+covariance is zero.
+
+00:43:28.550 --> 00:43:31.040
+In this case, the
+covariance is positive.
+
+00:43:31.040 --> 00:43:35.300
+So we're taking if a
+fluctuation of x1 above the mean
+
+00:43:35.300 --> 00:43:38.840
+is associated with a fluctuation
+of x2 above the mean,
+
+00:43:38.840 --> 00:43:41.510
+then these points will produce
+a positive contribution
+
+00:43:41.510 --> 00:43:42.640
+to the covariance.
+
+00:43:42.640 --> 00:43:45.920
+And these points here will also
+produce a positive contribution
+
+00:43:45.920 --> 00:43:47.110
+to the covariance.
+
+00:43:47.110 --> 00:43:53.000
+And the covariance here will be
+some number greater than zero.
+
+00:43:53.000 --> 00:43:55.400
+That's closely related
+to the correlation, just
+
+00:43:55.400 --> 00:43:57.920
+the Pearson correlation
+coefficient, which
+
+00:43:57.920 --> 00:44:01.940
+is the covariance divided
+by the geometric mean
+
+00:44:01.940 --> 00:44:03.620
+of the individual variances.
+
+00:44:07.480 --> 00:44:11.470
+I'm assuming most of you have
+seen this many times, but just
+
+00:44:11.470 --> 00:44:14.620
+to get us up to speed.
+
+00:44:14.620 --> 00:44:20.720
+So if you have data, a
+bunch of observations,
+
+00:44:20.720 --> 00:44:25.640
+you can very easily fit
+those data to a Gaussian.
+
+00:44:25.640 --> 00:44:30.320
+And you do that simply by
+measuring the mean and variance
+
+00:44:30.320 --> 00:44:32.190
+of your data.
+
+00:44:32.190 --> 00:44:36.860
+And that turns out to be
+the best fit to a Gaussian.
+
+00:44:36.860 --> 00:44:39.980
+So if you have a bunch of
+observations in one dimension,
+
+00:44:39.980 --> 00:44:43.880
+you measure the mean and
+variance of that set of data.
+
+00:44:43.880 --> 00:44:47.510
+That turns out to be a best
+fit in the least squared sense
+
+00:44:47.510 --> 00:44:53.850
+to a Gaussian probability
+distribution defined
+
+00:44:53.850 --> 00:44:56.310
+by a mean and a variance.
+
+00:44:58.880 --> 00:45:01.976
+So this is easy
+in one dimension.
+
+00:45:07.860 --> 00:45:09.960
+What we're interested in
+doing is understanding
+
+00:45:09.960 --> 00:45:11.530
+data in higher dimensions.
+
+00:45:11.530 --> 00:45:15.850
+So how do we describe
+data in higher dimensions?
+
+00:45:15.850 --> 00:45:20.070
+How do we describe a Gaussian
+in higher dimensions?
+
+00:45:20.070 --> 00:45:23.228
+So that's what we're
+going to turn to now.
+
+00:45:23.228 --> 00:45:24.770
+And the reason we're
+going to do this
+
+00:45:24.770 --> 00:45:27.290
+is not because every
+time we have data,
+
+00:45:27.290 --> 00:45:31.830
+we're really trying to
+fit a Gaussian into it.
+
+00:45:31.830 --> 00:45:39.150
+It's just that it's a powerful
+way of thinking about data,
+
+00:45:39.150 --> 00:45:43.500
+of describing data
+in terms of variances
+
+00:45:43.500 --> 00:45:45.880
+in different directions.
+
+00:45:45.880 --> 00:45:47.760
+And so we often think
+about what we're
+
+00:45:47.760 --> 00:45:50.970
+doing when we are looking
+at high-dimensional data
+
+00:45:50.970 --> 00:45:54.120
+is understanding
+its distribution
+
+00:45:54.120 --> 00:45:58.470
+in different dimensions as
+kind of a Gaussian cloud
+
+00:45:58.470 --> 00:46:03.120
+that optimally best fits the
+data that we're looking at.
+
+00:46:03.120 --> 00:46:04.770
+And mostly because
+it just gives us
+
+00:46:04.770 --> 00:46:09.420
+an intuitive about how to
+best represent or think
+
+00:46:09.420 --> 00:46:12.930
+about data in high dimensions.
+
+00:46:12.930 --> 00:46:15.330
+So we're going to get
+insights into how to think
+
+00:46:15.330 --> 00:46:17.280
+about high-dimensional data.
+
+00:46:17.280 --> 00:46:20.340
+We're going to develop that
+description using the vector
+
+00:46:20.340 --> 00:46:22.590
+and matrix notation that
+we've been developing
+
+00:46:22.590 --> 00:46:27.095
+all along because
+vectors and matrices
+
+00:46:27.095 --> 00:46:29.990
+provide a natural
+way of manipulating
+
+00:46:29.990 --> 00:46:34.250
+data sets, of doing
+transformations of basis,
+
+00:46:34.250 --> 00:46:36.720
+rotations, so on.
+
+00:46:36.720 --> 00:46:38.000
+It's very compact.
+
+00:46:38.000 --> 00:46:39.590
+And those manipulations
+are really
+
+00:46:39.590 --> 00:46:45.900
+trivial in MATLAB or Python.
+
+00:46:45.900 --> 00:46:51.110
+So let's build up a Gaussian
+distribution in two dimensions.
+
+00:46:51.110 --> 00:46:56.880
+So we have, again, our Gaussian
+random variables, x1 and x2.
+
+00:46:56.880 --> 00:46:59.340
+We have a Gaussian distribution,
+where the probability
+
+00:46:59.340 --> 00:47:02.655
+distribution is proportional
+to e to the minus 1/2
+
+00:47:02.655 --> 00:47:03.670
+of x1 squared.
+
+00:47:06.500 --> 00:47:10.140
+We have probability
+distribution for x2--
+
+00:47:10.140 --> 00:47:11.550
+again, probability of x2.
+
+00:47:14.280 --> 00:47:15.900
+We can write down
+the probability
+
+00:47:15.900 --> 00:47:20.290
+of x1 and x2, the joint
+probability distribution,
+
+00:47:20.290 --> 00:47:22.510
+assuming these are independent.
+
+00:47:22.510 --> 00:47:25.950
+We can write that as
+the product of p--
+
+00:47:25.950 --> 00:47:28.530
+the product of the two
+probability distributions p
+
+00:47:28.530 --> 00:47:31.390
+of x1 and p of x2.
+
+00:47:31.390 --> 00:47:36.360
+And we have some Gaussian cloud,
+some Gaussian distribution
+
+00:47:36.360 --> 00:47:38.910
+in two dimensions that we
+can write down like this.
+
+00:47:38.910 --> 00:47:41.110
+That's simply the product.
+
+00:47:41.110 --> 00:47:43.500
+So the product of
+these two distributions
+
+00:47:43.500 --> 00:47:47.560
+is e to the minus
+1/2 x1 squared times
+
+00:47:47.560 --> 00:47:50.160
+e to the minus 1/2 x2 squared.
+
+00:47:50.160 --> 00:47:51.960
+And then, there's
+a constant in front
+
+00:47:51.960 --> 00:47:55.260
+that just normalizes, so that
+the total area under that curve
+
+00:47:55.260 --> 00:47:55.920
+is just 1.
+
+00:47:59.110 --> 00:48:02.620
+We can write this as
+e to the minus 1/2 x1
+
+00:48:02.620 --> 00:48:06.470
+squared plus x2 squared.
+
+00:48:06.470 --> 00:48:10.970
+And that's e to the minus
+1/2 times some distance
+
+00:48:10.970 --> 00:48:12.920
+from the origin.
+
+00:48:12.920 --> 00:48:18.050
+So it falls off exponentially
+in a way that depends only
+
+00:48:18.050 --> 00:48:24.110
+on the distance from the
+origin or from the mean
+
+00:48:24.110 --> 00:48:25.040
+of the distribution.
+
+00:48:25.040 --> 00:48:29.200
+In this case, we set
+the mean to be zero.
+
+00:48:29.200 --> 00:48:36.380
+Now, we can write that distance
+squared using vector notation.
+
+00:48:36.380 --> 00:48:39.190
+It's just the square
+magnitude of that vector x.
+
+00:48:39.190 --> 00:48:42.070
+So if we have a vector x
+sitting out here somewhere,
+
+00:48:42.070 --> 00:48:46.060
+we can measure the distance
+from the center of the Gaussian
+
+00:48:46.060 --> 00:48:50.350
+as the square magnitude of
+x, which is just x dot x,
+
+00:48:50.350 --> 00:48:52.180
+or x transpose x.
+
+00:48:56.340 --> 00:48:57.875
+So we're going to
+use this notation
+
+00:48:57.875 --> 00:49:04.200
+to find the distance of a vector
+from the center of the Gaussian
+
+00:49:04.200 --> 00:49:05.220
+distribution.
+
+00:49:05.220 --> 00:49:07.782
+So you're going to see a
+lot of x [INAUDIBLE] axis.
+
+00:49:10.760 --> 00:49:13.220
+So this distribution
+that we just built
+
+00:49:13.220 --> 00:49:15.920
+is called an isotropic
+multivariate Gaussian
+
+00:49:15.920 --> 00:49:17.094
+distribution.
+
+00:49:20.730 --> 00:49:25.940
+And that distance d is called
+the Mahalanobis distance,
+
+00:49:25.940 --> 00:49:28.145
+which I'm going to say
+as little as possible.
+
+00:49:30.880 --> 00:49:38.590
+So that distribution now
+describes how these points--
+
+00:49:38.590 --> 00:49:42.220
+the probability of finding
+these different points
+
+00:49:42.220 --> 00:49:45.280
+drawn from that distribution
+as a function of their position
+
+00:49:45.280 --> 00:49:47.675
+in this space.
+
+00:49:47.675 --> 00:49:49.300
+So you're going to
+draw a lot of points
+
+00:49:49.300 --> 00:49:51.640
+here in the middle
+and fewer points
+
+00:49:51.640 --> 00:49:55.230
+as you go away at
+larger distances.
+
+00:49:55.230 --> 00:50:01.800
+So this particular
+distribution that I made here
+
+00:50:01.800 --> 00:50:03.620
+has one more word in it.
+
+00:50:03.620 --> 00:50:07.280
+It's an isotopic multivariate
+Gaussian distribution
+
+00:50:07.280 --> 00:50:10.255
+of unit variance.
+
+00:50:10.255 --> 00:50:11.630
+And what we're
+going to do now is
+
+00:50:11.630 --> 00:50:17.570
+we're going to build up all
+possible Gaussian distributions
+
+00:50:17.570 --> 00:50:22.310
+from this distribution by simply
+doing matrix transformations.
+
+00:50:25.040 --> 00:50:29.840
+So we're going to start by
+taking that unit variance
+
+00:50:29.840 --> 00:50:33.440
+Gaussian distribution and
+build an isotopic Gaussian
+
+00:50:33.440 --> 00:50:36.560
+distribution that has
+an arbitrary variance--
+
+00:50:36.560 --> 00:50:39.640
+that means an arbitrary width.
+
+00:50:39.640 --> 00:50:43.730
+We're then going to build a
+Gaussian distribution that
+
+00:50:43.730 --> 00:50:52.900
+can be stretched arbitrarily
+along these two axes, y1
+
+00:50:52.900 --> 00:50:55.300
+and y2.
+
+00:50:55.300 --> 00:50:59.620
+And we're going to do that
+by using a transformation
+
+00:50:59.620 --> 00:51:03.610
+with a diagonal matrix.
+
+00:51:03.610 --> 00:51:07.480
+And then, what we're going to do
+is build an arbitrary Gaussian
+
+00:51:07.480 --> 00:51:11.620
+distribution that can
+be stretched and worked
+
+00:51:11.620 --> 00:51:18.740
+in any direction by using a
+transformation matrix called
+
+00:51:18.740 --> 00:51:21.810
+a covariance matrix,
+which just tells you
+
+00:51:21.810 --> 00:51:24.540
+how that distribution
+is stretched
+
+00:51:24.540 --> 00:51:25.580
+in different directions.
+
+00:51:25.580 --> 00:51:29.700
+So we can stretch it in
+any direction we want.
+
+00:51:29.700 --> 00:51:30.590
+Yes.
+
+00:51:30.590 --> 00:51:31.924
+AUDIENCE: Why is [INAUDIBLE]?
+
+00:51:34.790 --> 00:51:36.650
+MICHALE FEE: OK,
+the distance squared
+
+00:51:36.650 --> 00:51:39.550
+is the square of magnitude.
+
+00:51:39.550 --> 00:51:45.640
+And the square of magnitude
+is x dot x, the dot product.
+
+00:51:45.640 --> 00:51:48.520
+But remember, we can write
+down the dot product in matrix
+
+00:51:48.520 --> 00:51:51.470
+notation as x transpose x.
+
+00:51:51.470 --> 00:51:57.900
+So if we have row vector
+times a column vector,
+
+00:51:57.900 --> 00:52:01.350
+you get the dot product.
+
+00:52:01.350 --> 00:52:02.000
+Yes, Lina.
+
+00:52:02.000 --> 00:52:03.458
+AUDIENCE: What does
+isotropic mean?
+
+00:52:03.458 --> 00:52:06.630
+MICHALE FEE: OK, isotropic
+just means the same
+
+00:52:06.630 --> 00:52:08.070
+in all directions.
+
+00:52:08.070 --> 00:52:09.540
+Sorry, I should
+have defined that.
+
+00:52:09.540 --> 00:52:12.914
+AUDIENCE: [INAUDIBLE]
+when you stretched it,
+
+00:52:12.914 --> 00:52:14.360
+it's not isotropic?
+
+00:52:14.360 --> 00:52:18.000
+MICHALE FEE: Yes, these are
+non-isotropic distributions
+
+00:52:18.000 --> 00:52:19.290
+because they're different.
+
+00:52:19.290 --> 00:52:23.020
+They have different variances
+in different directions.
+
+00:52:23.020 --> 00:52:25.080
+So you can see that this
+has a large variance
+
+00:52:25.080 --> 00:52:29.130
+in the y1 direction and a small
+variance in the y2 direction.
+
+00:52:29.130 --> 00:52:30.370
+So it's non-isotropic.
+
+00:52:33.090 --> 00:52:33.840
+Yes, [INAUDIBLE].
+
+00:52:33.840 --> 00:52:36.230
+AUDIENCE: Why do
+you [INAUDIBLE]??
+
+00:52:36.230 --> 00:52:37.230
+MICHALE FEE: Right here.
+
+00:52:37.230 --> 00:52:39.060
+OK, think about this.
+
+00:52:39.060 --> 00:52:44.240
+Variance, you put into
+this Gaussian distribution
+
+00:52:44.240 --> 00:52:48.030
+as the distance squared
+over the variance squared.
+
+00:52:48.030 --> 00:52:51.830
+It's distance squared
+over a variance, which
+
+00:52:51.830 --> 00:52:53.570
+is sigma squared.
+
+00:52:53.570 --> 00:52:56.870
+Here it's distance
+squared over a variance.
+
+00:52:56.870 --> 00:52:59.980
+Here it's distance
+squared over a variance.
+
+00:52:59.980 --> 00:53:02.880
+Does that makes sense?
+
+00:53:02.880 --> 00:53:04.610
+It's just that in
+order to describe
+
+00:53:04.610 --> 00:53:10.650
+these complex stretching and
+rotation of this Gaussian
+
+00:53:10.650 --> 00:53:12.730
+distribution in
+high-dimensional space,
+
+00:53:12.730 --> 00:53:15.000
+we need a matrix to do that.
+
+00:53:18.000 --> 00:53:21.900
+And that covariance matrix
+describes the variances
+
+00:53:21.900 --> 00:53:27.390
+in the different direction
+and essentially the rotation.
+
+00:53:27.390 --> 00:53:30.630
+Remember, this distribution
+here is just a distribution
+
+00:53:30.630 --> 00:53:34.170
+that's stretched and rotated.
+
+00:53:34.170 --> 00:53:39.360
+Well, we learned how to build
+exactly such a transformation
+
+00:53:39.360 --> 00:53:44.370
+by taking the product of
+phi transpose lambda phi.
+
+00:53:44.370 --> 00:53:49.890
+So we're going to use this to
+build these arbitrary Gaussian
+
+00:53:49.890 --> 00:53:50.890
+distributions.
+
+00:53:53.710 --> 00:53:55.930
+OK, so I'll just go
+through this quickly.
+
+00:53:55.930 --> 00:54:04.520
+If we have an isotopic unit
+variance Gaussian distribution
+
+00:54:04.520 --> 00:54:06.920
+as a function of
+this vector x, we
+
+00:54:06.920 --> 00:54:09.860
+can build a Gaussian
+distribution
+
+00:54:09.860 --> 00:54:13.340
+of arbitrary variance by
+writing down a y that's
+
+00:54:13.340 --> 00:54:16.310
+simply sigma times x.
+
+00:54:16.310 --> 00:54:22.380
+We're going to
+transform x into y,
+
+00:54:22.380 --> 00:54:25.850
+so that we can write
+down a distribution that
+
+00:54:25.850 --> 00:54:28.410
+has an arbitrary variance.
+
+00:54:28.410 --> 00:54:29.760
+Here this is variance 1.
+
+00:54:29.760 --> 00:54:34.020
+Here this is sigma squared.
+
+00:54:34.020 --> 00:54:40.900
+So let's make just a change
+of variables y equals sigma x.
+
+00:54:40.900 --> 00:54:42.930
+So now, what's the
+probability distribution
+
+00:54:42.930 --> 00:54:44.460
+as a function of y?
+
+00:54:44.460 --> 00:54:46.350
+Well, there's
+probability distribution
+
+00:54:46.350 --> 00:54:47.430
+as a function of x.
+
+00:54:47.430 --> 00:54:50.310
+We're simply going to
+substitute y equals sigma x
+
+00:54:50.310 --> 00:54:54.240
+with x equals sigma inverse y.
+
+00:54:54.240 --> 00:54:57.020
+We're going to substitute
+this into here.
+
+00:54:57.020 --> 00:54:59.370
+The Mahalanobis
+distance is just x
+
+00:54:59.370 --> 00:55:03.900
+transpose x, which is just
+sigma inverse y transpose sigma
+
+00:55:03.900 --> 00:55:06.420
+inverse y.
+
+00:55:06.420 --> 00:55:10.540
+And when you do that, you
+find that the distance squared
+
+00:55:10.540 --> 00:55:14.030
+is just y transpose
+sigma to the minus 2y.
+
+00:55:17.560 --> 00:55:21.320
+So there is our
+Gaussian distribution
+
+00:55:21.320 --> 00:55:25.610
+for this distribution.
+
+00:55:25.610 --> 00:55:28.010
+There's the expression for
+this Gaussian distribution
+
+00:55:28.010 --> 00:55:29.510
+with a variance sigma.
+
+00:55:32.830 --> 00:55:35.030
+We can rewrite this
+in different ways.
+
+00:55:35.030 --> 00:55:37.540
+Now, let's build a
+Gaussian distribution
+
+00:55:37.540 --> 00:55:45.000
+that stretched arbitrarily in
+different directions, x and y.
+
+00:55:45.000 --> 00:55:46.620
+We're going to do
+the same trick.
+
+00:55:46.620 --> 00:55:50.520
+We're simply going to make
+a transformation y equals
+
+00:55:50.520 --> 00:55:58.650
+matrix, diagonal matrix, s
+times x and substitute this
+
+00:55:58.650 --> 00:56:03.550
+into our expression
+for a Gaussian.
+
+00:56:03.550 --> 00:56:05.530
+So x equals s inverse y.
+
+00:56:05.530 --> 00:56:09.880
+The Mahalanobis distance
+is given by x transpose x,
+
+00:56:09.880 --> 00:56:11.310
+which we can just get down here.
+
+00:56:11.310 --> 00:56:13.230
+Let's do that with
+this substitution.
+
+00:56:16.800 --> 00:56:21.792
+And we get an s squared
+here, s inverse squared,
+
+00:56:21.792 --> 00:56:23.875
+which we're just going to
+write as lambda inverse.
+
+00:56:30.170 --> 00:56:33.950
+And you can see that
+you have these variances
+
+00:56:33.950 --> 00:56:35.480
+along the diagonal.
+
+00:56:35.480 --> 00:56:39.440
+So if that's lambda
+inverse, then lambda
+
+00:56:39.440 --> 00:56:43.970
+is just a matrix of
+variances along the diagonal.
+
+00:56:43.970 --> 00:56:49.040
+So sigma 1 squared is the
+variance in this direction.
+
+00:56:49.040 --> 00:56:53.460
+Sigma 2 squared is the
+variance in this direction.
+
+00:56:53.460 --> 00:56:57.870
+I'm just showing you how
+you make a transformation
+
+00:56:57.870 --> 00:57:01.500
+to this vector x
+into another vector y
+
+00:57:01.500 --> 00:57:07.170
+to build up a representation
+of this effective distance
+
+00:57:07.170 --> 00:57:10.680
+from the center of distribution
+for different kinds
+
+00:57:10.680 --> 00:57:12.180
+of Gaussian distributions.
+
+00:57:16.210 --> 00:57:19.900
+And now finally, let's
+build up an expression
+
+00:57:19.900 --> 00:57:23.560
+for a Gaussian distribution
+with arbitrary variance
+
+00:57:23.560 --> 00:57:25.690
+and covariance.
+
+00:57:25.690 --> 00:57:28.810
+So we're going to
+make a transformation
+
+00:57:28.810 --> 00:57:38.140
+of x into a new vector y using
+this rotated stretch matrix.
+
+00:57:40.800 --> 00:57:46.600
+We're going to substitute this
+in, calculate the Mahalanobis
+
+00:57:46.600 --> 00:57:47.500
+distance--
+
+00:57:47.500 --> 00:57:50.050
+is now x transpose x.
+
+00:57:50.050 --> 00:57:56.340
+Substitute this and solve
+for the Mahalanobis distance.
+
+00:57:56.340 --> 00:57:59.430
+And what you find is
+that distance squared
+
+00:57:59.430 --> 00:58:05.560
+is just y transpose phi lambda
+inverse phi transpose times y.
+
+00:58:05.560 --> 00:58:09.540
+And we just write that as y
+transpose sigma inverse y.
+
+00:58:14.570 --> 00:58:19.640
+So that is now an expression
+for an arbitrary Gaussian
+
+00:58:19.640 --> 00:58:23.285
+distribution in
+high-dimensional space.
+
+00:58:26.090 --> 00:58:31.010
+And that distribution is
+defined by this matrix
+
+00:58:31.010 --> 00:58:35.840
+of variances and covariances.
+
+00:58:35.840 --> 00:58:39.110
+Again, I'm just writing down
+the definition of sigma inverse
+
+00:58:39.110 --> 00:58:40.340
+here.
+
+00:58:40.340 --> 00:58:44.860
+We can take the inverse
+of that, and we see that
+
+00:58:44.860 --> 00:58:49.370
+our covariance-- this is
+called a covariance matrix--
+
+00:58:49.370 --> 00:58:54.480
+it describes the
+variance and correlations
+
+00:58:54.480 --> 00:59:00.810
+of those different
+dimensions as a matrix.
+
+00:59:00.810 --> 00:59:05.430
+That's just this
+rotated stretch matrix
+
+00:59:05.430 --> 00:59:08.890
+that we been working with.
+
+00:59:08.890 --> 00:59:15.810
+And that's just the same
+as this covariance matrix
+
+00:59:15.810 --> 00:59:22.385
+that we described
+for distribution.
+
+00:59:22.385 --> 00:59:24.840
+I feel like all that didn't
+come out quite as clearly
+
+00:59:24.840 --> 00:59:26.070
+as I'd hoped.
+
+00:59:26.070 --> 00:59:29.980
+But let me just
+summarize for you.
+
+00:59:29.980 --> 00:59:36.800
+So we started with an isotopic
+Gaussian of unit variance.
+
+00:59:36.800 --> 00:59:41.510
+And we multiplied that vector,
+we transformed that vector x,
+
+00:59:41.510 --> 00:59:45.710
+by multiplying it by sigma
+so that we could write down
+
+00:59:45.710 --> 00:59:49.490
+a Gaussian distribution
+of arbitrary variance.
+
+00:59:49.490 --> 00:59:54.560
+We transformed that vector
+x with a diagonal covariance
+
+00:59:54.560 --> 01:00:01.010
+matrix to get arbitrary
+stretches along the axes.
+
+01:00:01.010 --> 01:00:04.220
+And then, we made another
+kind of transformation
+
+01:00:04.220 --> 01:00:08.680
+with an arbitrary stretch
+and rotation matrix
+
+01:00:08.680 --> 01:00:12.040
+so that we can now write down
+a Gaussian distribution that
+
+01:00:12.040 --> 01:00:16.000
+has arbitrary stretch and
+rotation of its variances
+
+01:00:16.000 --> 01:00:18.260
+in different directions.
+
+01:00:18.260 --> 01:00:24.430
+So this is the punch
+line right here--
+
+01:00:24.430 --> 01:00:28.300
+that you can write down
+the Gaussian distribution
+
+01:00:28.300 --> 01:00:36.080
+with arbitrary
+variances in this form.
+
+01:00:36.080 --> 01:00:41.320
+And that sigma right there
+is just the covariance matrix
+
+01:00:41.320 --> 01:00:44.980
+that describes how wide
+that distribution is
+
+01:00:44.980 --> 01:00:47.860
+in the different directions
+and how correlated
+
+01:00:47.860 --> 01:00:49.900
+those different directions are.
+
+01:00:54.780 --> 01:00:57.400
+I think this just summarizes
+what I've already said.
+
+01:01:01.940 --> 01:01:06.470
+So now, let's compute the
+covariance matrix from data.
+
+01:01:06.470 --> 01:01:09.710
+So now, I've shown
+you how to represent
+
+01:01:09.710 --> 01:01:11.810
+Gaussians in high
+dimensions that
+
+01:01:11.810 --> 01:01:15.390
+have these arbitrary variances.
+
+01:01:15.390 --> 01:01:18.350
+Now, let's say that I
+actually have some data.
+
+01:01:18.350 --> 01:01:22.330
+How do I fit one of
+these Gaussians to it?
+
+01:01:22.330 --> 01:01:25.010
+And it turns out that
+it's really simple.
+
+01:01:25.010 --> 01:01:27.520
+It's just a matter
+of calculating
+
+01:01:27.520 --> 01:01:30.160
+this covariance matrix.
+
+01:01:30.160 --> 01:01:32.630
+So let's do that.
+
+01:01:32.630 --> 01:01:39.100
+So here is some
+high-dimensional data.
+
+01:01:39.100 --> 01:01:44.190
+Remember that to fit a
+Gaussian to a bunch of data,
+
+01:01:44.190 --> 01:01:46.290
+all we need to do
+is to find the mean
+
+01:01:46.290 --> 01:01:49.740
+and variants in one dimension.
+
+01:01:49.740 --> 01:01:51.510
+For higher dimensions,
+we just need
+
+01:01:51.510 --> 01:01:57.060
+to find the mean and
+the covariance matrix.
+
+01:01:57.060 --> 01:01:59.220
+So that's simple.
+
+01:01:59.220 --> 01:02:01.540
+So here's our set
+of observations.
+
+01:02:01.540 --> 01:02:05.070
+Now, instead of being
+scalars, they're vectors.
+
+01:02:05.070 --> 01:02:07.170
+First thing we do is
+subtract the mean.
+
+01:02:07.170 --> 01:02:09.660
+So we calculate
+the mean by summing
+
+01:02:09.660 --> 01:02:13.200
+all of those observations,
+dividing those numbers,
+
+01:02:13.200 --> 01:02:14.430
+divide by m.
+
+01:02:14.430 --> 01:02:17.850
+So there we find the mean.
+
+01:02:17.850 --> 01:02:22.560
+We compute a new data set
+with the mean subtracted.
+
+01:02:22.560 --> 01:02:25.220
+So from every one of
+these observations,
+
+01:02:25.220 --> 01:02:27.630
+we subtract the mean.
+
+01:02:27.630 --> 01:02:29.050
+And we're going to call that z.
+
+01:02:33.580 --> 01:02:35.530
+So there is our mean
+subtracted here.
+
+01:02:35.530 --> 01:02:37.450
+I've subtracted the mean.
+
+01:02:37.450 --> 01:02:40.210
+So those are the x's.
+
+01:02:40.210 --> 01:02:41.050
+Subtract the mean.
+
+01:02:41.050 --> 01:02:43.780
+Those are now our z's,
+our mean-subtracted data.
+
+01:02:47.556 --> 01:02:50.460
+Does that makes sense?
+
+01:02:50.460 --> 01:02:53.650
+Now, we're going to calculate
+this covariance matrix.
+
+01:02:53.650 --> 01:02:58.500
+Well, all we do is
+we find the variance
+
+01:02:58.500 --> 01:03:02.930
+in each direction
+and the covariances.
+
+01:03:02.930 --> 01:03:06.960
+So it's going to be a matrix
+in low-dimensional data.
+
+01:03:06.960 --> 01:03:10.610
+It's a two-by-two matrix.
+
+01:03:10.610 --> 01:03:14.440
+So we're going to find the
+variance in the z1 direction.
+
+01:03:14.440 --> 01:03:19.060
+It's just z1 times z1, summed
+over all the observations,
+
+01:03:19.060 --> 01:03:19.830
+divided by m.
+
+01:03:22.970 --> 01:03:27.560
+Th variance in the z2
+direction is just the sum
+
+01:03:27.560 --> 01:03:32.390
+of z2, j, z2, j divided by m.
+
+01:03:32.390 --> 01:03:35.570
+The covariance is
+just the cross terms,
+
+01:03:35.570 --> 01:03:39.620
+z1 one times z2 and z2 times z1.
+
+01:03:39.620 --> 01:03:42.000
+Of course, those are
+equal to each other.
+
+01:03:42.000 --> 01:03:47.410
+So in a covariance
+matrix, it's symmetric.
+
+01:03:47.410 --> 01:03:49.100
+So how do we calculate this?
+
+01:03:49.100 --> 01:03:53.350
+It turns out that in MATLAB,
+this is super-duper easy.
+
+01:03:55.890 --> 01:04:00.540
+So if this is our vector,
+that's our vector, one
+
+01:04:00.540 --> 01:04:07.170
+of our observations, we can
+compute the inner product
+
+01:04:07.170 --> 01:04:08.550
+z transpose z.
+
+01:04:08.550 --> 01:04:11.970
+So the inner product
+is just z transpose z,
+
+01:04:11.970 --> 01:04:14.370
+which is z1, z2, z1, z2.
+
+01:04:14.370 --> 01:04:19.290
+That's the square
+magnitude of z.
+
+01:04:19.290 --> 01:04:24.070
+There's another kind of product
+called the outer product.
+
+01:04:24.070 --> 01:04:25.570
+Remember that.
+
+01:04:25.570 --> 01:04:29.640
+So the outer product
+looks like this.
+
+01:04:29.640 --> 01:04:31.740
+This is a 1 by 2.
+
+01:04:31.740 --> 01:04:34.230
+That's a rho vector
+times a column
+
+01:04:34.230 --> 01:04:36.060
+vector is equal to a scalar.
+
+01:04:36.060 --> 01:04:41.700
+1 by 2 times 2 by 1 equals by
+1 by 1-- two rows, one column--
+
+01:04:41.700 --> 01:04:49.470
+times 1 by 2, gives you a 2 by
+2 matrix that looks like this.
+
+01:04:49.470 --> 01:04:53.880
+z1 times z1, z1,
+z2, z1, z2, z2, z2.
+
+01:04:53.880 --> 01:04:54.630
+Why?
+
+01:04:54.630 --> 01:04:59.370
+It's z1 times z1 equals that.
+
+01:04:59.370 --> 01:05:07.050
+z1 times z2, z2 z1, one z2 z2.
+
+01:05:07.050 --> 01:05:11.430
+So that outer product
+already gives us
+
+01:05:11.430 --> 01:05:16.890
+the components to compute
+the correlation matrix.
+
+01:05:16.890 --> 01:05:21.750
+So what we do is we
+just take this vector,
+
+01:05:21.750 --> 01:05:25.320
+z the j-th observation
+of this vector z,
+
+01:05:25.320 --> 01:05:29.790
+and multiply it by the j-th
+observation of this vector z
+
+01:05:29.790 --> 01:05:30.690
+transpose.
+
+01:05:30.690 --> 01:05:34.510
+And that gives us this matrix.
+
+01:05:34.510 --> 01:05:38.250
+And we sum over all this.
+
+01:05:38.250 --> 01:05:43.130
+And you see that is exactly
+the covariance matrix.
+
+01:05:48.450 --> 01:05:55.080
+So if we have m
+observations of vector z,
+
+01:05:55.080 --> 01:05:57.630
+we put them in matrix form.
+
+01:05:57.630 --> 01:06:00.450
+So we have a big,
+long data matrix.
+
+01:06:00.450 --> 01:06:02.550
+Like this.
+
+01:06:02.550 --> 01:06:06.510
+There are m observations of
+this two-dimensional vector z.
+
+01:06:09.320 --> 01:06:14.560
+The data dimension, the data
+vector has, mentioned 2.
+
+01:06:14.560 --> 01:06:16.180
+Their are m observations.
+
+01:06:16.180 --> 01:06:18.570
+So m is the number of samples.
+
+01:06:18.570 --> 01:06:21.485
+So this is an n-by-m matrix.
+
+01:06:25.370 --> 01:06:27.690
+So if you want to compute
+the covariance matrix,
+
+01:06:27.690 --> 01:06:31.340
+you just in MATLAB,
+literally do z.
+
+01:06:31.340 --> 01:06:36.850
+This big matrix z times
+that matrix transpose.
+
+01:06:36.850 --> 01:06:41.150
+And that automatically finds
+the covariance matrix for you
+
+01:06:41.150 --> 01:06:42.920
+in one line of MATLAB.
+
+01:06:47.200 --> 01:06:49.480
+There's a little trick to
+subtract the mean easily.
+
+01:06:49.480 --> 01:06:53.970
+So remember, your original
+observations are x.
+
+01:06:53.970 --> 01:06:57.510
+You compute the mean
+across the rows.
+
+01:06:57.510 --> 01:07:02.880
+Thus, you're going you're going
+to sum across columns to give
+
+01:07:02.880 --> 01:07:04.410
+you a mean for each row.
+
+01:07:04.410 --> 01:07:10.530
+That gives you a mean of that
+first component of your vector,
+
+01:07:10.530 --> 01:07:12.030
+mean of the second component.
+
+01:07:12.030 --> 01:07:15.480
+That's really easy in the lab.
+
+01:07:15.480 --> 01:07:23.490
+mu is the mean of x summing
+cross the second component.
+
+01:07:23.490 --> 01:07:25.980
+That gives you a
+mean vector and then
+
+01:07:25.980 --> 01:07:30.030
+you use repmat to fill that
+mean out in all of the columns
+
+01:07:30.030 --> 01:07:33.420
+and [INAUDIBLE] subtract
+this mean from x
+
+01:07:33.420 --> 01:07:34.980
+to get this data matrix z.
+
+01:07:38.590 --> 01:07:42.280
+So now, let's apply those
+tools to actually do
+
+01:07:42.280 --> 01:07:44.200
+some principal
+components analysis.
+
+01:07:47.280 --> 01:07:51.150
+So principal components
+analysis is really amazing.
+
+01:07:51.150 --> 01:07:56.010
+If you look at single nucleotide
+polymorphisms and populations
+
+01:07:56.010 --> 01:07:58.860
+of people, there are
+like hundreds of genes
+
+01:07:58.860 --> 01:07:59.800
+that you can look at.
+
+01:07:59.800 --> 01:08:05.220
+You can look at different
+variations of a gene
+
+01:08:05.220 --> 01:08:06.960
+across hundreds of genes.
+
+01:08:06.960 --> 01:08:09.220
+But it's this enormous data set.
+
+01:08:09.220 --> 01:08:11.940
+And you can find
+out which directions
+
+01:08:11.940 --> 01:08:14.550
+in that space of genes
+give you information
+
+01:08:14.550 --> 01:08:17.229
+about the genome of people.
+
+01:08:17.229 --> 01:08:21.390
+And for example, if you
+look at a number of genes
+
+01:08:21.390 --> 01:08:23.640
+across people with
+different backgrounds,
+
+01:08:23.640 --> 01:08:26.310
+you can see that they're
+actually clusters corresponding
+
+01:08:26.310 --> 01:08:29.700
+to people with
+different backgrounds.
+
+01:08:29.700 --> 01:08:31.840
+You can do
+single-cell profiling.
+
+01:08:31.840 --> 01:08:35.790
+So you can do the same thing in
+different cells with a tissue.
+
+01:08:35.790 --> 01:08:39.930
+So you look at RNA
+transcriptional profiling.
+
+01:08:39.930 --> 01:08:44.460
+You see what are the
+genes that are being
+
+01:08:44.460 --> 01:08:46.529
+expressed in individual cells.
+
+01:08:46.529 --> 01:08:48.569
+You can do principal
+components analysis
+
+01:08:48.569 --> 01:08:50.460
+of those different
+genes and find
+
+01:08:50.460 --> 01:08:53.955
+clusters for different
+cell types within a tissue.
+
+01:08:53.955 --> 01:09:00.029
+This is now being applied very
+commonly in brain tissue now
+
+01:09:00.029 --> 01:09:02.960
+to extract different cell types.
+
+01:09:02.960 --> 01:09:07.460
+You can use images and find out
+which components of an image
+
+01:09:07.460 --> 01:09:10.250
+actually give you information
+about different faces.
+
+01:09:10.250 --> 01:09:16.130
+So you can find a bunch
+of different faces,
+
+01:09:16.130 --> 01:09:20.830
+find the covariance
+matrix of those images,
+
+01:09:20.830 --> 01:09:26.439
+take that, do eigendecomposition
+on that covariance matrix.
+
+01:09:26.439 --> 01:09:29.380
+And extract what are
+called eigenfaces.
+
+01:09:29.380 --> 01:09:34.029
+These are dimensions on which
+the images carry information
+
+01:09:34.029 --> 01:09:37.510
+about face identity.
+
+01:09:37.510 --> 01:09:40.359
+You can use principal
+components analysis
+
+01:09:40.359 --> 01:09:45.460
+to decompose spike waveforms
+into different spikes.
+
+01:09:45.460 --> 01:09:47.960
+This is a very common way
+of doing spike sorting.
+
+01:09:47.960 --> 01:09:49.819
+So when you stick an
+electrode in the brain,
+
+01:09:49.819 --> 01:09:51.580
+you'd record from
+different cells
+
+01:09:51.580 --> 01:09:53.080
+at the end of the electrode.
+
+01:09:53.080 --> 01:09:55.750
+Each one of those has
+a different way of form
+
+01:09:55.750 --> 01:09:59.560
+and you can use this method to
+extract the different waveforms
+
+01:09:59.560 --> 01:10:01.900
+people have even
+recently used this
+
+01:10:01.900 --> 01:10:07.060
+now to understand the
+low-dimensional trajectories
+
+01:10:07.060 --> 01:10:09.940
+of movements.
+
+01:10:09.940 --> 01:10:11.905
+So if you take a movie--
+
+01:10:11.905 --> 01:10:14.092
+SPEAKER: After tracking,
+a reconstruction
+
+01:10:14.092 --> 01:10:17.140
+of the global trajectory can
+be made from the stepper motor
+
+01:10:17.140 --> 01:10:19.780
+movements, while the local
+shape changes of the worm
+
+01:10:19.780 --> 01:10:20.815
+can be seen in detail.
+
+01:10:24.930 --> 01:10:28.000
+MICHALE FEE: OK, so here
+you see a c elegans,
+
+01:10:28.000 --> 01:10:30.130
+a worm moving along.
+
+01:10:30.130 --> 01:10:33.400
+This is an image, so it's
+a very high-dimensional.
+
+01:10:33.400 --> 01:10:36.640
+There are 1,000
+pixels in this image.
+
+01:10:36.640 --> 01:10:46.030
+And you can decompose that
+image into a trajectory
+
+01:10:46.030 --> 01:10:47.410
+in a low-dimensional space.
+
+01:10:47.410 --> 01:10:52.060
+And it's been used to
+describe the movements
+
+01:10:52.060 --> 01:10:54.370
+in a low-dimensional
+space and relate
+
+01:10:54.370 --> 01:10:59.320
+to a representation
+of the neural activity
+
+01:10:59.320 --> 01:11:00.870
+in low dimensions as well.
+
+01:11:00.870 --> 01:11:05.520
+OK, so it's a very
+powerful technique.
+
+01:11:05.520 --> 01:11:10.290
+So let me just first demonstrate
+PCA on just some simple 2D
+
+01:11:10.290 --> 01:11:11.200
+data.
+
+01:11:11.200 --> 01:11:13.770
+So here's a cloud
+of points given
+
+01:11:13.770 --> 01:11:17.000
+by a Gaussian distribution.
+
+01:11:17.000 --> 01:11:19.220
+So those are a
+bunch of vectors x.
+
+01:11:19.220 --> 01:11:23.630
+We can transform those vectors
+x using phi s phi transpose
+
+01:11:23.630 --> 01:11:29.090
+to produce a Gaussian, a cloud
+of points with a Gaussian
+
+01:11:29.090 --> 01:11:32.090
+distribution, rotated
+at 45 degrees,
+
+01:11:32.090 --> 01:11:38.330
+and stretched by 1.7-ish along
+one axis and compressed by that
+
+01:11:38.330 --> 01:11:41.930
+amount along another axis.
+
+01:11:41.930 --> 01:11:46.190
+So we can build this rotation
+matrix, this stretch matrix,
+
+01:11:46.190 --> 01:11:49.340
+and build a
+transformation matrix--
+
+01:11:49.340 --> 01:11:51.551
+r, s, r transpose.
+
+01:11:51.551 --> 01:11:52.850
+Multiply that by x.
+
+01:11:52.850 --> 01:11:55.530
+And that gives us
+this data set here.
+
+01:11:55.530 --> 01:11:57.070
+OK, so we're going
+to take that data
+
+01:11:57.070 --> 01:12:00.002
+set and do principal
+components analysis on it.
+
+01:12:00.002 --> 01:12:01.460
+And what that's
+going to do is it's
+
+01:12:01.460 --> 01:12:07.130
+going to find the dimensions
+in this data set that
+
+01:12:07.130 --> 01:12:08.900
+have the highest variance.
+
+01:12:08.900 --> 01:12:10.970
+It's basically going
+to extract the variance
+
+01:12:10.970 --> 01:12:12.600
+in the different dimensions.
+
+01:12:12.600 --> 01:12:14.480
+So we take that set of points.
+
+01:12:14.480 --> 01:12:17.990
+We just compute the
+covariance matrix
+
+01:12:17.990 --> 01:12:23.030
+by taking z, z transpose,
+times 1 over m.
+
+01:12:23.030 --> 01:12:25.200
+That computes that
+covariance matrix.
+
+01:12:25.200 --> 01:12:28.370
+And then, we're going to use
+the eig function in MATLAB
+
+01:12:28.370 --> 01:12:31.820
+to extract the eigenvectors
+and eigenvalues
+
+01:12:31.820 --> 01:12:36.945
+of the covariance
+matrix OK, so q--
+
+01:12:36.945 --> 01:12:40.020
+we're going to call q
+is the variable name
+
+01:12:40.020 --> 01:12:44.550
+for the covariance matrix
+it's zz transpose over m.
+
+01:12:44.550 --> 01:12:46.050
+Call eig of q.
+
+01:12:48.910 --> 01:12:53.880
+That returns the
+rotation matrix.
+
+01:12:53.880 --> 01:12:57.540
+And that rotation matrix,
+the columns of which
+
+01:12:57.540 --> 01:13:02.130
+are the eigenvectors, it returns
+the matrix of eigenvalues,
+
+01:13:02.130 --> 01:13:06.270
+the diagonal elements
+are the eigenvalues.
+
+01:13:06.270 --> 01:13:09.480
+Sometimes, you need to
+do a flip-left-right
+
+01:13:09.480 --> 01:13:13.800
+because I sometimes return
+the lowest eigenvalues first.
+
+01:13:13.800 --> 01:13:18.570
+But I generally want to plot put
+the largest eigenvalue first.
+
+01:13:18.570 --> 01:13:21.390
+So there's the largest one,
+there's the smallest one.
+
+01:13:23.920 --> 01:13:27.850
+And now, what we do,
+is we simply rotate.
+
+01:13:27.850 --> 01:13:30.070
+We [AUDIO OUT] basis.
+
+01:13:30.070 --> 01:13:35.050
+We can rotate this data
+set using the rotation
+
+01:13:35.050 --> 01:13:41.540
+matrix that the principal
+components analysis found.
+
+01:13:41.540 --> 01:13:44.690
+OK, so we compute the
+covariance matrix.
+
+01:13:44.690 --> 01:13:46.910
+Find the eigenvectors
+and eigenvalues
+
+01:13:46.910 --> 01:13:50.180
+of the covariance
+matrix right there.
+
+01:13:50.180 --> 01:13:53.920
+And then, we just
+rotate the data
+
+01:13:53.920 --> 01:13:59.470
+set into that new basis of
+eigenvectors and eigenvalues.
+
+01:14:02.380 --> 01:14:04.270
+It's useful for clustering.
+
+01:14:04.270 --> 01:14:09.320
+So if we have two clusters,
+we can take the clusters,
+
+01:14:09.320 --> 01:14:11.630
+compute the covariance matrix.
+
+01:14:11.630 --> 01:14:13.610
+Find the eigenvectors
+and eigenvalues
+
+01:14:13.610 --> 01:14:16.810
+of that covariance matrix.
+
+01:14:16.810 --> 01:14:22.140
+And then, rotate the
+data set into a basis set
+
+01:14:22.140 --> 01:14:27.460
+in which the dimensions
+in the data on which
+
+01:14:27.460 --> 01:14:34.935
+variances largest are along
+the standard basis vectors.
+
+01:14:40.900 --> 01:14:42.920
+Let's look at a problem
+in the time domain.
+
+01:14:42.920 --> 01:14:48.400
+So here we have a couple
+of time-dependent signals.
+
+01:14:48.400 --> 01:14:53.530
+So this is some amplitude
+as a function of time.
+
+01:14:53.530 --> 01:14:55.910
+These are signals
+that I constructed.
+
+01:14:55.910 --> 01:15:02.240
+They're some wiggly function
+that I added noise to.
+
+01:15:02.240 --> 01:15:06.190
+What we do is we take each
+one of those times series,
+
+01:15:06.190 --> 01:15:08.410
+and we stack them up
+in a bunch of columns.
+
+01:15:08.410 --> 01:15:15.210
+So our vector is now a
+set of 100 time samples.
+
+01:15:15.210 --> 01:15:19.396
+So there is a vector of
+100 different time points.
+
+01:15:19.396 --> 01:15:21.630
+Does that make sense?
+
+01:15:21.630 --> 01:15:28.440
+And we have 200 observations of
+those 100-dimensional vectors.
+
+01:15:28.440 --> 01:15:34.270
+So we have a data vector
+x that has columns.
+
+01:15:34.270 --> 01:15:35.790
+That are hundreds dimensional.
+
+01:15:35.790 --> 01:15:37.950
+And we have 200 of
+those observations.
+
+01:15:37.950 --> 01:15:40.800
+So it's 100-by-200 matrix.
+
+01:15:40.800 --> 01:15:43.330
+100-by-200 matrix.
+
+01:15:43.330 --> 01:15:47.140
+We do the means subtraction
+we subtract the mean using
+
+01:15:47.140 --> 01:15:50.570
+that trick that I showed you.
+
+01:15:50.570 --> 01:15:52.710
+Compute the covariance matrix.
+
+01:15:52.710 --> 01:15:54.500
+So there we compute the mean.
+
+01:15:54.500 --> 01:15:57.260
+We subtract the
+mean using repmat.
+
+01:15:57.260 --> 01:16:00.110
+Subtract the mean from
+the data to get z.
+
+01:16:00.110 --> 01:16:03.560
+Compute the covariance
+matrix Q. That's
+
+01:16:03.560 --> 01:16:08.610
+what the covariance matrix
+looks like for those data.
+
+01:16:08.610 --> 01:16:14.190
+And now, we plug it into eig
+to extract the eigenvectors
+
+01:16:14.190 --> 01:16:16.450
+and eigenvalues.
+
+01:16:16.450 --> 01:16:23.410
+OK, so extract F and V. If
+we look at the eigenvalues,
+
+01:16:23.410 --> 01:16:26.050
+you can see that
+there are hundreds
+
+01:16:26.050 --> 01:16:30.050
+eigenvalues because those
+data have 100 dimensions.
+
+01:16:30.050 --> 01:16:32.170
+So there are
+hundreds eigenvalues.
+
+01:16:32.170 --> 01:16:35.860
+You could see that two of
+those eigenvalues are big,
+
+01:16:35.860 --> 01:16:38.080
+and the rest are small.
+
+01:16:38.080 --> 01:16:40.560
+This is on a log scale.
+
+01:16:40.560 --> 01:16:44.230
+What that says is
+that almost all
+
+01:16:44.230 --> 01:16:48.350
+of the variance in these data
+exist in just two dimensions.
+
+01:16:48.350 --> 01:16:50.650
+It's 100-dimensional space.
+
+01:16:50.650 --> 01:16:54.280
+But the data are living
+in two dimensions.
+
+01:16:54.280 --> 01:16:55.810
+And all the rest is noise.
+
+01:16:58.498 --> 01:16:59.730
+Does that makes sense?
+
+01:17:03.410 --> 01:17:06.740
+So what you'll typically
+do is take some data,
+
+01:17:06.740 --> 01:17:10.010
+compute the covariance
+matrix, find the eigenvalues,
+
+01:17:10.010 --> 01:17:12.770
+and look at the
+spectrum of eigenvalues.
+
+01:17:12.770 --> 01:17:15.520
+And you'll very
+often see that there
+
+01:17:15.520 --> 01:17:18.945
+is a lot of variance in a
+small subset of eigenvalues.
+
+01:17:18.945 --> 01:17:22.250
+Then, it tells you that
+the data are really
+
+01:17:22.250 --> 01:17:27.320
+living in a
+lower-dimensional subspace
+
+01:17:27.320 --> 01:17:30.800
+than the full
+dimensionality of the data.
+
+01:17:30.800 --> 01:17:32.330
+So that's where your signal is.
+
+01:17:32.330 --> 01:17:34.310
+And all the rest
+of that is noise.
+
+01:17:34.310 --> 01:17:36.050
+You can plot the
+cumulative of this.
+
+01:17:36.050 --> 01:17:38.120
+And you can say
+that the first two
+
+01:17:38.120 --> 01:17:45.080
+components explain over 60% of
+the total variance in the data.
+
+01:17:45.080 --> 01:17:47.710
+So since there are
+two large eigenvalues,
+
+01:17:47.710 --> 01:17:50.560
+let's look at the eigenvectors
+associated with those.
+
+01:17:50.560 --> 01:17:52.420
+And we can find those.
+
+01:17:52.420 --> 01:17:56.380
+Those are just the first
+two columns of this matrix F
+
+01:17:56.380 --> 01:17:58.660
+that the eig function
+returned to us.
+
+01:17:58.660 --> 01:18:02.050
+And that's what those two
+eigenvectors look like.
+
+01:18:04.940 --> 01:18:07.250
+That's what the original
+data looked like.
+
+01:18:07.250 --> 01:18:10.310
+The eigenvectors, the
+columns of the F matrix,
+
+01:18:10.310 --> 01:18:13.330
+are an orthogonal basis set.
+
+01:18:13.330 --> 01:18:16.520
+A new basis set.
+
+01:18:16.520 --> 01:18:21.300
+So those are the first
+two eigenvectors.
+
+01:18:21.300 --> 01:18:23.540
+And you can see that
+the signal lives
+
+01:18:23.540 --> 01:18:27.320
+in this low-dimensional space
+of these two eigenvectors.
+
+01:18:27.320 --> 01:18:29.750
+All of the other
+eigenvectors are just noise.
+
+01:18:34.330 --> 01:18:42.330
+So we can do is we can project
+the data into this new basis
+
+01:18:42.330 --> 01:18:43.620
+set.
+
+01:18:43.620 --> 01:18:44.920
+So let's do that.
+
+01:18:44.920 --> 01:18:49.370
+We simply do a change of basis.
+
+01:18:49.370 --> 01:18:52.430
+The f is a rotation matrix.
+
+01:18:52.430 --> 01:18:56.420
+We can project our data
+z into this new basis set
+
+01:18:56.420 --> 01:18:58.710
+and see what it looks like.
+
+01:18:58.710 --> 01:19:00.330
+Turns out, that's
+what it looks like.
+
+01:19:00.330 --> 01:19:06.210
+There are two clusters in
+those data corresponding
+
+01:19:06.210 --> 01:19:09.900
+to the two different wave forms
+that you could see in the data.
+
+01:19:12.317 --> 01:19:14.150
+Right there, you can
+see that there are kind
+
+01:19:14.150 --> 01:19:15.830
+of two wave forms in the data.
+
+01:19:18.470 --> 01:19:21.390
+If you projected data into
+this low-dimensional space,
+
+01:19:21.390 --> 01:19:23.330
+you can see that there
+are two clusters there.
+
+01:19:25.940 --> 01:19:32.690
+If you projected data into other
+projections, you don't see it.
+
+01:19:32.690 --> 01:19:35.330
+It's only in this
+particular projection
+
+01:19:35.330 --> 01:19:37.965
+that you have these two
+very distinct clusters
+
+01:19:37.965 --> 01:19:39.590
+corresponding to the
+two different wave
+
+01:19:39.590 --> 01:19:42.670
+forms in the data.
+
+01:19:42.670 --> 01:19:47.050
+Now, almost all
+of the variance is
+
+01:19:47.050 --> 01:19:50.090
+in the space of the first
+two principal components.
+
+01:19:50.090 --> 01:19:52.060
+So what you can
+actually do is, you
+
+01:19:52.060 --> 01:19:56.800
+can project the data into these
+first two principal components,
+
+01:19:56.800 --> 01:20:00.310
+set all of the other
+principal components to zero,
+
+01:20:00.310 --> 01:20:03.410
+and then rotate back to
+the original basis set.
+
+01:20:03.410 --> 01:20:06.490
+That is that you're setting
+as much of the noise
+
+01:20:06.490 --> 01:20:07.910
+to zero as you can.
+
+01:20:07.910 --> 01:20:10.900
+You're getting rid
+of most of the noise.
+
+01:20:10.900 --> 01:20:14.050
+And then, when you rotate back
+to the original basis set,
+
+01:20:14.050 --> 01:20:15.820
+you've gotten rid of
+most of the noise.
+
+01:20:15.820 --> 01:20:19.090
+And that's called principal
+components filtering.
+
+01:20:19.090 --> 01:20:23.110
+So here's before filtering
+and here's after filtering.
+
+01:20:23.110 --> 01:20:27.400
+OK, so youve found the
+low-dimensional space,
+
+01:20:27.400 --> 01:20:31.510
+in which all the data sits,
+in which the signal sits,
+
+01:20:31.510 --> 01:20:34.430
+everything outside of
+that space is noise.
+
+01:20:34.430 --> 01:20:40.030
+So you rotate the data
+into a new basis set.
+
+01:20:40.030 --> 01:20:42.760
+You can filter out all
+the other dimensions
+
+01:20:42.760 --> 01:20:44.140
+that just have noise.
+
+01:20:44.140 --> 01:20:45.880
+You filter back.
+
+01:20:45.880 --> 01:20:49.040
+And you just keep the signal.
+
+01:20:49.040 --> 01:20:49.710
+And that's it.
+
+01:20:49.710 --> 01:20:53.400
+So that's sort of a brief
+intro to principal component
+
+01:20:53.400 --> 01:20:54.550
+analysis.
+
+01:20:54.550 --> 01:20:57.110
+But there are a lot of
+things you can use it for.
+
+01:20:57.110 --> 01:20:58.180
+It's a lot of fun.
+
+01:20:58.180 --> 01:21:00.450
+And it's a great
+intro to all the other
+
+01:21:00.450 --> 01:21:03.900
+amazing dimensionality reduction
+techniques that there are.
+
+01:21:03.900 --> 01:21:06.530
+I apologize for going over.

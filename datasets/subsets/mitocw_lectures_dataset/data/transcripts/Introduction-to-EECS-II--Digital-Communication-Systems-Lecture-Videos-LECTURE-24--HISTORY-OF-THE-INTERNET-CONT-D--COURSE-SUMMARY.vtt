@@ -1,0 +1,4585 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.520
+The following content is
+provided under a Creative
+
+00:00:02.520 --> 00:00:03.970
+Commons license.
+
+00:00:03.970 --> 00:00:06.360
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.360 --> 00:00:10.690
+continue to offer high quality
+educational resources for free.
+
+00:00:10.690 --> 00:00:13.350
+To make a donation or
+view additional materials
+
+00:00:13.350 --> 00:00:17.190
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.190 --> 00:00:18.400
+at ocw.mit.edu.
+
+00:00:29.030 --> 00:00:31.010
+PROFESSOR: So my goal
+for today is twofold.
+
+00:00:31.010 --> 00:00:34.130
+The first is, we've looked at
+the history of the internet
+
+00:00:34.130 --> 00:00:35.960
+in the '60s and the '70s.
+
+00:00:35.960 --> 00:00:37.340
+And today, my goal
+is to tell you
+
+00:00:37.340 --> 00:00:40.850
+about what happened in
+the '80s and the '90s,
+
+00:00:40.850 --> 00:00:43.010
+as well as the last decade.
+
+00:00:43.010 --> 00:00:45.470
+And we'll do that
+maybe 30, 35 minutes.
+
+00:00:45.470 --> 00:00:48.500
+But I want to tell you about
+two interesting problems that
+
+00:00:48.500 --> 00:00:51.290
+got solved, both related
+to topics we've studied.
+
+00:00:51.290 --> 00:00:56.120
+The first is on how the internet
+dealt with a serious problem
+
+00:00:56.120 --> 00:00:57.500
+called congestion
+collapse, which
+
+00:00:57.500 --> 00:01:02.210
+happened in the mid-1980s,
+where TCP, the transmission
+
+00:01:02.210 --> 00:01:04.790
+protocol at the time, was
+still the dominant protocol
+
+00:01:04.790 --> 00:01:08.510
+in the world, didn't have
+many of the new ideas
+
+00:01:08.510 --> 00:01:09.840
+that it now has.
+
+00:01:09.840 --> 00:01:14.660
+In fact, the implementation
+of TCP in the 1980s
+
+00:01:14.660 --> 00:01:16.820
+was almost exactly
+the implementation
+
+00:01:16.820 --> 00:01:20.960
+of your sliding window
+protocol from the second lab,
+
+00:01:20.960 --> 00:01:24.260
+from the second task
+of the last lab.
+
+00:01:24.260 --> 00:01:26.720
+And in fact, as
+some of you are--
+
+00:01:26.720 --> 00:01:28.712
+I think Tyler
+posted it on Piazza,
+
+00:01:28.712 --> 00:01:30.170
+there was a particular
+way in which
+
+00:01:30.170 --> 00:01:32.587
+he had dealt with the windowing
+scheme that happened to do
+
+00:01:32.587 --> 00:01:34.040
+better than the lab solution.
+
+00:01:34.040 --> 00:01:36.830
+And I remarked there that the
+reason the lab solutions are
+
+00:01:36.830 --> 00:01:38.780
+the way they are are a
+little bit more general
+
+00:01:38.780 --> 00:01:40.430
+than the particular topology.
+
+00:01:40.430 --> 00:01:42.830
+But the topology that I
+picked was specifically
+
+00:01:42.830 --> 00:01:44.810
+picked in the lab so
+you didn't have to worry
+
+00:01:44.810 --> 00:01:46.498
+about congestion happening.
+
+00:01:46.498 --> 00:01:49.040
+But today, I'll tell you what
+happens when congestion happens
+
+00:01:49.040 --> 00:01:51.260
+and the solutions
+that were adopted.
+
+00:01:51.260 --> 00:01:53.330
+And it'll be a little bit
+of a preview to 6.033.
+
+00:01:53.330 --> 00:01:56.390
+You'll study this topic
+at some length in 6.033.
+
+00:01:56.390 --> 00:01:57.890
+The other problem
+I want to tell you
+
+00:01:57.890 --> 00:01:59.970
+about today through
+these remarks
+
+00:01:59.970 --> 00:02:04.015
+is about how easy it is to
+hijack routes on the internet.
+
+00:02:04.015 --> 00:02:05.390
+And I'll go through
+some examples
+
+00:02:05.390 --> 00:02:07.540
+of this happening in reality.
+
+00:02:07.540 --> 00:02:09.805
+I mean, it is literally
+something a bunch of-- you
+
+00:02:09.805 --> 00:02:11.180
+know, you can do
+it in your dorm.
+
+00:02:11.180 --> 00:02:13.888
+You just have to convince
+some sort of-- pretend
+
+00:02:13.888 --> 00:02:16.430
+you're an ISP, or set yourself
+up as a small internet service
+
+00:02:16.430 --> 00:02:16.980
+provider.
+
+00:02:16.980 --> 00:02:19.770
+And you can actually
+wreak a fair bit of damage
+
+00:02:19.770 --> 00:02:23.120
+onto the rest of the world
+if you're so inclined,
+
+00:02:23.120 --> 00:02:26.720
+and then pretend that it
+was just a, you know, error.
+
+00:02:26.720 --> 00:02:28.610
+So those are the
+two technical ideas.
+
+00:02:28.610 --> 00:02:31.640
+I mean, none of this stuff
+is really on the quiz,
+
+00:02:31.640 --> 00:02:35.450
+though it's probably helpful
+to think about these things
+
+00:02:35.450 --> 00:02:38.810
+about route hijacking
+because those apply to some
+
+00:02:38.810 --> 00:02:40.160
+of the concepts we've studied.
+
+00:02:40.160 --> 00:02:42.607
+But a lot of this is just
+for-- out of your own interest.
+
+00:02:42.607 --> 00:02:44.190
+And I'm hoping to
+pique your curiosity
+
+00:02:44.190 --> 00:02:46.850
+so later courses
+in the department
+
+00:02:46.850 --> 00:02:48.290
+would be interesting.
+
+00:02:48.290 --> 00:02:52.818
+OK, so in the 1980s,
+the people designing
+
+00:02:52.818 --> 00:02:55.110
+the protocols of the internet
+started to get organized.
+
+00:02:55.110 --> 00:02:57.650
+And as you recall,
+Vint Cerf and Bob Kahn
+
+00:02:57.650 --> 00:02:59.010
+were the leaders of the effort.
+
+00:02:59.010 --> 00:03:01.010
+There was a big community
+of people contributing
+
+00:03:01.010 --> 00:03:02.750
+to what became the internet.
+
+00:03:02.750 --> 00:03:05.030
+And back in those days,
+it was still the ARPANET.
+
+00:03:05.030 --> 00:03:06.950
+ARPA had funded
+this entire project.
+
+00:03:06.950 --> 00:03:09.590
+And it was starting
+to be successful.
+
+00:03:09.590 --> 00:03:11.480
+In the 1980s, rapid
+growth started.
+
+00:03:11.480 --> 00:03:13.220
+People said how the
+internet is booming,
+
+00:03:13.220 --> 00:03:16.130
+and how it's exploding
+at 80% or 90% a year.
+
+00:03:16.130 --> 00:03:18.560
+It's been growing at
+about 80% to 90% a year
+
+00:03:18.560 --> 00:03:20.930
+since about 1983 or 1984.
+
+00:03:20.930 --> 00:03:25.730
+This explosive growth has been
+happening for several decades
+
+00:03:25.730 --> 00:03:26.918
+now.
+
+00:03:26.918 --> 00:03:28.460
+Dave Clark, who was
+a senior research
+
+00:03:28.460 --> 00:03:31.070
+scientist at MIT and on the
+faculty in our department,
+
+00:03:31.070 --> 00:03:34.760
+was designated as the
+internet's chief architect.
+
+00:03:34.760 --> 00:03:38.330
+And one of the things he did was
+to get the community organized
+
+00:03:38.330 --> 00:03:40.920
+and formalize the creation
+of internet standards.
+
+00:03:40.920 --> 00:03:42.920
+You know, you have all
+these different companies
+
+00:03:42.920 --> 00:03:45.890
+and organizations and
+universities coming together.
+
+00:03:45.890 --> 00:03:48.290
+How do you
+standardize protocols?
+
+00:03:48.290 --> 00:03:53.960
+And the argument-- the
+approach they came up with
+
+00:03:53.960 --> 00:03:55.790
+was called the Internet
+Engineering Task
+
+00:03:55.790 --> 00:03:57.620
+Force, or IETF.
+
+00:03:57.620 --> 00:04:00.890
+And they would write
+these proposals.
+
+00:04:00.890 --> 00:04:03.440
+There had been this trend
+of writing these proposals
+
+00:04:03.440 --> 00:04:07.425
+for people to comment on, called
+RFCs, or Request For Comments.
+
+00:04:07.425 --> 00:04:09.800
+And now, there are several
+thousand requests for comment.
+
+00:04:09.800 --> 00:04:12.020
+Nowadays, requests for
+comment are after the comments
+
+00:04:12.020 --> 00:04:12.650
+have been made.
+
+00:04:12.650 --> 00:04:14.840
+Usually, you go through
+an internet draft stage.
+
+00:04:14.840 --> 00:04:16.940
+And by the time it's
+a request for comment,
+
+00:04:16.940 --> 00:04:19.065
+it pretty much means that
+the comments have already
+
+00:04:19.065 --> 00:04:19.640
+been done.
+
+00:04:19.640 --> 00:04:21.682
+But historically, they
+were requests for comment,
+
+00:04:21.682 --> 00:04:23.720
+so they called it
+request for comment.
+
+00:04:23.720 --> 00:04:26.775
+So if you ever go to a company
+where you're asked to--
+
+00:04:26.775 --> 00:04:29.150
+lots of things that are on
+internet request for comments.
+
+00:04:29.150 --> 00:04:30.817
+And often, people are
+asked to implement
+
+00:04:30.817 --> 00:04:32.000
+pieces of various standards.
+
+00:04:32.000 --> 00:04:33.667
+And you typically
+look at this document,
+
+00:04:33.667 --> 00:04:36.208
+and you try to see if there's
+someone written code around it.
+
+00:04:36.208 --> 00:04:38.210
+And then you adapt it
+or write it from scratch
+
+00:04:38.210 --> 00:04:39.280
+to the specification.
+
+00:04:39.280 --> 00:04:41.480
+So it specifies the protocols.
+
+00:04:41.480 --> 00:04:44.587
+And the interesting
+part of the standard
+
+00:04:44.587 --> 00:04:46.670
+was very much in keeping
+with the general approach
+
+00:04:46.670 --> 00:04:48.500
+of the internet ethos,
+which was to try
+
+00:04:48.500 --> 00:04:49.970
+to make everything be open.
+
+00:04:49.970 --> 00:04:52.596
+There are many standards
+bodies in the world.
+
+00:04:52.596 --> 00:04:57.050
+The IEEE has various committees.
+
+00:04:57.050 --> 00:04:58.880
+The International
+Telecommunications Union
+
+00:04:58.880 --> 00:05:00.470
+does the various
+telephone standards.
+
+00:05:00.470 --> 00:05:01.430
+There's many, many standards.
+
+00:05:01.430 --> 00:05:03.020
+And often, they're
+based on voting.
+
+00:05:03.020 --> 00:05:04.910
+And voting means that
+people horse trade.
+
+00:05:04.910 --> 00:05:06.493
+You know, you have
+a favorite feature,
+
+00:05:06.493 --> 00:05:08.120
+I have a favorite feature.
+
+00:05:08.120 --> 00:05:10.410
+They're both pretty crappy
+features, but you know,
+
+00:05:10.410 --> 00:05:12.410
+I'll vote for your feature
+if you vote for mine.
+
+00:05:12.410 --> 00:05:14.180
+And people end up horse trading.
+
+00:05:14.180 --> 00:05:18.127
+And in the IETF, in the good
+old days, this kind of stuff
+
+00:05:18.127 --> 00:05:18.710
+didn't happen.
+
+00:05:18.710 --> 00:05:19.730
+Now, it's changed.
+
+00:05:19.730 --> 00:05:23.628
+But in the good old days,
+there was this quote,
+
+00:05:23.628 --> 00:05:25.670
+it says, we reject kings,
+presidents, and voting.
+
+00:05:25.670 --> 00:05:28.140
+We believe in rough
+consensus and running code.
+
+00:05:28.140 --> 00:05:30.780
+The idea was that you
+show me what it does.
+
+00:05:30.780 --> 00:05:32.320
+Allow people to
+experiment with it.
+
+00:05:32.320 --> 00:05:33.960
+And only after we
+see some prototypes
+
+00:05:33.960 --> 00:05:36.060
+and some actual
+experiments in the lab will
+
+00:05:36.060 --> 00:05:38.385
+we even consider making
+it into a standard.
+
+00:05:38.385 --> 00:05:40.720
+And this was the good
+old days of the internet
+
+00:05:40.720 --> 00:05:43.890
+in which things were on rough
+consensus and running code.
+
+00:05:43.890 --> 00:05:46.530
+So it wasn't around, you
+know what, let's just vote,
+
+00:05:46.530 --> 00:05:49.170
+and we'll get all our
+lousy features in just
+
+00:05:49.170 --> 00:05:52.830
+because we care enough
+about it personally.
+
+00:05:52.830 --> 00:05:54.480
+A big break happened
+in 1982 when
+
+00:05:54.480 --> 00:05:56.078
+the US Department
+of Defense decided
+
+00:05:56.078 --> 00:05:57.870
+that proprietary
+technology was not the way
+
+00:05:57.870 --> 00:06:01.290
+to go with networking,
+and standardized on TCP/IP
+
+00:06:01.290 --> 00:06:02.640
+as the standard.
+
+00:06:02.640 --> 00:06:04.800
+And back in those days,
+the Defense Department
+
+00:06:04.800 --> 00:06:06.660
+was a huge consumer of IT.
+
+00:06:06.660 --> 00:06:10.800
+It still is, but back then,
+it was just hugely dominant.
+
+00:06:10.800 --> 00:06:14.790
+And they could really
+influence how the world went.
+
+00:06:14.790 --> 00:06:18.630
+In 1983, MIT created a
+Athena, the first really
+
+00:06:18.630 --> 00:06:20.880
+big, large-scale
+computing project.
+
+00:06:20.880 --> 00:06:22.650
+We still have Athena machines.
+
+00:06:22.650 --> 00:06:25.830
+And it showed how to
+build campus-area networks
+
+00:06:25.830 --> 00:06:27.120
+and campus-area technologies.
+
+00:06:27.120 --> 00:06:28.620
+They built distributed
+file systems,
+
+00:06:28.620 --> 00:06:30.330
+they built systems
+like Kerberos.
+
+00:06:30.330 --> 00:06:33.490
+And in fact, they were
+one of the first groups,
+
+00:06:33.490 --> 00:06:36.390
+the first networks to experience
+network congestion problems
+
+00:06:36.390 --> 00:06:39.270
+because everybody started using
+the network to do their work
+
+00:06:39.270 --> 00:06:42.870
+rather than have their own
+computers at their desk
+
+00:06:42.870 --> 00:06:46.380
+or use the terminal to log in
+to some remote mainframe, which
+
+00:06:46.380 --> 00:06:50.310
+was the way in which
+things used to be done.
+
+00:06:50.310 --> 00:06:52.680
+I mentioned last
+time that in 1984, we
+
+00:06:52.680 --> 00:06:54.000
+created the domain name system.
+
+00:06:54.000 --> 00:06:56.820
+This is the system that
+goes between domain names
+
+00:06:56.820 --> 00:06:59.910
+like mit.edu to an IP address.
+
+00:06:59.910 --> 00:07:01.680
+And before that, it was an FTP--
+
+00:07:01.680 --> 00:07:03.810
+how many people
+have heard of FTP?
+
+00:07:03.810 --> 00:07:04.680
+A few of you, OK--
+
+00:07:04.680 --> 00:07:05.640
+File Transfer Protocol.
+
+00:07:05.640 --> 00:07:07.098
+Nobody really uses
+that these days.
+
+00:07:07.098 --> 00:07:10.470
+But you used to download
+this-- every night,
+
+00:07:10.470 --> 00:07:13.260
+computers would download it from
+one machine located, I believe,
+
+00:07:13.260 --> 00:07:14.340
+in California.
+
+00:07:14.340 --> 00:07:18.600
+And it didn't really
+scale, you know?
+
+00:07:18.600 --> 00:07:20.880
+And people decided
+that you needed
+
+00:07:20.880 --> 00:07:23.610
+to get organized and build
+a domain name system.
+
+00:07:23.610 --> 00:07:25.902
+In 1985, ARPA was--
+
+00:07:25.902 --> 00:07:27.360
+the Defense Department
+was starting
+
+00:07:27.360 --> 00:07:29.490
+to get out a little
+bit of maintaining
+
+00:07:29.490 --> 00:07:31.650
+the entire
+communication network.
+
+00:07:31.650 --> 00:07:33.450
+And the National
+Science Foundation
+
+00:07:33.450 --> 00:07:35.760
+started taking over the
+running of the backbone,
+
+00:07:35.760 --> 00:07:39.490
+connecting all the non-military
+networks in the United States.
+
+00:07:39.490 --> 00:07:41.560
+And this led to the NSFNET.
+
+00:07:41.560 --> 00:07:44.560
+I'll have more to say about
+NSFNET in a little bit.
+
+00:07:46.975 --> 00:07:49.350
+There were two big growth
+problems that were experienced.
+
+00:07:49.350 --> 00:07:51.120
+The first was congestion,
+and the second
+
+00:07:51.120 --> 00:07:54.330
+had to do with how addresses
+started running out,
+
+00:07:54.330 --> 00:07:58.270
+and we had to deal with
+problems in the routing system.
+
+00:07:58.270 --> 00:08:00.300
+So I want to talk
+about congestion.
+
+00:08:00.300 --> 00:08:03.060
+In 1986, the
+internet experienced
+
+00:08:03.060 --> 00:08:06.390
+the first of a series
+of congestion collapses.
+
+00:08:06.390 --> 00:08:08.400
+A congestion collapse
+is a situation
+
+00:08:08.400 --> 00:08:10.380
+where you end up
+with a picture that
+
+00:08:10.380 --> 00:08:12.540
+looks like this,
+where if you were
+
+00:08:12.540 --> 00:08:17.950
+to draw the offered load on a
+network, or any system for that
+
+00:08:17.950 --> 00:08:18.450
+matter--
+
+00:08:21.100 --> 00:08:23.493
+which is just how many
+people are clamoring
+
+00:08:23.493 --> 00:08:26.160
+to get access to the network and
+send their data on the network.
+
+00:08:26.160 --> 00:08:33.210
+If you were to plot the
+throughput that you get,
+
+00:08:33.210 --> 00:08:36.461
+or the utilization that
+you get from the network,
+
+00:08:36.461 --> 00:08:38.669
+you typically would see a
+curve that looks like this.
+
+00:08:38.669 --> 00:08:41.549
+As the offered load grows,
+you might see a somewhat
+
+00:08:41.549 --> 00:08:43.620
+linear increase in the
+throughput with slope 1
+
+00:08:43.620 --> 00:08:44.910
+because the network
+isn't congested,
+
+00:08:44.910 --> 00:08:46.118
+no packets are being dropped.
+
+00:08:46.118 --> 00:08:49.560
+You push some data in,
+you get the data out.
+
+00:08:49.560 --> 00:08:51.230
+The throughput tracks
+the offered load.
+
+00:08:51.230 --> 00:08:53.970
+And at some point, you reach
+the capacity of the link,
+
+00:08:53.970 --> 00:08:55.888
+or of the network in general.
+
+00:08:55.888 --> 00:08:57.930
+And you might end up with
+a flat curve like that.
+
+00:08:57.930 --> 00:08:59.490
+And that's fine.
+
+00:08:59.490 --> 00:09:00.990
+What you would
+really like to do is,
+
+00:09:00.990 --> 00:09:03.090
+as the overload load
+keeps increasing
+
+00:09:03.090 --> 00:09:06.690
+and the throughput
+saturates at the capacity--
+
+00:09:06.690 --> 00:09:08.130
+of course, that means that--
+
+00:09:08.130 --> 00:09:08.880
+what does it mean?
+
+00:09:08.880 --> 00:09:11.220
+Either the delays are
+growing to infinity
+
+00:09:11.220 --> 00:09:13.590
+or packets are being
+dropped, right?
+
+00:09:13.590 --> 00:09:16.950
+And what you would really like
+intuitively is for the sources
+
+00:09:16.950 --> 00:09:19.620
+to realize that packets
+are being dropped
+
+00:09:19.620 --> 00:09:22.260
+or they're not being delivered
+in time, so maybe slow down.
+
+00:09:22.260 --> 00:09:23.260
+Something has to happen.
+
+00:09:23.260 --> 00:09:25.177
+But congestion collapse
+is a worse phenomenon.
+
+00:09:25.177 --> 00:09:27.840
+What happens is, beyond a point,
+your throughput [INAUDIBLE]
+
+00:09:27.840 --> 00:09:31.800
+drops, sometimes precipitously,
+and it might go down to zero.
+
+00:09:31.800 --> 00:09:35.810
+So people were running
+network applications--
+
+00:09:35.810 --> 00:09:38.820
+you know, FTP and remote
+logins and so forth,
+
+00:09:38.820 --> 00:09:40.000
+email and so forth.
+
+00:09:40.000 --> 00:09:44.340
+And what they were finding was
+that you could be running--
+
+00:09:44.340 --> 00:09:47.850
+the ratio between what the
+capacity of the network was
+
+00:09:47.850 --> 00:09:50.010
+and what you were getting
+when you were running
+
+00:09:50.010 --> 00:09:54.690
+was a factor of
+100 to 1,000 worse.
+
+00:09:54.690 --> 00:09:55.960
+So this is a real collapse.
+
+00:09:55.960 --> 00:09:58.168
+I mean, you wouldn't be able
+to get anything through.
+
+00:09:58.168 --> 00:10:00.720
+So people were talking about
+going from, in those days,
+
+00:10:00.720 --> 00:10:03.900
+tens of kilobits per
+second to bits per second.
+
+00:10:03.900 --> 00:10:05.400
+In fact, there was
+a joke that there
+
+00:10:05.400 --> 00:10:09.570
+was a path in Berkeley between
+the University of California
+
+00:10:09.570 --> 00:10:11.490
+and Lawrence Berkeley
+Labs, which is probably
+
+00:10:11.490 --> 00:10:13.950
+400 meters from each other.
+
+00:10:13.950 --> 00:10:17.340
+And the network rate was such
+that you could actually run up
+
+00:10:17.340 --> 00:10:19.800
+the hill with a
+tape drive and you'd
+
+00:10:19.800 --> 00:10:22.953
+get 100 times higher
+throughput than what you were
+
+00:10:22.953 --> 00:10:24.120
+getting through the network.
+
+00:10:24.120 --> 00:10:26.328
+And you know, this was not
+even running up very fast.
+
+00:10:26.328 --> 00:10:28.603
+So this was a serious problem.
+
+00:10:28.603 --> 00:10:30.520
+This problem was dealt
+with by multiple people
+
+00:10:30.520 --> 00:10:32.360
+who were working on it.
+
+00:10:32.360 --> 00:10:34.810
+And it led to a
+set of algorithms
+
+00:10:34.810 --> 00:10:39.580
+where the idea was
+that you would like--
+
+00:10:39.580 --> 00:10:42.320
+because all these switches and
+routers were already deployed,
+
+00:10:42.320 --> 00:10:44.260
+people were interested
+in end-to-end solutions
+
+00:10:44.260 --> 00:10:45.280
+to the problem.
+
+00:10:45.280 --> 00:10:46.990
+By end-to-end, I
+mean solutions you
+
+00:10:46.990 --> 00:10:49.750
+could deploy at the centers and
+the receivers in the network
+
+00:10:49.750 --> 00:10:53.710
+without worrying about what the
+network was doing in between.
+
+00:10:53.710 --> 00:10:56.860
+The actual algorithm
+that we all run today
+
+00:10:56.860 --> 00:11:00.770
+had its roots in an algorithm
+developed by Van Jacobson
+
+00:11:00.770 --> 00:11:03.213
+at Lawrence Berkeley Lab.
+
+00:11:03.213 --> 00:11:04.630
+And there's a lot
+of work that has
+
+00:11:04.630 --> 00:11:07.047
+been done since then by many
+other people in the community
+
+00:11:07.047 --> 00:11:07.580
+as well.
+
+00:11:07.580 --> 00:11:08.997
+And in parallel,
+there were people
+
+00:11:08.997 --> 00:11:11.860
+inside of Digital Equipment
+Corporation over here
+
+00:11:11.860 --> 00:11:14.530
+in Massachusetts working
+on similar problems.
+
+00:11:14.530 --> 00:11:16.072
+And they came up with ideas.
+
+00:11:16.072 --> 00:11:17.530
+And both these
+ideas were basically
+
+00:11:17.530 --> 00:11:21.280
+the same idea, more or
+less, except in the detail.
+
+00:11:21.280 --> 00:11:24.910
+And they also resembled what
+we've seen with MAC protocols.
+
+00:11:24.910 --> 00:11:28.570
+The idea is that if the network
+is working reasonably well,
+
+00:11:28.570 --> 00:11:30.940
+we're going to try to
+be greedy and start
+
+00:11:30.940 --> 00:11:33.820
+to send faster and faster.
+
+00:11:33.820 --> 00:11:36.520
+At some point, we're going to
+find that the network doesn't
+
+00:11:36.520 --> 00:11:37.850
+work so well.
+
+00:11:37.850 --> 00:11:40.588
+And we can determine that in
+one of a few different ways.
+
+00:11:40.588 --> 00:11:42.880
+One way to determine that is
+that packets start getting
+
+00:11:42.880 --> 00:11:44.230
+lost.
+
+00:11:44.230 --> 00:11:47.500
+And we will assume
+that packets are
+
+00:11:47.500 --> 00:11:51.370
+lost because queues overflow
+and congestion happens.
+
+00:11:51.370 --> 00:11:53.230
+We might also
+alternatively assume
+
+00:11:53.230 --> 00:11:56.200
+that as queues in
+the network grow,
+
+00:11:56.200 --> 00:11:59.020
+packets get delayed more and
+more when the network starts
+
+00:11:59.020 --> 00:12:00.640
+to get congested.
+
+00:12:00.640 --> 00:12:02.980
+And if we find that the
+roundtrip times are starting
+
+00:12:02.980 --> 00:12:08.902
+to increase, maybe we determined
+that congestion has happened.
+
+00:12:08.902 --> 00:12:10.610
+Now, there's been 30
+years of literature.
+
+00:12:10.610 --> 00:12:12.650
+The problem has not yet
+been completely solved.
+
+00:12:12.650 --> 00:12:15.910
+And in fact, we have now
+an active research project
+
+00:12:15.910 --> 00:12:17.650
+going on in my group
+about how to deal
+
+00:12:17.650 --> 00:12:20.500
+with these problems in the
+context of video and video
+
+00:12:20.500 --> 00:12:23.290
+conferencing in cellular,
+in wireless networks
+
+00:12:23.290 --> 00:12:26.230
+that you run with your
+phone, on your phone.
+
+00:12:26.230 --> 00:12:28.870
+So it's still an problem,
+lots of interesting research.
+
+00:12:28.870 --> 00:12:35.790
+But the basic idea is
+that you have to adapt
+
+00:12:35.790 --> 00:12:37.080
+to what the network is doing.
+
+00:12:37.080 --> 00:12:40.020
+And the way you adapt is by
+watching things in the network.
+
+00:12:40.020 --> 00:12:42.330
+You watch where the
+packets are being lost.
+
+00:12:42.330 --> 00:12:44.700
+You watch whether
+delays are growing.
+
+00:12:44.700 --> 00:12:47.580
+You might watch
+what the receiver's
+
+00:12:47.580 --> 00:12:50.250
+getting-- you know, how fast
+is the receiver getting data
+
+00:12:50.250 --> 00:12:52.110
+from the center and the network.
+
+00:12:52.110 --> 00:12:54.200
+And the intuition
+is the following--
+
+00:12:54.200 --> 00:12:59.280
+let's suppose that we were to
+pick the correct window size.
+
+00:12:59.280 --> 00:13:01.560
+This goes to the sliding
+window and the window size
+
+00:13:01.560 --> 00:13:03.280
+that you use.
+
+00:13:03.280 --> 00:13:05.490
+We said that the right
+value of the window size
+
+00:13:05.490 --> 00:13:07.980
+is roughly the
+bandwidth-delay product, where
+
+00:13:07.980 --> 00:13:11.040
+the bandwidth-delay product is
+the product of the bottleneck
+
+00:13:11.040 --> 00:13:14.048
+link rate multiplied by
+the minimum roundtrip time.
+
+00:13:14.048 --> 00:13:15.840
+But the problem is the
+bottleneck-link rate
+
+00:13:15.840 --> 00:13:17.170
+is not fixed.
+
+00:13:17.170 --> 00:13:19.320
+It is in the lab we
+studied, but in reality, you
+
+00:13:19.320 --> 00:13:21.990
+have many connections sharing
+the network, many applications
+
+00:13:21.990 --> 00:13:22.980
+sharing the network.
+
+00:13:22.980 --> 00:13:26.010
+And people come and go, so
+the rate keeps changing.
+
+00:13:26.010 --> 00:13:29.020
+At one moment, you might be
+getting 100 kilobits a second.
+
+00:13:29.020 --> 00:13:31.500
+The next moment, you might be
+getting a megabit per second.
+
+00:13:31.500 --> 00:13:33.870
+And on wireless networks,
+it's even worse.
+
+00:13:33.870 --> 00:13:36.780
+Quite literally,
+if I were to start
+
+00:13:36.780 --> 00:13:40.470
+an application on my phone now,
+connecting to Verizon or AT&T,
+
+00:13:40.470 --> 00:13:42.300
+and if I step out
+of this room, it's
+
+00:13:42.300 --> 00:13:45.570
+quite likely that the actual
+[INAUDIBLE] experience
+
+00:13:45.570 --> 00:13:48.870
+by my phone might change
+by a factor of four
+
+00:13:48.870 --> 00:13:52.408
+or a factor of eight
+within two seconds.
+
+00:13:52.408 --> 00:13:54.450
+And that has to do, of
+course, with the fact that
+
+00:13:54.450 --> 00:13:55.575
+the signal-to-noise ratio--
+
+00:13:55.575 --> 00:13:59.100
+I mean, we're surrounded
+by thick walls and metal.
+
+00:13:59.100 --> 00:14:01.308
+And the moment I go out,
+it's going to be different.
+
+00:14:01.308 --> 00:14:02.850
+So how do you deal
+with this problem?
+
+00:14:02.850 --> 00:14:04.440
+There's this one
+basic idea that's
+
+00:14:04.440 --> 00:14:07.470
+used that's a fundamental
+idea, very important idea.
+
+00:14:07.470 --> 00:14:10.450
+And it's called
+conservation of packets.
+
+00:14:10.450 --> 00:14:12.370
+It's the same idea that
+you saw when you built
+
+00:14:12.370 --> 00:14:13.578
+your sliding window protocol.
+
+00:14:13.578 --> 00:14:16.090
+It says that when you put in
+a packet into the network,
+
+00:14:16.090 --> 00:14:18.300
+and the packet
+reaches the other end,
+
+00:14:18.300 --> 00:14:21.910
+and you get an acknowledgment
+for the other end,
+
+00:14:21.910 --> 00:14:25.290
+it means that one packet
+has left this pipe.
+
+00:14:25.290 --> 00:14:26.790
+If you view this
+as that picture,
+
+00:14:26.790 --> 00:14:28.290
+as you see in that
+picture up there,
+
+00:14:28.290 --> 00:14:30.390
+packets are like
+water entering a pipe.
+
+00:14:30.390 --> 00:14:33.060
+And then they leave the
+pipe, and then another one
+
+00:14:33.060 --> 00:14:35.090
+comes back.
+
+00:14:35.090 --> 00:14:38.520
+If you have managed to
+somehow, by some magic,
+
+00:14:38.520 --> 00:14:40.440
+pick the appropriate
+window size,
+
+00:14:40.440 --> 00:14:44.250
+then conservation of packets
+is a good principle for you
+
+00:14:44.250 --> 00:14:45.178
+to apply.
+
+00:14:45.178 --> 00:14:47.220
+Because what it says is
+that the only time you're
+
+00:14:47.220 --> 00:14:49.770
+allowed to put one more
+packet into the network
+
+00:14:49.770 --> 00:14:53.050
+is when you're sure that a
+packet has left the network.
+
+00:14:53.050 --> 00:14:56.160
+And the way you know that a
+packet has left the network
+
+00:14:56.160 --> 00:15:01.320
+is because you receive an
+acknowledgment for that packet.
+
+00:15:01.320 --> 00:15:04.590
+Now of course, this assumes that
+you know the right window size.
+
+00:15:04.590 --> 00:15:07.423
+Conservation of packets has
+another really nice advantage,
+
+00:15:07.423 --> 00:15:09.090
+which is that-- let's
+say that you think
+
+00:15:09.090 --> 00:15:11.910
+you have the right window size.
+
+00:15:11.910 --> 00:15:15.510
+But in fact, more
+traffic comes in,
+
+00:15:15.510 --> 00:15:20.100
+and the bandwidth, the rate
+at which you can send data,
+
+00:15:20.100 --> 00:15:21.900
+reduces.
+
+00:15:21.900 --> 00:15:26.550
+What's going to happen is that
+because other traffic came in,
+
+00:15:26.550 --> 00:15:29.680
+the roundtrip times
+are going to grow,
+
+00:15:29.680 --> 00:15:32.190
+which means that
+acknowledgments to your packets
+
+00:15:32.190 --> 00:15:36.270
+are going to come back a little
+slower, which means that you
+
+00:15:36.270 --> 00:15:37.530
+have a natural slowdown.
+
+00:15:37.530 --> 00:15:39.600
+Because acknowledgments
+come slower,
+
+00:15:39.600 --> 00:15:44.860
+you naturally slow down and
+send packets a little slower.
+
+00:15:44.860 --> 00:15:47.850
+And then of course, then,
+if the congestion persists,
+
+00:15:47.850 --> 00:15:50.190
+packets are going to get lost.
+
+00:15:50.190 --> 00:15:52.500
+And when packets
+get lost, the trick
+
+00:15:52.500 --> 00:15:55.585
+is you have to reduce
+your window size.
+
+00:15:55.585 --> 00:15:57.210
+So let's say you're
+running at a window
+
+00:15:57.210 --> 00:16:01.890
+size in your lab of 50 packets
+when you implement this.
+
+00:16:01.890 --> 00:16:03.840
+If you find that packets
+are getting lost,
+
+00:16:03.840 --> 00:16:05.730
+you should drop
+your window size.
+
+00:16:05.730 --> 00:16:09.570
+And one way to drop the
+window size that TCP uses
+
+00:16:09.570 --> 00:16:13.020
+is to reduce it by one half.
+
+00:16:13.020 --> 00:16:16.380
+And then every time you
+find that acknowledgments
+
+00:16:16.380 --> 00:16:18.660
+are coming back, you
+get a little greedy
+
+00:16:18.660 --> 00:16:21.270
+and you try to increase
+the window size.
+
+00:16:21.270 --> 00:16:25.240
+And there are many ways to
+increase the window size.
+
+00:16:25.240 --> 00:16:27.865
+Now, all of this
+stuff requires a way,
+
+00:16:27.865 --> 00:16:29.740
+when you start the
+connection, when you start
+
+00:16:29.740 --> 00:16:31.850
+an application, what do you do?
+
+00:16:31.850 --> 00:16:35.080
+And I think you pointed out an
+idea the last time when I first
+
+00:16:35.080 --> 00:16:37.840
+talked about this problem,
+which is in the beginning,
+
+00:16:37.840 --> 00:16:40.880
+you let your window
+size be one packet, OK?
+
+00:16:40.880 --> 00:16:43.070
+So you start your window
+size at one packet.
+
+00:16:43.070 --> 00:16:45.140
+So it's like stop and wait.
+
+00:16:45.140 --> 00:16:46.640
+So at the beginning
+of a connection,
+
+00:16:46.640 --> 00:16:50.410
+If I were to draw time here
+against the window size,
+
+00:16:50.410 --> 00:16:54.180
+you start at one packet, and
+you just ship that packet out.
+
+00:16:54.180 --> 00:16:56.560
+It takes an entire roundtrip
+to get to the other side,
+
+00:16:56.560 --> 00:16:58.300
+you get an acknowledgment back.
+
+00:16:58.300 --> 00:17:01.070
+At that point, with
+regular stop and wait,
+
+00:17:01.070 --> 00:17:02.830
+you keep the same
+window size of 1,
+
+00:17:02.830 --> 00:17:04.690
+and you send one more packet.
+
+00:17:04.690 --> 00:17:06.970
+You're not being greedy enough.
+
+00:17:06.970 --> 00:17:09.490
+So one thing you can do is,
+when you get one acknowledgment,
+
+00:17:09.490 --> 00:17:12.220
+you double the window size,
+or rather, increase the window
+
+00:17:12.220 --> 00:17:12.857
+size by 1.
+
+00:17:12.857 --> 00:17:14.440
+Every time you get
+an acknowledgement,
+
+00:17:14.440 --> 00:17:16.420
+you increase the
+window size by 1.
+
+00:17:16.420 --> 00:17:21.960
+So the rule is, on
+[INAUDIBLE] you take w
+
+00:17:21.960 --> 00:17:25.329
+and you go to w plus 1.
+
+00:17:25.329 --> 00:17:26.869
+What does that do?
+
+00:17:26.869 --> 00:17:28.390
+Well, after one
+roundtrip, if I draw
+
+00:17:28.390 --> 00:17:30.560
+this in multiples of
+the roundtrip time,
+
+00:17:30.560 --> 00:17:34.540
+this is one RTT,
+this is two RTTs,
+
+00:17:34.540 --> 00:17:38.600
+this is three
+RTTs, and so forth.
+
+00:17:38.600 --> 00:17:41.890
+So at the beginning,
+at the zeroth RTT,
+
+00:17:41.890 --> 00:17:43.660
+your window size is 1.
+
+00:17:43.660 --> 00:17:47.800
+You get an acknowledgment,
+you make your window size
+
+00:17:47.800 --> 00:17:49.400
+be 2, right, 1 plus 1.
+
+00:17:49.400 --> 00:17:52.990
+So at this point,
+your window size is 2.
+
+00:17:52.990 --> 00:17:58.120
+What is the window
+size after two RTTs?
+
+00:17:58.120 --> 00:17:59.950
+It's 4 because-- why is it 4?
+
+00:17:59.950 --> 00:18:01.896
+When you send out two packets--
+
+00:18:01.896 --> 00:18:02.396
+yes?
+
+00:18:02.396 --> 00:18:02.810
+AUDIENCE: You get
+two [INAUDIBLE]..
+
+00:18:02.810 --> 00:18:04.180
+PROFESSOR: You get
+two [INAUDIBLE] back.
+
+00:18:04.180 --> 00:18:06.100
+So for the first one,
+you went from 2 to 3.
+
+00:18:06.100 --> 00:18:07.690
+Then, you went from 3 to 4.
+
+00:18:07.690 --> 00:18:09.070
+So your window size grows to 4.
+
+00:18:12.340 --> 00:18:14.470
+And then out here,
+if there's no losses,
+
+00:18:14.470 --> 00:18:15.760
+then you haven't yet reached--
+
+00:18:15.760 --> 00:18:17.950
+the window size
+hasn't yet reached
+
+00:18:17.950 --> 00:18:20.230
+the bandwidth-delay
+product of the connection,
+
+00:18:20.230 --> 00:18:22.380
+you're increasing exponentially.
+
+00:18:22.380 --> 00:18:24.950
+So this is at 8, and so forth.
+
+00:18:24.950 --> 00:18:27.190
+You're growing fairly rapidly.
+
+00:18:27.190 --> 00:18:29.650
+And at some point, you're
+going to grow too fast.
+
+00:18:29.650 --> 00:18:32.530
+Your window size
+is going to exceed
+
+00:18:32.530 --> 00:18:35.980
+the bandwidth-delay
+product plus the queue size
+
+00:18:35.980 --> 00:18:38.450
+of the bottleneck, causing
+a packet to be lost.
+
+00:18:38.450 --> 00:18:40.450
+And at that point, you
+can do a bunch of things.
+
+00:18:40.450 --> 00:18:42.220
+But one thing you can do
+is to drop the window size
+
+00:18:42.220 --> 00:18:42.950
+by a factor of 2.
+
+00:18:42.950 --> 00:18:45.940
+So whenever that happens,
+if there's a packet loss,
+
+00:18:45.940 --> 00:18:47.800
+you drop by a factor of 2.
+
+00:18:47.800 --> 00:18:49.998
+And you could continue to
+try to grow exponentially,
+
+00:18:49.998 --> 00:18:51.040
+but that would be stupid.
+
+00:18:51.040 --> 00:18:53.260
+Because you would
+grow exponentially,
+
+00:18:53.260 --> 00:18:55.330
+and if the network
+conditions haven't changed,
+
+00:18:55.330 --> 00:18:56.710
+you're going to again drop.
+
+00:18:56.710 --> 00:18:58.627
+So at this point, you
+could do something else.
+
+00:18:58.627 --> 00:19:01.540
+And what TCP does is to start
+to grow linearly, rather
+
+00:19:01.540 --> 00:19:02.540
+than exponential growth.
+
+00:19:02.540 --> 00:19:05.413
+Once you experience congestion,
+you start to grow linearly.
+
+00:19:05.413 --> 00:19:07.330
+And then maybe you
+experience congestion here,
+
+00:19:07.330 --> 00:19:09.730
+you drop by one half
+and grow linearly.
+
+00:19:09.730 --> 00:19:12.250
+And you have this sort
+of sawtooth behavior.
+
+00:19:12.250 --> 00:19:13.968
+And for most web
+connections that
+
+00:19:13.968 --> 00:19:15.760
+involve downloading a
+small amount of data,
+
+00:19:15.760 --> 00:19:16.900
+you end over here.
+
+00:19:16.900 --> 00:19:19.150
+For video and everything
+else, you go all the way.
+
+00:19:19.150 --> 00:19:20.323
+And this is one strategy.
+
+00:19:20.323 --> 00:19:21.490
+There are many, many others.
+
+00:19:21.490 --> 00:19:24.550
+And like I said, in
+various kinds of networks,
+
+00:19:24.550 --> 00:19:26.050
+like wireless
+networks, it turns out
+
+00:19:26.050 --> 00:19:28.370
+this approach is not
+really that good.
+
+00:19:28.370 --> 00:19:30.970
+And there are open questions
+around how you should actually
+
+00:19:30.970 --> 00:19:33.203
+design the system.
+
+00:19:33.203 --> 00:19:34.870
+Does everyone understand
+the basic idea?
+
+00:19:34.870 --> 00:19:36.953
+This is an example of
+adaptive congestion control.
+
+00:19:36.953 --> 00:19:40.800
+You'll look at this in 6.033
+and in 6.829 in more detail
+
+00:19:40.800 --> 00:19:42.310
+if you took those classes.
+
+00:19:42.310 --> 00:19:45.840
+Any questions?
+
+00:19:45.840 --> 00:19:48.130
+OK.
+
+00:19:48.130 --> 00:19:50.050
+All right, I'm now
+moving over to the 1990s.
+
+00:19:50.050 --> 00:19:52.240
+Nothing else interesting
+happened in the '80s.
+
+00:19:52.240 --> 00:19:57.010
+But in the 1990s,
+more things happened.
+
+00:19:57.010 --> 00:20:00.580
+ARPANET essentially ended as far
+as universities and everybody
+
+00:20:00.580 --> 00:20:01.720
+else was concerned.
+
+00:20:01.720 --> 00:20:03.610
+And in fact, it transitioned
+into-- you know,
+
+00:20:03.610 --> 00:20:05.260
+there were separate
+military networks.
+
+00:20:05.260 --> 00:20:09.520
+And in 1991, Tim Berners-Lee,
+who is also now here at MIT,
+
+00:20:09.520 --> 00:20:14.260
+a professor, invented a little
+thing called the WorldWideWeb,
+
+00:20:14.260 --> 00:20:15.292
+called with one world.
+
+00:20:15.292 --> 00:20:17.000
+WorldWideWeb was the
+name of the program.
+
+00:20:17.000 --> 00:20:20.420
+And I found this thing
+which was very interesting.
+
+00:20:20.420 --> 00:20:27.070
+So he wrote a proposal
+in 1989, I think,
+
+00:20:27.070 --> 00:20:29.230
+to CERN, where he was
+working, to his boss at CERN.
+
+00:20:29.230 --> 00:20:31.063
+And it was called,
+"Information Management--
+
+00:20:31.063 --> 00:20:31.900
+A Proposal."
+
+00:20:31.900 --> 00:20:33.400
+And there were all
+these things, you
+
+00:20:33.400 --> 00:20:36.700
+know, about how what became
+the web should work, with links
+
+00:20:36.700 --> 00:20:37.540
+and so forth.
+
+00:20:37.540 --> 00:20:39.760
+And his boss at the
+time, on top wrote,
+
+00:20:39.760 --> 00:20:42.790
+"vague but interesting" as
+his feedback on the proposal.
+
+00:20:42.790 --> 00:20:45.400
+Presumably, the interesting
+part trumped the vague part,
+
+00:20:45.400 --> 00:20:49.000
+and allowed him to actually
+proceed on this project, which
+
+00:20:49.000 --> 00:20:50.420
+became the World Wide Web.
+
+00:20:50.420 --> 00:20:52.727
+Now, obviously, it's been
+tremendously successful.
+
+00:20:55.470 --> 00:20:58.160
+Now, by the
+mid-1990s, the NSFNET,
+
+00:20:58.160 --> 00:21:01.580
+which was the backbone
+connecting the US, various US
+
+00:21:01.580 --> 00:21:03.560
+organizations, the
+government decided
+
+00:21:03.560 --> 00:21:06.710
+to essentially get out of
+the internet service provider
+
+00:21:06.710 --> 00:21:07.400
+business.
+
+00:21:07.400 --> 00:21:09.020
+Or rather, the
+government decided not
+
+00:21:09.020 --> 00:21:10.490
+to fund that activity anymore.
+
+00:21:10.490 --> 00:21:12.050
+And many of you
+have probably heard
+
+00:21:12.050 --> 00:21:14.340
+about this joke about Al
+Gore inventing the internet
+
+00:21:14.340 --> 00:21:16.070
+and not inventing the
+internet, and people saying he
+
+00:21:16.070 --> 00:21:17.280
+didn't invent the internet.
+
+00:21:17.280 --> 00:21:20.480
+Well, there's sort of a
+little bit of truth in this.
+
+00:21:20.480 --> 00:21:23.450
+Al Gore was very instrumental
+in the government
+
+00:21:23.450 --> 00:21:26.450
+kind of getting out of
+the internet business,
+
+00:21:26.450 --> 00:21:29.065
+and was involved in
+committees that set up
+
+00:21:29.065 --> 00:21:31.190
+regulations that led to
+internet service providers,
+
+00:21:31.190 --> 00:21:34.220
+commercial internet service
+providers actually forming,
+
+00:21:34.220 --> 00:21:36.750
+and commercial ISPs
+starting to take off,
+
+00:21:36.750 --> 00:21:39.050
+which was a really, really
+big change for the internet.
+
+00:21:39.050 --> 00:21:41.990
+Because no longer was
+it the case that there's
+
+00:21:41.990 --> 00:21:44.930
+this one organization
+and one backbone network
+
+00:21:44.930 --> 00:21:48.500
+that connects MIT and Harvard
+and everybody else together,
+
+00:21:48.500 --> 00:21:49.850
+and all the companies together.
+
+00:21:49.850 --> 00:21:52.970
+You had many, many people who
+could offer internet service,
+
+00:21:52.970 --> 00:21:55.530
+and in fact compete
+with each other.
+
+00:21:55.530 --> 00:21:58.730
+The idea was the
+internet service
+
+00:21:58.730 --> 00:22:00.800
+providers or different
+network operators have
+
+00:22:00.800 --> 00:22:03.020
+to cooperate with
+each other because we
+
+00:22:03.020 --> 00:22:05.300
+are interested in connecting
+everybody on the internet
+
+00:22:05.300 --> 00:22:06.380
+together.
+
+00:22:06.380 --> 00:22:08.403
+But they also compete
+with each other.
+
+00:22:08.403 --> 00:22:10.820
+And their reason to compete
+is they compete for customers.
+
+00:22:10.820 --> 00:22:13.920
+If I'm a customer of Verizon,
+I'm not a customer of Comcast,
+
+00:22:13.920 --> 00:22:14.510
+for example.
+
+00:22:14.510 --> 00:22:17.870
+And yet, Verizon and
+Comcast and other ISPs
+
+00:22:17.870 --> 00:22:20.160
+have to actually cooperate
+to get packets through.
+
+00:22:20.160 --> 00:22:21.230
+So how do you do this?
+
+00:22:21.230 --> 00:22:24.170
+And it turns out that
+this is a tougher problem
+
+00:22:24.170 --> 00:22:26.000
+than you might think.
+
+00:22:26.000 --> 00:22:29.210
+And the world-- people
+invented this protocol
+
+00:22:29.210 --> 00:22:32.310
+called BGP, or the
+Border Gateway protocol,
+
+00:22:32.310 --> 00:22:33.790
+which uses an idea
+that we've seen.
+
+00:22:33.790 --> 00:22:36.980
+It uses Path Vector
+to solve this problem.
+
+00:22:36.980 --> 00:22:39.695
+And I'll talk a little
+bit about that as well.
+
+00:22:39.695 --> 00:22:41.570
+The other thing that
+happened in the internet
+
+00:22:41.570 --> 00:22:45.860
+was that IP addresses
+started to get depleted.
+
+00:22:45.860 --> 00:22:47.810
+And we saw why the
+last time-- everybody
+
+00:22:47.810 --> 00:22:49.970
+wanted those Class B addresses.
+
+00:22:49.970 --> 00:22:53.120
+And now, in fact
+quite literally,
+
+00:22:53.120 --> 00:22:57.050
+there are no more IP
+version 4 IP addresses.
+
+00:22:57.050 --> 00:22:59.960
+And so there was a lot
+of work done on moving
+
+00:22:59.960 --> 00:23:01.760
+to other versions of IP.
+
+00:23:01.760 --> 00:23:05.240
+But the part that is
+interesting is this idea
+
+00:23:05.240 --> 00:23:07.980
+of classless addressing.
+
+00:23:07.980 --> 00:23:11.750
+So the idea was rather
+than have organizations
+
+00:23:11.750 --> 00:23:15.320
+that either have to have
+2 to the 24 addresses,
+
+00:23:15.320 --> 00:23:17.670
+or 2 to the 16 addresses,
+or 2 to the 8 addresses,
+
+00:23:17.670 --> 00:23:20.520
+let's allow organizations to
+have any number of addresses.
+
+00:23:20.520 --> 00:23:21.920
+So I want to tell you
+a little bit about what
+
+00:23:21.920 --> 00:23:23.462
+an IP address means,
+because everyone
+
+00:23:23.462 --> 00:23:25.190
+has seen an IP address.
+
+00:23:25.190 --> 00:23:27.350
+I want to explain what it
+means, and how it really
+
+00:23:27.350 --> 00:23:30.090
+actually works.
+
+00:23:30.090 --> 00:23:33.595
+So if you look at an
+IP address, 18.31.0.82,
+
+00:23:33.595 --> 00:23:36.410
+which is one of
+my machines, that
+
+00:23:36.410 --> 00:23:40.010
+dotted decimal notation
+with human-readable numbers
+
+00:23:40.010 --> 00:23:41.790
+used to make sense
+in the old days.
+
+00:23:41.790 --> 00:23:44.780
+It used to be that this is
+a Class A address from MIT.
+
+00:23:44.780 --> 00:23:48.680
+It's 18 dot whatever, and
+MIT owned all of that stuff.
+
+00:23:48.680 --> 00:23:50.360
+Now, that also
+happens to be true,
+
+00:23:50.360 --> 00:23:53.182
+but as far as the network
+infrastructure and the switches
+
+00:23:53.182 --> 00:23:54.890
+are concerned, this
+thing is nothing more
+
+00:23:54.890 --> 00:23:57.870
+than a 32-bit number
+that looks like that, OK?
+
+00:24:00.480 --> 00:24:03.480
+Now, when a packet
+with that number
+
+00:24:03.480 --> 00:24:05.520
+shows up at the switch
+with a destination
+
+00:24:05.520 --> 00:24:08.970
+address with that number,
+really what happens
+
+00:24:08.970 --> 00:24:10.740
+is that the switch,
+the router does not
+
+00:24:10.740 --> 00:24:14.128
+have an entry for every
+one of those destinations
+
+00:24:14.128 --> 00:24:14.670
+in the world.
+
+00:24:14.670 --> 00:24:16.840
+If it did, it just would
+be too much information.
+
+00:24:16.840 --> 00:24:19.110
+So what it has is
+information corresponding
+
+00:24:19.110 --> 00:24:21.140
+to a certain prefix.
+
+00:24:21.140 --> 00:24:24.300
+Now, that prefix could
+be of arbitrary length.
+
+00:24:24.300 --> 00:24:28.050
+It could have an entry in
+it with just the first 8
+
+00:24:28.050 --> 00:24:33.510
+bits, which would signify
+that all packets that show up
+
+00:24:33.510 --> 00:24:37.350
+with that first prefix of 8
+bits would have to be forwarded
+
+00:24:37.350 --> 00:24:38.790
+according to a rule--
+
+00:24:38.790 --> 00:24:41.970
+according to the link that was
+set for those first 8 bits.
+
+00:24:41.970 --> 00:24:45.120
+Or it could have an entry in
+the routing table for 16 bits.
+
+00:24:45.120 --> 00:24:47.730
+Or it could have an entry in
+the routing table for 19 bits,
+
+00:24:47.730 --> 00:24:48.420
+or whatever.
+
+00:24:48.420 --> 00:24:50.775
+And that depends on how
+the routing system--
+
+00:24:50.775 --> 00:24:53.640
+how we advertise the routes,
+and what it contains.
+
+00:24:53.640 --> 00:24:55.320
+So there's an
+important lesson here.
+
+00:24:55.320 --> 00:24:58.170
+When a switch advertises
+a route for a destination,
+
+00:24:58.170 --> 00:25:01.110
+on the internet, the destination
+is not the destination of--
+
+00:25:01.110 --> 00:25:03.690
+is not the IP address
+of an endpoint.
+
+00:25:03.690 --> 00:25:08.310
+But what that destination
+is is a prefix
+
+00:25:08.310 --> 00:25:11.550
+that represents a range of
+IP addresses, all of which
+
+00:25:11.550 --> 00:25:16.350
+are forwarded the same
+way by the switch.
+
+00:25:16.350 --> 00:25:18.930
+So one way of writing
+this in notation
+
+00:25:18.930 --> 00:25:22.410
+that we can understand as human
+beings more conveniently is
+
+00:25:22.410 --> 00:25:26.190
+this idea of writing
+it as 18 slash 8.
+
+00:25:26.190 --> 00:25:27.780
+What that means is--
+
+00:25:27.780 --> 00:25:33.540
+this notation stands for all IP
+addresses which have the first
+
+00:25:33.540 --> 00:25:38.100
+eight bits in common,
+which will be 0001011010,
+
+00:25:38.100 --> 00:25:41.160
+which stands for the
+human readable number 18.
+
+00:25:41.160 --> 00:25:45.720
+And it contains all 2 to the
+24 addresses corresponding
+
+00:25:45.720 --> 00:25:47.380
+to that prefix.
+
+00:25:47.380 --> 00:25:49.050
+So as another example,
+if I have that
+
+00:25:49.050 --> 00:25:52.260
+in my routing table
+with a slash 17,
+
+00:25:52.260 --> 00:25:56.580
+it stands for 2 to
+the 15 consecutive IP
+
+00:25:56.580 --> 00:26:01.950
+addresses, all of which share
+the first 17 bits in common,
+
+00:26:01.950 --> 00:26:03.150
+OK?
+
+00:26:03.150 --> 00:26:05.550
+Does this makes sense?
+
+00:26:05.550 --> 00:26:07.050
+So this is what an
+IP address means.
+
+00:26:07.050 --> 00:26:08.550
+And as far as a
+switch is concerned,
+
+00:26:08.550 --> 00:26:12.420
+a routing table
+entry is not the IP--
+
+00:26:12.420 --> 00:26:13.890
+it's not a destination
+IP address.
+
+00:26:13.890 --> 00:26:15.223
+But it's something in this form.
+
+00:26:15.223 --> 00:26:19.710
+It contains a prefix, and
+it contains a [INAUDIBLE]..
+
+00:26:19.710 --> 00:26:27.090
+So in human notation, 18.31
+slash 17 would be 17--
+
+00:26:27.090 --> 00:26:32.700
+2 to the 15 bits, which share
+the first 17 bits in common.
+
+00:26:32.700 --> 00:26:35.400
+So what this means is
+that with this notation,
+
+00:26:35.400 --> 00:26:37.590
+inside the forwarding
+table, you can have an entry
+
+00:26:37.590 --> 00:26:43.230
+for one IP address, or two,
+or four, or eight, or 16,
+
+00:26:43.230 --> 00:26:48.060
+all the way up to whatever
+the maximum is, right?
+
+00:26:48.060 --> 00:26:51.600
+So it allows us to build
+networks of different sizes,
+
+00:26:51.600 --> 00:26:54.213
+and let that network's
+identifier be known
+
+00:26:54.213 --> 00:26:55.380
+to the rest of the internet.
+
+00:26:55.380 --> 00:26:58.350
+Now, in principle, you could
+put every host in the network.
+
+00:26:58.350 --> 00:27:00.690
+And that would mean that you
+have an entry that-- each
+
+00:27:00.690 --> 00:27:02.940
+of which looks like a slash 32.
+
+00:27:02.940 --> 00:27:06.450
+If I did a slash 32, it meant
+that it's an individual IP
+
+00:27:06.450 --> 00:27:07.680
+address.
+
+00:27:07.680 --> 00:27:08.823
+But that wouldn't scale.
+
+00:27:08.823 --> 00:27:10.740
+And so we want to allow
+people the flexibility
+
+00:27:10.740 --> 00:27:12.750
+of having very
+different ranges sitting
+
+00:27:12.750 --> 00:27:15.060
+inside the routing system.
+
+00:27:15.060 --> 00:27:16.170
+And there's one more rule.
+
+00:27:16.170 --> 00:27:17.310
+And this rule is
+important because I
+
+00:27:17.310 --> 00:27:18.977
+want to tell you this
+rule-- because I'm
+
+00:27:18.977 --> 00:27:21.630
+going to tell you how YouTube
+was hijacked by an ISP
+
+00:27:21.630 --> 00:27:22.620
+in Pakistan.
+
+00:27:22.620 --> 00:27:24.720
+And it relies on
+your understanding
+
+00:27:24.720 --> 00:27:26.910
+this particular forwarding rule.
+
+00:27:26.910 --> 00:27:29.610
+And then I'll tell you
+about how an ISP in China
+
+00:27:29.610 --> 00:27:32.040
+hijacked 15% of the internet
+for a couple of hours,
+
+00:27:32.040 --> 00:27:33.270
+for a few hours.
+
+00:27:33.270 --> 00:27:35.340
+And that didn't
+require this rule,
+
+00:27:35.340 --> 00:27:37.620
+but it's two examples I
+want to tell you about.
+
+00:27:37.620 --> 00:27:39.600
+But let me explain the rule--
+
+00:27:39.600 --> 00:27:41.880
+the forwarding at a
+switch uses an idea called
+
+00:27:41.880 --> 00:27:43.590
+the longest prefix match.
+
+00:27:43.590 --> 00:27:46.440
+So what that means is
+that if you have entries
+
+00:27:46.440 --> 00:27:48.390
+in your forwarding table--
+
+00:27:48.390 --> 00:27:49.640
+let's take those two examples.
+
+00:27:49.640 --> 00:27:51.890
+And let's say I have an entry
+in the forwarding table.
+
+00:27:51.890 --> 00:27:54.810
+This is a particular switch,
+I have a forwarding table
+
+00:27:54.810 --> 00:27:56.200
+or a routing table.
+
+00:27:56.200 --> 00:27:59.730
+And the first entry
+says 18 slash 8.
+
+00:27:59.730 --> 00:28:05.400
+So what this means is it's 2
+to the 24 addresses that share
+
+00:28:05.400 --> 00:28:07.830
+the first eight bits,
+which is whatever
+
+00:28:07.830 --> 00:28:10.500
+corresponds to 18.0.0--
+
+00:28:10.500 --> 00:28:11.870
+whatever it is, right?
+
+00:28:26.310 --> 00:28:28.320
+And then let's say I
+have another entry, which
+
+00:28:28.320 --> 00:28:31.500
+is some 18.31 slash 17.
+
+00:28:31.500 --> 00:28:33.190
+And what that would
+be, of course,
+
+00:28:33.190 --> 00:28:36.240
+is 2 to the 15 addresses.
+
+00:28:36.240 --> 00:28:39.060
+And the prefix would be shown
+in that picture there, whatever
+
+00:28:39.060 --> 00:28:41.450
+the first 17 bits--
+so some 17 bits.
+
+00:28:47.080 --> 00:28:51.460
+Now, if the switch received
+a packet with an IP address,
+
+00:28:51.460 --> 00:28:54.466
+and that IP address matched
+multiple entries-- you know,
+
+00:28:54.466 --> 00:28:58.075
+you might have other
+entries sitting here.
+
+00:28:58.075 --> 00:29:02.260
+Let's say that I have
+128.32 slash something.
+
+00:29:02.260 --> 00:29:04.150
+And I might have
+various other entries
+
+00:29:04.150 --> 00:29:05.800
+sitting in my forwarding table.
+
+00:29:05.800 --> 00:29:08.290
+When a packet arrives,
+it may, in general,
+
+00:29:08.290 --> 00:29:10.090
+match multiple
+entries here, right?
+
+00:29:10.090 --> 00:29:13.780
+Because the packet has a certain
+bit string in its destination
+
+00:29:13.780 --> 00:29:14.530
+address.
+
+00:29:14.530 --> 00:29:18.370
+And that destination address
+now matches multiple of these.
+
+00:29:18.370 --> 00:29:21.610
+It could match one or more
+of these entries here.
+
+00:29:21.610 --> 00:29:24.280
+What an IP router does
+when it gets such a packet
+
+00:29:24.280 --> 00:29:28.720
+is to find the entry which
+matches in the longest prefix.
+
+00:29:28.720 --> 00:29:31.510
+In other words, the
+routing table entry
+
+00:29:31.510 --> 00:29:35.080
+that corresponds to
+the longest prefix
+
+00:29:35.080 --> 00:29:39.160
+match between the destination
+address of the packet
+
+00:29:39.160 --> 00:29:42.070
+and between the entry
+in the forwarding table
+
+00:29:42.070 --> 00:29:44.590
+is what you use to
+send the packet on.
+
+00:29:44.590 --> 00:29:48.910
+So if you got a packet
+that was 18.31.6.5
+
+00:29:48.910 --> 00:29:51.550
+and it happened to match this
+entry, it would go on one link.
+
+00:29:51.550 --> 00:29:53.490
+Let's say this was link 1.
+
+00:29:53.490 --> 00:29:55.990
+And if you have got this other
+thing that didn't match this,
+
+00:29:55.990 --> 00:29:58.073
+but matched that, you might
+have a different link.
+
+00:29:58.073 --> 00:29:59.360
+Let's call it link 0.
+
+00:29:59.360 --> 00:30:02.320
+So the output link that you use
+depends on the longest prefix
+
+00:30:02.320 --> 00:30:03.400
+match.
+
+00:30:03.400 --> 00:30:06.110
+And MIT and many organizations
+use this extremely well.
+
+00:30:06.110 --> 00:30:09.790
+So I was remarking to some of
+you at the end of last time
+
+00:30:09.790 --> 00:30:10.360
+that--
+
+00:30:10.360 --> 00:30:12.970
+You know, it's funny, MIT
+has multiple internet service
+
+00:30:12.970 --> 00:30:13.540
+providers.
+
+00:30:13.540 --> 00:30:17.200
+And it turns out that if
+I use this network here
+
+00:30:17.200 --> 00:30:19.180
+and I download-- you
+know, I go to linux.org,
+
+00:30:19.180 --> 00:30:21.490
+which is a place you
+could download Linux code.
+
+00:30:21.490 --> 00:30:24.740
+If I go from here, it so
+happens that MIT users
+
+00:30:24.740 --> 00:30:27.310
+level three, which is I think
+the world's biggest, or US's
+
+00:30:27.310 --> 00:30:30.190
+biggest internet service
+provider to get those packets.
+
+00:30:30.190 --> 00:30:33.160
+The same thing-- if I just go
+up to [? Stata, ?] and I connect
+
+00:30:33.160 --> 00:30:36.240
+to the [? Stata ?] wireless,
+and go to linux.org,
+
+00:30:36.240 --> 00:30:38.980
+packets from linux.org come back
+to me through a different ISP,
+
+00:30:38.980 --> 00:30:40.090
+Cogent.
+
+00:30:40.090 --> 00:30:43.810
+So MIT has decided that it wants
+to load balance its traffic.
+
+00:30:43.810 --> 00:30:47.830
+So it advertises the prefix
+corresponding to the network
+
+00:30:47.830 --> 00:30:50.650
+in this room, whatever the
+Wi-Fi network in this room,
+
+00:30:50.650 --> 00:30:52.360
+through one of the ISPs.
+
+00:30:52.360 --> 00:30:55.840
+And it advertises the
+other prefix in Stat
+
+00:30:55.840 --> 00:30:56.890
+through the other ISP.
+
+00:30:56.890 --> 00:30:59.530
+And it does it presumably
+to load balance traffic.
+
+00:30:59.530 --> 00:31:02.020
+And it also has this idea
+that if one of those links
+
+00:31:02.020 --> 00:31:04.120
+were to fail, it would
+switch the traffic
+
+00:31:04.120 --> 00:31:05.350
+through the other link.
+
+00:31:05.350 --> 00:31:06.820
+Organizations do
+this because they
+
+00:31:06.820 --> 00:31:09.325
+would like to provide
+good service to the people
+
+00:31:09.325 --> 00:31:11.332
+inside their organization.
+
+00:31:11.332 --> 00:31:12.790
+So the longest
+prefix match is very
+
+00:31:12.790 --> 00:31:17.140
+crucial to how this stuff
+really kind of works.
+
+00:31:17.140 --> 00:31:18.938
+So keep that in mind.
+
+00:31:18.938 --> 00:31:20.230
+I'm going to come back to this.
+
+00:31:20.230 --> 00:31:21.120
+On to the next slide.
+
+00:31:25.940 --> 00:31:29.790
+In the rest of the 1990s, a few
+interesting things happened.
+
+00:31:29.790 --> 00:31:32.930
+One of them was that work
+started on this new proposal
+
+00:31:32.930 --> 00:31:37.100
+for IP called IPv6, which said,
+let's not use 32-bit addresses.
+
+00:31:37.100 --> 00:31:39.050
+Let's go to 128-bit
+bigger addresses
+
+00:31:39.050 --> 00:31:41.330
+and try to solve the
+address depletion problem.
+
+00:31:41.330 --> 00:31:43.460
+IPv6 has taken a
+really, really long time
+
+00:31:43.460 --> 00:31:46.080
+to get deployed for reasons
+I won't go into here.
+
+00:31:46.080 --> 00:31:47.805
+But it seems to
+be happening now.
+
+00:31:47.805 --> 00:31:50.180
+But people keep saying that
+it seems to be happening now.
+
+00:31:50.180 --> 00:31:51.600
+I said that three
+years ago when I
+
+00:31:51.600 --> 00:31:52.850
+did the wrap-up in this class.
+
+00:31:52.850 --> 00:31:54.878
+So some time-- at some
+point in the future,
+
+00:31:54.878 --> 00:31:56.420
+that statement will
+actually be true.
+
+00:31:59.690 --> 00:32:02.660
+Now, you know, everybody
+knows about Google
+
+00:32:02.660 --> 00:32:05.490
+reinventing how search is done,
+and it starts to dominate.
+
+00:32:05.490 --> 00:32:07.100
+Another thing that
+happened in 1998
+
+00:32:07.100 --> 00:32:08.760
+was content
+distribution networks
+
+00:32:08.760 --> 00:32:10.200
+started getting created.
+
+00:32:10.200 --> 00:32:13.260
+And these are networks that
+you deploy as overlay networks
+
+00:32:13.260 --> 00:32:15.590
+atop the internet to
+serve content better,
+
+00:32:15.590 --> 00:32:17.960
+in a more reliable way.
+
+00:32:17.960 --> 00:32:20.135
+Now, in the 2000s,
+the internet matured.
+
+00:32:20.135 --> 00:32:21.860
+And I have the top
+five things that I
+
+00:32:21.860 --> 00:32:25.190
+think happened in the networking
+industry and the networking
+
+00:32:25.190 --> 00:32:25.980
+world in 2000.
+
+00:32:25.980 --> 00:32:31.840
+So this dot-com bust happened,
+and then 9/11 happened.
+
+00:32:31.840 --> 00:32:33.590
+The first thing that
+happened was the rise
+
+00:32:33.590 --> 00:32:34.610
+of peer-to-peer networks.
+
+00:32:34.610 --> 00:32:36.152
+I'm sure many of
+you have used this--
+
+00:32:36.152 --> 00:32:39.507
+Gnutella and Freenet,
+BitTorrent is the latest one.
+
+00:32:39.507 --> 00:32:41.840
+There was a lot of research
+done, including here at MIT,
+
+00:32:41.840 --> 00:32:44.120
+on how you build these
+peer-to-peer networks,
+
+00:32:44.120 --> 00:32:47.010
+the idea being, you don't have
+a central point of failure.
+
+00:32:47.010 --> 00:32:49.263
+And you can use this
+to distribute files
+
+00:32:49.263 --> 00:32:50.180
+extremely efficiently.
+
+00:32:50.180 --> 00:32:52.160
+I mean, BitTorrent is
+still highly dominant.
+
+00:32:52.160 --> 00:32:55.348
+And distributed hash
+tables like Chord,
+
+00:32:55.348 --> 00:32:57.890
+which was developed here, and
+other schemes that are used now
+
+00:32:57.890 --> 00:33:01.070
+by systems like Skype, they
+are used inside data centers
+
+00:33:01.070 --> 00:33:01.723
+like Amazon.
+
+00:33:01.723 --> 00:33:03.140
+If you go to Amazon
+and buy stuff,
+
+00:33:03.140 --> 00:33:05.480
+it uses a system
+called Dynamo, which
+
+00:33:05.480 --> 00:33:08.360
+is a key value store that
+basically builds a distributed
+
+00:33:08.360 --> 00:33:08.930
+hash table.
+
+00:33:08.930 --> 00:33:11.780
+So it's had a lot of
+impact, both in data centers
+
+00:33:11.780 --> 00:33:15.763
+and in systems like Skype.
+
+00:33:15.763 --> 00:33:17.180
+The second thing
+that happened was
+
+00:33:17.180 --> 00:33:21.350
+that in the early to mid-2000s,
+security became a huge deal.
+
+00:33:21.350 --> 00:33:23.450
+People started attacking
+the internet, which
+
+00:33:23.450 --> 00:33:25.640
+came as somewhat of a
+surprise to people who grew up
+
+00:33:25.640 --> 00:33:27.140
+in the good old
+days of the internet
+
+00:33:27.140 --> 00:33:30.080
+where, as I mentioned
+last time, computers
+
+00:33:30.080 --> 00:33:32.360
+with root passwords that
+were empty because everybody
+
+00:33:32.360 --> 00:33:33.248
+could be trusted.
+
+00:33:33.248 --> 00:33:35.540
+And then they found that as
+people started making money
+
+00:33:35.540 --> 00:33:37.123
+on the internet,
+people started trying
+
+00:33:37.123 --> 00:33:40.550
+to attack the internet as well.
+
+00:33:40.550 --> 00:33:42.020
+Denial of service
+attacks started,
+
+00:33:42.020 --> 00:33:44.420
+where people would launch
+attacks on websites.
+
+00:33:44.420 --> 00:33:47.840
+And they would often
+use it to extort money.
+
+00:33:47.840 --> 00:33:50.112
+This would be like,
+if you don't pay me,
+
+00:33:50.112 --> 00:33:52.070
+I'm going to continue to
+pummel your website so
+
+00:33:52.070 --> 00:33:53.862
+that you can't sell
+flowers, or whatever it
+
+00:33:53.862 --> 00:33:56.990
+is you were doing on the web.
+
+00:33:56.990 --> 00:33:58.940
+People found
+vulnerabilities in software,
+
+00:33:58.940 --> 00:34:01.910
+and there were many worms that
+spread, often pretty quickly.
+
+00:34:01.910 --> 00:34:04.520
+SQL slammer is a particularly
+interesting one of these.
+
+00:34:04.520 --> 00:34:08.389
+We studied this stuff in 829
+and in 6.033 in some detail.
+
+00:34:08.389 --> 00:34:11.150
+But this was remarkable
+because in 30 minutes,
+
+00:34:11.150 --> 00:34:12.800
+it clogged the world's networks.
+
+00:34:12.800 --> 00:34:14.630
+I mean, here's a
+picture of a screenshot.
+
+00:34:14.630 --> 00:34:22.130
+This was at 5:30 in the morning,
+I guess UTC, Greenwich Time.
+
+00:34:22.130 --> 00:34:26.210
+And you know,
+nothing's going on.
+
+00:34:26.210 --> 00:34:29.630
+And then half an hour
+later, the blue splotches
+
+00:34:29.630 --> 00:34:31.219
+show the networks
+that were clogged.
+
+00:34:31.219 --> 00:34:33.580
+And almost every computer
+that was vulnerable to this--
+
+00:34:33.580 --> 00:34:34.699
+there weren't that
+many computers,
+
+00:34:34.699 --> 00:34:35.940
+relative to the
+world's computers,
+
+00:34:35.940 --> 00:34:37.219
+that were vulnerable to this.
+
+00:34:37.219 --> 00:34:39.230
+But all these
+networks got hammered,
+
+00:34:39.230 --> 00:34:41.360
+and in fact, traffic
+came to a halt.
+
+00:34:41.360 --> 00:34:45.020
+And this worm showed
+that the power
+
+00:34:45.020 --> 00:34:48.110
+of spreading-- if
+machines trust each other,
+
+00:34:48.110 --> 00:34:51.110
+either implicitly
+or explicitly, it's
+
+00:34:51.110 --> 00:34:53.840
+very easy to actually find a
+vulnerability in one and then
+
+00:34:53.840 --> 00:34:55.560
+spread very, very quickly.
+
+00:34:55.560 --> 00:34:58.820
+So a lot of work was done on
+how to handle worm attacks.
+
+00:34:58.820 --> 00:35:02.345
+A lot of this has to do
+with putting things inside
+
+00:35:02.345 --> 00:35:04.220
+of networks, which is
+running at high speeds,
+
+00:35:04.220 --> 00:35:06.620
+to identify patterns that--
+
+00:35:06.620 --> 00:35:08.570
+in the payload of--
+in the data that's
+
+00:35:08.570 --> 00:35:12.020
+being sent in packets to quickly
+identify that this corresponds
+
+00:35:12.020 --> 00:35:14.450
+to a worm, and then throw
+those packets away before they
+
+00:35:14.450 --> 00:35:16.488
+hit the actual endpoints.
+
+00:35:16.488 --> 00:35:18.530
+Right now, we don't see
+too many worms spreading.
+
+00:35:18.530 --> 00:35:21.680
+The ones that spread now
+are slow-spreading worms
+
+00:35:21.680 --> 00:35:24.680
+that are often spread
+by human contact.
+
+00:35:24.680 --> 00:35:27.200
+It's like people clicking on
+links they shouldn't click on.
+
+00:35:27.200 --> 00:35:30.230
+It runs the program, finds a
+vulnerability on their machine,
+
+00:35:30.230 --> 00:35:32.690
+and then it resides
+on their machine.
+
+00:35:32.690 --> 00:35:35.870
+And often, these are then used
+to create these big botnets
+
+00:35:35.870 --> 00:35:38.540
+that are used to launch
+denial-of-service attacks,
+
+00:35:38.540 --> 00:35:41.967
+or are often used to send spam
+and do other things like that.
+
+00:35:41.967 --> 00:35:44.300
+So they're still going on,
+but you don't hear about them
+
+00:35:44.300 --> 00:35:46.820
+in the newspaper.
+
+00:35:46.820 --> 00:35:48.350
+Spam became a huge problem.
+
+00:35:48.350 --> 00:35:51.950
+And it continues to be
+somewhat of a problem,
+
+00:35:51.950 --> 00:35:54.920
+though these days, the
+distinction between spam
+
+00:35:54.920 --> 00:35:59.210
+and internet marketing
+is kind of coming down--
+
+00:35:59.210 --> 00:36:00.710
+the gap's closing.
+
+00:36:00.710 --> 00:36:04.852
+But by and large, spam
+now is, while I wouldn't
+
+00:36:04.852 --> 00:36:06.560
+say it's a solved
+problem, it's generally
+
+00:36:06.560 --> 00:36:09.830
+combated by big
+organizations that
+
+00:36:09.830 --> 00:36:11.930
+have enough data, enough
+email coming in that they
+
+00:36:11.930 --> 00:36:15.500
+can identify spam and
+then filter those away.
+
+00:36:15.500 --> 00:36:17.060
+Route hijacking is
+the other problem.
+
+00:36:17.060 --> 00:36:18.550
+That remains a
+huge vulnerability.
+
+00:36:18.550 --> 00:36:21.050
+So I want to tell you about two
+examples of route hijacking.
+
+00:36:21.050 --> 00:36:23.702
+And I don't think there's easy--
+
+00:36:23.702 --> 00:36:25.160
+the technical side
+of this problem,
+
+00:36:25.160 --> 00:36:26.630
+we understand how to solve.
+
+00:36:26.630 --> 00:36:30.330
+But how to deploy good
+solutions is still unclear.
+
+00:36:30.330 --> 00:36:32.868
+So the first example is from--
+
+00:36:32.868 --> 00:36:34.160
+this problem has been going on.
+
+00:36:34.160 --> 00:36:36.535
+Every three years, you see a
+big route hijacking problem.
+
+00:36:36.535 --> 00:36:38.735
+The first one was from 2008--
+
+00:36:38.735 --> 00:36:40.850
+I think it was
+2008, where YouTube
+
+00:36:40.850 --> 00:36:43.250
+was unavailable to
+people for a few hours
+
+00:36:43.250 --> 00:36:45.770
+everywhere in the world.
+
+00:36:45.770 --> 00:36:48.762
+Now, you could argue
+whether watching cats dance
+
+00:36:48.762 --> 00:36:49.970
+or whatever is not important.
+
+00:36:49.970 --> 00:36:51.970
+But the fact is that
+YouTube has a lot of money.
+
+00:36:51.970 --> 00:36:53.990
+Google has a lot of
+money, and even they
+
+00:36:53.990 --> 00:36:56.070
+were vulnerable to this trouble.
+
+00:36:56.070 --> 00:36:58.580
+The second example was
+a little different.
+
+00:36:58.580 --> 00:37:03.410
+China Telecom managed
+to get about 15%,
+
+00:37:03.410 --> 00:37:06.530
+roughly speaking, of
+the internet traffic
+
+00:37:06.530 --> 00:37:07.640
+to go through them.
+
+00:37:07.640 --> 00:37:09.560
+Now, the interesting
+thing about that attack
+
+00:37:09.560 --> 00:37:12.980
+is that it wasn't
+clear it was an attack.
+
+00:37:12.980 --> 00:37:18.108
+I should just say that
+error, or failure, was
+
+00:37:18.108 --> 00:37:19.400
+that people didn't even notice.
+
+00:37:19.400 --> 00:37:21.818
+Because unlike
+YouTube, where you go,
+
+00:37:21.818 --> 00:37:24.110
+you couldn't get your data,
+and then people noticed it,
+
+00:37:24.110 --> 00:37:27.170
+and then they were scrambling
+to solve the problem,
+
+00:37:27.170 --> 00:37:30.050
+with the Chinese attack, or
+the Chinese vulnerability,
+
+00:37:30.050 --> 00:37:31.790
+what happened was
+that China Telecom
+
+00:37:31.790 --> 00:37:34.572
+managed to divert the
+traffic that wasn't supposed
+
+00:37:34.572 --> 00:37:35.780
+to go through them-- to them.
+
+00:37:35.780 --> 00:37:37.130
+And then they
+forwarded the traffic
+
+00:37:37.130 --> 00:37:38.672
+on to the rest of
+their destinations,
+
+00:37:38.672 --> 00:37:40.110
+the actual destinations.
+
+00:37:40.110 --> 00:37:41.720
+So you would find
+things like, instead
+
+00:37:41.720 --> 00:37:43.700
+of my latency being
+100 milliseconds,
+
+00:37:43.700 --> 00:37:47.120
+it might be 500
+milliseconds, which is--
+
+00:37:47.120 --> 00:37:49.190
+you may not even notice.
+
+00:37:49.190 --> 00:37:50.690
+Or sometimes, you
+notice it, and you
+
+00:37:50.690 --> 00:37:52.490
+go, ah, yeah, that's just the
+internet being the internet,
+
+00:37:52.490 --> 00:37:52.990
+you know?
+
+00:37:52.990 --> 00:37:54.260
+Sometimes, that happens.
+
+00:37:54.260 --> 00:37:56.567
+But the fact is that they
+were able to-- an ISP
+
+00:37:56.567 --> 00:37:59.150
+was able to essentially divert
+a large fraction of the world's
+
+00:37:59.150 --> 00:38:00.080
+traffic.
+
+00:38:00.080 --> 00:38:02.697
+And both these
+attacks fundamentally
+
+00:38:02.697 --> 00:38:04.280
+stem from the following
+problem, which
+
+00:38:04.280 --> 00:38:07.208
+is that at the end of
+the day, despite all
+
+00:38:07.208 --> 00:38:08.750
+of this investment
+into the internet,
+
+00:38:08.750 --> 00:38:10.208
+and the importance
+of the internet,
+
+00:38:10.208 --> 00:38:14.800
+and the amount of money in it,
+internet routing works because
+
+00:38:14.800 --> 00:38:17.170
+of essentially an honor code.
+
+00:38:17.170 --> 00:38:19.930
+It's like, ISPs at some
+level, internet service
+
+00:38:19.930 --> 00:38:22.600
+providers and organizations
+trust each other.
+
+00:38:22.600 --> 00:38:24.230
+And there's this
+transitive trust,
+
+00:38:24.230 --> 00:38:27.160
+which is I might trust you,
+and you might trust her.
+
+00:38:27.160 --> 00:38:29.020
+And implicitly, the
+way routing works
+
+00:38:29.020 --> 00:38:31.480
+is that ends up in
+me trusting her.
+
+00:38:31.480 --> 00:38:33.610
+Because I trust
+everything you tell me,
+
+00:38:33.610 --> 00:38:35.050
+and you happen to
+trust everything
+
+00:38:35.050 --> 00:38:38.890
+she tells you, which means that
+if she were to make a mistake,
+
+00:38:38.890 --> 00:38:41.680
+and you were to believe
+it, then in essence,
+
+00:38:41.680 --> 00:38:45.830
+everybody else in the world
+is vulnerable to this problem.
+
+00:38:45.830 --> 00:38:51.040
+So let me explain what happened
+in the case of YouTube,
+
+00:38:51.040 --> 00:38:53.600
+because it's reflective
+of how things really work.
+
+00:38:53.600 --> 00:38:57.490
+So here's this little ISP
+called Pakistan Telecom.
+
+00:39:00.790 --> 00:39:02.358
+Tiny, tiny ISP, you know?
+
+00:39:02.358 --> 00:39:03.650
+Hardly anyone uses it outside--
+
+00:39:03.650 --> 00:39:05.680
+I mean, everyone in
+Pakistan probably uses it.
+
+00:39:05.680 --> 00:39:09.820
+But in the grand scale of
+things, it's completely tiny.
+
+00:39:09.820 --> 00:39:11.560
+So they end up
+connecting to a bunch
+
+00:39:11.560 --> 00:39:13.830
+of people outside in
+different parts of the world.
+
+00:39:13.830 --> 00:39:15.288
+And one of the
+people they ended up
+
+00:39:15.288 --> 00:39:19.180
+connecting to was another ISP
+out in Hong Kong called PCCW.
+
+00:39:22.750 --> 00:39:26.110
+And these guys connect to
+the rest of the internet.
+
+00:39:26.110 --> 00:39:28.720
+And presumably, Pakistan Telecom
+connects to other people--
+
+00:39:28.720 --> 00:39:30.730
+I don't know.
+
+00:39:30.730 --> 00:39:32.460
+Now, here's what happened.
+
+00:39:32.460 --> 00:39:34.210
+Now, where does YouTube
+fit into all this?
+
+00:39:34.210 --> 00:39:36.252
+You know, YouTube is
+sitting somewhere over here.
+
+00:39:41.740 --> 00:39:43.450
+And presumably,
+it's not directly--
+
+00:39:43.450 --> 00:39:46.520
+I mean, these guys have
+nothing to do with each other.
+
+00:39:46.520 --> 00:39:49.480
+These guys are connected to some
+other big ISPs and small ISPs.
+
+00:39:49.480 --> 00:39:52.210
+And eventually, there a set
+of internet service providers
+
+00:39:52.210 --> 00:39:57.675
+that somehow constitute
+the internet.
+
+00:39:57.675 --> 00:39:59.050
+And each of these
+is independent.
+
+00:39:59.050 --> 00:40:03.100
+Each of these is known as
+an anonymous system, or AS.
+
+00:40:03.100 --> 00:40:04.720
+And each of these
+autonomous systems
+
+00:40:04.720 --> 00:40:07.450
+has a number, a 16-bit number.
+
+00:40:07.450 --> 00:40:08.642
+MIT is an anonymous system.
+
+00:40:08.642 --> 00:40:10.600
+And because MIT was very
+early in the internet,
+
+00:40:10.600 --> 00:40:14.080
+MIT'S autonomous
+system number is 3.
+
+00:40:14.080 --> 00:40:16.870
+But right now, there
+are many, many ISPs.
+
+00:40:16.870 --> 00:40:19.765
+You know, right
+now, you can have--
+
+00:40:19.765 --> 00:40:21.890
+there are tens of thousands
+of autonomous systems--
+
+00:40:21.890 --> 00:40:24.585
+I don't know, 35,000, 40,000,
+45,000, something like that.
+
+00:40:24.585 --> 00:40:26.170
+We're number 3!
+
+00:40:26.170 --> 00:40:27.452
+So anyway--
+
+00:40:27.452 --> 00:40:28.870
+AUDIENCE: Who's number one?
+
+00:40:28.870 --> 00:40:30.037
+PROFESSOR: Who's number one?
+
+00:40:30.037 --> 00:40:31.820
+BBN.
+
+00:40:31.820 --> 00:40:32.380
+Yeah, BBN.
+
+00:40:32.380 --> 00:40:34.390
+I don't know what AS2 is.
+
+00:40:34.390 --> 00:40:36.003
+BBN, of course, is number one.
+
+00:40:36.003 --> 00:40:37.420
+But actually, that
+number is owned
+
+00:40:37.420 --> 00:40:40.840
+by somebody who acquired
+BBN and who acquired--
+
+00:40:40.840 --> 00:40:41.740
+somebody acquires it.
+
+00:40:41.740 --> 00:40:43.905
+Now, here's an interesting
+thing that's happening--
+
+00:40:43.905 --> 00:40:45.280
+these autonomous
+system numbers--
+
+00:40:45.280 --> 00:40:47.410
+I remember I was a
+very young graduate
+
+00:40:47.410 --> 00:40:50.290
+student when people were talking
+about these autonomous numbers.
+
+00:40:50.290 --> 00:40:52.247
+And I remember these
+mailing list discussions.
+
+00:40:52.247 --> 00:40:53.830
+I wasn't working on
+this problem then,
+
+00:40:53.830 --> 00:40:55.120
+I worked on it much later.
+
+00:40:55.120 --> 00:40:56.812
+But people were
+saying, yeah, 16 bits
+
+00:40:56.812 --> 00:40:59.020
+is plenty enough for an
+autonomous system identifier.
+
+00:40:59.020 --> 00:41:01.480
+Because remember,
+NSFNET was one.
+
+00:41:01.480 --> 00:41:03.580
+There was one internet
+service provider.
+
+00:41:03.580 --> 00:41:07.120
+And in the early '90s, mid '90s
+people were talking about ISPs,
+
+00:41:07.120 --> 00:41:09.032
+and they said, oh,
+16 bits is plenty.
+
+00:41:09.032 --> 00:41:10.990
+And I remember there were
+some people, actually
+
+00:41:10.990 --> 00:41:12.407
+graduate students
+who were saying,
+
+00:41:12.407 --> 00:41:14.620
+maybe we should make it 32 bits?
+
+00:41:14.620 --> 00:41:16.417
+Because people remembered that--
+
+00:41:16.417 --> 00:41:19.000
+you know, the internet started--
+you remember those old things
+
+00:41:19.000 --> 00:41:22.330
+on the internet
+where people said,
+
+00:41:22.330 --> 00:41:24.490
+8 bits for a network
+identifier are plenty enough.
+
+00:41:24.490 --> 00:41:26.668
+And of course, they got screwed.
+
+00:41:26.668 --> 00:41:28.460
+So anyway, what's
+happening now, of course,
+
+00:41:28.460 --> 00:41:30.970
+is the older guys were saying
+16 bits is plenty enough
+
+00:41:30.970 --> 00:41:33.730
+because we don't have too
+much overhead on packets.
+
+00:41:33.730 --> 00:41:36.320
+And they put in 16 bits.
+
+00:41:36.320 --> 00:41:38.680
+And now, we're at
+45,000 or 50,000.
+
+00:41:38.680 --> 00:41:40.210
+And guess what,
+there's a proposal
+
+00:41:40.210 --> 00:41:42.790
+now on how do you-- how
+the heck do you extend this
+
+00:41:42.790 --> 00:41:46.570
+to more than 2 to the
+16 autonomous system,
+
+00:41:46.570 --> 00:41:48.490
+because now, the
+internet is growing.
+
+00:41:48.490 --> 00:41:51.790
+So you know, if ever
+you're given an opportunity
+
+00:41:51.790 --> 00:41:53.750
+to design the number
+of bits for something--
+
+00:41:53.750 --> 00:41:56.395
+and you will always have
+to do something-- just pick
+
+00:41:56.395 --> 00:41:58.270
+something much, much
+bigger than you imagine,
+
+00:41:58.270 --> 00:42:00.670
+and then double it.
+
+00:42:00.670 --> 00:42:02.680
+Because it's always--
+you'll never get it right.
+
+00:42:02.680 --> 00:42:05.560
+So anyway, each of
+these autonomous systems
+
+00:42:05.560 --> 00:42:07.930
+has an identifier in it, OK?
+
+00:42:07.930 --> 00:42:10.540
+And each of these
+guys, when they
+
+00:42:10.540 --> 00:42:12.760
+make an announcement
+in the routing system,
+
+00:42:12.760 --> 00:42:15.640
+the way it works is that
+you create your identifier,
+
+00:42:15.640 --> 00:42:19.760
+and then you tell people all of
+the IP prefixes that you own,
+
+00:42:19.760 --> 00:42:20.260
+OK?
+
+00:42:20.260 --> 00:42:23.770
+So when I create my distance
+vector, or in this case
+
+00:42:23.770 --> 00:42:28.420
+a path vector advertisement,
+if I am autonomous system 3,
+
+00:42:28.420 --> 00:42:29.940
+I have a set of IP addresses.
+
+00:42:29.940 --> 00:42:33.640
+So MIT might have 18
+dot whatever slash 8.
+
+00:42:33.640 --> 00:42:37.870
+MIT has 128 dot something
+slash-- let's say 19.
+
+00:42:37.870 --> 00:42:40.000
+MIT has a whole slew
+of these IP addresses
+
+00:42:40.000 --> 00:42:40.990
+that they've acquired.
+
+00:42:40.990 --> 00:42:43.570
+And what they're going to say
+is, I'm autonomous system 3,
+
+00:42:43.570 --> 00:42:47.560
+and I know how to get to these
+guys because I own these guys.
+
+00:42:47.560 --> 00:42:49.180
+This is the origin announcement.
+
+00:42:49.180 --> 00:42:52.360
+And then other people-- you
+know, MIT might-- this is AS3.
+
+00:42:52.360 --> 00:42:55.900
+MIT sends it to its ISPs, and
+they send it to their ISPs.
+
+00:42:55.900 --> 00:42:58.000
+And every time an
+autonomous system
+
+00:42:58.000 --> 00:43:01.960
+receives multiple advertisements
+along different paths
+
+00:43:01.960 --> 00:43:04.940
+for the same prefix,
+they pick one.
+
+00:43:04.940 --> 00:43:06.540
+They select among them.
+
+00:43:06.540 --> 00:43:08.290
+They have some rules
+to select among them.
+
+00:43:08.290 --> 00:43:11.945
+And these rules have to do
+with the length of the path
+
+00:43:11.945 --> 00:43:13.070
+between autonomous systems.
+
+00:43:13.070 --> 00:43:14.740
+They have to do with
+how much you're paying.
+
+00:43:14.740 --> 00:43:16.930
+So for example, MIT might
+be getting a better deal
+
+00:43:16.930 --> 00:43:19.120
+from Cogent than from Level 3.
+
+00:43:19.120 --> 00:43:22.210
+And so it would want more of
+its traffic to come from Cogent.
+
+00:43:22.210 --> 00:43:26.230
+And therefore, it would
+decide that it would only
+
+00:43:26.230 --> 00:43:29.137
+advertise certain of its
+addresses on certain paths.
+
+00:43:29.137 --> 00:43:30.220
+So there's lots of policy.
+
+00:43:30.220 --> 00:43:31.810
+It's very, very complicated.
+
+00:43:31.810 --> 00:43:34.780
+But yet, you know, some
+miracle, the whole thing works.
+
+00:43:34.780 --> 00:43:37.495
+So anyway, these things go
+through from autonomous system
+
+00:43:37.495 --> 00:43:38.380
+to autonomous system.
+
+00:43:38.380 --> 00:43:39.797
+So what's this
+path vector, right?
+
+00:43:39.797 --> 00:43:41.588
+Remember, I told you
+about the path vector.
+
+00:43:41.588 --> 00:43:43.280
+The path vector is
+a sequence of paths.
+
+00:43:43.280 --> 00:43:46.838
+So it could be 3,
+17, 26, and so forth.
+
+00:43:46.838 --> 00:43:48.380
+So I have an animation
+of this thing.
+
+00:43:48.380 --> 00:43:50.600
+So I want to show that
+to you because it's
+
+00:43:50.600 --> 00:43:51.840
+totally interesting.
+
+00:43:51.840 --> 00:43:57.030
+So there's this website called
+[? BGPlay, ?] if I can find it.
+
+00:43:57.030 --> 00:44:01.130
+So there's a way to get
+MIT'S route advertisements
+
+00:44:01.130 --> 00:44:03.500
+over the past month.
+
+00:44:03.500 --> 00:44:05.690
+And you can kind of see
+how these stats change.
+
+00:44:05.690 --> 00:44:07.440
+So anyway, what
+happened to YouTube?
+
+00:44:07.440 --> 00:44:10.400
+What happened to YouTube was
+the government of Pakistan
+
+00:44:10.400 --> 00:44:12.020
+decided that what
+they would tell
+
+00:44:12.020 --> 00:44:14.750
+Pakistan Telecom
+was to not allow
+
+00:44:14.750 --> 00:44:17.000
+their users to go to YouTube.
+
+00:44:17.000 --> 00:44:19.820
+So what they did was,
+rather than simply drop
+
+00:44:19.820 --> 00:44:23.120
+those requests, they wanted
+to get Pakistan Telecom, when
+
+00:44:23.120 --> 00:44:26.780
+somebody clicked on a YouTube
+link, to go to a website
+
+00:44:26.780 --> 00:44:29.893
+that Pakistan Telecom would
+run that basically said,
+
+00:44:29.893 --> 00:44:31.310
+you're not allowed
+to use YouTube,
+
+00:44:31.310 --> 00:44:33.960
+but would you like to
+see something else?
+
+00:44:33.960 --> 00:44:36.050
+OK, so the way they did
+that was, they decided--
+
+00:44:36.050 --> 00:44:37.220
+YouTube has some address.
+
+00:44:37.220 --> 00:44:40.105
+Let me call YouTube's address
+Y something, something.
+
+00:44:40.105 --> 00:44:41.480
+Let me just call
+it Y, all right?
+
+00:44:41.480 --> 00:44:44.847
+Y is a set of IP addresses
+that correspond to YouTube.
+
+00:44:44.847 --> 00:44:46.430
+It's not one, they
+have many machines.
+
+00:44:46.430 --> 00:44:49.063
+So what these guys did was,
+they did something they thought
+
+00:44:49.063 --> 00:44:49.730
+was very clever.
+
+00:44:49.730 --> 00:44:51.740
+They have a whole
+network of users there.
+
+00:44:51.740 --> 00:44:54.300
+They decided they
+would advertise
+
+00:44:54.300 --> 00:44:59.300
+a route for destination
+Y inside their network.
+
+00:44:59.300 --> 00:45:05.750
+But rather than use the actual
+route advertisement for Y,
+
+00:45:05.750 --> 00:45:08.460
+they would actually send
+it to their own machine.
+
+00:45:08.460 --> 00:45:10.580
+So remember, they
+changed the routing now.
+
+00:45:10.580 --> 00:45:11.840
+They're telling the users--
+
+00:45:11.840 --> 00:45:13.007
+they're hijacking the route.
+
+00:45:13.007 --> 00:45:15.710
+They're telling their users
+that to go to YouTube,
+
+00:45:15.710 --> 00:45:17.127
+you should not use
+the actual link
+
+00:45:17.127 --> 00:45:18.835
+that I'm telling you
+to use, but instead,
+
+00:45:18.835 --> 00:45:20.730
+go to this other place
+inside my network,
+
+00:45:20.730 --> 00:45:22.790
+where I can show you
+this other website--
+
+00:45:22.790 --> 00:45:25.130
+maybe pretend it's
+YouTube, or whatever.
+
+00:45:25.130 --> 00:45:27.290
+Now, everything is so
+far so good, right?
+
+00:45:27.290 --> 00:45:28.820
+I mean, people do
+this all the time.
+
+00:45:28.820 --> 00:45:31.910
+When you go to a hotel or any
+internet kiosk, internet place,
+
+00:45:31.910 --> 00:45:35.085
+you take your laptop,
+and you go to cnn.com.
+
+00:45:35.085 --> 00:45:37.460
+And the next thing you see
+is, would you like to sign in?
+
+00:45:37.460 --> 00:45:38.720
+How does that work?
+
+00:45:38.720 --> 00:45:41.480
+Well, that works because they
+essentially hijack the route.
+
+00:45:41.480 --> 00:45:43.400
+They make it look like
+you're going to CNN,
+
+00:45:43.400 --> 00:45:45.770
+but in fact, you're going
+somewhere else, right?
+
+00:45:45.770 --> 00:45:48.880
+After all, your computer
+wrote to go to CNN.
+
+00:45:48.880 --> 00:45:51.470
+And the IP address used
+was presumably CNN.
+
+00:45:51.470 --> 00:45:52.760
+But then they made a mistake.
+
+00:45:52.760 --> 00:45:55.700
+Some guy here-- probably,
+he was too tired--
+
+00:45:55.700 --> 00:45:56.840
+set up a configuration.
+
+00:45:56.840 --> 00:46:00.080
+So he advertised
+his new route to Y
+
+00:46:00.080 --> 00:46:01.420
+that he created out to PCCW.
+
+00:46:04.190 --> 00:46:07.760
+Now, PCCW was to
+some degree at fault.
+
+00:46:07.760 --> 00:46:13.310
+Because PCCW should have known
+to some degree what actual IP
+
+00:46:13.310 --> 00:46:17.030
+addresses Pakistan
+Telecom owns, and only
+
+00:46:17.030 --> 00:46:20.210
+honor route requests,
+route advertisements coming
+
+00:46:20.210 --> 00:46:21.350
+from those things, right?
+
+00:46:21.350 --> 00:46:24.080
+PCCW needs to know
+how to go, how
+
+00:46:24.080 --> 00:46:28.490
+to send packets to nodes
+inside of Pakistan Telecom.
+
+00:46:28.490 --> 00:46:30.800
+But clearly, this
+guy has nothing
+
+00:46:30.800 --> 00:46:33.710
+useful to say about how to
+send packets to YouTube.
+
+00:46:33.710 --> 00:46:35.887
+But yet, this guy
+honored this message.
+
+00:46:35.887 --> 00:46:37.220
+So there were two mistakes here.
+
+00:46:37.220 --> 00:46:38.220
+Actually, there
+were many mistakes.
+
+00:46:38.220 --> 00:46:39.763
+But the two big ones were--
+
+00:46:39.763 --> 00:46:41.930
+there was a mistake made
+here sending something out.
+
+00:46:41.930 --> 00:46:44.700
+There was a mistake made
+here honoring this request.
+
+00:46:44.700 --> 00:46:46.520
+By this time, you
+have transitive trust.
+
+00:46:46.520 --> 00:46:48.860
+Because PCCW would find--
+
+00:46:48.860 --> 00:46:51.950
+And what they also did
+was, they made this a more
+
+00:46:51.950 --> 00:46:53.820
+specific prefix.
+
+00:46:53.820 --> 00:46:55.820
+So YouTube was
+advertising a slash--
+
+00:46:55.820 --> 00:46:58.430
+I believe it was
+slash 21, which meant
+
+00:46:58.430 --> 00:47:02.210
+it was many, many bits in the
+prefix, 11 bits in common.
+
+00:47:02.210 --> 00:47:05.690
+And there were-- sorry, 21
+bits in common, a slash 21.
+
+00:47:05.690 --> 00:47:07.970
+But these guys
+advertised-- to guarantee
+
+00:47:07.970 --> 00:47:12.780
+that all traffic would come in,
+they advertised to slash 24.
+
+00:47:12.780 --> 00:47:13.830
+So it's more specific.
+
+00:47:13.830 --> 00:47:16.460
+So what happened was
+PCCW believed that,
+
+00:47:16.460 --> 00:47:19.160
+and they advertised
+that to their ISPs,
+
+00:47:19.160 --> 00:47:21.600
+and then to their
+ISPs, and so forth.
+
+00:47:21.600 --> 00:47:23.540
+Now, the reason why
+this really got--
+
+00:47:23.540 --> 00:47:25.000
+all of the internet's
+traffic were
+
+00:47:25.000 --> 00:47:27.620
+sent toward this
+poor guy in Pakistan
+
+00:47:27.620 --> 00:47:31.760
+was because everybody is doing
+this longest prefix match.
+
+00:47:31.760 --> 00:47:33.900
+And it's true that
+there's a legitimate route
+
+00:47:33.900 --> 00:47:35.255
+to YouTube in those routers.
+
+00:47:35.255 --> 00:47:37.880
+But they're ignoring it because
+they find a more specific route
+
+00:47:37.880 --> 00:47:39.230
+that somebody had advertised.
+
+00:47:39.230 --> 00:47:41.643
+So if you want to get
+traffic sent to Google,
+
+00:47:41.643 --> 00:47:43.310
+figure out a way to
+convince some bigger
+
+00:47:43.310 --> 00:47:47.900
+ISP to take your route to a more
+specific prefix that you know
+
+00:47:47.900 --> 00:47:50.633
+is owned by Google, and
+just advertise it out, OK?
+
+00:47:50.633 --> 00:47:52.550
+You're probably going
+to get a lot of traffic.
+
+00:47:52.550 --> 00:47:57.230
+Now, you may not want all the
+traffic, but you'll get it.
+
+00:47:57.230 --> 00:47:59.510
+So you see how this
+stuff spread, right?
+
+00:47:59.510 --> 00:48:00.920
+How do you solve this problem?
+
+00:48:00.920 --> 00:48:02.540
+All right, this is going
+on, and then people
+
+00:48:02.540 --> 00:48:03.832
+are not able to see their cats.
+
+00:48:03.832 --> 00:48:06.500
+And they're--
+they're scrambling.
+
+00:48:06.500 --> 00:48:08.810
+I mean, this is literally
+the whole internet
+
+00:48:08.810 --> 00:48:11.060
+wasn't able to get to YouTube,
+which admittedly is not
+
+00:48:11.060 --> 00:48:12.435
+the biggest problem
+in the world.
+
+00:48:12.435 --> 00:48:15.720
+But still, if you're YouTube,
+this is a big problem.
+
+00:48:15.720 --> 00:48:17.770
+So how do you
+solve this problem?
+
+00:48:17.770 --> 00:48:18.770
+What do you actually do?
+
+00:48:18.770 --> 00:48:20.730
+I mean, the whole
+world has this now,
+
+00:48:20.730 --> 00:48:22.785
+this bad entry in
+the routing table.
+
+00:48:22.785 --> 00:48:25.160
+Now, there's this long-term
+solution, which is of course,
+
+00:48:25.160 --> 00:48:26.570
+let's figure out a
+way to authenticate
+
+00:48:26.570 --> 00:48:29.195
+the advertisements, and use some
+public key, and this and that.
+
+00:48:29.195 --> 00:48:33.140
+And you'll study this in
+6.829 and other courses.
+
+00:48:33.140 --> 00:48:35.240
+But today, we don't have that.
+
+00:48:35.240 --> 00:48:37.873
+And this problem exists, so
+how did we ever come out of it?
+
+00:48:37.873 --> 00:48:39.748
+AUDIENCE: [INAUDIBLE]
+
+00:48:39.748 --> 00:48:42.040
+PROFESSOR: Yeah, actually--
+you know, it's interesting,
+
+00:48:42.040 --> 00:48:42.690
+you and I--
+
+00:48:42.690 --> 00:48:44.990
+you certainly thought
+about this in 30 seconds.
+
+00:48:44.990 --> 00:48:47.548
+But YouTube actually did-- it
+took them a while to figure out
+
+00:48:47.548 --> 00:48:48.590
+what was really going on.
+
+00:48:48.590 --> 00:48:49.550
+Because one of the
+problems is, you
+
+00:48:49.550 --> 00:48:52.190
+don't want to do something like
+that without knowing for sure.
+
+00:48:52.190 --> 00:48:54.180
+But eventually, they
+did exactly this.
+
+00:48:54.180 --> 00:48:56.880
+They figured out the prefixes
+that were being advertised.
+
+00:48:56.880 --> 00:48:59.377
+And that took a while, because
+you don't know somebody
+
+00:48:59.377 --> 00:49:00.960
+else's-- what's in
+your routing table?
+
+00:49:00.960 --> 00:49:01.637
+I don't know.
+
+00:49:01.637 --> 00:49:03.220
+I have to pick up
+the phone, or email.
+
+00:49:03.220 --> 00:49:05.960
+And email may not work because
+it's coming back to YouTube.
+
+00:49:05.960 --> 00:49:07.960
+But whatever, there's a way--
+
+00:49:07.960 --> 00:49:10.790
+there's a way to figure this
+out, phone and [INAUDIBLE]
+
+00:49:10.790 --> 00:49:11.960
+Gmail or something.
+
+00:49:11.960 --> 00:49:14.670
+And then they figured
+out what it was.
+
+00:49:14.670 --> 00:49:17.970
+And then they inserted slash
+25 that were more specific.
+
+00:49:17.970 --> 00:49:20.390
+And then once the problem
+kind of resolved itself,
+
+00:49:20.390 --> 00:49:22.350
+they got out of it.
+
+00:49:22.350 --> 00:49:24.320
+So let me jump on and move on.
+
+00:49:24.320 --> 00:49:28.190
+Give me two more minutes,
+and I'll finish up.
+
+00:49:28.190 --> 00:49:30.140
+A similar problem happened
+with China Telecom.
+
+00:49:30.140 --> 00:49:31.973
+They didn't advertise
+a more specific route,
+
+00:49:31.973 --> 00:49:34.110
+so they only got about
+15% of the internet.
+
+00:49:34.110 --> 00:49:36.290
+And they were nice enough
+to forward it around
+
+00:49:36.290 --> 00:49:38.090
+to the actual destinations.
+
+00:49:38.090 --> 00:49:40.490
+But this was a problem.
+
+00:49:40.490 --> 00:49:42.170
+I'm going to skip
+through the decade
+
+00:49:42.170 --> 00:49:47.233
+ahead because you know what,
+you'll find out soon enough.
+
+00:49:47.233 --> 00:49:48.650
+All right, what I
+do want to do is
+
+00:49:48.650 --> 00:49:51.885
+to summarize 6.02 in one slide.
+
+00:49:51.885 --> 00:49:54.260
+This course was about how to
+design digital communication
+
+00:49:54.260 --> 00:49:55.400
+networks, right?
+
+00:49:55.400 --> 00:49:57.410
+I'm sure you all
+kind of know that.
+
+00:49:57.410 --> 00:49:59.450
+We did this with three
+layers of abstraction,
+
+00:49:59.450 --> 00:50:01.190
+very simple story--
+
+00:50:01.190 --> 00:50:04.190
+bits, signals, and packets.
+
+00:50:04.190 --> 00:50:06.230
+And I think as far as
+these kinds of courses
+
+00:50:06.230 --> 00:50:09.807
+go across the world, it's
+a pretty unique storyline.
+
+00:50:09.807 --> 00:50:11.390
+There aren't very
+many courses that we
+
+00:50:11.390 --> 00:50:15.170
+know of which have this vertical
+study across all the layers.
+
+00:50:15.170 --> 00:50:18.440
+And there are some
+schools that we
+
+00:50:18.440 --> 00:50:20.420
+know of that are starting
+to adopt this idea.
+
+00:50:20.420 --> 00:50:22.790
+And we feel like this
+is a pretty unique way
+
+00:50:22.790 --> 00:50:24.320
+in which to teach
+this, because it
+
+00:50:24.320 --> 00:50:26.030
+demystifies all of the layers.
+
+00:50:26.030 --> 00:50:27.695
+So we didn't cover
+anything with-- we
+
+00:50:27.695 --> 00:50:29.900
+didn't tell you 15 ways to
+solve any given problem.
+
+00:50:29.900 --> 00:50:32.870
+But we told you one good way
+to solve each of the problems
+
+00:50:32.870 --> 00:50:34.740
+that you will see.
+
+00:50:34.740 --> 00:50:36.560
+So we went from
+point-to-point links
+
+00:50:36.560 --> 00:50:39.980
+to multihop
+communication networks.
+
+00:50:39.980 --> 00:50:41.810
+And across these
+different topics-- and you
+
+00:50:41.810 --> 00:50:44.730
+can see that we studied
+these different topics.
+
+00:50:44.730 --> 00:50:46.850
+The two big themes that
+I want to leave you with
+
+00:50:46.850 --> 00:50:49.280
+are reliability and sharing.
+
+00:50:49.280 --> 00:50:52.403
+Because that's really what makes
+our communication systems work.
+
+00:50:52.403 --> 00:50:53.570
+How do you make it reliable?
+
+00:50:53.570 --> 00:50:56.690
+We don't have a perfectly
+reliable communication
+
+00:50:56.690 --> 00:50:58.170
+medium at any layer.
+
+00:50:58.170 --> 00:51:00.440
+So how you make things
+reliable is important.
+
+00:51:00.440 --> 00:51:02.450
+We studied this
+over and over again.
+
+00:51:02.450 --> 00:51:04.040
+And how do you share?
+
+00:51:04.040 --> 00:51:07.270
+Those are the two big topics.

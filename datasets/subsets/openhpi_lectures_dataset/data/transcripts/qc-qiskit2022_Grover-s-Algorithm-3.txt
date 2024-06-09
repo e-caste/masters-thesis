@@ -1,0 +1,549 @@
+WEBVTT
+
+0
+00:00:00.510 --> 00:00:04.880 
+Hi everyone! Welcome back to this third video on Grover's algorithm.
+
+1
+00:00:04.890 --> 00:00:08.220 
+In the last two videos we have seen what Grover's algorithm is.
+
+2
+00:00:08.230 --> 00:00:12.070 
+So what the goal is, how we can implement it, how the quantum circuit looks like.
+
+3
+00:00:12.080 --> 00:00:14.430 
+And we also implemented it with Qiskit.
+
+4
+00:00:14.960 --> 00:00:15.440 
+However,
+
+5
+00:00:15.440 --> 00:00:18.120 
+in our implementation with Qiskit we created an oracle
+
+6
+00:00:18.130 --> 00:00:20.320 
+that needs to know what the marked element is.
+
+7
+00:00:20.330 --> 00:00:22.880 
+And as I described to you, it's better.
+
+8
+00:00:22.890 --> 00:00:26.680 
+That's maybe not the most useful thing if we already know the solution,
+
+9
+00:00:26.690 --> 00:00:30.200 
+but what's better is or what the main application
+
+10
+00:00:30.200 --> 00:00:32.689 
+is is the so called satisfiability problems.
+
+11
+00:00:33.700 --> 00:00:36.340 
+So, let's have a look on what a satisfiability problem is.
+
+12
+00:00:36.350 --> 00:00:39.330 
+I've already introduced to you the example of Sudoku
+
+13
+00:00:39.340 --> 00:00:41.530 
+but here I'm gonna show you a different example.
+
+14
+00:00:41.540 --> 00:00:44.430 
+So, first of all we do our typical imports
+
+15
+00:00:45.060 --> 00:00:48.550 
+and now we see an example of a satisfiability problem
+
+16
+00:00:48.550 --> 00:00:51.120 
+that is maybe a bit more applied to daily life.
+
+17
+00:00:51.750 --> 00:00:54.410 
+So, imagine you are throwing a birthday party and
+
+18
+00:00:54.410 --> 00:00:56.040 
+you need to decide which of your friends,
+
+19
+00:00:56.050 --> 00:00:58.920 
+Alice, Bob, Charlie, Dave, and Eve you want to invite.
+
+20
+00:00:59.490 --> 00:01:02.070 
+You have a few restrictions though, because you know,
+
+21
+00:01:02.070 --> 00:01:04.670 
+if you invite Alice and Eve, they're always fighting, so
+
+22
+00:01:04.670 --> 00:01:06.570 
+you really do not want to invite both of them.
+
+23
+00:01:07.390 --> 00:01:09.540 
+On the other hand, Alice and Charlie are married.
+
+24
+00:01:09.550 --> 00:01:12.400 
+So, if you invite one of them, you also should invite the other one,
+
+25
+00:01:13.500 --> 00:01:16.010 
+then you also want to liven up the atmosphere and for that
+
+26
+00:01:16.010 --> 00:01:19.160 
+you want to invite at least one of your more entertaining friends,
+
+27
+00:01:19.170 --> 00:01:20.960 
+which is Bob and Dave.
+
+28
+00:01:21.540 --> 00:01:25.990 
+However, if you invite all of the three guys Bob, charlie and Dave together,
+
+29
+00:01:26.000 --> 00:01:28.390 
+then they somehow insult each other and the party might get
+
+30
+00:01:28.390 --> 00:01:31.100 
+out of control, so don't invite all the three of them.
+
+31
+00:01:32.240 --> 00:01:34.200 
+You also know that if you invite bob,
+
+32
+00:01:34.210 --> 00:01:37.040 
+he will most likely ask Alice about ideas for birthday present.
+
+33
+00:01:37.660 --> 00:01:40.400 
+Therefore if you invite Bob you should also invite Alice,
+
+34
+00:01:40.410 --> 00:01:42.700 
+but not necessarily the other way around.
+
+35
+00:01:42.700 --> 00:01:44.590 
+You can also invite only Alice and not Bob.
+
+36
+00:01:45.860 --> 00:01:46.400 
+Then
+
+37
+00:01:46.410 --> 00:01:48.310 
+And the last restriction is that,
+
+38
+00:01:48.320 --> 00:01:51.140 
+you know that Dave will only come if Bob comes as well,
+
+39
+00:01:51.150 --> 00:01:53.120 
+but not the other way around necessarily.
+
+40
+00:01:53.130 --> 00:01:56.980 
+So, there's no point inviting Dave if you don't invite Bob.
+
+41
+00:01:58.070 --> 00:02:00.250 
+But okay, so these restrictions,
+
+42
+00:02:00.250 --> 00:02:02.670 
+maybe you're able to solve them directly in your head but we
+
+43
+00:02:02.670 --> 00:02:04.910 
+can now see how we can do it with Grover's algorithm.
+
+44
+00:02:05.890 --> 00:02:07.050 
+So to do that,
+
+45
+00:02:07.050 --> 00:02:09.550 
+we need to write all the clauses, that all
+
+46
+00:02:09.550 --> 00:02:12.110 
+the restrictions that I gave you as logical statements.
+
+47
+00:02:12.120 --> 00:02:16.210 
+So, the first one is we do not want Alice and Eve,
+
+48
+00:02:16.220 --> 00:02:18.900 
+so we do not want Alice and Eve together.
+
+49
+00:02:19.810 --> 00:02:22.720 
+But the way we need to feed it into the Qiskit satisfiability
+
+50
+00:02:22.720 --> 00:02:27.210 
+problem is we need to write it as a clause or conjunction of clauses.
+
+51
+00:02:27.220 --> 00:02:30.250 
+This means we write instead of something with AND we write
+
+52
+00:02:30.250 --> 00:02:32.770 
+it in something with OR, so we write it as not
+
+53
+00:02:32.780 --> 00:02:33.750 
+Alice or not
+
+54
+00:02:33.760 --> 00:02:36.520 
+Eve, one of these things must hold at least.
+
+55
+00:02:38.050 --> 00:02:41.780 
+Then in a very similar way we can do these kind of logical statements
+
+56
+00:02:41.780 --> 00:02:46.320 
+for all the other restrictions that we have which are then given by those.
+
+57
+00:02:46.330 --> 00:02:50.580 
+You can if you have time try to check them and try to come up, try
+
+58
+00:02:50.580 --> 00:02:54.970 
+to see if you understand why the restrictions I gave you come up with exactly those.
+
+59
+00:02:55.940 --> 00:02:58.450 
+But now if I give you this,
+
+60
+00:02:58.460 --> 00:03:02.060 
+if we have, now that we have
+
+61
+00:03:02.070 --> 00:03:06.150 
+not Alice or not Eve we have to, we cannot put A.
+
+62
+00:03:06.150 --> 00:03:07.490 
+And E in the,
+
+63
+00:03:08.090 --> 00:03:11.850 
+in the algorithm. But what we do is we assign a number to each of the parties.
+
+64
+00:03:11.860 --> 00:03:16.720 
+So, Alice gets 1, Bob gets 2 and so on and they're not just given by a minus sign.
+
+65
+00:03:16.730 --> 00:03:21.320 
+So, they're not Alice Or not Eve, we write it as -1
+
+66
+00:03:21.330 --> 00:03:26.640 
+for not Alice, -5 for not Eve, there's always an OR automatically in between.
+
+67
+00:03:26.650 --> 00:03:30.830 
+That's the way we have to write our classes. And then zero just in the end.
+
+68
+00:03:32.080 --> 00:03:35.470 
+So, all these statements that we have from our restrictions, we can write them.
+
+69
+00:03:35.480 --> 00:03:37.880 
+Actually the second one is given by two different ones.
+
+70
+00:03:37.890 --> 00:03:44.820 
+So, we have to get to different ones here that we won 1-30 OR -130.
+
+71
+00:03:44.830 --> 00:03:48.890 
+So in total we have seven different classes that we can
+
+72
+00:03:48.890 --> 00:03:51.190 
+then put in what they call a three set problem.
+
+73
+00:03:52.090 --> 00:03:55.450 
+So, these are those seven restrictions.
+
+74
+00:03:56.080 --> 00:04:00.390 
+And here we just tell that we have five variables and seven restrictions.
+
+75
+00:04:01.250 --> 00:04:08.330 
+We save this as a text file and then call it again. Yeah.
+
+76
+00:04:08.340 --> 00:04:13.880 
+So, the phase oracle knows how to interpret these, how it is encoded.
+
+77
+00:04:15.050 --> 00:04:19.670 
+Then we feed this to our, first determine again our backend,
+
+78
+00:04:19.670 --> 00:04:21.260 
+where we now choose the simulator,
+
+79
+00:04:21.269 --> 00:04:27.130 
+we create a quantum instance of that and then we apply what they call amplification
+
+80
+00:04:27.130 --> 00:04:28.470 
+problem which is a pre-made function
+
+81
+00:04:28.470 --> 00:04:31.370 
+with qiskit which will implement the amplifier,
+
+82
+00:04:31.370 --> 00:04:32.310 
+which is the main part of
+
+83
+00:04:32.630 --> 00:04:33.280 
+Grover's algorithm
+
+84
+00:04:34.100 --> 00:04:37.840 
+and then we apply Grover using the quantum instance
+
+85
+00:04:38.370 --> 00:04:41.570 
+of the amplification problem.
+
+86
+00:04:42.810 --> 00:04:44.480 
+Because we now amplify,
+
+87
+00:04:44.480 --> 00:04:48.190 
+then we amplify Grover with this amplification problem.
+
+88
+00:04:48.200 --> 00:04:51.750 
+In the end we do a measurement and let us look how this looks like.
+
+89
+00:04:53.610 --> 00:04:55.990 
+So, what we're interested in is the top measurement.
+
+90
+00:04:55.990 --> 00:05:00.140 
+So, the result that has the most the highest probability to be chosen,
+
+91
+00:05:01.160 --> 00:05:04.460 
+It is given by 00111.
+
+92
+00:05:05.160 --> 00:05:09.960 
+Now, we have to think how we can interpret that, and back to our original problem.
+
+93
+00:05:11.000 --> 00:05:13.920 
+So, one way we should, one thing we should be in the very beginning,
+
+94
+00:05:13.920 --> 00:05:17.110 
+notice that in Qiskit the order is kind of reverse.
+
+95
+00:05:17.120 --> 00:05:21.340 
+So, the first party or the first bit is always on the very right side just
+
+96
+00:05:21.340 --> 00:05:25.780 
+with binary numbers, while the last party or the last bit is given in the end.
+
+97
+00:05:25.790 --> 00:05:30.510 
+So, 111 means we should invite Alice, Bob, charlie and we
+
+98
+00:05:30.510 --> 00:05:32.710 
+should not invite Dave and we should not invite Eve,
+
+99
+00:05:32.720 --> 00:05:33.770 
+that's why they have zeros.
+
+100
+00:05:34.590 --> 00:05:35.640 
+And let us look at the Histogram
+
+101
+00:05:35.790 --> 00:05:39.000 
+of this was just one out of many solutions or not.
+
+102
+00:05:40.120 --> 00:05:44.360 
+And well here we can see this is our top measurement, this is also the only solution.
+
+103
+00:05:44.370 --> 00:05:46.520 
+So, if you would now analytically go through that problem
+
+104
+00:05:46.520 --> 00:05:49.460 
+and check for the possible solutions that you have,
+
+105
+00:05:49.470 --> 00:05:53.120 
+then you would see that the only solution actually is this one
+
+106
+00:05:53.120 --> 00:05:56.370 
+where you invite Alice, Bob, Charlie but not Dave and not Eve.
+
+107
+00:05:57.500 --> 00:06:01.880 
+Now, if we would like to implement that on an actual advice,
+
+108
+00:06:02.520 --> 00:06:06.450 
+let us actually choose for now the Fake Melbourne device which
+
+109
+00:06:06.450 --> 00:06:09.470 
+is just simulating how it looks like on the Melbourne device.
+
+110
+00:06:09.470 --> 00:06:10.540 
+So, it's again a simulator.
+
+111
+00:06:10.550 --> 00:06:13.350 
+But the reason I'm doing this is because what
+
+112
+00:06:13.350 --> 00:06:16.020 
+I'm interested in is that it compiles it.
+
+113
+00:06:16.030 --> 00:06:18.130 
+So, it puts it on the map that it would actually
+
+114
+00:06:18.130 --> 00:06:21.050 
+look like if we would implement it on the Melbourne device
+
+115
+00:06:21.740 --> 00:06:25.280 
+and then we look at the compiled version of it and count the
+
+116
+00:06:25.280 --> 00:06:28.280 
+operations that we have and look at the depth of the quantum circuit.
+
+117
+00:06:29.000 --> 00:06:30.290 
+Let's see what that gives us.
+
+118
+00:06:31.510 --> 00:06:33.430 
+So, we can see there is for example,
+
+119
+00:06:33.560 --> 00:06:37.180 
+138 CNOT gates in this quantum circuit now and
+
+120
+00:06:37.180 --> 00:06:39.550 
+the total depth of the quantum circuits, depth is like the
+
+121
+00:06:39.550 --> 00:06:42.260 
+number of time steps we need in the quantum circuit because some
+
+122
+00:06:42.260 --> 00:06:46.640 
+gates we can apply in parallel but some we cannot.
+
+123
+00:06:46.640 --> 00:06:50.380 
+So, in total it's 250 times steps that we need.
+
+124
+00:06:51.180 --> 00:06:54.980 
+But yeah this of course is way too deep to be implemented on a
+
+125
+00:06:54.980 --> 00:06:57.530 
+quantum computer at the moment because right now we have too much noise,
+
+126
+00:06:57.530 --> 00:06:58.610 
+too much coherence time.
+
+127
+00:06:58.620 --> 00:07:01.740 
+Also too many way too many CNOT gates, 138
+
+128
+00:07:01.740 --> 00:07:02.410 
+CNOT gates,
+
+129
+00:07:02.420 --> 00:07:05.140 
+if each of the gates has an error of maybe half
+
+130
+00:07:05.140 --> 00:07:08.870 
+a percent then if we check what happens after 100 gates,
+
+131
+00:07:08.880 --> 00:07:11.060 
+this is not really useful anymore.
+
+132
+00:07:11.340 --> 00:07:15.720 
+So, unfortunately for now we can just simulate that but hopefully once
+
+133
+00:07:15.720 --> 00:07:19.380 
+we advance with error correction methods and also with even
+
+134
+00:07:19.380 --> 00:07:24.100 
+better qubits then we can hopefully solve these kind of satisfiability problems
+
+135
+00:07:24.110 --> 00:07:27.960 
+on quantum computers and get some speed up compared to classical computers.
+
+136
+00:07:28.590 --> 00:07:30.210 
+Thank you for listening.

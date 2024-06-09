@@ -1,0 +1,5147 @@
+WEBVTT
+
+00:00:15.220 --> 00:00:18.810
+PROFESSOR: OK, so the
+last topic for the class
+
+00:00:18.810 --> 00:00:20.710
+is interpretability.
+
+00:00:20.710 --> 00:00:25.180
+As you know, the modern
+machine learning models
+
+00:00:25.180 --> 00:00:30.890
+are justifiably reputed to be
+very difficult to understand.
+
+00:00:30.890 --> 00:00:35.290
+So if I give you something
+like the GPT2 model, which
+
+00:00:35.290 --> 00:00:38.170
+we talked about in natural
+language processing,
+
+00:00:38.170 --> 00:00:43.210
+and I tell you that it
+has 1.5 billion parameters
+
+00:00:43.210 --> 00:00:49.290
+and then you say,
+why is it working?
+
+00:00:49.290 --> 00:00:52.710
+Clearly the answer
+is not because
+
+00:00:52.710 --> 00:00:56.580
+these particular parameters
+have these particular values.
+
+00:00:56.580 --> 00:00:58.870
+There is no way to
+understand that.
+
+00:00:58.870 --> 00:01:02.040
+And so the topic
+today is something
+
+00:01:02.040 --> 00:01:04.800
+that we raised a little
+bit in the lecture
+
+00:01:04.800 --> 00:01:07.260
+on fairness, where
+one of the issues
+
+00:01:07.260 --> 00:01:10.740
+there was also that if you
+can't understand the model
+
+00:01:10.740 --> 00:01:14.760
+you can't tell if the model
+has baked-in prejudices
+
+00:01:14.760 --> 00:01:16.440
+by examining it.
+
+00:01:16.440 --> 00:01:19.500
+And so today we're going to
+look at different methods
+
+00:01:19.500 --> 00:01:21.720
+that people have
+developed to try
+
+00:01:21.720 --> 00:01:25.035
+to overcome this problem
+of inscrutable models.
+
+00:01:27.870 --> 00:01:33.430
+So there is a very
+interesting bit of history.
+
+00:01:33.430 --> 00:01:35.790
+How many of you know
+of George Miller's 7
+
+00:01:35.790 --> 00:01:39.180
+plus or minus 2 result?
+
+00:01:39.180 --> 00:01:40.430
+Only a few.
+
+00:01:40.430 --> 00:01:48.240
+So Miller was a psychologist at
+Harvard, I think, in the 1950s.
+
+00:01:48.240 --> 00:01:52.730
+And he wrote this paper in 1956
+called "The Magical Number 7
+
+00:01:52.730 --> 00:01:54.860
+Plus or Minus 2--
+
+00:01:54.860 --> 00:01:59.000
+Some Limits On Our Capacity
+for Processing Information."
+
+00:01:59.000 --> 00:02:01.220
+It's quite an interesting paper.
+
+00:02:01.220 --> 00:02:07.930
+So he started off with
+something that I had forgotten.
+
+00:02:07.930 --> 00:02:10.750
+I read this paper
+many, many years ago.
+
+00:02:10.750 --> 00:02:14.740
+And I'd forgotten that he
+starts off with the question
+
+00:02:14.740 --> 00:02:18.760
+of how many different
+things can you sense?
+
+00:02:18.760 --> 00:02:22.010
+How many different levels
+of things can you sense?
+
+00:02:22.010 --> 00:02:25.240
+So if I put headphones
+on you and I
+
+00:02:25.240 --> 00:02:28.390
+ask you to tell
+me on a scale of 1
+
+00:02:28.390 --> 00:02:33.160
+to n how loud is the sound that
+I'm playing in your headphone,
+
+00:02:33.160 --> 00:02:37.610
+it turns out people get confused
+when you get beyond about five,
+
+00:02:37.610 --> 00:02:41.920
+six, seven different
+levels of intensity.
+
+00:02:41.920 --> 00:02:44.530
+And similarly, if I give
+you a bunch of colors
+
+00:02:44.530 --> 00:02:49.840
+and I ask you to tell me
+where the boundaries are
+
+00:02:49.840 --> 00:02:52.300
+between different
+colors, people seem
+
+00:02:52.300 --> 00:02:57.100
+to come up with 7 plus or
+minus 2 as the number of colors
+
+00:02:57.100 --> 00:02:58.470
+that they can distinguish.
+
+00:02:58.470 --> 00:03:01.210
+And so there is a long
+psychological literature
+
+00:03:01.210 --> 00:03:03.460
+of this.
+
+00:03:03.460 --> 00:03:08.780
+And then Miller went
+on to do experiments
+
+00:03:08.780 --> 00:03:12.200
+where he asked people to
+memorize lists of things.
+
+00:03:12.200 --> 00:03:14.360
+And what he
+discovered is, again,
+
+00:03:14.360 --> 00:03:17.690
+that you could memorize
+a list of about 7
+
+00:03:17.690 --> 00:03:19.760
+plus or minus 2 things.
+
+00:03:19.760 --> 00:03:23.580
+And beyond that, you couldn't
+remember the list anymore.
+
+00:03:23.580 --> 00:03:26.660
+So this tells us something
+about the cognitive capacity
+
+00:03:26.660 --> 00:03:28.220
+of the human mind.
+
+00:03:28.220 --> 00:03:31.790
+And it suggests that if I
+give you an explanation that
+
+00:03:31.790 --> 00:03:35.450
+has 20 things in it,
+you're unlikely to be
+
+00:03:35.450 --> 00:03:38.780
+able to fathom it because
+you can't keep all the moving
+
+00:03:38.780 --> 00:03:41.930
+parts in your mind at one time.
+
+00:03:41.930 --> 00:03:45.350
+Now, it's a tricky result,
+because he does point out
+
+00:03:45.350 --> 00:03:52.280
+even in 1956 that if you chunk
+things into bigger chunks,
+
+00:03:52.280 --> 00:03:57.540
+you can remember seven of those,
+even if they're much bigger.
+
+00:03:57.540 --> 00:04:00.870
+And so people who are very
+good at memorizing things,
+
+00:04:00.870 --> 00:04:03.960
+for example, make up patterns.
+
+00:04:03.960 --> 00:04:05.910
+And they remember
+those patterns,
+
+00:04:05.910 --> 00:04:08.700
+which then allow them
+to actually remember
+
+00:04:08.700 --> 00:04:10.070
+more primitive objects.
+
+00:04:10.070 --> 00:04:12.180
+So you know-- and we
+still don't really
+
+00:04:12.180 --> 00:04:14.910
+understand how memory works.
+
+00:04:14.910 --> 00:04:18.029
+But this is just an
+interesting observation,
+
+00:04:18.029 --> 00:04:20.730
+and I think plays
+into the question
+
+00:04:20.730 --> 00:04:27.280
+of how do you explain things
+in a complicated model?
+
+00:04:27.280 --> 00:04:29.830
+Because it suggests
+that you can't explain
+
+00:04:29.830 --> 00:04:32.470
+too many different
+things because people
+
+00:04:32.470 --> 00:04:36.010
+won't understand what
+you're talking about.
+
+00:04:36.010 --> 00:04:36.880
+OK.
+
+00:04:36.880 --> 00:04:41.270
+So what leads to complex models?
+
+00:04:41.270 --> 00:04:43.460
+Well, as I say,
+overfitting certainly
+
+00:04:43.460 --> 00:04:46.550
+leads to complex models.
+
+00:04:46.550 --> 00:04:49.760
+I remember in the
+1970s when we started
+
+00:04:49.760 --> 00:04:55.820
+working on expert
+systems in healthcare,
+
+00:04:55.820 --> 00:05:00.080
+I made a very bad faux pas.
+
+00:05:00.080 --> 00:05:03.170
+I went to the first
+joint conference
+
+00:05:03.170 --> 00:05:06.230
+between statisticians and
+artificial intelligence
+
+00:05:06.230 --> 00:05:07.880
+researchers.
+
+00:05:07.880 --> 00:05:12.530
+And the statisticians were
+all about understanding
+
+00:05:12.530 --> 00:05:16.700
+the variance and understanding
+statistical significance and so
+
+00:05:16.700 --> 00:05:17.660
+on.
+
+00:05:17.660 --> 00:05:22.700
+And I was all about trying to
+model details of what was going
+
+00:05:22.700 --> 00:05:25.250
+on in an individual patient.
+
+00:05:25.250 --> 00:05:29.210
+And in some discussion after my
+talk, somebody challenged me.
+
+00:05:29.210 --> 00:05:32.270
+And I said, well, what
+we AI people are really
+
+00:05:32.270 --> 00:05:34.820
+doing is fitting
+what you guys think
+
+00:05:34.820 --> 00:05:38.030
+is the noise,
+because we're trying
+
+00:05:38.030 --> 00:05:42.920
+to make a lot more detailed
+refinements in our theories
+
+00:05:42.920 --> 00:05:47.690
+and our models than what the
+typical statistical model does.
+
+00:05:47.690 --> 00:05:53.150
+And of course, I was roundly
+booed out of the hall.
+
+00:05:53.150 --> 00:05:56.420
+And people shunned me for
+the rest of the conference
+
+00:05:56.420 --> 00:05:59.420
+because I had done
+something really stupid
+
+00:05:59.420 --> 00:06:03.170
+to admit that I
+was fitting noise.
+
+00:06:03.170 --> 00:06:05.090
+And of course, I
+didn't really believe
+
+00:06:05.090 --> 00:06:06.380
+that I was fitting noise.
+
+00:06:06.380 --> 00:06:09.020
+I believed that
+what I was fitting
+
+00:06:09.020 --> 00:06:11.900
+was what the average
+statistician just
+
+00:06:11.900 --> 00:06:13.490
+chalks up to noise.
+
+00:06:13.490 --> 00:06:18.430
+And we're interested in more
+details of the mechanisms.
+
+00:06:18.430 --> 00:06:21.700
+So overfitting we
+have a pretty good
+
+00:06:21.700 --> 00:06:23.620
+handle on by regularization.
+
+00:06:23.620 --> 00:06:25.450
+So you can-- you
+know, you've seen
+
+00:06:25.450 --> 00:06:28.060
+lots of examples
+of regularization
+
+00:06:28.060 --> 00:06:29.530
+throughout the course.
+
+00:06:29.530 --> 00:06:33.430
+And people keep coming up
+with interesting ideas for how
+
+00:06:33.430 --> 00:06:37.960
+to apply regularization in order
+to simplify models or make them
+
+00:06:37.960 --> 00:06:41.110
+fit some preconception
+of what the model ought
+
+00:06:41.110 --> 00:06:45.710
+to look like before you
+start learning it from data.
+
+00:06:45.710 --> 00:06:48.400
+But the problem is
+that there really
+
+00:06:48.400 --> 00:06:51.370
+is true complexity
+to these models,
+
+00:06:51.370 --> 00:06:54.220
+whether or not
+you're fitting noise.
+
+00:06:54.220 --> 00:06:58.330
+There's-- the world is
+a complicated place.
+
+00:06:58.330 --> 00:07:00.370
+Human beings were not designed.
+
+00:07:00.370 --> 00:07:02.000
+They evolved.
+
+00:07:02.000 --> 00:07:05.980
+And so there's all kinds
+of bizarre stuff left over
+
+00:07:05.980 --> 00:07:08.590
+from our evolutionary heritage.
+
+00:07:08.590 --> 00:07:11.930
+And so it is just complex.
+
+00:07:11.930 --> 00:07:15.380
+It's hard to understand
+in a simple way
+
+00:07:15.380 --> 00:07:18.470
+how to make predictions that
+are useful when the world really
+
+00:07:18.470 --> 00:07:20.000
+is complex.
+
+00:07:20.000 --> 00:07:24.630
+So what do we do in order
+to try to deal with this?
+
+00:07:24.630 --> 00:07:27.480
+Well, one approach
+is to make up what
+
+00:07:27.480 --> 00:07:32.190
+I call just-so stories that give
+a simplified explanation of how
+
+00:07:32.190 --> 00:07:34.960
+a complicated thing
+actually works.
+
+00:07:34.960 --> 00:07:37.530
+So how many of you
+have read these stories
+
+00:07:37.530 --> 00:07:40.030
+when you were a kid?
+
+00:07:40.030 --> 00:07:41.200
+Nobody?
+
+00:07:41.200 --> 00:07:42.160
+My God.
+
+00:07:42.160 --> 00:07:44.020
+OK.
+
+00:07:44.020 --> 00:07:46.330
+Must be a generational thing.
+
+00:07:46.330 --> 00:07:49.690
+So Rudyard Kipling
+was a famous author.
+
+00:07:49.690 --> 00:07:52.990
+And he wrote the series
+of just-so stories, things
+
+00:07:52.990 --> 00:07:57.190
+like How the Lion Got His
+Mane and How the Camel Got
+
+00:07:57.190 --> 00:07:58.870
+His Hump and so on.
+
+00:07:58.870 --> 00:08:02.020
+And of course, they're
+all total bull, right?
+
+00:08:02.020 --> 00:08:08.500
+I mean, it's not a Darwinian
+evolutionary explanation
+
+00:08:08.500 --> 00:08:11.650
+of why male lions have manes.
+
+00:08:11.650 --> 00:08:13.940
+It's just some made up story.
+
+00:08:13.940 --> 00:08:16.030
+But they're really cute stories.
+
+00:08:16.030 --> 00:08:18.270
+And I enjoyed them as a kid.
+
+00:08:18.270 --> 00:08:23.170
+And maybe you would have,
+too, if your parents
+
+00:08:23.170 --> 00:08:26.410
+had read them to you.
+
+00:08:26.410 --> 00:08:31.990
+So I mean, I use this
+as a kind of pejorative
+
+00:08:31.990 --> 00:08:35.620
+because what the
+people who follow
+
+00:08:35.620 --> 00:08:38.740
+this line of investigation
+do is they take
+
+00:08:38.740 --> 00:08:40.870
+some very complicated model.
+
+00:08:40.870 --> 00:08:44.770
+They make a local
+approximation to it that says,
+
+00:08:44.770 --> 00:08:48.610
+this is not an approximation
+to the entire model,
+
+00:08:48.610 --> 00:08:51.670
+but it's an approximation
+to the model in the vicinity
+
+00:08:51.670 --> 00:08:53.770
+of a particular case.
+
+00:08:53.770 --> 00:08:56.500
+And then they explain
+that simplified model.
+
+00:08:56.500 --> 00:08:58.990
+And I'll show you
+some examples of that
+
+00:08:58.990 --> 00:09:01.570
+through the lecture today.
+
+00:09:01.570 --> 00:09:03.850
+And the other approach
+which I'll also
+
+00:09:03.850 --> 00:09:07.150
+show you some examples
+of is that you simply
+
+00:09:07.150 --> 00:09:10.920
+trade off somewhat lower
+performance for a simple--
+
+00:09:10.920 --> 00:09:14.770
+a model that's simple enough
+to be able to explain.
+
+00:09:14.770 --> 00:09:19.750
+So things like decision
+trees and logistic regression
+
+00:09:19.750 --> 00:09:22.660
+and so on typically
+don't perform quite
+
+00:09:22.660 --> 00:09:28.240
+as well as the best, most
+sophisticated models,
+
+00:09:28.240 --> 00:09:31.570
+although you've seen plenty
+of examples in this class
+
+00:09:31.570 --> 00:09:34.780
+where, in fact, they
+do perform quite well
+
+00:09:34.780 --> 00:09:36.520
+and where they're
+not outperformed
+
+00:09:36.520 --> 00:09:38.260
+by the fancy models.
+
+00:09:38.260 --> 00:09:40.600
+But in general, you
+can do a little better
+
+00:09:40.600 --> 00:09:42.740
+by tweaking a fancy model.
+
+00:09:42.740 --> 00:09:44.710
+But then it becomes
+incomprehensible.
+
+00:09:44.710 --> 00:09:46.880
+And so people are
+willing to say,
+
+00:09:46.880 --> 00:09:51.250
+OK, I'm going to give up
+1% or 2% in performance
+
+00:09:51.250 --> 00:09:55.570
+in order to have a model
+that I can really understand.
+
+00:09:55.570 --> 00:09:59.440
+And the reason it makes sense
+is because these models are not
+
+00:09:59.440 --> 00:10:00.550
+self-executing.
+
+00:10:00.550 --> 00:10:04.690
+They're typically used as
+advice for some human being
+
+00:10:04.690 --> 00:10:06.460
+who makes ultimate decisions.
+
+00:10:06.460 --> 00:10:08.920
+Your surgeon is
+not going to look
+
+00:10:08.920 --> 00:10:10.930
+at one of these
+models that says,
+
+00:10:10.930 --> 00:10:16.430
+take out the guy's left
+kidney and say, OK, I guess.
+
+00:10:16.430 --> 00:10:19.540
+They're going to go, well,
+does that make sense?
+
+00:10:19.540 --> 00:10:21.730
+And in order to answer
+the question of,
+
+00:10:21.730 --> 00:10:22.860
+does that make sense?
+
+00:10:22.860 --> 00:10:25.870
+It really helps to know
+what the model is--
+
+00:10:25.870 --> 00:10:29.470
+what the model's
+recommendation is based on.
+
+00:10:29.470 --> 00:10:31.180
+What is its internal logic?
+
+00:10:31.180 --> 00:10:35.750
+And so even an approximation
+to that is useful.
+
+00:10:35.750 --> 00:10:43.510
+So the need for trust, clinical
+adoption of ML models--
+
+00:10:43.510 --> 00:10:46.060
+there are two
+approaches in this paper
+
+00:10:46.060 --> 00:10:49.540
+that I'm going to talk
+about where they say, OK,
+
+00:10:49.540 --> 00:10:54.640
+what you'd like to do is to look
+at case-specific predictions.
+
+00:10:54.640 --> 00:10:58.450
+So there is a particular
+patient in a particular state
+
+00:10:58.450 --> 00:11:00.430
+and you want to understand
+what the model is
+
+00:11:00.430 --> 00:11:02.440
+saying about that patient.
+
+00:11:02.440 --> 00:11:05.230
+And then you also want to
+have confidence in the model
+
+00:11:05.230 --> 00:11:06.530
+overall.
+
+00:11:06.530 --> 00:11:10.810
+And so you'd like to be able to
+have an explanatory capability
+
+00:11:10.810 --> 00:11:14.410
+that says, here are some
+interesting representative
+
+00:11:14.410 --> 00:11:15.560
+cases.
+
+00:11:15.560 --> 00:11:17.740
+And here's how the
+model views them.
+
+00:11:17.740 --> 00:11:19.690
+Look through them and
+decide whether you
+
+00:11:19.690 --> 00:11:23.800
+agree with the approach
+that this model is taking.
+
+00:11:23.800 --> 00:11:28.270
+Now, remember my critique of
+randomized controlled trials
+
+00:11:28.270 --> 00:11:31.510
+that people do these trials.
+
+00:11:31.510 --> 00:11:36.580
+They choose the simplest cases,
+the smallest number of patients
+
+00:11:36.580 --> 00:11:40.180
+that they need in order to
+reach statistical significance,
+
+00:11:40.180 --> 00:11:44.450
+the shortest amount of
+follow-up time, et cetera.
+
+00:11:44.450 --> 00:11:46.420
+And then the results
+of those trials
+
+00:11:46.420 --> 00:11:49.310
+are applied to very
+different populations.
+
+00:11:49.310 --> 00:11:52.450
+So Davids talked
+about the cohort shift
+
+00:11:52.450 --> 00:11:55.330
+as a generalization
+of that idea.
+
+00:11:55.330 --> 00:11:58.270
+But the same thing happens in
+these machine learning models
+
+00:11:58.270 --> 00:12:01.270
+that you train on
+some set of data.
+
+00:12:01.270 --> 00:12:03.820
+The typical
+publication will then
+
+00:12:03.820 --> 00:12:08.770
+test on some held-out
+subset of the same data.
+
+00:12:08.770 --> 00:12:11.410
+But that's not a very
+accurate representation
+
+00:12:11.410 --> 00:12:12.880
+of the real world.
+
+00:12:12.880 --> 00:12:17.080
+If you then try to apply that
+model to data from a totally
+
+00:12:17.080 --> 00:12:19.210
+different source,
+the chances are
+
+00:12:19.210 --> 00:12:21.910
+you will have specialized
+it in some way
+
+00:12:21.910 --> 00:12:23.680
+that you don't appreciate.
+
+00:12:23.680 --> 00:12:25.930
+And the results
+that you get are not
+
+00:12:25.930 --> 00:12:29.440
+as good as what you got
+on the held-out test data
+
+00:12:29.440 --> 00:12:32.500
+because it's more heterogeneous.
+
+00:12:32.500 --> 00:12:35.310
+I think I mentioned
+that Jeff Drazen,
+
+00:12:35.310 --> 00:12:38.140
+the editor-in-chief of
+the New England Journal,
+
+00:12:38.140 --> 00:12:44.230
+had a meeting about a year ago
+in which he was arguing that
+
+00:12:44.230 --> 00:12:48.220
+the journal shouldn't ever
+publish a research study unless
+
+00:12:48.220 --> 00:12:52.420
+it's been validated on
+two independent data sets
+
+00:12:52.420 --> 00:12:57.980
+because he's tired of publishing
+studies that wind up getting
+
+00:12:57.980 --> 00:13:00.500
+retracted because--
+
+00:13:00.500 --> 00:13:04.520
+not because of any overt
+badness on the part
+
+00:13:04.520 --> 00:13:05.690
+of the investigators.
+
+00:13:05.690 --> 00:13:08.180
+They've done exactly
+the kinds of things
+
+00:13:08.180 --> 00:13:11.220
+that you've learned how
+to do in this class.
+
+00:13:11.220 --> 00:13:13.610
+But when they go
+to apply that model
+
+00:13:13.610 --> 00:13:16.220
+to a different
+population, it just
+
+00:13:16.220 --> 00:13:18.380
+doesn't work nearly
+as well as it
+
+00:13:18.380 --> 00:13:20.910
+did in the published version.
+
+00:13:20.910 --> 00:13:23.130
+And of course, there
+are all the publication
+
+00:13:23.130 --> 00:13:29.850
+bias issues about if 50 of
+us do the same experiment
+
+00:13:29.850 --> 00:13:32.460
+and by random chance some
+of us are going to get
+
+00:13:32.460 --> 00:13:34.508
+better results than others.
+
+00:13:34.508 --> 00:13:36.050
+And those are the
+ones that are going
+
+00:13:36.050 --> 00:13:37.950
+to get published
+because the people who
+
+00:13:37.950 --> 00:13:42.270
+got poor results don't have
+anything interesting to report.
+
+00:13:42.270 --> 00:13:45.090
+And so there's that whole
+issue of publication bias,
+
+00:13:45.090 --> 00:13:48.110
+which is another serious one.
+
+00:13:48.110 --> 00:13:48.610
+OK.
+
+00:13:53.200 --> 00:13:56.500
+So I wanted to just spend
+a minute to say, you know,
+
+00:13:56.500 --> 00:14:00.290
+explanation is not a new idea.
+
+00:14:00.290 --> 00:14:02.980
+So in the expert
+systems era that we
+
+00:14:02.980 --> 00:14:07.510
+talked about a little bit in
+one of our earlier classes,
+
+00:14:07.510 --> 00:14:11.950
+we talked about the idea
+that we would take medical--
+
+00:14:11.950 --> 00:14:15.580
+human medical experts
+and debrief them of what
+
+00:14:15.580 --> 00:14:21.220
+they knew and then try to encode
+those in patterns or in rules
+
+00:14:21.220 --> 00:14:24.850
+or in various ways in a
+computer program in order
+
+00:14:24.850 --> 00:14:27.040
+to reproduce their behavior.
+
+00:14:27.040 --> 00:14:29.580
+So Mycin was one
+of those programs--
+
+00:14:29.580 --> 00:14:34.060
+[INAUDIBLE] PhD
+thesis-- in 1975.
+
+00:14:34.060 --> 00:14:36.880
+And they published
+this nice paper
+
+00:14:36.880 --> 00:14:41.170
+that was about explanation and
+rule acquisition capabilities
+
+00:14:41.170 --> 00:14:42.970
+of the Mycin system.
+
+00:14:42.970 --> 00:14:46.180
+And as an illustration,
+they gave some examples
+
+00:14:46.180 --> 00:14:48.590
+of what you could
+do with the system.
+
+00:14:48.590 --> 00:14:53.410
+So rules, they argued,
+were quite understandable
+
+00:14:53.410 --> 00:14:56.950
+because they say if a bunch
+of conditions, then you
+
+00:14:56.950 --> 00:15:00.130
+can draw the
+following conclusion.
+
+00:15:00.130 --> 00:15:03.460
+So given that,
+you can say, well,
+
+00:15:03.460 --> 00:15:07.330
+when the program
+comes back and says,
+
+00:15:07.330 --> 00:15:10.110
+in light of the site from
+which the culture was obtained
+
+00:15:10.110 --> 00:15:12.190
+and the method of
+collection, do you
+
+00:15:12.190 --> 00:15:16.810
+feel that a significant number
+of organism 1 were detected--
+
+00:15:16.810 --> 00:15:18.490
+were obtained?
+
+00:15:18.490 --> 00:15:23.170
+In other words, if you took
+a sample from somebody's body
+
+00:15:23.170 --> 00:15:24.820
+and you're looking
+for an infection,
+
+00:15:24.820 --> 00:15:28.510
+do you think you got enough
+organisms in that sample?
+
+00:15:28.510 --> 00:15:32.800
+And the user says, well, why
+are you asking me this question?
+
+00:15:32.800 --> 00:15:37.150
+And the answer in terms of the
+rules that the system works by
+
+00:15:37.150 --> 00:15:37.780
+is pretty good.
+
+00:15:37.780 --> 00:15:39.760
+It says it's
+important to find out
+
+00:15:39.760 --> 00:15:43.750
+whether there's therapeutically
+significant disease associated
+
+00:15:43.750 --> 00:15:46.150
+with this occurrence
+of organism 1.
+
+00:15:46.150 --> 00:15:49.480
+We've already established
+that the culture is not
+
+00:15:49.480 --> 00:15:52.210
+one of those that
+are normally sterile
+
+00:15:52.210 --> 00:15:55.420
+and the method of
+collection is sterile.
+
+00:15:55.420 --> 00:15:58.300
+Therefore, if the
+organism has been observed
+
+00:15:58.300 --> 00:16:00.670
+in significant
+numbers, then there's
+
+00:16:00.670 --> 00:16:03.790
+strongly suggestive evidence
+that there's therapeutically
+
+00:16:03.790 --> 00:16:07.180
+significant disease associated
+with this occurrence
+
+00:16:07.180 --> 00:16:09.410
+of the organism.
+
+00:16:09.410 --> 00:16:15.580
+So if you find bugs in a
+place carefully collected,
+
+00:16:15.580 --> 00:16:17.560
+then that suggests
+that you ought
+
+00:16:17.560 --> 00:16:21.430
+to probably treat this patient
+if there are were bunch of--
+
+00:16:21.430 --> 00:16:24.580
+enough bugs there.
+
+00:16:24.580 --> 00:16:28.120
+And there's also strongly
+suggestive evidence
+
+00:16:28.120 --> 00:16:30.730
+that the organism is
+not a contaminant,
+
+00:16:30.730 --> 00:16:33.850
+because the collection
+method was sterile.
+
+00:16:33.850 --> 00:16:39.090
+And you can go on with this and
+you can say, well, why that?
+
+00:16:39.090 --> 00:16:42.800
+So why that question?
+
+00:16:42.800 --> 00:16:47.740
+And it traces back in its
+evolution of these rules
+
+00:16:47.740 --> 00:16:49.750
+and it says, well,
+in order to find out
+
+00:16:49.750 --> 00:16:52.540
+the locus of
+infection, it's already
+
+00:16:52.540 --> 00:16:55.840
+been established that the
+site of the culture is known.
+
+00:16:55.840 --> 00:16:58.460
+The number of days since
+the specimen was obtained
+
+00:16:58.460 --> 00:16:59.250
+is less than 7.
+
+00:16:59.250 --> 00:17:01.780
+Therefore, there
+is therapeutically
+
+00:17:01.780 --> 00:17:05.349
+significant disease associated
+with this occurrence
+
+00:17:05.349 --> 00:17:06.680
+of the organism.
+
+00:17:06.680 --> 00:17:10.359
+So there's some rule that
+says if you've got bugs
+
+00:17:10.359 --> 00:17:13.339
+and it happened within
+the last seven days,
+
+00:17:13.339 --> 00:17:17.589
+the patient probably really
+does have an infection.
+
+00:17:17.589 --> 00:17:20.690
+And I mean, I've got a
+lot of examples of this.
+
+00:17:20.690 --> 00:17:23.460
+But you can keep going why.
+
+00:17:23.460 --> 00:17:26.089
+You know, this is
+the two-year-old.
+
+00:17:26.089 --> 00:17:27.339
+But why, daddy?
+
+00:17:27.339 --> 00:17:28.210
+But why?
+
+00:17:28.210 --> 00:17:29.920
+But why?
+
+00:17:29.920 --> 00:17:35.900
+Well, why is it important to
+find out a locus of infection?
+
+00:17:35.900 --> 00:17:38.810
+And, well, there's
+a reason, which
+
+00:17:38.810 --> 00:17:41.780
+is that there is a rule
+that will conclude,
+
+00:17:41.780 --> 00:17:45.080
+for example, that the abdomen
+is a locus of infection
+
+00:17:45.080 --> 00:17:49.340
+or the pelvis is a locus
+of infection of the patient
+
+00:17:49.340 --> 00:17:53.150
+if you satisfy these criteria.
+
+00:17:53.150 --> 00:17:56.900
+And so this is a kind of
+rudimentary explanation
+
+00:17:56.900 --> 00:18:00.410
+that comes directly
+out of the fact
+
+00:18:00.410 --> 00:18:02.660
+that these are
+rule-based systems
+
+00:18:02.660 --> 00:18:06.230
+and so you can just
+play back the rules.
+
+00:18:06.230 --> 00:18:08.510
+One of the things I
+like is you can also
+
+00:18:08.510 --> 00:18:10.650
+ask freeform questions.
+
+00:18:10.650 --> 00:18:14.930
+1975, the natural language
+processing was not so good.
+
+00:18:14.930 --> 00:18:18.080
+And so this worked
+about one time in five.
+
+00:18:18.080 --> 00:18:21.410
+But you could walk up to
+it and type some question.
+
+00:18:21.410 --> 00:18:24.980
+And for example, do you
+ever prescribe carbenicillin
+
+00:18:24.980 --> 00:18:27.390
+for pseudomonas infections?
+
+00:18:27.390 --> 00:18:29.270
+And it says, well,
+there are three rules
+
+00:18:29.270 --> 00:18:33.530
+in my database of rules that
+would conclude something
+
+00:18:33.530 --> 00:18:35.940
+relevant to that question.
+
+00:18:35.940 --> 00:18:37.910
+So which one do you want to see?
+
+00:18:37.910 --> 00:18:40.910
+And if you say, I
+want to see rule 64,
+
+00:18:40.910 --> 00:18:42.950
+it says, well, that
+rule says if it's
+
+00:18:42.950 --> 00:18:47.720
+known with certainty that
+the organism is a pseudomonas
+
+00:18:47.720 --> 00:18:52.080
+and the drug under
+consideration is gentamicin,
+
+00:18:52.080 --> 00:18:54.930
+then a more appropriate
+therapy would
+
+00:18:54.930 --> 00:18:58.890
+be a combination of
+gentamicin and carbenicillin.
+
+00:18:58.890 --> 00:19:03.630
+Again, this is medical
+knowledge as of 1975.
+
+00:19:03.630 --> 00:19:06.690
+But my guess is the
+real underlying reason
+
+00:19:06.690 --> 00:19:09.570
+is that there probably
+were pseudomonas
+
+00:19:09.570 --> 00:19:12.766
+that were resistant by
+that point, to gentamicin,
+
+00:19:12.766 --> 00:19:15.750
+and so they used a
+combination therapy.
+
+00:19:15.750 --> 00:19:19.530
+Now, notice, by the way, that
+this explanation capability
+
+00:19:19.530 --> 00:19:22.570
+does not tell you that, right?
+
+00:19:22.570 --> 00:19:26.050
+Because it doesn't actually
+understand the rationale
+
+00:19:26.050 --> 00:19:28.390
+behind these individual rules.
+
+00:19:28.390 --> 00:19:31.360
+And at the time there was
+also research, for example,
+
+00:19:31.360 --> 00:19:35.230
+by one of my students on how
+to do a better job of that
+
+00:19:35.230 --> 00:19:40.540
+by encoding not only the
+rules or the patterns,
+
+00:19:40.540 --> 00:19:44.260
+but also the rationale behind
+them so that the explanations
+
+00:19:44.260 --> 00:19:46.690
+could be more sensible.
+
+00:19:46.690 --> 00:19:48.670
+OK.
+
+00:19:48.670 --> 00:19:54.820
+Well, the granddaddy of the
+standard just-so story approach
+
+00:19:54.820 --> 00:20:00.760
+to explanation of complex models
+today comes from this paper
+
+00:20:00.760 --> 00:20:03.100
+and a system called LIME--
+
+00:20:03.100 --> 00:20:07.150
+Locally Interpretable
+Model-agnostic Explanations.
+
+00:20:07.150 --> 00:20:09.520
+And just to give
+you an illustration,
+
+00:20:09.520 --> 00:20:12.280
+you have some complicated
+model and it's
+
+00:20:12.280 --> 00:20:16.930
+trying to explain why the
+doctor or the human being
+
+00:20:16.930 --> 00:20:19.510
+made a certain decision,
+or why the model made
+
+00:20:19.510 --> 00:20:21.220
+a certain decision.
+
+00:20:21.220 --> 00:20:23.680
+And so it says, well,
+here are the data
+
+00:20:23.680 --> 00:20:25.190
+we have about the patient.
+
+00:20:25.190 --> 00:20:28.390
+We know that the
+patient is sneezing.
+
+00:20:28.390 --> 00:20:30.190
+And we know their weight
+and their headache
+
+00:20:30.190 --> 00:20:34.390
+and their age and the fact
+that they have no fatigue.
+
+00:20:34.390 --> 00:20:37.180
+And so the explainer
+says, well, why
+
+00:20:37.180 --> 00:20:41.410
+did the model decide
+this patient has the flu?
+
+00:20:41.410 --> 00:20:44.980
+Well, positives are
+sneeze and headache.
+
+00:20:44.980 --> 00:20:48.750
+And a negative is no fatigue.
+
+00:20:48.750 --> 00:20:51.960
+So it goes into this
+complicated model
+
+00:20:51.960 --> 00:20:56.310
+and it says, well, I can't
+explain all the numerology that
+
+00:20:56.310 --> 00:21:00.030
+happens in that neural
+network or Bayesian network
+
+00:21:00.030 --> 00:21:02.940
+or whatever network it's using.
+
+00:21:02.940 --> 00:21:07.890
+But I can specify that
+it looks like these
+
+00:21:07.890 --> 00:21:11.570
+are the most important positive
+and negative contributors.
+
+00:21:11.570 --> 00:21:12.190
+Yeah?
+
+00:21:12.190 --> 00:21:13.565
+AUDIENCE: Is this
+for notes only,
+
+00:21:13.565 --> 00:21:15.900
+or it's for all types of data?
+
+00:21:15.900 --> 00:21:18.660
+PROFESSOR: I'll show you some
+other kind of data in a minute.
+
+00:21:18.660 --> 00:21:21.630
+I think they originally
+worked it out for notes,
+
+00:21:21.630 --> 00:21:25.710
+but it was also used for
+images and other kinds of data,
+
+00:21:25.710 --> 00:21:27.350
+as well.
+
+00:21:27.350 --> 00:21:27.850
+OK.
+
+00:21:32.270 --> 00:21:35.090
+And the argument they make
+is that this approach also
+
+00:21:35.090 --> 00:21:38.300
+helps to detect data
+leakage, for example
+
+00:21:38.300 --> 00:21:46.640
+in one of their experiments,
+the headers of the data had
+
+00:21:46.640 --> 00:21:50.180
+information in them that
+that correlated highly
+
+00:21:50.180 --> 00:21:52.790
+with the result.
+
+00:21:52.790 --> 00:21:55.220
+I think there-- I can't
+remember if it was these guys,
+
+00:21:55.220 --> 00:22:00.140
+but somebody was assigning
+study IDs to each case.
+
+00:22:00.140 --> 00:22:04.100
+And they did it a stupid way
+so that all the small numbers
+
+00:22:04.100 --> 00:22:07.970
+corresponded to people who had
+the disease and the big numbers
+
+00:22:07.970 --> 00:22:10.400
+corresponded to the
+people who didn't.
+
+00:22:10.400 --> 00:22:13.730
+And of course, the most
+parsimonious predictive model
+
+00:22:13.730 --> 00:22:18.440
+just used the ID number
+and said, OK, I got it.
+
+00:22:18.440 --> 00:22:20.720
+So this would help
+you identify that,
+
+00:22:20.720 --> 00:22:25.920
+because if you see that the
+best predictor is the ID number,
+
+00:22:25.920 --> 00:22:28.640
+then you would say, hmm,
+there's something a little fishy
+
+00:22:28.640 --> 00:22:29.390
+going on here.
+
+00:22:32.050 --> 00:22:36.190
+Well-- so here's an example
+where this kind of capability
+
+00:22:36.190 --> 00:22:37.760
+is very useful.
+
+00:22:37.760 --> 00:22:39.430
+So this was another--
+
+00:22:39.430 --> 00:22:41.500
+this was from a newsgroup.
+
+00:22:41.500 --> 00:22:44.860
+And they were trying to
+decide whether a post was
+
+00:22:44.860 --> 00:22:46.630
+about Christianity or atheism.
+
+00:22:49.760 --> 00:22:52.500
+Now, look at these two models.
+
+00:22:52.500 --> 00:22:54.650
+So there's algorithm
+1 and algorithm 2
+
+00:22:54.650 --> 00:22:56.930
+or model 1 and model 2.
+
+00:22:56.930 --> 00:23:01.100
+And when you explain
+a particular case
+
+00:23:01.100 --> 00:23:05.510
+about using model 1, it
+says, while the words
+
+00:23:05.510 --> 00:23:10.790
+that I consider important
+are God, mean, anyone, this,
+
+00:23:10.790 --> 00:23:13.010
+Koresh, and through--
+
+00:23:13.010 --> 00:23:17.430
+does anybody remember
+who David Koresh was?
+
+00:23:17.430 --> 00:23:20.210
+He was some cult leader who--
+
+00:23:20.210 --> 00:23:25.950
+I can't remember if he killed
+a bunch of people or bad things
+
+00:23:25.950 --> 00:23:26.940
+happened.
+
+00:23:26.940 --> 00:23:30.360
+Oh, I think he was
+the guy in Waco, Texas
+
+00:23:30.360 --> 00:23:37.650
+that the FBI and the ATF went
+in and set their place on fire
+
+00:23:37.650 --> 00:23:40.440
+and a whole bunch
+of people died.
+
+00:23:40.440 --> 00:23:44.700
+So the prediction in
+this case is atheism.
+
+00:23:44.700 --> 00:23:49.710
+And you notice that God and
+Koresh and Mean are negatives.
+
+00:23:49.710 --> 00:23:53.670
+And anyone this and
+through are positives.
+
+00:23:53.670 --> 00:23:57.360
+And you go, I don't
+know, is that good?
+
+00:23:57.360 --> 00:24:00.900
+But then you look at
+algorithm 2 and you say,
+
+00:24:00.900 --> 00:24:03.400
+this also made the
+correct prediction,
+
+00:24:03.400 --> 00:24:07.050
+which is that this particular
+article is about atheism.
+
+00:24:07.050 --> 00:24:11.346
+But the positives were
+the word by and in,
+
+00:24:11.346 --> 00:24:14.730
+not terribly specific.
+
+00:24:14.730 --> 00:24:18.230
+And the negatives
+were things like NNTP.
+
+00:24:18.230 --> 00:24:19.160
+You know what that is?
+
+00:24:19.160 --> 00:24:22.650
+That's the Network
+Time Protocol.
+
+00:24:22.650 --> 00:24:27.270
+It's some technical thing,
+and posting and host.
+
+00:24:27.270 --> 00:24:29.580
+So this is probably
+like metadata
+
+00:24:29.580 --> 00:24:34.860
+that got into the header of
+the articles or something.
+
+00:24:34.860 --> 00:24:38.600
+So it happened
+that in this case,
+
+00:24:38.600 --> 00:24:42.950
+algorithm 2 turned out to be
+more accurate than algorithm
+
+00:24:42.950 --> 00:24:48.450
+1 on their held out test data,
+but not for any good reason.
+
+00:24:48.450 --> 00:24:50.900
+And so the
+explanation capability
+
+00:24:50.900 --> 00:24:53.480
+allows you to clue
+in on the fact
+
+00:24:53.480 --> 00:24:56.600
+that even though this thing
+is getting the right answers,
+
+00:24:56.600 --> 00:25:00.460
+it's not for sensible reasons.
+
+00:25:00.460 --> 00:25:00.960
+OK.
+
+00:25:03.500 --> 00:25:05.810
+So what would you like
+from an explanation?
+
+00:25:05.810 --> 00:25:08.910
+Well, they say you'd like
+it to be interpretable.
+
+00:25:08.910 --> 00:25:11.900
+So it should provide
+qualitative understanding
+
+00:25:11.900 --> 00:25:13.880
+of the relationship
+between the input
+
+00:25:13.880 --> 00:25:16.460
+variables and the response.
+
+00:25:16.460 --> 00:25:18.530
+But they also say
+that that's going
+
+00:25:18.530 --> 00:25:20.630
+to depend on the audience.
+
+00:25:20.630 --> 00:25:23.930
+It requires sparsity for
+the George Miller argument
+
+00:25:23.930 --> 00:25:25.760
+that I was making before.
+
+00:25:25.760 --> 00:25:28.250
+You can't keep too
+many things in mind.
+
+00:25:28.250 --> 00:25:32.420
+And the features themselves
+that you're explaining
+
+00:25:32.420 --> 00:25:33.990
+must make sense.
+
+00:25:33.990 --> 00:25:37.220
+So for example, if I say,
+well, the reason this
+
+00:25:37.220 --> 00:25:40.670
+decided that is
+because the eigenvector
+
+00:25:40.670 --> 00:25:43.790
+for the first
+principle component
+
+00:25:43.790 --> 00:25:47.450
+was the following,
+that's not going
+
+00:25:47.450 --> 00:25:48.830
+to mean much to most people.
+
+00:25:51.560 --> 00:25:55.190
+And then they also say, well,
+it ought to have local fidelity.
+
+00:25:55.190 --> 00:25:58.370
+So it must correspond
+to how the model behaves
+
+00:25:58.370 --> 00:26:01.220
+in the vicinity of the
+particular instance
+
+00:26:01.220 --> 00:26:03.560
+that you're trying to explain.
+
+00:26:03.560 --> 00:26:09.350
+And their third criterion, which
+I think is a little iffier,
+
+00:26:09.350 --> 00:26:11.630
+is that it must
+be model-agnostic.
+
+00:26:11.630 --> 00:26:14.940
+In other words, you can't
+take advantage of anything
+
+00:26:14.940 --> 00:26:18.170
+you know that is specific
+about the structure
+
+00:26:18.170 --> 00:26:21.420
+of the model, the way you
+trained it, anything like that.
+
+00:26:21.420 --> 00:26:25.190
+It has to be a general
+purpose explainer that
+
+00:26:25.190 --> 00:26:27.550
+works on any kind of
+complicated model.
+
+00:26:27.550 --> 00:26:28.206
+Yeah?
+
+00:26:28.206 --> 00:26:29.914
+AUDIENCE: What is the
+reasoning for that?
+
+00:26:32.210 --> 00:26:35.300
+PROFESSOR: I think their
+reasoning for why they insist
+
+00:26:35.300 --> 00:26:37.340
+on this is because
+they don't want
+
+00:26:37.340 --> 00:26:40.010
+to have to write a
+separate explainer
+
+00:26:40.010 --> 00:26:42.620
+for each possible model.
+
+00:26:42.620 --> 00:26:46.290
+So it's much more efficient
+if you can get this done.
+
+00:26:46.290 --> 00:26:49.520
+But I actually question whether
+this is always a good idea
+
+00:26:49.520 --> 00:26:50.790
+or not.
+
+00:26:50.790 --> 00:26:54.130
+But nevertheless, this is
+one of their assumptions.
+
+00:26:54.130 --> 00:26:54.630
+OK.
+
+00:26:54.630 --> 00:26:57.620
+So here's the setup
+that they use.
+
+00:26:57.620 --> 00:27:01.160
+They say, all
+right, x is a vector
+
+00:27:01.160 --> 00:27:06.890
+in some D-dimensional space
+that defines your original data.
+
+00:27:06.890 --> 00:27:08.750
+And what we're
+going to do in order
+
+00:27:08.750 --> 00:27:12.830
+to make the data explainable,
+in order to make the data,
+
+00:27:12.830 --> 00:27:15.290
+not the model,
+explainable, is we're
+
+00:27:15.290 --> 00:27:17.750
+going to define a
+new set of variables,
+
+00:27:17.750 --> 00:27:21.170
+x prime, that are
+all binary and that
+
+00:27:21.170 --> 00:27:25.640
+are in some space of
+dimension D prime that
+
+00:27:25.640 --> 00:27:30.020
+is probably lower than D.
+
+00:27:30.020 --> 00:27:33.140
+So we're simplifying the
+data that we're going
+
+00:27:33.140 --> 00:27:37.150
+to explain about this model.
+
+00:27:37.150 --> 00:27:40.330
+Then they say, OK, we're
+going to build an explanation
+
+00:27:40.330 --> 00:27:45.700
+model, g, where g is a class
+of interpretable models.
+
+00:27:45.700 --> 00:27:48.912
+So what's an
+interpretable model?
+
+00:27:48.912 --> 00:27:50.370
+Well, they don't
+tell you, but they
+
+00:27:50.370 --> 00:27:55.080
+say, well, examples might be
+linear models, additive scores,
+
+00:27:55.080 --> 00:27:57.690
+decision trees,
+falling rule lists,
+
+00:27:57.690 --> 00:28:01.090
+which we'll see
+later in the lecture.
+
+00:28:01.090 --> 00:28:03.840
+And the domain of
+this is this input,
+
+00:28:03.840 --> 00:28:08.430
+the simplified input data, the
+binary variables in D prime
+
+00:28:08.430 --> 00:28:14.580
+dimensions, and the model
+complexity is going to be some
+
+00:28:14.580 --> 00:28:17.760
+measure of the depth
+of the decision tree,
+
+00:28:17.760 --> 00:28:21.930
+the number of non-zero weights,
+and the logistic regression--
+
+00:28:21.930 --> 00:28:27.700
+the number of clauses in a
+falling rule list, et cetera.
+
+00:28:27.700 --> 00:28:29.550
+So it's some complexity measure.
+
+00:28:29.550 --> 00:28:32.160
+And you want to
+minimize complexity.
+
+00:28:32.160 --> 00:28:34.770
+So then they say, all
+right, the real model,
+
+00:28:34.770 --> 00:28:40.980
+the hairy, complicated
+full-bore model is f.
+
+00:28:40.980 --> 00:28:47.230
+And that maps the original data
+space into some probability.
+
+00:28:47.230 --> 00:28:49.750
+And for example,
+for classification,
+
+00:28:49.750 --> 00:28:53.770
+f is the probability that x
+belongs to a certain class.
+
+00:28:53.770 --> 00:28:56.350
+And then they also need
+a proximity measure.
+
+00:28:56.350 --> 00:28:59.110
+So they need to
+say, we have to have
+
+00:28:59.110 --> 00:29:03.340
+a way of comparing two cases
+and saying how close are they
+
+00:29:03.340 --> 00:29:04.820
+to each other?
+
+00:29:04.820 --> 00:29:07.330
+And the reason for that
+is because, remember,
+
+00:29:07.330 --> 00:29:10.000
+they're going to give
+you an explanation
+
+00:29:10.000 --> 00:29:13.900
+of a particular case and the
+most relevant things that
+
+00:29:13.900 --> 00:29:16.270
+will help with that
+explanation are
+
+00:29:16.270 --> 00:29:19.085
+the ones that are near it in
+this high dimensional input
+
+00:29:19.085 --> 00:29:19.585
+space.
+
+00:29:22.990 --> 00:29:25.270
+So they then define
+their loss function
+
+00:29:25.270 --> 00:29:29.530
+based on the actual
+decision algorithm,
+
+00:29:29.530 --> 00:29:34.690
+based on the simplified one, and
+based on the proximity measure.
+
+00:29:34.690 --> 00:29:37.750
+And they say, well,
+the best explanation
+
+00:29:37.750 --> 00:29:42.160
+is that g which minimizes
+this loss function
+
+00:29:42.160 --> 00:29:45.370
+plus the complexity of g.
+
+00:29:45.370 --> 00:29:47.970
+Pretty straightforward.
+
+00:29:47.970 --> 00:29:51.260
+So that's our best model.
+
+00:29:56.090 --> 00:30:01.070
+Now, the clever
+idea here is to say,
+
+00:30:01.070 --> 00:30:05.390
+instead of using all of the
+data that we started with,
+
+00:30:05.390 --> 00:30:09.950
+what we're going to do
+is to sample the data
+
+00:30:09.950 --> 00:30:13.370
+so that we take more sample
+points near the point we're
+
+00:30:13.370 --> 00:30:16.920
+interested in explaining.
+
+00:30:16.920 --> 00:30:19.980
+We're going to sample in
+the simplified space that
+
+00:30:19.980 --> 00:30:22.620
+is explainable and
+then we'll build
+
+00:30:22.620 --> 00:30:28.860
+that g model, the explanatory
+model, from that sample of data
+
+00:30:28.860 --> 00:30:32.010
+where we weight by
+that proximity function
+
+00:30:32.010 --> 00:30:35.730
+so the things that are closer
+will have a larger influence
+
+00:30:35.730 --> 00:30:39.200
+on the model that we learn.
+
+00:30:39.200 --> 00:30:43.750
+And then we recapture the--
+
+00:30:46.330 --> 00:30:51.480
+sort of the closest point to
+this simplified representation.
+
+00:30:51.480 --> 00:30:55.360
+We can calculate what
+its answer should be.
+
+00:30:55.360 --> 00:30:59.290
+And that becomes the
+label for that point.
+
+00:30:59.290 --> 00:31:01.380
+And so now we train
+a simple model
+
+00:31:01.380 --> 00:31:04.860
+to predict the label that
+the complicated model would
+
+00:31:04.860 --> 00:31:09.750
+have predicted for the
+point that we've sampled.
+
+00:31:09.750 --> 00:31:10.610
+Yeah?
+
+00:31:10.610 --> 00:31:13.420
+AUDIENCE: So the proximity
+measure is [INAUDIBLE]??
+
+00:31:18.550 --> 00:31:20.800
+PROFESSOR: It's a distance
+function of some sort.
+
+00:31:20.800 --> 00:31:23.110
+And I'll say more
+about it in a minute,
+
+00:31:23.110 --> 00:31:25.540
+because that's one
+of the critiques
+
+00:31:25.540 --> 00:31:28.600
+of this particular method
+has to do with how do you
+
+00:31:28.600 --> 00:31:31.420
+choose that distance function?
+
+00:31:31.420 --> 00:31:35.350
+But it's basically a similarity.
+
+00:31:35.350 --> 00:31:39.250
+So here's a nice, graphical
+explanation of what's going on.
+
+00:31:39.250 --> 00:31:42.220
+Suppose that the actual model--
+
+00:31:42.220 --> 00:31:46.260
+the decision boundary is between
+the blue and the pink regions.
+
+00:31:46.260 --> 00:31:46.760
+OK.
+
+00:31:46.760 --> 00:31:51.710
+So it's this god awful, hairy,
+complicated decision model.
+
+00:31:51.710 --> 00:31:57.320
+And we're trying to explain
+why this big, red plus wound up
+
+00:31:57.320 --> 00:32:00.780
+in the pink rather
+than in the blue.
+
+00:32:00.780 --> 00:32:02.600
+So the approach
+that they take is
+
+00:32:02.600 --> 00:32:06.410
+to say, well, let's
+sample a bunch of points
+
+00:32:06.410 --> 00:32:09.250
+weighted by shortest distance.
+
+00:32:09.250 --> 00:32:13.310
+So we do sample a
+few points out here.
+
+00:32:13.310 --> 00:32:16.280
+But mostly we're sampling
+points near the point
+
+00:32:16.280 --> 00:32:19.550
+that we're interested in.
+
+00:32:19.550 --> 00:32:23.680
+We then learn a linear
+boundary between the positive
+
+00:32:23.680 --> 00:32:26.070
+and the negative cases.
+
+00:32:26.070 --> 00:32:29.310
+And that boundary
+is an approximation
+
+00:32:29.310 --> 00:32:34.290
+to the actual boundary in
+the more complicated decision
+
+00:32:34.290 --> 00:32:36.540
+model.
+
+00:32:36.540 --> 00:32:38.960
+So now we can give
+an explanation
+
+00:32:38.960 --> 00:32:43.700
+just like you saw
+before which says, well,
+
+00:32:43.700 --> 00:32:47.810
+this is some D prime
+dimensional space.
+
+00:32:47.810 --> 00:32:52.760
+And so which variables in
+that D prime dimensional space
+
+00:32:52.760 --> 00:32:54.710
+are the ones that
+influence where
+
+00:32:54.710 --> 00:33:00.020
+you are on one side or another
+of this newly computed decision
+
+00:33:00.020 --> 00:33:03.090
+boundary, and to what extent?
+
+00:33:03.090 --> 00:33:06.264
+And that becomes
+the explanation.
+
+00:33:06.264 --> 00:33:07.730
+OK?
+
+00:33:07.730 --> 00:33:08.410
+Nice idea.
+
+00:33:12.940 --> 00:33:16.315
+So if you apply this to
+text classification-- yes?
+
+00:33:16.315 --> 00:33:18.770
+AUDIENCE: I was just
+going to ask if the--
+
+00:33:18.770 --> 00:33:21.950
+there's a worry that if
+explanation is just fictitious,
+
+00:33:21.950 --> 00:33:23.550
+like, we can understand it?
+
+00:33:23.550 --> 00:33:27.190
+But is there reason to believe
+that we should believe it
+
+00:33:27.190 --> 00:33:29.020
+if that's really the
+true nature of things
+
+00:33:29.020 --> 00:33:31.170
+that the linear does-- you
+know, it would be like,
+
+00:33:31.170 --> 00:33:32.670
+OK, we know what's
+going on here.
+
+00:33:32.670 --> 00:33:38.550
+But is that even
+close to reality?
+
+00:33:38.550 --> 00:33:40.590
+PROFESSOR: Well,
+that's why I called it
+
+00:33:40.590 --> 00:33:42.990
+a just-so story, right?
+
+00:33:42.990 --> 00:33:44.550
+Should you believe it?
+
+00:33:44.550 --> 00:33:50.690
+Well, the engineering
+disciplines
+
+00:33:50.690 --> 00:33:53.930
+have a very long
+history of approximating
+
+00:33:53.930 --> 00:33:58.340
+extremely complicated
+phenomena with linear models.
+
+00:33:58.340 --> 00:33:59.060
+Right?
+
+00:33:59.060 --> 00:34:01.910
+I mean, I'm in a department
+of electrical engineering
+
+00:34:01.910 --> 00:34:03.470
+and computer science.
+
+00:34:03.470 --> 00:34:06.740
+And if I talk to my electrical
+engineering colleagues,
+
+00:34:06.740 --> 00:34:09.889
+they know that the world
+is insanely complicated.
+
+00:34:09.889 --> 00:34:13.010
+Nevertheless, most models
+in electrical engineering
+
+00:34:13.010 --> 00:34:14.570
+are linear models.
+
+00:34:14.570 --> 00:34:16.370
+And they work well
+enough that people
+
+00:34:16.370 --> 00:34:18.650
+are able to build really
+complicated things
+
+00:34:18.650 --> 00:34:20.480
+and have them work.
+
+00:34:20.480 --> 00:34:23.150
+So that's not a proof.
+
+00:34:23.150 --> 00:34:27.560
+That's an argument by
+history or something.
+
+00:34:27.560 --> 00:34:29.540
+But it's true.
+
+00:34:29.540 --> 00:34:32.929
+Linear models are very
+powerful, especially when
+
+00:34:32.929 --> 00:34:36.590
+you limit them to giving
+explanations that are local.
+
+00:34:36.590 --> 00:34:41.210
+Notice that this model is
+a very poor approximation
+
+00:34:41.210 --> 00:34:45.380
+to this decision boundary
+or this one, right?
+
+00:34:45.380 --> 00:34:49.730
+And so it only works to
+explain in the neighborhood
+
+00:34:49.730 --> 00:34:53.270
+of the particular
+example that I've chosen.
+
+00:34:53.270 --> 00:34:53.770
+Right?
+
+00:34:53.770 --> 00:34:57.020
+But it does work OK there.
+
+00:34:57.020 --> 00:34:57.720
+Yeah.
+
+00:34:57.720 --> 00:35:00.420
+AUDIENCE: [INAUDIBLE]
+very well there?
+
+00:35:00.420 --> 00:35:10.590
+[INAUDIBLE] middle of
+the red space then the--
+
+00:35:10.590 --> 00:35:12.390
+PROFESSOR: Well, they did.
+
+00:35:12.390 --> 00:35:16.000
+So they sample all
+over the place.
+
+00:35:16.000 --> 00:35:19.290
+But remember that that
+proximity function
+
+00:35:19.290 --> 00:35:23.250
+says that this one is less
+relevant to predicting
+
+00:35:23.250 --> 00:35:28.020
+that decision boundary because
+it's far away from the point
+
+00:35:28.020 --> 00:35:29.320
+that I'm interested in.
+
+00:35:29.320 --> 00:35:30.153
+So that's the magic.
+
+00:35:30.153 --> 00:35:31.528
+AUDIENCE: But here
+they're trying
+
+00:35:31.528 --> 00:35:33.570
+to explain to the
+deep red cross, right?
+
+00:35:33.570 --> 00:35:34.260
+PROFESSOR: Yes.
+
+00:35:34.260 --> 00:35:35.760
+AUDIENCE: And they
+picked some point
+
+00:35:35.760 --> 00:35:39.630
+in the middle of
+the red space maybe.
+
+00:35:39.630 --> 00:35:45.930
+Then all the nearby ones
+would be red and [INAUDIBLE]..
+
+00:35:45.930 --> 00:35:48.000
+PROFESSOR: Well,
+but they would--
+
+00:35:48.000 --> 00:35:50.940
+I mean, suppose they
+picked this point, instead.
+
+00:35:50.940 --> 00:35:53.210
+Then they would sample
+around this point
+
+00:35:53.210 --> 00:35:56.490
+and presumably they would
+find this decision boundary
+
+00:35:56.490 --> 00:35:58.140
+or this one or
+something like that
+
+00:35:58.140 --> 00:36:01.740
+and still be able to come up
+with a coherent explanation.
+
+00:36:06.110 --> 00:36:10.090
+OK, so in the case
+of text, you've
+
+00:36:10.090 --> 00:36:12.400
+seen this example already.
+
+00:36:12.400 --> 00:36:13.660
+It's pretty simple.
+
+00:36:13.660 --> 00:36:17.180
+For their proximity function,
+they use cosine distance.
+
+00:36:17.180 --> 00:36:19.780
+So it's a bag of words
+model and they just
+
+00:36:19.780 --> 00:36:24.280
+calculate cosine distance
+between different examples
+
+00:36:24.280 --> 00:36:28.570
+by how much overlap there is
+between the words that they use
+
+00:36:28.570 --> 00:36:31.690
+and the frequency of
+words that they use.
+
+00:36:31.690 --> 00:36:34.390
+And then they choose k--
+
+00:36:34.390 --> 00:36:39.700
+the number of words to
+show just as a preference.
+
+00:36:39.700 --> 00:36:41.860
+So it's sort of
+a hyperparameter.
+
+00:36:41.860 --> 00:36:44.440
+They say, you know, I'm
+interested in looking
+
+00:36:44.440 --> 00:36:47.350
+at the top five words
+or the top 10 words that
+
+00:36:47.350 --> 00:36:50.860
+are either positively or
+negatively an influence
+
+00:36:50.860 --> 00:36:54.310
+on the decision, but
+not the top 10,000
+
+00:36:54.310 --> 00:37:00.630
+words because I don't know
+what to do with 10,000 words.
+
+00:37:00.630 --> 00:37:02.460
+Now, what's interesting
+is you can also
+
+00:37:02.460 --> 00:37:06.400
+then apply the same idea
+to image interpretation.
+
+00:37:06.400 --> 00:37:12.150
+So here is a dog
+playing a guitar.
+
+00:37:12.150 --> 00:37:18.910
+And they say, how do
+we interpret this?
+
+00:37:18.910 --> 00:37:22.440
+And so this is one of
+these labeling tasks where
+
+00:37:22.440 --> 00:37:26.310
+you'd like to label this
+picture as a Labrador or maybe
+
+00:37:26.310 --> 00:37:28.680
+as an acoustic guitar.
+
+00:37:28.680 --> 00:37:31.140
+But some reason--
+some labels also
+
+00:37:31.140 --> 00:37:34.170
+decide that it's
+an electric guitar.
+
+00:37:34.170 --> 00:37:37.470
+And so they say, well,
+what counts in favor
+
+00:37:37.470 --> 00:37:40.350
+of or against each of these?
+
+00:37:40.350 --> 00:37:43.600
+And the approach they take is a
+relatively straightforward one.
+
+00:37:43.600 --> 00:37:48.810
+They say let's
+define a super pixel
+
+00:37:48.810 --> 00:37:53.550
+as a region of pixels
+within an image that have
+
+00:37:53.550 --> 00:37:55.890
+roughly the same intensity.
+
+00:37:55.890 --> 00:37:57.780
+So if you've ever
+used Photoshop,
+
+00:37:57.780 --> 00:38:02.580
+the magic selection tool
+can be adjusted to say,
+
+00:38:02.580 --> 00:38:07.380
+find a region around this point
+where all the intensities are
+
+00:38:07.380 --> 00:38:11.790
+within some delta of the
+point that I've picked.
+
+00:38:11.790 --> 00:38:15.730
+And so it'll outline some
+region of the picture.
+
+00:38:15.730 --> 00:38:18.990
+And what they do is they
+break up the entire image
+
+00:38:18.990 --> 00:38:20.790
+into these regions.
+
+00:38:20.790 --> 00:38:24.030
+And then they treat those
+as if they were the words
+
+00:38:24.030 --> 00:38:26.310
+in the words style explanation.
+
+00:38:28.850 --> 00:38:33.410
+So they say, well, this
+looks like an electric guitar
+
+00:38:33.410 --> 00:38:35.120
+to the algorithm.
+
+00:38:35.120 --> 00:38:38.760
+And this looks like
+an acoustic guitar.
+
+00:38:38.760 --> 00:38:41.030
+And this looks like a Labrador.
+
+00:38:41.030 --> 00:38:42.650
+So some of that makes sense.
+
+00:38:42.650 --> 00:38:44.540
+I mean, you know,
+that dog's face
+
+00:38:44.540 --> 00:38:47.540
+does kind of look like a Lab.
+
+00:38:47.540 --> 00:38:51.710
+This does look kind of like
+part of the body and part
+
+00:38:51.710 --> 00:38:53.910
+of the fret work of a guitar.
+
+00:38:53.910 --> 00:38:55.700
+I have no idea
+what this stuff is
+
+00:38:55.700 --> 00:38:59.990
+or why this contributes
+to it being a dog.
+
+00:38:59.990 --> 00:39:04.010
+But such is-- such is the
+nature of these models.
+
+00:39:04.010 --> 00:39:07.410
+But at least it is
+telling you why it
+
+00:39:07.410 --> 00:39:10.590
+believes these various things.
+
+00:39:10.590 --> 00:39:12.380
+So then the last
+thing they do is
+
+00:39:12.380 --> 00:39:15.190
+to say, well, OK, that
+helps you understand
+
+00:39:15.190 --> 00:39:17.520
+the particular model.
+
+00:39:17.520 --> 00:39:20.010
+But how do you
+convince yourself--
+
+00:39:20.010 --> 00:39:25.230
+I mean, a particular example
+where a model is applied to it.
+
+00:39:25.230 --> 00:39:28.170
+But how do you convince
+yourself that the model itself
+
+00:39:28.170 --> 00:39:29.640
+is reasonable?
+
+00:39:29.640 --> 00:39:32.670
+And so they say, well,
+the best technique we know
+
+00:39:32.670 --> 00:39:35.190
+is to show you a
+bunch of examples.
+
+00:39:35.190 --> 00:39:37.860
+But we want those
+examples to kind of cover
+
+00:39:37.860 --> 00:39:41.860
+the gamut of places that
+you might be interested in.
+
+00:39:41.860 --> 00:39:45.720
+And so they say, let's
+create this matrix--
+
+00:39:45.720 --> 00:39:50.250
+an explanation matrix where
+these are the cases and these
+
+00:39:50.250 --> 00:39:54.990
+are the various features, you
+know, the top words or the top
+
+00:39:54.990 --> 00:39:57.990
+pixel elements or
+something, and then we'll
+
+00:39:57.990 --> 00:40:03.450
+fill in the element of
+the matrix that tells me
+
+00:40:03.450 --> 00:40:07.980
+how strongly this feature is
+correlated or anti-correlated
+
+00:40:07.980 --> 00:40:11.950
+with the classification
+for that model.
+
+00:40:11.950 --> 00:40:14.130
+And then it becomes a
+kind of set covering
+
+00:40:14.130 --> 00:40:18.120
+issue of find a set of
+models that gives me
+
+00:40:18.120 --> 00:40:21.180
+the best coverage
+of explanations
+
+00:40:21.180 --> 00:40:23.610
+across that set of features.
+
+00:40:23.610 --> 00:40:26.670
+And then with that,
+I can convince myself
+
+00:40:26.670 --> 00:40:29.610
+that the model is reasonable.
+
+00:40:29.610 --> 00:40:34.170
+So they have this thing called
+the sub modular pick algorithm.
+
+00:40:34.170 --> 00:40:37.660
+And you know, probably
+if you're interested,
+
+00:40:37.660 --> 00:40:40.050
+you should read the paper.
+
+00:40:40.050 --> 00:40:43.020
+But what they're
+doing is essentially
+
+00:40:43.020 --> 00:40:47.160
+doing a kind of greedy
+search that says,
+
+00:40:47.160 --> 00:40:49.950
+what features should
+I add in order
+
+00:40:49.950 --> 00:40:55.890
+to get the best coverage in that
+space of features by documents?
+
+00:41:02.920 --> 00:41:04.870
+And then they did a
+bunch of experiments
+
+00:41:04.870 --> 00:41:07.570
+where they said,
+OK, let's compare
+
+00:41:07.570 --> 00:41:10.750
+the results of
+these explanations
+
+00:41:10.750 --> 00:41:14.860
+of these simplified models
+to two sentiment analysis
+
+00:41:14.860 --> 00:41:18.040
+tasks of 2,000 instances each.
+
+00:41:18.040 --> 00:41:22.180
+Bag of words as features-- they
+compared it to decision trees,
+
+00:41:22.180 --> 00:41:24.310
+logistic regression,
+nearest neighbors,
+
+00:41:24.310 --> 00:41:28.030
+SVM with the radial
+basis function, kernel,
+
+00:41:28.030 --> 00:41:32.410
+or random forests that use
+word to vacuum beddings--
+
+00:41:32.410 --> 00:41:35.650
+highly non-explainable--
+
+00:41:35.650 --> 00:41:39.360
+with 1,000 trees and K equal 10.
+
+00:41:39.360 --> 00:41:43.450
+So they chose 10
+features to explain
+
+00:41:43.450 --> 00:41:46.180
+for each of these models.
+
+00:41:46.180 --> 00:41:51.070
+They then did a side
+calculation that said,
+
+00:41:51.070 --> 00:41:58.090
+what are the 10 most suggestive
+features for each case?
+
+00:41:58.090 --> 00:42:03.250
+And then they said, does
+that covering algorithm
+
+00:42:03.250 --> 00:42:06.880
+identify those
+features correctly?
+
+00:42:06.880 --> 00:42:14.960
+And so what they show here is
+that their method line does
+
+00:42:14.960 --> 00:42:20.240
+better in every case
+than a random sampling--
+
+00:42:20.240 --> 00:42:22.190
+that's not very surprising--
+
+00:42:22.190 --> 00:42:26.390
+or a greedy sampling or a
+partisan sampling, which
+
+00:42:26.390 --> 00:42:28.370
+I don't know the details of.
+
+00:42:28.370 --> 00:42:32.390
+But in any case, there's
+what this graph is showing
+
+00:42:32.390 --> 00:42:34.400
+is that of the
+features that they
+
+00:42:34.400 --> 00:42:38.540
+decided were important
+in each of these cases,
+
+00:42:38.540 --> 00:42:39.920
+they're recovering.
+
+00:42:39.920 --> 00:42:45.480
+So their recall is up
+around 90, 90-plus percent.
+
+00:42:45.480 --> 00:42:50.720
+So in fact, the algorithm is
+identifying the right cases
+
+00:42:50.720 --> 00:42:53.300
+to give you a broad
+coverage across all
+
+00:42:53.300 --> 00:42:55.460
+the important
+features that matter
+
+00:42:55.460 --> 00:42:58.730
+in classifying these cases.
+
+00:42:58.730 --> 00:43:03.760
+They then also did a bunch
+of human experiments where
+
+00:43:03.760 --> 00:43:09.280
+they said, OK, we're going
+to ask users to choose which
+
+00:43:09.280 --> 00:43:13.450
+of two classifiers they think
+is going to generalize better.
+
+00:43:13.450 --> 00:43:17.260
+So this is like the picture I
+showed you of the Christianity
+
+00:43:17.260 --> 00:43:24.190
+versus atheism algorithm,
+where presumably if you were
+
+00:43:24.190 --> 00:43:28.120
+a Mechanical Turker and somebody
+showed you an algorithm that
+
+00:43:28.120 --> 00:43:32.860
+has very high accuracy but that
+depends on things like finding
+
+00:43:32.860 --> 00:43:38.080
+the word NNTP in a
+classifier for atheism
+
+00:43:38.080 --> 00:43:41.860
+versus Christianity, you would
+say, well, maybe that algorithm
+
+00:43:41.860 --> 00:43:43.900
+isn't good to
+generalize very well,
+
+00:43:43.900 --> 00:43:47.650
+because it's depending
+on something random that
+
+00:43:47.650 --> 00:43:50.770
+may be correlated with
+this particular data set.
+
+00:43:50.770 --> 00:43:52.840
+But if I try it on a
+different data set,
+
+00:43:52.840 --> 00:43:55.060
+it's unlikely to work.
+
+00:43:55.060 --> 00:43:58.100
+So that was one of the tasks.
+
+00:43:58.100 --> 00:44:02.260
+And then they asked them
+to identify features
+
+00:44:02.260 --> 00:44:05.440
+like that that looked bad.
+
+00:44:05.440 --> 00:44:12.580
+They then ran this Christianity
+versus atheism test
+
+00:44:12.580 --> 00:44:17.560
+and had a separate test set
+of about 800 additional web
+
+00:44:17.560 --> 00:44:21.340
+pages from this website.
+
+00:44:21.340 --> 00:44:24.910
+The underlying model was
+a support vector machine
+
+00:44:24.910 --> 00:44:29.320
+with RBF kernels trained
+on the 20 newsgroup data--
+
+00:44:29.320 --> 00:44:31.330
+I don't know if you
+know that data set,
+
+00:44:31.330 --> 00:44:35.680
+but it's a well-known,
+publicly available data set.
+
+00:44:35.680 --> 00:44:40.890
+They got 100 Mechanical Turkers
+and they said, OK, we're
+
+00:44:40.890 --> 00:44:44.100
+going to present each
+of them six documents
+
+00:44:44.100 --> 00:44:50.370
+and six features per document in
+order to ask them to make this.
+
+00:44:50.370 --> 00:44:55.080
+And then they did an auxiliary
+experiment in which they said,
+
+00:44:55.080 --> 00:45:01.260
+if you see words that are no
+good in this experiment, just
+
+00:45:01.260 --> 00:45:02.790
+strike them out.
+
+00:45:02.790 --> 00:45:06.090
+And that will tell us
+which of the features
+
+00:45:06.090 --> 00:45:12.170
+were bad in this method.
+
+00:45:12.170 --> 00:45:18.340
+And what they found was that
+the human subjects choosing
+
+00:45:18.340 --> 00:45:22.840
+between two
+classifiers were pretty
+
+00:45:22.840 --> 00:45:28.150
+good at figuring out which
+was the better classifier.
+
+00:45:28.150 --> 00:45:32.360
+Now, this is better
+by their judgment.
+
+00:45:32.360 --> 00:45:36.440
+And so they said, OK, this
+submodular pick algorithm--
+
+00:45:36.440 --> 00:45:38.920
+which is the one that I
+didn't describe in detail,
+
+00:45:38.920 --> 00:45:41.770
+but it's this set
+covering algorithm--
+
+00:45:41.770 --> 00:45:45.760
+gives you better results than
+a random pick algorithm that
+
+00:45:45.760 --> 00:45:47.590
+just says pick random features.
+
+00:45:47.590 --> 00:45:49.240
+Again, not totally surprising.
+
+00:45:52.150 --> 00:45:54.430
+And the other thing
+that's interesting
+
+00:45:54.430 --> 00:45:59.020
+is if you do the feature
+engineering experiment,
+
+00:45:59.020 --> 00:46:06.740
+it shows that as the Turkers
+interacted with the system,
+
+00:46:06.740 --> 00:46:08.800
+the system became better.
+
+00:46:08.800 --> 00:46:12.250
+So they started off
+with real world accuracy
+
+00:46:12.250 --> 00:46:14.440
+of just under 60%.
+
+00:46:14.440 --> 00:46:17.740
+And using the better
+of their algorithms,
+
+00:46:17.740 --> 00:46:23.360
+they reached about 75% after
+three rounds of interaction.
+
+00:46:23.360 --> 00:46:27.320
+So the users could say, I
+don't like this feature.
+
+00:46:27.320 --> 00:46:31.570
+And then the system would
+give them better features.
+
+00:46:31.570 --> 00:46:34.660
+Now, they tried a similar
+thing with images.
+
+00:46:34.660 --> 00:46:38.760
+And so this one
+is a little funny.
+
+00:46:38.760 --> 00:46:42.750
+So they trained a
+deliberately lousy classifier
+
+00:46:42.750 --> 00:46:45.240
+to classify between
+wolves and huskies.
+
+00:46:49.870 --> 00:46:51.370
+This is a famous example.
+
+00:46:51.370 --> 00:46:56.860
+Also it turns out that huskies
+live in Alaska and so--
+
+00:46:56.860 --> 00:47:01.720
+and wolves-- I guess some wolves
+do, but most wolves don't.
+
+00:47:01.720 --> 00:47:04.990
+And so the data
+set on which that--
+
+00:47:04.990 --> 00:47:09.520
+which was used in that
+original problem formulation,
+
+00:47:09.520 --> 00:47:15.850
+there was an extremely accurate
+classifier that was trained.
+
+00:47:15.850 --> 00:47:18.730
+And when they went to look
+to see what it had learned,
+
+00:47:18.730 --> 00:47:22.490
+basically it had learned
+to look for snow.
+
+00:47:22.490 --> 00:47:26.060
+And if it saw snow in the
+picture, it said it's a husky.
+
+00:47:26.060 --> 00:47:29.750
+And if it didn't see snow in the
+picture, it said it's a wolf.
+
+00:47:29.750 --> 00:47:32.990
+So that turns out to be
+pretty accurate for the sample
+
+00:47:32.990 --> 00:47:34.020
+that they had.
+
+00:47:34.020 --> 00:47:39.230
+But of course, it's not a very
+sophisticated classification
+
+00:47:39.230 --> 00:47:43.160
+algorithm because
+it's possible to put
+
+00:47:43.160 --> 00:47:45.590
+a wolf in a snowy
+picture and it's
+
+00:47:45.590 --> 00:47:49.580
+possible to have your
+Husky indoors with no snow.
+
+00:47:49.580 --> 00:47:53.540
+And then you're just missing
+the boat on this classification.
+
+00:47:53.540 --> 00:47:58.400
+So these guys built a
+particularly bad classifier
+
+00:47:58.400 --> 00:48:01.760
+by having all wolves
+in the training set
+
+00:48:01.760 --> 00:48:04.670
+had snow in the picture and
+none of the huskies did.
+
+00:48:07.350 --> 00:48:11.340
+And then they presented cases to
+graduate students like you guys
+
+00:48:11.340 --> 00:48:14.530
+with machine
+learning backgrounds.
+
+00:48:14.530 --> 00:48:16.830
+10 balance test predictions.
+
+00:48:16.830 --> 00:48:19.630
+But they put one ringer
+in each category.
+
+00:48:19.630 --> 00:48:23.280
+So they put in one husky
+in snow and one wolf
+
+00:48:23.280 --> 00:48:25.260
+who was not in snow.
+
+00:48:25.260 --> 00:48:29.370
+And the comparison was between
+pre and post experiment
+
+00:48:29.370 --> 00:48:31.380
+trust and understanding.
+
+00:48:31.380 --> 00:48:34.530
+And so before the
+experiment, they
+
+00:48:34.530 --> 00:48:37.590
+said that 10 of the
+27 students said
+
+00:48:37.590 --> 00:48:42.480
+they trusted this bad
+model that they trained.
+
+00:48:42.480 --> 00:48:46.830
+And afterwards, only 3
+out of 27 trusted it.
+
+00:48:46.830 --> 00:48:50.070
+So this is a kind of
+sociological experiment
+
+00:48:50.070 --> 00:48:54.000
+that says, yes, we can
+actually change people's minds
+
+00:48:54.000 --> 00:48:57.750
+about whether a model is
+a good or a bad one based
+
+00:48:57.750 --> 00:48:59.790
+on an experiment.
+
+00:48:59.790 --> 00:49:03.780
+Before only 12
+out of 27 students
+
+00:49:03.780 --> 00:49:08.610
+mentioned snow as a potential
+feature in this classifier,
+
+00:49:08.610 --> 00:49:11.770
+whereas afterwards
+almost everybody did.
+
+00:49:11.770 --> 00:49:17.160
+So again, this tells you
+that the method is providing
+
+00:49:17.160 --> 00:49:20.310
+some useful information.
+
+00:49:20.310 --> 00:49:26.120
+Now this paper set off
+a lot of work, including
+
+00:49:26.120 --> 00:49:27.860
+a lot of critiques of the work.
+
+00:49:27.860 --> 00:49:31.830
+And so this is one particular
+one from just a few months ago,
+
+00:49:31.830 --> 00:49:33.870
+the end of December.
+
+00:49:33.870 --> 00:49:42.350
+And what these guys say is that
+that distance function, which
+
+00:49:42.350 --> 00:49:46.580
+includes a sigma, which is
+sort of the scale of distance
+
+00:49:46.580 --> 00:49:49.670
+that we're willing to
+go, is pretty arbitrary.
+
+00:49:49.670 --> 00:49:53.780
+In the experiments that
+the original authors did,
+
+00:49:53.780 --> 00:49:58.760
+they set that distance
+to 75% of the square root
+
+00:49:58.760 --> 00:50:01.316
+of the dimensionality
+of the data set.
+
+00:50:01.316 --> 00:50:03.050
+And you go, OK.
+
+00:50:03.050 --> 00:50:04.820
+I mean, that's a number.
+
+00:50:04.820 --> 00:50:07.490
+But it's not obvious
+that that's the best
+
+00:50:07.490 --> 00:50:10.280
+number or the right number.
+
+00:50:10.280 --> 00:50:14.720
+And so these guys
+argue that it's
+
+00:50:14.720 --> 00:50:17.750
+important to tune the
+size of the neighborhood
+
+00:50:17.750 --> 00:50:20.720
+according to how far z,
+the point that you're
+
+00:50:20.720 --> 00:50:24.180
+trying to explain,
+is from the boundary.
+
+00:50:24.180 --> 00:50:26.430
+So if it's close
+to the boundary,
+
+00:50:26.430 --> 00:50:29.540
+then you ought to
+take a smaller region
+
+00:50:29.540 --> 00:50:31.640
+for your proximity measure.
+
+00:50:31.640 --> 00:50:33.350
+And if it's far
+from the boundary,
+
+00:50:33.350 --> 00:50:35.210
+this addresses the
+question you guys
+
+00:50:35.210 --> 00:50:37.970
+were asking about
+what happens if you
+
+00:50:37.970 --> 00:50:39.930
+pick a point in the middle.
+
+00:50:39.930 --> 00:50:43.070
+And so they show
+some nice examples
+
+00:50:43.070 --> 00:50:48.680
+of places where, for instance,
+if you compare this explaining
+
+00:50:48.680 --> 00:50:52.520
+this green point, you get
+a nice green line that
+
+00:50:52.520 --> 00:50:54.680
+follows the local boundary.
+
+00:50:54.680 --> 00:50:56.690
+But explaining the
+blue point, which
+
+00:50:56.690 --> 00:51:01.220
+is close to a corner of the
+actual decision boundary,
+
+00:51:01.220 --> 00:51:05.030
+you got a line that's not very
+different from the green one.
+
+00:51:05.030 --> 00:51:08.080
+And similarly for the red point.
+
+00:51:08.080 --> 00:51:10.170
+And so they say,
+well, we really need
+
+00:51:10.170 --> 00:51:12.660
+to work on that
+distance function.
+
+00:51:12.660 --> 00:51:18.250
+And so they come
+up with a method
+
+00:51:18.250 --> 00:51:23.350
+that they call LEAFAGE, which
+basically says, remember,
+
+00:51:23.350 --> 00:51:29.380
+what LINE did is it
+sampled nonexistent cases,
+
+00:51:29.380 --> 00:51:32.350
+simplified nonexistent cases.
+
+00:51:32.350 --> 00:51:35.320
+But here they're going
+to sample existing cases.
+
+00:51:35.320 --> 00:51:38.440
+So they're going to
+learn from the training--
+
+00:51:38.440 --> 00:51:40.580
+the original training set.
+
+00:51:40.580 --> 00:51:45.790
+But they're going to sample
+it by proximity to the example
+
+00:51:45.790 --> 00:51:49.400
+that they're trying to explain.
+
+00:51:49.400 --> 00:51:52.790
+And they argue that this is a
+good idea because, for example,
+
+00:51:52.790 --> 00:51:56.240
+in law, the notion
+of precedent is
+
+00:51:56.240 --> 00:52:00.170
+that you get to argue that this
+case is very similar to some
+
+00:52:00.170 --> 00:52:02.990
+previously decided
+case, and therefore it
+
+00:52:02.990 --> 00:52:05.060
+should be decided the same way.
+
+00:52:05.060 --> 00:52:08.780
+I mean, Supreme Court arguments
+are always all about that.
+
+00:52:08.780 --> 00:52:11.870
+Lower court arguments
+are sometimes
+
+00:52:11.870 --> 00:52:15.540
+more driven by what
+the law actually says.
+
+00:52:15.540 --> 00:52:19.820
+But case law has been well
+established in British law,
+
+00:52:19.820 --> 00:52:23.510
+and then by inheritance
+in American law
+
+00:52:23.510 --> 00:52:27.200
+for many, many centuries.
+
+00:52:27.200 --> 00:52:30.230
+So they say, well,
+case-based reasoning normally
+
+00:52:30.230 --> 00:52:32.960
+involves retrieving
+a similar case,
+
+00:52:32.960 --> 00:52:38.330
+adapting it, and then learning
+that as a new precedent.
+
+00:52:38.330 --> 00:52:42.140
+And they also argue for
+contrastive justification,
+
+00:52:42.140 --> 00:52:45.410
+which is not only why
+did you choose x, but why
+
+00:52:45.410 --> 00:52:49.310
+did you choose x
+rather than y as giving
+
+00:52:49.310 --> 00:52:52.790
+a more satisfying
+and a more insightful
+
+00:52:52.790 --> 00:52:56.450
+explanation of how
+some model is working?
+
+00:52:56.450 --> 00:52:58.730
+So they say, OK, similar setup.
+
+00:52:58.730 --> 00:53:02.090
+f solves the
+classification problem
+
+00:53:02.090 --> 00:53:06.080
+where x is the data and y
+is some binary classifier,
+
+00:53:06.080 --> 00:53:09.410
+you know 0, 1, if you like.
+
+00:53:09.410 --> 00:53:12.110
+The training set
+is a bunch of x's.
+
+00:53:12.110 --> 00:53:16.340
+y sub true is the actual
+answer. y predicted
+
+00:53:16.340 --> 00:53:20.930
+is what f predicts on that x.
+
+00:53:20.930 --> 00:53:26.910
+And to explain f of z equals
+some particular outcome,
+
+00:53:26.910 --> 00:53:32.850
+you can define the
+allies of a case
+
+00:53:32.850 --> 00:53:36.410
+as ones that come up
+with the same answer.
+
+00:53:36.410 --> 00:53:39.290
+And you can define
+the enemies as one
+
+00:53:39.290 --> 00:53:43.560
+that wants to come up
+with a different answer.
+
+00:53:43.560 --> 00:53:48.450
+So now you're going to sample
+both the allies and the enemies
+
+00:53:48.450 --> 00:53:51.740
+according to a new
+distance function.
+
+00:53:51.740 --> 00:53:55.390
+And the intuition they
+had is that the reason
+
+00:53:55.390 --> 00:53:59.570
+that the distance function
+in the original line work
+
+00:53:59.570 --> 00:54:02.090
+wasn't working very
+well is because it
+
+00:54:02.090 --> 00:54:04.550
+was a spherical
+distance function
+
+00:54:04.550 --> 00:54:06.740
+in n dimensional space.
+
+00:54:06.740 --> 00:54:09.470
+And so they're going
+to bias it by saying
+
+00:54:09.470 --> 00:54:12.560
+that the distance,
+this b, is going
+
+00:54:12.560 --> 00:54:17.480
+to be some combination
+of the difference
+
+00:54:17.480 --> 00:54:22.490
+in the linear predictions
+plus the difference in the two
+
+00:54:22.490 --> 00:54:24.020
+points.
+
+00:54:24.020 --> 00:54:27.890
+And so the contour
+lines of the first term
+
+00:54:27.890 --> 00:54:29.840
+are these circular
+contour lines.
+
+00:54:29.840 --> 00:54:31.720
+This is what lime was doing.
+
+00:54:31.720 --> 00:54:34.400
+The contour lines
+of the second term
+
+00:54:34.400 --> 00:54:37.730
+are these linear gradients.
+
+00:54:37.730 --> 00:54:42.230
+And they add them to get
+sort of oval-shaped things.
+
+00:54:42.230 --> 00:54:46.310
+And this is what gives
+you that desired feature
+
+00:54:46.310 --> 00:54:50.060
+of being more sensitive
+to how close this point is
+
+00:54:50.060 --> 00:54:53.020
+to the decision boundary.
+
+00:54:53.020 --> 00:54:58.810
+Again, there are a lot of
+relatively hairy details, which
+
+00:54:58.810 --> 00:55:01.690
+I'm going to elide
+in the class today.
+
+00:55:01.690 --> 00:55:04.870
+But they're definitely
+in the paper.
+
+00:55:04.870 --> 00:55:09.520
+So they also did a user study
+on some very simple prediction
+
+00:55:09.520 --> 00:55:10.580
+models.
+
+00:55:10.580 --> 00:55:14.350
+So this was how much is your
+house worth based on things
+
+00:55:14.350 --> 00:55:18.580
+like how big is it and
+what year was it built in
+
+00:55:18.580 --> 00:55:22.640
+and what's some subjective
+quality judgment of it?
+
+00:55:22.640 --> 00:55:28.330
+And so what they
+show is that you
+
+00:55:28.330 --> 00:55:34.540
+can find examples that are
+the allies and the enemies
+
+00:55:34.540 --> 00:55:39.070
+of this house in order
+to do the prediction.
+
+00:55:39.070 --> 00:55:41.020
+So then they apply
+their algorithm.
+
+00:55:41.020 --> 00:55:43.210
+And it works.
+
+00:55:43.210 --> 00:55:45.120
+It gives you better answers.
+
+00:55:45.120 --> 00:55:48.230
+I'll have to go find
+that slide somewhere.
+
+00:55:48.230 --> 00:55:48.730
+All right.
+
+00:55:48.730 --> 00:55:57.580
+So that's all I'm going to
+say about this idea of using
+
+00:55:57.580 --> 00:56:00.670
+simplified models in
+the local neighborhood
+
+00:56:00.670 --> 00:56:05.940
+of individual cases in
+order to explain something.
+
+00:56:05.940 --> 00:56:09.040
+I wanted to talk about
+two other topics.
+
+00:56:09.040 --> 00:56:12.120
+So this was a paper
+by some of my students
+
+00:56:12.120 --> 00:56:17.250
+recently in which they're
+looking at medical images
+
+00:56:17.250 --> 00:56:20.460
+and trying to generate
+radiology reports
+
+00:56:20.460 --> 00:56:23.010
+from those medical images.
+
+00:56:23.010 --> 00:56:24.990
+I mean, you know,
+machine learning
+
+00:56:24.990 --> 00:56:27.120
+can solve all problems.
+
+00:56:27.120 --> 00:56:29.510
+I give you a
+collection of images
+
+00:56:29.510 --> 00:56:32.040
+and a collection of
+radiology reports,
+
+00:56:32.040 --> 00:56:36.810
+should be straightforward to
+build a model that now takes
+
+00:56:36.810 --> 00:56:39.810
+new radiological
+images and produces
+
+00:56:39.810 --> 00:56:45.130
+new radiology reports that are
+understandable, accurate, et
+
+00:56:45.130 --> 00:56:45.760
+cetera.
+
+00:56:45.760 --> 00:56:47.940
+I'm joking, of course.
+
+00:56:51.820 --> 00:56:54.830
+But the approach they took
+was kind of interesting.
+
+00:56:54.830 --> 00:56:57.980
+So they've taken a
+standard image decoder.
+
+00:56:57.980 --> 00:56:59.920
+And then before
+the pooling layer,
+
+00:56:59.920 --> 00:57:05.820
+they take essentially an
+image embedding from the next
+
+00:57:05.820 --> 00:57:11.430
+to last layer of this
+image encoding algorithm.
+
+00:57:11.430 --> 00:57:16.260
+And then they feed that
+into a word decoder and word
+
+00:57:16.260 --> 00:57:18.030
+generator.
+
+00:57:18.030 --> 00:57:21.540
+And the idea is
+to get things that
+
+00:57:21.540 --> 00:57:26.610
+appear in the image that
+correspond to words that appear
+
+00:57:26.610 --> 00:57:32.490
+in the report to wind up in
+the same place in the embedding
+
+00:57:32.490 --> 00:57:34.350
+space.
+
+00:57:34.350 --> 00:57:36.340
+And so again, there's
+a lot of hair.
+
+00:57:36.340 --> 00:57:42.030
+It's an LSDM based encoder.
+
+00:57:42.030 --> 00:57:45.330
+And it's modeled as
+a sentence decoder.
+
+00:57:45.330 --> 00:57:47.840
+And within that, there
+is a word decoder,
+
+00:57:47.840 --> 00:57:51.840
+and then there's a generator
+that generates these reports.
+
+00:57:51.840 --> 00:57:54.210
+And it uses
+reinforcement learning.
+
+00:57:54.210 --> 00:57:57.360
+And you know, tons of hair.
+
+00:57:57.360 --> 00:58:03.510
+But here's what I wanted to
+show you, which is interesting.
+
+00:58:03.510 --> 00:58:08.570
+So the encoder takes a bunch
+of spatial image features.
+
+00:58:08.570 --> 00:58:13.160
+The sentence decoder uses these
+image features in addition
+
+00:58:13.160 --> 00:58:19.340
+to the linguistic features,
+the word embeddings that
+
+00:58:19.340 --> 00:58:21.290
+are fed into it.
+
+00:58:21.290 --> 00:58:28.080
+And then for ground
+truth annotation,
+
+00:58:28.080 --> 00:58:32.010
+they also use a remote
+annotation method, which
+
+00:58:32.010 --> 00:58:36.000
+is this chexpert program, which
+is a rule-based program out
+
+00:58:36.000 --> 00:58:39.210
+of Stanford that reads
+radiology reports
+
+00:58:39.210 --> 00:58:43.320
+and identifies features in
+the report that it thinks
+
+00:58:43.320 --> 00:58:45.840
+are important and correct.
+
+00:58:45.840 --> 00:58:50.250
+So it's not always
+correct, of course.
+
+00:58:50.250 --> 00:58:57.150
+But that's used in order
+to guide the generator.
+
+00:58:57.150 --> 00:59:00.370
+So here's an example.
+
+00:59:00.370 --> 00:59:06.250
+So this is an image of a
+chest and the ground truth--
+
+00:59:06.250 --> 00:59:08.940
+so this is the actual
+radiology report--
+
+00:59:08.940 --> 00:59:10.950
+says cardiomegalia is moderate.
+
+00:59:10.950 --> 00:59:14.080
+Bibasilar atelectasis is mild.
+
+00:59:14.080 --> 00:59:16.710
+There's no pneumothoraxal
+or cervical spinal
+
+00:59:16.710 --> 00:59:18.990
+fusion is partially visualized.
+
+00:59:18.990 --> 00:59:22.470
+Healed right rib fractures
+are incidentally noted.
+
+00:59:22.470 --> 00:59:26.220
+By the way, I've stared at
+hundreds of radiological images
+
+00:59:26.220 --> 00:59:27.240
+like this.
+
+00:59:27.240 --> 00:59:35.800
+I could never figure out
+that this image says that.
+
+00:59:35.800 --> 00:59:39.610
+But that's why radiologists
+train for many, many years
+
+00:59:39.610 --> 00:59:42.210
+to become good at this stuff.
+
+00:59:42.210 --> 00:59:44.450
+So there was a
+previous program done
+
+00:59:44.450 --> 00:59:50.150
+by others called TieNet which
+generates the following report.
+
+00:59:50.150 --> 00:59:52.940
+It says AP portable
+upright view of the chest.
+
+00:59:52.940 --> 00:59:56.330
+There's no call no focal
+consolidation, effusion,
+
+00:59:56.330 --> 00:59:57.680
+or pneumothorax.
+
+00:59:57.680 --> 01:00:01.850
+The cardio mediastinal
+silhouette is normal.
+
+01:00:01.850 --> 01:00:04.860
+Imaged osseous
+structures are intact.
+
+01:00:04.860 --> 01:00:07.310
+So if you compare
+this to that, you
+
+01:00:07.310 --> 01:00:11.240
+say, well, if the cardio
+mediastinal silhouette
+
+01:00:11.240 --> 01:00:19.340
+is normal, then where would
+the lower cervical spinal
+
+01:00:19.340 --> 01:00:23.120
+fusion, being partially
+visualized, because that's
+
+01:00:23.120 --> 01:00:24.860
+along the middle.
+
+01:00:24.860 --> 01:00:27.770
+And so these are not
+quite consistent.
+
+01:00:27.770 --> 01:00:30.920
+So the system that
+these students built
+
+01:00:30.920 --> 01:00:33.760
+says there's mild enlargement
+of the cardiac silhouette.
+
+01:00:33.760 --> 01:00:37.280
+There is no pleural
+effusion or pneumothorax.
+
+01:00:37.280 --> 01:00:40.890
+And there's no acute
+osseous abnormalities.
+
+01:00:40.890 --> 01:00:44.870
+So it also missed the
+healed right rib fractures
+
+01:00:44.870 --> 01:00:46.940
+that were incidentally noted.
+
+01:00:46.940 --> 01:00:50.780
+But anyway, it's-- you know,
+the remarkable thing about
+
+01:00:50.780 --> 01:00:54.800
+a singing dog is not how well
+it sings but the fact that it
+
+01:00:54.800 --> 01:00:55.610
+sings at all.
+
+01:00:58.360 --> 01:01:00.270
+And the reason I
+included this work
+
+01:01:00.270 --> 01:01:02.630
+is not to convince
+you that this is
+
+01:01:02.630 --> 01:01:07.830
+going to replace
+radiologists anytime soon,
+
+01:01:07.830 --> 01:01:12.030
+but that it had an interesting
+explanation facility.
+
+01:01:12.030 --> 01:01:15.180
+And the explanation
+facility uses
+
+01:01:15.180 --> 01:01:18.570
+attention, which is
+part of its model,
+
+01:01:18.570 --> 01:01:22.800
+to say, hey, when we
+reach some conclusion,
+
+01:01:22.800 --> 01:01:26.130
+we can point back
+into the image and say
+
+01:01:26.130 --> 01:01:28.560
+what part of the
+image corresponds
+
+01:01:28.560 --> 01:01:31.320
+to that part of the conclusion.
+
+01:01:31.320 --> 01:01:32.980
+And so this is
+pretty interesting.
+
+01:01:32.980 --> 01:01:37.620
+You say in upright and lateral
+views of the chest in red,
+
+01:01:37.620 --> 01:01:41.870
+well, that's kind
+of the chest in red.
+
+01:01:41.870 --> 01:01:47.250
+There's moderate cardiomegaly,
+so here the green
+
+01:01:47.250 --> 01:01:50.570
+certainly shows you
+where your heart is.
+
+01:01:50.570 --> 01:01:51.820
+OK.
+
+01:01:51.820 --> 01:01:55.270
+About there and a
+little bit to the left.
+
+01:01:55.270 --> 01:01:58.150
+And there's no pleural
+effusion or pneumothorax.
+
+01:01:58.150 --> 01:01:59.890
+This one is kind of funny.
+
+01:01:59.890 --> 01:02:02.020
+That's the blue region.
+
+01:02:02.020 --> 01:02:08.010
+So how do you show me that
+there isn't something?
+
+01:02:08.010 --> 01:02:11.310
+And we were surprised,
+actually, the way
+
+01:02:11.310 --> 01:02:14.070
+it showed us that
+there isn't something
+
+01:02:14.070 --> 01:02:17.640
+is to highlight everything
+outside of anything
+
+01:02:17.640 --> 01:02:20.330
+that you might be
+interested in, which
+
+01:02:20.330 --> 01:02:26.300
+is not exactly convincing that
+there's no pleural effusion.
+
+01:02:26.300 --> 01:02:28.410
+And here's another example.
+
+01:02:28.410 --> 01:02:32.220
+There is no relevant change,
+tracheostomy tube in place,
+
+01:02:32.220 --> 01:02:36.360
+so that roughly is
+showing a little too wide.
+
+01:02:36.360 --> 01:02:39.630
+But it's showing roughly where
+a tracheostomy tube might be.
+
+01:02:43.860 --> 01:02:47.305
+Bilateral pleural effusion
+and compressive atelectasis.
+
+01:02:47.305 --> 01:02:51.480
+Atelectasis is when your
+lung tissues stick together.
+
+01:02:51.480 --> 01:02:54.920
+And so that does often happen
+in the lower part of the lung.
+
+01:02:54.920 --> 01:02:58.410
+And again, the negative
+shows you everything
+
+01:02:58.410 --> 01:03:02.100
+that's not part of the action.
+
+01:03:02.100 --> 01:03:03.172
+Yeah?
+
+01:03:03.172 --> 01:03:04.465
+AUDIENCE: [INAUDIBLE].
+
+01:03:08.060 --> 01:03:08.685
+PROFESSOR: Yes.
+
+01:03:08.685 --> 01:03:12.917
+AUDIENCE: [INAUDIBLE]
+
+01:03:12.917 --> 01:03:13.500
+PROFESSOR: No.
+
+01:03:13.500 --> 01:03:15.600
+It's trying to predict
+the whole model--
+
+01:03:15.600 --> 01:03:16.413
+the whole node.
+
+01:03:16.413 --> 01:03:19.080
+AUDIENCE: And it's not easier to
+have, like, one node for, like,
+
+01:03:19.080 --> 01:03:19.883
+each [INAUDIBLE]?
+
+01:03:19.883 --> 01:03:20.550
+PROFESSOR: Yeah.
+
+01:03:20.550 --> 01:03:22.290
+But these guys were ambitious.
+
+01:03:22.290 --> 01:03:28.050
+You know, they-- what was it?
+
+01:03:28.050 --> 01:03:31.500
+Jeff Hinton said a few
+years ago that he wouldn't
+
+01:03:31.500 --> 01:03:33.690
+want his children to
+become radiologists
+
+01:03:33.690 --> 01:03:37.650
+because that field is going
+to be replaced by computers.
+
+01:03:37.650 --> 01:03:40.650
+I think that was a stupid
+thing to say, especially
+
+01:03:40.650 --> 01:03:43.320
+when you look at the
+state of the art of how
+
+01:03:43.320 --> 01:03:45.090
+well these things work.
+
+01:03:45.090 --> 01:03:47.520
+But if that were true,
+then you would, in fact,
+
+01:03:47.520 --> 01:03:50.820
+want something that is able
+to produce an entire radiology
+
+01:03:50.820 --> 01:03:51.750
+report.
+
+01:03:51.750 --> 01:03:53.760
+So the motivation is there.
+
+01:03:53.760 --> 01:03:56.010
+Now, after this
+work was done, we
+
+01:03:56.010 --> 01:04:02.020
+ran into this interesting paper
+from Northeastern, which says--
+
+01:04:02.020 --> 01:04:06.930
+but listen guys-- attention
+is not explanation.
+
+01:04:06.930 --> 01:04:07.750
+OK.
+
+01:04:07.750 --> 01:04:10.090
+So attention is
+clearly a mechanism
+
+01:04:10.090 --> 01:04:16.640
+that's very useful in all kinds
+of machine learning methods.
+
+01:04:16.640 --> 01:04:20.110
+But you shouldn't confuse
+it with an explanation.
+
+01:04:20.110 --> 01:04:24.160
+So they say, well, assumption--
+it's the assumption
+
+01:04:24.160 --> 01:04:27.400
+that the input units are
+accorded high attention-- that
+
+01:04:27.400 --> 01:04:29.830
+are accorded high
+attention weights are
+
+01:04:29.830 --> 01:04:32.560
+responsible for
+the model outputs.
+
+01:04:32.560 --> 01:04:34.610
+And that may not be true.
+
+01:04:34.610 --> 01:04:37.540
+And so what they did is they
+did a bunch of experiments
+
+01:04:37.540 --> 01:04:40.090
+where they studied
+the correlation
+
+01:04:40.090 --> 01:04:48.820
+between the attention weights
+and the gradients of the model
+
+01:04:48.820 --> 01:04:53.230
+parameters to see whether,
+in fact, the words that
+
+01:04:53.230 --> 01:04:56.410
+had high attention
+were the ones that
+
+01:04:56.410 --> 01:05:00.980
+were most decisive in making
+a decision in the model.
+
+01:05:00.980 --> 01:05:04.700
+And they found that the
+evidence that correlation
+
+01:05:04.700 --> 01:05:08.660
+between intuitive feature
+importance measures, including
+
+01:05:08.660 --> 01:05:11.360
+gradient and feature
+erasure approaches-- so this
+
+01:05:11.360 --> 01:05:15.440
+is ablation studies and learn
+detention weights is weak.
+
+01:05:15.440 --> 01:05:17.930
+And so they did a
+bunch of experiments.
+
+01:05:17.930 --> 01:05:22.200
+There are a lot of controversies
+about this particular study.
+
+01:05:22.200 --> 01:05:27.800
+But what you find is that if
+you calculate the concordance,
+
+01:05:27.800 --> 01:05:32.750
+you know, on different data
+sets using different models,
+
+01:05:32.750 --> 01:05:37.080
+you see that, for example, the
+concordance is not very high.
+
+01:05:37.080 --> 01:05:40.790
+It's less than a half
+for this data set.
+
+01:05:40.790 --> 01:05:46.000
+And you know, some
+of it below 0,
+
+01:05:46.000 --> 01:05:48.190
+so the opposite
+for this data set.
+
+01:05:50.980 --> 01:05:55.690
+Interestingly,
+things like diabetes,
+
+01:05:55.690 --> 01:05:59.890
+which come from the mimic
+data, have narrower bounds
+
+01:05:59.890 --> 01:06:01.100
+than some of the others.
+
+01:06:01.100 --> 01:06:05.710
+So they seem to have a more
+definitive conclusion, at least
+
+01:06:05.710 --> 01:06:06.415
+for the study.
+
+01:06:10.760 --> 01:06:12.450
+OK.
+
+01:06:12.450 --> 01:06:17.460
+Let me finish off by talking
+about the opposite idea.
+
+01:06:17.460 --> 01:06:20.130
+So rather than building
+a complicated model
+
+01:06:20.130 --> 01:06:23.100
+and then trying to
+explain it in simple ways,
+
+01:06:23.100 --> 01:06:26.250
+what if we just
+built a simple model?
+
+01:06:26.250 --> 01:06:29.190
+And Cynthia Rudin,
+who's now at Duke,
+
+01:06:29.190 --> 01:06:32.460
+used to be at the
+Sloan School at MIT,
+
+01:06:32.460 --> 01:06:35.890
+has been championing
+this idea for many years.
+
+01:06:35.890 --> 01:06:40.440
+And so she has come up with
+a bunch of different ideas
+
+01:06:40.440 --> 01:06:42.890
+for how to build
+simple models that
+
+01:06:42.890 --> 01:06:45.750
+trade off maybe a little
+bit of accuracy in order
+
+01:06:45.750 --> 01:06:47.580
+to be explainable.
+
+01:06:47.580 --> 01:06:51.780
+And one of her favorites is
+this thing called a falling rule
+
+01:06:51.780 --> 01:06:52.560
+list.
+
+01:06:52.560 --> 01:06:59.130
+So this is an example for a
+mammographic mass data set.
+
+01:06:59.130 --> 01:07:05.340
+So it says, if some lump
+has an irregular shape
+
+01:07:05.340 --> 01:07:08.250
+and the patient is
+over 60 years old,
+
+01:07:08.250 --> 01:07:13.050
+then there's an 85%
+chance of malignancy risk,
+
+01:07:13.050 --> 01:07:16.500
+and there are 230 cases
+in which that happened.
+
+01:07:19.450 --> 01:07:23.810
+If this is not the case,
+then if the lump has
+
+01:07:23.810 --> 01:07:25.270
+the speculated margin--
+
+01:07:25.270 --> 01:07:28.330
+so it has little spikes
+coming out of it--
+
+01:07:28.330 --> 01:07:31.900
+and the patient is
+over 45, then there's
+
+01:07:31.900 --> 01:07:34.930
+a 78% chance of malignancy.
+
+01:07:34.930 --> 01:07:38.770
+And otherwise, if the margin is
+kind of fuzzy, the edge of it
+
+01:07:38.770 --> 01:07:42.860
+is kind of fuzzy, and
+the patient is over 60,
+
+01:07:42.860 --> 01:07:46.340
+then there's a 69% chance.
+
+01:07:46.340 --> 01:07:48.820
+And if it has an
+irregular shape,
+
+01:07:48.820 --> 01:07:51.590
+then there's a 63% chance.
+
+01:07:51.590 --> 01:07:55.040
+And if it's lobular and
+the density is high,
+
+01:07:55.040 --> 01:07:58.010
+then there's a 39% chance.
+
+01:07:58.010 --> 01:08:01.060
+And if it's round and
+the patient is over 60,
+
+01:08:01.060 --> 01:08:03.520
+then there's a 26% chance.
+
+01:08:03.520 --> 01:08:07.300
+Otherwise, there's a 10% chance.
+
+01:08:07.300 --> 01:08:13.420
+And the argument is that that
+description of the model,
+
+01:08:13.420 --> 01:08:16.600
+of the decision-making
+model, is simple enough
+
+01:08:16.600 --> 01:08:20.615
+that even doctors
+can understand it.
+
+01:08:20.615 --> 01:08:21.850
+You're supposed to laugh.
+
+01:08:25.029 --> 01:08:26.870
+Now, there are
+still some problems.
+
+01:08:26.870 --> 01:08:29.680
+So one of them is--
+notice some of these
+
+01:08:29.680 --> 01:08:33.100
+are age greater than
+60, age greater than 45,
+
+01:08:33.100 --> 01:08:34.930
+age greater than 60.
+
+01:08:34.930 --> 01:08:39.460
+It's not quite obvious what
+categories that's defining.
+
+01:08:39.460 --> 01:08:42.700
+And in principle, it
+could be different ages
+
+01:08:42.700 --> 01:08:44.620
+in different ones.
+
+01:08:44.620 --> 01:08:46.420
+But here's how they build it.
+
+01:08:46.420 --> 01:08:48.850
+So this is a very
+simple model that's
+
+01:08:48.850 --> 01:08:52.609
+built by a very
+complicated process.
+
+01:08:52.609 --> 01:08:56.189
+So the simple model is the
+one I've just showed you.
+
+01:08:56.189 --> 01:08:59.300
+There's a Bayesian approach, a
+Bayesian generative approach,
+
+01:08:59.300 --> 01:09:03.109
+where they have a bunch of hyper
+parameters, falling rule list
+
+01:09:03.109 --> 01:09:04.939
+parameters, theta--
+
+01:09:04.939 --> 01:09:07.010
+they calculate a
+likelihood, which
+
+01:09:07.010 --> 01:09:10.100
+is given a particular
+theta, how likely
+
+01:09:10.100 --> 01:09:14.090
+are you to get the answers that
+are actually in your data given
+
+01:09:14.090 --> 01:09:17.450
+the model that you generate?
+
+01:09:17.450 --> 01:09:21.260
+And they start with a
+possible set of if clauses.
+
+01:09:21.260 --> 01:09:25.040
+So they do frequent
+clause mining
+
+01:09:25.040 --> 01:09:29.779
+to say what conditions,
+what binary conditions occur
+
+01:09:29.779 --> 01:09:32.552
+frequently together
+in the database.
+
+01:09:32.552 --> 01:09:34.010
+And those are the
+only ones they're
+
+01:09:34.010 --> 01:09:36.229
+going to consider
+because, of course,
+
+01:09:36.229 --> 01:09:39.229
+the number of possible
+clauses is vast
+
+01:09:39.229 --> 01:09:42.140
+and they don't want to have
+to iterate through those.
+
+01:09:42.140 --> 01:09:46.960
+And then for each set
+of-- for each clause,
+
+01:09:46.960 --> 01:09:51.109
+they calculate a
+risk score which
+
+01:09:51.109 --> 01:09:56.750
+is generated by a
+probability distribution
+
+01:09:56.750 --> 01:10:02.240
+under the constraint that the
+risk score for the next clause
+
+01:10:02.240 --> 01:10:06.020
+is lower or equal to the risk
+score for the previous clause.
+
+01:10:15.110 --> 01:10:16.370
+There are lots of details.
+
+01:10:16.370 --> 01:10:20.570
+So there is this frequent
+itemset mining algorithm.
+
+01:10:20.570 --> 01:10:25.070
+It turns out that
+choosing r sub l
+
+01:10:25.070 --> 01:10:29.480
+to be the logs of
+products of real numbers
+
+01:10:29.480 --> 01:10:32.390
+is an important step
+in order to guarantee
+
+01:10:32.390 --> 01:10:37.460
+that monotonicity
+constraint in a simple way.
+
+01:10:37.460 --> 01:10:40.160
+l, the number of
+clauses, is drawn
+
+01:10:40.160 --> 01:10:42.440
+from a Poisson distribution.
+
+01:10:42.440 --> 01:10:44.540
+And you give it a
+kind of scale that
+
+01:10:44.540 --> 01:10:47.300
+says roughly how many
+clauses would you
+
+01:10:47.300 --> 01:10:54.350
+be willing to tolerate in
+your following rule list?
+
+01:10:54.350 --> 01:10:58.160
+And then there's a lot
+of computational hair
+
+01:10:58.160 --> 01:11:00.350
+where they do--
+
+01:11:00.350 --> 01:11:04.460
+they get mean a posteriori
+probability estimation
+
+01:11:04.460 --> 01:11:08.600
+by using a simulated
+annealing algorithm.
+
+01:11:08.600 --> 01:11:13.190
+So they basically
+generate some clauses
+
+01:11:13.190 --> 01:11:17.930
+and then they use swap, replace,
+add, and delete operators
+
+01:11:17.930 --> 01:11:21.260
+in order to try
+different variations.
+
+01:11:21.260 --> 01:11:24.600
+And they're doing hill
+climbing in that space.
+
+01:11:24.600 --> 01:11:26.480
+There's also some
+Gibbs sampling,
+
+01:11:26.480 --> 01:11:29.540
+because once you have
+one of these models,
+
+01:11:29.540 --> 01:11:34.060
+simply calculating how accurate
+it is is not straightforward.
+
+01:11:34.060 --> 01:11:36.110
+There's not a closed
+form way of doing it.
+
+01:11:36.110 --> 01:11:40.730
+And so they're doing sampling in
+order to try to generate that.
+
+01:11:40.730 --> 01:11:42.620
+So it's a bunch of hair.
+
+01:11:42.620 --> 01:11:45.870
+And again, the paper
+describes it all.
+
+01:11:45.870 --> 01:11:50.320
+But what's interesting is
+that on a 30 day hospital
+
+01:11:50.320 --> 01:11:55.030
+readmission data set with
+about 8,000 patients,
+
+01:11:55.030 --> 01:11:59.920
+they used about 34 features,
+like impaired mental status,
+
+01:11:59.920 --> 01:12:04.540
+difficult behavior, chronic
+pain, feels unsafe, et cetera.
+
+01:12:04.540 --> 01:12:08.950
+They mind rules or clauses
+with support more than 5%
+
+01:12:08.950 --> 01:12:13.150
+of the database and no
+more than two conditions.
+
+01:12:13.150 --> 01:12:16.600
+They set the expected
+length of the decision list
+
+01:12:16.600 --> 01:12:18.820
+to be eight clauses.
+
+01:12:18.820 --> 01:12:21.520
+And then they compared
+the decision model
+
+01:12:21.520 --> 01:12:25.600
+they got to SVM's random
+force logistic regression
+
+01:12:25.600 --> 01:12:29.470
+cart and an inductive
+logic programming approach.
+
+01:12:29.470 --> 01:12:33.410
+And shockingly to
+me, their method--
+
+01:12:33.410 --> 01:12:35.440
+the following rule list method--
+
+01:12:35.440 --> 01:12:41.830
+got an AUC of about 0.8, whereas
+all the others did like 0.79,
+
+01:12:41.830 --> 01:12:47.410
+0.75 logistic
+regression, as usual
+
+01:12:47.410 --> 01:12:50.460
+outperformed the one
+they got slightly.
+
+01:12:50.460 --> 01:12:51.250
+Right?
+
+01:12:51.250 --> 01:12:54.160
+But this is interesting,
+because their argument
+
+01:12:54.160 --> 01:12:58.180
+is that this
+representation of the model
+
+01:12:58.180 --> 01:13:02.470
+is much more easy to understand
+than even a logistic regression
+
+01:13:02.470 --> 01:13:06.700
+model for most human users.
+
+01:13:06.700 --> 01:13:09.700
+And also, if you look at--
+
+01:13:09.700 --> 01:13:13.690
+these are just various runs
+and the different models.
+
+01:13:13.690 --> 01:13:18.610
+And their model has a
+pretty decent AUC up here.
+
+01:13:18.610 --> 01:13:22.750
+I think the green one is
+the logistic regression one.
+
+01:13:22.750 --> 01:13:28.870
+And it's slightly better because
+it outperforms their best model
+
+01:13:28.870 --> 01:13:33.160
+in the region of low false
+positive rates, which may
+
+01:13:33.160 --> 01:13:34.480
+be where you want to operate.
+
+01:13:34.480 --> 01:13:37.060
+So that may actually
+be a better model.
+
+01:13:42.250 --> 01:13:45.990
+So here's their
+readmission rule list.
+
+01:13:45.990 --> 01:13:49.190
+And it says if the
+patient has bed sores
+
+01:13:49.190 --> 01:13:53.120
+and has a history of not
+showing up for appointments,
+
+01:13:53.120 --> 01:13:55.910
+then there's a 33%
+probability that they'll
+
+01:13:55.910 --> 01:13:59.410
+be readmitted within 30 days.
+
+01:13:59.410 --> 01:14:04.820
+If-- I think some note says
+poor prognosis and maximum care,
+
+01:14:04.820 --> 01:14:05.510
+et cetera.
+
+01:14:05.510 --> 01:14:08.870
+So this is the result
+that they came up with.
+
+01:14:08.870 --> 01:14:12.650
+Now, by the way, we've talked
+a little bit about 30 day
+
+01:14:12.650 --> 01:14:15.780
+readmission predictions.
+
+01:14:15.780 --> 01:14:21.360
+And getting over about 70%
+is not bad in that domain
+
+01:14:21.360 --> 01:14:24.690
+because it's just not that
+easily predictable who's
+
+01:14:24.690 --> 01:14:28.060
+going to wind up back in
+the hospital within 30 days.
+
+01:14:28.060 --> 01:14:31.300
+So these models are
+actually doing quite well,
+
+01:14:31.300 --> 01:14:35.740
+and certainly understandable
+in these terms.
+
+01:14:35.740 --> 01:14:39.750
+They also tried on a
+variety of University
+
+01:14:39.750 --> 01:14:44.470
+of California-Irvine
+machine learning data sets.
+
+01:14:44.470 --> 01:14:47.500
+These are just random
+public data sets.
+
+01:14:47.500 --> 01:14:49.987
+And they tried building
+these falling rule
+
+01:14:49.987 --> 01:14:52.890
+list models to make predictions.
+
+01:14:52.890 --> 01:14:56.130
+And what you see is that
+the AUCs are pretty good.
+
+01:14:56.130 --> 01:14:59.700
+So on the spam
+detection data set,
+
+01:14:59.700 --> 01:15:02.820
+their system gets about 91.
+
+01:15:02.820 --> 01:15:06.030
+Logistic regression,
+again, gets 97.
+
+01:15:06.030 --> 01:15:11.010
+So you know, part of the
+unfortunate lesson that we
+
+01:15:11.010 --> 01:15:14.460
+teach in almost every
+example in this class
+
+01:15:14.460 --> 01:15:17.550
+is that simple models
+like logistic regression
+
+01:15:17.550 --> 01:15:19.240
+often do quite well.
+
+01:15:19.240 --> 01:15:23.040
+But remember, here they're
+optimizing for explainability
+
+01:15:23.040 --> 01:15:27.250
+rather than for getting
+the right answer.
+
+01:15:27.250 --> 01:15:32.310
+So they're willing to sacrifice
+some accuracy in their model
+
+01:15:32.310 --> 01:15:35.160
+in order to develop
+a result that
+
+01:15:35.160 --> 01:15:37.590
+is easy to explain to people.
+
+01:15:37.590 --> 01:15:42.150
+So again, there are many
+variations on this type of work
+
+01:15:42.150 --> 01:15:44.910
+where people have different
+notions of what counts
+
+01:15:44.910 --> 01:15:48.740
+as a simple, explainable model.
+
+01:15:48.740 --> 01:15:51.020
+But that's a very
+different approach
+
+01:15:51.020 --> 01:15:54.710
+than the LIME approach, which
+says build the hairy model
+
+01:15:54.710 --> 01:16:00.020
+and then produce local
+explanations for why
+
+01:16:00.020 --> 01:16:04.110
+it makes certain decisions
+on particular cases.
+
+01:16:04.110 --> 01:16:04.610
+All right.
+
+01:16:04.610 --> 01:16:08.150
+I think that's all I'm going
+to say about explainability.
+
+01:16:08.150 --> 01:16:10.460
+This is a very hot
+topic at the moment,
+
+01:16:10.460 --> 01:16:12.440
+and so there are lots of papers.
+
+01:16:12.440 --> 01:16:14.720
+I think there's-- I just
+saw a call for a conference
+
+01:16:14.720 --> 01:16:18.810
+on explainable machine
+learning models.
+
+01:16:18.810 --> 01:16:23.550
+So there's more and
+more work in this area.
+
+01:16:23.550 --> 01:16:28.050
+So with that, we come to
+the end of our course.
+
+01:16:28.050 --> 01:16:29.300
+And I just wanted--
+
+01:16:29.300 --> 01:16:35.120
+I just went through the front
+page of the course website
+
+01:16:35.120 --> 01:16:36.530
+and listed all the topics.
+
+01:16:36.530 --> 01:16:41.670
+So we've covered quite
+a lot of stuff, right?
+
+01:16:41.670 --> 01:16:45.070
+You know, what makes
+health care different?
+
+01:16:45.070 --> 01:16:48.510
+And we talked about what
+clinical care is all about
+
+01:16:48.510 --> 01:16:53.070
+and what clinical data is
+like and risk stratification,
+
+01:16:53.070 --> 01:16:56.970
+survival modeling,
+physiological time series, how
+
+01:16:56.970 --> 01:17:00.510
+to interpret clinical text
+in a couple of lectures,
+
+01:17:00.510 --> 01:17:03.240
+translating technology
+into the clinic.
+
+01:17:03.240 --> 01:17:06.450
+The italicized ones
+were guest lectures, so
+
+01:17:06.450 --> 01:17:08.580
+machine learning for
+cardiology and machine
+
+01:17:08.580 --> 01:17:11.010
+learning for
+differential diagnosis,
+
+01:17:11.010 --> 01:17:14.730
+machine learning for
+pathology, for mammography.
+
+01:17:14.730 --> 01:17:17.550
+David gave a couple of
+lectures on causal inference
+
+01:17:17.550 --> 01:17:21.270
+and reinforcement learning
+where David and a guest--
+
+01:17:21.270 --> 01:17:24.270
+which I didn't note here--
+
+01:17:24.270 --> 01:17:27.030
+disease progression
+and sub typing.
+
+01:17:27.030 --> 01:17:29.130
+We talked about
+precision medicine
+
+01:17:29.130 --> 01:17:33.270
+and the role of genetics,
+automated clinical workflows,
+
+01:17:33.270 --> 01:17:36.990
+the lecture on regulation,
+and then recently fairness,
+
+01:17:36.990 --> 01:17:40.800
+robustness to data set
+shift, and interpretability.
+
+01:17:40.800 --> 01:17:42.840
+So that's quite a lot.
+
+01:17:42.840 --> 01:17:48.810
+I think we're-- we the staff are
+pretty happy with how the class
+
+01:17:48.810 --> 01:17:50.100
+has gone.
+
+01:17:50.100 --> 01:17:53.770
+It was our first time as
+this crew teaching it.
+
+01:17:53.770 --> 01:17:56.910
+And we hope to do it again.
+
+01:17:56.910 --> 01:18:03.150
+I can't stop without giving
+an immense vote of gratitude
+
+01:18:03.150 --> 01:18:06.060
+to Irene and Willy,
+without whom we
+
+01:18:06.060 --> 01:18:08.976
+would have been totally sunk.
+
+01:18:08.976 --> 01:18:12.380
+[APPLAUSE]
+
+01:18:16.060 --> 01:18:18.970
+And I also want to acknowledge
+David's vision in putting
+
+01:18:18.970 --> 01:18:20.960
+this course together.
+
+01:18:20.960 --> 01:18:25.750
+He taught a sort of half-size
+version of a class like this
+
+01:18:25.750 --> 01:18:27.880
+a couple of years
+ago and thought
+
+01:18:27.880 --> 01:18:31.330
+that it would be a good idea to
+expand it into a full semester
+
+01:18:31.330 --> 01:18:36.610
+regular course and got me
+on board to work with him.
+
+01:18:36.610 --> 01:18:39.440
+And I want to thank you
+all for your hard work.
+
+01:18:39.440 --> 01:18:42.000
+And I'm looking forward to--

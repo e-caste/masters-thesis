@@ -1,0 +1,811 @@
+WEBVTT
+
+1
+00:00:00.680 --> 00:00:04.270 
+Hello everyone. I'm Christian
+and I'm a PhD student
+
+2
+00:00:04.680 --> 00:00:08.120 
+at the chair of Internet Technologies
+and Systems of professor Meinel.
+
+3
+00:00:08.640 --> 00:00:13.100 
+And today we're going to talk about
+model compression using knowledge distillation,
+
+4
+00:00:13.450 --> 00:00:18.240 
+which is a topic from the area
+of efficient AI and in this
+
+5
+00:00:18.240 --> 00:00:23.470 
+case we want to make sure that models or
+trained neural networks use less energy
+
+6
+00:00:23.660 --> 00:00:25.420 
+later on when
+they are used.
+
+7
+00:00:26.330 --> 00:00:30.730 
+And for doing this, we try to compress
+a model using knowledge distillation.
+
+8
+00:00:31.150 --> 00:00:35.700 
+And so what does it mean? Well, it's
+a method that has been introduced
+
+9
+00:00:35.700 --> 00:00:37.450 
+by Hinton et al. in 2015
+
+10
+00:00:37.970 --> 00:00:42.250 
+and we are trying to transfer the
+knowledge of an already trained
+
+11
+00:00:42.250 --> 00:00:46.330 
+model into a smaller neural network model
+which is called a student and the
+
+12
+00:00:46.550 --> 00:00:49.480 
+already trained model is a teacher.
+And you could think of it as
+
+13
+00:00:49.870 --> 00:00:52.860 
+being in a typical classroom setting,
+where you have the teacher
+
+14
+00:00:53.350 --> 00:00:56.490 
+who knows lots of things and the
+student who wants to learn.
+
+15
+00:00:57.020 --> 00:01:01.040 
+And the teacher, for instance here in
+this case, tells the student, well
+
+16
+00:01:01.590 --> 00:01:05.300 
+look at this image. There's a dog in this
+image. And the student says alright,
+
+17
+00:01:05.670 --> 00:01:08.300 
+I got this - this is a dog.
+This is how a dog looks like.
+
+18
+00:01:09.510 --> 00:01:14.240 
+And so, using this metaphor we
+can basically go on and have
+
+19
+00:01:14.240 --> 00:01:15.250 
+a look at neural networks.
+
+20
+00:01:16.070 --> 00:01:19.290 
+How does it work in neural networks?
+We have a large teacher network,
+
+21
+00:01:20.430 --> 00:01:22.220 
+as you, for instance,
+can see here,
+
+22
+00:01:22.940 --> 00:01:26.580 
+which is trained on performing a
+task and can do this task very well.
+
+23
+00:01:27.260 --> 00:01:31.590 
+We train this model using hard labels
+and so called softmax cross
+
+24
+00:01:31.590 --> 00:01:34.800 
+entropy, if we talk about
+classification tasks for instance.
+
+25
+00:01:35.360 --> 00:01:39.010 
+And one example you could see here is
+that we have a classification type
+
+26
+00:01:39.220 --> 00:01:43.550 
+task where we want to classify between
+four different classes - dogs,
+
+27
+00:01:43.560 --> 00:01:48.380 
+cats, cars, and ships. And for
+training the model we know that
+
+28
+00:01:48.390 --> 00:01:51.410 
+we have on the one hand our image,
+and we know about that image
+
+29
+00:01:51.420 --> 00:01:54.140 
+what's in that image. So
+in this case we have here
+
+30
+00:01:54.560 --> 00:02:00.400 
+there's the dog. And then we have all the
+other different classes. And during training
+
+31
+00:02:00.730 --> 00:02:03.260 
+while we on one hand know
+that for each class
+
+32
+00:02:03.970 --> 00:02:07.290 
+we have class ID, for instance
+dog has class ID 0, the cat
+
+33
+00:02:07.290 --> 00:02:11.290 
+has class ID 1, and so forth.
+And then we use these class
+
+34
+00:02:11.290 --> 00:02:16.880 
+IDs to create so called hard labels which
+are basically probability distributions,
+
+35
+00:02:17.570 --> 00:02:21.350 
+where we say that our class ID is
+always one and all the other class IDs
+
+36
+00:02:21.460 --> 00:02:24.840 
+zero. And we want
+to train our model
+
+37
+00:02:24.840 --> 00:02:26.150 
+in such a way
+that it says
+
+38
+00:02:27.090 --> 00:02:29.350 
+if there's a dog in
+the image, only
+
+39
+00:02:30.430 --> 00:02:34.960 
+the output, the neuron at the
+ID zero should say zero all
+
+40
+00:02:34.960 --> 00:02:35.850 
+the others should say -
+
+41
+00:02:37.160 --> 00:02:41.370 
+ID zero should say one, of course,
+and all the others should say zero.
+
+42
+00:02:42.010 --> 00:02:46.910 
+So it's kind of hard. Only this one class
+is right, nothing else is correct.
+
+43
+00:02:47.870 --> 00:02:52.930 
+And now a student on the other
+hand is a very small network.
+
+44
+00:02:53.260 --> 00:02:56.550 
+And as you can see here, and this
+student is trained in a different way.
+
+45
+00:02:57.420 --> 00:03:01.950 
+It's actually trained in conjunction with
+the teacher. The teacher is already trained,
+
+46
+00:03:02.270 --> 00:03:07.130 
+can already do its job very
+well. And so here in this case,
+
+47
+00:03:07.130 --> 00:03:11.630 
+if we take the dog image as input to the
+teacher we would get for instance on
+
+48
+00:03:11.740 --> 00:03:14.820 
+one of the last layers the output
+you can see on the top which
+
+49
+00:03:14.820 --> 00:03:17.750 
+would be [5, -3, -5, -7],
+so for each
+
+50
+00:03:18.440 --> 00:03:19.980 
+class that we
+have one output.
+
+51
+00:03:21.020 --> 00:03:24.670 
+And we can see here that the largest
+number in this output is five.
+
+52
+00:03:24.920 --> 00:03:29.410 
+So it means it predicts correctly that
+the class of this image is a dog.
+
+53
+00:03:29.750 --> 00:03:33.130 
+This is good. Now at the same time
+we have our student. Our student
+
+54
+00:03:33.130 --> 00:03:36.820 
+does not know anything right
+now and we put the image for the
+
+55
+00:03:36.820 --> 00:03:39.740 
+student and we get the output you
+can see on the bottom where
+
+56
+00:03:39.740 --> 00:03:42.100 
+it says [-1, 3, 2, -3].
+
+57
+00:03:42.940 --> 00:03:46.890 
+So if we take the maximum out of this, we
+could say okay, actually it's predicted
+
+58
+00:03:47.090 --> 00:03:50.170 
+that there is a cat in this image
+which is wrong in this case.
+
+59
+00:03:50.520 --> 00:03:53.330 
+Now we need to correct our
+student and this is the way
+
+60
+00:03:54.130 --> 00:03:57.540 
+this interaction actually works.
+Now we use the output of the
+
+61
+00:03:57.540 --> 00:04:00.090 
+teacher and the output of the
+student. We transform both of them
+
+62
+00:04:00.270 --> 00:04:03.780 
+into a probability distribution
+using the softmax function
+
+63
+00:04:04.190 --> 00:04:07.750 
+and then we calculate the
+loss between those two
+
+64
+00:04:08.190 --> 00:04:11.260 
+probability distributions because
+we want to make them aligned
+
+65
+00:04:11.670 --> 00:04:15.070 
+in this case and aligning the
+probability distributions which
+
+66
+00:04:15.070 --> 00:04:18.060 
+are not hard in this case but
+they're kind of soft because
+
+67
+00:04:18.060 --> 00:04:21.880 
+we do not only have one one and
+the rest is zeroes, actually
+
+68
+00:04:22.320 --> 00:04:26.950 
+in this case it's used here for training.
+So we have so called soft labels
+
+69
+00:04:28.680 --> 00:04:29.650 
+for training
+the students
+
+70
+00:04:30.630 --> 00:04:33.410 
+and this is got done over and
+over again with lots of images
+
+71
+00:04:33.410 --> 00:04:36.750 
+and we all always use the teacher
+as the basis to train our student.
+
+72
+00:04:38.130 --> 00:04:41.140 
+So let's have a look at a case
+study. In this case the training
+
+73
+00:04:41.150 --> 00:04:44.820 
+of model on the image classification
+task where the model shall
+
+74
+00:04:44.980 --> 00:04:47.250 
+distinguish between thousand
+different classes.
+
+75
+00:04:47.840 --> 00:04:51.970 
+And if we take a large model, in this
+case ResNet-152,
+
+76
+00:04:52.230 --> 00:04:55.480 
+as a teacher which has more than
+sixty million parameters and
+
+77
+00:04:55.480 --> 00:04:58.730 
+a model size of roughly two
+hundred fifty megabytes, we can
+
+78
+00:04:58.730 --> 00:05:00.040 
+get a top 1
+accuracy of
+
+79
+00:05:00.820 --> 00:05:03.720 
+roughly seventy eight percent,
+which is quite good.
+
+80
+00:05:04.750 --> 00:05:07.980 
+And if we take a student which
+is a smaller neural network, in
+
+81
+00:05:07.980 --> 00:05:12.460 
+this case a ResNet-50 for instance, it
+has only twenty five million parameters
+
+82
+00:05:12.830 --> 00:05:15.970 
+and about one hundred four megabytes
+of model size. We can get
+
+83
+00:05:15.970 --> 00:05:18.770 
+a top 1 accuracy of seventy
+six point three two percent if
+
+84
+00:05:18.770 --> 00:05:22.300 
+we train this also on hard labels. So,
+in the same way we trained our teacher.
+
+85
+00:05:22.650 --> 00:05:26.720 
+So we see it's smaller and it's also
+not as accurate as the teacher.
+
+86
+00:05:27.100 --> 00:05:31.750 
+But if we now get to use knowledge
+distillation, we can actually
+
+87
+00:05:31.920 --> 00:05:35.300 
+use this less that fifty with the same
+parameters at the same model size
+
+88
+00:05:35.610 --> 00:05:38.430 
+and actually get it to a top
+1 accuracy of seventy seven
+
+89
+00:05:38.430 --> 00:05:41.390 
+point seven five percent, which
+is way better than seventy six
+
+90
+00:05:41.390 --> 00:05:42.440 
+point three two percent
+
+91
+00:05:43.120 --> 00:05:44.810 
+and very close to
+the original
+
+92
+00:05:46.820 --> 00:05:49.210 
+accuracy of the
+teacher model. So
+
+93
+00:05:50.200 --> 00:05:53.610 
+knowledge distillation in this case really
+helps to compress the model size
+
+94
+00:05:53.890 --> 00:05:57.240 
+but keeping the accuracy at
+the same time at a high level,
+
+95
+00:05:57.440 --> 00:06:00.240 
+which is actually what we want.
+There are even cases where it's
+
+96
+00:06:00.240 --> 00:06:02.870 
+possible to use knowledge
+distillation to have a better
+
+97
+00:06:04.270 --> 00:06:08.560 
+accuracy than the teacher model had before.
+So, it could even help to improve the
+
+98
+00:06:09.820 --> 00:06:12.800 
+accuracy of the model. So
+one question remains -
+
+99
+00:06:14.020 --> 00:06:16.330 
+why does all of this
+actually work? Well,
+
+100
+00:06:16.780 --> 00:06:22.570 
+the main reason actually is that models - neural
+networks most often are over parameterised.
+
+101
+00:06:23.030 --> 00:06:26.900 
+Over parameterised - what does it
+mean? Well, it basically means
+
+102
+00:06:26.900 --> 00:06:29.760 
+that we have lots of parameters
+that we can train, but there are
+
+103
+00:06:29.760 --> 00:06:33.340 
+way too many parameters then we
+actually need for a task that
+
+104
+00:06:33.340 --> 00:06:36.790 
+we want to do. And so if we have
+too many parameters, they
+
+105
+00:06:36.790 --> 00:06:37.790 
+can be used for
+
+106
+00:06:39.490 --> 00:06:42.920 
+well, tasks or things of a task that
+we just don't want our network to do.
+
+107
+00:06:43.960 --> 00:06:46.580 
+And so if we use a smaller model
+we actually do not have that
+
+108
+00:06:46.580 --> 00:06:50.610 
+many parameters and we can try to use
+the more efficiently these parameters
+
+109
+00:06:51.230 --> 00:06:54.050 
+by just using the amount of
+parameters we actually need.
+
+110
+00:06:54.760 --> 00:06:59.350 
+And furthermore, soft targets - if we use
+them for training, they contain a
+
+111
+00:06:59.530 --> 00:07:03.410 
+lot more information than just
+using the hard labels. So imagine,
+
+112
+00:07:03.770 --> 00:07:07.880 
+you have the dog and the hard label
+is for our case one zero zero zero.
+
+113
+00:07:08.720 --> 00:07:12.210 
+It only tells the network okay,
+it's a dog and the dog is just
+
+114
+00:07:12.210 --> 00:07:15.740 
+a dog and nothing else. However,
+in real life where we could
+
+115
+00:07:15.740 --> 00:07:18.420 
+say a dog is actually quite related
+for instance to a cat which
+
+116
+00:07:18.420 --> 00:07:20.810 
+would be our class one,
+right, since they have
+
+117
+00:07:21.360 --> 00:07:24.980 
+pointy ears for instance. But a dog
+is not that related to a car.
+
+118
+00:07:25.690 --> 00:07:29.210 
+So, using the soft labels
+we actually also
+
+119
+00:07:29.780 --> 00:07:33.490 
+encode some kind of information
+about the different images
+
+120
+00:07:33.490 --> 00:07:36.940 
+of different classes that we have which
+actually helps our student to learn.
+
+121
+00:07:37.480 --> 00:07:40.950 
+And another reason why this is also
+works is because soft targets
+
+122
+00:07:40.950 --> 00:07:44.180 
+have less variance in the gradients
+that we use for updating
+
+123
+00:07:44.180 --> 00:07:46.450 
+the parameters of our model
+using gradient descent.
+
+124
+00:07:47.390 --> 00:07:50.790 
+Less variance in this case means
+it does not jump that much
+
+125
+00:07:50.930 --> 00:07:54.280 
+between different updates. So if
+we have one dog and one cat
+
+126
+00:07:54.280 --> 00:07:56.450 
+trained on the hard label,
+we might get a little
+
+127
+00:07:57.350 --> 00:08:00.910 
+mini jumps between our updates but
+if we have these soft labels
+
+128
+00:08:01.380 --> 00:08:04.090 
+our model can not only go into
+this directional direction but
+
+129
+00:08:04.090 --> 00:08:07.820 
+it can go into the middle a little
+bit more. So it's actually
+
+130
+00:08:08.320 --> 00:08:11.010 
+easier to train it, because it's
+smoother and it's not that
+
+131
+00:08:11.550 --> 00:08:15.340 
+jumpy, let's say it like this. Makes
+it easier to train, which is
+
+132
+00:08:15.350 --> 00:08:18.380 
+important in this case to train
+our student because it does
+
+133
+00:08:18.380 --> 00:08:22.790 
+not have that much representational
+power than our teacher model.
+
+134
+00:08:24.550 --> 00:08:25.940 
+So, in conclusion,
+
+135
+00:08:27.580 --> 00:08:32.730 
+we've seen that model distillation is a
+method for compressing neural network models
+
+136
+00:08:33.260 --> 00:08:38.560 
+and it basically works because large
+models tend to have too many parameters
+
+137
+00:08:39.020 --> 00:08:39.910 
+which we can use.
+
+138
+00:08:41.370 --> 00:08:44.790 
+This fact with small models because
+they might have the correct
+
+139
+00:08:44.790 --> 00:08:48.950 
+amount of parameters, we need to know how
+to tune these parameters correctly.
+
+140
+00:08:49.860 --> 00:08:53.810 
+In model distillation, we always need
+to have a teacher which knows
+
+141
+00:08:53.810 --> 00:08:55.650 
+what it's doing and a
+student who needs to learn.
+
+142
+00:08:56.080 --> 00:08:59.650 
+And we learn the student
+using our soft labels.
+
+143
+00:09:00.520 --> 00:09:03.120 
+In the end, we can use model
+distillation to reduce the energy
+
+144
+00:09:03.120 --> 00:09:06.370 
+usage of AI because the student,
+which is then later deployed
+
+145
+00:09:07.030 --> 00:09:11.210 
+in the real world and is used
+millions of times, is way smaller
+
+146
+00:09:11.300 --> 00:09:14.390 
+on the one hand and a teacher,
+uses less parameters and less
+
+147
+00:09:14.390 --> 00:09:18.470 
+parameters mean less computation,
+less computation means less energy
+
+148
+00:09:18.790 --> 00:09:23.100 
+in the end, which is good for environment
+and also doesn't cost as much money.
+
+149
+00:09:24.250 --> 00:09:27.440 
+In our case study, we've seen
+that model compression
+
+150
+00:09:29.320 --> 00:09:32.650 
+of more than factor two is possible for
+instance, if we use ResNet-52
+
+151
+00:09:32.650 --> 00:09:36.950 
+and ResNet-50,  if we compare
+the parameters and model size
+
+152
+00:09:37.840 --> 00:09:42.210 
+while the accuracy loss is actually minimal -
+it's only point twenty three percent,
+
+153
+00:09:42.410 --> 00:09:47.290 
+which is quite astonishing. It could
+even have more accuracy than before.
+
+154
+00:09:47.990 --> 00:09:51.220 
+And one last thing is that we
+haven't talked about here -
+
+155
+00:09:51.720 --> 00:09:56.150 
+that model distillation can also be
+used for the compression of whole
+
+156
+00:09:56.280 --> 00:10:00.390 
+ensembles of models. So you could say
+if we have ten teacher models, we
+
+157
+00:10:00.840 --> 00:10:03.210 
+could compress all these ten
+teacher models to perform the
+
+158
+00:10:03.210 --> 00:10:06.290 
+same task but might give different
+answers to the same image
+
+159
+00:10:06.470 --> 00:10:07.590 
+into one model which
+
+160
+00:10:08.710 --> 00:10:12.720 
+actually works as well as these
+ten models together, these ten experts,
+
+161
+00:10:13.080 --> 00:10:17.170 
+but it's just one model. So we can
+actually save even more energy
+
+162
+00:10:17.620 --> 00:10:20.290 
+and storage space. So,
+
+163
+00:10:21.110 --> 00:10:24.260 
+thank you very much. And I hope
+that was interesting for you
+
+164
+00:10:24.260 --> 00:10:26.820 
+and you can now go and
+compress all your models.

@@ -1,0 +1,350 @@
+WEBVTT
+
+00:00:00.659 --> 00:00:04.839
+In this chapter our goal is to introduce some
+metrics for measuring the performance of a
+
+00:00:04.839 --> 00:00:08.950
+circuit and then investigate ways to improve
+that performance.
+
+00:00:08.950 --> 00:00:13.110
+We'll start by putting aside circuits for
+a moment and look at an everyday example that
+
+00:00:13.110 --> 00:00:17.810
+will help us understand the proposed performance
+metrics.
+
+00:00:17.810 --> 00:00:21.720
+Laundry is a processing task we all have to
+face at some point!
+
+00:00:21.720 --> 00:00:26.510
+The input to our laundry "system" is some
+number of loads of dirty laundry and the output
+
+00:00:26.510 --> 00:00:30.519
+is the same loads, but washed, dried, and
+folded.
+
+00:00:30.519 --> 00:00:35.760
+There two system components: a washer that
+washes a load of laundry in 30 minutes, and
+
+00:00:35.760 --> 00:00:38.780
+a dryer that dries a load in 60 minutes.
+
+00:00:38.780 --> 00:00:43.030
+You may be used to laundry system components
+with different propagation delays, but let's
+
+00:00:43.030 --> 00:00:46.219
+go with these delays for our example.
+
+00:00:46.219 --> 00:00:49.200
+Our laundry follows a simple path through
+the system:
+
+00:00:49.200 --> 00:00:55.120
+each load is first washed in the washer and
+afterwards moved to the dryer for drying.
+
+00:00:55.120 --> 00:00:59.590
+There can, of course, be delays between the
+steps of loading the washer, or moving wet,
+
+00:00:59.590 --> 00:01:04.580
+washed loads to the dryer, or in taking dried
+loads out of the dryer.
+
+00:01:04.580 --> 00:01:08.840
+Let's assume we move the laundry through the
+system as fast as possible, moving loads to
+
+00:01:08.840 --> 00:01:12.760
+the next processing step as soon as we can.
+
+00:01:12.760 --> 00:01:17.090
+Most of us wait to do laundry until we've
+accumulated several loads.
+
+00:01:17.090 --> 00:01:19.039
+That turns out to be a good strategy!
+
+00:01:19.039 --> 00:01:20.770
+Let's see why…
+
+00:01:20.770 --> 00:01:25.520
+To process a single load of laundry, we first
+run it through the washer, which takes 30
+
+00:01:25.520 --> 00:01:26.520
+minutes.
+
+00:01:26.520 --> 00:01:29.400
+Then we run it through the dryer, which takes
+60 minutes.
+
+00:01:29.400 --> 00:01:34.560
+So the total amount of time from system input
+to system output is 90 minutes.
+
+00:01:34.560 --> 00:01:38.850
+If this were a combinational logic circuit,
+we'd say the circuit's propagation delay is
+
+00:01:38.850 --> 00:01:42.780
+90 minutes from valid inputs to valid outputs.
+
+00:01:42.780 --> 00:01:46.700
+Okay, that's the performance analysis for
+a single load of laundry.
+
+00:01:46.700 --> 00:01:50.750
+Now let's think about doing N loads of laundry.
+
+00:01:50.750 --> 00:01:55.100
+Here at MIT we like to make gentle fun of
+our colleagues at the prestigious institution
+
+00:01:55.100 --> 00:01:57.150
+just up the river from us.
+
+00:01:57.150 --> 00:02:01.439
+So here's how we imagine they do N loads of
+laundry at Harvard.
+
+00:02:01.439 --> 00:02:06.140
+They follow the combinational recipe of supplying
+new system inputs after the system generates
+
+00:02:06.140 --> 00:02:09.590
+the correct output from the previous set of
+inputs.
+
+00:02:09.590 --> 00:02:15.000
+So in step 1 the first load is washed and
+in step 2, the first load is dried, taking
+
+00:02:15.000 --> 00:02:17.280
+a total of 90 minutes.
+
+00:02:17.280 --> 00:02:21.750
+Once those steps complete, Harvard students
+move on to step 3, starting the processing
+
+00:02:21.750 --> 00:02:23.140
+of the second load of laundry.
+
+00:02:23.140 --> 00:02:24.790
+And so on…
+
+00:02:24.790 --> 00:02:29.420
+The total time for the system to process N
+laundry loads is just N times the time it
+
+00:02:29.420 --> 00:02:31.890
+takes to process a single load.
+
+00:02:31.890 --> 00:02:34.840
+So the total time is N*90 minutes.
+
+00:02:34.840 --> 00:02:37.750
+Of course, we're being silly here!
+
+00:02:37.750 --> 00:02:40.420
+Harvard students don't actually do laundry.
+
+00:02:40.420 --> 00:02:44.940
+Mummy sends the family butler over on Wednesday
+mornings to collect the dirty loads and return
+
+00:02:44.940 --> 00:02:49.760
+them starched and pressed in time for afternoon
+tea.
+
+00:02:49.760 --> 00:02:53.480
+But I hope you're seeing the analogy we're
+making between the Harvard approach to laundry
+
+00:02:53.480 --> 00:02:55.540
+and combinational circuits.
+
+00:02:55.540 --> 00:03:00.610
+We can all see that the washer is sitting
+idle while the dryer is running and that inefficiency
+
+00:03:00.610 --> 00:03:06.410
+has a cost in terms of the rate at which N
+load of laundry can move through the system.
+
+00:03:06.410 --> 00:03:11.780
+As engineering students here in 6.004, we
+see that it makes sense to overlap washing
+
+00:03:11.780 --> 00:03:13.100
+and drying.
+
+00:03:13.100 --> 00:03:15.700
+So in step 1 we wash the first load.
+
+00:03:15.700 --> 00:03:21.150
+And in step 2, we dry the first load as before,
+but, in addition, we start washing the second
+
+00:03:21.150 --> 00:03:22.520
+load of laundry.
+
+00:03:22.520 --> 00:03:28.079
+We have to allocate 60 minutes for step 2
+in order to give the dryer time to finish.
+
+00:03:28.079 --> 00:03:32.460
+There's a slight inefficiency in that the
+washer finishes its work early, but with only
+
+00:03:32.460 --> 00:03:38.819
+one dryer, it's the dryer that determines
+how quickly laundry moves through the system.
+
+00:03:38.819 --> 00:03:43.680
+Systems that overlap the processing of a sequence
+of inputs are called pipelined systems and
+
+00:03:43.680 --> 00:03:48.290
+each of the processing steps is called a stage
+of the pipeline.
+
+00:03:48.290 --> 00:03:52.700
+The rate at which inputs move through the
+pipeline is determined by the slowest pipeline
+
+00:03:52.700 --> 00:03:53.709
+stage.
+
+00:03:53.709 --> 00:04:00.120
+Our laundry system is a 2-stage pipeline with
+a 60-minute processing time for each stage.
+
+00:04:00.120 --> 00:04:06.110
+We repeat the overlapped wash/dry step until
+all N loads of laundry have been processed.
+
+00:04:06.110 --> 00:04:10.370
+We're starting a new washer load every 60
+minutes and getting a new load of dried laundry
+
+00:04:10.370 --> 00:04:12.599
+from the dryer every 60 minutes.
+
+00:04:12.599 --> 00:04:17.529
+In other words, the effective processing rate
+of our overlapped laundry system is one load
+
+00:04:17.529 --> 00:04:19.519
+every 60 minutes.
+
+00:04:19.519 --> 00:04:25.010
+So once the process is underway N loads of
+laundry takes N*60 minutes.
+
+00:04:25.010 --> 00:04:31.850
+And a particular load of laundry, which requires
+two stages of processing time, takes 120 minutes.
+
+00:04:31.850 --> 00:04:35.720
+The timing for the first load of laundry is
+a little different since the timing of Step
+
+00:04:35.720 --> 00:04:38.800
+1 can be shorter with no dryer to wait for.
+
+00:04:38.800 --> 00:04:43.470
+But in the performance analysis of pipelined
+systems, we're interested in the steady state
+
+00:04:43.470 --> 00:04:47.310
+where we're assuming that we have an infinite
+supply of inputs.
+
+00:04:47.310 --> 00:04:50.880
+We see that there are two interesting performance
+metrics.
+
+00:04:50.880 --> 00:04:55.120
+The first is the latency of the system, the
+time it takes for the system to process a
+
+00:04:55.120 --> 00:04:56.470
+particular input.
+
+00:04:56.470 --> 00:05:01.590
+In the Harvard laundry system, it takes 90
+minutes to wash and dry a load.
+
+00:05:01.590 --> 00:05:07.000
+In the 6.004 laundry, it takes 120 minutes
+to wash and dry a load, assuming that it's
+
+00:05:07.000 --> 00:05:08.880
+not the first load.
+
+00:05:08.880 --> 00:05:14.320
+The second performance measure is throughput,
+the rate at which the system produces outputs.
+
+00:05:14.320 --> 00:05:19.050
+In many systems, we get one set of outputs
+for each set of inputs, and in such systems,
+
+00:05:19.050 --> 00:05:23.490
+the throughput also tells us the rate at inputs
+are consumed.
+
+00:05:23.490 --> 00:05:28.680
+In the Harvard laundry system, the throughput
+is 1 load of laundry every 90 minutes.
+
+00:05:28.680 --> 00:05:35.090
+In the 6.004 laundry, the throughput is 1
+load of laundry every 60 minutes.
+
+00:05:35.090 --> 00:05:40.760
+The Harvard laundry has lower latency, the
+6.004 laundry has better throughput.
+
+00:05:40.760 --> 00:05:43.180
+Which is the better system?
+
+00:05:43.180 --> 00:05:45.210
+That depends on your goals!
+
+00:05:45.210 --> 00:05:50.389
+If you need to wash 100 loads of laundry,
+you'd prefer to use the system with higher
+
+00:05:50.389 --> 00:05:51.389
+throughput.
+
+00:05:51.389 --> 00:05:56.300
+If, on the other hand, you want clean underwear
+for your date in 90 minutes, you're much more
+
+00:05:56.300 --> 00:05:59.420
+concerned about the latency.
+
+00:05:59.420 --> 00:06:04.640
+The laundry example also illustrates a common
+tradeoff between latency and throughput.
+
+00:06:04.640 --> 00:06:09.590
+If we increase throughput by using pipelined
+processing, the latency usually increases
+
+00:06:09.590 --> 00:06:14.400
+since all pipeline stages must operate in
+lock-step and the rate of processing is thus
+
+00:06:14.400 --> 00:06:16.180
+determined by the slowest stage.

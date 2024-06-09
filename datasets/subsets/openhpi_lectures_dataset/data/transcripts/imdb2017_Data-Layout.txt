@@ -1,0 +1,523 @@
+WEBVTT
+
+1
+00:00:01.000 --> 00:00:09.000 
+We want to look inside the database now and
+get some basics. The first one is, whenever
+
+2
+00:00:09.000 --> 00:00:25.000 
+we a draw a structure of diagram, we represent
+data in a time of rectangular shape, two dimensional.
+
+3
+00:00:25.000 --> 00:00:36.000 
+We do this ever since. Data is not two dimensional.
+Data is fundamentally one dimensional.
+
+4
+00:00:36.000 --> 00:00:44.000 
+Memory introduce computer normal, always,
+it always started with a linear address layout.
+
+5
+00:00:44.000 --> 00:00:56.000 
+It starts as 0 and goes to FFFF. I think 48
+bits of the 64 bits is used one computer for
+
+6
+00:00:56.000 --> 00:01:07.000 
+address and that’s defining the scope of
+bytes you can directly address. So this is
+
+7
+00:01:07.000 --> 00:01:17.000 
+256 TB of DRAM one a single machine. Some
+room to go, would be nice to have this and
+
+8
+00:01:17.000 --> 00:01:28.000 
+then 10 of those and we have already 2.5 PT.
+The physical space might be smaller and there
+
+9
+00:01:28.000 --> 00:01:38.000 
+is the concept of virtual memory, where which
+can be larger than the physical memory. We
+
+10
+00:01:38.000 --> 00:01:51.000 
+will not use the virtual memory, because we
+want to keep the data in memory and keep them
+
+11
+00:01:51.000 --> 00:02:05.000 
+physically in memory and not activate paging.
+As nice as the concept of virtual memory is,
+
+12
+00:02:05.000 --> 00:02:14.000 
+since it was never really controllable, one
+of the worst features of modern computer or
+
+13
+00:02:14.000 --> 00:02:22.000 
+most dangerous features. I could have developed
+much more software if virtual memory wouldn’t
+
+14
+00:02:22.000 --> 00:02:32.000 
+have been the stumbling block for performance
+in the 70s and in the 80s. When virtual memory
+
+15
+00:02:32.000 --> 00:02:38.000 
+was introduced people thought “Oh, now it’s
+easy. We can have much more data in memory
+
+16
+00:02:38.000 --> 00:02:43.000 
+and programs in memory and we can run more
+programs and we have multi-programming, which
+
+17
+00:02:43.000 --> 00:02:50.000 
+was a virtual multi-programming. It was not
+on multiple physical CPUs, it was sharing
+
+18
+00:02:50.000 --> 00:03:02.000 
+multiple threads on one CPU. And I still remember
+the days when CIO of companies we know, said
+
+19
+00:03:02.000 --> 00:03:13.000 
+“We have a very good IT department. We run
+the computer at 125 % load” which was an
+
+20
+00:03:13.000 --> 00:03:19.000 
+accounting problem. And when I give to them
+“If you run, what’s your page rate?”
+
+21
+00:03:19.000 --> 00:03:23.000 
+And they said “Ah, we page 20 pages per
+second”. And I said “You probably run
+
+22
+00:03:23.000 --> 00:03:33.000 
+at 60 %. Your capacity is 60% and you run
+far beyond capacity. So you will have response
+
+23
+00:03:33.000 --> 00:03:40.000 
+time issues.” And that’s what I did probably
+for 5 years in my life: Go to companies and
+
+24
+00:03:40.000 --> 00:03:51.000 
+educate them, that if you overload the device,
+which is a 100% determined digital device
+
+25
+00:03:51.000 --> 00:03:57.000 
+based on the fixed clock rate, it’s not
+a underclocked device, it’s not like a speaker
+
+26
+00:03:57.000 --> 00:04:05.000 
+system which you can overdrive a little bit,
+it’s not like audio. The computer has 100%
+
+27
+00:04:05.000 --> 00:04:17.000 
+maximum capacity and anything you do in socializing
+a limited resource degrades the capacity.
+
+28
+00:04:17.000 --> 00:04:24.000 
+So running multiple threads on one CPU means
+there is a scheduling overhead and capacity
+
+29
+00:04:24.000 --> 00:04:31.000 
+goes down. If you use more memory than there
+is physical memory there is paging and paging
+
+30
+00:04:31.000 --> 00:04:41.000 
+has to be executed by the CPU itself. So it
+takes away CPU cycles for paging and degrades
+
+31
+00:04:41.000 --> 00:04:50.000 
+the maximum capacity the machine has. Most
+people in the 70s and 80s did not understand
+
+32
+00:04:50.000 --> 00:05:02.000 
+this. Computer Experts of IBM or SUN, network
+experts, they all knew that overloading a
+
+33
+00:05:02.000 --> 00:05:09.000 
+system and that’s starts already at 30 % better
+probably 25%, creates collisions; this is
+
+34
+00:05:09.000 --> 00:05:14.000 
+on the network, this is on the computer. You
+create wait times and then you create queuing
+
+35
+00:05:14.000 --> 00:05:21.000 
+and the whole degradation of performance from
+the user perspective starts.
+
+36
+00:05:21.000 --> 00:05:31.000 
+There is only one memory and the memory is
+linear. That’s the thing we have to understand.
+
+37
+00:05:31.000 --> 00:05:39.000 
+Each of the software processes sitting on
+top of the system, each UNIX process has now
+
+38
+00:05:39.000 --> 00:05:49.000 
+a map on top of this memory and this the address
+space this UNIX process is using. And there
+
+39
+00:05:49.000 --> 00:05:58.000 
+is a translation between what the UNIX process
+sees and the physical address on the system.
+
+40
+00:05:58.000 --> 00:06:05.000 
+The more we understand this concept that there
+is only main memory and we not do overload
+
+41
+00:06:05.000 --> 00:06:15.000 
+main memory and we do not indirectly store
+data on disk by using paging then there is
+
+42
+00:06:15.000 --> 00:06:22.000 
+no overhead in management of storage by the
+operating system.
+
+43
+00:06:22.000 --> 00:06:34.000 
+So the memory is linear and the question is
+now how can we store data in a data which
+
+44
+00:06:34.000 --> 00:06:40.000 
+has the matrix characteristic on the machine.
+
+45
+00:06:40.000 --> 00:06:48.000 
+That should be different colors. So let us
+look at the matrix, it’s not 10x10, it’s
+
+46
+00:06:48.000 --> 00:06:59.000 
+3x4 now. And there is the obvious layout,
+we all use, is the record layout. Record layout
+
+47
+00:06:59.000 --> 00:07:07.000 
+means the tuple is stored in a record. Because
+we always had records coming from the disk,
+
+48
+00:07:07.000 --> 00:07:13.000 
+we always had records coming from tape, so
+we records coming from disk and that was just
+
+49
+00:07:13.000 --> 00:07:22.000 
+natural to store all the attributes of one
+to both together. So that is the row data
+
+50
+00:07:22.000 --> 00:07:34.000 
+layout, page 7. And data is stored tuple-wise.
+This is good for record oriented programming.
+
+51
+00:07:34.000 --> 00:07:43.000 
+I directly access the tuple, I get the whole
+tuple and I can work on it. You can see this
+
+52
+00:07:43.000 --> 00:07:52.000 
+on the bottom when we do a row operation.
+We get all three attributes very quickly together,
+
+53
+00:07:52.000 --> 00:07:59.000 
+because they’re in physical neighborhood
+in memory. So in order to get both, this record
+
+54
+00:07:59.000 --> 00:08:09.000 
+to the CPU to do something with the record,
+is very easy access. The opposite, if we want
+
+55
+00:08:09.000 --> 00:08:17.000 
+to do a column operation, which is the mathematically
+equivalent to a row operation, we want to
+
+56
+00:08:17.000 --> 00:08:19.000 
+go through a column.
+
+57
+00:08:19.000 --> 00:08:33.000 
+We want to go throw in this case the attribute
+A, we have to jump. Which is most likely when
+
+58
+00:08:33.000 --> 00:08:42.000 
+we look at real tables with real number of
+attributes a cache miss and by said before
+
+59
+00:08:42.000 --> 00:08:51.000 
+we don’t have disk access anymore, but we
+have main memory access anymore and if the
+
+60
+00:08:51.000 --> 00:08:57.000 
+data is not in the cache then it has to come
+from the DRAM to Level 3, to Level 2, to Level
+
+61
+00:08:57.000 --> 00:09:08.000 
+1 and then I can start executing on the attributes
+of the various columns. So as a first glance
+
+62
+00:09:08.000 --> 00:09:15.000 
+row operation is good for record type access
+and now it’s clear why companies who came
+
+63
+00:09:15.000 --> 00:09:27.000 
+from a classic storage like ISA, EISA and
+transfer that into relational databases, they
+
+64
+00:09:27.000 --> 00:09:35.000 
+continue to think in rows. People who came
+from other systems probably 20 years ago started
+
+65
+00:09:35.000 --> 00:09:43.000 
+to think we could do it differently. We could
+store column wise.
+
+66
+00:09:43.000 --> 00:09:51.000 
+That means all attributes of a table, of a
+relation or instances of an attribute are
+
+67
+00:09:51.000 --> 00:10:05.000 
+stored together. So we create a row and when
+we do set processing we go through all rows
+
+68
+00:10:05.000 --> 00:10:18.000 
+of a relation by scanning the column then
+the various instances are very close together.
+
+69
+00:10:18.000 --> 00:10:30.000 
+And we think now about a table which has 100
+attributes and we have a million records,
+
+70
+00:10:30.000 --> 00:10:40.000 
+then this becomes a significant difference.
+Negative, if we have a row operation, we want
+
+71
+00:10:40.000 --> 00:10:48.000 
+to have one tuple then we have to jump from
+attribute to attribute in order to collect
+
+72
+00:10:48.000 --> 00:10:59.000 
+all the attributes of the tuple. In the end
+programs think in records, but they can let
+
+73
+00:10:59.000 --> 00:11:07.000 
+the system operate on columns for find, the
+can operate on columns for aggregate, but
+
+74
+00:11:07.000 --> 00:11:19.000 
+in the end the result will always look like
+a row structure. So the first thing we clearly
+
+75
+00:11:19.000 --> 00:11:30.000 
+can identify set operations on attributes
+are faster in the column organization, select
+
+76
+00:11:30.000 --> 00:11:38.000 
+operations for single tuples are faster in
+the row organization. And now there is a trade-off
+
+77
+00:11:38.000 --> 00:11:50.000 
+to be made and it is not true that the select
+of one single tuple is totally dominating
+
+78
+00:11:50.000 --> 00:12:01.000 
+despite for example some folks in the development
+in SAP think this is; this is not true. When
+
+79
+00:12:01.000 --> 00:12:12.000 
+you look at the total consumption of resources
+by programs in a real system application then
+
+80
+00:12:12.000 --> 00:12:23.000 
+the set processing is totally dominating with
+regards to the overall consumption.
+
+81
+00:12:23.000 --> 00:12:32.000 
+And there is a last one. This is a combination
+of row and column store.
+
+82
+00:12:32.000 --> 00:12:39.000 
+When you really look at commercial applications
+then there are very often attributes which
+
+83
+00:12:39.000 --> 00:12:53.000 
+belong together. This is quantity and measuring
+unit, this is the famous payment conditions
+
+84
+00:12:53.000 --> 00:13:08.000 
+and accounting; this invoice is payable in
+2% 14 days, 1% 30 days, 60 days net for example.
+
+85
+00:13:08.000 --> 00:13:18.000 
+So very often there attribute groups which
+are being processed together and then it could
+
+86
+00:13:18.000 --> 00:13:28.000 
+make sense to physically keep them together.
+So at the HPI the group developed the variation
+
+87
+00:13:28.000 --> 00:13:41.000 
+of a column store database by using this concept
+of despite it’s mainly organized along columns
+
+88
+00:13:41.000 --> 00:13:49.000 
+that we can glue columns together and create
+many rows for certain attributes which are
+
+89
+00:13:49.000 --> 00:13:58.000 
+always processed together and the computer
+can find this out automatically analyzing
+
+90
+00:13:58.000 --> 00:14:06.000 
+the select statements in an application which
+declares the select with minimum projections.
+
+91
+00:14:06.000 --> 00:14:12.000 
+And I repeat this, that this is very important
+information, that the database can optimize
+
+92
+00:14:12.000 --> 00:14:21.000 
+automatically how to organize data. Which
+anyway is one of the great advantages of having
+
+93
+00:14:21.000 --> 00:14:27.000 
+everything under control in memory, most of
+the optimizations which can be done around
+
+94
+00:14:27.000 --> 00:14:37.000 
+a database and to set up the database through
+database administration tools can in this
+
+95
+00:14:37.000 --> 00:14:43.000 
+setup of a database be done by the program
+by the database itself.
+
+96
+00:14:43.000 --> 00:14:51.000 
+So it’s important there is no such thing
+like a two dimensional space where we could
+
+97
+00:14:51.000 --> 00:15:01.000 
+put data in. It’s a string and either we
+have the all attributes of one column close
+
+98
+00:15:01.000 --> 00:15:07.000 
+together or we have all attributes of a tuple
+close together. This distinction we have to
+
+99
+00:15:07.000 --> 00:15:16.000 
+make and when we do this automatically with
+some intelligence then we will see that for
+
+100
+00:15:16.000 --> 00:15:27.000 
+most of the applications the system will come
+up with a column store as the better organization.
+
+101
+00:15:27.000 --> 00:15:36.000 
+Just to have the other alternative if we keep
+aggregations in the system and heavily update
+
+102
+00:15:36.000 --> 00:15:49.000 
+this in a way, then it might be favorable
+to store this in row form. The difference
+
+103
+00:15:49.000 --> 00:16:00.000 
+is not so major, but there is a difference.
+So are advantages, but since the set-processing
+
+104
+00:16:00.000 --> 00:16:11.000 
+totally cost-wise dominates the total consumption
+of resources, the column store in most cases
+
+105
+00:16:11.000 --> 00:18:11.000 
+is the optimum store.

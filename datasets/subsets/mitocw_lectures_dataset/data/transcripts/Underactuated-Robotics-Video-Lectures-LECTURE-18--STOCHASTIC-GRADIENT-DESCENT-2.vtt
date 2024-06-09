@@ -1,0 +1,5886 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.520
+The following content is
+provided under a Creative
+
+00:00:02.520 --> 00:00:03.970
+Commons license.
+
+00:00:03.970 --> 00:00:06.360
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.360 --> 00:00:10.660
+continue to offer high quality
+educational resources for free.
+
+00:00:10.660 --> 00:00:13.320
+To make a donation or
+view additional materials
+
+00:00:13.320 --> 00:00:17.160
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.160 --> 00:00:18.370
+at ocw.mit.edu.
+
+00:00:21.880 --> 00:00:23.860
+JOHN W. ROBERTS:
+Our investigation
+
+00:00:23.860 --> 00:00:26.110
+of stochastic gradient descent.
+
+00:00:29.398 --> 00:00:31.690
+This time, we'll be talking
+about the stochastic policy
+
+00:00:31.690 --> 00:00:32.500
+interpretation.
+
+00:00:32.500 --> 00:00:35.750
+And I have some examples.
+
+00:00:35.750 --> 00:00:37.547
+Well, a very simple
+sort of system example.
+
+00:00:37.547 --> 00:00:39.880
+But a whole bunch of ways of
+looking and fooling with it
+
+00:00:39.880 --> 00:00:41.922
+in policy parameters that
+hopefully give you some
+
+00:00:41.922 --> 00:00:45.623
+feel for how to actually
+go about using this,
+
+00:00:45.623 --> 00:00:48.040
+if you want to use in your
+project or something like that.
+
+00:00:59.380 --> 00:01:07.480
+So here.
+
+00:01:19.980 --> 00:01:20.480
+OK.
+
+00:01:26.080 --> 00:01:33.820
+So I gave a little
+introduction to the idea
+
+00:01:33.820 --> 00:01:37.420
+of a stochastic
+policy last time.
+
+00:01:37.420 --> 00:01:40.540
+But this time, I'll give maybe
+a little review of the things
+
+00:01:40.540 --> 00:01:42.010
+and also a sketch
+of the algorithm.
+
+00:01:42.010 --> 00:01:46.180
+I think someone asked,
+Joe asked for pseudocode.
+
+00:01:46.180 --> 00:01:48.430
+To get a feel of the process
+you need to go through.
+
+00:01:52.850 --> 00:01:57.900
+So just in sort of words,
+this is the process.
+
+00:01:57.900 --> 00:02:00.580
+I'll just get right into it.
+
+00:02:00.580 --> 00:02:02.110
+Set.
+
+00:02:02.110 --> 00:02:03.003
+Alpha.
+
+00:02:03.003 --> 00:02:04.420
+And again, there's
+a bunch of ways
+
+00:02:04.420 --> 00:02:05.710
+of actually implementing
+this and going
+
+00:02:05.710 --> 00:02:06.370
+through the details of it.
+
+00:02:06.370 --> 00:02:08.590
+But this is a very simple
+way and easy understand.
+
+00:02:08.590 --> 00:02:11.800
+And most of the other
+forms are pretty clearly
+
+00:02:11.800 --> 00:02:12.550
+derived from this.
+
+00:02:12.550 --> 00:02:14.920
+We can sort of tweak it
+maybe to get a little bit
+
+00:02:14.920 --> 00:02:17.770
+better performance or fill in
+the details in different ways.
+
+00:02:17.770 --> 00:02:20.710
+But set alpha to
+an initial guess.
+
+00:02:27.730 --> 00:02:29.116
+Wow.
+
+00:02:29.116 --> 00:02:31.050
+Sorry.
+
+00:02:31.050 --> 00:02:33.460
+So this is what you
+start your policy off as.
+
+00:02:33.460 --> 00:02:36.040
+You can start it as zero or
+a bunch of random numbers.
+
+00:02:36.040 --> 00:02:38.620
+And this can affect your
+results a lot actually.
+
+00:02:38.620 --> 00:02:41.123
+Good initial guesses will
+obviously converge faster.
+
+00:02:41.123 --> 00:02:43.540
+But also they can be a bit
+different base of of attraction
+
+00:02:43.540 --> 00:02:45.080
+for different local minima.
+
+00:02:45.080 --> 00:02:47.783
+So it also makes sense sometimes
+to run it several times
+
+00:02:47.783 --> 00:02:50.200
+from different initial guesses
+and just see where it goes.
+
+00:02:50.200 --> 00:02:51.430
+And if they all converge
+to the same thing,
+
+00:02:51.430 --> 00:02:53.472
+that means you're at least
+in a local minima that
+
+00:02:53.472 --> 00:02:54.850
+has a large base of attraction.
+
+00:02:54.850 --> 00:02:57.020
+While, if they are go to
+very different things,
+
+00:02:57.020 --> 00:02:59.443
+that means that you sort of
+have a local minima problem.
+
+00:02:59.443 --> 00:03:01.360
+And you can take the
+minimum of all those runs
+
+00:03:01.360 --> 00:03:04.330
+or you can try to
+investigate exactly why you
+
+00:03:04.330 --> 00:03:05.247
+keep on getting stuck.
+
+00:03:05.247 --> 00:03:07.080
+So the initial guess
+isn't just like come up
+
+00:03:07.080 --> 00:03:08.350
+with the best thing you can.
+
+00:03:08.350 --> 00:03:10.660
+It also means sort of map out
+the space of policy parameters
+
+00:03:10.660 --> 00:03:12.952
+somewhat so that, when you
+get stuck in a local minima,
+
+00:03:12.952 --> 00:03:16.558
+you have some confidence about
+how good that policy really is.
+
+00:03:16.558 --> 00:03:19.900
+So then this is again,
+you don't have to do this.
+
+00:03:19.900 --> 00:03:27.740
+But run a policy pi alpha.
+
+00:03:27.740 --> 00:03:32.140
+So this is the policy with your
+parameter set of your alpha.
+
+00:03:32.140 --> 00:03:37.952
+And store the cost
+as your baseline.
+
+00:03:40.604 --> 00:03:43.780
+So that gives you
+your first baseline.
+
+00:03:43.780 --> 00:03:48.230
+Then let's see.
+
+00:03:48.230 --> 00:03:51.490
+The Do While loop here.
+
+00:03:51.490 --> 00:04:04.280
+So do draw noise z.
+
+00:04:04.280 --> 00:04:07.700
+So if you remember before, maybe
+I should sketch this first one
+
+00:04:07.700 --> 00:04:09.620
+and fill both these
+boards with the sketch,
+
+00:04:09.620 --> 00:04:11.210
+z is the noise you
+add to your policy.
+
+00:04:11.210 --> 00:04:14.600
+So when you're searching,
+when you sample,
+
+00:04:14.600 --> 00:04:15.690
+that's the vector you add.
+
+00:04:15.690 --> 00:04:17.959
+I'll write out the
+details of it over there.
+
+00:04:17.959 --> 00:04:21.629
+So draw your noise z
+from some distribution.
+
+00:04:29.460 --> 00:04:32.540
+Now, yesterday we talked about
+the example of a Gaussian.
+
+00:04:37.760 --> 00:04:38.760
+That's a common one.
+
+00:04:38.760 --> 00:04:40.218
+But there's a number
+of other ways.
+
+00:04:40.218 --> 00:04:43.140
+And actually, today we'll talk
+about a different distribution
+
+00:04:43.140 --> 00:04:44.682
+and sort of why
+you'd want to use it.
+
+00:04:47.750 --> 00:04:59.973
+Run system with pi alpha plus z.
+
+00:04:59.973 --> 00:05:01.640
+So this is sort of
+when we're evaluating
+
+00:05:01.640 --> 00:05:02.900
+how well that policy does.
+
+00:05:07.930 --> 00:05:16.700
+And then we'll say we'll store
+this just in J. All right.
+
+00:05:16.700 --> 00:05:18.200
+Now, we do the update.
+
+00:05:21.300 --> 00:05:21.800
+Remember?
+
+00:05:21.800 --> 00:05:23.280
+That we were talking about.
+
+00:05:23.280 --> 00:05:38.315
+So alpha gets alpha plus
+negative eta J minus b.
+
+00:05:38.315 --> 00:05:43.190
+b is our baseline up here.
+
+00:05:47.030 --> 00:05:50.575
+So J minus b z.
+
+00:05:53.720 --> 00:05:55.563
+And then update your baseline.
+
+00:05:59.270 --> 00:06:05.680
+Now you can do this
+with a second run
+
+00:06:05.680 --> 00:06:07.077
+where you run your new policy.
+
+00:06:07.077 --> 00:06:08.660
+That's sort of the
+more expensive way.
+
+00:06:08.660 --> 00:06:10.535
+But you can have confidence
+in that baseline,
+
+00:06:10.535 --> 00:06:16.327
+as long as it's not too random
+when you evaluate the system.
+
+00:06:16.327 --> 00:06:17.660
+You could do a decaying average.
+
+00:06:17.660 --> 00:06:21.200
+You could have,
+for example, b gets
+
+00:06:21.200 --> 00:06:28.790
+0.2 times your J plus 0.8
+times your old baseline.
+
+00:06:28.790 --> 00:06:30.358
+Right?
+
+00:06:30.358 --> 00:06:32.900
+And so, this one is sort of an
+exponentially decaying average
+
+00:06:32.900 --> 00:06:35.360
+where I take my new
+one, smooth it out
+
+00:06:35.360 --> 00:06:36.860
+by averaging with
+the previous one.
+
+00:06:36.860 --> 00:06:40.190
+And then if you think
+about what this does,
+
+00:06:40.190 --> 00:06:43.550
+sort of every
+measurement gets sort
+
+00:06:43.550 --> 00:06:46.670
+of exponentially decayed
+away and its significance
+
+00:06:46.670 --> 00:06:48.635
+as you go through time.
+
+00:06:48.635 --> 00:06:50.450
+That's the update.
+
+00:06:50.450 --> 00:06:56.210
+And then you can do this
+while not converged.
+
+00:07:01.160 --> 00:07:04.090
+So many times, you can
+just do a four loop, too.
+
+00:07:04.090 --> 00:07:05.840
+And you can just run
+it for 100 iterations
+
+00:07:05.840 --> 00:07:07.760
+or several iterations
+and see whether or not
+
+00:07:07.760 --> 00:07:09.202
+it looks to have converged.
+
+00:07:09.202 --> 00:07:10.160
+That's what I often do.
+
+00:07:10.160 --> 00:07:12.523
+But this is really what
+I guess you're doing.
+
+00:07:12.523 --> 00:07:14.690
+It's just the four looping
+stuff is sometimes easier
+
+00:07:14.690 --> 00:07:15.860
+and prevents you
+from getting stuck
+
+00:07:15.860 --> 00:07:18.110
+where your convergence
+conditions ever met and you
+
+00:07:18.110 --> 00:07:23.420
+have to Control C.
+So hopefully this
+
+00:07:23.420 --> 00:07:26.390
+is clear enough that, if you
+wanted to implement this,
+
+00:07:26.390 --> 00:07:28.310
+you can go do it and
+try for your project
+
+00:07:28.310 --> 00:07:30.160
+if that's what
+you interested in.
+
+00:07:30.160 --> 00:07:31.140
+All right.
+
+00:07:31.140 --> 00:07:33.432
+So--
+
+00:07:33.432 --> 00:07:36.035
+STUDENT: [INAUDIBLE].
+
+00:07:36.035 --> 00:07:37.160
+JOHN W. ROBERTS: I'm sorry.
+
+00:07:37.160 --> 00:07:37.880
+This is et cetera.
+
+00:07:37.880 --> 00:07:39.260
+There's different ways you
+could update your baseline.
+
+00:07:39.260 --> 00:07:40.440
+You could do it with a-- yeah.
+
+00:07:40.440 --> 00:07:40.940
+Sorry.
+
+00:07:43.310 --> 00:07:45.890
+I mean, these are
+two common ones.
+
+00:07:45.890 --> 00:07:48.770
+I mean, these are the
+two that I usually use.
+
+00:07:48.770 --> 00:07:51.607
+But you could have critics
+and stuff like that, too,
+
+00:07:51.607 --> 00:07:53.690
+where you have more
+complicated updates for having
+
+00:07:53.690 --> 00:07:55.060
+more complicated baseline.
+
+00:07:58.590 --> 00:07:59.090
+All right.
+
+00:07:59.090 --> 00:08:05.030
+So when should you use this?
+
+00:08:10.250 --> 00:08:12.290
+We'll just say stochastic
+gradient descent.
+
+00:08:16.460 --> 00:08:19.370
+Well, it's important
+to remember, one,
+
+00:08:19.370 --> 00:08:29.810
+that it never does better
+than true gradient descent.
+
+00:08:35.292 --> 00:08:37.250
+So if it's cheap to
+evaluate the true gradient,
+
+00:08:37.250 --> 00:08:39.020
+you can follow that
+true gradient down.
+
+00:08:39.020 --> 00:08:40.490
+And you're in pretty good shape.
+
+00:08:40.490 --> 00:08:41.948
+Now the fact that
+it's random maybe
+
+00:08:41.948 --> 00:08:44.150
+gives you some robustness
+to very tiny local minima.
+
+00:08:44.150 --> 00:08:46.150
+But you could add that
+in your gradient descent,
+
+00:08:46.150 --> 00:08:48.560
+too, if you're just [INAUDIBLE]
+yourself around a bit.
+
+00:08:48.560 --> 00:08:51.290
+So stochastic gradient descent,
+if you have an easy way
+
+00:08:51.290 --> 00:08:53.810
+to compute the gradients,
+you can do gradient descent
+
+00:08:53.810 --> 00:08:54.320
+using those.
+
+00:08:54.320 --> 00:08:56.210
+Or you can even do something
+like SNOPT or some high order
+
+00:08:56.210 --> 00:08:57.150
+method.
+
+00:08:57.150 --> 00:09:00.805
+So if it's easy to compute
+the gradients, exactly.
+
+00:09:00.805 --> 00:09:02.180
+It doesn't
+necessarily make sense
+
+00:09:02.180 --> 00:09:04.067
+to do stochastic
+gradient descent.
+
+00:09:04.067 --> 00:09:05.900
+If those gradients are
+impossible to compute
+
+00:09:05.900 --> 00:09:07.822
+or extremely
+expensive to compute,
+
+00:09:07.822 --> 00:09:08.780
+then it can make sense.
+
+00:09:12.920 --> 00:09:26.240
+Then also, if you have
+a good parameterization,
+
+00:09:26.240 --> 00:09:29.690
+it can be quite efficient.
+
+00:09:29.690 --> 00:09:31.940
+Again, I guess this isn't
+a prerequisite because it
+
+00:09:31.940 --> 00:09:38.372
+will work with high dimensions.
+
+00:09:43.790 --> 00:09:47.240
+And just sort of like in
+naive parameterizations.
+
+00:09:56.840 --> 00:09:58.710
+Wow.
+
+00:09:58.710 --> 00:10:03.200
+You just leave params.
+
+00:10:03.200 --> 00:10:06.560
+But it'll be really slow.
+
+00:10:06.560 --> 00:10:10.408
+But is slow.
+
+00:10:10.408 --> 00:10:11.950
+And it can get stuck
+in local minima.
+
+00:10:22.860 --> 00:10:24.920
+So if you have a good
+parameterization,
+
+00:10:24.920 --> 00:10:26.712
+it can be much more
+reasonable to use this.
+
+00:10:26.712 --> 00:10:28.629
+An example is, in our
+lab, we have this glider
+
+00:10:28.629 --> 00:10:29.754
+we're trying to have perch.
+
+00:10:29.754 --> 00:10:31.250
+So we launch it
+out this catapult.
+
+00:10:31.250 --> 00:10:32.960
+It flies through,
+executes a maneuver,
+
+00:10:32.960 --> 00:10:34.700
+and then tries to
+catch this line.
+
+00:10:34.700 --> 00:10:35.210
+Right?
+
+00:10:35.210 --> 00:10:37.647
+Now, in that case, if
+your parameterization
+
+00:10:37.647 --> 00:10:39.230
+were the kind of
+open loop tapes we've
+
+00:10:39.230 --> 00:10:41.870
+previously used, where just
+what elevator angle did
+
+00:10:41.870 --> 00:10:43.817
+you try to serve
+it to, that could
+
+00:10:43.817 --> 00:10:44.900
+be a bad parameterization.
+
+00:10:44.900 --> 00:10:47.520
+It's a course that's going to
+demand sort of rough things.
+
+00:10:47.520 --> 00:10:49.980
+And so, trying to do learning
+on that can be very slow.
+
+00:10:49.980 --> 00:10:52.515
+Especially because
+evaluation is so expensive.
+
+00:10:52.515 --> 00:10:54.890
+So if we can come up with a
+good parameterization though,
+
+00:10:54.890 --> 00:10:56.180
+suddenly it becomes
+reasonable to do this.
+
+00:10:56.180 --> 00:10:58.640
+If we can knock down to five
+parameters that parameterize
+
+00:10:58.640 --> 00:11:00.645
+a very sort of nice
+class of policies,
+
+00:11:00.645 --> 00:11:02.270
+now maybe we don't
+need that much data.
+
+00:11:02.270 --> 00:11:04.270
+And we can actually get
+it just by launching it.
+
+00:11:04.270 --> 00:11:07.260
+So if we can come up with a good
+parameterization, doing this
+
+00:11:07.260 --> 00:11:07.760
+should work.
+
+00:11:07.760 --> 00:11:08.487
+Yeah?
+
+00:11:08.487 --> 00:11:10.036
+STUDENT: What if you had
+a good estimate of what
+
+00:11:10.036 --> 00:11:11.119
+your trajectory should be?
+
+00:11:11.119 --> 00:11:12.644
+Do you parameterize [INAUDIBLE]?
+
+00:11:15.103 --> 00:11:16.520
+JOHN W. ROBERTS:
+Well, I mean, you
+
+00:11:16.520 --> 00:11:17.750
+could start with a
+good initial guess,
+
+00:11:17.750 --> 00:11:19.560
+which maybe means that you
+converge reasonably quickly.
+
+00:11:19.560 --> 00:11:20.570
+But the thing is
+that the learning
+
+00:11:20.570 --> 00:11:22.692
+is going to struggle to
+get a lot of improvement.
+
+00:11:22.692 --> 00:11:23.900
+It will get some improvement.
+
+00:11:23.900 --> 00:11:26.450
+It'll show in these examples
+you have ugly parameterizations,
+
+00:11:26.450 --> 00:11:27.660
+it'll still learn a bit.
+
+00:11:27.660 --> 00:11:31.190
+But the problem is that, if you
+parameters in this open loop
+
+00:11:31.190 --> 00:11:34.670
+tape, let's say we have some
+really nice smooth trajectory
+
+00:11:34.670 --> 00:11:36.620
+like this.
+
+00:11:36.620 --> 00:11:39.380
+And we parameterize it.
+
+00:11:39.380 --> 00:11:40.670
+Is this all clear?
+
+00:11:40.670 --> 00:11:42.830
+Is this is sort of
+off on a tangent?
+
+00:11:45.700 --> 00:11:49.004
+But this is just sort of
+about bad parameterizations.
+
+00:11:51.542 --> 00:11:53.500
+So do you want me to go
+through all this first?
+
+00:11:53.500 --> 00:11:55.250
+And I can talk about
+the points in detail?
+
+00:11:59.070 --> 00:12:00.487
+STUDENT: Do you
+need a microphone?
+
+00:12:00.487 --> 00:12:02.445
+JOHN W. ROBERTS: I believe
+I have a microphone.
+
+00:12:02.445 --> 00:12:03.390
+[INTERPOSING VOICES]
+
+00:12:03.390 --> 00:12:03.890
+Thank you.
+
+00:12:09.070 --> 00:12:10.020
+All right.
+
+00:12:10.020 --> 00:12:12.480
+So are we all on board here?
+
+00:12:12.480 --> 00:12:13.870
+Or are we-- yeah.
+
+00:12:13.870 --> 00:12:14.370
+OK.
+
+00:12:14.370 --> 00:12:15.050
+Good.
+
+00:12:15.050 --> 00:12:15.630
+Yeah.
+
+00:12:15.630 --> 00:12:18.070
+This is sort of disorganized.
+
+00:12:18.070 --> 00:12:25.463
+So if you parameterize by
+setting all these numbers,
+
+00:12:25.463 --> 00:12:26.880
+you have a nice
+smooth trajectory.
+
+00:12:26.880 --> 00:12:28.230
+That's the kind
+of stuff you want.
+
+00:12:28.230 --> 00:12:29.340
+Now if you
+parameterize by saying
+
+00:12:29.340 --> 00:12:31.200
+each one of these numbers,
+stochastic gradient descent
+
+00:12:31.200 --> 00:12:33.240
+when it bounces around
+is going to be like, OK.
+
+00:12:33.240 --> 00:12:34.198
+Send this guy up a bit.
+
+00:12:34.198 --> 00:12:35.240
+Send this guy down a bit.
+
+00:12:35.240 --> 00:12:36.090
+These two guys up.
+
+00:12:36.090 --> 00:12:37.960
+This guy down, this guy down.
+
+00:12:37.960 --> 00:12:38.460
+Up.
+
+00:12:38.460 --> 00:12:39.780
+This guy back in the same place.
+
+00:12:39.780 --> 00:12:39.870
+You know?
+
+00:12:39.870 --> 00:12:40.703
+Something like that.
+
+00:12:40.703 --> 00:12:42.900
+And you get some param
+policy like this.
+
+00:12:42.900 --> 00:12:43.800
+Right?
+
+00:12:43.800 --> 00:12:45.570
+Now your physical system is
+going to smooth that out.
+
+00:12:45.570 --> 00:12:46.260
+It's going to filter it.
+
+00:12:46.260 --> 00:12:46.440
+Right?
+
+00:12:46.440 --> 00:12:47.280
+You're not going to
+execute something
+
+00:12:47.280 --> 00:12:48.360
+like that necessarily.
+
+00:12:48.360 --> 00:12:49.838
+But it's very
+unlikely that that's
+
+00:12:49.838 --> 00:12:50.880
+the right kind of policy.
+
+00:12:50.880 --> 00:12:51.380
+Right?
+
+00:12:51.380 --> 00:12:53.760
+I mean, it's very sort of
+fine-grained tick-tick-tick
+
+00:12:53.760 --> 00:12:55.480
+doesn't really make sense.
+
+00:12:55.480 --> 00:12:56.880
+So if you assume you are going
+to have something smooth,
+
+00:12:56.880 --> 00:12:58.890
+it's nice to do something that's
+going to be sort of always
+
+00:12:58.890 --> 00:12:59.910
+relatively smooth.
+
+00:12:59.910 --> 00:13:02.430
+If you were to use fewer
+points parameters as a spline,
+
+00:13:02.430 --> 00:13:04.380
+that could be a win.
+
+00:13:04.380 --> 00:13:08.130
+So that's what I mean by a good
+parameterization is something
+
+00:13:08.130 --> 00:13:09.930
+that ideally captures
+the kind of behaviors
+
+00:13:09.930 --> 00:13:10.940
+you want in your system.
+
+00:13:15.180 --> 00:13:17.300
+So yeah.
+
+00:13:17.300 --> 00:13:22.330
+I think the main
+point is don't--
+
+00:13:22.330 --> 00:13:23.705
+well, this is not
+the main point.
+
+00:13:23.705 --> 00:13:26.690
+This is a big point that I think
+a lot of people tend to do,
+
+00:13:26.690 --> 00:13:28.070
+and I can be guilty
+of myself, is
+
+00:13:28.070 --> 00:13:41.900
+don't discard Back prop
+through time, RTRL with SNOPT.
+
+00:13:46.550 --> 00:13:50.382
+Many times, because you can
+see how simple this update is,
+
+00:13:50.382 --> 00:13:51.840
+it's very tempting
+just to be like,
+
+00:13:51.840 --> 00:13:54.140
+OK, well, I'll put
+this loop and run it.
+
+00:13:54.140 --> 00:13:55.320
+And I'll be in good shape.
+
+00:13:55.320 --> 00:13:57.320
+I mean, because it's
+trivial to write that code.
+
+00:13:57.320 --> 00:13:58.830
+I mean, you can see it
+from pseudocode here.
+
+00:13:58.830 --> 00:13:59.930
+So when you're working
+on your project,
+
+00:13:59.930 --> 00:14:01.722
+if you're like oh well,
+I want to optimize.
+
+00:14:01.722 --> 00:14:03.020
+I'll just throw this on there.
+
+00:14:03.020 --> 00:14:03.520
+Bam.
+
+00:14:03.520 --> 00:14:08.270
+I mean, it'll take you 30
+minutes to get that code ready.
+
+00:14:08.270 --> 00:14:11.468
+But maybe you think back prop
+through time is more confusing,
+
+00:14:11.468 --> 00:14:13.760
+you have to do with all these
+joint equations and stuff
+
+00:14:13.760 --> 00:14:14.220
+like that.
+
+00:14:14.220 --> 00:14:15.762
+But these give you
+the true gradient.
+
+00:14:15.762 --> 00:14:18.440
+If your gradients are cheap,
+doing this can be a win.
+
+00:14:18.440 --> 00:14:20.060
+And then you can
+get a better policy.
+
+00:14:20.060 --> 00:14:21.690
+You can solve it a lot faster.
+
+00:14:21.690 --> 00:14:23.780
+You can check richer
+classes of parameterizations
+
+00:14:23.780 --> 00:14:25.473
+because it will solve
+them so quickly.
+
+00:14:25.473 --> 00:14:27.140
+So when you're thinking
+about, OK, we're
+
+00:14:27.140 --> 00:14:29.750
+trying to solve this problem
+and you have your project,
+
+00:14:29.750 --> 00:14:33.800
+don't choose this without
+being very conscious that it
+
+00:14:33.800 --> 00:14:34.915
+has a lot of limitations.
+
+00:14:34.915 --> 00:14:36.290
+And there's a lot
+of alternatives
+
+00:14:36.290 --> 00:14:37.620
+which could be better.
+
+00:14:37.620 --> 00:14:39.590
+So first think, are
+there very solid
+
+00:14:39.590 --> 00:14:41.240
+sort of things you
+can do with these
+
+00:14:41.240 --> 00:14:42.650
+using SNOPT converged nicely?
+
+00:14:42.650 --> 00:14:45.275
+If you can't, if you don't have
+a good model, if your system is
+
+00:14:45.275 --> 00:14:47.362
+too complicated,
+stochastic range descent
+
+00:14:47.362 --> 00:14:48.320
+maybe is what you want.
+
+00:14:50.966 --> 00:14:52.810
+All right.
+
+00:14:52.810 --> 00:14:57.920
+So that's sort of a discussion
+coming back from Tuesday
+
+00:14:57.920 --> 00:15:02.150
+on when to do these things and
+also hopefully code that now
+
+00:15:02.150 --> 00:15:03.770
+that you have it in your notes.
+
+00:15:03.770 --> 00:15:06.200
+Now that you have
+it in your notes,
+
+00:15:06.200 --> 00:15:11.190
+you'll be able to implement
+this pretty easily.
+
+00:15:11.190 --> 00:15:17.561
+So now getting onto
+new stuff for today,
+
+00:15:17.561 --> 00:15:20.705
+we're talking about
+stochastic policies.
+
+00:15:29.240 --> 00:15:31.580
+And in particular, we are
+talking about a certain class
+
+00:15:31.580 --> 00:15:34.250
+of these kind of algorithms.
+
+00:15:34.250 --> 00:15:35.827
+Reinforced algorithms.
+
+00:15:43.780 --> 00:15:44.760
+All right.
+
+00:15:44.760 --> 00:15:47.700
+And I think that these were
+introduced by Williams.
+
+00:15:51.080 --> 00:15:58.260
+He's at Northeastern
+in '92 or something.
+
+00:15:58.260 --> 00:16:03.690
+So once again, trying
+to get across the idea
+
+00:16:03.690 --> 00:16:05.410
+of the stochastic policy.
+
+00:16:05.410 --> 00:16:07.235
+So this interpretation
+is very different.
+
+00:16:07.235 --> 00:16:08.610
+We're not going
+to linearization.
+
+00:16:08.610 --> 00:16:11.670
+We're not going to assume
+we have this nominal policy,
+
+00:16:11.670 --> 00:16:13.260
+we sample and try
+something else.
+
+00:16:13.260 --> 00:16:14.677
+We're going to
+assume that we have
+
+00:16:14.677 --> 00:16:16.590
+some distribution of policy.
+
+00:16:16.590 --> 00:16:26.670
+Our policy is a distribution.
+
+00:16:26.670 --> 00:16:30.110
+So we can think about it as, we
+parameterize our distribution
+
+00:16:30.110 --> 00:16:32.720
+with alpha.
+
+00:16:32.720 --> 00:16:37.170
+Our policy then has some
+stochasticity to it,
+
+00:16:37.170 --> 00:16:40.730
+which is going to give us what
+used to be our alpha plus z.
+
+00:16:40.730 --> 00:16:41.510
+Right?
+
+00:16:41.510 --> 00:16:44.840
+So we know that this
+is not a sample.
+
+00:16:44.840 --> 00:16:47.750
+This is the output
+of our policy.
+
+00:16:47.750 --> 00:16:49.250
+This is how we
+represent our policy.
+
+00:16:49.250 --> 00:16:52.040
+Not as the nominal action,
+but as some parameterization
+
+00:16:52.040 --> 00:16:54.030
+of the behavior.
+
+00:16:54.030 --> 00:16:54.530
+Right.
+
+00:16:54.530 --> 00:16:56.690
+So this would be,
+for example, if I
+
+00:16:56.690 --> 00:16:59.540
+were to play a game where
+I was flipping a coin
+
+00:16:59.540 --> 00:17:01.880
+and I bet on something,
+it could be like, OK.
+
+00:17:01.880 --> 00:17:03.860
+My parameter here
+is the percentage
+
+00:17:03.860 --> 00:17:07.121
+of times I'm going to
+bet money on it coming up
+
+00:17:07.121 --> 00:17:08.329
+heads or something like that.
+
+00:17:08.329 --> 00:17:09.650
+I mean, that doesn't
+make sense because you're
+
+00:17:09.650 --> 00:17:12.740
+[INAUDIBLE] is zero or net zero
+if you're playing a fair game.
+
+00:17:12.740 --> 00:17:14.457
+But the point is
+that it's something
+
+00:17:14.457 --> 00:17:16.290
+like, this is the
+probability of doing this.
+
+00:17:16.290 --> 00:17:17.665
+And so here, we're
+going to think
+
+00:17:17.665 --> 00:17:20.900
+about this as the mean
+of a bunch of Gaussians.
+
+00:17:20.900 --> 00:17:22.910
+So our policy is do
+all these actions
+
+00:17:22.910 --> 00:17:27.770
+with the probabilities described
+by a multivariate Gaussian
+
+00:17:27.770 --> 00:17:31.170
+with means described
+by this vector.
+
+00:17:31.170 --> 00:17:31.670
+All right.
+
+00:17:35.310 --> 00:17:35.810
+OK.
+
+00:17:35.810 --> 00:17:38.425
+[INTERPOSING VOICES]
+
+00:17:38.425 --> 00:17:40.050
+STUDENT: So you just
+have alpha plus z,
+
+00:17:40.050 --> 00:17:43.980
+is the policy just to add
+noise to your parameters?
+
+00:17:43.980 --> 00:17:45.740
+JOHN W. ROBERTS: I
+mean, these are the two
+
+00:17:45.740 --> 00:17:46.530
+different interpretations.
+
+00:17:46.530 --> 00:17:46.870
+Right?
+
+00:17:46.870 --> 00:17:48.610
+So I mean, it is
+effectively doing that.
+
+00:17:48.610 --> 00:17:50.980
+I mean over here, we
+have our nominal thing.
+
+00:17:50.980 --> 00:17:53.770
+And then we add this noise.
+
+00:17:53.770 --> 00:17:54.270
+Right?
+
+00:17:54.270 --> 00:17:55.603
+Then we have our nominal policy.
+
+00:17:55.603 --> 00:17:57.870
+We add noise with
+distribution like this.
+
+00:17:57.870 --> 00:18:01.360
+But this one, what
+we can have is this
+
+00:18:01.360 --> 00:18:03.000
+is parameterizing
+a distribution.
+
+00:18:03.000 --> 00:18:05.970
+And our policy is to do these
+things with this probability.
+
+00:18:05.970 --> 00:18:06.640
+Right?
+
+00:18:06.640 --> 00:18:08.983
+STUDENT: And you said
+that alpha is the mean--
+
+00:18:08.983 --> 00:18:11.400
+JOHN W. ROBERTS: For us, it's
+the mean of these Gaussians.
+
+00:18:11.400 --> 00:18:15.058
+But you could parameterize
+it any way you wanted.
+
+00:18:15.058 --> 00:18:17.100
+I mean, you could have a
+policy parameterized by,
+
+00:18:17.100 --> 00:18:18.090
+if you have discrete
+actions, it could
+
+00:18:18.090 --> 00:18:19.740
+be the probability
+of all these actions
+
+00:18:19.740 --> 00:18:21.390
+and force them to sum up to one.
+
+00:18:21.390 --> 00:18:23.730
+It could be some
+parameterization of a PDF
+
+00:18:23.730 --> 00:18:24.707
+or something like that.
+
+00:18:24.707 --> 00:18:26.790
+So we're going to talk
+about it in a limited case.
+
+00:18:26.790 --> 00:18:28.810
+And I think that thinking about
+that way, at least for me,
+
+00:18:28.810 --> 00:18:30.330
+is easier to think
+about where we're going.
+
+00:18:30.330 --> 00:18:31.997
+But remember, that's
+a lot more general.
+
+00:18:31.997 --> 00:18:34.720
+This is just parameterizing
+some distribution of actions.
+
+00:18:34.720 --> 00:18:37.210
+And so, it could be
+something very general.
+
+00:18:37.210 --> 00:18:39.627
+But if you're having trouble
+putting your head around what
+
+00:18:39.627 --> 00:18:41.793
+all that means, you can
+think about it as just like,
+
+00:18:41.793 --> 00:18:44.010
+this is describing the means
+of a bunch of Gaussians.
+
+00:18:44.010 --> 00:18:46.560
+And then our policy
+is do these actions
+
+00:18:46.560 --> 00:18:49.890
+with the probabilities
+described by that.
+
+00:18:49.890 --> 00:18:50.940
+Does that make sense?
+
+00:18:50.940 --> 00:18:55.520
+I think that this is
+sort of, I feel like I'm
+
+00:18:55.520 --> 00:18:57.510
+running around in circles here.
+
+00:18:57.510 --> 00:18:58.010
+All right.
+
+00:18:58.010 --> 00:18:59.210
+I just want to be clear.
+
+00:18:59.210 --> 00:19:02.810
+So in that case, it
+doesn't make sense to say,
+
+00:19:02.810 --> 00:19:13.160
+so this goes through our
+system and produces cost J.
+
+00:19:13.160 --> 00:19:14.840
+But now J is a random variable.
+
+00:19:24.620 --> 00:19:25.610
+All right.
+
+00:19:25.610 --> 00:19:29.100
+So it no longer makes sense to
+say, what is J for this policy?
+
+00:19:29.100 --> 00:19:30.600
+Because running
+that policy is going
+
+00:19:30.600 --> 00:19:32.330
+to produce all sorts
+of different Js.
+
+00:19:32.330 --> 00:19:33.470
+Right?
+
+00:19:33.470 --> 00:19:35.120
+So when you evaluate
+the policy, I
+
+00:19:35.120 --> 00:19:38.300
+mean you could have a question
+of, what is the right way?
+
+00:19:38.300 --> 00:19:39.920
+Should you do the min of J?
+
+00:19:39.920 --> 00:19:42.320
+Should you do, what is the
+worst J it's going to produce?
+
+00:19:42.320 --> 00:19:45.020
+Or what is the maximum
+J it's going to produce?
+
+00:19:45.020 --> 00:19:51.050
+Well, the thing that
+we generally choose
+
+00:19:51.050 --> 00:19:52.250
+in this world--
+
+00:19:52.250 --> 00:19:56.810
+well, not Earth,
+but our discipline--
+
+00:19:56.810 --> 00:20:03.480
+is you want to look at
+the expected value of J.
+
+00:20:03.480 --> 00:20:07.100
+And so, this is a philosophical
+decision to some degree.
+
+00:20:07.100 --> 00:20:09.090
+I think Russ may have
+talked about this a bit.
+
+00:20:09.090 --> 00:20:10.800
+But when you're an
+airliner, you probably
+
+00:20:10.800 --> 00:20:15.410
+want to look at the min of J.
+When you're building a gambling
+
+00:20:15.410 --> 00:20:18.290
+robot, maybe you do want
+the expected value of J.
+
+00:20:18.290 --> 00:20:19.470
+So we have a lot of money.
+
+00:20:19.470 --> 00:20:20.992
+Right?
+
+00:20:20.992 --> 00:20:22.700
+And so, this is a
+philosophical decision.
+
+00:20:22.700 --> 00:20:24.050
+But it's analytically tractable.
+
+00:20:24.050 --> 00:20:27.080
+And it makes sense
+in many cases.
+
+00:20:27.080 --> 00:20:29.060
+And again, like
+Russ says, animals
+
+00:20:29.060 --> 00:20:30.287
+aren't doing robust control.
+
+00:20:30.287 --> 00:20:32.495
+I mean, if they were, we
+wouldn't be sprinting around
+
+00:20:32.495 --> 00:20:34.187
+and jumping, doing gymnastics.
+
+00:20:34.187 --> 00:20:36.020
+Well, some people would
+be doing gymnastics.
+
+00:20:36.020 --> 00:20:36.980
+I'm probably not
+doing them anyway.
+
+00:20:36.980 --> 00:20:39.230
+But my expected value of
+trying to do gymnastics
+
+00:20:39.230 --> 00:20:39.980
+would not be high.
+
+00:20:39.980 --> 00:20:41.970
+I can guarantee that much.
+
+00:20:41.970 --> 00:20:42.470
+All right.
+
+00:20:42.470 --> 00:20:46.110
+So what we're going to look
+at is our stochastic gradient
+
+00:20:46.110 --> 00:20:46.610
+set now.
+
+00:20:46.610 --> 00:20:49.780
+Since we can't just
+dJ d alpha, we're
+
+00:20:49.780 --> 00:20:57.920
+going to have to look at d
+expected value of J d alpha.
+
+00:20:57.920 --> 00:20:59.690
+Right?
+
+00:20:59.690 --> 00:21:00.860
+So this is now our metric.
+
+00:21:00.860 --> 00:21:02.443
+And so we have to
+look at the gradient
+
+00:21:02.443 --> 00:21:05.310
+of that expected value.
+
+00:21:05.310 --> 00:21:14.570
+Now, this then is the
+definition of expected value.
+
+00:21:14.570 --> 00:21:15.500
+Right?
+
+00:21:15.500 --> 00:21:19.070
+We can call, I'm going to call
+this sort of like the policy
+
+00:21:19.070 --> 00:21:23.270
+parameters that you're
+running on under this trial.
+
+00:21:23.270 --> 00:21:25.190
+I'm going to call it
+beta in an attempt
+
+00:21:25.190 --> 00:21:28.920
+to be as unoriginal as possible.
+
+00:21:28.920 --> 00:21:30.950
+So we're going to
+call this beta.
+
+00:21:33.530 --> 00:21:35.540
+So the expected
+value for J we want
+
+00:21:35.540 --> 00:21:37.790
+to integrate over all beta.
+
+00:21:41.030 --> 00:21:43.040
+And your expected
+value is going to be--
+
+00:21:51.990 --> 00:21:52.840
+I'm sorry.
+
+00:21:52.840 --> 00:21:54.090
+I've got an error in my notes.
+
+00:21:56.670 --> 00:22:01.950
+So J of beta,
+probability of beta.
+
+00:22:04.845 --> 00:22:06.720
+So this is just definition
+of expected value.
+
+00:22:09.490 --> 00:22:17.050
+Now, if you push the
+d, d alpha through--
+
+00:22:21.050 --> 00:22:21.770
+yeah, sorry.
+
+00:22:21.770 --> 00:22:27.770
+If you push the
+d, d alpha through
+
+00:22:27.770 --> 00:22:37.550
+for a beta, what you're going
+to find is that J of beta
+
+00:22:37.550 --> 00:22:40.160
+is not a function of alpha.
+
+00:22:40.160 --> 00:22:41.660
+We're saying beta
+up here written up
+
+00:22:41.660 --> 00:22:42.830
+here is a function of alpha.
+
+00:22:42.830 --> 00:22:44.330
+I mean, that's how
+we've derived it.
+
+00:22:44.330 --> 00:22:46.670
+But remember that beta is
+just the actions you've
+
+00:22:46.670 --> 00:22:48.290
+chosen from a distribution.
+
+00:22:48.290 --> 00:22:52.092
+So if you look at running your
+system with these parameters,
+
+00:22:52.092 --> 00:22:53.300
+that's not a random variable.
+
+00:22:53.300 --> 00:22:54.830
+That is just your number.
+
+00:22:54.830 --> 00:22:57.290
+Right?
+
+00:22:57.290 --> 00:23:01.130
+So the thing that varies
+though is the probability
+
+00:23:01.130 --> 00:23:02.540
+of getting beta.
+
+00:23:02.540 --> 00:23:03.100
+Right?
+
+00:23:03.100 --> 00:23:04.975
+This is the function,
+this distribution.
+
+00:23:04.975 --> 00:23:06.350
+So this is what
+depends on alpha.
+
+00:23:18.550 --> 00:23:20.630
+All right.
+
+00:23:20.630 --> 00:23:28.980
+Now, this is where a bit
+of cleverness comes in.
+
+00:23:28.980 --> 00:23:42.780
+You can write this then as a
+handle over beta, J beta P.
+
+00:23:42.780 --> 00:23:45.450
+So you get the
+distribution beta.
+
+00:23:45.450 --> 00:23:57.570
+Then d, d alpha of
+ln of p of beta.
+
+00:23:57.570 --> 00:23:58.740
+d beta.
+
+00:23:58.740 --> 00:23:59.460
+Right?
+
+00:23:59.460 --> 00:24:00.540
+So this is just
+saying, when you take
+
+00:24:00.540 --> 00:24:01.680
+the derivative of
+your natural log,
+
+00:24:01.680 --> 00:24:03.360
+you're going to
+cancel out this one.
+
+00:24:03.360 --> 00:24:03.900
+Right?
+
+00:24:03.900 --> 00:24:05.760
+You'll get the derivative
+of the one inside.
+
+00:24:05.760 --> 00:24:06.605
+That makes sense?
+
+00:24:06.605 --> 00:24:07.980
+When you do a
+chain rule on this,
+
+00:24:07.980 --> 00:24:14.270
+you're going to get one over
+P beta d P beta, d alpha.
+
+00:24:14.270 --> 00:24:16.750
+So this is sort of the
+trick that you need.
+
+00:24:16.750 --> 00:24:19.080
+So you should see this.
+
+00:24:19.080 --> 00:24:19.580
+All right.
+
+00:24:22.980 --> 00:24:25.477
+I can erase the pseudocode.
+
+00:24:36.690 --> 00:24:41.340
+So once you do that, if you look
+at the expression over there,
+
+00:24:41.340 --> 00:24:47.880
+what you can see is that it's
+the same as the expected value
+
+00:24:47.880 --> 00:25:00.030
+of J beta d ln P beta d alpha.
+
+00:25:02.850 --> 00:25:04.650
+Right?
+
+00:25:04.650 --> 00:25:06.330
+Because we're
+integrating overall beta,
+
+00:25:06.330 --> 00:25:08.670
+probability of beta.
+
+00:25:08.670 --> 00:25:09.720
+Right?
+
+00:25:09.720 --> 00:25:12.900
+So what's the expected
+value of this?
+
+00:25:12.900 --> 00:25:23.190
+That means that, if we can make
+this our update, if we can make
+
+00:25:23.190 --> 00:25:25.410
+effectively this our update,
+then the expected value
+
+00:25:25.410 --> 00:25:32.130
+of our update is equal
+to the derivative
+
+00:25:32.130 --> 00:25:34.710
+of the expected value of
+our performance with respect
+
+00:25:34.710 --> 00:25:37.140
+to our policy parameterization.
+
+00:25:37.140 --> 00:25:39.180
+Do you see?
+
+00:25:39.180 --> 00:25:40.433
+That's sort of cool.
+
+00:25:40.433 --> 00:25:42.600
+Because this seems like
+sort of a complicated thing,
+
+00:25:42.600 --> 00:25:45.090
+the derivative of your
+expected value with respect
+
+00:25:45.090 --> 00:25:46.602
+to your policies, other things.
+
+00:25:46.602 --> 00:25:48.810
+It's this big random thing
+over a very complicated J.
+
+00:25:48.810 --> 00:25:50.970
+Like a general J. We haven't
+assumed anything about J.
+
+00:25:50.970 --> 00:25:51.930
+We didn't do a linearization.
+
+00:25:51.930 --> 00:25:52.950
+We didn't do anything like that.
+
+00:25:52.950 --> 00:25:53.520
+Right?
+
+00:25:53.520 --> 00:25:55.750
+So J is still however
+general you want it to be.
+
+00:25:55.750 --> 00:25:57.190
+It's not local anything.
+
+00:25:57.190 --> 00:26:02.820
+The derivative this with respect
+alpha, we can make this update.
+
+00:26:02.820 --> 00:26:05.120
+We follow that derivative.
+
+00:26:05.120 --> 00:26:06.970
+So that's pretty cool.
+
+00:26:06.970 --> 00:26:07.470
+Right?
+
+00:26:10.200 --> 00:26:14.543
+So the question is, now
+what does this update
+
+00:26:14.543 --> 00:26:15.460
+look like in practice?
+
+00:26:15.460 --> 00:26:19.000
+This is kind of an ugly term.
+
+00:26:19.000 --> 00:26:23.940
+So what happens when we actually
+try to do an update like this?
+
+00:26:23.940 --> 00:26:34.872
+Well, we can write
+this as our update
+
+00:26:34.872 --> 00:26:36.330
+in the direction
+of the gradient is
+
+00:26:36.330 --> 00:26:38.910
+going to be delta alpha again.
+
+00:26:38.910 --> 00:26:41.160
+Now we want a learning rate
+because this is again sort
+
+00:26:41.160 --> 00:26:42.410
+of a gradient following thing.
+
+00:26:42.410 --> 00:26:45.570
+So generally, in there, you
+want some sort of learning rate.
+
+00:26:45.570 --> 00:26:48.750
+And you're just going to
+do a gradient descent.
+
+00:26:48.750 --> 00:26:54.720
+You get this J of
+beta, which again now
+
+00:26:54.720 --> 00:26:56.190
+we can write this
+is alpha plus z.
+
+00:27:00.980 --> 00:27:03.080
+All right.
+
+00:27:03.080 --> 00:27:09.140
+And then something to represent
+that d ln d alpha P beta.
+
+00:27:09.140 --> 00:27:13.910
+So we'll call that E. And
+that's called the eligibility.
+
+00:27:13.910 --> 00:27:15.990
+I think that term may
+come from neural networks.
+
+00:27:15.990 --> 00:27:19.850
+But you can think of it as
+this eligibility captures
+
+00:27:19.850 --> 00:27:22.760
+how sensitive each parameter
+should be to an update.
+
+00:27:22.760 --> 00:27:26.420
+So let's say we have 10 alphas.
+
+00:27:26.420 --> 00:27:29.900
+And the eligibility for one
+of those alphas is very high.
+
+00:27:29.900 --> 00:27:33.140
+That means that, if we do
+well, that eligibility should
+
+00:27:33.140 --> 00:27:36.472
+go much more in that direction.
+
+00:27:36.472 --> 00:27:38.180
+The eligibility is
+sort of just capturing
+
+00:27:38.180 --> 00:27:40.280
+the weights of
+how much you think
+
+00:27:40.280 --> 00:27:44.360
+each parameter is responsible
+for affecting that output.
+
+00:27:44.360 --> 00:27:44.930
+Right?
+
+00:27:44.930 --> 00:27:46.790
+So a big eligibility
+on a parameter
+
+00:27:46.790 --> 00:27:48.950
+means that that parameter
+is going to move a lot.
+
+00:27:48.950 --> 00:27:50.510
+If the eligibility
+is small, it's
+
+00:27:50.510 --> 00:27:51.760
+not going to move much at all.
+
+00:27:54.358 --> 00:27:55.400
+So does that makes sense?
+
+00:27:55.400 --> 00:27:57.450
+So that's the way to think
+about the eligibility.
+
+00:27:57.450 --> 00:27:57.950
+All right.
+
+00:27:57.950 --> 00:27:59.790
+So eligibility is
+just capturing what we
+
+00:27:59.790 --> 00:28:01.040
+expect the significance to be.
+
+00:28:01.040 --> 00:28:01.670
+Yeah?
+
+00:28:01.670 --> 00:28:03.715
+STUDENT: Is it the
+quantity inside
+
+00:28:03.715 --> 00:28:05.480
+the expected value brackets?
+
+00:28:05.480 --> 00:28:06.922
+Or is it the expected value?
+
+00:28:08.965 --> 00:28:10.090
+JOHN W. ROBERTS: It's this.
+
+00:28:10.090 --> 00:28:11.140
+It's just this quantity.
+
+00:28:11.140 --> 00:28:12.760
+It's not the expected value.
+
+00:28:12.760 --> 00:28:15.310
+We want our update to be this
+inside the expected value.
+
+00:28:15.310 --> 00:28:20.020
+Then the expected value of
+our update is the gradient.
+
+00:28:20.020 --> 00:28:21.730
+So it's just the
+quantity inside.
+
+00:28:21.730 --> 00:28:24.100
+Right.
+
+00:28:24.100 --> 00:28:31.295
+So I think I remember,
+when I first learned this,
+
+00:28:31.295 --> 00:28:32.920
+Russ was talking
+about the eligibility.
+
+00:28:32.920 --> 00:28:36.155
+And I had no idea
+how to interpret it.
+
+00:28:36.155 --> 00:28:37.780
+And if you still are
+confused about it,
+
+00:28:37.780 --> 00:28:40.450
+I can try to describe it in
+more detail maybe with a picture
+
+00:28:40.450 --> 00:28:42.400
+or something like
+that if you'd like.
+
+00:28:42.400 --> 00:28:44.942
+Do people think they have a good
+idea of what the eligibility
+
+00:28:44.942 --> 00:28:46.510
+means intuitively?
+
+00:28:46.510 --> 00:28:47.010
+OK.
+
+00:28:47.010 --> 00:28:47.510
+Great.
+
+00:28:52.390 --> 00:28:53.850
+STUDENT: [INAUDIBLE]?
+
+00:28:53.850 --> 00:28:55.186
+JOHN W. ROBERTS: Pardon?
+
+00:28:55.186 --> 00:28:57.118
+STUDENT: I know
+eligibility [INAUDIBLE]??
+
+00:28:57.118 --> 00:28:59.660
+JOHN W. ROBERTS: I'm going to
+go through how you calculate it
+
+00:28:59.660 --> 00:29:01.000
+right now.
+
+00:29:01.000 --> 00:29:03.520
+Because E, you see,
+is going to be this.
+
+00:29:03.520 --> 00:29:06.070
+It's going to depend on
+what our distribution is.
+
+00:29:06.070 --> 00:29:08.560
+So I said, if we
+parameterize our policy
+
+00:29:08.560 --> 00:29:10.150
+by the means of a
+bunch of Gaussians,
+
+00:29:10.150 --> 00:29:11.620
+eligibility is going
+to be one thing.
+
+00:29:11.620 --> 00:29:13.953
+If you parameterize it as a
+bunch of Bernoulli variables
+
+00:29:13.953 --> 00:29:17.240
+or something like that,
+it's going to be different.
+
+00:29:17.240 --> 00:29:20.290
+So it depends on the kind of
+distribution your policy uses.
+
+00:29:23.040 --> 00:29:23.540
+All right.
+
+00:29:28.200 --> 00:29:30.663
+So-- yeah?
+
+00:29:30.663 --> 00:29:33.080
+STUDENT: If alpha isn't the
+means of a bunch of Gaussians,
+
+00:29:33.080 --> 00:29:36.810
+then what does
+alpha plus z mean?
+
+00:29:36.810 --> 00:29:46.040
+JOHN W. ROBERTS: z, alpha plus
+z is always the action you take.
+
+00:29:46.040 --> 00:29:50.360
+Sort of the-- we actually
+had some notes on this.
+
+00:29:50.360 --> 00:29:57.260
+If you think about it, let's
+say that the way you represented
+
+00:29:57.260 --> 00:30:00.480
+your controller, there are
+some subtle differences here.
+
+00:30:00.480 --> 00:30:00.980
+But yeah.
+
+00:30:00.980 --> 00:30:03.840
+I think it's worth
+going through.
+
+00:30:03.840 --> 00:30:07.130
+So let's say I parameterize my
+controller by three numbers.
+
+00:30:10.010 --> 00:30:16.790
+Like gain on position,
+gain on the speed,
+
+00:30:16.790 --> 00:30:19.350
+and an interval term.
+
+00:30:19.350 --> 00:30:21.230
+So this is a PID controller.
+
+00:30:21.230 --> 00:30:21.980
+Right?
+
+00:30:21.980 --> 00:30:23.990
+So this is something
+that most of you I think
+
+00:30:23.990 --> 00:30:25.350
+are probably familiar with.
+
+00:30:25.350 --> 00:30:29.540
+So this is a very simple
+parameterization of a policy.
+
+00:30:29.540 --> 00:30:30.113
+Right?
+
+00:30:30.113 --> 00:30:31.280
+Now, this how we control it.
+
+00:30:31.280 --> 00:30:34.370
+Now the thing is that this is
+sort of what the actions are.
+
+00:30:34.370 --> 00:30:36.560
+So this would be, a beta
+would be one of these.
+
+00:30:36.560 --> 00:30:41.000
+An alpha-- and this terminology
+isn't necessarily standard.
+
+00:30:41.000 --> 00:30:42.620
+I think the alpha and z are.
+
+00:30:42.620 --> 00:30:43.730
+My beta just came
+up when I was trying
+
+00:30:43.730 --> 00:30:46.147
+to make these notes so I could
+have a simple term to write
+
+00:30:46.147 --> 00:30:47.930
+down all these expressions.
+
+00:30:47.930 --> 00:30:49.280
+But so this is your beta.
+
+00:30:49.280 --> 00:30:51.740
+This is the thing you're
+running your system under.
+
+00:30:51.740 --> 00:30:56.930
+Your alpha is the
+same size as that.
+
+00:30:56.930 --> 00:30:59.840
+But what it is is
+parameterization
+
+00:30:59.840 --> 00:31:05.300
+for some distribution
+of how you select these.
+
+00:31:05.300 --> 00:31:05.960
+All right?
+
+00:31:05.960 --> 00:31:08.570
+So in a Gaussian, I mean
+I give you a simple one.
+
+00:31:08.570 --> 00:31:10.220
+A Bernoulli
+distribution, this could
+
+00:31:10.220 --> 00:31:14.180
+be-- let's say KP was
+either one or five,
+
+00:31:14.180 --> 00:31:18.063
+then my alpha one could be the
+probability of picking one.
+
+00:31:18.063 --> 00:31:19.730
+And then the probability
+of picking five
+
+00:31:19.730 --> 00:31:21.566
+is one minus alpha one.
+
+00:31:21.566 --> 00:31:25.680
+STUDENT: So in this case,
+it's a specific evaluation
+
+00:31:25.680 --> 00:31:27.370
+of your stochastic policy?
+
+00:31:27.370 --> 00:31:29.660
+JOHN W. ROBERTS: This is
+a specific evaluation.
+
+00:31:29.660 --> 00:31:32.970
+This is the parameterization
+that defines the distribution.
+
+00:31:32.970 --> 00:31:36.170
+So once you tell me alpha, I
+can tell you the probability
+
+00:31:36.170 --> 00:31:38.100
+of getting any of these.
+
+00:31:38.100 --> 00:31:38.600
+Right?
+
+00:31:38.600 --> 00:31:41.460
+But when I run it, I have
+these numbers in there.
+
+00:31:41.460 --> 00:31:43.820
+So this is sort of like a
+sample from a distribution.
+
+00:31:43.820 --> 00:31:45.653
+And this is what I
+actually get the cost of.
+
+00:31:48.460 --> 00:31:49.980
+Yeah.
+
+00:31:49.980 --> 00:31:51.370
+All right.
+
+00:31:51.370 --> 00:31:54.040
+And so, if you look at this
+minus this, that's the noise
+
+00:31:54.040 --> 00:31:56.365
+we talk about in the
+other interpretation.
+
+00:32:04.972 --> 00:32:06.514
+STUDENT: And the
+system you're trying
+
+00:32:06.514 --> 00:32:14.443
+to solve is not, [INAUDIBLE]
+how do you decide [INAUDIBLE]??
+
+00:32:16.363 --> 00:32:17.280
+JOHN W. ROBERTS: Yeah.
+
+00:32:17.280 --> 00:32:19.050
+So we're thinking about this.
+
+00:32:19.050 --> 00:32:21.200
+This is another thing
+I have a note on.
+
+00:32:21.200 --> 00:32:23.200
+We're going about this
+in the context of trials.
+
+00:32:23.200 --> 00:32:25.290
+So you run the
+system under a trial.
+
+00:32:25.290 --> 00:32:27.450
+Right?
+
+00:32:27.450 --> 00:32:29.010
+And then you evaluate the cost.
+
+00:32:29.010 --> 00:32:30.990
+What if your system is
+just running constantly?
+
+00:32:30.990 --> 00:32:32.220
+Right.
+
+00:32:32.220 --> 00:32:35.340
+Well, you can think about
+a short period of time.
+
+00:32:35.340 --> 00:32:37.410
+As a trial, you could
+run it for a while.
+
+00:32:37.410 --> 00:32:39.370
+You can look at discounted cost.
+
+00:32:39.370 --> 00:32:42.728
+And then there's also the
+average cost or average reward
+
+00:32:42.728 --> 00:32:44.520
+formulation where you
+can look at how long,
+
+00:32:44.520 --> 00:32:47.010
+what reward you expect to get
+running it off to infinity.
+
+00:32:47.010 --> 00:32:49.710
+Like, what sort of reward rate.
+
+00:32:49.710 --> 00:32:51.760
+I think about it right
+now in the context of,
+
+00:32:51.760 --> 00:32:53.972
+let's just say we can
+do a trial of something.
+
+00:32:53.972 --> 00:32:55.430
+And if you want to
+worry about what
+
+00:32:55.430 --> 00:32:57.073
+happens if this is
+constantly running,
+
+00:32:57.073 --> 00:32:58.740
+there are ways you
+can still do a trial.
+
+00:32:58.740 --> 00:33:00.720
+And then you can keep track
+of an eligibility trace, which
+
+00:33:00.720 --> 00:33:02.178
+is different than
+this eligibility.
+
+00:33:02.178 --> 00:33:03.838
+So that's a confusing thing.
+
+00:33:03.838 --> 00:33:05.880
+What you can do is you
+can be running constantly.
+
+00:33:05.880 --> 00:33:08.748
+You can just sort of keep
+iterating and take into account
+
+00:33:08.748 --> 00:33:10.290
+the sort of coupling
+or [INAUDIBLE]..
+
+00:33:10.290 --> 00:33:12.240
+You can imagine
+it's sort of like,
+
+00:33:12.240 --> 00:33:15.000
+if I study for my test tonight,
+I don't have a good night.
+
+00:33:15.000 --> 00:33:16.470
+But I do well my test tomorrow.
+
+00:33:16.470 --> 00:33:17.437
+So I was happy.
+
+00:33:17.437 --> 00:33:19.770
+And so, it's sort of like,
+then my action didn't give me
+
+00:33:19.770 --> 00:33:20.603
+an immediate reward.
+
+00:33:20.603 --> 00:33:21.990
+It gave me a reward later.
+
+00:33:21.990 --> 00:33:23.365
+That's sort of
+the delayed reward
+
+00:33:23.365 --> 00:33:24.857
+problem, which is very common.
+
+00:33:24.857 --> 00:33:26.940
+And there are ways of
+dealing with this here where
+
+00:33:26.940 --> 00:33:29.220
+you can still just look at
+your accruing award right now.
+
+00:33:29.220 --> 00:33:30.390
+And you can still
+sort of give yourself
+
+00:33:30.390 --> 00:33:32.580
+a reward for doing good
+things in the past.
+
+00:33:32.580 --> 00:33:35.350
+You can still handle that.
+
+00:33:35.350 --> 00:33:36.982
+So I mean, that is
+a good question.
+
+00:33:36.982 --> 00:33:38.940
+And there's a number of
+ways to deal with this.
+
+00:33:38.940 --> 00:33:41.030
+But right now, just think
+about executing a trial.
+
+00:33:41.030 --> 00:33:41.530
+Right?
+
+00:33:46.590 --> 00:33:48.090
+So then our E here--
+
+00:33:48.090 --> 00:33:51.210
+again, to make it
+look like what we want
+
+00:33:51.210 --> 00:33:53.300
+it to look like, to make it--
+
+00:33:53.300 --> 00:33:56.140
+well, that tells us
+exactly what our E is.
+
+00:33:56.140 --> 00:33:58.200
+So we can write
+it as this vector.
+
+00:33:58.200 --> 00:34:05.790
+d d alpha one of ln
+probability of beta.
+
+00:34:08.820 --> 00:34:10.560
+And this beta is
+still this vector.
+
+00:34:10.560 --> 00:34:12.239
+But the probability
+of that is a scalar.
+
+00:34:12.239 --> 00:34:13.020
+Right?
+
+00:34:13.020 --> 00:34:16.370
+So this element of the
+probability is just a scalar.
+
+00:34:16.370 --> 00:34:18.310
+And that's our
+entire thing here.
+
+00:34:18.310 --> 00:34:20.340
+Right?
+
+00:34:20.340 --> 00:34:26.270
+So then let's say again, this
+is where the distribution you
+
+00:34:26.270 --> 00:34:27.850
+choose comes into play.
+
+00:34:27.850 --> 00:34:30.889
+Let's say that we
+chose our distribution
+
+00:34:30.889 --> 00:34:33.469
+to be a bunch of Gaussians.
+
+00:34:33.469 --> 00:34:39.507
+All the different
+parameters ID, the noise ID.
+
+00:34:39.507 --> 00:34:41.340
+But we'll just think
+about as an independent
+
+00:34:41.340 --> 00:34:42.290
+with the same sigma.
+
+00:34:42.290 --> 00:34:44.540
+So the probability
+of getting a beta,
+
+00:34:44.540 --> 00:34:46.699
+because they're
+all independent, is
+
+00:34:46.699 --> 00:34:52.760
+the product over all the
+different parameters.
+
+00:34:52.760 --> 00:34:57.870
+1 over square root of
+2 pi sigma squared.
+
+00:34:57.870 --> 00:35:00.500
+This is going to
+cramp it if I do that.
+
+00:35:00.500 --> 00:35:04.890
+So I think I have the opposite
+problem of anyone else.
+
+00:35:04.890 --> 00:35:06.920
+I write way too big.
+
+00:35:06.920 --> 00:35:09.890
+Video people will be happy.
+
+00:35:09.890 --> 00:35:12.020
+So let just me
+squish it in here.
+
+00:35:15.760 --> 00:35:23.770
+So probability of beta
+is equal to product
+
+00:35:23.770 --> 00:35:27.750
+over all my different
+parameters with 1 over--
+
+00:35:27.750 --> 00:35:31.345
+well, you know the
+Gaussian distribution.
+
+00:35:31.345 --> 00:35:32.290
+It's like this.
+
+00:35:44.300 --> 00:35:46.420
+Right.
+
+00:35:46.420 --> 00:35:48.760
+So if you give me a beta
+and I have the alpha,
+
+00:35:48.760 --> 00:35:51.300
+I can tell you the probability
+of us picking that beta.
+
+00:35:51.300 --> 00:35:52.270
+All right.
+
+00:35:52.270 --> 00:36:01.960
+So our ln, the
+natural log of this,
+
+00:36:01.960 --> 00:36:06.730
+will then allow you to turn
+this product into a sum.
+
+00:36:06.730 --> 00:36:10.600
+And you'll get the sum
+of over i equals 1 to n.
+
+00:36:27.240 --> 00:36:28.830
+Now we can take this derivative.
+
+00:36:28.830 --> 00:36:30.420
+This is a constant.
+
+00:36:30.420 --> 00:36:31.740
+That won't show up.
+
+00:36:31.740 --> 00:36:34.290
+And we'll just have
+the derivative of--
+
+00:36:37.250 --> 00:36:37.750
+yeah.
+
+00:36:40.860 --> 00:36:41.360
+Yes.
+
+00:36:41.360 --> 00:36:43.922
+So the derivative, now
+we'll get rid of this.
+
+00:36:43.922 --> 00:36:45.130
+This one is simple to do now.
+
+00:36:45.130 --> 00:36:46.460
+It's just a product.
+
+00:36:46.460 --> 00:36:58.150
+So the derivative of
+ln P beta d alpha--
+
+00:36:58.150 --> 00:36:59.435
+I did this again--
+
+00:36:59.435 --> 00:36:59.935
+equals.
+
+00:37:10.230 --> 00:37:13.836
+So beta i minus alpha
+i over sigma squared.
+
+00:37:13.836 --> 00:37:21.750
+Now if you remember how we
+talked about it over there,
+
+00:37:21.750 --> 00:37:27.320
+it ends up being [INAUDIBLE].
+
+00:37:31.450 --> 00:37:37.880
+So here is our eligibility.
+
+00:37:37.880 --> 00:37:40.550
+z over sigma squared.
+
+00:37:40.550 --> 00:37:43.960
+Now what does that
+mean our update is?
+
+00:37:59.080 --> 00:38:02.300
+So hopefully, this
+looks familiar.
+
+00:38:02.300 --> 00:38:05.510
+My voice is struggling today.
+
+00:38:05.510 --> 00:38:07.610
+I'm going to come in next
+time talking like this.
+
+00:38:07.610 --> 00:38:08.380
+It'll be great.
+
+00:38:08.380 --> 00:38:12.400
+So this is our update.
+
+00:38:12.400 --> 00:38:14.112
+Does this look familiar?
+
+00:38:14.112 --> 00:38:15.800
+[INTERPOSING VOICES]
+
+00:38:15.800 --> 00:38:17.320
+Yeah.
+
+00:38:17.320 --> 00:38:18.940
+Actually, let me-- yeah.
+
+00:38:18.940 --> 00:38:20.460
+I guess so.
+
+00:38:20.460 --> 00:38:21.460
+Does that look familiar?
+
+00:38:24.130 --> 00:38:26.080
+Is this no, it does not
+look at all familiar?
+
+00:38:26.080 --> 00:38:28.538
+Or is this yes, it looks so
+familiar, I don't waste my time
+
+00:38:28.538 --> 00:38:31.940
+and embarrass myself
+by saying it does?
+
+00:38:31.940 --> 00:38:32.440
+It does.
+
+00:38:32.440 --> 00:38:32.650
+Right?
+
+00:38:32.650 --> 00:38:33.775
+It's the exact same update.
+
+00:38:33.775 --> 00:38:34.300
+Right?
+
+00:38:34.300 --> 00:38:36.040
+Now this one, we
+don't have a baseline.
+
+00:38:36.040 --> 00:38:39.500
+And we have sigma squared.
+
+00:38:39.500 --> 00:38:41.710
+But that sigma squared
+is just a scalar.
+
+00:38:41.710 --> 00:38:44.650
+And we already said, baseline or
+no baseline, whatever you want,
+
+00:38:44.650 --> 00:38:45.760
+it doesn't affect it.
+
+00:38:45.760 --> 00:38:46.810
+Right?
+
+00:38:46.810 --> 00:38:48.650
+Now, is that true for this case?
+
+00:38:48.650 --> 00:38:50.172
+It didn't affect the other one.
+
+00:38:50.172 --> 00:38:51.130
+This one, it also does.
+
+00:38:51.130 --> 00:38:53.155
+If you think about
+your reward as--
+
+00:38:57.340 --> 00:39:02.290
+if you think about your
+reward as one everywhere,
+
+00:39:02.290 --> 00:39:07.600
+then your derivative, let's see.
+
+00:39:21.788 --> 00:39:22.705
+Where is this exactly?
+
+00:39:49.080 --> 00:39:50.610
+OK.
+
+00:39:50.610 --> 00:39:51.540
+All right.
+
+00:39:51.540 --> 00:39:59.520
+So if this is constant, then
+our derivative expected value
+
+00:39:59.520 --> 00:40:01.860
+is zero.
+
+00:40:01.860 --> 00:40:09.150
+That means that the expected
+value delta alpha over here
+
+00:40:09.150 --> 00:40:11.730
+has to be zero because it's
+equal to that expected value.
+
+00:40:11.730 --> 00:40:15.030
+That means the expected value
+of our eligibility is zero.
+
+00:40:15.030 --> 00:40:16.950
+Right?
+
+00:40:16.950 --> 00:40:21.002
+So the expected value of the
+eligibility is always zero.
+
+00:40:21.002 --> 00:40:22.710
+So that means that
+some constant in there
+
+00:40:22.710 --> 00:40:23.930
+is not going to affect it.
+
+00:40:23.930 --> 00:40:24.430
+Right?
+
+00:40:24.430 --> 00:40:27.898
+When we do this expected value,
+when we put in our baseline,
+
+00:40:27.898 --> 00:40:29.190
+that's going to turn into zero.
+
+00:40:29.190 --> 00:40:30.930
+Because the expected
+value of E is zero.
+
+00:40:30.930 --> 00:40:32.555
+The exact same thing
+we had previously.
+
+00:40:32.555 --> 00:40:33.390
+Right?
+
+00:40:33.390 --> 00:40:36.000
+And you can see it's the case
+for this specific example of z.
+
+00:40:36.000 --> 00:40:38.148
+The expected value
+of z is zero again.
+
+00:40:38.148 --> 00:40:40.440
+So it's not going to affect
+the direction of our update
+
+00:40:40.440 --> 00:40:42.310
+and expectation.
+
+00:40:42.310 --> 00:40:45.300
+So yes, you can do anything
+like this with eligibilities.
+
+00:40:45.300 --> 00:40:47.580
+You can still use a baseline.
+
+00:40:47.580 --> 00:40:48.660
+Right?
+
+00:40:48.660 --> 00:40:52.860
+So this is really the exact same
+update that we already found.
+
+00:40:55.660 --> 00:40:56.160
+All right.
+
+00:40:59.320 --> 00:41:02.020
+So I think that's pretty cool.
+
+00:41:05.020 --> 00:41:06.880
+Update that we
+originally interpreted
+
+00:41:06.880 --> 00:41:10.210
+as locally following
+the gradient
+
+00:41:10.210 --> 00:41:14.530
+is also following the
+true gradient, not
+
+00:41:14.530 --> 00:41:16.330
+some sort of local
+but the true gradient
+
+00:41:16.330 --> 00:41:19.490
+of the expected value of the
+performance of that policy.
+
+00:41:19.490 --> 00:41:21.310
+All right?
+
+00:41:21.310 --> 00:41:23.620
+So if you have some really
+ugly value function,
+
+00:41:23.620 --> 00:41:25.900
+you throw this
+distribution on top of it
+
+00:41:25.900 --> 00:41:27.500
+and you move it around.
+
+00:41:27.500 --> 00:41:31.510
+It's going to be
+some, it's going
+
+00:41:31.510 --> 00:41:34.100
+to follow in the direction
+of true improvement there.
+
+00:41:34.100 --> 00:41:35.290
+And a little test case.
+
+00:41:35.290 --> 00:41:36.650
+I remember when I was trying
+to think about interpreting
+
+00:41:36.650 --> 00:41:38.890
+these things back when
+we were originally
+
+00:41:38.890 --> 00:41:42.730
+doing some of this analysis
+on the signal to noise ratio,
+
+00:41:42.730 --> 00:41:47.500
+if you think of little cusp, if
+you have a value function that
+
+00:41:47.500 --> 00:41:51.760
+has a little plateau on it, I
+can write this on a fixed board
+
+00:41:51.760 --> 00:41:53.980
+because it's not going to stay.
+
+00:41:53.980 --> 00:41:56.770
+If you think you have
+a value function that's
+
+00:41:56.770 --> 00:42:04.370
+sitting around here, my drawing
+isn't going to be too clear.
+
+00:42:04.370 --> 00:42:06.650
+But here, we'll do it in 1D.
+
+00:42:06.650 --> 00:42:16.450
+If you have a value
+function like this,
+
+00:42:16.450 --> 00:42:20.020
+you sit here and follow
+the local true gradient.
+
+00:42:20.020 --> 00:42:21.370
+It is very small.
+
+00:42:21.370 --> 00:42:24.280
+The other one says that
+you'll follow that gradient,
+
+00:42:24.280 --> 00:42:25.570
+no matter how big it is.
+
+00:42:25.570 --> 00:42:27.820
+So what it's sort of doing
+when you have this Gaussian
+
+00:42:27.820 --> 00:42:31.990
+is it smooths out the kinks and
+stuff like this in your policy.
+
+00:42:31.990 --> 00:42:33.100
+Right?
+
+00:42:33.100 --> 00:42:34.910
+Because you think my
+local analysis says,
+
+00:42:34.910 --> 00:42:36.700
+OK, well, I'll just
+get local enough
+
+00:42:36.700 --> 00:42:38.533
+that these little kinks
+in my value function
+
+00:42:38.533 --> 00:42:39.577
+aren't a problem anymore.
+
+00:42:39.577 --> 00:42:41.410
+But here, we say we
+didn't say it was local.
+
+00:42:41.410 --> 00:42:42.568
+We said it was global.
+
+00:42:42.568 --> 00:42:44.110
+And so, it's following
+this gradient,
+
+00:42:44.110 --> 00:42:45.890
+even if we have ugly stuff
+in our value function.
+
+00:42:45.890 --> 00:42:47.723
+The reason is because
+this distribution sort
+
+00:42:47.723 --> 00:42:49.900
+of smooths that stuff out.
+
+00:42:49.900 --> 00:42:52.205
+And now it's able to follow it.
+
+00:42:52.205 --> 00:42:53.830
+So that gradient is
+still well-defined.
+
+00:42:53.830 --> 00:42:56.020
+It takes the stuff and
+smooths it into something.
+
+00:42:56.020 --> 00:42:56.937
+Does that makes sense?
+
+00:43:00.530 --> 00:43:05.100
+I think it's just the big sort
+of difference in interpretation
+
+00:43:05.100 --> 00:43:05.600
+right here.
+
+00:43:05.600 --> 00:43:07.517
+There's the one where
+it's this local analysis
+
+00:43:07.517 --> 00:43:10.550
+and follows the local true
+gradient but only locally.
+
+00:43:10.550 --> 00:43:13.865
+And then we have the other
+one which follows even,
+
+00:43:13.865 --> 00:43:16.490
+it doesn't require a small sigma
+or anything like that anymore.
+
+00:43:16.490 --> 00:43:20.480
+It'll follow the expected
+value, the true gradient
+
+00:43:20.480 --> 00:43:24.578
+of the expected
+value of your reward.
+
+00:43:24.578 --> 00:43:26.120
+And it's too big of
+a mouthful for it
+
+00:43:26.120 --> 00:43:27.370
+to be clear just by saying it.
+
+00:43:27.370 --> 00:43:31.200
+But these are the two
+different interpretations.
+
+00:43:31.200 --> 00:43:31.700
+All right?
+
+00:43:35.930 --> 00:43:37.178
+Good.
+
+00:43:37.178 --> 00:43:40.840
+STUDENT: That function
+is basically the policy.
+
+00:43:40.840 --> 00:43:43.010
+JOHN W. ROBERTS: Oh yes,
+I'll draw this better.
+
+00:43:45.930 --> 00:43:50.750
+So here is sort of our alpha.
+
+00:43:50.750 --> 00:43:53.600
+This is our reward.
+
+00:43:53.600 --> 00:43:58.920
+Here we have our
+[INAUDIBLE] function.
+
+00:43:58.920 --> 00:44:04.250
+Our policy is taking actions
+with this probability.
+
+00:44:04.250 --> 00:44:06.120
+All right?
+
+00:44:06.120 --> 00:44:07.100
+That's our policy.
+
+00:44:07.100 --> 00:44:09.642
+So you can see that this-- even
+though this has a kink in it,
+
+00:44:09.642 --> 00:44:12.440
+as it moves that over a bit,
+this is varying smoothly.
+
+00:44:12.440 --> 00:44:15.298
+So even though this is a
+little disconnected like that,
+
+00:44:15.298 --> 00:44:17.090
+this is going to slide
+over still smoothly.
+
+00:44:17.090 --> 00:44:17.550
+Right?
+
+00:44:17.550 --> 00:44:19.145
+So the gradient is always
+going to be nicely well defined
+
+00:44:19.145 --> 00:44:20.130
+and everything.
+
+00:44:20.130 --> 00:44:22.098
+And this also goes
+out to infinity.
+
+00:44:22.098 --> 00:44:24.140
+So even if there's some
+ugly thing way out there,
+
+00:44:24.140 --> 00:44:25.670
+you're never going to
+suddenly go and start seeing
+
+00:44:25.670 --> 00:44:26.660
+stuff you never saw before.
+
+00:44:26.660 --> 00:44:27.800
+You always sort of saw it.
+
+00:44:27.800 --> 00:44:29.840
+Right?
+
+00:44:29.840 --> 00:44:33.480
+So you'll be following the sort
+of smooth one all the time.
+
+00:44:33.480 --> 00:44:36.710
+And that's nice
+because maybe you
+
+00:44:36.710 --> 00:44:40.498
+won't be following when
+you get really broad.
+
+00:44:40.498 --> 00:44:43.040
+One interpretation says, well,
+we're not in the linear regime
+
+00:44:43.040 --> 00:44:43.590
+anymore.
+
+00:44:43.590 --> 00:44:45.590
+So we're not following
+that local true gradient.
+
+00:44:45.590 --> 00:44:47.988
+This is sort of the
+issue that brought it up.
+
+00:44:47.988 --> 00:44:50.030
+Let's say this one says
+it's the linear analysis.
+
+00:44:50.030 --> 00:44:50.785
+And it says, OK.
+
+00:44:50.785 --> 00:44:52.160
+If my sigma is
+small enough, so I
+
+00:44:52.160 --> 00:44:55.280
+sample close enough so it
+looks approximately linear,
+
+00:44:55.280 --> 00:44:56.810
+I'm going to follow
+that gradient.
+
+00:44:56.810 --> 00:44:58.940
+But instead, when
+it breaks down,
+
+00:44:58.940 --> 00:45:01.202
+you get this really
+broad Gaussian.
+
+00:45:01.202 --> 00:45:02.160
+So what does that mean?
+
+00:45:02.160 --> 00:45:03.950
+Well, this one is still
+following that gradient.
+
+00:45:03.950 --> 00:45:05.950
+So that means that you're
+seeing stuff all over.
+
+00:45:05.950 --> 00:45:08.540
+And it's following that gradient
+instead of this local one.
+
+00:45:08.540 --> 00:45:09.410
+Right?
+
+00:45:09.410 --> 00:45:14.060
+Now the problem is that, if
+you follow that gradient,
+
+00:45:14.060 --> 00:45:16.460
+the stochastic policy
+isn't necessarily actually
+
+00:45:16.460 --> 00:45:18.183
+the optimal one to follow.
+
+00:45:18.183 --> 00:45:19.850
+When you're actually
+running your policy
+
+00:45:19.850 --> 00:45:21.547
+in the end, certain
+systems you do.
+
+00:45:21.547 --> 00:45:23.630
+But in many mechanical
+systems, you don't actually
+
+00:45:23.630 --> 00:45:24.740
+want these random actions.
+
+00:45:24.740 --> 00:45:26.210
+Right?
+
+00:45:26.210 --> 00:45:29.540
+There's the action that
+actually does minimize cost.
+
+00:45:29.540 --> 00:45:31.820
+And so, the sort of
+local interpretation
+
+00:45:31.820 --> 00:45:33.918
+has some value because
+you don't necessarily
+
+00:45:33.918 --> 00:45:35.960
+want to stick with the
+stochastic policy forever.
+
+00:45:35.960 --> 00:45:37.310
+That's why you sort
+of reduce your sigma.
+
+00:45:37.310 --> 00:45:38.540
+And you get tighter and
+tighter and tighter.
+
+00:45:38.540 --> 00:45:40.582
+And you follow the gradient
+so it's more and more
+
+00:45:40.582 --> 00:45:42.320
+biased to the right spot.
+
+00:45:42.320 --> 00:45:47.780
+Because you can imagine, if
+you have a value function
+
+00:45:47.780 --> 00:45:52.510
+that's a global
+min here, and then
+
+00:45:52.510 --> 00:45:54.890
+say this is all extremely high.
+
+00:45:54.890 --> 00:45:58.070
+And this goes down and
+it's like a low plateau.
+
+00:45:58.070 --> 00:46:01.670
+Now, if you have a
+really broad Gaussian,
+
+00:46:01.670 --> 00:46:03.800
+it may say, OK, well,
+even though this
+
+00:46:03.800 --> 00:46:07.970
+is the best spot to execute, I'm
+going to slide way over here.
+
+00:46:07.970 --> 00:46:10.520
+Because I have a sort
+of lower expected cost.
+
+00:46:10.520 --> 00:46:11.210
+Right?
+
+00:46:11.210 --> 00:46:12.502
+That put you in the wrong spot.
+
+00:46:12.502 --> 00:46:15.770
+If it was really tight,
+then I'd say, OK.
+
+00:46:15.770 --> 00:46:17.010
+Sit right here.
+
+00:46:17.010 --> 00:46:20.215
+So do you see that
+sort of distinction?
+
+00:46:20.215 --> 00:46:22.590
+That this broad guy could push
+you in the wrong direction
+
+00:46:22.590 --> 00:46:24.895
+if it's really broad.
+
+00:46:24.895 --> 00:46:26.270
+And you may not,
+in the end, want
+
+00:46:26.270 --> 00:46:28.478
+to execute a stochastic
+policy for this exact reason.
+
+00:46:28.478 --> 00:46:30.740
+Your stochastic
+policy could have
+
+00:46:30.740 --> 00:46:34.820
+a much higher expected
+cost than a small sigma
+
+00:46:34.820 --> 00:46:35.720
+stochastic policy.
+
+00:46:35.720 --> 00:46:37.460
+Down to where, if
+sigma is zero, that's
+
+00:46:37.460 --> 00:46:39.000
+when you actually have
+the minimum expected cost.
+
+00:46:39.000 --> 00:46:39.830
+Yeah?
+
+00:46:39.830 --> 00:46:43.730
+STUDENT: So when is this used?
+
+00:46:43.730 --> 00:46:45.320
+It's used when you're
+starting and you
+
+00:46:45.320 --> 00:46:47.250
+don't know about systems?
+
+00:46:47.250 --> 00:46:48.020
+JOHN W. ROBERTS: When
+you don't have a model,
+
+00:46:48.020 --> 00:46:49.610
+it's used in the same
+context as the other one.
+
+00:46:49.610 --> 00:46:51.860
+Are you saying stochastic
+gradient descent as a whole?
+
+00:46:51.860 --> 00:46:52.560
+Or--
+
+00:46:52.560 --> 00:46:55.670
+STUDENT: I mean
+stochastic policies.
+
+00:46:55.670 --> 00:46:59.008
+[INTERPOSING VOICES]
+
+00:46:59.008 --> 00:47:00.800
+JOHN W. ROBERTS: It's
+used for exploration.
+
+00:47:00.800 --> 00:47:01.190
+Right?
+
+00:47:01.190 --> 00:47:03.482
+Because our other one, where
+we had this nominal policy
+
+00:47:03.482 --> 00:47:06.810
+and we add a noise, that
+doesn't look any different,
+
+00:47:06.810 --> 00:47:09.860
+except from this sort of
+interpretation, than this.
+
+00:47:09.860 --> 00:47:10.890
+Right?
+
+00:47:10.890 --> 00:47:11.390
+So--
+
+00:47:11.390 --> 00:47:14.470
+STUDENT: So for the [INAUDIBLE]
+and learning about systems--
+
+00:47:14.470 --> 00:47:15.440
+JOHN W. ROBERTS: Yeah.
+
+00:47:15.440 --> 00:47:16.700
+It's for exploration.
+
+00:47:16.700 --> 00:47:18.600
+And you need it
+to get more data.
+
+00:47:18.600 --> 00:47:19.100
+Right?
+
+00:47:19.100 --> 00:47:21.017
+Because if I run the
+same policy all the time,
+
+00:47:21.017 --> 00:47:22.700
+I don't know how
+things are sensitive.
+
+00:47:22.700 --> 00:47:24.980
+So my stochastic policy
+gives me this information
+
+00:47:24.980 --> 00:47:26.030
+to where I can learn.
+
+00:47:26.030 --> 00:47:27.590
+Right?
+
+00:47:27.590 --> 00:47:30.260
+So in the end many
+times, yes, you'll
+
+00:47:30.260 --> 00:47:32.420
+want a deterministic policy.
+
+00:47:32.420 --> 00:47:34.300
+But for the development
+of that policy,
+
+00:47:34.300 --> 00:47:36.050
+you'll want to execute
+all sorts of things
+
+00:47:36.050 --> 00:47:38.450
+that could be suboptimal
+to give you information.
+
+00:47:38.450 --> 00:47:41.330
+And so, that is the
+interpretation here.
+
+00:47:41.330 --> 00:47:42.630
+It's for that learning.
+
+00:47:42.630 --> 00:47:44.360
+And if your system
+is evolving and stuff
+
+00:47:44.360 --> 00:47:46.560
+like that, if it's
+not constant in time,
+
+00:47:46.560 --> 00:47:49.010
+you may want to always
+run a stochastic policy.
+
+00:47:49.010 --> 00:47:51.440
+Because you'll be able to
+constantly learn, if that makes
+
+00:47:51.440 --> 00:47:52.003
+sense.
+
+00:47:52.003 --> 00:47:53.420
+So you may never
+want to converge.
+
+00:47:56.282 --> 00:47:57.542
+But I think it's-- yes?
+
+00:47:57.542 --> 00:47:59.250
+STUDENT: How do you
+obtain the parameters
+
+00:47:59.250 --> 00:48:03.170
+of that stochastic policy
+with that probability?
+
+00:48:03.170 --> 00:48:05.115
+It's very sensitive
+to sigma, right?
+
+00:48:05.115 --> 00:48:07.323
+JOHN W. ROBERTS: How do I
+get the parameters of what?
+
+00:48:07.323 --> 00:48:08.190
+STUDENT: Of that distribution.
+
+00:48:08.190 --> 00:48:09.200
+JOHN W. ROBERTS: Distribution?
+
+00:48:09.200 --> 00:48:10.190
+Well, I mean that's
+what I've set.
+
+00:48:10.190 --> 00:48:10.690
+Right?
+
+00:48:10.690 --> 00:48:14.120
+I said I'm going to act with
+the probability described
+
+00:48:14.120 --> 00:48:15.590
+by a certain distribution.
+
+00:48:15.590 --> 00:48:16.730
+And I describe the
+distribution here.
+
+00:48:16.730 --> 00:48:17.780
+So I know these probabilities.
+
+00:48:17.780 --> 00:48:18.380
+Because this, I set.
+
+00:48:18.380 --> 00:48:19.463
+That's from my controller.
+
+00:48:19.463 --> 00:48:20.550
+I designed that myself.
+
+00:48:20.550 --> 00:48:25.010
+What I don't know is this,
+this value function aspect.
+
+00:48:25.010 --> 00:48:27.080
+STUDENT: So that it should
+be based on intuition?
+
+00:48:27.080 --> 00:48:27.440
+JOHN W. ROBERTS: No.
+
+00:48:27.440 --> 00:48:27.940
+No.
+
+00:48:27.940 --> 00:48:28.950
+This up here?
+
+00:48:28.950 --> 00:48:32.270
+Oh, how do you decide
+how broad this?
+
+00:48:32.270 --> 00:48:35.330
+Intuition has something
+to do with it.
+
+00:48:35.330 --> 00:48:37.330
+Also, you can imagine sampling.
+
+00:48:37.330 --> 00:48:40.000
+I think I mentioned
+this on Tuesday.
+
+00:48:40.000 --> 00:48:40.900
+You could sample.
+
+00:48:40.900 --> 00:48:44.290
+You can imagine I
+sample a few points
+
+00:48:44.290 --> 00:48:45.700
+and I'd look at them here.
+
+00:48:45.700 --> 00:48:47.062
+And they look straight to me.
+
+00:48:47.062 --> 00:48:47.770
+And I'm like, OK.
+
+00:48:47.770 --> 00:48:49.090
+Well, what if I sample bigger?
+
+00:48:49.090 --> 00:48:50.830
+And I get these points.
+
+00:48:50.830 --> 00:48:52.960
+And it looks relatively rough.
+
+00:48:52.960 --> 00:48:53.630
+Then I go, OK.
+
+00:48:53.630 --> 00:48:56.198
+Well, I want to be sampling
+on probably the regime.
+
+00:48:56.198 --> 00:48:58.240
+We're going to see this
+roughness to some degree.
+
+00:48:58.240 --> 00:48:59.140
+I don't want to be
+stuck where it's
+
+00:48:59.140 --> 00:49:00.760
+going to take me forever
+to go anywhere because I'm
+
+00:49:00.760 --> 00:49:01.642
+in the linear regime.
+
+00:49:01.642 --> 00:49:03.100
+So you can do some
+sampling and get
+
+00:49:03.100 --> 00:49:07.220
+sort of the coarseness
+of your value function.
+
+00:49:07.220 --> 00:49:09.220
+And so, I mean that's
+sort of before you run it,
+
+00:49:09.220 --> 00:49:09.970
+you do some of those things.
+
+00:49:09.970 --> 00:49:11.800
+And you figure out how
+big these parameters are.
+
+00:49:11.800 --> 00:49:13.150
+Because the alternative
+would be you set it,
+
+00:49:13.150 --> 00:49:15.190
+you see if it how it does,
+and you fool around with them
+
+00:49:15.190 --> 00:49:15.732
+all the time.
+
+00:49:15.732 --> 00:49:17.470
+That's another way to do it.
+
+00:49:17.470 --> 00:49:20.890
+But this way, you sort of
+have a more direct process
+
+00:49:20.890 --> 00:49:22.030
+for trying to be like, OK.
+
+00:49:22.030 --> 00:49:23.780
+I want to be sampling
+where I actually get
+
+00:49:23.780 --> 00:49:25.870
+some interesting information.
+
+00:49:25.870 --> 00:49:28.450
+And so, you want to be
+sampling where you're probably
+
+00:49:28.450 --> 00:49:31.308
+getting distributions
+that cover linear--
+
+00:49:31.308 --> 00:49:32.350
+it's fine if it's linear.
+
+00:49:32.350 --> 00:49:34.090
+But you want to
+actually sample to where
+
+00:49:34.090 --> 00:49:36.460
+you're going to move around
+to these different features.
+
+00:49:36.460 --> 00:49:39.730
+You want to sort
+of be able to get,
+
+00:49:39.730 --> 00:49:42.010
+you want your updates when
+you change your policy
+
+00:49:42.010 --> 00:49:43.010
+to be on the scale, too.
+
+00:49:43.010 --> 00:49:45.093
+Because it was really
+small, it could take forever
+
+00:49:45.093 --> 00:49:46.300
+to get down to the minimum.
+
+00:49:46.300 --> 00:49:49.030
+Or if I was over here
+and I had small sigma,
+
+00:49:49.030 --> 00:49:51.130
+I may never sample over here.
+
+00:49:51.130 --> 00:49:53.170
+So I'd never know
+to move that way.
+
+00:49:53.170 --> 00:49:54.190
+Right?
+
+00:49:54.190 --> 00:49:55.865
+And so, if you have
+a bigger sigma,
+
+00:49:55.865 --> 00:49:57.615
+you might be to get
+out of this local min.
+
+00:49:57.615 --> 00:49:59.230
+So I sample over here
+and see it's better.
+
+00:49:59.230 --> 00:50:00.370
+And move in that direction.
+
+00:50:00.370 --> 00:50:02.480
+Despite the fact that,
+locally, it was bad.
+
+00:50:02.480 --> 00:50:04.685
+So there's a number
+of considerations.
+
+00:50:04.685 --> 00:50:06.310
+But yeah, doing some
+sampling and stuff
+
+00:50:06.310 --> 00:50:09.390
+like that combined
+with some intuition.
+
+00:50:09.390 --> 00:50:13.030
+That's probably the
+best I can give you as
+
+00:50:13.030 --> 00:50:14.440
+to how to set these parameters.
+
+00:50:14.440 --> 00:50:15.820
+I mean, that's a tricky thing.
+
+00:50:15.820 --> 00:50:17.528
+That's something that's
+nice about SNOPT.
+
+00:50:17.528 --> 00:50:18.580
+There's no eta to set.
+
+00:50:18.580 --> 00:50:19.997
+This one also has
+a stigma to set.
+
+00:50:29.780 --> 00:50:33.800
+So please, Russ emphasized
+that I was to make all of you
+
+00:50:33.800 --> 00:50:36.227
+understand this
+stuff really well.
+
+00:50:36.227 --> 00:50:37.310
+That's why I had two days.
+
+00:50:37.310 --> 00:50:40.877
+And if you do it on your
+project and you apply it
+
+00:50:40.877 --> 00:50:42.710
+at the wrong system,
+I'm going to be blamed.
+
+00:50:42.710 --> 00:50:44.650
+[LAUGHTER]
+
+00:50:44.650 --> 00:50:45.150
+Yeah.
+
+00:50:45.150 --> 00:50:47.690
+So if you don't
+have a model and you
+
+00:50:47.690 --> 00:50:50.990
+don't have anything like
+that, try that back prop first
+
+00:50:50.990 --> 00:50:52.040
+if you can.
+
+00:50:52.040 --> 00:50:53.900
+Try SNOPT first if
+you can, I think.
+
+00:50:53.900 --> 00:50:58.310
+If you can't, this
+maybe won't do as--
+
+00:50:58.310 --> 00:51:01.100
+this can solve the
+problem, too, I guess.
+
+00:51:01.100 --> 00:51:04.406
+But sort of appreciate
+its limitations.
+
+00:51:04.406 --> 00:51:07.835
+STUDENT: So with the stochastic
+gradient and stochastic policy,
+
+00:51:07.835 --> 00:51:09.590
+you also have to be
+careful about how
+
+00:51:09.590 --> 00:51:10.757
+you parameterize everything.
+
+00:51:10.757 --> 00:51:11.270
+Right?
+
+00:51:11.270 --> 00:51:12.020
+JOHN W. ROBERTS: Oh, very much.
+
+00:51:12.020 --> 00:51:14.353
+STUDENT: Because, I mean, you
+are taking the expectation
+
+00:51:14.353 --> 00:51:17.690
+over these betas, which
+are in fact instantiations
+
+00:51:17.690 --> 00:51:18.950
+of your parameters.
+
+00:51:18.950 --> 00:51:21.260
+JOHN W. ROBERTS: That
+is a very good point.
+
+00:51:21.260 --> 00:51:24.200
+STUDENT: Are you still having
+that problem regardless
+
+00:51:24.200 --> 00:51:25.655
+of which two you use?
+
+00:51:25.655 --> 00:51:27.530
+JOHN W. ROBERTS: What
+do you mean, which two?
+
+00:51:27.530 --> 00:51:29.510
+Oh, whether you're using back
+prop or this or something
+
+00:51:29.510 --> 00:51:29.930
+like that?
+
+00:51:29.930 --> 00:51:30.680
+STUDENT: Well, no.
+
+00:51:30.680 --> 00:51:33.930
+Between the stochastic policy
+and the stochastic gradient
+
+00:51:33.930 --> 00:51:34.430
+descent.
+
+00:51:34.430 --> 00:51:34.520
+JOHN W. ROBERTS: OK.
+
+00:51:34.520 --> 00:51:35.780
+I really want to emphasize
+something right now.
+
+00:51:35.780 --> 00:51:37.110
+They're not different.
+
+00:51:37.110 --> 00:51:38.580
+OK?
+
+00:51:38.580 --> 00:51:41.030
+They're not, they're
+the same thing.
+
+00:51:41.030 --> 00:51:41.910
+All right?
+
+00:51:41.910 --> 00:51:46.037
+You're correct that
+your parameterization
+
+00:51:46.037 --> 00:51:47.120
+is going to affect things.
+
+00:51:47.120 --> 00:51:48.390
+Because you're going
+to get to a minimum,
+
+00:51:48.390 --> 00:51:49.460
+with respect to your
+parameterization.
+
+00:51:49.460 --> 00:51:49.820
+STUDENT: Right.
+
+00:51:49.820 --> 00:51:50.150
+JOHN W. ROBERTS:
+You're going to be
+
+00:51:50.150 --> 00:51:51.450
+sampling over your parameters.
+
+00:51:51.450 --> 00:51:52.490
+And so, the cost
+function is going
+
+00:51:52.490 --> 00:51:53.880
+to be a function
+of your parameters.
+
+00:51:53.880 --> 00:51:56.047
+So if you imagine, if you
+have different parameters,
+
+00:51:56.047 --> 00:51:58.713
+the cost function will
+look completely different.
+
+00:51:58.713 --> 00:51:59.630
+Does that makes sense?
+
+00:51:59.630 --> 00:52:02.810
+If I were to parameterize with
+an open loop tape or feedback
+
+00:52:02.810 --> 00:52:05.090
+policy, how would
+the value function
+
+00:52:05.090 --> 00:52:07.732
+dependent on those parameters
+be completely different?
+
+00:52:07.732 --> 00:52:08.690
+So it's very important.
+
+00:52:08.690 --> 00:52:09.110
+That's true.
+
+00:52:09.110 --> 00:52:10.777
+It's over these
+instantiated parameters.
+
+00:52:10.777 --> 00:52:12.660
+So picking that
+affects everything.
+
+00:52:12.660 --> 00:52:16.145
+And picking a sensible
+one can be a hard problem.
+
+00:52:16.145 --> 00:52:19.790
+STUDENT: So there is
+almost like another,
+
+00:52:19.790 --> 00:52:22.140
+instead of just having
+the sigma and the rate,
+
+00:52:22.140 --> 00:52:24.270
+you also have to have
+essentially these alphas
+
+00:52:24.270 --> 00:52:24.945
+and [INAUDIBLE].
+
+00:52:24.945 --> 00:52:26.820
+JOHN W. ROBERTS: You
+have it for both, right?
+
+00:52:26.820 --> 00:52:27.085
+STUDENT: Right.
+
+00:52:27.085 --> 00:52:27.590
+Exactly.
+
+00:52:27.590 --> 00:52:28.220
+It's like--
+
+00:52:28.220 --> 00:52:28.700
+JOHN W. ROBERTS: Yeah.
+
+00:52:28.700 --> 00:52:31.150
+STUDENT: It's almost you're
+over-parameterizing everything
+
+00:52:31.150 --> 00:52:32.150
+just so you can get an answer.
+
+00:52:32.150 --> 00:52:32.810
+JOHN W. ROBERTS:
+Well, I mean you
+
+00:52:32.810 --> 00:52:34.700
+need to parameterize
+your policy either way.
+
+00:52:34.700 --> 00:52:37.250
+I mean, whether you choose to
+parameterize it as an open loop
+
+00:52:37.250 --> 00:52:39.200
+tape where you have 250
+parameters or something
+
+00:52:39.200 --> 00:52:41.200
+like that, you've still
+chosen parameterization.
+
+00:52:41.200 --> 00:52:43.760
+I mean, you still
+picked a lot of them.
+
+00:52:43.760 --> 00:52:47.070
+But you need to
+represent it some way.
+
+00:52:47.070 --> 00:52:50.495
+And so, I mean, whether you
+do back prop or anything,
+
+00:52:50.495 --> 00:52:52.620
+you're still going to have
+that exact same problem.
+
+00:52:52.620 --> 00:52:53.750
+I mean, you could do
+back prop and make
+
+00:52:53.750 --> 00:52:55.790
+it more efficient if you
+had five parameters, too.
+
+00:52:55.790 --> 00:52:57.860
+But it also can handle these
+big open loop tapes and stuff
+
+00:52:57.860 --> 00:52:58.360
+like that.
+
+00:52:58.360 --> 00:53:02.510
+So there's less of a pressure
+to find concise and sort
+
+00:53:02.510 --> 00:53:04.550
+of compact representations.
+
+00:53:04.550 --> 00:53:05.050
+But yeah.
+
+00:53:05.050 --> 00:53:07.258
+But I want to emphasize that
+these are different ways
+
+00:53:07.258 --> 00:53:08.300
+of looking at it.
+
+00:53:08.300 --> 00:53:10.130
+But update's the same.
+
+00:53:10.130 --> 00:53:11.790
+The algorithm's the same.
+
+00:53:11.790 --> 00:53:13.610
+The only difference
+is, am I following
+
+00:53:13.610 --> 00:53:15.230
+this local true gradient?
+
+00:53:15.230 --> 00:53:18.700
+Am I following the
+expected value of my cost?
+
+00:53:21.920 --> 00:53:28.580
+So a toy example here to show
+some of the practical issues
+
+00:53:28.580 --> 00:53:29.990
+of some of these things.
+
+00:53:29.990 --> 00:53:31.740
+And please, if you
+have any more questions
+
+00:53:31.740 --> 00:53:34.702
+about any of these things,
+even if it seems tangential,
+
+00:53:34.702 --> 00:53:35.410
+just let me know.
+
+00:53:38.520 --> 00:53:39.020
+OK.
+
+00:53:43.630 --> 00:53:52.420
+So here, we have what we just
+talked about implemented.
+
+00:53:52.420 --> 00:53:55.030
+You can see how simple
+it is right here.
+
+00:53:55.030 --> 00:53:57.280
+I'm doing a four loop instead
+of that while converged.
+
+00:53:57.280 --> 00:54:01.720
+But we have a loop through
+some number of iterations.
+
+00:54:01.720 --> 00:54:03.490
+I get my sigma and eta.
+
+00:54:03.490 --> 00:54:05.710
+So this is so I can make
+it dependent on the number
+
+00:54:05.710 --> 00:54:07.252
+of iterations or
+something like that.
+
+00:54:07.252 --> 00:54:08.890
+So I can make them decrease.
+
+00:54:08.890 --> 00:54:12.100
+I generate the noise according
+to a Gaussian distribution
+
+00:54:12.100 --> 00:54:13.278
+here.
+
+00:54:13.278 --> 00:54:13.945
+I get my reward.
+
+00:54:16.455 --> 00:54:17.830
+And the rest of
+this is just sort
+
+00:54:17.830 --> 00:54:19.622
+of plotting stuff and
+everything like that.
+
+00:54:19.622 --> 00:54:21.430
+And then here.
+
+00:54:21.430 --> 00:54:23.080
+Here's my update.
+
+00:54:23.080 --> 00:54:24.820
+And that's where
+I've got my baseline.
+
+00:54:24.820 --> 00:54:25.140
+Right?
+
+00:54:25.140 --> 00:54:26.920
+So you can see that this is just
+sort of that pseudocode right
+
+00:54:26.920 --> 00:54:27.560
+over there.
+
+00:54:27.560 --> 00:54:29.207
+There's nothing more.
+
+00:54:29.207 --> 00:54:30.790
+All these functions
+are just so that I
+
+00:54:30.790 --> 00:54:32.915
+can switch between different
+things really quickly.
+
+00:54:32.915 --> 00:54:34.407
+But it's very easy to implement.
+
+00:54:34.407 --> 00:54:35.740
+STUDENT: So you do the baseline.
+
+00:54:35.740 --> 00:54:39.312
+And then the
+equations, [INAUDIBLE]??
+
+00:54:39.312 --> 00:54:40.270
+JOHN W. ROBERTS: Right.
+
+00:54:40.270 --> 00:54:41.687
+I mean, this is
+what pops out when
+
+00:54:41.687 --> 00:54:43.000
+you look at that expectation.
+
+00:54:43.000 --> 00:54:46.000
+But as we said, the
+expected value of E is 0.
+
+00:54:46.000 --> 00:54:48.610
+So if I have a constant in
+there, my expected value
+
+00:54:48.610 --> 00:54:50.620
+if I subtract off that
+constant the same way,
+
+00:54:50.620 --> 00:54:53.380
+it's not going to affect the
+expected direction of my update
+
+00:54:53.380 --> 00:54:54.310
+at all.
+
+00:54:54.310 --> 00:54:58.270
+So these say you
+don't need a baseline.
+
+00:54:58.270 --> 00:55:00.220
+But a baseline has
+performance benefits.
+
+00:55:00.220 --> 00:55:00.760
+Right?
+
+00:55:00.760 --> 00:55:01.690
+So that's sort of
+another, if you
+
+00:55:01.690 --> 00:55:03.190
+go these different
+directions, this one says,
+
+00:55:03.190 --> 00:55:04.270
+oh you don't need a baseline.
+
+00:55:04.270 --> 00:55:05.320
+You can put it and it helps.
+
+00:55:05.320 --> 00:55:06.400
+The other one's more
+natural to think
+
+00:55:06.400 --> 00:55:07.330
+about starting with a baseline.
+
+00:55:07.330 --> 00:55:09.020
+Then you can say, oh well,
+you actually don't need it.
+
+00:55:09.020 --> 00:55:11.140
+So again, they both have
+the same effect there.
+
+00:55:11.140 --> 00:55:13.580
+Maybe I should have
+been more clear.
+
+00:55:13.580 --> 00:55:16.300
+But yeah.
+
+00:55:19.990 --> 00:55:21.640
+So the problem that
+we're looking at
+
+00:55:21.640 --> 00:55:27.910
+is simply, we have a spline.
+
+00:55:27.910 --> 00:55:28.912
+So I make a spline.
+
+00:55:28.912 --> 00:55:30.370
+And then we're
+trying to figure out
+
+00:55:30.370 --> 00:55:33.225
+a curve that gets as close
+to that spline as possible.
+
+00:55:33.225 --> 00:55:34.600
+So it's really
+just sort of we're
+
+00:55:34.600 --> 00:55:37.120
+trying to fit a curve
+to this random spline.
+
+00:55:37.120 --> 00:55:37.720
+Right?
+
+00:55:37.720 --> 00:55:41.260
+Now, obviously we don't need
+to do anything fancy for this.
+
+00:55:41.260 --> 00:55:42.987
+But it's very visual.
+
+00:55:42.987 --> 00:55:45.070
+And so, I think it's
+probably a good example here.
+
+00:55:48.700 --> 00:55:50.410
+So we'll start.
+
+00:55:50.410 --> 00:55:54.160
+The cost function we're
+using is the square distance
+
+00:55:54.160 --> 00:55:59.410
+between our sort of guessed
+curve and the actual curve.
+
+00:55:59.410 --> 00:56:01.300
+And try running it.
+
+00:56:22.240 --> 00:56:23.830
+All right.
+
+00:56:23.830 --> 00:56:26.740
+So on the left,
+this is our cost.
+
+00:56:26.740 --> 00:56:28.840
+Well, we have it formulated
+as our reward here.
+
+00:56:28.840 --> 00:56:31.510
+So it's negative.
+
+00:56:31.510 --> 00:56:34.720
+And then over here, the blue
+thing is the thing we want.
+
+00:56:34.720 --> 00:56:35.785
+The red is our nominal.
+
+00:56:35.785 --> 00:56:36.910
+And the green is our noise.
+
+00:56:36.910 --> 00:56:38.620
+You see our noise
+is pretty small.
+
+00:56:38.620 --> 00:56:41.050
+I started it at L zero.
+
+00:56:41.050 --> 00:56:43.150
+You can see it climbing here.
+
+00:56:43.150 --> 00:56:44.920
+Right?
+
+00:56:44.920 --> 00:56:45.980
+And it is getting better.
+
+00:56:45.980 --> 00:56:49.210
+It's bouncing around a bit.
+
+00:56:49.210 --> 00:56:50.080
+Yeah.
+
+00:56:50.080 --> 00:56:52.247
+And so, this is actually
+parameterized, this spline.
+
+00:56:52.247 --> 00:56:55.400
+So it could be exactly
+correct if we let it.
+
+00:56:55.400 --> 00:56:57.940
+I mean, it's capable of
+representing the curve exactly.
+
+00:56:57.940 --> 00:56:59.890
+So the cost could be
+zero, effectively.
+
+00:56:59.890 --> 00:57:00.490
+Right?
+
+00:57:00.490 --> 00:57:01.948
+I think actually,
+if I have run it,
+
+00:57:01.948 --> 00:57:04.060
+it gets stuck in a
+local minimum, which
+
+00:57:04.060 --> 00:57:06.490
+is a good cautionary tale.
+
+00:57:06.490 --> 00:57:08.673
+Even if a problem
+is simple like this,
+
+00:57:08.673 --> 00:57:10.340
+you can still get
+stuck in local minima.
+
+00:57:10.340 --> 00:57:11.925
+So always be careful for that.
+
+00:57:11.925 --> 00:57:14.050
+But see, it's actually
+doing a reasonably good job.
+
+00:57:14.050 --> 00:57:15.610
+Right?
+
+00:57:15.610 --> 00:57:17.680
+Now you might be
+like, oh well, it
+
+00:57:17.680 --> 00:57:20.320
+has an ideal parameterization.
+
+00:57:20.320 --> 00:57:22.810
+It's the minimum
+number of parameters
+
+00:57:22.810 --> 00:57:25.048
+you need to have a spline
+that can represent it.
+
+00:57:25.048 --> 00:57:26.590
+And this was the
+same form of spline.
+
+00:57:26.590 --> 00:57:29.410
+So that's a pretty
+solid parameterization.
+
+00:57:29.410 --> 00:57:32.200
+But we can try a different one.
+
+00:57:35.740 --> 00:57:40.810
+This computer is
+showing its age.
+
+00:57:40.810 --> 00:57:43.877
+When I ran these tests on
+my desktop, it went pfft.
+
+00:57:43.877 --> 00:57:45.460
+And so, I had my
+number of iterations,
+
+00:57:45.460 --> 00:57:46.780
+like several thousand.
+
+00:57:46.780 --> 00:57:48.822
+And then when I realized
+it was going to do this,
+
+00:57:48.822 --> 00:57:50.350
+I was like oh.
+
+00:57:50.350 --> 00:57:52.060
+All right.
+
+00:57:52.060 --> 00:57:53.560
+So here.
+
+00:57:53.560 --> 00:57:55.540
+What parameterization
+do you want?
+
+00:57:55.540 --> 00:57:58.230
+Linear, tripolated,
+nearest neighbor?
+
+00:57:58.230 --> 00:57:59.551
+A polynomial?
+
+00:58:02.210 --> 00:58:02.710
+All right.
+
+00:58:09.230 --> 00:58:09.730
+OK.
+
+00:58:21.430 --> 00:58:24.380
+[INAUDIBLE]
+
+00:58:24.380 --> 00:58:24.880
+There we go.
+
+00:58:39.650 --> 00:58:40.420
+Sorry about this.
+
+00:58:49.857 --> 00:58:50.440
+It's not done.
+
+00:58:50.440 --> 00:58:53.270
+Here we go.
+
+00:58:53.270 --> 00:58:56.130
+Here, you see it's
+capable of learning.
+
+00:58:56.130 --> 00:58:58.380
+It has this is obviously
+inferior parameterization.
+
+00:58:58.380 --> 00:59:00.080
+It can't represent
+the right answer.
+
+00:59:00.080 --> 00:59:01.830
+But you can see it is
+getting closer here.
+
+00:59:01.830 --> 00:59:03.990
+It's not doing a bad job.
+
+00:59:03.990 --> 00:59:04.530
+Right?
+
+00:59:04.530 --> 00:59:07.453
+And the question of
+what the optimum is here
+
+00:59:07.453 --> 00:59:09.120
+is not going to look
+just like the curve
+
+00:59:09.120 --> 00:59:10.050
+because it has to
+sort of balance
+
+00:59:10.050 --> 00:59:12.490
+these competing things of
+going over and going under.
+
+00:59:12.490 --> 00:59:15.450
+So this is a good
+example of where
+
+00:59:15.450 --> 00:59:16.950
+your policy
+parameterization doesn't
+
+00:59:16.950 --> 00:59:19.342
+capture the true optimum.
+
+00:59:19.342 --> 00:59:21.300
+And so, when this thing
+converges to something,
+
+00:59:21.300 --> 00:59:22.230
+it maybe is the best.
+
+00:59:22.230 --> 00:59:23.688
+But it's only the
+best with respect
+
+00:59:23.688 --> 00:59:25.590
+to that way of
+parameterizing a policy.
+
+00:59:25.590 --> 00:59:26.640
+Right?
+
+00:59:26.640 --> 00:59:29.120
+So if you guessed that nearest
+neighbor is rich enough,
+
+00:59:29.120 --> 00:59:30.120
+then you put it in here.
+
+00:59:30.120 --> 00:59:33.900
+You're going to see
+that it's not optimal.
+
+00:59:33.900 --> 00:59:34.830
+Right?
+
+00:59:34.830 --> 00:59:37.303
+That you've limited yourself.
+
+00:59:37.303 --> 00:59:39.470
+And sometimes I mean, the
+other one with the spline,
+
+00:59:39.470 --> 00:59:41.150
+you put yourself in the
+regime where you have
+
+00:59:41.150 --> 00:59:42.358
+a very good parameterization.
+
+00:59:42.358 --> 00:59:44.270
+You get very close
+to the right answer.
+
+00:59:44.270 --> 00:59:46.003
+Here, we have poor
+parameterization.
+
+00:59:46.003 --> 00:59:47.420
+And so, it's still
+going to learn.
+
+00:59:47.420 --> 00:59:48.380
+It's still going to converge.
+
+00:59:48.380 --> 00:59:49.755
+But it's not going
+to be as good.
+
+00:59:59.410 --> 01:00:02.440
+So lin interp, we could
+probably do better.
+
+01:00:02.440 --> 01:00:03.600
+But here.
+
+01:00:03.600 --> 01:00:09.405
+Now, we'll go back
+to-- well, we'll
+
+01:00:09.405 --> 01:00:10.950
+keep it in nearest
+neighbor for now.
+
+01:00:10.950 --> 01:00:12.052
+You can see lin interp.
+
+01:00:16.300 --> 01:00:17.650
+All right.
+
+01:00:17.650 --> 01:00:19.840
+Now I said previously that
+this is partially nice
+
+01:00:19.840 --> 01:00:22.250
+because it's robust to noise.
+
+01:00:22.250 --> 01:00:25.300
+So here we're going
+to look at, we're
+
+01:00:25.300 --> 01:00:29.230
+going to add Gaussian noise with
+a standard distribution of 20.
+
+01:00:34.480 --> 01:00:37.771
+Let's see.
+
+01:00:37.771 --> 01:00:42.240
+Here, it's not doing well.
+
+01:00:42.240 --> 01:00:50.400
+I probably have to
+reduce my sigma eta.
+
+01:01:03.980 --> 01:01:07.660
+Let's see if we can get
+back to where it started.
+
+01:01:07.660 --> 01:01:09.908
+Yeah.
+
+01:01:09.908 --> 01:01:12.200
+STUDENT: I think that's the
+same thing as [INAUDIBLE]..
+
+01:01:15.890 --> 01:01:18.230
+JOHN W. ROBERTS: You
+multiply by sigma.
+
+01:01:18.230 --> 01:01:21.890
+The variance is squared.
+
+01:01:21.890 --> 01:01:25.260
+So this is not
+doing a great job.
+
+01:01:25.260 --> 01:01:27.750
+You see noise can break it.
+
+01:01:27.750 --> 01:01:31.385
+If we start with a
+bigger error though,
+
+01:01:31.385 --> 01:01:34.250
+it's effectively
+standard deviation.
+
+01:01:34.250 --> 01:01:36.140
+Also maybe our eta
+could have been too big.
+
+01:01:36.140 --> 01:01:37.932
+Because we're getting
+big measurements just
+
+01:01:37.932 --> 01:01:39.200
+from this error.
+
+01:01:39.200 --> 01:01:41.480
+So like a big eta, let's
+try reducing our eta.
+
+01:01:57.500 --> 01:02:00.222
+So it didn't get worse.
+
+01:02:00.222 --> 01:02:02.180
+Learning is going to be
+slow though, obviously.
+
+01:02:02.180 --> 01:02:03.780
+Because it has such
+a small signal.
+
+01:02:03.780 --> 01:02:11.270
+But at least we prevented it
+from doing that terrible thing.
+
+01:02:11.270 --> 01:02:13.520
+That's because it was getting
+these giant measurements
+
+01:02:13.520 --> 01:02:18.350
+of error and updating
+based on them.
+
+01:02:18.350 --> 01:02:21.005
+But an expected value will still
+go where you want it to go.
+
+01:02:21.005 --> 01:02:22.880
+If you did a bunch of
+updates, you'd be fine.
+
+01:02:22.880 --> 01:02:24.505
+But that just gives
+you everything out.
+
+01:02:28.310 --> 01:02:47.372
+If we reduce that
+down to, let's say,
+
+01:02:47.372 --> 01:02:48.580
+learning will be really slow.
+
+01:02:48.580 --> 01:02:50.020
+So let me turn off plotting.
+
+01:03:02.130 --> 01:03:03.690
+I'm sorry about this.
+
+01:03:11.969 --> 01:03:13.850
+I don't know what just happened.
+
+01:03:13.850 --> 01:03:14.350
+OK.
+
+01:03:20.290 --> 01:03:21.970
+So let's see how this does.
+
+01:03:27.860 --> 01:03:30.040
+Ah, this is smoothed.
+
+01:03:30.040 --> 01:03:33.490
+I ran a boxcar filter on it.
+
+01:03:33.490 --> 01:03:36.470
+But it's not necessarily
+learning quickly.
+
+01:03:36.470 --> 01:03:38.470
+But with that noise,
+it still learns.
+
+01:03:38.470 --> 01:03:39.190
+Now if we're going
+to be doing this,
+
+01:03:39.190 --> 01:03:41.140
+we might as well kick
+ourselves back to 20
+
+01:03:41.140 --> 01:03:42.390
+and see if we can do anything.
+
+01:03:57.560 --> 01:03:58.510
+Yeah.
+
+01:03:58.510 --> 01:04:01.060
+So there, it's got enough
+noise that it's sort of
+
+01:04:01.060 --> 01:04:02.080
+been walking a bit much.
+
+01:04:02.080 --> 01:04:02.580
+Maybe.
+
+01:04:02.580 --> 01:04:04.780
+If you make your eta
+smaller and stuff like that,
+
+01:04:04.780 --> 01:04:06.197
+maybe make your
+sigma bigger so it
+
+01:04:06.197 --> 01:04:08.260
+gets a bigger signal when
+it measures the change,
+
+01:04:08.260 --> 01:04:09.640
+you might be able to be OK.
+
+01:04:09.640 --> 01:04:15.730
+But I mean, it's still suffered
+from these things definitely.
+
+01:04:15.730 --> 01:04:17.590
+Now, another point here.
+
+01:04:17.590 --> 01:04:19.778
+I talked about cost
+functions a bit yesterday.
+
+01:04:19.778 --> 01:04:21.820
+Here, we have one where
+it's the square distance.
+
+01:04:21.820 --> 01:04:23.838
+Let's say we--
+
+01:04:23.838 --> 01:04:25.630
+I think I'm going to
+give away whether it's
+
+01:04:25.630 --> 01:04:28.810
+going to do better or worse
+by having named it poor grad.
+
+01:04:28.810 --> 01:04:33.460
+But this one, we're going
+to get a reward of one
+
+01:04:33.460 --> 01:04:36.605
+for each point that's within
+of 0.05 of the desired point.
+
+01:04:36.605 --> 01:04:38.980
+So if you're far away at zero
+and if you're close enough,
+
+01:04:38.980 --> 01:04:39.910
+it's one.
+
+01:04:39.910 --> 01:04:41.994
+Right?
+
+01:04:41.994 --> 01:04:44.082
+STUDENT: [INAUDIBLE].
+
+01:04:44.082 --> 01:04:45.040
+JOHN W. ROBERTS: Right.
+
+01:04:50.070 --> 01:04:51.252
+Where did my--
+
+01:04:56.240 --> 01:04:56.740
+Oh.
+
+01:05:05.280 --> 01:05:07.710
+So you see?
+
+01:05:07.710 --> 01:05:10.673
+This is a much
+shallower performance.
+
+01:05:10.673 --> 01:05:12.090
+It still looks
+like it's learning.
+
+01:05:12.090 --> 01:05:12.630
+And it is.
+
+01:05:12.630 --> 01:05:14.560
+Because I mean, even the bad
+cost functions can learn.
+
+01:05:14.560 --> 01:05:15.780
+But now I'm going
+to show you what
+
+01:05:15.780 --> 01:05:17.490
+that looks like when
+you run it and actually
+
+01:05:17.490 --> 01:05:18.365
+look at the plotting.
+
+01:05:32.980 --> 01:05:33.480
+You see?
+
+01:05:38.540 --> 01:05:41.572
+Now we can give it our--
+
+01:05:41.572 --> 01:05:43.280
+we're still giving it
+that linear interp.
+
+01:05:43.280 --> 01:05:44.310
+Let's see if we give it
+the better parameterization
+
+01:05:44.310 --> 01:05:45.227
+and see how that does.
+
+01:06:04.450 --> 01:06:07.030
+You can see it's not
+learning nearly as quickly
+
+01:06:07.030 --> 01:06:09.010
+as the other cost function did.
+
+01:06:09.010 --> 01:06:11.480
+Right?
+
+01:06:11.480 --> 01:06:14.800
+Let's get all our things back
+to make eta a bit bigger.
+
+01:06:47.260 --> 01:06:48.005
+See?
+
+01:06:48.005 --> 01:06:50.380
+So here the only thing that
+changed between our runs that
+
+01:06:50.380 --> 01:06:53.680
+looked pretty nice and this run
+right now is the cost function.
+
+01:06:58.160 --> 01:07:01.040
+You see, it is over the course
+of-- that's a 300 something,
+
+01:07:01.040 --> 01:07:04.610
+it is getting up there-- but
+if you remember the other one,
+
+01:07:04.610 --> 01:07:06.470
+it's fitting a lot nicer.
+
+01:07:06.470 --> 01:07:06.970
+Right?
+
+01:07:10.683 --> 01:07:12.100
+And the thing is
+that, if you look
+
+01:07:12.100 --> 01:07:14.080
+at probably the cost
+of the other one,
+
+01:07:14.080 --> 01:07:16.480
+even using this cost
+function, once you solve it,
+
+01:07:16.480 --> 01:07:19.420
+the other one would
+be lower as well.
+
+01:07:19.420 --> 01:07:22.000
+Do you see what I mean?
+
+01:07:22.000 --> 01:07:23.595
+The problem that,
+if you solved it
+
+01:07:23.595 --> 01:07:24.970
+with the other
+one then evaluated
+
+01:07:24.970 --> 01:07:26.530
+this cost function
+on the solution,
+
+01:07:26.530 --> 01:07:28.090
+that would be better than
+this after some number
+
+01:07:28.090 --> 01:07:28.900
+of parameters.
+
+01:07:28.900 --> 01:07:31.180
+And it's because learning
+based on this is hard.
+
+01:07:31.180 --> 01:07:32.760
+Right?
+
+01:07:32.760 --> 01:07:34.420
+You can see that
+this is very coarse.
+
+01:07:34.420 --> 01:07:36.370
+It's very easy just to
+lose one or gain one
+
+01:07:36.370 --> 01:07:38.480
+if you don't have good
+gradient information.
+
+01:07:38.480 --> 01:07:40.750
+And so, this is a bad cost
+function for learning.
+
+01:07:40.750 --> 01:07:41.680
+Right?
+
+01:07:41.680 --> 01:07:44.712
+The same task, if this were the
+task you really cared about,
+
+01:07:44.712 --> 01:07:47.170
+formulating it with the other
+cost function and solving it,
+
+01:07:47.170 --> 01:07:49.150
+you actually probably do
+better than solving with this
+
+01:07:49.150 --> 01:07:49.840
+directly.
+
+01:07:49.840 --> 01:07:50.380
+Right?
+
+01:07:50.380 --> 01:07:53.830
+And that's because the
+gradients in this one are poor.
+
+01:07:53.830 --> 01:07:55.825
+It's not easy for it
+to define the direction
+
+01:07:55.825 --> 01:07:57.400
+it's supposed to move in.
+
+01:07:57.400 --> 01:07:58.590
+And it's even worse.
+
+01:07:58.590 --> 01:08:01.090
+I was talking before about how
+you could be in regions where
+
+01:08:01.090 --> 01:08:05.530
+you're getting zero cost
+or zero reward for a while
+
+01:08:05.530 --> 01:08:07.730
+or there's no gradient at all.
+
+01:08:07.730 --> 01:08:12.100
+So if we start ourselves
+with an error here,
+
+01:08:12.100 --> 01:08:13.940
+it's not getting
+any measurement.
+
+01:08:13.940 --> 01:08:14.440
+You see?
+
+01:08:18.540 --> 01:08:20.290
+Again, it's not changing
+at all because it
+
+01:08:20.290 --> 01:08:22.520
+can't measure anything.
+
+01:08:22.520 --> 01:08:28.930
+So if we go to--
+
+01:08:28.930 --> 01:08:32.770
+I said the way to solve that,
+if you were stuck with it,
+
+01:08:32.770 --> 01:08:44.120
+could be to use more
+violent kind of sampling.
+
+01:08:44.120 --> 01:08:46.635
+And there, you see we actually
+are able to get some reward.
+
+01:08:46.635 --> 01:08:47.510
+And it takes a while.
+
+01:08:47.510 --> 01:08:49.040
+But you see that
+there's more violent
+
+01:08:49.040 --> 01:08:50.873
+sampling at least getting
+out of that region
+
+01:08:50.873 --> 01:08:52.250
+where we don't get information.
+
+01:08:52.250 --> 01:08:53.990
+Right?
+
+01:08:53.990 --> 01:08:54.899
+Still not the best.
+
+01:08:54.899 --> 01:08:57.439
+But if you're stuck
+with that problem,
+
+01:08:57.439 --> 01:08:59.279
+that's one way to deal with it.
+
+01:08:59.279 --> 01:09:00.800
+But you can see that, with the
+other one where it doesn't have
+
+01:09:00.800 --> 01:09:03.560
+any regions like that-- if
+you go back to our nice grad--
+
+01:09:15.010 --> 01:09:16.640
+sorry, I need to switch my eta.
+
+01:09:19.210 --> 01:09:19.710
+Yeah.
+
+01:09:22.250 --> 01:09:22.750
+Whoops.
+
+01:09:28.649 --> 01:09:29.609
+We can go back to--
+
+01:09:37.455 --> 01:09:38.580
+See how much nicer that is?
+
+01:09:42.189 --> 01:09:45.819
+So there you go.
+
+01:09:45.819 --> 01:09:47.675
+So here you can see
+the parameterization
+
+01:09:47.675 --> 01:09:49.210
+can affect it a lot.
+
+01:09:49.210 --> 01:09:50.979
+The cost function
+can affect it a lot.
+
+01:09:50.979 --> 01:09:53.049
+The eta and sigma
+can affect it a lot.
+
+01:09:53.049 --> 01:09:55.000
+There's a lot of concerns.
+
+01:09:55.000 --> 01:09:55.660
+Right?
+
+01:09:55.660 --> 01:09:57.910
+And that's why that should
+make SNOPT and stuff more
+
+01:09:57.910 --> 01:09:59.050
+appealing to you.
+
+01:09:59.050 --> 01:10:01.300
+Because if you can complete
+those gradients using back
+
+01:10:01.300 --> 01:10:02.800
+prop, there's no
+guesswork in that.
+
+01:10:02.800 --> 01:10:03.460
+Right?
+
+01:10:03.460 --> 01:10:06.970
+You give it to SNOPT,
+there's no parameters to set.
+
+01:10:06.970 --> 01:10:10.300
+I mean, I guess there's some
+convergence criteria and stuff.
+
+01:10:10.300 --> 01:10:12.490
+But you don't have
+to play these games.
+
+01:10:12.490 --> 01:10:14.350
+There's a lot of ways
+to get this wrong.
+
+01:10:14.350 --> 01:10:16.800
+Right?
+
+01:10:16.800 --> 01:10:18.383
+So--
+
+01:10:18.383 --> 01:10:20.050
+STUDENT: So the reason
+that we introduce
+
+01:10:20.050 --> 01:10:25.555
+the [INAUDIBLE] policy was a
+way to explore [INAUDIBLE]??
+
+01:10:27.947 --> 01:10:30.030
+JOHN W. ROBERTS: For here,
+I mean they provide you
+
+01:10:30.030 --> 01:10:30.697
+the exploration.
+
+01:10:30.697 --> 01:10:31.868
+Yeah.
+
+01:10:31.868 --> 01:10:34.410
+There's certain situations-- we
+talk about gambling and stuff
+
+01:10:34.410 --> 01:10:36.202
+like that-- where
+stochasticity, if there's
+
+01:10:36.202 --> 01:10:37.890
+an adversarial
+kind of component,
+
+01:10:37.890 --> 01:10:42.250
+stochasticity could be necessary
+for optimality sometimes.
+
+01:10:42.250 --> 01:10:43.740
+Right?
+
+01:10:43.740 --> 01:10:49.440
+But in these kind of cases where
+we have a dynamical system,
+
+01:10:49.440 --> 01:10:54.240
+I don't see how stochasticity
+in a deterministic system
+
+01:10:54.240 --> 01:10:58.960
+could make you more
+optimal than deterministic.
+
+01:10:58.960 --> 01:11:00.790
+Right?
+
+01:11:00.790 --> 01:11:02.540
+That's because the
+system is deterministic
+
+01:11:02.540 --> 01:11:05.790
+and not trying to guess
+what you're doing and stuff.
+
+01:11:05.790 --> 01:11:07.730
+So that's pretty nice
+convergence right there.
+
+01:11:13.800 --> 01:11:16.800
+And you see, if we
+evaluated this solution
+
+01:11:16.800 --> 01:11:22.110
+with our cost function of
+one of the poor gradients,
+
+01:11:22.110 --> 01:11:23.970
+I mean this is going
+to be a lot nicer.
+
+01:11:23.970 --> 01:11:24.780
+Right?
+
+01:11:24.780 --> 01:11:27.120
+And that's even though we
+wouldn't solve it explicitly.
+
+01:11:27.120 --> 01:11:29.620
+It's just because the gradients
+of this one are a lot nicer.
+
+01:11:29.620 --> 01:11:31.690
+So you can solve it a lot nicer.
+
+01:11:31.690 --> 01:11:34.380
+So remember that,
+that cost functions--
+
+01:11:34.380 --> 01:11:38.613
+even if it's not explicitly
+what you maybe most care about--
+
+01:11:38.613 --> 01:11:40.530
+for example, we care
+about catching the perch.
+
+01:11:40.530 --> 01:11:42.090
+Right?
+
+01:11:42.090 --> 01:11:43.800
+But if you want to
+catch the perch,
+
+01:11:43.800 --> 01:11:46.560
+it could be that, by learning
+with something with a distance
+
+01:11:46.560 --> 01:11:48.432
+in it, maybe we'd learn
+better and actually
+
+01:11:48.432 --> 01:11:49.890
+end up catching
+the perch more than
+
+01:11:49.890 --> 01:11:52.260
+if our reward was just one
+that could catch the perch.
+
+01:11:52.260 --> 01:11:53.610
+Right?
+
+01:11:53.610 --> 01:11:58.920
+So cost function design
+can matter a lot.
+
+01:11:58.920 --> 01:12:01.360
+Policy parameterization
+matters a lot.
+
+01:12:01.360 --> 01:12:10.620
+So hopefully you all feel
+really comfortable using
+
+01:12:10.620 --> 01:12:12.750
+stochastic gradient descent
+now in the situations
+
+01:12:12.750 --> 01:12:13.742
+where it's warranted.
+
+01:12:16.330 --> 01:12:18.980
+STUDENT: Can you talk a
+little bit about the baseline?
+
+01:12:18.980 --> 01:12:20.463
+How do you get the baseline?
+
+01:12:20.463 --> 01:12:21.380
+JOHN W. ROBERTS: Yeah.
+
+01:12:21.380 --> 01:12:24.380
+My baseline here.
+
+01:12:24.380 --> 01:12:27.200
+I think I have two limitations,
+let's see something we can do.
+
+01:12:27.200 --> 01:12:32.210
+So my baseline here, right now
+I'm using a second evaluation.
+
+01:12:32.210 --> 01:12:33.470
+Right?
+
+01:12:33.470 --> 01:12:35.305
+We can do an average baseline.
+
+01:12:45.010 --> 01:12:46.060
+I screwed something up.
+
+01:13:31.010 --> 01:13:31.510
+Yeah.
+
+01:13:31.510 --> 01:13:35.910
+I probably-- so
+that's gone crazy.
+
+01:13:35.910 --> 01:13:37.312
+But we'll try a smaller eta.
+
+01:13:46.050 --> 01:13:46.550
+There.
+
+01:13:49.280 --> 01:13:51.880
+So this is an average baseline.
+
+01:13:51.880 --> 01:13:53.742
+See, it's still improving.
+
+01:13:53.742 --> 01:13:54.700
+It's not doing as nice.
+
+01:13:54.700 --> 01:13:56.320
+And it's also because we have
+to turn down the eta and stuff.
+
+01:13:56.320 --> 01:13:57.550
+I don't know that error was.
+
+01:13:57.550 --> 01:13:59.342
+I'm not going to try
+to debug it right now.
+
+01:13:59.342 --> 01:14:01.810
+But you can see
+it's still learning.
+
+01:14:01.810 --> 01:14:04.490
+Now the real question is,
+what if we have no baseline?
+
+01:14:04.490 --> 01:14:04.990
+Right?
+
+01:14:28.930 --> 01:14:32.293
+I made a really smart eta
+there because now it's
+
+01:14:32.293 --> 01:14:33.460
+not getting rid of anything.
+
+01:15:04.830 --> 01:15:07.190
+Yeah.
+
+01:15:07.190 --> 01:15:10.510
+You don't really have to
+turn it down even more.
+
+01:15:10.510 --> 01:15:16.020
+But that's a good example of why
+a good baseline is so critical.
+
+01:15:16.020 --> 01:15:16.520
+Right?
+
+01:15:16.520 --> 01:15:17.710
+I mean, you can
+see that all we did
+
+01:15:17.710 --> 01:15:19.752
+was change how the baseline,
+the average baseline
+
+01:15:19.752 --> 01:15:20.560
+was working fine.
+
+01:15:20.560 --> 01:15:21.640
+And it didn't cost us any more.
+
+01:15:21.640 --> 01:15:23.860
+You have two extra evaluations
+that we just got rid of.
+
+01:15:23.860 --> 01:15:24.490
+We put in that.
+
+01:15:24.490 --> 01:15:26.410
+And you see how much
+it struggled there.
+
+01:15:26.410 --> 01:15:30.617
+So I mean, if you just
+do an average baseline,
+
+01:15:30.617 --> 01:15:31.450
+you get it for free.
+
+01:15:31.450 --> 01:15:35.972
+And it's still a huge
+advantage over what
+
+01:15:35.972 --> 01:15:37.930
+we're trying to do without
+any baseline at all.
+
+01:15:47.681 --> 01:15:48.556
+STUDENT: But we did--
+
+01:15:48.556 --> 01:15:50.600
+I mean, it will
+eventually work it out.
+
+01:15:50.600 --> 01:15:52.583
+The baseline would
+just be a lot slower?
+
+01:15:52.583 --> 01:15:53.500
+JOHN W. ROBERTS: Yeah.
+
+01:15:53.500 --> 01:15:54.370
+I mean, it should.
+
+01:15:54.370 --> 01:15:55.430
+I mean, the thing is
+that, in practice, it
+
+01:15:55.430 --> 01:15:57.472
+can randomly walk around
+and get stuck in places.
+
+01:15:57.472 --> 01:15:59.290
+Like right here, you
+see this is that.
+
+01:15:59.290 --> 01:16:02.082
+It's a big run of
+improvement there.
+
+01:16:02.082 --> 01:16:03.790
+And it did better than
+it originally did.
+
+01:16:03.790 --> 01:16:06.050
+You see it's just
+walking all around.
+
+01:16:06.050 --> 01:16:06.580
+And so, yes.
+
+01:16:06.580 --> 01:16:08.380
+I mean there's still this
+bias towards improvement.
+
+01:16:08.380 --> 01:16:09.088
+And it will work.
+
+01:16:09.088 --> 01:16:13.510
+And if you were to calculate
+a whole bunch of delta alphas
+
+01:16:13.510 --> 01:16:15.595
+and then add them all
+together, then you probably
+
+01:16:15.595 --> 01:16:16.870
+wouldn't walk in the
+wrong direction as often.
+
+01:16:16.870 --> 01:16:17.500
+But here's the thing.
+
+01:16:17.500 --> 01:16:19.667
+You have to remember that
+it's sort of always moving
+
+01:16:19.667 --> 01:16:20.570
+in the direction.
+
+01:16:20.570 --> 01:16:21.070
+Right?
+
+01:16:21.070 --> 01:16:22.945
+It's just it's moving
+more or less, depending
+
+01:16:22.945 --> 01:16:24.160
+on how good it is.
+
+01:16:24.160 --> 01:16:27.160
+And so, yes.
+
+01:16:27.160 --> 01:16:28.330
+This should still work.
+
+01:16:28.330 --> 01:16:34.870
+But in practice, a good baseline
+helps a lot, as you've seen.
+
+01:16:34.870 --> 01:16:36.832
+So hopefully, all
+those examples--
+
+01:16:36.832 --> 01:16:40.480
+STUDENT: Is it also the case
+that that baseline will not
+
+01:16:40.480 --> 01:16:41.558
+hurt you?
+
+01:16:41.558 --> 01:16:42.850
+JOHN W. ROBERTS: Well, how bad?
+
+01:16:42.850 --> 01:16:44.150
+I mean, this could
+be considered bad.
+
+01:16:44.150 --> 01:16:44.560
+Right?
+
+01:16:44.560 --> 01:16:45.640
+A zero baseline did that.
+
+01:16:45.640 --> 01:16:46.473
+[INTERPOSING VOICES]
+
+01:16:46.473 --> 01:16:49.340
+STUDENT: Or can you actually
+have a baseline that gives you
+
+01:16:49.340 --> 01:16:52.810
+worse results than no baseline?
+
+01:16:52.810 --> 01:16:54.310
+JOHN W. ROBERTS:
+You probably could.
+
+01:16:54.310 --> 01:16:56.260
+Because you could just
+have it be a bigger error.
+
+01:16:56.260 --> 01:16:56.500
+Right?
+
+01:16:56.500 --> 01:16:57.960
+Just more in the
+wrong direction.
+
+01:16:57.960 --> 01:16:59.868
+STUDENT: Right.
+
+01:16:59.868 --> 01:17:00.910
+JOHN W. ROBERTS: So Yeah.
+
+01:17:00.910 --> 01:17:01.570
+But I mean that's
+what I'm saying.
+
+01:17:01.570 --> 01:17:03.362
+If you average over
+the past several trials
+
+01:17:03.362 --> 01:17:05.680
+like we did and then reduce
+the rate of your learning
+
+01:17:05.680 --> 01:17:07.872
+so that those averages are
+relatively representative
+
+01:17:07.872 --> 01:17:09.580
+and you don't move
+too much on your own--
+
+01:17:09.580 --> 01:17:10.420
+STUDENT: [INAUDIBLE].
+
+01:17:10.420 --> 01:17:10.690
+JOHN W. ROBERTS: Yeah.
+
+01:17:10.690 --> 01:17:11.523
+But I'm saying yeah.
+
+01:17:11.523 --> 01:17:13.120
+I mean, an average
+baseline is free.
+
+01:17:13.120 --> 01:17:15.070
+There's no extra
+policy evaluations.
+
+01:17:15.070 --> 01:17:16.790
+And it still helps a lot.
+
+01:17:16.790 --> 01:17:19.570
+So an average
+baseline makes sense.
+
+01:17:19.570 --> 01:17:22.230
+And I mean, in something like
+this where it's so cheap,
+
+01:17:22.230 --> 01:17:23.980
+if you want those big
+jumps and stuff like
+
+01:17:23.980 --> 01:17:28.060
+that, the average baseline is
+if the big jump can struggle.
+
+01:17:28.060 --> 01:17:30.350
+Because the cost is so
+different when you've updated.
+
+01:17:30.350 --> 01:17:30.850
+Right?
+
+01:17:30.850 --> 01:17:32.950
+So your average is going
+to make a lot of sense.
+
+01:17:32.950 --> 01:17:34.700
+But so they're sometimes
+going to be better rather than
+
+01:17:34.700 --> 01:17:35.830
+reducing your updates.
+
+01:17:35.830 --> 01:17:37.780
+Like when we're really far
+away from the right policy
+
+01:17:37.780 --> 01:17:39.322
+and we have a long
+way to move and we
+
+01:17:39.322 --> 01:17:42.520
+could move in all sorts of
+ways, that'd still be good.
+
+01:17:42.520 --> 01:17:46.217
+The average baseline,
+if we turn everything
+
+01:17:46.217 --> 01:17:48.550
+down to the average baseline,
+and it still works nicely,
+
+01:17:48.550 --> 01:17:51.130
+that probably wouldn't be
+as fast as doing two policy
+
+01:17:51.130 --> 01:17:53.470
+evaluations and doing big jumps.
+
+01:17:53.470 --> 01:17:54.160
+Right?
+
+01:17:54.160 --> 01:17:55.060
+Where every time, you
+just re-evaluate it.
+
+01:17:55.060 --> 01:17:55.750
+STUDENT: It just resets it.
+
+01:17:55.750 --> 01:17:57.040
+JOHN W. ROBERTS: And so, yeah.
+
+01:17:57.040 --> 01:17:58.915
+To move it smoothly with
+an average baseline,
+
+01:17:58.915 --> 01:18:01.630
+we may need more than
+twice as many iterations
+
+01:18:01.630 --> 01:18:03.547
+as the one does when you
+do an ideal baseline.
+
+01:18:03.547 --> 01:18:05.422
+That's something that
+I've seen in practices.
+
+01:18:05.422 --> 01:18:07.270
+When you're doing
+this big updates,
+
+01:18:07.270 --> 01:18:11.020
+a real evaluation can be
+fewer evaluations in the end.
+
+01:18:11.020 --> 01:18:16.840
+So anything else or anything
+else you'd like to see
+
+01:18:16.840 --> 01:18:20.230
+run on the spline fitting
+problem right here?
+
+01:18:24.010 --> 01:18:24.510
+OK.
+
+01:18:24.510 --> 01:18:25.552
+No one has any questions?
+
+01:18:25.552 --> 01:18:27.030
+We're all good?
+
+01:18:27.030 --> 01:18:32.070
+I'm going to tell Russ that you
+understand stochastic gradient
+
+01:18:32.070 --> 01:18:32.820
+descent perfectly.
+
+01:18:32.820 --> 01:18:36.300
+And it's going to be extremely
+useful in your research
+
+01:18:36.300 --> 01:18:39.660
+in the problems to
+which it is well suited.
+
+01:18:39.660 --> 01:18:40.710
+All right.
+
+01:18:40.710 --> 01:18:42.260
+Great.

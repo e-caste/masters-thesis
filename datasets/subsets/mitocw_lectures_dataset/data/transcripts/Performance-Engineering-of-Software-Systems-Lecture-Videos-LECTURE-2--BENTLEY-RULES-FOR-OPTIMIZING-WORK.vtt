@@ -1,0 +1,6017 @@
+WEBVTT
+
+00:00:01.161 --> 00:00:03.440
+The following content is
+provided under a Creative
+
+00:00:03.440 --> 00:00:04.880
+Commons license.
+
+00:00:04.880 --> 00:00:07.040
+Your support will help
+MIT OpenCourseWare
+
+00:00:07.040 --> 00:00:11.260
+continue to offer high quality,
+educational resources for free.
+
+00:00:11.260 --> 00:00:13.865
+To make a donation or to
+view additional materials
+
+00:00:13.865 --> 00:00:17.795
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.795 --> 00:00:19.026
+at ocw.mit.edu.
+
+00:00:22.070 --> 00:00:25.980
+JULIAN SHUN: So welcome to
+the second lecture of 6.172,
+
+00:00:25.980 --> 00:00:29.210
+performance engineering
+of software systems.
+
+00:00:29.210 --> 00:00:32.220
+Today, we're going to be
+talking about Bentley rules
+
+00:00:32.220 --> 00:00:35.706
+for optimizing work.
+
+00:00:35.706 --> 00:00:41.496
+All right, so work, does
+anyone know what work means?
+
+00:00:41.496 --> 00:00:45.030
+You're all at MIT,
+so you should know.
+
+00:00:45.030 --> 00:00:48.240
+So in terms of
+computer programming,
+
+00:00:48.240 --> 00:00:51.060
+there's actually a formal
+definition of work.
+
+00:00:51.060 --> 00:00:54.015
+The work of a program
+on a particular input
+
+00:00:54.015 --> 00:00:57.510
+is defined to be the sum total
+of all the operations executed
+
+00:00:57.510 --> 00:00:59.200
+by the program.
+
+00:00:59.200 --> 00:01:00.855
+So it's basically
+a gross measure
+
+00:01:00.855 --> 00:01:03.270
+of how much stuff the
+program needs to do.
+
+00:01:06.306 --> 00:01:08.393
+And the idea of
+optimizing work is
+
+00:01:08.393 --> 00:01:10.560
+to reduce the amount of
+stuff that the program needs
+
+00:01:10.560 --> 00:01:14.840
+to do in order to improve the
+running time of your program,
+
+00:01:14.840 --> 00:01:17.220
+improve its performance.
+
+00:01:17.220 --> 00:01:20.250
+So algorithm design can
+produce dramatic reductions
+
+00:01:20.250 --> 00:01:22.815
+in the work of a program.
+
+00:01:22.815 --> 00:01:25.740
+For example, if you want to
+sort an array of elements,
+
+00:01:25.740 --> 00:01:28.935
+you can use a nlogn
+time QuickSort.
+
+00:01:28.935 --> 00:01:32.640
+Or you can use an n squared
+time sort, like insertion sort.
+
+00:01:32.640 --> 00:01:34.470
+So you've probably
+seen this before
+
+00:01:34.470 --> 00:01:36.900
+in your algorithm courses.
+
+00:01:36.900 --> 00:01:38.910
+And for large
+enough values of n,
+
+00:01:38.910 --> 00:01:41.670
+a nlogn time sort
+is going to be much
+
+00:01:41.670 --> 00:01:43.935
+faster than a n squared sort.
+
+00:01:43.935 --> 00:01:47.690
+So today, I'm not going to be
+talking about algorithm design.
+
+00:01:47.690 --> 00:01:50.410
+You'll see more of this in
+other courses here at MIT.
+
+00:01:50.410 --> 00:01:53.070
+And we'll also talk a little
+bit about algorithm design
+
+00:01:53.070 --> 00:01:54.600
+later on in this semester.
+
+00:01:58.116 --> 00:02:00.870
+We will be talking about many
+other cool tricks for reducing
+
+00:02:00.870 --> 00:02:02.192
+the work of a program.
+
+00:02:02.192 --> 00:02:03.900
+But I do want to point
+out, that reducing
+
+00:02:03.900 --> 00:02:07.110
+the work of our program
+doesn't automatically translate
+
+00:02:07.110 --> 00:02:08.729
+to a reduction in running time.
+
+00:02:08.729 --> 00:02:10.860
+And this is because
+of the complex nature
+
+00:02:10.860 --> 00:02:12.300
+of computer hardware.
+
+00:02:12.300 --> 00:02:15.720
+So there's a lot of things
+going on that aren't captured
+
+00:02:15.720 --> 00:02:17.610
+by this definition of work.
+
+00:02:17.610 --> 00:02:21.090
+There's instruction level
+parallelism, caching,
+
+00:02:21.090 --> 00:02:24.570
+vectorization, speculation and
+branch prediction, and so on.
+
+00:02:24.570 --> 00:02:26.610
+And we'll learn about
+some of these things
+
+00:02:26.610 --> 00:02:29.040
+throughout this semester.
+
+00:02:29.040 --> 00:02:30.600
+But reducing the
+work of our program
+
+00:02:30.600 --> 00:02:33.285
+does serve as a good
+heuristic for reducing
+
+00:02:33.285 --> 00:02:35.850
+the overall running time
+of a program, at least
+
+00:02:35.850 --> 00:02:36.840
+to a first order.
+
+00:02:36.840 --> 00:02:39.390
+So today, we'll be
+learning about many ways
+
+00:02:39.390 --> 00:02:43.328
+to reduce the work
+of your program.
+
+00:02:43.328 --> 00:02:46.180
+So rules we'll be
+looking at, we call
+
+00:02:46.180 --> 00:02:52.120
+them Bentley optimization rules,
+in honor of John Lewis Bentley.
+
+00:02:52.120 --> 00:02:55.120
+So John Lewis Bentley wrote
+a nice little book back
+
+00:02:55.120 --> 00:02:58.750
+in 1982 called Writing
+Efficient Programs.
+
+00:02:58.750 --> 00:03:02.110
+And inside this book there
+are various techniques
+
+00:03:02.110 --> 00:03:05.860
+for reducing the work
+of a computer program.
+
+00:03:05.860 --> 00:03:10.270
+So if you haven't seen this
+book before, it's very good.
+
+00:03:10.270 --> 00:03:12.730
+So I highly encourage
+you to read it.
+
+00:03:15.502 --> 00:03:19.210
+Many of the original
+rules in Bentley's book
+
+00:03:19.210 --> 00:03:21.535
+had to deal with the vagaries
+of computer architecture
+
+00:03:21.535 --> 00:03:25.146
+three and a half decades ago.
+
+00:03:25.146 --> 00:03:27.340
+So today, we've
+created a new set
+
+00:03:27.340 --> 00:03:30.355
+of Bentley rules just dealing
+with the work of a program.
+
+00:03:30.355 --> 00:03:32.365
+We'll be talking about
+architecture-specific
+
+00:03:32.365 --> 00:03:35.880
+optimizations later
+on in the semester.
+
+00:03:35.880 --> 00:03:37.900
+But today, we won't
+be talking about this.
+
+00:03:41.242 --> 00:03:45.460
+One cool fact is that John
+Lewis Bentley is actually
+
+00:03:45.460 --> 00:03:47.530
+my academic great grandfather.
+
+00:03:47.530 --> 00:03:50.950
+So John Bentley was one
+of Charles Leiseron's
+
+00:03:50.950 --> 00:03:52.795
+academic advisors.
+
+00:03:52.795 --> 00:03:56.290
+Charles Leiserson was Guy
+Blelloch's academic advisor.
+
+00:03:56.290 --> 00:03:58.630
+And Guy Blelloch, who's a
+professor at Carnegie Mellon,
+
+00:03:58.630 --> 00:04:02.440
+was my advisor when I was
+a graduate student at CMU.
+
+00:04:02.440 --> 00:04:03.880
+So it's a nice little fact.
+
+00:04:03.880 --> 00:04:06.790
+And I had the honor of meeting
+John Bentley a couple of years
+
+00:04:06.790 --> 00:04:07.635
+ago at a conference.
+
+00:04:07.635 --> 00:04:10.720
+And he told me that he was my
+academic great grandfather.
+
+00:04:10.720 --> 00:04:13.104
+[LAUGHING]
+
+00:04:14.487 --> 00:04:16.614
+Yeah, and Charles is my
+academic grandfather.
+
+00:04:16.614 --> 00:04:20.180
+And all of Charles's students
+are my academic aunts
+
+00:04:20.180 --> 00:04:20.680
+and uncles--
+
+00:04:20.680 --> 00:04:21.602
+[LAUGHING]
+
+00:04:22.546 --> 00:04:24.380
+--including your T.A. Helen.
+
+00:04:27.065 --> 00:04:31.195
+OK, so here's a list of
+all the work optimizations
+
+00:04:31.195 --> 00:04:33.630
+that we'll be looking at today.
+
+00:04:33.630 --> 00:04:37.285
+So they're grouped into four
+categories, data structures,
+
+00:04:37.285 --> 00:04:40.260
+loops, and functions.
+
+00:04:40.260 --> 00:04:43.728
+So there's a list of 22
+rules on this slide today.
+
+00:04:43.728 --> 00:04:46.270
+In fact, we'll actually be able
+to look at all of them today.
+
+00:04:46.270 --> 00:04:48.310
+So today's lecture is
+going to be structured
+
+00:04:48.310 --> 00:04:50.155
+as a series of many lectures.
+
+00:04:50.155 --> 00:04:53.260
+And I'm going to be spending
+one to three slides on each one
+
+00:04:53.260 --> 00:04:56.398
+of these optimizations.
+
+00:04:56.398 --> 00:04:59.460
+All right, so let's
+start with optimizations
+
+00:04:59.460 --> 00:05:03.196
+for data structures.
+
+00:05:03.196 --> 00:05:06.745
+So first optimization
+is packing and encoding
+
+00:05:06.745 --> 00:05:08.990
+your data structure.
+
+00:05:08.990 --> 00:05:12.035
+And the idea of packing is to
+store more than one data value
+
+00:05:12.035 --> 00:05:13.810
+in a machine word.
+
+00:05:13.810 --> 00:05:15.860
+And the related
+idea of encoding is
+
+00:05:15.860 --> 00:05:18.350
+to convert data values
+into a representation that
+
+00:05:18.350 --> 00:05:20.960
+requires fewer bits.
+
+00:05:20.960 --> 00:05:24.380
+So does anyone know why
+this could possibly reduce
+
+00:05:24.380 --> 00:05:25.640
+the running time of a program?
+
+00:05:28.470 --> 00:05:28.970
+Yes?
+
+00:05:28.970 --> 00:05:30.428
+AUDIENCE: Need less
+memory fetches.
+
+00:05:30.428 --> 00:05:32.475
+JULIAN SHUN: Right,
+so good answer.
+
+00:05:32.475 --> 00:05:35.035
+The answer was, it might
+need less memory fetches.
+
+00:05:35.035 --> 00:05:37.330
+And it turns out
+that that's correct,
+
+00:05:37.330 --> 00:05:40.540
+because computer program
+spends a lot of time moving
+
+00:05:40.540 --> 00:05:42.220
+stuff around in memory.
+
+00:05:42.220 --> 00:05:44.320
+And if you reduce
+the number of things
+
+00:05:44.320 --> 00:05:46.060
+that you have to move
+around in memory,
+
+00:05:46.060 --> 00:05:48.520
+then that's a good heuristic
+for reducing the running
+
+00:05:48.520 --> 00:05:51.175
+time of your program.
+
+00:05:51.175 --> 00:05:52.605
+So let's look at an example.
+
+00:05:52.605 --> 00:05:55.450
+Let's say we wanted
+to encode dates.
+
+00:05:55.450 --> 00:05:59.470
+So let's say we wanted to code
+this string, September 11,
+
+00:05:59.470 --> 00:06:01.640
+2018.
+
+00:06:01.640 --> 00:06:03.885
+You can store this
+using 18 bytes.
+
+00:06:03.885 --> 00:06:07.300
+So you can use one byte
+per character here.
+
+00:06:07.300 --> 00:06:10.720
+And this would require
+more than two double words,
+
+00:06:10.720 --> 00:06:13.720
+because each double word
+is eight bytes or 64 bits.
+
+00:06:13.720 --> 00:06:14.920
+And you have 18 bytes.
+
+00:06:14.920 --> 00:06:16.660
+You need more than
+two double words.
+
+00:06:16.660 --> 00:06:18.970
+And you have to move
+around these words
+
+00:06:18.970 --> 00:06:23.690
+every time you want to
+manipulate the date.
+
+00:06:23.690 --> 00:06:25.240
+But turns out that
+you can actually
+
+00:06:25.240 --> 00:06:27.940
+do better than using 18 bytes.
+
+00:06:27.940 --> 00:06:31.180
+So let's assume that we
+only want to store years
+
+00:06:31.180 --> 00:06:37.030
+between 4096 BCE and 4096 CE.
+
+00:06:37.030 --> 00:06:43.480
+So there are about
+365.25 times 8,192 dates
+
+00:06:43.480 --> 00:06:47.060
+in this range, which is
+three million approximately.
+
+00:06:47.060 --> 00:06:50.740
+And you can use log base
+two of three million bits
+
+00:06:50.740 --> 00:06:54.025
+to represent all the
+dates within this range.
+
+00:06:54.025 --> 00:06:57.600
+So the notation lg here
+means log base of two.
+
+00:06:57.600 --> 00:07:00.100
+That's going to be the notation
+I'll be using in this class.
+
+00:07:00.100 --> 00:07:05.110
+And L-O-G will mean log base 10.
+
+00:07:05.110 --> 00:07:09.040
+So we take the ceiling of log
+base two or three million,
+
+00:07:09.040 --> 00:07:11.995
+and that gives us 22 bits.
+
+00:07:11.995 --> 00:07:15.430
+So a good way to remember
+how to compute the log
+
+00:07:15.430 --> 00:07:19.780
+base two of something, you
+can remember that the log base
+
+00:07:19.780 --> 00:07:24.310
+two of one million is 20,
+log base two of 1,000 is 10.
+
+00:07:24.310 --> 00:07:27.820
+And then you can factor this
+out and then add in log base
+
+00:07:27.820 --> 00:07:30.280
+two of three, rounded
+up, which is two.
+
+00:07:30.280 --> 00:07:32.140
+So that gives you 22 bits.
+
+00:07:32.140 --> 00:07:35.680
+And that easily fits
+within one 32-bit words.
+
+00:07:35.680 --> 00:07:38.500
+Now, you only need one word
+instead of three words,
+
+00:07:38.500 --> 00:07:41.860
+as you did in the
+original representation.
+
+00:07:41.860 --> 00:07:43.945
+But with this modified
+representation,
+
+00:07:43.945 --> 00:07:46.600
+now determining the month
+of a particular date
+
+00:07:46.600 --> 00:07:49.315
+will take more work, because
+now you're not explicitly
+
+00:07:49.315 --> 00:07:52.478
+storing the month in
+your representation.
+
+00:07:52.478 --> 00:07:54.145
+Whereas, with the
+string representation,
+
+00:07:54.145 --> 00:07:58.075
+you are explicitly storing it
+at the beginning of the string.
+
+00:07:58.075 --> 00:08:02.196
+So this does take more work,
+but it requires less space.
+
+00:08:02.196 --> 00:08:03.460
+So any questions so far?
+
+00:08:09.782 --> 00:08:14.520
+OK, so it turns out
+that there's another way
+
+00:08:14.520 --> 00:08:16.770
+to store this, which
+also makes it easy
+
+00:08:16.770 --> 00:08:20.850
+for you to fetch the
+month, the year, or the day
+
+00:08:20.850 --> 00:08:23.380
+for a particular date.
+
+00:08:23.380 --> 00:08:28.200
+So here, we're going to use
+the bit fields facilities in C.
+
+00:08:28.200 --> 00:08:32.054
+So we're going to create a
+struct called date underscore t
+
+00:08:32.054 --> 00:08:36.140
+with three fields, the year,
+the month, and the date.
+
+00:08:36.140 --> 00:08:38.610
+And the integer
+after the semicolon
+
+00:08:38.610 --> 00:08:40.740
+specifies how many
+bits I want to assign
+
+00:08:40.740 --> 00:08:42.679
+to this particular
+field in the struct.
+
+00:08:42.679 --> 00:08:46.680
+So this says, I need
+13 bits for the year,
+
+00:08:46.680 --> 00:08:49.380
+four bits for the month,
+and five bits for the day.
+
+00:08:49.380 --> 00:08:51.840
+So the 13 bits for
+the year is, because I
+
+00:08:51.840 --> 00:08:54.630
+have 8,192 possible years.
+
+00:08:54.630 --> 00:08:57.930
+So I need 13 bits to store that.
+
+00:08:57.930 --> 00:09:00.090
+For the month, I have
+12 possible months.
+
+00:09:00.090 --> 00:09:03.480
+So I need log base two of 12
+rounded up, which is four.
+
+00:09:03.480 --> 00:09:05.070
+And then finally,
+for the day, I need
+
+00:09:05.070 --> 00:09:09.270
+log base two of 31
+rounded up, which is five.
+
+00:09:09.270 --> 00:09:12.465
+So in total, this
+still takes 22 bits.
+
+00:09:12.465 --> 00:09:14.790
+But now the individual
+fields can now
+
+00:09:14.790 --> 00:09:18.330
+be accessed much more
+quickly, than if we had just
+
+00:09:18.330 --> 00:09:22.320
+encoded the three million dates
+using sequential integers,
+
+00:09:22.320 --> 00:09:28.223
+because now you can just extract
+a month just by saying whatever
+
+00:09:28.223 --> 00:09:29.140
+you named your struct.
+
+00:09:29.140 --> 00:09:32.403
+You can just say that
+struct dot month.
+
+00:09:32.403 --> 00:09:33.570
+And that give you the month.
+
+00:09:33.570 --> 00:09:34.070
+Yes?
+
+00:09:34.070 --> 00:09:36.136
+AUDIENCE: Does C actually
+store it like that,
+
+00:09:36.136 --> 00:09:39.094
+because I know C++
+it makes it finalize.
+
+00:09:39.094 --> 00:09:40.636
+So then you end up
+taking more space.
+
+00:09:40.636 --> 00:09:43.200
+JULIAN SHUN: Yeah,
+so this will actually
+
+00:09:43.200 --> 00:09:47.220
+pad the struct a little
+bit at the end, yeah.
+
+00:09:47.220 --> 00:09:51.660
+So you actually do require a
+little bit more than 22 bits.
+
+00:09:51.660 --> 00:09:52.890
+That's a good question.
+
+00:09:55.510 --> 00:09:59.175
+But this representation is
+much more easy to access,
+
+00:09:59.175 --> 00:10:02.530
+than if you just had
+encoded the integers
+
+00:10:02.530 --> 00:10:03.780
+as sequential integers.
+
+00:10:09.090 --> 00:10:12.540
+Another point is that sometimes
+unpacking and decoding
+
+00:10:12.540 --> 00:10:14.880
+are the optimization,
+because sometimes it
+
+00:10:14.880 --> 00:10:21.630
+takes a lot of work to encode
+the values and to extract them.
+
+00:10:21.630 --> 00:10:23.850
+So sometimes you want to
+actually unpack the values
+
+00:10:23.850 --> 00:10:28.170
+so that they take more space,
+but they're faster to access.
+
+00:10:28.170 --> 00:10:30.390
+So it depends on your
+particular application.
+
+00:10:30.390 --> 00:10:32.250
+You might want to do
+one thing or the other.
+
+00:10:32.250 --> 00:10:35.610
+And the way to figure this out
+is just to experiment with it.
+
+00:10:39.458 --> 00:10:41.235
+OK, so any other questions?
+
+00:10:50.893 --> 00:10:54.250
+All right, so the
+second optimization
+
+00:10:54.250 --> 00:10:57.030
+is data structure augmentation.
+
+00:10:57.030 --> 00:11:00.290
+And the idea here is to add
+information to a data structure
+
+00:11:00.290 --> 00:11:03.260
+to make common
+operations do less work,
+
+00:11:03.260 --> 00:11:05.900
+so that they're faster.
+
+00:11:05.900 --> 00:11:07.450
+And let's look at an example.
+
+00:11:07.450 --> 00:11:10.090
+Let's say we had two
+singly linked list
+
+00:11:10.090 --> 00:11:13.475
+and we wanted to
+append them together.
+
+00:11:13.475 --> 00:11:17.240
+And let's say we only stored
+the head pointer to the list,
+
+00:11:17.240 --> 00:11:19.100
+and then each
+element in the list
+
+00:11:19.100 --> 00:11:22.726
+has a pointer to the
+next element in the list.
+
+00:11:22.726 --> 00:11:26.485
+Now, if you want to spend
+one list to another list,
+
+00:11:26.485 --> 00:11:29.930
+well, that's going to require
+you walking down the first list
+
+00:11:29.930 --> 00:11:32.330
+to find the last
+element, so that you
+
+00:11:32.330 --> 00:11:34.220
+can change the pointer
+of the last element
+
+00:11:34.220 --> 00:11:37.025
+to point to the beginning
+of the next list.
+
+00:11:37.025 --> 00:11:42.400
+And this might be very slow if
+the first list is very long.
+
+00:11:42.400 --> 00:11:45.950
+So does anyone see a way to
+augment this data structure so
+
+00:11:45.950 --> 00:11:50.790
+that appending two lists can
+be done much more efficiently?
+
+00:11:50.790 --> 00:11:51.290
+Yes?
+
+00:11:51.290 --> 00:11:53.945
+AUDIENCE: Store a pointer
+to the last value.
+
+00:11:53.945 --> 00:11:56.610
+JULIAN SHUN: Yeah,
+so the answer is
+
+00:11:56.610 --> 00:11:58.935
+to store a pointer
+to the last value.
+
+00:11:58.935 --> 00:12:00.420
+And we call that
+the tail pointer.
+
+00:12:00.420 --> 00:12:03.195
+So now we have two pointers,
+both the head and the tail.
+
+00:12:03.195 --> 00:12:05.070
+The head points to the
+beginning of the list.
+
+00:12:05.070 --> 00:12:06.960
+The tail points to
+the end of the list.
+
+00:12:06.960 --> 00:12:10.230
+And now you can just append
+two lists in constant time,
+
+00:12:10.230 --> 00:12:13.320
+because you can access the
+last element in the list
+
+00:12:13.320 --> 00:12:14.640
+by following the tail pointer.
+
+00:12:14.640 --> 00:12:16.980
+And then now you just
+change the successor pointer
+
+00:12:16.980 --> 00:12:20.820
+of the last element to point
+to the head of the second list.
+
+00:12:20.820 --> 00:12:22.860
+And then now you also
+have to update the tail
+
+00:12:22.860 --> 00:12:25.742
+to point to the end
+of the second list.
+
+00:12:25.742 --> 00:12:28.650
+OK, so that's the idea of
+data structure augmentation.
+
+00:12:28.650 --> 00:12:30.690
+We added a little bit
+of extra information
+
+00:12:30.690 --> 00:12:33.960
+to the data structure,
+such that now appending
+
+00:12:33.960 --> 00:12:37.175
+two lists is much more efficient
+than in the original method,
+
+00:12:37.175 --> 00:12:38.550
+where we only had
+a head pointer.
+
+00:12:41.120 --> 00:12:41.935
+Questions?
+
+00:12:47.667 --> 00:12:53.740
+OK, so the next optimization
+is precomputation.
+
+00:12:53.740 --> 00:12:57.150
+The idea of precomputation is
+to perform some calculations
+
+00:12:57.150 --> 00:13:00.615
+in advance so as to avoid
+doing these computations
+
+00:13:00.615 --> 00:13:05.376
+at mission-critical times, to
+avoid doing them at runtime.
+
+00:13:05.376 --> 00:13:08.640
+So let's say we had
+a program that needed
+
+00:13:08.640 --> 00:13:11.655
+to use binomial coefficients.
+
+00:13:11.655 --> 00:13:14.820
+And here's a definition
+of a binomial coefficient.
+
+00:13:14.820 --> 00:13:17.115
+So it's basically
+the choose function.
+
+00:13:17.115 --> 00:13:19.860
+So you want to count
+the number of ways
+
+00:13:19.860 --> 00:13:23.730
+that you can choose k things
+from a set of n things.
+
+00:13:23.730 --> 00:13:25.470
+And the formula
+for computing this
+
+00:13:25.470 --> 00:13:30.120
+is, n factorial divided by the
+product of k factorial and n
+
+00:13:30.120 --> 00:13:32.650
+minus k factorial.
+
+00:13:32.650 --> 00:13:34.740
+Computing this choose
+function can actually
+
+00:13:34.740 --> 00:13:36.810
+be quite expensive,
+because you have
+
+00:13:36.810 --> 00:13:40.570
+to do a lot of multiplications
+to compute the factorial,
+
+00:13:40.570 --> 00:13:43.650
+even if the final
+result is not that big,
+
+00:13:43.650 --> 00:13:47.220
+because you have to compute one
+term in the numerator and then
+
+00:13:47.220 --> 00:13:50.330
+two factorial terms
+in the denominator.
+
+00:13:50.330 --> 00:13:52.920
+And then you also might run
+into integer overflow issues,
+
+00:13:52.920 --> 00:13:56.190
+because n factorial
+grows very fast.
+
+00:13:56.190 --> 00:13:58.420
+It grows super exponentially.
+
+00:13:58.420 --> 00:14:01.650
+It grows like n to the n,
+which is even faster than two
+
+00:14:01.650 --> 00:14:03.900
+to the n, which is exponential.
+
+00:14:03.900 --> 00:14:06.060
+So doing this
+computation, you have
+
+00:14:06.060 --> 00:14:08.430
+to be very careful with
+integer overflow issues.
+
+00:14:12.062 --> 00:14:14.880
+So one idea to speed
+up a program that
+
+00:14:14.880 --> 00:14:16.515
+uses these binomials
+coefficients
+
+00:14:16.515 --> 00:14:18.780
+is to precompute a
+table of coefficients
+
+00:14:18.780 --> 00:14:21.360
+when you initialize
+the program, and then
+
+00:14:21.360 --> 00:14:24.240
+just perform table lookup
+on this precomputed table
+
+00:14:24.240 --> 00:14:29.012
+at runtime when you need
+the binomial coefficient.
+
+00:14:29.012 --> 00:14:32.010
+So does anyone know
+what the table that
+
+00:14:32.010 --> 00:14:35.820
+stores binomial
+coefficients is called?
+
+00:14:35.820 --> 00:14:36.670
+Yes?
+
+00:14:36.670 --> 00:14:38.402
+AUDIENCE: [INAUDIBLE]
+
+00:14:38.402 --> 00:14:42.611
+JULIAN SHUN: Yea,
+Pascal's triangles, good.
+
+00:14:42.611 --> 00:14:46.160
+So here is what Pascal's
+triangle looks like.
+
+00:14:46.160 --> 00:14:50.255
+So on the vertical axis, we
+have different values of n.
+
+00:14:50.255 --> 00:14:53.540
+And then on the horizontal axis,
+we have different values of k.
+
+00:14:53.540 --> 00:14:55.880
+And then to get
+and choose k, you
+
+00:14:55.880 --> 00:14:59.465
+just go to the nth
+row in the case column
+
+00:14:59.465 --> 00:15:01.400
+and look up that entry.
+
+00:15:01.400 --> 00:15:04.505
+Pascal's triangle
+has a nice property,
+
+00:15:04.505 --> 00:15:08.045
+that for every element,
+it can be computed
+
+00:15:08.045 --> 00:15:12.230
+as a sum of the element
+directly above it and above it
+
+00:15:12.230 --> 00:15:13.910
+and to the left of it.
+
+00:15:13.910 --> 00:15:19.201
+So here, 56 is the
+sum of 35 and 21.
+
+00:15:19.201 --> 00:15:23.000
+And this gives us a
+nice formula to compute
+
+00:15:23.000 --> 00:15:25.315
+the binomial coefficients.
+
+00:15:25.315 --> 00:15:31.640
+So we first check if n is less
+than k in this choose function.
+
+00:15:31.640 --> 00:15:33.470
+If n is less than
+k, then we just
+
+00:15:33.470 --> 00:15:34.940
+return zero,
+because we're trying
+
+00:15:34.940 --> 00:15:39.971
+to choose more things
+than there are in a set.
+
+00:15:39.971 --> 00:15:44.000
+If n is equal to
+zero, then we just
+
+00:15:44.000 --> 00:15:48.800
+return one, because here k
+must also be equal to zero,
+
+00:15:48.800 --> 00:15:51.935
+since we had the condition
+n less than k above.
+
+00:15:51.935 --> 00:15:53.780
+And there's one way
+to choose zero things
+
+00:15:53.780 --> 00:15:55.970
+from a set of zero things.
+
+00:15:55.970 --> 00:15:57.800
+And then if k is
+equal to zero, we also
+
+00:15:57.800 --> 00:15:59.840
+return one, because
+there's only one way
+
+00:15:59.840 --> 00:16:04.400
+to choose zero things from a
+set of any number of things.
+
+00:16:04.400 --> 00:16:06.230
+You just don't pick anything.
+
+00:16:06.230 --> 00:16:10.280
+And then finally, we recursively
+call this choose function.
+
+00:16:10.280 --> 00:16:13.490
+So we call choose of n
+minus one k minus one.
+
+00:16:13.490 --> 00:16:19.196
+This is essentially the entry
+above and diagonal to this.
+
+00:16:19.196 --> 00:16:23.570
+And then we add in choose
+of n minus one k, which
+
+00:16:23.570 --> 00:16:26.576
+is the entry directly above it.
+
+00:16:26.576 --> 00:16:31.130
+So this is a recursive function
+for generating this Pascal's
+
+00:16:31.130 --> 00:16:32.180
+triangle.
+
+00:16:32.180 --> 00:16:35.180
+But notice that we're actually
+still not doing precomputation,
+
+00:16:35.180 --> 00:16:38.390
+because every time we
+call this choose function,
+
+00:16:38.390 --> 00:16:40.340
+we're making two
+recursive calls.
+
+00:16:40.340 --> 00:16:44.582
+And this can still
+be pretty expensive.
+
+00:16:44.582 --> 00:16:47.120
+So how can we actually
+precompute this table?
+
+00:16:51.438 --> 00:16:56.225
+So here's some C code for
+precomputing Pascal's triangle.
+
+00:16:56.225 --> 00:16:59.110
+And let's say we only
+wanted coefficients up
+
+00:16:59.110 --> 00:17:01.075
+to choose sides of 100.
+
+00:17:01.075 --> 00:17:06.681
+So we initialize
+matrix of 100 by 100.
+
+00:17:06.681 --> 00:17:09.490
+And then we call this
+an init choose function.
+
+00:17:09.490 --> 00:17:13.119
+So first it goes from n
+equal zero, all the way up
+
+00:17:13.119 --> 00:17:14.440
+to choose size minus one.
+
+00:17:14.440 --> 00:17:18.334
+And then it says, choose
+n of zero to be one.
+
+00:17:18.334 --> 00:17:22.665
+It also sets choose
+of n, n to be one.
+
+00:17:22.665 --> 00:17:24.490
+So the first line
+is, because there's
+
+00:17:24.490 --> 00:17:25.960
+only one way to
+choose zero things
+
+00:17:25.960 --> 00:17:27.579
+from any number of things.
+
+00:17:27.579 --> 00:17:29.945
+And the second line is,
+because there's only one way
+
+00:17:29.945 --> 00:17:31.570
+to choose n things
+from n things, which
+
+00:17:31.570 --> 00:17:34.638
+is just to pick all of them.
+
+00:17:34.638 --> 00:17:36.130
+And then now we
+have a second loop,
+
+00:17:36.130 --> 00:17:38.920
+which goes from n equals
+one, all the way up to choose
+
+00:17:38.920 --> 00:17:41.016
+size minus one.
+
+00:17:41.016 --> 00:17:44.410
+Then first we set
+choose of zero n
+
+00:17:44.410 --> 00:17:47.380
+to be zero, because here n is--
+
+00:17:47.380 --> 00:17:49.520
+or k is greater than n.
+
+00:17:49.520 --> 00:17:54.070
+So there's no way to
+pick more elements
+
+00:17:54.070 --> 00:17:57.790
+from a set of things that is
+less than the number of things
+
+00:17:57.790 --> 00:17:59.005
+you want to pick.
+
+00:17:59.005 --> 00:18:02.440
+And then now you loop from k
+equals one, all the way up to n
+
+00:18:02.440 --> 00:18:02.950
+minus one.
+
+00:18:02.950 --> 00:18:04.970
+And then your apply
+this recursive formula.
+
+00:18:04.970 --> 00:18:07.675
+So choose of n, k is
+equal to choose of n minus
+
+00:18:07.675 --> 00:18:11.986
+one, k minus one plus
+choose of n minus one k.
+
+00:18:11.986 --> 00:18:15.480
+And then you also set
+choose of k, n to be zero.
+
+00:18:15.480 --> 00:18:19.090
+So this is basically all of
+the entries above the diagonal
+
+00:18:19.090 --> 00:18:23.330
+here, where k is greater than n.
+
+00:18:23.330 --> 00:18:25.330
+And then now inside
+the program whenever
+
+00:18:25.330 --> 00:18:28.460
+we need a binomial coefficient
+that's less than 100,
+
+00:18:28.460 --> 00:18:31.920
+we can just do table
+lookup into this table.
+
+00:18:31.920 --> 00:18:34.090
+And we just index and
+then just choose array.
+
+00:18:37.484 --> 00:18:38.925
+So does this make sense?
+
+00:18:38.925 --> 00:18:40.040
+Any questions?
+
+00:18:43.688 --> 00:18:45.850
+It's pretty easy so far, right?
+
+00:18:48.930 --> 00:18:50.990
+So one thing to note
+is, that we're still
+
+00:18:50.990 --> 00:18:53.840
+computing this table
+at runtime, because we
+
+00:18:53.840 --> 00:18:55.730
+have to initialize
+this table at runtime.
+
+00:18:55.730 --> 00:18:59.225
+And if we want to run
+our program many times,
+
+00:18:59.225 --> 00:19:02.850
+then we have to initialize
+this table many times.
+
+00:19:02.850 --> 00:19:06.440
+So is there a way to only
+initialize this table once,
+
+00:19:06.440 --> 00:19:10.706
+even though we might want to
+run the program many times?
+
+00:19:10.706 --> 00:19:11.390
+Yes?
+
+00:19:11.390 --> 00:19:12.971
+AUDIENCE: Put in
+the source code.
+
+00:19:12.971 --> 00:19:18.634
+JULIAN SHUN: Yeah, so good,
+so put it in the source code.
+
+00:19:18.634 --> 00:19:22.085
+And so we're going to do
+compile-time initialization.
+
+00:19:22.085 --> 00:19:24.710
+And if you put the table
+in the source code,
+
+00:19:24.710 --> 00:19:27.438
+then the compiler
+will compile this code
+
+00:19:27.438 --> 00:19:29.480
+and generate the table
+for you that compile time.
+
+00:19:29.480 --> 00:19:31.022
+So now whenever you
+run it, you don't
+
+00:19:31.022 --> 00:19:34.100
+have to spend time
+initializing the table.
+
+00:19:34.100 --> 00:19:36.065
+So idea of compile-time
+initialization
+
+00:19:36.065 --> 00:19:37.730
+is to store the
+values of constants
+
+00:19:37.730 --> 00:19:40.010
+during compilation
+and, therefore,
+
+00:19:40.010 --> 00:19:43.946
+saving work at runtime.
+
+00:19:43.946 --> 00:19:48.826
+So let's say we wanted
+choose values up to 10.
+
+00:19:48.826 --> 00:19:52.010
+This is the table, the
+10 by 10 table storing
+
+00:19:52.010 --> 00:19:55.450
+all of the binomial
+coefficients up to 10.
+
+00:19:55.450 --> 00:19:57.290
+So if you put this
+in your source code,
+
+00:19:57.290 --> 00:19:59.030
+now when you run
+the program, you
+
+00:19:59.030 --> 00:20:03.500
+can just index into this table
+to get the appropriate constant
+
+00:20:03.500 --> 00:20:05.648
+here.
+
+00:20:05.648 --> 00:20:08.765
+But this table was
+just a 10 by 10 table.
+
+00:20:08.765 --> 00:20:12.926
+What if you wanted a
+table of 1,000 by 1,000?
+
+00:20:12.926 --> 00:20:16.400
+Does anyone actually want to
+type this in, a table of 1,000
+
+00:20:16.400 --> 00:20:20.420
+by 1,000?
+
+00:20:20.420 --> 00:20:22.210
+So probably not.
+
+00:20:22.210 --> 00:20:24.610
+So is there any way
+to get around this?
+
+00:20:28.260 --> 00:20:28.982
+Yes?
+
+00:20:28.982 --> 00:20:30.982
+AUDIENCE: You could make
+a program that uses it.
+
+00:20:30.982 --> 00:20:33.107
+And the function will be
+defined [INAUDIBLE] prints
+
+00:20:33.107 --> 00:20:34.293
+out the zero [INAUDIBLE].
+
+00:20:34.293 --> 00:20:37.490
+JULIAN SHUN: Yeah,
+so the answer is
+
+00:20:37.490 --> 00:20:40.640
+to write a program that
+writes your program for you.
+
+00:20:40.640 --> 00:20:43.360
+And that's called
+metaprogramming.
+
+00:20:43.360 --> 00:20:46.400
+So here's a snippet
+of code that will
+
+00:20:46.400 --> 00:20:48.725
+generate this table for you.
+
+00:20:48.725 --> 00:20:51.980
+So it's going to call
+this init choose function
+
+00:20:51.980 --> 00:20:53.538
+that we defined before.
+
+00:20:53.538 --> 00:20:55.580
+And then now it's just
+going to print out C code.
+
+00:20:55.580 --> 00:20:59.150
+So it's going to print out
+the declaration of this array
+
+00:20:59.150 --> 00:21:02.630
+choose, followed
+by a left bracket.
+
+00:21:02.630 --> 00:21:04.760
+And then for each
+row of the table,
+
+00:21:04.760 --> 00:21:06.710
+we're going to print
+another left bracket
+
+00:21:06.710 --> 00:21:09.860
+and then print the value of
+each entry in that row, followed
+
+00:21:09.860 --> 00:21:10.955
+by a right bracket.
+
+00:21:10.955 --> 00:21:12.320
+And we do that for every row.
+
+00:21:12.320 --> 00:21:14.840
+So this will give
+you the C code.
+
+00:21:14.840 --> 00:21:17.540
+And then now you can just copy
+and paste this and place it
+
+00:21:17.540 --> 00:21:19.520
+into your source code.
+
+00:21:19.520 --> 00:21:24.530
+This is a pretty cool
+technique to get your computer
+
+00:21:24.530 --> 00:21:26.060
+to do work for you.
+
+00:21:26.060 --> 00:21:29.360
+And you're welcome to use this
+technique in your homeworks
+
+00:21:29.360 --> 00:21:33.320
+and projects if you'd need
+to generate large tables
+
+00:21:33.320 --> 00:21:34.340
+of constant values.
+
+00:21:34.340 --> 00:21:36.080
+So this is a very good
+technique to know.
+
+00:21:39.875 --> 00:21:40.770
+So any questions?
+
+00:21:40.770 --> 00:21:41.270
+Yes?
+
+00:21:41.270 --> 00:21:44.415
+AUDIENCE: Is there a way to
+write the output other programs
+
+00:21:44.415 --> 00:21:47.100
+to a file, as oppose to
+having to copy and paste
+
+00:21:47.100 --> 00:21:48.944
+into the source code?
+
+00:21:48.944 --> 00:21:53.180
+JULIAN SHUN: Yeah, so you can
+pipe the output of this program
+
+00:21:53.180 --> 00:21:53.720
+to a file.
+
+00:21:59.040 --> 00:21:59.540
+Yes?
+
+00:21:59.540 --> 00:22:02.325
+AUDIENCE: So are there
+compiler tools that can--
+
+00:22:02.325 --> 00:22:03.700
+so we have three
+processor tools.
+
+00:22:03.700 --> 00:22:06.275
+Is there [INAUDIBLE]
+processor can do that?
+
+00:22:06.275 --> 00:22:09.053
+We compile the code, run
+it, and then [INAUDIBLE]..
+
+00:22:09.053 --> 00:22:10.990
+JULIAN SHUN: Yeah,
+so I think you
+
+00:22:10.990 --> 00:22:13.390
+can write macros to actually
+generate this table.
+
+00:22:13.390 --> 00:22:16.900
+And then the compiler
+will run those macros
+
+00:22:16.900 --> 00:22:19.120
+to generate this table for you.
+
+00:22:19.120 --> 00:22:22.670
+Yeah, so you don't actually need
+to copy and paste it yourself.
+
+00:22:22.670 --> 00:22:23.170
+Yeah?
+
+00:22:23.170 --> 00:22:28.420
+CHARLES: And you
+know, you don't have
+
+00:22:28.420 --> 00:22:31.720
+to write it in C. If it's
+quicker to write with Python,
+
+00:22:31.720 --> 00:22:36.110
+you'd be writing in Python,
+just put it in the make file
+
+00:22:36.110 --> 00:22:38.240
+for the system you're building.
+
+00:22:38.240 --> 00:22:39.940
+So if it's in the
+make file, says,
+
+00:22:39.940 --> 00:22:41.830
+well, we're making
+this thing, first
+
+00:22:41.830 --> 00:22:45.880
+generate the file in
+the table and now you
+
+00:22:45.880 --> 00:22:49.020
+include that in whatever
+you're compiling
+
+00:22:49.020 --> 00:22:55.616
+or/and it's just one
+more step in the process.
+
+00:22:55.616 --> 00:22:58.660
+And for sure, it's
+generally easier
+
+00:22:58.660 --> 00:23:01.510
+to write these tables with the
+scripting language like Python
+
+00:23:01.510 --> 00:23:04.270
+than writing them in
+C. On the other hand,
+
+00:23:04.270 --> 00:23:08.242
+if you need experience writing
+in C, practice writing in C.
+
+00:23:08.242 --> 00:23:11.200
+JULIAN SHUN: Right,
+so as Charles says,
+
+00:23:11.200 --> 00:23:13.660
+you can write your metaprogram
+using any language.
+
+00:23:13.660 --> 00:23:16.780
+You don't have to write it in
+C. You can write it in Python
+
+00:23:16.780 --> 00:23:18.435
+if you're more
+familiar with that.
+
+00:23:18.435 --> 00:23:20.560
+And it's often easier to
+write it using a scripting
+
+00:23:20.560 --> 00:23:21.880
+language like Python.
+
+00:23:26.845 --> 00:23:29.445
+OK, so let's look at
+the next optimization.
+
+00:23:29.445 --> 00:23:31.650
+So we're already
+gone through a couple
+
+00:23:31.650 --> 00:23:33.435
+of mini lectures already.
+
+00:23:33.435 --> 00:23:39.000
+So congratulations to all
+of you who are still here.
+
+00:23:39.000 --> 00:23:40.950
+So the next
+optimization is caching.
+
+00:23:40.950 --> 00:23:42.840
+The idea of caching
+is to store results
+
+00:23:42.840 --> 00:23:44.645
+that have been
+accessed recently,
+
+00:23:44.645 --> 00:23:47.220
+so that you don't need
+to compute them again
+
+00:23:47.220 --> 00:23:49.220
+in the program.
+
+00:23:49.220 --> 00:23:51.350
+So let's look at an example.
+
+00:23:51.350 --> 00:23:53.575
+Let's say we wanted to
+compute the hypotenuse
+
+00:23:53.575 --> 00:23:57.690
+of a right triangle with
+side lengths A and B.
+
+00:23:57.690 --> 00:24:00.450
+So the formula for
+computing this is, you
+
+00:24:00.450 --> 00:24:11.180
+take the square root of A
+times A plus B times B. OK, so
+
+00:24:11.180 --> 00:24:14.350
+turns out that the square
+root operator is actually
+
+00:24:14.350 --> 00:24:16.840
+a relatively expensive, more
+expensive than additions
+
+00:24:16.840 --> 00:24:18.670
+and multiplications
+on modern machines.
+
+00:24:18.670 --> 00:24:22.330
+So you don't want to have
+to call the square root
+
+00:24:22.330 --> 00:24:24.425
+function if you don't have to.
+
+00:24:24.425 --> 00:24:28.080
+And one way to avoid doing
+that is to create a cache.
+
+00:24:28.080 --> 00:24:31.820
+So here I have a cache just
+storing the previous hypotenuse
+
+00:24:31.820 --> 00:24:33.100
+that I calculated.
+
+00:24:33.100 --> 00:24:35.440
+And I also store the
+values of A and B
+
+00:24:35.440 --> 00:24:38.350
+that were passed
+to the function.
+
+00:24:38.350 --> 00:24:41.200
+And then now when I call
+the hypotenuse function,
+
+00:24:41.200 --> 00:24:45.190
+I can first check if A is
+equal to the cached value of A
+
+00:24:45.190 --> 00:24:47.560
+and if B is equal to
+the cached value of B.
+
+00:24:47.560 --> 00:24:49.220
+And if both of
+those are true, then
+
+00:24:49.220 --> 00:24:51.310
+I already computed
+the hypotenuse before.
+
+00:24:51.310 --> 00:24:54.726
+And then I can just
+return cached of h.
+
+00:24:54.726 --> 00:24:58.390
+But if it's not in my cache, now
+I need to actually compute it.
+
+00:24:58.390 --> 00:25:00.910
+So I need to call the
+square root function.
+
+00:25:00.910 --> 00:25:03.790
+And then I store the
+result into cached h.
+
+00:25:03.790 --> 00:25:05.830
+And I also store A
+and B into cached A
+
+00:25:05.830 --> 00:25:08.166
+and cached B respectively.
+
+00:25:08.166 --> 00:25:11.641
+And then finally, I
+returned cached h.
+
+00:25:11.641 --> 00:25:15.605
+So this example isn't
+actually very realistic,
+
+00:25:15.605 --> 00:25:17.408
+because my cache
+is only a size one.
+
+00:25:17.408 --> 00:25:18.950
+And it's very
+unlikely, in a program,
+
+00:25:18.950 --> 00:25:21.230
+you're going to repeatedly
+call some function
+
+00:25:21.230 --> 00:25:24.335
+with the same input arguments.
+
+00:25:24.335 --> 00:25:26.600
+But you can actually
+make a larger cache.
+
+00:25:26.600 --> 00:25:28.655
+You can make a
+cache of size 1,000,
+
+00:25:28.655 --> 00:25:32.840
+storing the 1,000 most recently
+computer hypotenuse values.
+
+00:25:32.840 --> 00:25:35.510
+And then now when you call
+the hypotenuse function,
+
+00:25:35.510 --> 00:25:38.160
+you can just check if
+it's in your cache.
+
+00:25:38.160 --> 00:25:40.160
+Checking the larger
+cache is going
+
+00:25:40.160 --> 00:25:42.440
+to be more expensive,
+because there are more values
+
+00:25:42.440 --> 00:25:43.702
+to look at.
+
+00:25:43.702 --> 00:25:45.410
+But they can still
+save you time overall.
+
+00:25:48.662 --> 00:25:52.580
+And hardware also
+does caching for you,
+
+00:25:52.580 --> 00:25:55.465
+as we'll talk about
+later on in the semester.
+
+00:25:55.465 --> 00:25:57.515
+But the point of
+this optimization
+
+00:25:57.515 --> 00:25:59.362
+is that you can also
+do caching yourself.
+
+00:25:59.362 --> 00:26:00.445
+You can do it in software.
+
+00:26:00.445 --> 00:26:03.860
+You don't have to let
+hardware do it for you.
+
+00:26:03.860 --> 00:26:06.875
+And turns out for this
+particular program here,
+
+00:26:06.875 --> 00:26:11.750
+actually, it is about 30%
+faster if you do hit the cache
+
+00:26:11.750 --> 00:26:13.285
+about 2/3 of the time.
+
+00:26:13.285 --> 00:26:14.660
+So it does actually
+save you time
+
+00:26:14.660 --> 00:26:17.810
+if you do repeatedly compute
+the same values over and over
+
+00:26:17.810 --> 00:26:20.180
+again.
+
+00:26:20.180 --> 00:26:20.930
+So that's caching.
+
+00:26:25.374 --> 00:26:26.720
+Any questions?
+
+00:26:32.198 --> 00:26:37.695
+OK, so the next optimization
+we'll look at is sparsity.
+
+00:26:37.695 --> 00:26:40.930
+The idea of exploiting
+sparsity, in an input,
+
+00:26:40.930 --> 00:26:42.640
+is to avoid storage
+and computing
+
+00:26:42.640 --> 00:26:45.570
+on zero elements of that input.
+
+00:26:45.570 --> 00:26:47.937
+And the fastest way
+to compute on zero
+
+00:26:47.937 --> 00:26:49.520
+is to just not compute
+on them at all,
+
+00:26:49.520 --> 00:26:52.510
+because we know that
+any value plus zero
+
+00:26:52.510 --> 00:26:54.470
+is just that original value.
+
+00:26:54.470 --> 00:26:56.890
+And any value times
+zero is just zero.
+
+00:26:56.890 --> 00:26:59.200
+So why waste a computation
+doing that when
+
+00:26:59.200 --> 00:27:01.705
+you already know the result?
+
+00:27:01.705 --> 00:27:03.495
+So let's look at an example.
+
+00:27:03.495 --> 00:27:06.230
+This is matrix-vector
+multiplication.
+
+00:27:06.230 --> 00:27:12.391
+So we want to multiply a n by
+n matrix by a n by one vector.
+
+00:27:12.391 --> 00:27:15.400
+We can do dense
+matrix-vector multiplication
+
+00:27:15.400 --> 00:27:18.805
+by just doing a dot product
+of each row in the matrix
+
+00:27:18.805 --> 00:27:20.605
+with the column vector.
+
+00:27:20.605 --> 00:27:23.545
+And then that will give
+us the output vector.
+
+00:27:23.545 --> 00:27:26.500
+But if you do dense
+matrix-vector multiplication,
+
+00:27:26.500 --> 00:27:29.845
+that's going to perform
+n squared or 36,
+
+00:27:29.845 --> 00:27:33.110
+in this example,
+scalar multiplies.
+
+00:27:33.110 --> 00:27:36.655
+But it turns out, only 14 of
+these entries in this matrix
+
+00:27:36.655 --> 00:27:39.290
+are zero or are non-zero.
+
+00:27:39.290 --> 00:27:42.820
+So you just wasted work doing
+the multiplication on the zero
+
+00:27:42.820 --> 00:27:47.350
+elements, because you know that
+zero times any other element
+
+00:27:47.350 --> 00:27:48.260
+is just zero.
+
+00:27:51.771 --> 00:27:55.318
+So a better way to do
+this, is instead of
+
+00:27:55.318 --> 00:27:57.110
+doing the multiplication
+for every element,
+
+00:27:57.110 --> 00:27:59.810
+you first check if one
+of the arguments is zero.
+
+00:27:59.810 --> 00:28:02.120
+And if it is zero,
+then you don't
+
+00:28:02.120 --> 00:28:04.760
+have to actually do
+the multiplication.
+
+00:28:04.760 --> 00:28:09.020
+But this is still kind of
+slow, because you still
+
+00:28:09.020 --> 00:28:11.375
+have to do a check for
+every entry in your matrix,
+
+00:28:11.375 --> 00:28:13.630
+even though many of
+the entries are zero.
+
+00:28:16.520 --> 00:28:19.040
+So it's actually a pretty
+cool data structure
+
+00:28:19.040 --> 00:28:22.550
+that won't actually
+store these zero entries.
+
+00:28:22.550 --> 00:28:26.930
+And this will speed up your
+matrix-vector multiplication
+
+00:28:26.930 --> 00:28:29.345
+if your matrix is sparse enough.
+
+00:28:29.345 --> 00:28:31.880
+So let me describe how
+this data structure works.
+
+00:28:31.880 --> 00:28:34.820
+It's called compressed
+sparse row or CSR.
+
+00:28:34.820 --> 00:28:36.635
+There is an analogous
+representation
+
+00:28:36.635 --> 00:28:38.675
+called compressed
+sparse column or CSC.
+
+00:28:38.675 --> 00:28:43.190
+But today, I'm just
+going to talk about CSR.
+
+00:28:43.190 --> 00:28:44.750
+So we have three arrays.
+
+00:28:44.750 --> 00:28:46.460
+First, we have the rows array.
+
+00:28:46.460 --> 00:28:49.580
+The length of the rows array
+is just equal to the number
+
+00:28:49.580 --> 00:28:52.816
+of rows in a matrix plus one.
+
+00:28:52.816 --> 00:28:55.805
+And then each entry
+in the rows array
+
+00:28:55.805 --> 00:28:58.610
+just stores an offset
+into the columns array
+
+00:28:58.610 --> 00:29:00.770
+or the cols array.
+
+00:29:00.770 --> 00:29:03.065
+And inside the cols
+array, I'm storing
+
+00:29:03.065 --> 00:29:07.980
+the indices of the non-zero
+entries in each of the rows.
+
+00:29:07.980 --> 00:29:11.760
+So if we take row
+one, for example,
+
+00:29:11.760 --> 00:29:14.165
+we have rows of one
+is equal to two.
+
+00:29:14.165 --> 00:29:16.940
+That means I start looking
+at the second entry
+
+00:29:16.940 --> 00:29:17.840
+in the cols array.
+
+00:29:17.840 --> 00:29:23.015
+And then now I have the
+indices of the non-zero columns
+
+00:29:23.015 --> 00:29:23.960
+in the first row.
+
+00:29:23.960 --> 00:29:26.570
+So it's just one,
+two, four, and five.
+
+00:29:29.270 --> 00:29:32.240
+These are the indices
+for the non-zero entries.
+
+00:29:32.240 --> 00:29:35.150
+And then I have another
+array called vals.
+
+00:29:35.150 --> 00:29:38.150
+The length of this array is
+the same as the cols array.
+
+00:29:38.150 --> 00:29:40.490
+And then this array just
+stores the actual value
+
+00:29:40.490 --> 00:29:42.605
+in these indices here.
+
+00:29:42.605 --> 00:29:45.770
+So the vals array
+for row one is going
+
+00:29:45.770 --> 00:29:47.960
+to store four, one, five,
+and nine, because these
+
+00:29:47.960 --> 00:29:51.800
+are the non-zero entries
+in the first row.
+
+00:29:51.800 --> 00:29:56.120
+Right, so the rows array
+just serves as an index
+
+00:29:56.120 --> 00:29:57.620
+into this cols array.
+
+00:29:57.620 --> 00:30:02.330
+So you can basically
+get the starting index
+
+00:30:02.330 --> 00:30:04.040
+in this cols array
+for any row just
+
+00:30:04.040 --> 00:30:07.520
+by looking at the entry stored
+at the corresponding location
+
+00:30:07.520 --> 00:30:08.405
+in the rows array.
+
+00:30:08.405 --> 00:30:12.245
+So for example, row two
+starts at location six.
+
+00:30:12.245 --> 00:30:13.220
+So it starts here.
+
+00:30:13.220 --> 00:30:15.590
+And you have indices
+three and five,
+
+00:30:15.590 --> 00:30:17.600
+which are the non-zero indices.
+
+00:30:20.333 --> 00:30:21.750
+So does anyone
+know how to compute
+
+00:30:21.750 --> 00:30:24.180
+the length, the number
+of non-zeros in a row
+
+00:30:24.180 --> 00:30:25.620
+by looking at the rows array?
+
+00:30:29.117 --> 00:30:30.370
+Yes, yes?
+
+00:30:30.370 --> 00:30:32.030
+AUDIENCE: You go
+to the rows array
+
+00:30:32.030 --> 00:30:35.236
+and just drag the [INAUDIBLE]
+
+00:30:35.236 --> 00:30:36.160
+JULIAN SHUN: Right.
+
+00:30:36.160 --> 00:30:38.768
+AUDIENCE: [INAUDIBLE] the
+number of elements that are
+
+00:30:38.768 --> 00:30:39.268
+[INAUDIBLE].
+
+00:30:39.268 --> 00:30:42.405
+JULIAN SHUN: Yeah, so to
+get the length of a row,
+
+00:30:42.405 --> 00:30:45.560
+you just take the difference
+between that row's offset
+
+00:30:45.560 --> 00:30:47.160
+and the next row's offset.
+
+00:30:47.160 --> 00:30:50.250
+So we can see that the length
+of the first row is four,
+
+00:30:50.250 --> 00:30:51.740
+because it's offset is two.
+
+00:30:51.740 --> 00:30:53.910
+And the offset for
+row two is six.
+
+00:30:53.910 --> 00:30:57.030
+So you just take the difference
+between those two entries.
+
+00:31:00.020 --> 00:31:01.840
+We have an additional
+entry here.
+
+00:31:01.840 --> 00:31:07.030
+So we have the sixth
+row here, because we
+
+00:31:07.030 --> 00:31:09.370
+want to be able to compute
+the length of the last row
+
+00:31:09.370 --> 00:31:11.590
+without overflowing
+in our array.
+
+00:31:11.590 --> 00:31:14.750
+So we just created an additional
+entry in the rows array
+
+00:31:14.750 --> 00:31:15.250
+for that.
+
+00:31:20.410 --> 00:31:24.590
+So turns out that this
+representation will save you
+
+00:31:24.590 --> 00:31:27.240
+space if your matrix is sparse.
+
+00:31:27.240 --> 00:31:30.170
+So the storage required
+by the CSR format
+
+00:31:30.170 --> 00:31:34.220
+is order n plus nnz, where
+nnz is the number of non-zeros
+
+00:31:34.220 --> 00:31:36.821
+in your matrix.
+
+00:31:36.821 --> 00:31:39.480
+And the reason why
+you have n plus nnz,
+
+00:31:39.480 --> 00:31:42.140
+well, you have two arrays
+here, cols and vals,
+
+00:31:42.140 --> 00:31:45.230
+whose length is equal to
+the number of non-zeros
+
+00:31:45.230 --> 00:31:46.715
+in the matrix.
+
+00:31:46.715 --> 00:31:48.665
+And then you also
+have this rows array,
+
+00:31:48.665 --> 00:31:50.420
+whose length is n plus one.
+
+00:31:50.420 --> 00:31:52.780
+So that's why we
+have n plus nnz.
+
+00:31:52.780 --> 00:31:55.460
+And if the number of non-zeros
+is much less than n squared,
+
+00:31:55.460 --> 00:31:58.865
+then this is going to be
+significantly more compact
+
+00:31:58.865 --> 00:32:01.220
+than the dense matrix
+representation.
+
+00:32:03.950 --> 00:32:06.420
+However, this isn't always
+going to be the most
+
+00:32:06.420 --> 00:32:07.530
+compact representation.
+
+00:32:07.530 --> 00:32:08.850
+Does anyone see why?
+
+00:32:12.030 --> 00:32:13.770
+Why might the dense
+representation
+
+00:32:13.770 --> 00:32:17.446
+sometimes take less space?
+
+00:32:17.446 --> 00:32:18.230
+Yeah?
+
+00:32:18.230 --> 00:32:18.730
+Sorry.
+
+00:32:18.730 --> 00:32:20.188
+AUDIENCE: Less
+space or more space?
+
+00:32:20.188 --> 00:32:22.820
+JULIAN SHUN: Why might the dense
+representation sometimes take
+
+00:32:22.820 --> 00:32:23.320
+less space?
+
+00:32:23.320 --> 00:32:27.030
+AUDIENCE: I mean, if
+you have not many zeros,
+
+00:32:27.030 --> 00:32:30.210
+then you can figure it out n
+squared plus something else
+
+00:32:30.210 --> 00:32:33.268
+with the sparse created.
+
+00:32:33.268 --> 00:32:34.550
+JULIAN SHUN: Right.
+
+00:32:34.550 --> 00:32:37.650
+So if you have a
+relatively dense matrix,
+
+00:32:37.650 --> 00:32:40.720
+then it might take more
+space than storing it.
+
+00:32:40.720 --> 00:32:43.015
+It might take more space
+in the CSR representation,
+
+00:32:43.015 --> 00:32:45.827
+because you have
+these two arrays.
+
+00:32:45.827 --> 00:32:48.160
+So if you take the extreme
+case where all of the entries
+
+00:32:48.160 --> 00:32:51.137
+are non-zeros, then
+both of these arrays
+
+00:32:51.137 --> 00:32:52.720
+are going to be of
+length and squares.
+
+00:32:52.720 --> 00:32:54.325
+So you already have
+2n squared there.
+
+00:32:54.325 --> 00:32:56.200
+And then you also need
+this rows array, which
+
+00:32:56.200 --> 00:32:57.970
+is of length and plus one.
+
+00:33:01.908 --> 00:33:06.750
+OK, so now I gave you this
+more compact representation
+
+00:33:06.750 --> 00:33:08.455
+for storing the matrix.
+
+00:33:08.455 --> 00:33:13.230
+So how do we actually do stuff
+with this representation?
+
+00:33:13.230 --> 00:33:14.970
+So turns out that
+you can still do
+
+00:33:14.970 --> 00:33:17.070
+matrix-vector
+multiplication using
+
+00:33:17.070 --> 00:33:20.332
+this compressed
+sparse row format.
+
+00:33:20.332 --> 00:33:22.500
+And here's the
+code for doing it.
+
+00:33:22.500 --> 00:33:25.290
+So we have this
+struct here, which
+
+00:33:25.290 --> 00:33:27.330
+is the CSR representation.
+
+00:33:27.330 --> 00:33:32.452
+We have the rows array, the cols
+array, and then the vals array.
+
+00:33:32.452 --> 00:33:36.630
+And then we also have the number
+of rows, n, and the number
+
+00:33:36.630 --> 00:33:40.056
+of non-zeros, nnz.
+
+00:33:40.056 --> 00:33:43.680
+And then now what we do,
+we call this SPMV or sparse
+
+00:33:43.680 --> 00:33:45.710
+matrix-vector multiply.
+
+00:33:45.710 --> 00:33:48.885
+We pass in our CSR
+representation,
+
+00:33:48.885 --> 00:33:52.440
+which is A, and then the
+input array, which is x.
+
+00:33:52.440 --> 00:33:56.496
+And then we store the
+result in an output array y.
+
+00:33:56.496 --> 00:34:00.000
+So first, we loop
+through all the rows.
+
+00:34:00.000 --> 00:34:02.750
+And then we set y
+of i to be zero.
+
+00:34:02.750 --> 00:34:05.426
+This is just initialization.
+
+00:34:05.426 --> 00:34:07.710
+And then for each
+of my rows, I'm
+
+00:34:07.710 --> 00:34:11.850
+going to look at
+the column indices
+
+00:34:11.850 --> 00:34:13.050
+for the non-zero elements.
+
+00:34:13.050 --> 00:34:18.510
+And I can do that by starting
+at k equals to rows of i
+
+00:34:18.510 --> 00:34:22.491
+and going up to
+rows of i plus one.
+
+00:34:22.491 --> 00:34:24.150
+And then for each
+one of these entries,
+
+00:34:24.150 --> 00:34:28.920
+I just look up the
+index, the column index
+
+00:34:28.920 --> 00:34:30.570
+for the non-zero element.
+
+00:34:30.570 --> 00:34:34.290
+And I can do that with cols
+of k, so let that be j.
+
+00:34:34.290 --> 00:34:37.274
+And then now I know which
+elements to multiply.
+
+00:34:37.274 --> 00:34:41.355
+I multiply vals of k by x of j.
+
+00:34:41.355 --> 00:34:44.788
+And then now I just
+add that to y of i.
+
+00:34:44.788 --> 00:34:48.885
+And then after I finish with
+all of these multiplications
+
+00:34:48.885 --> 00:34:51.210
+and additions, this will
+give me the same result
+
+00:34:51.210 --> 00:34:56.611
+as if I did the dense
+matrix-vector multiplication.
+
+00:34:56.611 --> 00:34:59.640
+So this is actually a
+pretty cool program.
+
+00:34:59.640 --> 00:35:02.125
+So I encourage you to look
+at this program offline,
+
+00:35:02.125 --> 00:35:03.750
+to convince yourself
+that it's actually
+
+00:35:03.750 --> 00:35:08.055
+computing the same thing
+as the dense matrix-vector
+
+00:35:08.055 --> 00:35:10.140
+multiplication version.
+
+00:35:10.140 --> 00:35:12.840
+So I'm not going to approve
+this during lecture today.
+
+00:35:12.840 --> 00:35:15.750
+But you can feel free to
+ask me or any of your TAs
+
+00:35:15.750 --> 00:35:19.026
+after class, if you have
+questions about this.
+
+00:35:19.026 --> 00:35:20.850
+And the number of
+scalar multiplication
+
+00:35:20.850 --> 00:35:22.950
+that you have to
+do using this code
+
+00:35:22.950 --> 00:35:25.440
+is just going to be nnz,
+because you're just operating
+
+00:35:25.440 --> 00:35:26.955
+on the non-zero elements.
+
+00:35:26.955 --> 00:35:29.400
+You don't have to touch
+all of the zero elements.
+
+00:35:29.400 --> 00:35:32.760
+And in contrast, the dense
+matrix-vector multiply
+
+00:35:32.760 --> 00:35:35.770
+algorithm would take n
+squared multiplication.
+
+00:35:35.770 --> 00:35:38.550
+So this can be significantly
+faster for a sparse matrices.
+
+00:35:43.515 --> 00:35:45.910
+So turns out that you can
+also use a similar structure
+
+00:35:45.910 --> 00:35:48.700
+to store a sparse static graph.
+
+00:35:48.700 --> 00:35:51.175
+So I assume many of
+you have seen graphs
+
+00:35:51.175 --> 00:35:54.604
+in your previous courses.
+
+00:35:54.604 --> 00:35:58.375
+See, here's what the
+sparse graph representation
+
+00:35:58.375 --> 00:36:00.146
+looks like.
+
+00:36:00.146 --> 00:36:02.748
+So again, we have these arrays.
+
+00:36:02.748 --> 00:36:03.790
+We have these two arrays.
+
+00:36:03.790 --> 00:36:05.485
+We have offsets and edges.
+
+00:36:05.485 --> 00:36:08.170
+The offsets array is
+analogous to the rows array.
+
+00:36:08.170 --> 00:36:10.870
+And the edges array is
+analogous to the columns array
+
+00:36:10.870 --> 00:36:13.765
+for the CSR representation.
+
+00:36:13.765 --> 00:36:18.160
+And then in this offsets
+array, we store for each vertex
+
+00:36:18.160 --> 00:36:21.725
+where its neighbor's
+start in this edges array.
+
+00:36:21.725 --> 00:36:23.380
+And then in the
+edges array, we just
+
+00:36:23.380 --> 00:36:25.955
+write the indices of
+its neighbor's there.
+
+00:36:25.955 --> 00:36:29.090
+So let's take vertex
+one, for example.
+
+00:36:29.090 --> 00:36:31.180
+The offset of vertex one is two.
+
+00:36:31.180 --> 00:36:32.950
+So we know that its
+outgoing neighbor
+
+00:36:32.950 --> 00:36:36.230
+start at position two
+in this edges array.
+
+00:36:36.230 --> 00:36:40.360
+And then we see that vertex one
+has outgoing edges to vertices
+
+00:36:40.360 --> 00:36:41.890
+two, three, and four.
+
+00:36:41.890 --> 00:36:46.300
+And we see in the edges array
+two, three, four listed there.
+
+00:36:46.300 --> 00:36:49.220
+And you can also get the
+degree of each vertex, which
+
+00:36:49.220 --> 00:36:51.070
+is analogous to the
+length of each row,
+
+00:36:51.070 --> 00:36:53.820
+by taking the difference
+between consecutive offsets.
+
+00:36:53.820 --> 00:36:55.810
+So here we see that the
+degree of vertex one
+
+00:36:55.810 --> 00:36:59.350
+is three, because
+its offset is two.
+
+00:36:59.350 --> 00:37:01.670
+And the offset of
+vertex two is five.
+
+00:37:04.874 --> 00:37:07.150
+And it turns out that
+using this representation,
+
+00:37:07.150 --> 00:37:09.955
+you can run many
+classic graph algorithms
+
+00:37:09.955 --> 00:37:12.280
+such as breadth-first
+search and PageRank
+
+00:37:12.280 --> 00:37:16.690
+quite efficiently, especially
+when the graph is sparse.
+
+00:37:16.690 --> 00:37:18.190
+So this would be
+much more efficient
+
+00:37:18.190 --> 00:37:20.710
+than using a dense matrix
+to represent the graph
+
+00:37:20.710 --> 00:37:22.600
+and running these algorithms.
+
+00:37:25.995 --> 00:37:29.120
+You can also store
+weights on the edges.
+
+00:37:29.120 --> 00:37:32.480
+And one way to do that is to
+just create an additional array
+
+00:37:32.480 --> 00:37:35.868
+called weights, whose length
+is equal to the number of edges
+
+00:37:35.868 --> 00:37:36.410
+in the graph.
+
+00:37:36.410 --> 00:37:38.660
+And then you just store
+the weights in that array.
+
+00:37:38.660 --> 00:37:41.525
+And this is analogous to
+the values array in the CSR
+
+00:37:41.525 --> 00:37:43.826
+representation.
+
+00:37:43.826 --> 00:37:47.060
+But there's actually a more
+efficient way to store this,
+
+00:37:47.060 --> 00:37:49.190
+if you always need to
+access the weight whenever
+
+00:37:49.190 --> 00:37:50.510
+you access an edge.
+
+00:37:50.510 --> 00:37:52.970
+And the way to do this is
+to interleave the weights
+
+00:37:52.970 --> 00:37:57.680
+with the edges, so to store the
+weight for a particular edge
+
+00:37:57.680 --> 00:38:02.130
+right next to that edge,
+and create an array of twice
+
+00:38:02.130 --> 00:38:03.440
+number of edges in the graph.
+
+00:38:03.440 --> 00:38:05.180
+And the reason why
+this is more efficient
+
+00:38:05.180 --> 00:38:09.185
+is, because it gives you
+improved cache locality.
+
+00:38:09.185 --> 00:38:11.060
+And we'll talk much more
+about cache locality
+
+00:38:11.060 --> 00:38:12.680
+later on in this course.
+
+00:38:12.680 --> 00:38:18.140
+But the high-level idea is, that
+whenever you access an edge,
+
+00:38:18.140 --> 00:38:19.970
+the weight for
+that edge will also
+
+00:38:19.970 --> 00:38:21.807
+likely to be on the
+same cache line.
+
+00:38:21.807 --> 00:38:23.390
+So you don't need
+to go to main memory
+
+00:38:23.390 --> 00:38:27.761
+to access the weight
+of that edge again.
+
+00:38:27.761 --> 00:38:30.080
+And later on in
+the semester we'll
+
+00:38:30.080 --> 00:38:32.930
+actually have a whole lecture
+on doing optimizations
+
+00:38:32.930 --> 00:38:35.726
+for graph algorithms.
+
+00:38:35.726 --> 00:38:40.745
+And today, I'm just going to
+talk about one representation
+
+00:38:40.745 --> 00:38:41.660
+of graphs.
+
+00:38:41.660 --> 00:38:44.150
+But we'll talk much more
+about this later on.
+
+00:38:44.150 --> 00:38:45.380
+Any questions?
+
+00:38:56.072 --> 00:39:01.640
+OK, so that's it for the
+data structure optimizations.
+
+00:39:01.640 --> 00:39:03.370
+We still have three
+more categories
+
+00:39:03.370 --> 00:39:04.840
+of optimizations to go over.
+
+00:39:07.795 --> 00:39:09.760
+So it's a pretty fun lecture.
+
+00:39:09.760 --> 00:39:11.980
+We get to learn about many
+cool tricks for reducing
+
+00:39:11.980 --> 00:39:14.965
+the work of your program.
+
+00:39:14.965 --> 00:39:17.060
+So in the next class
+of optimizations
+
+00:39:17.060 --> 00:39:21.670
+we'll look at is logic, so
+first thing is constant folding
+
+00:39:21.670 --> 00:39:22.900
+and propagation.
+
+00:39:22.900 --> 00:39:25.690
+The idea of constant
+folding and propagation
+
+00:39:25.690 --> 00:39:27.520
+is to evaluate
+constant expressions
+
+00:39:27.520 --> 00:39:31.000
+and substitute the result
+into further expressions, all
+
+00:39:31.000 --> 00:39:32.080
+at compilation times.
+
+00:39:32.080 --> 00:39:33.538
+You don't have to
+do it at runtime.
+
+00:39:36.010 --> 00:39:38.876
+So again, let's
+look at an example.
+
+00:39:38.876 --> 00:39:42.430
+So here we have this
+function called orrery.
+
+00:39:42.430 --> 00:39:43.940
+Does anyone know
+what orrery means?
+
+00:39:58.142 --> 00:39:59.350
+You can look it up on Google.
+
+00:39:59.350 --> 00:40:01.744
+[LAUGHING]
+
+00:40:03.688 --> 00:40:09.130
+OK, so an orrery is a
+model of a solar system.
+
+00:40:09.130 --> 00:40:12.995
+So here we're constructing
+a digital orrery.
+
+00:40:12.995 --> 00:40:16.627
+And in an orrery we
+have these whole bunch
+
+00:40:16.627 --> 00:40:17.585
+of different constants.
+
+00:40:17.585 --> 00:40:21.050
+We have the radius, the
+diameter, the circumference,
+
+00:40:21.050 --> 00:40:24.350
+cross area, surface area,
+and also the volume.
+
+00:40:27.005 --> 00:40:29.720
+But if you look
+at this code, you
+
+00:40:29.720 --> 00:40:31.985
+can notice that actually
+all of these constants
+
+00:40:31.985 --> 00:40:35.770
+can be defined in compile
+time once we fix the radius.
+
+00:40:35.770 --> 00:40:40.120
+So here we set the radius
+to be this constant here,
+
+00:40:40.120 --> 00:40:45.267
+six million, 371,000.
+
+00:40:45.267 --> 00:40:47.600
+I don't know where that
+constant comes from, by the way.
+
+00:40:47.600 --> 00:40:51.701
+But Charles made these
+slides, so he probably does.
+
+00:40:51.701 --> 00:40:53.132
+CHARLES: [INAUDIBLE]
+
+00:40:53.132 --> 00:40:54.090
+JULIAN SHUN: Sorry?
+
+00:40:54.090 --> 00:40:55.298
+CHARLES: Radius of the Earth.
+
+00:40:55.298 --> 00:40:57.911
+JULIAN SHUN: OK,
+radius of the Earth.
+
+00:40:57.911 --> 00:41:00.560
+Now, the diameter is
+just twice this radius.
+
+00:41:00.560 --> 00:41:03.830
+The circumference is just
+pi times the diameter.
+
+00:41:03.830 --> 00:41:07.505
+Cross area is pi times
+the radius squared.
+
+00:41:07.505 --> 00:41:11.180
+Surface area is circumference
+times the diameter.
+
+00:41:11.180 --> 00:41:15.500
+And finally, volume is four
+times pi times the radius cube
+
+00:41:15.500 --> 00:41:17.806
+divided by three.
+
+00:41:17.806 --> 00:41:21.380
+So you can actually evaluate
+all of these two constants
+
+00:41:21.380 --> 00:41:22.220
+at compile time.
+
+00:41:22.220 --> 00:41:26.480
+So with a sufficiently
+high level of optimization,
+
+00:41:26.480 --> 00:41:29.210
+the compiler will actually
+evaluate all of these things
+
+00:41:29.210 --> 00:41:31.501
+at compile time.
+
+00:41:31.501 --> 00:41:34.190
+And that's the idea of constant
+folding and propagation.
+
+00:41:34.190 --> 00:41:37.760
+It's a good idea to know about
+this, even though the compiler
+
+00:41:37.760 --> 00:41:41.230
+is pretty good at doing
+this, because sometimes
+
+00:41:41.230 --> 00:41:42.925
+the compiler won't do it.
+
+00:41:42.925 --> 00:41:45.590
+And in those cases,
+you can do it yourself.
+
+00:41:45.590 --> 00:41:47.795
+And you can also figure
+out whether the compiler
+
+00:41:47.795 --> 00:41:50.450
+is actually doing it when you
+look at the assembly code.
+
+00:41:56.214 --> 00:42:01.440
+OK, so the next optimization
+is common subexpression
+
+00:42:01.440 --> 00:42:02.195
+elimination.
+
+00:42:02.195 --> 00:42:05.015
+And the idea here is to avoid
+computing the same expression
+
+00:42:05.015 --> 00:42:09.110
+multiple times by evaluating
+the expression once and storing
+
+00:42:09.110 --> 00:42:12.754
+the result for later use.
+
+00:42:12.754 --> 00:42:15.740
+So let's look at this
+simple four-line program.
+
+00:42:15.740 --> 00:42:17.840
+We have a equal to b plus c.
+
+00:42:17.840 --> 00:42:20.120
+The we set b equal to a minus d.
+
+00:42:20.120 --> 00:42:22.220
+Then we set c equal to b plus c.
+
+00:42:22.220 --> 00:42:26.420
+And finally, we set
+d equal to a minus d.
+
+00:42:26.420 --> 00:42:29.530
+So notice her that the
+second and the fourth lines
+
+00:42:29.530 --> 00:42:32.050
+are computing the
+same expression.
+
+00:42:32.050 --> 00:42:34.240
+They're both
+computing a minus d.
+
+00:42:34.240 --> 00:42:37.106
+And they evaluate
+to the same thing.
+
+00:42:37.106 --> 00:42:40.255
+So the idea of common
+subexpression elimination
+
+00:42:40.255 --> 00:42:44.605
+would be to just substitute the
+result of the first evaluation
+
+00:42:44.605 --> 00:42:49.990
+into the place where you
+need it in future line.
+
+00:42:49.990 --> 00:42:54.640
+So here, we still evaluate
+the first line for a minus d.
+
+00:42:54.640 --> 00:42:56.920
+But now in the second
+time we need a minus d.
+
+00:42:56.920 --> 00:42:58.465
+We just set the value to b.
+
+00:42:58.465 --> 00:43:01.870
+So now d is equal to b
+instead of a minus d.
+
+00:43:04.560 --> 00:43:08.320
+So in this example, the
+first and the third line,
+
+00:43:08.320 --> 00:43:10.960
+the right hand side of those
+lines actually look the same.
+
+00:43:10.960 --> 00:43:12.660
+They're both b plus c.
+
+00:43:12.660 --> 00:43:15.900
+Does anyone see why you
+can't do common subexpression
+
+00:43:15.900 --> 00:43:16.750
+elimination here?
+
+00:43:20.080 --> 00:43:21.830
+AUDIENCE: b minus
+changes the second line.
+
+00:43:21.830 --> 00:43:24.560
+JULIAN SHUN: Yeah, so you
+can't do common subexpression
+
+00:43:24.560 --> 00:43:30.140
+for the first and the third
+lines, because the value of b
+
+00:43:30.140 --> 00:43:31.070
+changes in between.
+
+00:43:31.070 --> 00:43:33.680
+So the value of b changes
+on the second line.
+
+00:43:33.680 --> 00:43:35.830
+So on the third line
+when you do b plus c,
+
+00:43:35.830 --> 00:43:37.580
+it's not actually
+computing the same thing
+
+00:43:37.580 --> 00:43:42.370
+as the first
+evaluation of b plus c.
+
+00:43:42.370 --> 00:43:44.390
+So again, the
+compiler is usually
+
+00:43:44.390 --> 00:43:47.510
+smart enough to figure
+this optimization out.
+
+00:43:47.510 --> 00:43:51.320
+So it will do this optimization
+for you in your code.
+
+00:43:51.320 --> 00:43:53.480
+But again, it doesn't
+always do it for you.
+
+00:43:53.480 --> 00:43:57.140
+So it's a good idea to know
+about this optimization
+
+00:43:57.140 --> 00:44:00.080
+so that you can do this
+optimization by hand when
+
+00:44:00.080 --> 00:44:03.854
+the compiler doesn't
+do it for you.
+
+00:44:03.854 --> 00:44:04.846
+Questions so far?
+
+00:44:16.750 --> 00:44:20.540
+OK, so next, let's look
+at algebraic identities.
+
+00:44:20.540 --> 00:44:22.680
+The idea of exploiting
+algebraic identities
+
+00:44:22.680 --> 00:44:25.860
+is to replace more expensive
+algebraic expressions
+
+00:44:25.860 --> 00:44:32.010
+with equivalent expressions
+that are cheaper to evaluate.
+
+00:44:32.010 --> 00:44:33.490
+So let's look at an example.
+
+00:44:33.490 --> 00:44:36.410
+Let's say we have a
+whole bunch of balls.
+
+00:44:36.410 --> 00:44:39.170
+And we want to detect
+whether two balls collide
+
+00:44:39.170 --> 00:44:41.130
+with each other.
+
+00:44:41.130 --> 00:44:45.185
+Say, ball has a x-coordinate,
+a y-coordinate, a z-coordinate,
+
+00:44:45.185 --> 00:44:47.750
+as well as a radius.
+
+00:44:47.750 --> 00:44:51.515
+And the collision
+test works as follows.
+
+00:44:51.515 --> 00:44:54.560
+We set d equal to
+the square root
+
+00:44:54.560 --> 00:44:58.120
+of the sum of the squares of
+the differences between each
+
+00:44:58.120 --> 00:44:59.870
+of the three coordinates
+of the two balls.
+
+00:44:59.870 --> 00:45:03.860
+So here, we're taking the
+square of b1's x-coordinate
+
+00:45:03.860 --> 00:45:06.260
+minus b2's
+x-coordinate, and then
+
+00:45:06.260 --> 00:45:08.555
+adding the square
+of b1's y-coordinate
+
+00:45:08.555 --> 00:45:11.150
+minus b2's y-coordinate,
+and finally,
+
+00:45:11.150 --> 00:45:13.150
+adding the square
+of b1 z-coordinate
+
+00:45:13.150 --> 00:45:14.960
+minus b2's z-coordinate.
+
+00:45:14.960 --> 00:45:17.120
+And then we take the
+square root of all of that.
+
+00:45:17.120 --> 00:45:19.640
+And then if the
+result is less than
+
+00:45:19.640 --> 00:45:23.951
+or equal to the sum of
+the two radii of the ball,
+
+00:45:23.951 --> 00:45:26.750
+then that means
+there is a collision,
+
+00:45:26.750 --> 00:45:32.096
+and otherwise, that means
+there's not a collision.
+
+00:45:32.096 --> 00:45:35.470
+But it turns out that
+the square root operator,
+
+00:45:35.470 --> 00:45:38.515
+as I mentioned before, is
+relatively expensive compared
+
+00:45:38.515 --> 00:45:42.085
+to doing multiplications and
+additions and subtractions
+
+00:45:42.085 --> 00:45:44.160
+on modern machines.
+
+00:45:44.160 --> 00:45:50.410
+So how can we do this without
+using the square root operator?
+
+00:45:50.410 --> 00:45:50.910
+Yes.
+
+00:45:50.910 --> 00:45:53.985
+AUDIENCE: You add the two radii,
+and the distance is more than
+
+00:45:53.985 --> 00:45:55.866
+the distance
+between the centers,
+
+00:45:55.866 --> 00:45:57.758
+then you know that
+they must be overlying.
+
+00:45:57.758 --> 00:46:02.570
+JULIAN SHUN: Right, so that's
+actually a good fast path
+
+00:46:02.570 --> 00:46:03.620
+check.
+
+00:46:03.620 --> 00:46:06.320
+I don't think it
+necessarily always gives you
+
+00:46:06.320 --> 00:46:08.321
+the right answer.
+
+00:46:08.321 --> 00:46:09.290
+Is there another?
+
+00:46:09.290 --> 00:46:09.790
+Yes?
+
+00:46:09.790 --> 00:46:12.062
+AUDIENCE: You can square
+the ignition of the radii
+
+00:46:12.062 --> 00:46:13.638
+and compare that
+instead of taking
+
+00:46:13.638 --> 00:46:14.930
+the square root of [INAUDIBLE].
+
+00:46:14.930 --> 00:46:17.750
+JULIAN SHUN: Right,
+right, so the answer
+
+00:46:17.750 --> 00:46:20.365
+is, that you can actually
+take the square of both sides.
+
+00:46:20.365 --> 00:46:22.820
+So now you don't have to
+take the square root anymore.
+
+00:46:22.820 --> 00:46:25.300
+So we're going to
+use the identity that
+
+00:46:25.300 --> 00:46:27.800
+says, that if the
+square root of u
+
+00:46:27.800 --> 00:46:30.860
+is less than or equal to v
+exactly when u is less than
+
+00:46:30.860 --> 00:46:31.895
+or equal to v squared.
+
+00:46:31.895 --> 00:46:34.525
+So we're just going to take
+the square of both sides.
+
+00:46:34.525 --> 00:46:37.036
+And here's the modified code.
+
+00:46:37.036 --> 00:46:41.240
+So now I don't have this square
+root anymore on the right hand
+
+00:46:41.240 --> 00:46:43.295
+side when I compute d squared.
+
+00:46:43.295 --> 00:46:48.194
+But instead, I square
+the sum of the two radii.
+
+00:46:48.194 --> 00:46:51.280
+So this will give
+you the same answer.
+
+00:46:51.280 --> 00:46:53.900
+However, you do have to be
+careful with floating point
+
+00:46:53.900 --> 00:46:55.940
+operations, because
+they don't work exactly
+
+00:46:55.940 --> 00:46:58.195
+in the same way as real numbers.
+
+00:46:58.195 --> 00:47:02.630
+So some numbers might run into
+overflow issues or rounding
+
+00:47:02.630 --> 00:47:03.447
+issues.
+
+00:47:03.447 --> 00:47:05.030
+So you do have to
+be careful if you're
+
+00:47:05.030 --> 00:47:09.512
+using algebraic identities and
+floating point computations.
+
+00:47:09.512 --> 00:47:10.970
+But the high-level
+idea is that you
+
+00:47:10.970 --> 00:47:14.068
+can use equivalent algebraic
+expressions to reduce
+
+00:47:14.068 --> 00:47:15.110
+the work of your program.
+
+00:47:23.320 --> 00:47:25.070
+And we'll come back
+to this example
+
+00:47:25.070 --> 00:47:26.720
+late on in this
+lecture when we talk
+
+00:47:26.720 --> 00:47:29.870
+about some other optimizations,
+such as the fast path
+
+00:47:29.870 --> 00:47:32.630
+optimization, as one of
+the students pointed out.
+
+00:47:32.630 --> 00:47:33.260
+Yes?
+
+00:47:33.260 --> 00:47:36.152
+AUDIENCE: Why do
+you square the sum
+
+00:47:36.152 --> 00:47:39.526
+of these squares [INAUDIBLE]?
+
+00:47:42.900 --> 00:47:43.885
+JULIAN SHUN: Which?
+
+00:47:43.885 --> 00:47:44.590
+Are you talking about--
+
+00:47:44.590 --> 00:47:45.235
+AUDIENCE: Yeah.
+
+00:47:45.235 --> 00:47:47.236
+JULIAN SHUN: --this line?
+
+00:47:47.236 --> 00:47:49.803
+So before we were comparing d.
+
+00:47:49.803 --> 00:47:50.720
+AUDIENCE: [INAUDIBLE].
+
+00:47:50.720 --> 00:47:54.830
+JULIAN SHUN: Yeah,
+yeah, OK, is that clear?
+
+00:47:54.830 --> 00:47:55.330
+OK.
+
+00:48:02.500 --> 00:48:07.261
+OK, so the next optimization
+is short-circuiting.
+
+00:48:07.261 --> 00:48:08.710
+The idea here is,
+that when we're
+
+00:48:08.710 --> 00:48:11.800
+performing a series of
+tests, we can actually
+
+00:48:11.800 --> 00:48:13.900
+stop evaluating
+this series of tests
+
+00:48:13.900 --> 00:48:20.720
+as soon as we know what the
+answer is So here's an example.
+
+00:48:20.720 --> 00:48:25.365
+Let's say we have an
+array, a, containing
+
+00:48:25.365 --> 00:48:28.461
+all non-negative integers.
+
+00:48:28.461 --> 00:48:30.930
+And we want to check if
+the sum of the values
+
+00:48:30.930 --> 00:48:34.371
+in a exceed some limit.
+
+00:48:34.371 --> 00:48:36.810
+So the simple way to
+do this is, you just
+
+00:48:36.810 --> 00:48:39.720
+sum up all of the values of
+the array using a for loop.
+
+00:48:39.720 --> 00:48:41.910
+And then at the end, you
+check if the total sum
+
+00:48:41.910 --> 00:48:44.706
+is greater than the limit.
+
+00:48:44.706 --> 00:48:46.450
+So using this
+approach, you always
+
+00:48:46.450 --> 00:48:48.450
+have to look at all the
+elements in the array.
+
+00:48:51.170 --> 00:48:54.230
+But there's actually a
+better way to do this.
+
+00:48:54.230 --> 00:48:56.100
+And the idea here
+is, that once you
+
+00:48:56.100 --> 00:49:00.120
+know the partial sum exceeds
+the limit that you're
+
+00:49:00.120 --> 00:49:02.970
+testing against, then
+you can just return true,
+
+00:49:02.970 --> 00:49:06.480
+because at that point you know
+that the sum of the elements
+
+00:49:06.480 --> 00:49:08.520
+in the array will
+exceed the limit,
+
+00:49:08.520 --> 00:49:12.111
+because all of the elements
+in the array are non-negative.
+
+00:49:12.111 --> 00:49:14.700
+And then if you get all the way
+to the end of this for loop,
+
+00:49:14.700 --> 00:49:17.460
+that means you didn't
+exceed this limit.
+
+00:49:17.460 --> 00:49:18.810
+And you can just return false.
+
+00:49:23.091 --> 00:49:25.920
+So this second program
+here will usually
+
+00:49:25.920 --> 00:49:29.490
+be faster, if most
+of the time you
+
+00:49:29.490 --> 00:49:31.680
+exceed the limit
+pretty early on when
+
+00:49:31.680 --> 00:49:33.532
+you loop through the array.
+
+00:49:33.532 --> 00:49:36.465
+But if you actually end up
+looking at most of the elements
+
+00:49:36.465 --> 00:49:38.580
+anyways, or even looking
+at all the elements,
+
+00:49:38.580 --> 00:49:40.620
+this second program
+will actually
+
+00:49:40.620 --> 00:49:43.650
+be a little bit slower, because
+you have this additional check
+
+00:49:43.650 --> 00:49:49.090
+inside this for loop that has
+to be done for every iteration.
+
+00:49:49.090 --> 00:49:50.745
+So when you apply
+this optimization,
+
+00:49:50.745 --> 00:49:53.820
+you should be aware of
+whether this will actually
+
+00:49:53.820 --> 00:49:58.768
+be faster or slower, based
+on the frequency of when
+
+00:49:58.768 --> 00:50:00.060
+you can short-circuit the test.
+
+00:50:05.040 --> 00:50:05.870
+Questions?
+
+00:50:12.531 --> 00:50:16.230
+OK, and I want to point out
+that there are short-circuiting
+
+00:50:16.230 --> 00:50:18.110
+logical operators.
+
+00:50:18.110 --> 00:50:20.680
+So if you do double
+ampersand, that's
+
+00:50:20.680 --> 00:50:23.760
+short-circuiting
+logical and operator.
+
+00:50:27.600 --> 00:50:30.303
+So if it evaluates the
+left side to be false,
+
+00:50:30.303 --> 00:50:32.220
+it means that the whole
+thing has to be false.
+
+00:50:32.220 --> 00:50:35.055
+So it's not even going to
+evaluate the right side.
+
+00:50:35.055 --> 00:50:37.680
+And then the double
+vertical bar is going
+
+00:50:37.680 --> 00:50:39.460
+to be a short-circuiting or.
+
+00:50:39.460 --> 00:50:42.385
+So if it knows that
+the left side is true,
+
+00:50:42.385 --> 00:50:45.150
+it knows the whole thing has
+to be true, because or just
+
+00:50:45.150 --> 00:50:47.160
+requires one of the
+two sides to be true.
+
+00:50:47.160 --> 00:50:48.960
+And it's going to short circuit.
+
+00:50:48.960 --> 00:50:51.355
+In contrast, if you just
+have a single ampersand
+
+00:50:51.355 --> 00:50:52.980
+or a single vertical
+bar, these are not
+
+00:50:52.980 --> 00:50:54.105
+short-circuiting operators.
+
+00:50:54.105 --> 00:50:57.180
+They're going to evaluate
+both sides of the argument.
+
+00:50:57.180 --> 00:50:59.310
+The single ampersand
+and single vertical bar
+
+00:50:59.310 --> 00:51:00.840
+turn out to be
+pretty useful when
+
+00:51:00.840 --> 00:51:02.520
+you're doing bit manipulation.
+
+00:51:02.520 --> 00:51:04.650
+And we'll be talking
+about these operators
+
+00:51:04.650 --> 00:51:07.100
+more on Thursday's lecture.
+
+00:51:07.100 --> 00:51:07.665
+Yes?
+
+00:51:07.665 --> 00:51:09.780
+AUDIENCE: So if your
+program going to send false,
+
+00:51:09.780 --> 00:51:12.105
+if it were to call the
+function and that function
+
+00:51:12.105 --> 00:51:14.157
+was on the right hand
+side of an ampersand,
+
+00:51:14.157 --> 00:51:16.105
+would it mean that
+would never get called,
+
+00:51:16.105 --> 00:51:18.053
+even though-- and
+you possibly now
+
+00:51:18.053 --> 00:51:22.061
+find out that, the right
+hand side would crash simply
+
+00:51:22.061 --> 00:51:23.603
+because the left
+hand side was false?
+
+00:51:23.603 --> 00:51:25.930
+JULIAN SHUN: Yeah, if you
+use a double ampersand,
+
+00:51:25.930 --> 00:51:27.120
+then that would be true.
+
+00:51:27.120 --> 00:51:27.620
+Yes?
+
+00:51:30.792 --> 00:51:33.170
+AUDIENCE: [INAUDIBLE]
+check [INAUDIBLE]
+
+00:51:33.170 --> 00:51:35.080
+that would cause the
+cycle of left hand,
+
+00:51:35.080 --> 00:51:37.200
+so that the right hand
+doesn't get [INAUDIBLE]..
+
+00:51:37.200 --> 00:51:38.000
+JULIAN SHUN: Yeah.
+
+00:51:43.150 --> 00:51:46.397
+I guess one example is, if
+you might possibly index
+
+00:51:46.397 --> 00:51:47.980
+an array out of
+balance, you can first
+
+00:51:47.980 --> 00:51:53.260
+check whether you would exceed
+the limit or be out of bounds.
+
+00:51:53.260 --> 00:51:56.170
+And if so, then you don't
+actually do the index.
+
+00:52:00.787 --> 00:52:05.090
+OK, a related idea is
+to order tests, suss
+
+00:52:05.090 --> 00:52:08.720
+out the tests that are more
+often successful or earlier.
+
+00:52:08.720 --> 00:52:11.285
+And the ones that are
+less frequently successful
+
+00:52:11.285 --> 00:52:15.260
+are later in the
+order, because you
+
+00:52:15.260 --> 00:52:17.180
+want to take advantage
+of short-circuiting.
+
+00:52:17.180 --> 00:52:22.820
+And similarly, inexpensive tests
+should precede expensive tests,
+
+00:52:22.820 --> 00:52:26.053
+because if you do the
+inexpensive tests and your test
+
+00:52:26.053 --> 00:52:27.470
+short-circuit,
+then you don't have
+
+00:52:27.470 --> 00:52:28.762
+to do the more expensive tests.
+
+00:52:31.360 --> 00:52:33.315
+So here's an example.
+
+00:52:33.315 --> 00:52:37.520
+Here, we're checking whether
+a character is whitespace.
+
+00:52:37.520 --> 00:52:40.315
+So character's
+whitespace, if it's
+
+00:52:40.315 --> 00:52:41.940
+equal to the carriage
+return character,
+
+00:52:41.940 --> 00:52:43.890
+if it's equal to
+the tab character,
+
+00:52:43.890 --> 00:52:46.880
+if it's equal to
+space, or if it's
+
+00:52:46.880 --> 00:52:50.222
+equal to the newline character.
+
+00:52:50.222 --> 00:52:52.690
+So which one of
+these tests do you
+
+00:52:52.690 --> 00:52:54.868
+think should go
+at the beginning?
+
+00:52:58.852 --> 00:52:59.730
+Yes?
+
+00:52:59.730 --> 00:53:01.134
+AUDIENCE: Probably the space.
+
+00:53:01.134 --> 00:53:02.400
+JULIAN SHUN: Why is that?
+
+00:53:02.400 --> 00:53:04.062
+AUDIENCE: Oh, I
+mean [INAUDIBLE]..
+
+00:53:04.062 --> 00:53:05.604
+Well, maybe the
+newline [INAUDIBLE]..
+
+00:53:05.604 --> 00:53:09.027
+Either of those
+could be [INAUDIBLE]..
+
+00:53:09.027 --> 00:53:13.140
+JULIAN SHUN: Yeah,
+yeah, so it turns out
+
+00:53:13.140 --> 00:53:14.955
+that the space and
+the newline characters
+
+00:53:14.955 --> 00:53:18.000
+appear more frequently
+than the carriage return.
+
+00:53:18.000 --> 00:53:20.490
+And the tab and the space
+is the most frequent,
+
+00:53:20.490 --> 00:53:24.210
+because you have a
+lot of spaces in text.
+
+00:53:24.210 --> 00:53:30.210
+So here I've reordered the test,
+so that the check for space
+
+00:53:30.210 --> 00:53:32.070
+is first.
+
+00:53:32.070 --> 00:53:34.950
+And then now if you have a
+character, that's a space.
+
+00:53:34.950 --> 00:53:38.295
+You can just short circuit
+this test and return true.
+
+00:53:38.295 --> 00:53:42.540
+Next, the newline character,
+I have it as a second test,
+
+00:53:42.540 --> 00:53:44.580
+because these are
+also pretty frequent.
+
+00:53:44.580 --> 00:53:48.390
+You have a newline for
+every new line in your text.
+
+00:53:48.390 --> 00:53:51.680
+And then less frequent
+is the tab character,
+
+00:53:51.680 --> 00:53:54.390
+and finally, the carriage
+return for character
+
+00:53:54.390 --> 00:53:57.990
+isn't that frequently
+used nowadays.
+
+00:53:57.990 --> 00:54:03.405
+So now with this ordering,
+the most frequently successful
+
+00:54:03.405 --> 00:54:05.760
+tests are going to appear first.
+
+00:54:09.607 --> 00:54:11.890
+Notice that this only
+actually saves you
+
+00:54:11.890 --> 00:54:14.740
+work if the character is
+a whitespace character.
+
+00:54:14.740 --> 00:54:16.270
+It it's not a
+whitespace character,
+
+00:54:16.270 --> 00:54:18.700
+than you're going to end up
+evaluating all of these tests
+
+00:54:18.700 --> 00:54:19.200
+anyways.
+
+00:54:24.476 --> 00:54:29.880
+OK, so now let's go back to this
+example of detecting collision
+
+00:54:29.880 --> 00:54:30.540
+of balls.
+
+00:54:33.930 --> 00:54:37.270
+So we're going to look at the
+idea of creating a fast path.
+
+00:54:37.270 --> 00:54:38.950
+And the idea of
+creating a fast path
+
+00:54:38.950 --> 00:54:41.650
+is, that there might
+possibly be a check that
+
+00:54:41.650 --> 00:54:44.500
+will enable you to
+exit the program early,
+
+00:54:44.500 --> 00:54:48.175
+because you already
+know what the result is.
+
+00:54:48.175 --> 00:54:52.450
+And one fast path check
+for this particular program
+
+00:54:52.450 --> 00:54:55.420
+here is, you can check whether
+the bounding boxes of the two
+
+00:54:55.420 --> 00:54:56.620
+balls intersect.
+
+00:54:56.620 --> 00:54:58.780
+If you know the bounding
+boxes of the two balls
+
+00:54:58.780 --> 00:55:03.640
+don't intersect, then you know
+that the balls cannot collide.
+
+00:55:03.640 --> 00:55:06.025
+If the bounding boxes of
+the two balls do intersect,
+
+00:55:06.025 --> 00:55:07.720
+well, then you have to do
+the more expensive test,
+
+00:55:07.720 --> 00:55:09.430
+because that doesn't
+necessarily mean
+
+00:55:09.430 --> 00:55:12.340
+that the balls will collide.
+
+00:55:12.340 --> 00:55:16.390
+So here's what the fast
+path test looks like.
+
+00:55:16.390 --> 00:55:20.440
+We're first going to check
+whether the bounding boxes
+
+00:55:20.440 --> 00:55:21.070
+intersect.
+
+00:55:21.070 --> 00:55:24.520
+And we can do this by
+looking at the absolute value
+
+00:55:24.520 --> 00:55:27.250
+of the difference on
+each of the coordinates
+
+00:55:27.250 --> 00:55:31.410
+and checking if that's greater
+than the sum of the two radii.
+
+00:55:31.410 --> 00:55:35.855
+And if so, that means that
+for that particular coordinate
+
+00:55:35.855 --> 00:55:38.050
+the bounding boxes
+cannot intersect.
+
+00:55:38.050 --> 00:55:40.060
+And therefore, the
+balls cannot collide.
+
+00:55:40.060 --> 00:55:42.130
+And then we can return
+false of any one
+
+00:55:42.130 --> 00:55:44.430
+of these tests returned true.
+
+00:55:44.430 --> 00:55:46.690
+And otherwise, we'll do
+the more expensive test
+
+00:55:46.690 --> 00:55:50.530
+of comparing d square to the
+square of the sum of the two
+
+00:55:50.530 --> 00:55:52.060
+radii.
+
+00:55:52.060 --> 00:55:53.830
+And the reason why
+this is a fast path
+
+00:55:53.830 --> 00:55:56.770
+is, because this test
+here is actually cheaper
+
+00:55:56.770 --> 00:56:00.030
+to evaluate than
+this test below.
+
+00:56:00.030 --> 00:56:03.130
+Here, we're just doing
+subtractions, additions,
+
+00:56:03.130 --> 00:56:04.420
+and comparisons.
+
+00:56:04.420 --> 00:56:07.900
+And below we're using the
+square operator, which
+
+00:56:07.900 --> 00:56:08.995
+requires a multiplication.
+
+00:56:08.995 --> 00:56:12.460
+And multiplications are usually
+more expensive than additions
+
+00:56:12.460 --> 00:56:14.275
+on modern machines.
+
+00:56:14.275 --> 00:56:18.735
+So ideally, if we don't need
+to do the multiplication,
+
+00:56:18.735 --> 00:56:20.830
+we can avoid it by going
+through our fast path.
+
+00:56:24.622 --> 00:56:27.720
+So for this example,
+it probably isn't
+
+00:56:27.720 --> 00:56:29.880
+worth it to do the fast
+path check since it's
+
+00:56:29.880 --> 00:56:30.990
+such a small program.
+
+00:56:30.990 --> 00:56:35.565
+But in practice there are
+many applications and graphics
+
+00:56:35.565 --> 00:56:38.250
+that benefit greatly from
+doing fast path checks.
+
+00:56:38.250 --> 00:56:41.100
+And the fast path
+check will greatly
+
+00:56:41.100 --> 00:56:44.846
+improve the performance of
+these graphics programs.
+
+00:56:44.846 --> 00:56:47.065
+There's actually
+another optimization
+
+00:56:47.065 --> 00:56:49.015
+that we can do here.
+
+00:56:49.015 --> 00:56:51.670
+I talked about this optimization
+couple of slides ago.
+
+00:56:51.670 --> 00:56:53.950
+Does anyone see it?
+
+00:56:53.950 --> 00:56:54.450
+Yes?
+
+00:56:54.450 --> 00:56:58.211
+AUDIENCE: You can factor
+out the sum of the radii
+
+00:56:58.211 --> 00:56:59.157
+for [INAUDIBLE].
+
+00:56:59.157 --> 00:57:00.110
+JULIAN SHUN: Right.
+
+00:57:00.110 --> 00:57:02.970
+So we can apply common
+subexpression elimination here,
+
+00:57:02.970 --> 00:57:07.770
+because we're computing the sum
+of the two radii four times.
+
+00:57:07.770 --> 00:57:10.410
+We can actually just compute it
+once, store it in a variable,
+
+00:57:10.410 --> 00:57:13.865
+and then use it for the
+subsequent three calls.
+
+00:57:13.865 --> 00:57:15.990
+And then similarly,
+when we're taking
+
+00:57:15.990 --> 00:57:19.110
+the difference between
+each of the coordinates,
+
+00:57:19.110 --> 00:57:20.310
+we're also doing it twice.
+
+00:57:20.310 --> 00:57:22.830
+So again, we can store
+that in a variable
+
+00:57:22.830 --> 00:57:25.800
+and then just use the
+result in the second time.
+
+00:57:30.165 --> 00:57:31.135
+Any questions?
+
+00:57:36.955 --> 00:57:40.730
+OK, so the next idea is
+to combine tests together.
+
+00:57:40.730 --> 00:57:43.970
+So here, we're going to
+replace a sequence of tests
+
+00:57:43.970 --> 00:57:47.900
+with just one test
+or switch statement.
+
+00:57:47.900 --> 00:57:50.970
+So here's an implementation
+of a full adder.
+
+00:57:50.970 --> 00:57:53.100
+So a full adder is
+a hardware device
+
+00:57:53.100 --> 00:57:55.380
+that takes us input three bits.
+
+00:57:55.380 --> 00:57:59.430
+And then it returns the carry
+bit and the sum bit as output.
+
+00:57:59.430 --> 00:58:04.410
+So here's a table that specifies
+for every possible input
+
+00:58:04.410 --> 00:58:07.245
+to the full adder of what
+the output should be.
+
+00:58:07.245 --> 00:58:10.390
+And there are eight possible
+inputs to the full adder,
+
+00:58:10.390 --> 00:58:12.015
+because it takes three bits.
+
+00:58:12.015 --> 00:58:14.470
+And there are eight
+possibilities there.
+
+00:58:14.470 --> 00:58:17.730
+And this program here is going
+to check all the possibilities.
+
+00:58:17.730 --> 00:58:20.680
+It's first going to check
+if a is equal to zero.
+
+00:58:20.680 --> 00:58:22.890
+If so, it checks if
+b is equal to zero.
+
+00:58:22.890 --> 00:58:25.780
+If so, it checks if
+c is equal to zero.
+
+00:58:25.780 --> 00:58:29.370
+And if that's true, it returns
+zero and zero for the two bits.
+
+00:58:29.370 --> 00:58:33.510
+And otherwise, it returns
+one and zero and so on.
+
+00:58:33.510 --> 00:58:36.300
+So this is basically
+a whole bunch
+
+00:58:36.300 --> 00:58:40.416
+of if else statements
+nested together.
+
+00:58:40.416 --> 00:58:44.786
+Does anyone think this is a
+good way to write the program?
+
+00:58:44.786 --> 00:58:49.332
+Who thinks this is a bad
+way to write the program?
+
+00:58:49.332 --> 00:58:53.100
+OK, so most of you think it's
+a bad way to write the program.
+
+00:58:53.100 --> 00:58:56.890
+And hopefully, I can
+convince the rest of you
+
+00:58:56.890 --> 00:58:59.160
+who didn't raise your hand.
+
+00:58:59.160 --> 00:59:02.821
+So here's a better way
+to write this program.
+
+00:59:02.821 --> 00:59:07.060
+So we're going to replace
+these multiple if else clauses
+
+00:59:07.060 --> 00:59:09.730
+with a single switch statement.
+
+00:59:09.730 --> 00:59:11.860
+And what we're going
+to do is, we're going
+
+00:59:11.860 --> 00:59:13.975
+to create this test variable.
+
+00:59:13.975 --> 00:59:15.565
+That is a three-bit variable.
+
+00:59:15.565 --> 00:59:17.770
+So we're going to
+place the c bit
+
+00:59:17.770 --> 00:59:19.690
+in the least significant digit.
+
+00:59:19.690 --> 00:59:23.172
+The b bit, we're going
+to shift it over by one,
+
+00:59:23.172 --> 00:59:24.880
+so in the second least
+significant digit,
+
+00:59:24.880 --> 00:59:28.660
+and then the a bit in the
+third least significant digit.
+
+00:59:28.660 --> 00:59:31.060
+And now the value of
+this test variable
+
+00:59:31.060 --> 00:59:33.250
+is going to range
+from zero to seven.
+
+00:59:33.250 --> 00:59:35.080
+And then for each
+possibility, we
+
+00:59:35.080 --> 00:59:39.760
+can just specify what the sum
+and the carry bits should be.
+
+00:59:39.760 --> 00:59:43.930
+And this requires just a single
+switch statement, instead of
+
+00:59:43.930 --> 00:59:45.440
+a whole bunch of
+if else clauses.
+
+00:59:48.639 --> 00:59:50.930
+There's actually an even
+better way to do this,
+
+00:59:50.930 --> 00:59:53.555
+for this example, which
+is to use table lookups.
+
+00:59:53.555 --> 00:59:57.620
+You just precompute all these
+answers, store it in a table,
+
+00:59:57.620 --> 00:59:59.120
+and then just look
+it up at runtime.
+
+01:00:02.252 --> 01:00:06.320
+But the idea here is that you
+can combine multiple tests
+
+01:00:06.320 --> 01:00:08.470
+in a single test.
+
+01:00:08.470 --> 01:00:10.280
+And this not only makes
+your code cleaner,
+
+01:00:10.280 --> 01:00:12.613
+but it can also improve the
+performance of your program,
+
+01:00:12.613 --> 01:00:15.095
+because you're not
+doing so many checks.
+
+01:00:15.095 --> 01:00:19.418
+And you won't have as
+many branch misses.
+
+01:00:19.418 --> 01:00:20.120
+Yes?
+
+01:00:20.120 --> 01:00:22.362
+AUDIENCE: Would coming up
+with logic gates for this
+
+01:00:22.362 --> 01:00:23.841
+be better or no?
+
+01:00:23.841 --> 01:00:26.630
+JULIAN SHUN: Maybe.
+
+01:00:26.630 --> 01:00:29.810
+Yeah, I mean, I encourage you
+to see if you can write a faster
+
+01:00:29.810 --> 01:00:32.420
+program for this.
+
+01:00:32.420 --> 01:00:34.310
+All right, so we're
+done with two categories
+
+01:00:34.310 --> 01:00:35.442
+of optimizations.
+
+01:00:35.442 --> 01:00:36.650
+We still have two more to go.
+
+01:00:39.350 --> 01:00:43.246
+The third category is
+going to be about loops.
+
+01:00:43.246 --> 01:00:46.780
+So if we didn't have any
+loops in our programs,
+
+01:00:46.780 --> 01:00:49.360
+well, there wouldn't be
+many interesting programs
+
+01:00:49.360 --> 01:00:51.250
+to optimize, because
+most of our programs
+
+01:00:51.250 --> 01:00:53.425
+wouldn't be very long running.
+
+01:00:53.425 --> 01:00:56.770
+But with loops we can
+actually optimize these loops
+
+01:00:56.770 --> 01:01:02.020
+and then realize the benefits
+of performance engineering.
+
+01:01:02.020 --> 01:01:05.980
+The first loop optimization I
+want to talk about is hoisting.
+
+01:01:05.980 --> 01:01:08.710
+The goal of hoisting, which is
+also called loop-invariant code
+
+01:01:08.710 --> 01:01:12.690
+motion, is to avoid recomputing
+a loop-invariant code
+
+01:01:12.690 --> 01:01:14.860
+each time through
+the body of a loop.
+
+01:01:14.860 --> 01:01:18.220
+So if you have a for loop
+where in each iteration
+
+01:01:18.220 --> 01:01:22.060
+are computing the
+same thing, well, you
+
+01:01:22.060 --> 01:01:24.405
+can actually save work by
+just computing it once.
+
+01:01:24.405 --> 01:01:28.270
+So in this example
+here, I'm looping
+
+01:01:28.270 --> 01:01:31.680
+over an array of length N.
+And them I'm setting Y of i
+
+01:01:31.680 --> 01:01:35.860
+equal to X of i times the
+exponential of the square root
+
+01:01:35.860 --> 01:01:38.510
+of pi over two.
+
+01:01:38.510 --> 01:01:41.440
+But this exponential
+square root of pi over two
+
+01:01:41.440 --> 01:01:44.155
+is actually the same
+in every iteration.
+
+01:01:44.155 --> 01:01:48.792
+So I don't actually have
+to compute that every time.
+
+01:01:48.792 --> 01:01:51.735
+So here's a version of the
+code that does hoisting.
+
+01:01:51.735 --> 01:01:54.760
+I just move this expression
+outside of the for loop
+
+01:01:54.760 --> 01:01:57.015
+and stored it in
+a variable factor.
+
+01:01:57.015 --> 01:01:58.390
+And then now inside
+the for loop,
+
+01:01:58.390 --> 01:01:59.920
+I just have to
+multiply by factor.
+
+01:01:59.920 --> 01:02:03.940
+I already computed what
+this expression is.
+
+01:02:03.940 --> 01:02:08.035
+And this can save running
+time, because computing
+
+01:02:08.035 --> 01:02:10.060
+the exponential, the
+square root of pi over two,
+
+01:02:10.060 --> 01:02:11.530
+is actually
+relatively expensive.
+
+01:02:15.290 --> 01:02:18.210
+So turns out that for
+this example, you know,
+
+01:02:18.210 --> 01:02:20.640
+the compiler can
+probably figure it out
+
+01:02:20.640 --> 01:02:22.950
+and do this hoisting for you.
+
+01:02:22.950 --> 01:02:25.050
+But in some cases,
+the compiler might not
+
+01:02:25.050 --> 01:02:26.865
+be able to figure
+it out, especially
+
+01:02:26.865 --> 01:02:31.175
+if these functions here might
+change throughout the program.
+
+01:02:31.175 --> 01:02:35.610
+So it's a good idea to know
+what this optimization is,
+
+01:02:35.610 --> 01:02:39.490
+so you can apply it in your code
+when the compiler doesn't do it
+
+01:02:39.490 --> 01:02:39.990
+for you.
+
+01:02:46.717 --> 01:02:50.430
+OK, sentinels, so sentinels
+are special dummy values
+
+01:02:50.430 --> 01:02:54.550
+placed in a data structure to
+simplify the logic of handling
+
+01:02:54.550 --> 01:02:58.440
+boundary conditions, and in
+particular the handling of loop
+
+01:02:58.440 --> 01:02:58.950
+exit tests.
+
+01:03:02.394 --> 01:03:08.073
+So here, I, again, have this
+program that checks whether--
+
+01:03:08.073 --> 01:03:09.490
+so I have this
+program that checks
+
+01:03:09.490 --> 01:03:14.505
+whether the sum of the
+elements in sum array A
+
+01:03:14.505 --> 01:03:18.420
+will overflow if I added all
+of the elements together.
+
+01:03:18.420 --> 01:03:21.055
+And here, I've specified
+that all of the elements of A
+
+01:03:21.055 --> 01:03:23.140
+are non-negative.
+
+01:03:23.140 --> 01:03:26.815
+So how I do this is,
+in every iteration
+
+01:03:26.815 --> 01:03:29.680
+I'm going to increment
+some by A of i.
+
+01:03:29.680 --> 01:03:32.860
+And then I'll check if the
+resulting sum is less than A
+
+01:03:32.860 --> 01:03:34.122
+of i.
+
+01:03:34.122 --> 01:03:37.480
+Does anyone see why this will
+detect if I had an overflow?
+
+01:03:43.300 --> 01:03:43.800
+Yes?
+
+01:03:43.800 --> 01:03:45.258
+AUDIENCE: We're a
+closed algorithm.
+
+01:03:45.258 --> 01:03:46.500
+It's not taking any values.
+
+01:03:46.500 --> 01:03:49.860
+JULIAN SHUN: Yeah, so
+if the thing I added in
+
+01:03:49.860 --> 01:03:53.100
+causes an overflow, then the
+result is going to wrap around.
+
+01:03:53.100 --> 01:03:55.630
+And it's going to be less
+than the thing I added in.
+
+01:03:55.630 --> 01:03:57.962
+So this is why the
+check here, that
+
+01:03:57.962 --> 01:03:59.920
+checks whether the sum
+is less than negative i,
+
+01:03:59.920 --> 01:04:00.920
+will detect an overflow.
+
+01:04:03.452 --> 01:04:07.360
+OK, so I'm going to do this
+check in every iteration.
+
+01:04:07.360 --> 01:04:09.830
+If it's true, I'll
+just return true.
+
+01:04:09.830 --> 01:04:11.830
+And otherwise, I get to
+the end of this for loop
+
+01:04:11.830 --> 01:04:14.800
+where I just return false.
+
+01:04:14.800 --> 01:04:17.950
+But here on every iteration,
+I'm doing two checks.
+
+01:04:17.950 --> 01:04:19.540
+I'm first checking
+whether I should
+
+01:04:19.540 --> 01:04:21.250
+exit the body of this loop.
+
+01:04:21.250 --> 01:04:25.090
+And then secondly, I'm checking
+whether the sum is less than A
+
+01:04:25.090 --> 01:04:26.720
+of i.
+
+01:04:26.720 --> 01:04:29.050
+It turns out that I can
+actually modify this program,
+
+01:04:29.050 --> 01:04:30.850
+so that I only need
+to do one check
+
+01:04:30.850 --> 01:04:33.025
+in every iteration of the loop.
+
+01:04:33.025 --> 01:04:35.665
+So here's a modified
+version of this program.
+
+01:04:35.665 --> 01:04:37.360
+So here, I'm going
+to assume that I
+
+01:04:37.360 --> 01:04:39.580
+have two additional
+entries in my array A.
+
+01:04:39.580 --> 01:04:42.685
+So these are A of n
+and A of n minus one.
+
+01:04:42.685 --> 01:04:45.550
+So I assume I can
+use these locations.
+
+01:04:45.550 --> 01:04:48.730
+And I'm going to set A of n
+to be the largest possible
+
+01:04:48.730 --> 01:04:52.435
+64-bit integer, or INT64 MAX.
+
+01:04:52.435 --> 01:04:56.665
+And I'm going to set A
+of n plus one to be one.
+
+01:04:56.665 --> 01:04:58.960
+And then now I'm going to
+initialize my loop variable
+
+01:04:58.960 --> 01:05:00.340
+i to be zero.
+
+01:05:00.340 --> 01:05:03.100
+And then I'm going to set the
+sum equal to the first element
+
+01:05:03.100 --> 01:05:06.040
+in A or A of zero.
+
+01:05:06.040 --> 01:05:08.590
+And then now I
+have this loop that
+
+01:05:08.590 --> 01:05:12.160
+checks whether the sum is
+greater than or equal to A
+
+01:05:12.160 --> 01:05:12.790
+of i.
+
+01:05:12.790 --> 01:05:17.380
+And if so, I'm going to add
+A of i plus one to the sum.
+
+01:05:17.380 --> 01:05:21.354
+And then I also increment i.
+
+01:05:21.354 --> 01:05:25.840
+OK, and this code here
+does the same thing
+
+01:05:25.840 --> 01:05:27.820
+as a thing on the left,
+because the only way
+
+01:05:27.820 --> 01:05:31.860
+I'm going to exit this while
+loop is, if I overflow.
+
+01:05:31.860 --> 01:05:36.160
+And I'll overflow if A of
+i becomes greater than sum,
+
+01:05:36.160 --> 01:05:37.840
+or if the sum
+becomes less than A
+
+01:05:37.840 --> 01:05:41.810
+of i, which is what I had
+in my original program.
+
+01:05:41.810 --> 01:05:46.315
+And then otherwise, I'm going
+to just increment sum by A of i.
+
+01:05:46.315 --> 01:05:49.390
+And then this code here is
+going to eventually overflow,
+
+01:05:49.390 --> 01:05:53.020
+because if the
+elements in my array A
+
+01:05:53.020 --> 01:05:54.685
+don't cause the
+program to overflow,
+
+01:05:54.685 --> 01:05:56.400
+I'm going to get to A of n.
+
+01:05:56.400 --> 01:05:58.860
+And A of n is a
+very large integer.
+
+01:05:58.860 --> 01:06:00.790
+And if I add that
+to what I have,
+
+01:06:00.790 --> 01:06:02.980
+it's going to cause the
+program to overflow.
+
+01:06:02.980 --> 01:06:04.690
+And at that point,
+I'm going to exit this
+
+01:06:04.690 --> 01:06:06.675
+for loop or this while loop.
+
+01:06:06.675 --> 01:06:12.220
+And then after I exit this loop,
+I can check why I overflowed.
+
+01:06:12.220 --> 01:06:16.630
+If I overflowed because
+of sum element of A,
+
+01:06:16.630 --> 01:06:19.620
+then the loop index i is
+going to be less than n,
+
+01:06:19.620 --> 01:06:21.190
+and I return true.
+
+01:06:21.190 --> 01:06:25.045
+But if I overflowed because
+I added in this huge integer,
+
+01:06:25.045 --> 01:06:27.070
+well, than i is going
+to be equal to n.
+
+01:06:27.070 --> 01:06:30.010
+And then I know that
+the elements of A
+
+01:06:30.010 --> 01:06:34.750
+didn't caused me to overflow,
+the A of n value here did.
+
+01:06:34.750 --> 01:06:38.342
+So then I just return false.
+
+01:06:38.342 --> 01:06:41.210
+So does this makes sense?
+
+01:06:41.210 --> 01:06:43.720
+So here in each
+iteration, I only
+
+01:06:43.720 --> 01:06:45.970
+have to do one check
+instead of two checks,
+
+01:06:45.970 --> 01:06:47.440
+as in my original code.
+
+01:06:47.440 --> 01:06:50.260
+I only have to check whether
+the sum is greater than
+
+01:06:50.260 --> 01:06:53.204
+or equal to A of i.
+
+01:06:53.204 --> 01:06:59.155
+Does anyone know why I set A
+of n plus one equal to one?
+
+01:06:59.155 --> 01:06:59.865
+Yes?
+
+01:06:59.865 --> 01:07:02.570
+AUDIENCE: If everything else
+in the array was zero, then
+
+01:07:02.570 --> 01:07:04.028
+you still wouldn't
+have overflowed.
+
+01:07:04.028 --> 01:07:06.620
+If you had been at 64
+max, it would overflow.
+
+01:07:06.620 --> 01:07:08.140
+JULIAN SHUN: Yeah, so good.
+
+01:07:08.140 --> 01:07:10.975
+So the answer is, because
+if all of my elements
+
+01:07:10.975 --> 01:07:13.750
+were zero in my original
+array, that even
+
+01:07:13.750 --> 01:07:15.760
+though I add in
+this huge integer,
+
+01:07:15.760 --> 01:07:18.346
+it's still not
+going to overflow.
+
+01:07:18.346 --> 01:07:21.100
+But now when I get
+to A of n plus one,
+
+01:07:21.100 --> 01:07:22.450
+I'm going to add one to it.
+
+01:07:22.450 --> 01:07:24.625
+And then that will cause
+the sum to overflow.
+
+01:07:24.625 --> 01:07:25.750
+And then I can exit there.
+
+01:07:25.750 --> 01:07:28.600
+So this is a deal with
+the boundary condition
+
+01:07:28.600 --> 01:07:30.600
+when all the entries
+in my array are zero.
+
+01:07:36.832 --> 01:07:41.470
+OK, so next, loop
+unrolling, so loop unrolling
+
+01:07:41.470 --> 01:07:43.420
+attempts to save
+work by combining
+
+01:07:43.420 --> 01:07:45.370
+several consecutive
+iterations of a loop
+
+01:07:45.370 --> 01:07:47.650
+into a single iteration.
+
+01:07:47.650 --> 01:07:49.510
+Thereby, reducing
+the total number
+
+01:07:49.510 --> 01:07:51.955
+of iterations of the
+loop and consequently
+
+01:07:51.955 --> 01:07:54.730
+the number of times that the
+instructions that control
+
+01:07:54.730 --> 01:07:57.910
+the loop have to be executed.
+
+01:07:57.910 --> 01:08:00.000
+So there are two types
+of loop unrolling.
+
+01:08:00.000 --> 01:08:02.030
+There's full loop
+unrolling, where
+
+01:08:02.030 --> 01:08:04.170
+I unroll all of the
+iterations of the for loop,
+
+01:08:04.170 --> 01:08:08.700
+and I just get rid of the
+control-flow logic entirely.
+
+01:08:08.700 --> 01:08:12.330
+Then there's partial loop
+unrolling, where I only
+
+01:08:12.330 --> 01:08:15.230
+unroll some of the iterations
+but not all of the iterations.
+
+01:08:15.230 --> 01:08:20.360
+So I still have some
+control-flow code in my loop.
+
+01:08:20.360 --> 01:08:23.460
+So let's first look at
+full loop unrolling.
+
+01:08:23.460 --> 01:08:26.460
+So here, I have a
+simple program that
+
+01:08:26.460 --> 01:08:29.817
+just loops for 10 iterations.
+
+01:08:29.817 --> 01:08:32.401
+The fully unrolled loop
+just looks like the code
+
+01:08:32.401 --> 01:08:33.359
+on the right hand side.
+
+01:08:33.359 --> 01:08:36.133
+I just wrote out all
+of the lines of code
+
+01:08:36.133 --> 01:08:37.800
+that I have to do in
+straight-line code,
+
+01:08:37.800 --> 01:08:40.215
+instead of using a for loop.
+
+01:08:40.215 --> 01:08:42.450
+And now I don't need to
+check on every iteration,
+
+01:08:42.450 --> 01:08:45.732
+whether I need to
+exit the for loop.
+
+01:08:45.732 --> 01:08:48.831
+So this is for loop unrolling.
+
+01:08:48.831 --> 01:08:51.720
+This is actually
+not very common,
+
+01:08:51.720 --> 01:08:53.250
+because most of
+your loops are going
+
+01:08:53.250 --> 01:08:56.040
+to be much larger than 10.
+
+01:08:56.040 --> 01:08:58.500
+And oftentimes, many
+of your loop bounds
+
+01:08:58.500 --> 01:09:01.155
+are not going to be
+determined at compile time.
+
+01:09:01.155 --> 01:09:02.405
+They're determined at runtime.
+
+01:09:02.405 --> 01:09:06.960
+So the compiler can't fully
+unroll that loop for you.
+
+01:09:06.960 --> 01:09:09.194
+For small loops like
+this, the compiler
+
+01:09:09.194 --> 01:09:12.531
+will probably unroll
+the loop for you.
+
+01:09:12.531 --> 01:09:14.340
+But for larger
+loops, it actually
+
+01:09:14.340 --> 01:09:18.479
+doesn't benefit to
+unroll the loop fully,
+
+01:09:18.479 --> 01:09:21.104
+because you're going to
+have a lot of instructions.
+
+01:09:21.104 --> 01:09:25.496
+And that's going to pollute
+your instruction cache.
+
+01:09:25.496 --> 01:09:27.990
+So the more common
+form of loop unrolling
+
+01:09:27.990 --> 01:09:31.062
+is partial loop unrolling.
+
+01:09:31.062 --> 01:09:34.500
+And here, in this
+example here, I've
+
+01:09:34.500 --> 01:09:37.452
+unrolled the loop
+by a factor of four.
+
+01:09:37.452 --> 01:09:40.057
+So I reduce the number of
+iterations of my for loop
+
+01:09:40.057 --> 01:09:40.890
+by a factor of four.
+
+01:09:40.890 --> 01:09:44.700
+And then inside the
+body of each iteration
+
+01:09:44.700 --> 01:09:48.297
+I have four instructions.
+
+01:09:48.297 --> 01:09:51.780
+And then notice, I
+also changed the logic
+
+01:09:51.780 --> 01:09:54.510
+in the control-flow
+of my for loops.
+
+01:09:54.510 --> 01:09:56.670
+So now I'm incrementing
+the variable j
+
+01:09:56.670 --> 01:09:59.886
+by four instead of just by one.
+
+01:09:59.886 --> 01:10:01.890
+And then since n
+might not necessarily
+
+01:10:01.890 --> 01:10:05.350
+be divisible by four, I have
+to deal with the remaining
+
+01:10:05.350 --> 01:10:05.850
+elements.
+
+01:10:05.850 --> 01:10:08.130
+And this is what the second
+for loop is doing here.
+
+01:10:08.130 --> 01:10:11.976
+It's just dealing with
+the remaining elements.
+
+01:10:11.976 --> 01:10:17.390
+And this is the more common
+form of loop unrolling.
+
+01:10:17.390 --> 01:10:20.040
+So the first benefit
+of doing this
+
+01:10:20.040 --> 01:10:25.812
+is, that you have fewer
+checks to the exit condition
+
+01:10:25.812 --> 01:10:27.270
+for the loop,
+because you only have
+
+01:10:27.270 --> 01:10:29.340
+to do this check every
+four iterations instead
+
+01:10:29.340 --> 01:10:31.725
+of every iteration.
+
+01:10:31.725 --> 01:10:33.945
+But the second and
+much bigger benefit
+
+01:10:33.945 --> 01:10:36.930
+is, that it allows more
+compiler optimizations,
+
+01:10:36.930 --> 01:10:39.840
+because it increases the
+size of the loop body.
+
+01:10:39.840 --> 01:10:41.760
+And it gives the
+compiler more freedom
+
+01:10:41.760 --> 01:10:45.082
+to play around with code
+and to find ways to optimize
+
+01:10:45.082 --> 01:10:46.290
+the performance of that code.
+
+01:10:46.290 --> 01:10:50.520
+So that's usually
+the bigger benefit.
+
+01:10:50.520 --> 01:10:52.530
+If you unroll the
+loop by too much,
+
+01:10:52.530 --> 01:10:57.180
+that actually isn't very
+good, because now you're
+
+01:10:57.180 --> 01:10:59.775
+going to be pleading
+your instruction cache.
+
+01:10:59.775 --> 01:11:02.485
+And every time you
+fetch an instruction,
+
+01:11:02.485 --> 01:11:05.730
+it's likely going to be a miss
+in your instruction cache.
+
+01:11:05.730 --> 01:11:09.236
+And that's going to decrease
+the performance of your program.
+
+01:11:09.236 --> 01:11:12.240
+And furthermore, if your loop
+body is already very big,
+
+01:11:12.240 --> 01:11:14.385
+you don't really get
+additional improvements
+
+01:11:14.385 --> 01:11:17.550
+from having the compiler
+do more optimizations,
+
+01:11:17.550 --> 01:11:20.700
+because it already has
+enough code to work with.
+
+01:11:20.700 --> 01:11:24.270
+So giving it more code doesn't
+actually give you much there.
+
+01:11:27.378 --> 01:11:29.330
+OK, so I just said this.
+
+01:11:29.330 --> 01:11:32.630
+The benefits of loop unrolling
+a lower number of instructions
+
+01:11:32.630 --> 01:11:33.620
+and loop control code.
+
+01:11:33.620 --> 01:11:36.860
+And then it also enables
+more compiler optimizations.
+
+01:11:36.860 --> 01:11:39.590
+And the second benefit here is
+usually the much more important
+
+01:11:39.590 --> 01:11:40.430
+benefit.
+
+01:11:40.430 --> 01:11:43.580
+And we'll talk more about
+compiler optimizations
+
+01:11:43.580 --> 01:11:46.664
+in a couple of lectures.
+
+01:11:46.664 --> 01:11:51.210
+OK, any questions?
+
+01:11:56.010 --> 01:11:59.235
+OK, so the next
+optimization is loop fusion.
+
+01:11:59.235 --> 01:12:00.630
+This is also called jamming.
+
+01:12:00.630 --> 01:12:02.700
+And the idea here is to
+combine multiple loops
+
+01:12:02.700 --> 01:12:06.390
+over the same index
+range into a single loop,
+
+01:12:06.390 --> 01:12:10.646
+thereby saving the
+overhead of loop control.
+
+01:12:10.646 --> 01:12:12.570
+So here, I have two loops.
+
+01:12:12.570 --> 01:12:15.630
+They're both looping from i
+equal zero, all the way up
+
+01:12:15.630 --> 01:12:16.870
+to n minus one.
+
+01:12:16.870 --> 01:12:21.210
+The first loop, I'm computing
+the minimum of A of i
+
+01:12:21.210 --> 01:12:23.865
+and B of i and storing
+the result in C of i.
+
+01:12:23.865 --> 01:12:27.486
+The second loop, I'm computing
+the maximum of A of i
+
+01:12:27.486 --> 01:12:33.090
+and B of i and storing
+the result in D of i.
+
+01:12:33.090 --> 01:12:35.730
+So since these are going
+over the same index rang,
+
+01:12:35.730 --> 01:12:38.520
+I can fused together
+the two loops,
+
+01:12:38.520 --> 01:12:44.620
+giving me a single loop that
+does both of these lines here.
+
+01:12:44.620 --> 01:12:47.520
+And this reduces the overhead
+of loop control code,
+
+01:12:47.520 --> 01:12:52.410
+because now instead of doing
+this exit condition check two n
+
+01:12:52.410 --> 01:12:55.878
+times, I only have
+to do it n times.
+
+01:12:55.878 --> 01:12:58.978
+This also gives you
+better cache locality.
+
+01:12:58.978 --> 01:13:00.770
+Again, we'll talk more
+about cache locality
+
+01:13:00.770 --> 01:13:01.650
+in a future lecture.
+
+01:13:01.650 --> 01:13:06.210
+But at a high
+level here, what it
+
+01:13:06.210 --> 01:13:09.720
+gives you is, that once you load
+A of i and B of i into cache,
+
+01:13:09.720 --> 01:13:11.310
+when you compute
+C of i, it's also
+
+01:13:11.310 --> 01:13:13.590
+going to be in cache
+when you compute D of i.
+
+01:13:13.590 --> 01:13:17.640
+Whereas, in the original
+code, when you compute D of i,
+
+01:13:17.640 --> 01:13:19.377
+it's very likely that
+A of i and B of i
+
+01:13:19.377 --> 01:13:21.210
+are going to be kicked
+out of cache already,
+
+01:13:21.210 --> 01:13:23.550
+even though you brought it
+in when you computed C of i.
+
+01:13:27.546 --> 01:13:30.490
+For this example
+here, again, there's
+
+01:13:30.490 --> 01:13:32.845
+another optimization you
+can do, common subexpression
+
+01:13:32.845 --> 01:13:36.400
+elimination, since you're
+computing this expression
+
+01:13:36.400 --> 01:13:38.980
+A of i is less than or
+equal to B of i twice.
+
+01:13:44.005 --> 01:13:48.100
+OK, next, let's look at
+eliminating wasted iterations.
+
+01:13:48.100 --> 01:13:49.945
+The idea of eliminating
+wasted iterations
+
+01:13:49.945 --> 01:13:51.970
+is to modify the
+loop bounds to avoid
+
+01:13:51.970 --> 01:13:57.090
+executing loop iterations over
+essentially empty loop bodies.
+
+01:13:57.090 --> 01:14:00.946
+So here, I have some code
+to transpose, a matrix.
+
+01:14:00.946 --> 01:14:03.670
+So I go from i equal
+zero to n minus one,
+
+01:14:03.670 --> 01:14:06.050
+from j equals zero
+to n minus one.
+
+01:14:06.050 --> 01:14:08.175
+And then I check if
+i is greater than j.
+
+01:14:08.175 --> 01:14:12.775
+And if so, I'll swap the entries
+in A of i, j and A of j, i.
+
+01:14:12.775 --> 01:14:14.440
+The reason why I
+have this check here
+
+01:14:14.440 --> 01:14:16.357
+is, because I don't want
+to do the swap twice.
+
+01:14:16.357 --> 01:14:19.750
+Otherwise, I'll just end up with
+the same matrix I had before.
+
+01:14:19.750 --> 01:14:24.960
+So I only have to do the swap
+when i is greater than j.
+
+01:14:24.960 --> 01:14:27.580
+One disadvantage of this
+code here is, I still
+
+01:14:27.580 --> 01:14:30.745
+have to loop for n
+squared iterations,
+
+01:14:30.745 --> 01:14:32.890
+even though only about
+half of the iterations
+
+01:14:32.890 --> 01:14:36.670
+are actually doing useful
+work, because about half
+
+01:14:36.670 --> 01:14:39.290
+of the iterations are going
+to fail this check here,
+
+01:14:39.290 --> 01:14:42.841
+that checks whether
+i is greater than j.
+
+01:14:42.841 --> 01:14:46.600
+So here's a modified version of
+the program, where I basically
+
+01:14:46.600 --> 01:14:49.545
+eliminate these
+wasted iterations.
+
+01:14:49.545 --> 01:14:53.050
+So now I'm going to loop from
+i equals one to n minus one,
+
+01:14:53.050 --> 01:14:56.260
+and then from j equals zero
+all the way up to i minus one.
+
+01:14:56.260 --> 01:14:58.150
+So now instead of going
+up to n minus one,
+
+01:14:58.150 --> 01:15:01.260
+I'm going just up
+to i minus one.
+
+01:15:01.260 --> 01:15:04.720
+And that basically
+puts this check,
+
+01:15:04.720 --> 01:15:07.650
+whether i is greater than j,
+into the loop control code.
+
+01:15:07.650 --> 01:15:10.700
+And that saves me the
+extra wasted iterations.
+
+01:15:13.920 --> 01:15:17.620
+OK, so that's the last
+optimization on loops.
+
+01:15:17.620 --> 01:15:20.052
+Are there any questions?
+
+01:15:20.052 --> 01:15:21.336
+Yes?
+
+01:15:21.336 --> 01:15:24.120
+AUDIENCE: Isn't the checks
+still have [INAUDIBLE]??
+
+01:15:27.200 --> 01:15:29.910
+JULIAN SHUN: So the check is--
+
+01:15:29.910 --> 01:15:32.420
+so you still have to do the
+check in the loop control code.
+
+01:15:32.420 --> 01:15:34.160
+But here, you also had to do it.
+
+01:15:34.160 --> 01:15:36.530
+And now you just don't
+have to do it again
+
+01:15:36.530 --> 01:15:37.910
+inside the body of the loop.
+
+01:15:40.922 --> 01:15:41.635
+Yes?
+
+01:15:41.635 --> 01:15:43.020
+AUDIENCE: In some
+cases, where it
+
+01:15:43.020 --> 01:15:45.950
+might be more complex
+to do it, is it
+
+01:15:45.950 --> 01:15:50.200
+also [INAUDIBLE]
+before you optimize it,
+
+01:15:50.200 --> 01:15:54.810
+but it's still going to be
+fast enough [INAUDIBLE]..
+
+01:15:54.810 --> 01:15:57.720
+Like in the first example,
+even though the loop is empty,
+
+01:15:57.720 --> 01:16:03.971
+most of the time you'll be
+able to process [INAUDIBLE]
+
+01:16:03.971 --> 01:16:05.863
+run the instructions.
+
+01:16:05.863 --> 01:16:10.333
+JULIAN SHUN: Yes,
+so most of these
+
+01:16:10.333 --> 01:16:11.500
+are going to be branch hits.
+
+01:16:11.500 --> 01:16:14.920
+So it's still going
+to be pretty fast.
+
+01:16:14.920 --> 01:16:16.780
+But it's going to be
+even faster if you just
+
+01:16:16.780 --> 01:16:19.928
+don't do that check at all.
+
+01:16:19.928 --> 01:16:23.130
+So I mean, basically you
+should just text it out
+
+01:16:23.130 --> 01:16:25.830
+in your code to see
+whether it will give you
+
+01:16:25.830 --> 01:16:26.762
+a runtime improvement.
+
+01:16:31.100 --> 01:16:36.656
+OK, so last category of
+optimizations is functions.
+
+01:16:36.656 --> 01:16:39.300
+So first, the idea
+of inlining is
+
+01:16:39.300 --> 01:16:41.070
+to avoid the overhead
+of a function call
+
+01:16:41.070 --> 01:16:44.130
+by replacing a call to
+the function with the body
+
+01:16:44.130 --> 01:16:45.090
+of the function itself.
+
+01:16:48.192 --> 01:16:50.240
+So here, I have a
+piece of code that's
+
+01:16:50.240 --> 01:16:54.155
+computing the sum of squares
+of elements in an array A.
+
+01:16:54.155 --> 01:16:58.940
+And so I have this for
+loop that in each iteration
+
+01:16:58.940 --> 01:17:01.190
+is calling this square function.
+
+01:17:01.190 --> 01:17:03.490
+And the square function
+is defined above here.
+
+01:17:03.490 --> 01:17:09.046
+It just does x times x
+for input argument x.
+
+01:17:09.046 --> 01:17:11.360
+But it turns out that there
+is actually some overhead
+
+01:17:11.360 --> 01:17:13.490
+to doing a function call.
+
+01:17:13.490 --> 01:17:16.370
+And the idea here is
+to just put the body
+
+01:17:16.370 --> 01:17:20.390
+of the function inside the
+function that's calling it.
+
+01:17:20.390 --> 01:17:22.760
+So instead of calling
+the square function,
+
+01:17:22.760 --> 01:17:25.730
+I'm just going to
+create a variable temp.
+
+01:17:25.730 --> 01:17:32.168
+And then I set sum equal to
+sum plus temp times temp.
+
+01:17:32.168 --> 01:17:34.460
+So now I don't have to do
+the additional function call.
+
+01:17:38.070 --> 01:17:40.465
+You don't actually have
+to do this manually.
+
+01:17:40.465 --> 01:17:44.740
+So if you declare your
+function to be static inline,
+
+01:17:44.740 --> 01:17:46.340
+then the compiler
+is going to try
+
+01:17:46.340 --> 01:17:48.905
+to inline this function
+for you by placing
+
+01:17:48.905 --> 01:17:52.655
+the body of the function inside
+the code that's calling it.
+
+01:17:52.655 --> 01:17:55.340
+And nowadays, the compiler
+is pretty good at doing this.
+
+01:17:55.340 --> 01:17:57.380
+So even if you don't
+declare static inline,
+
+01:17:57.380 --> 01:18:00.800
+the compiler will probably
+still inline this code for you.
+
+01:18:00.800 --> 01:18:04.100
+But just to make sure, if you
+want to inline a function,
+
+01:18:04.100 --> 01:18:08.096
+you should declare
+it as static inline.
+
+01:18:08.096 --> 01:18:11.210
+And you might ask, why can't
+you just use a macro to do this?
+
+01:18:11.210 --> 01:18:14.120
+But it turns out, that inline
+functions nowadays are just
+
+01:18:14.120 --> 01:18:16.160
+as efficient as macros.
+
+01:18:16.160 --> 01:18:18.517
+But they're better structured,
+because they evaluate
+
+01:18:18.517 --> 01:18:19.475
+all of their arguments.
+
+01:18:19.475 --> 01:18:22.765
+Whereas, macros just do
+a textual substitution.
+
+01:18:22.765 --> 01:18:24.140
+So if you have an
+argument that's
+
+01:18:24.140 --> 01:18:25.970
+very expensive to
+evaluate, the macro
+
+01:18:25.970 --> 01:18:29.628
+might actually paste that
+expression multiple times
+
+01:18:29.628 --> 01:18:30.170
+in your code.
+
+01:18:30.170 --> 01:18:31.880
+And if the compiler
+isn't good enough
+
+01:18:31.880 --> 01:18:33.770
+to do common
+subexpression elimination,
+
+01:18:33.770 --> 01:18:35.600
+then you've just
+wasted a lot of work.
+
+01:18:40.061 --> 01:18:45.220
+OK, so there's one
+more optimization--
+
+01:18:45.220 --> 01:18:46.975
+or there's two
+more optimizations
+
+01:18:46.975 --> 01:18:49.048
+that I'm not going to
+have time to talk about.
+
+01:18:49.048 --> 01:18:51.340
+But I'm going to post these
+slides on Learning Modules,
+
+01:18:51.340 --> 01:18:55.690
+so please take a look at them,
+tail-recursion elimination
+
+01:18:55.690 --> 01:18:59.958
+and coarsening recursion.
+
+01:18:59.958 --> 01:19:03.990
+So here are a list
+of most of the roles
+
+01:19:03.990 --> 01:19:04.990
+that we looked at today.
+
+01:19:04.990 --> 01:19:07.060
+There are two of the
+function optimizations
+
+01:19:07.060 --> 01:19:09.550
+I didn't get to talk
+about, please take
+
+01:19:09.550 --> 01:19:12.880
+a look at that offline,
+and ask your TAs if you
+
+01:19:12.880 --> 01:19:14.920
+have any questions.
+
+01:19:14.920 --> 01:19:17.350
+And some closing
+advice is, you should
+
+01:19:17.350 --> 01:19:18.787
+avoid premature optimizations.
+
+01:19:18.787 --> 01:19:20.620
+So all of the things
+I've talked about today
+
+01:19:20.620 --> 01:19:22.480
+improve the performance
+of your program.
+
+01:19:22.480 --> 01:19:25.090
+But you first need to make sure
+that your program is correct.
+
+01:19:25.090 --> 01:19:27.340
+If you have a program that
+doesn't do the right thing,
+
+01:19:27.340 --> 01:19:31.970
+then it doesn't really
+benefit you to make it faster.
+
+01:19:31.970 --> 01:19:35.065
+And to preserve correctness, you
+should do regression testing,
+
+01:19:35.065 --> 01:19:37.770
+so develop a suite
+of tests to check
+
+01:19:37.770 --> 01:19:39.520
+the correctness of
+your program every time
+
+01:19:39.520 --> 01:19:42.421
+you change the program.
+
+01:19:42.421 --> 01:19:45.490
+And as I said before,
+reducing the work of a program
+
+01:19:45.490 --> 01:19:47.470
+doesn't necessarily
+decrease its running time.
+
+01:19:47.470 --> 01:19:48.970
+But it's a good heuristic.
+
+01:19:48.970 --> 01:19:50.740
+And finally, the
+compiler automates
+
+01:19:50.740 --> 01:19:52.180
+many low-level optimizations.
+
+01:19:52.180 --> 01:19:53.740
+And you can look at
+the assembly code
+
+01:19:53.740 --> 01:19:57.510
+to see whether the
+compiler did something.

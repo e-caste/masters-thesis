@@ -1,0 +1,521 @@
+WEBVTT
+
+1
+00:00:01.040 --> 00:00:09.259 
+Hello and welcome! This video will continue the topic of the
+compact model, and it is the last part of this topic.
+
+2
+00:00:11.839 --> 00:00:20.859 
+In this paper, the authors from Google systematically study
+model scaling and identify that carefully balancing
+
+3
+00:00:20.859 --> 00:00:30.780 
+the network depths with and resolution can lead to
+better performance. Intuitively, the compound scaling
+method makes sense
+
+4
+00:00:30.789 --> 00:00:40.909 
+because if the input image is bigger, the network needs
+more layers to increase the receptive field and more channels
+
+5
+00:00:40.920 --> 00:00:45.259 
+to capture more fine-grained patterns on the bigger image.
+
+6
+00:00:46.039 --> 00:00:56.869 
+In previous work, it is common to scale only one of the
+three dimensions. Though it is possible to scale 2 or 3
+dimensions
+
+7
+00:00:56.880 --> 00:01:05.750 
+arbitrarily, it requires tedious manual tuning and often yields
+sub-optimal accuracy and efficiency
+
+8
+00:01:06.819 --> 00:01:14.920 
+The authors in this paper use neural architecture search
+to design a new baseline network and uniformly scale
+
+9
+00:01:14.920 --> 00:01:25.150 
+it up to obtain a series of models, called EfficientNets, which
+achieve much better accuracy and efficiency than previous
+
+10
+00:01:25.150 --> 00:01:26.450 
+ConvNets models.
+
+11
+00:01:28.939 --> 00:01:39.409 
+So, the base model of EfficientNet is a lightweight mobile
+backbone MNasNet created by NAS regarding the trade-off
+
+12
+00:01:39.420 --> 00:01:41.650 
+between accuracy and FLOPs.
+
+13
+00:01:42.439 --> 00:01:53.030 
+They also also reported some observations
+regarding compound scaling. If you want to use
+2^N times more computational
+
+14
+00:01:53.030 --> 00:01:53.909 
+resources,
+
+15
+00:01:55.040 --> 00:02:01.439 
+then we can increase the network depth by
+α^N, width by β^N,
+
+16
+00:02:01.450 --> 00:02:12.110 
+and image size by γ^N, where α,β,γ are constant
+coefficients determined by a small grid search
+
+17
+00:02:12.120 --> 00:02:21.110 
+on the original small model. The FLOPS of a regular
+convolution op is proportional to depth d,
+
+18
+00:02:21.229 --> 00:02:22.270 
+with W^2,
+
+19
+00:02:22.939 --> 00:02:27.949 
+and resolution r^2,
+
+20
+00:02:28.740 --> 00:02:29.740 
+It means doubling
+
+21
+00:02:29.740 --> 00:02:39.759 
+network depths will double FLOPS, but doubling network width or
+resolution will increase FLOPS by four times.
+
+22
+00:02:40.240 --> 00:02:47.340 
+So the authors keep the constants〖α∙β〗^2∙γ^2≈2
+
+23
+00:02:47.349 --> 00:02:57.860 
+such that for any compound coefficient ϕ(phei)
+the total FLOPS will approximately increase by 2^ϕ.
+
+24
+00:03:00.139 --> 00:03:11.530 
+The efficientNet B7 achieves state-of-the-art accuracy on ImageNet
+, 84.4% top-1 acc, eight times smaller
+
+25
+00:03:11.539 --> 00:03:17.860 
+and six times faster on inference than SOTA model Gpipe.
+
+26
+00:03:19.139 --> 00:03:22.280 
+Some observations also mentioned by the author:
+
+27
+00:03:22.289 --> 00:03:27.259 
+I think it's very valuable for practical applications.
+
+28
+00:03:27.639 --> 00:03:37.909 
+the condition that the size of r and w are unchanged,
+with the increase of d,
+
+29
+00:03:37.919 --> 00:03:42.389 
+There is not much difference in accuracy when D and
+
+30
+00:03:42.389 --> 00:03:53.569 
+W remains unchanged, with the rise of resolution (r), the
+accuracy is greatly improved. When the resolution and depth
+remain
+
+31
+00:03:53.569 --> 00:04:05.939 
+unchanged, with the increase of width the accuracy first
+improves significantly, then tends to be flat.
+
+32
+00:04:05.939 --> 00:04:06.560 
+ShuffleNet
+
+33
+00:04:06.560 --> 00:04:07.259 
+V2,
+
+34
+00:04:07.740 --> 00:04:17.529 
+this work proposes several practical Guidelines for
+Efficient ConvNets Design. They also analyze how the
+network should be
+
+35
+00:04:17.529 --> 00:04:21.149 
+designed from the perspective of Memory Access Cost,
+
+36
+00:04:21.540 --> 00:04:32.199 
+in short, MAC and GPU parallelism to reduce the runtime further
+and directly improve the models efficiency. When the number
+
+37
+00:04:32.199 --> 00:04:39.120 
+of input channels is the same as the number of output channels,
+the MACis the most negligible -&gt;
+
+38
+00:04:39.259 --> 00:04:48.779 
+Use the same input andoutput channels for a convolution layer,
+-MAC is proportional to the number of groups of a convolution
+
+39
+00:04:48.779 --> 00:04:49.160 
+layer.
+
+40
+00:04:49.740 --> 00:04:52.949 
+So we should carefully use a group convolution.
+
+41
+00:04:53.819 --> 00:05:01.949 
+The number of branches in the networks reduce the parallelism,
+we should probably reduce the number of branches in the network
+
+42
+00:05:03.420 --> 00:05:10.720 
+Element-wise operations are very time consuming, we should
+reduce the element wise operation if possible.
+
+43
+00:05:10.730 --> 00:05:20.699 
+On the other hand, this work also introduced the design
+principle, cheap operations for more features which is
+very effective
+
+44
+00:05:20.709 --> 00:05:22.259 
+for lightweight models.
+
+45
+00:05:23.939 --> 00:05:31.250 
+GhostNet continues to deepen the concept of cheap operation for
+more features.
+
+46
+00:05:31.740 --> 00:05:39.209 
+The Ghost module is designed which uses depth wise convolution
+to generate more intrinsic features.
+
+47
+00:05:39.220 --> 00:05:49.639 
+Itintroduces design tricks such as significantly reducing the
+width of 1x1 convolutions which account for a large
+
+48
+00:05:49.639 --> 00:05:51.360 
+portion of the computations.
+
+49
+00:05:51.759 --> 00:05:57.660 
+Second, increasing the depths of the network is beneficial
+for boosting accuracy.
+
+50
+00:05:58.139 --> 00:06:07.009 
+A possible shortcoming of this design is that Ghost net  might
+not be really fast if the model is memory bonded.
+
+51
+00:06:07.639 --> 00:06:13.360 
+The metrics FLOPs alone cannot accurately reflect the speed up
+of the model.
+
+52
+00:06:16.139 --> 00:06:20.959 
+The MobileNetV3 includes two very effective
+design choices:
+
+53
+00:06:20.970 --> 00:06:25.459 
+depthwise separable convolution and the inverted
+bottleneck block
+
+54
+00:06:26.439 --> 00:06:35.350 
+The depthwise convolution layer applies a single 3x3 filter
+to each input channel to learn the spatial correlation
+
+55
+00:06:35.740 --> 00:06:40.259 
+and then applies a 1x1
+convolution to learn the channel correlation.
+
+56
+00:06:40.939 --> 00:06:49.790 
+Thus, in the inverted bottleneck design, the first
+pointwise convolution expands the information flow,
+which increases the
+
+57
+00:06:49.790 --> 00:06:52.459 
+capacity and the depth wise
+
+58
+00:06:52.470 --> 00:06:57.860 
+and the second point wise convolution are responsible
+for the expressiveness.
+
+59
+00:06:59.639 --> 00:07:06.660 
+This speculation is derived based on the analysis of
+the MobileNet-V2 paper.
+
+60
+00:07:07.639 --> 00:07:14.850 
+Another strategy frequently used in recent works
+is "cheap operation for more features". For example,
+
+61
+00:07:14.860 --> 00:07:18.259 
+they are used in ShuffleNet-V2 and GhostNet.
+
+62
+00:07:21.040 --> 00:07:28.360 
+The table shows the complexity evaluation
+results of different types of convolutions of
+MobileNet models.
+
+63
+00:07:29.639 --> 00:07:36.860 
+We observe that the computation overhead is mainly
+concentrated on the pointwise convolutions.
+
+64
+00:07:37.540 --> 00:07:44.420 
+If we want to reduce the computational complexity, the
+optimization of this part is the first choice.
+
+65
+00:07:46.339 --> 00:07:55.060 
+So, our proposed idea, in short is to apply the future
+reuse strategy on the first pointwise convolution to
+save the computation
+
+66
+00:07:55.060 --> 00:08:01.439 
+effectively. And we correspondingly extend the future flow
+of the depth wise
+
+67
+00:08:01.449 --> 00:08:11.319 
+and the second pointwise convolution layer, where we think
+they are more critical for the expressive ability
+
+68
+00:08:11.319 --> 00:08:18.660 
+moreover, and the authors of AsymmNet  keep the computation
+budgets unchanged.
+
+69
+00:08:19.139 --> 00:08:28.370 
+AsymmNet has been verified on five different vision tasks,
+including classification,detection, pose estimation,
+face recognition,
+
+70
+00:08:28.370 --> 00:08:33.759 
+and action recognition. And obtain the following two conclusions:
+
+71
+00:08:34.240 --> 00:08:42.659 
+First compared with MobileNetV3, AsymmNet can
+generally get a better or same level of accuracy.
+
+72
+00:08:43.279 --> 00:08:51.379 
+Second, especially in the region where the operations are less
+than 200 million Madds.
+
+73
+00:08:52.340 --> 00:09:02.440 
+the performance of AsymmNet is pretty better than that
+of MobileNetV3.
+
+74
+00:09:02.440 --> 00:09:12.360 
+RepVGG Net is not a compact network, but it
+offers an exciting design concept called
+Overparameterization techniques.
+
+75
+00:09:13.440 --> 00:09:23.789 
+If we look at the table, RepVGG shows a
+better accuracy-speed balance than ResNet.
+And the more significant the model,
+
+76
+00:09:23.799 --> 00:09:37.580 
+the more pronounced the acceleration effect. The core difference
+is that different model forms are used in the training
+
+77
+00:09:37.590 --> 00:09:39.059 
+and inference stages.
+
+78
+00:09:39.539 --> 00:09:48.529 
+We can see that from the figure in the training, repVGG uses
+two extra branches for each 3x3 convolution
+
+79
+00:09:48.529 --> 00:09:49.059 
+layer:
+
+80
+00:09:49.539 --> 00:09:55.360 
+so one 1x1 Conv branch and one shortcut connection.
+
+81
+00:09:56.840 --> 00:10:04.360 
+But in the inference stage, both extra
+branches have been integrated into the 3x3
+convolution.
+
+82
+00:10:04.740 --> 00:10:09.149 
+So the form in the inference is a
+pure VGG style network.
+
+83
+00:10:11.240 --> 00:10:20.190 
+Let’s briefly introduce How are 3x3 Conv,
+1x1 Conv, and identity shortcuts fused in this
+
+84
+00:10:20.190 --> 00:10:20.659 
+work.
+
+85
+00:10:21.840 --> 00:10:24.960 
+This figure shows a standard 3x3,
+
+86
+00:10:25.340 --> 00:10:31.659 
+the input feature map has 2
+channels, and the output map has a shape of 3x3x2
+
+87
+00:10:33.740 --> 00:10:37.529 
+This figure shows how a standard 1x1
+convolution works.
+
+88
+00:10:37.539 --> 00:10:45.159 
+It has kernel size 1 and stride=1, and the
+output size is also 3x3x2.
+
+89
+00:10:46.639 --> 00:10:54.600 
+Note that here we add zero padding to the
+1x1 kernel to form a 3x3 kernel, and we still get
+
+90
+00:10:54.600 --> 00:10:55.659 
+the same result.
+
+91
+00:10:59.840 --> 00:11:09.799 
+Identity connection is equivalent to a
+convolutional layer with special weights.
+In this example for
+
+92
+00:11:09.799 --> 00:11:18.639 
+for the first kernel, its second channel equals 0. and
+for the second kernel, its first channel equals 0.
+
+93
+00:11:18.649 --> 00:11:23.960 
+So basically, stacking both kernels is an
+identity matrix.
+
+94
+00:11:24.539 --> 00:11:34.639 
+We can see that now the identity connection is just a
+particular case of 1x1 convolution.
+
+95
+00:11:34.639 --> 00:11:43.460 
+We thus can further add 0 padding to it as before. It
+then becomes a 3x3 convolution with the same output.
+
+96
+00:11:47.740 --> 00:11:56.460 
+So, in the training stage, the kernel forms of 3x3,
+1x1 Conv and the identity connection look like this,
+
+97
+00:11:58.539 --> 00:12:09.139 
+After the model is trained, we can simply
+calculate the element-wise addition to create a
+fused kernel for inference.
+
+98
+00:12:09.139 --> 00:12:18.039 
+So, at the inference stage we  will only use the 3x3
+convolution kernel
+
+99
+00:12:18.039 --> 00:12:28.259 
+From the accelerations perspective, both resnet
+and depthwise convolution cannot be made into a
+regular persistent fuse.
+
+100
+00:12:29.039 --> 00:12:33.360 
+However, RepVGG's design is very accelerator friendly
+
+101
+00:12:34.039 --> 00:12:40.009 
+The convolution shape is very neat (neet),
+without branches, without attention,
+
+102
+00:12:40.019 --> 00:12:50.639 
+Each stage does not read or write global memory since
+the input and output have the same channel number.
+It is almost an accelerator's
+
+103
+00:12:50.639 --> 00:12:51.960 
+favorite form.
+
+104
+00:12:51.970 --> 00:13:03.690 
+This speed can almost be regarded as a tensor core running at
+full speed. Overall, if it's training and influence transformation
+
+105
+00:13:03.690 --> 00:13:08.960 
+can be more concise, it will make this model more popular.
+
+106
+00:13:11.840 --> 00:13:17.360 
+In the next video, we will discuss another compression
+technique, Kknowledge distillation.
+
+107
+00:13:19.039 --> 00:13:19.659 
+Thank you.

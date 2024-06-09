@@ -1,0 +1,6853 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT Open CourseWare
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:18.140
+from hundreds of MIT courses,
+visit MIT Open CourseWare
+
+00:00:18.140 --> 00:00:19.026
+at ocw.mit.edu.
+
+00:00:21.738 --> 00:00:23.280
+CHARLES E. LEISERSON:
+Hey, everybody.
+
+00:00:23.280 --> 00:00:24.060
+Let's get going.
+
+00:00:27.180 --> 00:00:29.270
+Who here has heard of the FFT?
+
+00:00:32.390 --> 00:00:36.020
+That's most of you.
+
+00:00:36.020 --> 00:00:38.930
+So I first met
+Steve Johnson when
+
+00:00:38.930 --> 00:00:41.570
+he worked with one of
+my graduate students,
+
+00:00:41.570 --> 00:00:44.930
+now former graduate
+student, Matteo Frigo.
+
+00:00:44.930 --> 00:00:48.380
+And they came up with a
+really spectacular piece
+
+00:00:48.380 --> 00:00:52.440
+of performance
+engineering for the FFT,
+
+00:00:52.440 --> 00:00:56.570
+a system they call FFTW
+for the Fastest Fourier
+
+00:00:56.570 --> 00:00:58.760
+Transform in the West.
+
+00:00:58.760 --> 00:01:01.370
+And it has, for
+over years and years
+
+00:01:01.370 --> 00:01:05.750
+been a staple of anybody
+doing signal processing will
+
+00:01:05.750 --> 00:01:07.760
+know FFTW.
+
+00:01:07.760 --> 00:01:12.070
+So anyway, it's a great pleasure
+to welcome Steve Johnson, who
+
+00:01:12.070 --> 00:01:14.570
+is going to talk
+about some of the work
+
+00:01:14.570 --> 00:01:17.930
+that he's been doing
+on dynamic languages,
+
+00:01:17.930 --> 00:01:20.715
+such as Julia and Python.
+
+00:01:20.715 --> 00:01:21.590
+STEVEN JOHNSON: Yeah.
+
+00:01:21.590 --> 00:01:22.410
+Thanks.
+
+00:01:22.410 --> 00:01:23.330
+CHARLES E. LEISERSON:
+Is that pretty actuate?
+
+00:01:23.330 --> 00:01:24.340
+STEVEN JOHNSON: Yeah.
+
+00:01:24.340 --> 00:01:27.080
+Yeah, so I'm going to talk, as
+I said, about high level dynamic
+
+00:01:27.080 --> 00:01:29.300
+languages and how you
+get performance in these.
+
+00:01:29.300 --> 00:01:34.520
+And so most of you have probably
+used Python, or R, and Matlab.
+
+00:01:34.520 --> 00:01:36.590
+And so these are really
+popular for people
+
+00:01:36.590 --> 00:01:39.650
+doing in technical computing,
+statistics, and anything
+
+00:01:39.650 --> 00:01:42.272
+where you want kind of
+interactive exploration.
+
+00:01:42.272 --> 00:01:44.480
+You'd like to have a
+dynamically typed language where
+
+00:01:44.480 --> 00:01:46.310
+you can just type x equals 3.
+
+00:01:46.310 --> 00:01:48.890
+And then three lines later,
+you said, oh, x is an array.
+
+00:01:48.890 --> 00:01:50.640
+Because you're doing
+things interactively.
+
+00:01:50.640 --> 00:01:53.560
+You don't have to be stuck
+with a particular set of types.
+
+00:01:53.560 --> 00:01:56.610
+And there's a lot of
+choices for these.
+
+00:01:56.610 --> 00:01:58.640
+But they usually
+hit a wall when it
+
+00:01:58.640 --> 00:02:01.010
+comes to writing
+performance critical code
+
+00:02:01.010 --> 00:02:01.820
+in these languages.
+
+00:02:01.820 --> 00:02:05.720
+And so traditionally, people
+doing some serious computing
+
+00:02:05.720 --> 00:02:08.449
+in these languages have
+a two-language solution.
+
+00:02:08.449 --> 00:02:11.210
+So they do high
+level exploration,
+
+00:02:11.210 --> 00:02:14.240
+and productivity and so
+forth in Python or whatever.
+
+00:02:14.240 --> 00:02:17.270
+But when they need to write
+performance critical code,
+
+00:02:17.270 --> 00:02:19.760
+then you drop down to a lower
+level language, Fortran,
+
+00:02:19.760 --> 00:02:22.460
+or C, or Cython, or
+one of these things.
+
+00:02:22.460 --> 00:02:26.900
+And you use Python as the glue
+for these low level kernels.
+
+00:02:26.900 --> 00:02:30.010
+And the problem--
+and this is workable.
+
+00:02:30.010 --> 00:02:31.010
+I've done this myself.
+
+00:02:31.010 --> 00:02:32.900
+Many of you have
+probably done this.
+
+00:02:32.900 --> 00:02:36.420
+But when you drop down from
+Python to C, or even to Cython,
+
+00:02:36.420 --> 00:02:38.450
+there there's a huge
+discontinuous jump
+
+00:02:38.450 --> 00:02:41.760
+in the complexity of the coding.
+
+00:02:41.760 --> 00:02:43.710
+And there's usually
+a lot of generality.
+
+00:02:43.710 --> 00:02:45.710
+When you write code in C
+or something like that,
+
+00:02:45.710 --> 00:02:48.648
+it's specific to a very
+small set of types,
+
+00:02:48.648 --> 00:02:50.690
+whereas the nice thing
+about high level languages
+
+00:02:50.690 --> 00:02:52.357
+is you can write
+generic code that works
+
+00:02:52.357 --> 00:02:55.590
+for a lot of different types.
+
+00:02:55.590 --> 00:02:58.410
+So at this point, there's often
+someone who pops up and says,
+
+00:02:58.410 --> 00:03:01.550
+oh, well, I did performance
+programming in Python.
+
+00:03:01.550 --> 00:03:04.610
+And everyone knows you just need
+to vectorize your code, right?
+
+00:03:04.610 --> 00:03:07.700
+So basically, what
+they mean is you
+
+00:03:07.700 --> 00:03:11.120
+rely on mature
+external libraries
+
+00:03:11.120 --> 00:03:12.680
+that you pass on a
+big block of data.
+
+00:03:12.680 --> 00:03:15.240
+It does a huge amount of
+computation and comes back.
+
+00:03:15.240 --> 00:03:17.330
+And so you never
+write your own loops.
+
+00:03:17.330 --> 00:03:19.920
+And this is great.
+
+00:03:19.920 --> 00:03:23.070
+If there's someone who's already
+written the code that you need,
+
+00:03:23.070 --> 00:03:25.520
+you should try and leverage
+that as much as possible.
+
+00:03:25.520 --> 00:03:28.580
+But somebody has to write those.
+
+00:03:28.580 --> 00:03:31.020
+And eventually, that
+person will be you.
+
+00:03:31.020 --> 00:03:34.800
+And because eventually if
+you do scientific computing,
+
+00:03:34.800 --> 00:03:37.490
+you run into a problem
+inevitably that you just
+
+00:03:37.490 --> 00:03:40.460
+can't express in terms of
+existing libraries very
+
+00:03:40.460 --> 00:03:44.060
+easily or at all.
+
+00:03:44.060 --> 00:03:47.110
+So this was the state of
+affairs for a long time.
+
+00:03:47.110 --> 00:03:51.830
+And a few years ago, starting
+in Alan Edelman's group at MIT,
+
+00:03:51.830 --> 00:03:54.950
+there was a proposal for
+a new language called
+
+00:03:54.950 --> 00:04:00.560
+Julia, which tries to be as
+high level and interactive
+
+00:04:00.560 --> 00:04:04.430
+as-- it's a dynamically typed
+language, you know, as Matlab,
+
+00:04:04.430 --> 00:04:06.320
+or Python, and so forth.
+
+00:04:06.320 --> 00:04:07.940
+But general purpose
+language like
+
+00:04:07.940 --> 00:04:10.130
+Python, very productive
+for technical work,
+
+00:04:10.130 --> 00:04:15.020
+so really oriented towards
+scientific numerical computing.
+
+00:04:15.020 --> 00:04:16.589
+But you can write
+a loop, and you
+
+00:04:16.589 --> 00:04:18.540
+write low level code
+in that that's as fast
+
+00:04:18.540 --> 00:04:20.779
+as C. So that was the goal.
+
+00:04:20.779 --> 00:04:23.810
+The first release was in 2013.
+
+00:04:23.810 --> 00:04:25.520
+So it's a pretty young language.
+
+00:04:25.520 --> 00:04:27.950
+The 1.0 release was in
+August of this year.
+
+00:04:27.950 --> 00:04:30.390
+So before that point
+every year there
+
+00:04:30.390 --> 00:04:33.530
+was a new release,
+0.1, 0.2, Point3.
+
+00:04:33.530 --> 00:04:36.320
+And every year, it would
+break all your old code,
+
+00:04:36.320 --> 00:04:38.720
+and you'd have to update
+everything to keep it working.
+
+00:04:38.720 --> 00:04:40.370
+So now they said,
+OK, it's stable.
+
+00:04:40.370 --> 00:04:41.330
+We'll add new features.
+
+00:04:41.330 --> 00:04:42.620
+We'll make it faster.
+
+00:04:42.620 --> 00:04:45.710
+But from this point
+onwards, for least
+
+00:04:45.710 --> 00:04:48.510
+until 2.0, many
+years in the future
+
+00:04:48.510 --> 00:04:51.920
+it will be backwards compatible.
+
+00:04:51.920 --> 00:04:53.330
+So there's lots of--
+
+00:04:53.330 --> 00:04:55.460
+in my experience, this
+pretty much holds up.
+
+00:04:55.460 --> 00:04:58.580
+I haven't found
+any problem where
+
+00:04:58.580 --> 00:05:02.180
+there was a nice highly
+optimized C or Fortran code
+
+00:05:02.180 --> 00:05:05.540
+where I couldn't
+write equivalent
+
+00:05:05.540 --> 00:05:09.620
+code or equivalent performance,
+equivalently performing
+
+00:05:09.620 --> 00:05:12.110
+code in Julia given
+enough time, right?
+
+00:05:12.110 --> 00:05:13.640
+Obviously, if something is--
+
+00:05:13.640 --> 00:05:16.130
+there's a library with
+100,000 lines of code.
+
+00:05:16.130 --> 00:05:17.810
+It takes quite a
+long time to rewrite
+
+00:05:17.810 --> 00:05:20.010
+that in any other language.
+
+00:05:20.010 --> 00:05:22.610
+So there are lots of benchmarks
+that illustrate this.
+
+00:05:22.610 --> 00:05:25.280
+The goal of Julia is usually to
+stay within a factor of 2 of C.
+
+00:05:25.280 --> 00:05:27.800
+In my experience, it's
+usually within a factor
+
+00:05:27.800 --> 00:05:30.840
+of a few percent if you
+know what you're doing.
+
+00:05:30.840 --> 00:05:35.350
+So there's a very simple
+example that I like to use,
+
+00:05:35.350 --> 00:05:38.850
+which is generating
+a Vandermonde matrix.
+
+00:05:38.850 --> 00:05:43.540
+So giving a vector a value as
+alpha 1 alpha 2 to alpha n.
+
+00:05:43.540 --> 00:05:46.040
+And you want to make an n by m
+matrix whose columns are just
+
+00:05:46.040 --> 00:05:51.050
+those entries to 0 with power,
+first power squared, cubed,
+
+00:05:51.050 --> 00:05:52.790
+and so forth element-wise.
+
+00:05:52.790 --> 00:05:54.200
+All right, so this
+kind of matrix
+
+00:05:54.200 --> 00:05:55.860
+shows up in a lot of problems.
+
+00:05:55.860 --> 00:05:58.580
+So most matrix and
+vector libraries
+
+00:05:58.580 --> 00:06:01.360
+have a built in function
+to do this and Python.
+
+00:06:01.360 --> 00:06:06.150
+In NumPy, there is a function
+called numpy.vander to do this.
+
+00:06:06.150 --> 00:06:07.680
+And if you look at--
+
+00:06:07.680 --> 00:06:09.775
+it's generating a big matrix.
+
+00:06:09.775 --> 00:06:11.150
+It could be
+performance critical.
+
+00:06:11.150 --> 00:06:12.988
+So they can implement
+it in Python.
+
+00:06:12.988 --> 00:06:14.780
+So if you look at the
+NumPy implementation,
+
+00:06:14.780 --> 00:06:19.190
+it's a little Python shim
+that calls immediately to C.
+
+00:06:19.190 --> 00:06:20.690
+And then if you
+look at the C code--
+
+00:06:20.690 --> 00:06:22.190
+I won't scroll
+through it-- but it's
+
+00:06:22.190 --> 00:06:23.630
+several hundred lines of code.
+
+00:06:23.630 --> 00:06:25.480
+It's quite long and complicated.
+
+00:06:25.480 --> 00:06:27.230
+And all that several
+hundred lines of code
+
+00:06:27.230 --> 00:06:32.620
+is doing is just figuring
+out what types to work with,
+
+00:06:32.620 --> 00:06:34.398
+like what kernels
+to dispatch to.
+
+00:06:34.398 --> 00:06:36.440
+And at the end of that,
+it dispatches to a kernel
+
+00:06:36.440 --> 00:06:37.790
+that does the actual work.
+
+00:06:37.790 --> 00:06:40.640
+And that kernel is also
+C code, but that C code
+
+00:06:40.640 --> 00:06:42.800
+was generated by a special
+purpose code generation.
+
+00:06:42.800 --> 00:06:47.930
+So it's quite involved
+to get good performance
+
+00:06:47.930 --> 00:06:50.473
+for this while still being
+somewhat type generic.
+
+00:06:50.473 --> 00:06:51.890
+So their goal is
+to have something
+
+00:06:51.890 --> 00:06:56.300
+that works for basically any
+NumPy array and any NumPy type,
+
+00:06:56.300 --> 00:06:58.070
+which there's a
+handful, like maybe
+
+00:06:58.070 --> 00:07:01.530
+a dozen scalar types that it
+should work with, all right?
+
+00:07:01.530 --> 00:07:03.440
+So if you're
+implementing this in C,
+
+00:07:03.440 --> 00:07:06.920
+it's really trivial to write 20
+lines of code that implements
+
+00:07:06.920 --> 00:07:10.280
+this but only for double
+precision, a point or two
+
+00:07:10.280 --> 00:07:12.120
+double position
+array, all right?
+
+00:07:12.120 --> 00:07:15.320
+So the difficulty is
+getting type generic in C.
+
+00:07:15.320 --> 00:07:18.320
+So in Julia.
+
+00:07:18.320 --> 00:07:22.690
+Here is the
+implementation in Julia.
+
+00:07:22.690 --> 00:07:25.885
+It looks at first glance
+much like what roughly
+
+00:07:25.885 --> 00:07:28.010
+what a C or Fourier
+implementation would look like.
+
+00:07:28.010 --> 00:07:31.850
+It's just implemented
+the most simple way.
+
+00:07:31.850 --> 00:07:33.840
+It's just two nested loops.
+
+00:07:33.840 --> 00:07:36.950
+So just basically,
+you loop across.
+
+00:07:36.950 --> 00:07:39.950
+And as you go across,
+you accumulate powers
+
+00:07:39.950 --> 00:07:43.105
+by multiplying repeatedly by x.
+
+00:07:43.105 --> 00:07:44.000
+That's all it is.
+
+00:07:44.000 --> 00:07:46.490
+And it just fills in the array.
+
+00:07:46.490 --> 00:07:48.170
+The performance
+of that graph here
+
+00:07:48.170 --> 00:07:50.403
+is the time for the NumPy
+implementation divided
+
+00:07:50.403 --> 00:07:52.070
+by the time for the
+Julie implementation
+
+00:07:52.070 --> 00:07:54.420
+as a function of n
+for an n by n matrix.
+
+00:07:54.420 --> 00:07:56.030
+The first data point,
+I think there's
+
+00:07:56.030 --> 00:07:58.470
+something funny going on
+that's not 10,000 times slower.
+
+00:07:58.470 --> 00:08:02.660
+But for a 10 by
+10, 20 by 20 array,
+
+00:08:02.660 --> 00:08:05.330
+the NumPy version is
+actually 10 times slower
+
+00:08:05.330 --> 00:08:07.730
+because it's basically the
+overhead that's imposed by all
+
+00:08:07.730 --> 00:08:09.470
+going through all those layers.
+
+00:08:09.470 --> 00:08:11.090
+Once you get to
+100 by 100 matrix,
+
+00:08:11.090 --> 00:08:12.710
+the overhead doesn't matter.
+
+00:08:12.710 --> 00:08:18.340
+And then it's all this optimized
+C code, generation and so forth
+
+00:08:18.340 --> 00:08:20.630
+is pretty much the same
+speed as the Julia code.
+
+00:08:20.630 --> 00:08:23.035
+Except the Julia code
+there, as I said,
+
+00:08:23.035 --> 00:08:27.350
+it looks much like C code
+would, except there's no types.
+
+00:08:27.350 --> 00:08:28.430
+It's Vander x.
+
+00:08:28.430 --> 00:08:31.340
+There's no type declaration.
+x can be anything.
+
+00:08:31.340 --> 00:08:33.950
+And, in fact, this works
+with any container type
+
+00:08:33.950 --> 00:08:36.409
+as long as it has an
+indexing operation.
+
+00:08:36.409 --> 00:08:38.419
+And any numeric type--
+it could be real numbers.
+
+00:08:38.419 --> 00:08:39.586
+It could be complex numbers.
+
+00:08:39.586 --> 00:08:41.240
+It could be quarternians,
+anything that
+
+00:08:41.240 --> 00:08:43.360
+supports the times operation.
+
+00:08:43.360 --> 00:08:46.370
+And there's also a call to 1.
+
+00:08:46.370 --> 00:08:49.520
+So 1 returns the multiplicative
+identity for whatever,
+
+00:08:49.520 --> 00:08:52.230
+so whatever group you're in
+you need to have a 1, right?
+
+00:08:52.230 --> 00:08:53.230
+That's the first column.
+
+00:08:53.230 --> 00:08:56.235
+That might be a different type
+of 1 for a different object,
+
+00:08:56.235 --> 00:08:56.735
+right?
+
+00:08:56.735 --> 00:08:59.310
+It might be an array of
+matrices, for example.
+
+00:08:59.310 --> 00:09:02.190
+And then the 1 is
+the identity matrix.
+
+00:09:02.190 --> 00:09:04.430
+So, in fact.
+
+00:09:04.430 --> 00:09:06.530
+There are even cases
+where you can do.
+
+00:09:06.530 --> 00:09:11.180
+Get significantly faster than
+optimize C and Fortran codes.
+
+00:09:11.180 --> 00:09:13.760
+So I found this when I was
+implementing special functions,
+
+00:09:13.760 --> 00:09:16.460
+so things like the error
+function, or polygamma
+
+00:09:16.460 --> 00:09:18.740
+function, or the inverse
+of the error function.
+
+00:09:18.740 --> 00:09:22.040
+I've consistently found
+that I can get often
+
+00:09:22.040 --> 00:09:25.910
+two to three times faster
+than optimized C and Fortran
+
+00:09:25.910 --> 00:09:29.507
+libraries out there, partly
+because I'm smarter than people
+
+00:09:29.507 --> 00:09:31.340
+who wrote those libraries,
+but-- no-- mainly
+
+00:09:31.340 --> 00:09:35.090
+because in Julia,
+I'm using basically
+
+00:09:35.090 --> 00:09:37.910
+the same expansions, the same
+series, rational functions
+
+00:09:37.910 --> 00:09:39.200
+that everyone else is using.
+
+00:09:39.200 --> 00:09:41.083
+The difference is
+then in Julia, it
+
+00:09:41.083 --> 00:09:42.500
+has built-in
+techniques for what's
+
+00:09:42.500 --> 00:09:44.690
+called metaprogramming
+or co-generation.
+
+00:09:44.690 --> 00:09:47.900
+So usually, the
+special functions
+
+00:09:47.900 --> 00:09:49.940
+involved lots of
+polynomial evaluations.
+
+00:09:49.940 --> 00:09:51.500
+That's what they boil down to.
+
+00:09:51.500 --> 00:09:53.900
+And you can basically
+write co-generation
+
+00:09:53.900 --> 00:09:56.990
+that generates very
+optimized inline evaluation
+
+00:09:56.990 --> 00:10:00.320
+of the specific polynomials
+for these functions that
+
+00:10:00.320 --> 00:10:02.962
+would be really awkward
+to write in Fortran.
+
+00:10:02.962 --> 00:10:04.670
+You'd either have to
+write it all by hand
+
+00:10:04.670 --> 00:10:07.310
+or write a separate routine,
+a separate program that
+
+00:10:07.310 --> 00:10:09.380
+wrote Fortran code for you.
+
+00:10:09.380 --> 00:10:10.560
+So you can do this.
+
+00:10:10.560 --> 00:10:12.920
+It's a high level languages
+allow you to do tricks
+
+00:10:12.920 --> 00:10:15.545
+for performance that it would be
+really hard to do in low level
+
+00:10:15.545 --> 00:10:16.068
+languages.
+
+00:10:16.068 --> 00:10:17.610
+So mainly what I
+wanted to talk about
+
+00:10:17.610 --> 00:10:23.840
+is give some idea of
+why Julia can be fast.
+
+00:10:23.840 --> 00:10:26.060
+And to understand
+this, you also need
+
+00:10:26.060 --> 00:10:29.000
+to understand why
+is Python slow.
+
+00:10:29.000 --> 00:10:33.050
+And in general, what's going on
+in determining the performance
+
+00:10:33.050 --> 00:10:34.050
+in a language like this?
+
+00:10:34.050 --> 00:10:36.990
+What do you need in the language
+to enable you to compile it
+
+00:10:36.990 --> 00:10:40.920
+to fast code while still,
+still being completely
+
+00:10:40.920 --> 00:10:44.310
+generic like this
+Vander function, which
+
+00:10:44.310 --> 00:10:46.430
+works on any type.
+
+00:10:46.430 --> 00:10:49.470
+Even user-defined, numeric type,
+user-defined container type
+
+00:10:49.470 --> 00:10:51.030
+will be just as fast.
+
+00:10:51.030 --> 00:10:54.210
+There's no privileged-- in
+fact, if you look at Julia,
+
+00:10:54.210 --> 00:10:57.685
+almost all of Julia is
+implemented in Julia.
+
+00:10:57.685 --> 00:11:00.060
+Integer operations and things
+like that, the really basic
+
+00:11:00.060 --> 00:11:02.830
+types, most of that is
+implemented in Julia, right?
+
+00:11:02.830 --> 00:11:05.370
+Obviously, if you're
+multiplying two 32-bit integers.
+
+00:11:05.370 --> 00:11:08.100
+At some point, it's calling an
+assembly language instruction.
+
+00:11:08.100 --> 00:11:11.400
+But even that, calling
+out to the assembly
+
+00:11:11.400 --> 00:11:14.810
+is actually in Julia.
+
+00:11:14.810 --> 00:11:19.110
+So at this point, I
+want to switch over
+
+00:11:19.110 --> 00:11:24.410
+to sort of a live calculation.
+
+00:11:27.470 --> 00:11:30.570
+So this is from a
+notebook that I developed
+
+00:11:30.570 --> 00:11:32.870
+as part of a short course
+with Alan Edelman, who's
+
+00:11:32.870 --> 00:11:36.850
+sitting over there, [INAUDIBLE]
+on performance optimization
+
+00:11:36.850 --> 00:11:38.860
+high level languages.
+
+00:11:38.860 --> 00:11:43.450
+And so I want to go through
+just a very simple calculation.
+
+00:11:43.450 --> 00:11:45.268
+Of course, you would never--
+
+00:11:45.268 --> 00:11:47.560
+in any language, usually you
+would have a built-- often
+
+00:11:47.560 --> 00:11:49.120
+have a built-in
+function for this.
+
+00:11:49.120 --> 00:11:51.460
+But it's just a sum function
+just written up there.
+
+00:11:51.460 --> 00:11:55.077
+So we need to have a list,
+an array, of n numbers.
+
+00:11:55.077 --> 00:11:56.410
+We're just going to add them up.
+
+00:11:56.410 --> 00:12:01.572
+And if we can't make this fast,
+then we have real problems.
+
+00:12:01.572 --> 00:12:04.030
+And we're not going to be able
+to do anything in this list.
+
+00:12:04.030 --> 00:12:06.640
+So this is the
+simple sort of thing
+
+00:12:06.640 --> 00:12:08.860
+where if someone doesn't
+provide this for you,
+
+00:12:08.860 --> 00:12:12.970
+you're going to have to
+write a loop to do this.
+
+00:12:12.970 --> 00:12:16.390
+So I'm going to look at it
+not just in Julia but also
+
+00:12:16.390 --> 00:12:23.510
+in Python, in C, and Python
+with NumPy and so forth.
+
+00:12:23.510 --> 00:12:27.040
+So this document that
+I'm showing you here
+
+00:12:27.040 --> 00:12:29.135
+is a Jupyter Notebook.
+
+00:12:29.135 --> 00:12:31.010
+Some of you may have
+seen this kind of thing.
+
+00:12:31.010 --> 00:12:32.612
+So Jupyter is this really nice--
+
+00:12:32.612 --> 00:12:34.820
+they provide this really
+nice browser-based front end
+
+00:12:34.820 --> 00:12:39.940
+when I can put in equations,
+and text, and code, and results,
+
+00:12:39.940 --> 00:12:43.253
+and graphs all in one
+Mathematical notebook document.
+
+00:12:43.253 --> 00:12:44.920
+And you can plug in
+different languages.
+
+00:12:44.920 --> 00:12:46.450
+So initially, it was for Python.
+
+00:12:46.450 --> 00:12:47.570
+But we plugged in Julia.
+
+00:12:47.570 --> 00:12:49.480
+And now there's R, and
+there's 30 different--
+
+00:12:49.480 --> 00:12:51.188
+like 100 different
+languages that you can
+
+00:12:51.188 --> 00:12:52.750
+plug in to the same front end.
+
+00:12:52.750 --> 00:12:56.480
+OK, so I'll start with the
+C implementation of this.
+
+00:12:56.480 --> 00:12:58.720
+So this is a Julia
+notebook, but I can easily
+
+00:12:58.720 --> 00:13:00.645
+compile and call
+out to C. So I just
+
+00:13:00.645 --> 00:13:02.020
+made a string that
+has just-- you
+
+00:13:02.020 --> 00:13:04.192
+know there's 10 lines
+C implementation.
+
+00:13:04.192 --> 00:13:05.650
+It's just the most
+obvious function
+
+00:13:05.650 --> 00:13:09.250
+that just takes in a pointer
+to an array of doubles
+
+00:13:09.250 --> 00:13:10.600
+and it's length.
+
+00:13:10.600 --> 00:13:14.500
+And it just loops over
+them and sums them up,
+
+00:13:14.500 --> 00:13:16.180
+just what you would do.
+
+00:13:16.180 --> 00:13:21.760
+And then I'll compile it
+with GCC dash 03 and link it
+
+00:13:21.760 --> 00:13:24.670
+to a shared library, and load
+that shared library in Julia
+
+00:13:24.670 --> 00:13:25.840
+and just call it.
+
+00:13:25.840 --> 00:13:29.260
+So there's a function
+called C call in Julia where
+
+00:13:29.260 --> 00:13:32.770
+I can just call out to a C
+library with a 0 overhead,
+
+00:13:32.770 --> 00:13:34.823
+basically.
+
+00:13:34.823 --> 00:13:37.240
+So it's nice because you have
+lots of existing C libraries
+
+00:13:37.240 --> 00:13:37.640
+out there.
+
+00:13:37.640 --> 00:13:38.807
+You don't want to lose them.
+
+00:13:38.807 --> 00:13:41.920
+So I just say C call, and
+we call this c_sum function
+
+00:13:41.920 --> 00:13:43.210
+in my library.
+
+00:13:43.210 --> 00:13:44.740
+It returns a flow 64.
+
+00:13:44.740 --> 00:13:49.555
+It takes two parameters,
+a size t and a flow 64.
+
+00:13:49.555 --> 00:13:51.430
+And I'm going to pass
+the length of my array.
+
+00:13:51.430 --> 00:13:53.493
+And the array-- and
+it'll automatically--
+
+00:13:53.493 --> 00:13:58.240
+a Julia array, of course,
+is just a bunch of numbers.
+
+00:13:58.240 --> 00:14:00.430
+And it'll pass a pointer
+to that under the hood.
+
+00:14:00.430 --> 00:14:01.780
+So do that.
+
+00:14:01.780 --> 00:14:06.040
+And I wrote a little
+function to call
+
+00:14:06.040 --> 00:14:08.170
+relerr that computes
+the relative error
+
+00:14:08.170 --> 00:14:11.112
+between the fractional
+difference between x and y.
+
+00:14:11.112 --> 00:14:12.070
+And I'll just check it.
+
+00:14:12.070 --> 00:14:15.250
+I'll just generate 10 to
+the 7 random numbers in 01
+
+00:14:15.250 --> 00:14:17.800
+and compare that to the Julia
+because Julia has a built-in
+
+00:14:17.800 --> 00:14:20.370
+function called sum,
+that sums and array.
+
+00:14:20.370 --> 00:14:24.785
+And it's giving the same answer
+to 13 decimal places, so not
+
+00:14:24.785 --> 00:14:27.160
+quite machine precision, but
+there's 10 to the 7 numbers.
+
+00:14:27.160 --> 00:14:28.690
+So the error is
+kind of accumulative
+
+00:14:28.690 --> 00:14:29.648
+when you add it across.
+
+00:14:29.648 --> 00:14:32.320
+OK so, as I'm calling it,
+it's giving the right answer.
+
+00:14:32.320 --> 00:14:34.990
+And now I want to just
+benchmark the C implementation,
+
+00:14:34.990 --> 00:14:37.540
+use that as kind of
+a baseline for this.
+
+00:14:37.540 --> 00:14:41.650
+This should be pretty fast
+for an array of floating point
+
+00:14:41.650 --> 00:14:42.770
+values.
+
+00:14:42.770 --> 00:14:45.238
+So there's a Julia package
+called benchmark tools.
+
+00:14:45.238 --> 00:14:46.780
+As you probably know
+from this class,
+
+00:14:46.780 --> 00:14:48.940
+benchmarking is a
+little bit tricky.
+
+00:14:48.940 --> 00:14:51.400
+So this will take something,
+run it lots of times,
+
+00:14:51.400 --> 00:14:54.050
+collect some statistics,
+return the minimum time,
+
+00:14:54.050 --> 00:14:58.560
+or you can also get the
+variance and other things.
+
+00:14:58.560 --> 00:15:01.247
+So I'm going to get that number.
+
+00:15:01.247 --> 00:15:03.080
+B time is something
+called a macro in Julia.
+
+00:15:03.080 --> 00:15:05.590
+So it takes an
+expression, rewrites it
+
+00:15:05.590 --> 00:15:08.950
+into something that basically
+has a loop, and times it,
+
+00:15:08.950 --> 00:15:10.710
+and does all that stuff.
+
+00:15:10.710 --> 00:15:15.250
+OK, so it takes 11 milliseconds
+to sum 10 to the 7 numbers
+
+00:15:15.250 --> 00:15:20.050
+with a straight C, C loop
+compiled with jcc-03,
+
+00:15:20.050 --> 00:15:23.710
+no special tricks, OK?
+
+00:15:23.710 --> 00:15:26.710
+And so that's 1
+gigaflop, basically,
+
+00:15:26.710 --> 00:15:29.210
+billion operations per second.
+
+00:15:29.210 --> 00:15:32.980
+So it's not hitting the
+peak rate of the CPU.
+
+00:15:32.980 --> 00:15:37.730
+But, of course, there's
+additional calculations.
+
+00:15:37.730 --> 00:15:40.990
+This array doesn't fit
+in cache, and so forth.
+
+00:15:40.990 --> 00:15:42.550
+OK.
+
+00:15:42.550 --> 00:15:44.620
+So now let's-- before
+I do anything in Julia,
+
+00:15:44.620 --> 00:15:46.240
+let's do some Python.
+
+00:15:46.240 --> 00:15:47.500
+But I'll do a trick.
+
+00:15:47.500 --> 00:15:50.230
+I can call Python from
+Julia, so that way
+
+00:15:50.230 --> 00:15:53.560
+I can just do everything from
+one notebook using a package I
+
+00:15:53.560 --> 00:15:55.220
+wrote called PyCall.
+
+00:15:55.220 --> 00:15:58.300
+And PyCall just calls
+directly out to lib Python.
+
+00:15:58.300 --> 00:16:01.675
+So with no virtually
+no overhead, so
+
+00:16:01.675 --> 00:16:04.030
+it's just like calling
+Python from within Python.
+
+00:16:04.030 --> 00:16:06.760
+I'm calling directly out to
+lib Python functions to call.
+
+00:16:06.760 --> 00:16:09.820
+And I can pass any type I
+want, and call any function,
+
+00:16:09.820 --> 00:16:12.010
+and do conversions
+back and forth.
+
+00:16:12.010 --> 00:16:15.710
+OK, so I'm going
+to take that array.
+
+00:16:15.710 --> 00:16:18.220
+I'll convert it to a
+Python list object.
+
+00:16:18.220 --> 00:16:21.310
+So I don't want to time
+the overhead of converting
+
+00:16:21.310 --> 00:16:23.230
+my array to a Python array.
+
+00:16:23.230 --> 00:16:25.840
+So I'll just convert
+ahead of time.
+
+00:16:25.840 --> 00:16:27.570
+And just start with a built--
+
+00:16:27.570 --> 00:16:30.120
+Python has a built-in
+function called sum.
+
+00:16:30.120 --> 00:16:33.430
+So I'll use the
+built-in sum function.
+
+00:16:33.430 --> 00:16:36.030
+And I'll get this
+Py object for it.
+
+00:16:36.030 --> 00:16:39.235
+I'll call it PySum
+on this list and make
+
+00:16:39.235 --> 00:16:41.610
+sure it's giving the right
+answer OK is the difference is
+
+00:16:41.610 --> 00:16:44.190
+10 to the minus 13 again.
+
+00:16:44.190 --> 00:16:47.810
+And now let's benchmark it.
+
+00:16:47.810 --> 00:16:48.390
+Oops.
+
+00:16:48.390 --> 00:16:50.010
+There we go.
+
+00:16:50.010 --> 00:16:53.160
+So it takes a few
+seconds because it
+
+00:16:53.160 --> 00:16:57.780
+has to run it a few times
+and catch up with statistics.
+
+00:16:57.780 --> 00:17:00.365
+OK, so it takes 40 milliseconds.
+
+00:17:00.365 --> 00:17:00.990
+That's not bad.
+
+00:17:00.990 --> 00:17:03.840
+It's actually it's four or
+five times slower than C,
+
+00:17:03.840 --> 00:17:06.849
+but it's pretty good, OK?
+
+00:17:06.849 --> 00:17:10.680
+So and why is it five
+times slower than C?
+
+00:17:10.680 --> 00:17:11.937
+Is it is it because--
+
+00:17:11.937 --> 00:17:13.770
+the glib answer is, oh,
+well, Python is slow
+
+00:17:13.770 --> 00:17:15.400
+because it's interpreted.
+
+00:17:15.400 --> 00:17:18.119
+But the sum function
+is actually written
+
+00:17:18.119 --> 00:17:21.900
+in C. Here's the C
+implementation of the sum
+
+00:17:21.900 --> 00:17:23.240
+function that I'm calling.
+
+00:17:23.240 --> 00:17:26.410
+And I'm just linking
+to the GitHub code.
+
+00:17:26.410 --> 00:17:28.280
+There's a whole
+bunch of boilerplate
+
+00:17:28.280 --> 00:17:30.900
+that just checks with
+the type of the object,
+
+00:17:30.900 --> 00:17:34.900
+and then has some
+loops and so forth.
+
+00:17:34.900 --> 00:17:37.020
+And so if you look
+carefully, it turns out
+
+00:17:37.020 --> 00:17:38.740
+it's actually doing really well.
+
+00:17:38.740 --> 00:17:42.780
+And the reason it does really
+well is it has a fast path.
+
+00:17:42.780 --> 00:17:46.190
+If you have a list where
+everything is a number type,
+
+00:17:46.190 --> 00:17:51.490
+so then it has an optimized
+implementation for that case.
+
+00:17:51.490 --> 00:17:53.910
+But it's still five
+times slower than C.
+
+00:17:53.910 --> 00:17:55.860
+And they've spent a
+lot of work on it.
+
+00:17:55.860 --> 00:17:58.920
+It used to be 10 times slower
+than C a couple of years ago.
+
+00:17:58.920 --> 00:18:02.880
+So they do a lot of
+work on optimizing this.
+
+00:18:02.880 --> 00:18:05.160
+And so why aren't they
+able to get C speed?
+
+00:18:05.160 --> 00:18:08.760
+Since they have a C
+implementation of a sum,
+
+00:18:08.760 --> 00:18:10.440
+are they just dumb, you know?
+
+00:18:10.440 --> 00:18:11.070
+No.
+
+00:18:11.070 --> 00:18:14.320
+It's because the
+semantics of the data type
+
+00:18:14.320 --> 00:18:18.550
+prevent them from getting
+anything faster than that.
+
+00:18:18.550 --> 00:18:21.700
+And this is one
+of the things you
+
+00:18:21.700 --> 00:18:23.950
+learn when you do high level
+performance in high level
+
+00:18:23.950 --> 00:18:24.572
+languages.
+
+00:18:24.572 --> 00:18:26.030
+You have to think
+about data types,
+
+00:18:26.030 --> 00:18:28.155
+and you have to think about
+what the semantics are.
+
+00:18:28.155 --> 00:18:31.110
+And that that greatly constrains
+what any conceivable compiler
+
+00:18:31.110 --> 00:18:32.070
+can do.
+
+00:18:32.070 --> 00:18:35.510
+And if the language
+doesn't provide you
+
+00:18:35.510 --> 00:18:38.190
+with the ability to
+express the semantics
+
+00:18:38.190 --> 00:18:39.720
+you want, then you're dead.
+
+00:18:39.720 --> 00:18:42.225
+And that's one of the basic
+things that Julia does.
+
+00:18:42.225 --> 00:18:43.350
+So what does a Python list?
+
+00:18:46.880 --> 00:18:56.760
+Right, so you have-- you
+can have three, four, right?
+
+00:18:56.760 --> 00:18:59.230
+A Python list is a bunch
+of objects, Python objects.
+
+00:18:59.230 --> 00:19:00.950
+But the Python numbers
+can be anything.
+
+00:19:00.950 --> 00:19:03.040
+They can be any type.
+
+00:19:03.040 --> 00:19:04.665
+So it's completely
+heterogeneous types.
+
+00:19:10.627 --> 00:19:12.710
+So, of course, a particular
+list like in this case
+
+00:19:12.710 --> 00:19:14.000
+can be homogeneous.
+
+00:19:14.000 --> 00:19:16.813
+But the data structure
+has to be heterogeneous
+
+00:19:16.813 --> 00:19:18.980
+because, in fact, I can
+take that homogeneous thing.
+
+00:19:18.980 --> 00:19:21.490
+At any point, I can assign
+the third element to a string,
+
+00:19:21.490 --> 00:19:21.990
+right?
+
+00:19:21.990 --> 00:19:23.880
+And it has to support that.
+
+00:19:23.880 --> 00:19:26.900
+So think about what that
+means for how it has
+
+00:19:26.900 --> 00:19:29.270
+to be implemented in memory.
+
+00:19:29.270 --> 00:19:34.406
+So what this has to do--
+so this is a list of--
+
+00:19:34.406 --> 00:19:37.910
+in this case, three items.
+
+00:19:37.910 --> 00:19:40.220
+But what are those items?
+
+00:19:40.220 --> 00:19:43.175
+So if they can be
+an item of any type,
+
+00:19:43.175 --> 00:19:45.800
+they could be things that-- they
+could be another array, right?
+
+00:19:45.800 --> 00:19:48.835
+It could be of different
+sizes and so forth.
+
+00:19:48.835 --> 00:19:50.960
+You don't want to have an
+array where everything is
+
+00:19:50.960 --> 00:19:52.252
+a different size, first of all.
+
+00:19:52.252 --> 00:19:57.500
+So it has to be this
+an array of pointers
+
+00:19:57.500 --> 00:20:01.490
+where the first pointer
+is 3, turned out to be 3.
+
+00:20:01.490 --> 00:20:02.990
+The next one is four.
+
+00:20:02.990 --> 00:20:07.877
+The next one is 2, all right?
+
+00:20:07.877 --> 00:20:08.960
+But it can't just be that.
+
+00:20:08.960 --> 00:20:10.460
+It can't just be pointer to--
+
+00:20:10.460 --> 00:20:13.400
+if this is a you
+64-bit number, it's
+
+00:20:13.400 --> 00:20:17.150
+can't just be pointer to
+one 64-bit value in memory,
+
+00:20:17.150 --> 00:20:19.130
+because it has to know.
+
+00:20:19.130 --> 00:20:21.560
+It has to somehow store
+what type the subject is.
+
+00:20:21.560 --> 00:20:25.190
+So there has to be a type tag
+this says this is an integer.
+
+00:20:30.570 --> 00:20:35.170
+And this one has to have a type
+tag that says it's a string.
+
+00:20:35.170 --> 00:20:37.620
+So this is sometimes
+called the box.
+
+00:20:37.620 --> 00:20:44.290
+So you have a value, you
+have a type tag plus a value.
+
+00:20:47.240 --> 00:20:51.160
+And so imagine what even the
+most optimized C imitation
+
+00:20:51.160 --> 00:20:53.610
+has to do given this
+kind of data structure.
+
+00:20:53.610 --> 00:20:55.120
+OK, here's the first element.
+
+00:20:55.120 --> 00:20:58.420
+It has to chase the pointer and
+then ask what type of object
+
+00:20:58.420 --> 00:20:59.548
+is it, OK?
+
+00:20:59.548 --> 00:21:01.090
+Then depending on
+what type of object
+
+00:21:01.090 --> 00:21:04.390
+is it, so I initialize
+my sum to that.
+
+00:21:04.390 --> 00:21:06.300
+Then I read the next object.
+
+00:21:06.300 --> 00:21:09.277
+I have to chase the second
+pointer, read the type tag,
+
+00:21:09.277 --> 00:21:10.110
+figure out the type.
+
+00:21:10.110 --> 00:21:12.280
+This is all done
+at run time, right?
+
+00:21:12.280 --> 00:21:14.650
+And then, oh, this
+is another integer
+
+00:21:14.650 --> 00:21:18.040
+that tells me I want to use the
+plus function for two integers,
+
+00:21:18.040 --> 00:21:18.730
+OK?
+
+00:21:18.730 --> 00:21:22.470
+And then I read the next
+value, which maybe--
+
+00:21:22.470 --> 00:21:24.253
+which plus function
+it's using depends
+
+00:21:24.253 --> 00:21:25.420
+upon the type of the object.
+
+00:21:25.420 --> 00:21:26.320
+It's an to
+object-oriented language.
+
+00:21:26.320 --> 00:21:27.800
+I can define my own type.
+
+00:21:27.800 --> 00:21:30.490
+If it has its own plus function,
+it should work with sum.
+
+00:21:30.490 --> 00:21:33.550
+So it's looking up the types
+of the objects at runtime.
+
+00:21:33.550 --> 00:21:35.760
+It's looking at the plus
+function at runtime.
+
+00:21:35.760 --> 00:21:38.620
+And not only that, but each
+time it does a loop iteration it
+
+00:21:38.620 --> 00:21:41.680
+has to add two things
+and allocate a result.
+
+00:21:41.680 --> 00:21:43.390
+That result in general
+might be another--
+
+00:21:43.390 --> 00:21:45.547
+it has to be a box because
+the type might change
+
+00:21:45.547 --> 00:21:46.630
+as you're summing through.
+
+00:21:46.630 --> 00:21:49.172
+If you start with integers, and
+then you get a floating point
+
+00:21:49.172 --> 00:21:52.730
+value, and then you get an
+array, the type will change.
+
+00:21:52.730 --> 00:21:54.700
+So each time you do
+a loop iteration,
+
+00:21:54.700 --> 00:21:56.458
+it allocates another box.
+
+00:21:56.458 --> 00:21:58.750
+So what happens is the C
+implementation is a fast path.
+
+00:21:58.750 --> 00:22:02.320
+If they're all
+integer types, I think
+
+00:22:02.320 --> 00:22:05.200
+it doesn't reallocate
+that box for the sum it's
+
+00:22:05.200 --> 00:22:06.520
+accumulating all the time.
+
+00:22:06.520 --> 00:22:10.240
+And it caches the value of
+the plus function it's using.
+
+00:22:10.240 --> 00:22:11.690
+So it's a little bit faster.
+
+00:22:11.690 --> 00:22:14.410
+But still, it has to
+inspect every type tag
+
+00:22:14.410 --> 00:22:17.260
+and chase all these pointers
+for every element of the array,
+
+00:22:17.260 --> 00:22:21.750
+whereas the C
+implementation of sum,
+
+00:22:21.750 --> 00:22:25.440
+if you imagine what this
+is this compiles down to,
+
+00:22:25.440 --> 00:22:28.030
+for each loop iteration,
+what does it do?
+
+00:22:28.030 --> 00:22:31.428
+It increments a pointer
+to the next element.
+
+00:22:31.428 --> 00:22:33.220
+At compile time, the
+types are all flow 64.
+
+00:22:33.220 --> 00:22:36.940
+So it flushes flow 64
+value into a register.
+
+00:22:36.940 --> 00:22:39.820
+And then it has a running
+sum in another register,
+
+00:22:39.820 --> 00:22:43.120
+calls one machine instruction
+to add that running sum,
+
+00:22:43.120 --> 00:22:46.280
+and then it checks
+to see if we're done,
+
+00:22:46.280 --> 00:22:48.700
+an if statement there, and
+then goes on, all right?
+
+00:22:48.700 --> 00:22:52.360
+So just a few instructions
+and in a very tight loop here,
+
+00:22:52.360 --> 00:22:54.712
+whereas each loop
+iteration here has
+
+00:22:54.712 --> 00:22:56.170
+to be lots and lots
+of instructions
+
+00:22:56.170 --> 00:22:58.212
+to chase all these pointers
+to get the type tag--
+
+00:22:58.212 --> 00:23:01.000
+and that's in the fast case
+where they're all the same type
+
+00:23:01.000 --> 00:23:04.030
+and it's optimized for that.
+
+00:23:04.030 --> 00:23:07.230
+So where was I?
+
+00:23:07.230 --> 00:23:10.320
+So wrong thing.
+
+00:23:10.320 --> 00:23:13.060
+So that's the
+Python sum function.
+
+00:23:13.060 --> 00:23:16.200
+Now most many of
+you, you've used
+
+00:23:16.200 --> 00:23:18.280
+Python know that there
+is another type of array
+
+00:23:18.280 --> 00:23:19.947
+and there's a whole
+library called NumPy
+
+00:23:19.947 --> 00:23:21.700
+for working with numerics.
+
+00:23:21.700 --> 00:23:25.300
+So what problem is
+that addressing?
+
+00:23:25.300 --> 00:23:28.340
+So the basic problem
+is this data structure.
+
+00:23:28.340 --> 00:23:31.360
+This data structure, as soon
+as you have a list of items--
+
+00:23:31.360 --> 00:23:32.590
+it can be any type--
+
+00:23:32.590 --> 00:23:33.580
+you're dead, right?
+
+00:23:33.580 --> 00:23:36.880
+There's no way to make
+this as fast as a C
+
+00:23:36.880 --> 00:23:38.890
+loop over a double pointer.
+
+00:23:38.890 --> 00:23:42.250
+So to make it
+fast, what you need
+
+00:23:42.250 --> 00:23:45.580
+to have is a way to say, oh,
+every element of this array
+
+00:23:45.580 --> 00:23:46.970
+is the same type.
+
+00:23:46.970 --> 00:23:49.270
+So I don't need to store
+type tags for every element.
+
+00:23:49.270 --> 00:23:51.820
+I can store a type tag
+once for the whole array.
+
+00:23:57.020 --> 00:23:59.180
+So there, there is a tag.
+
+00:24:01.800 --> 00:24:08.030
+There is a type, which
+is, say, float 64, OK?
+
+00:24:08.030 --> 00:24:12.520
+There is maybe a
+length of the array.
+
+00:24:12.520 --> 00:24:15.020
+And then there's just a bunch
+of values one after the other.
+
+00:24:15.020 --> 00:24:21.050
+So this is just 1.0, 3.7, 8.9.
+
+00:24:21.050 --> 00:24:25.970
+And each of these are just 8
+bytes, an 8-byte double in C
+
+00:24:25.970 --> 00:24:28.340
+notation, right?
+
+00:24:28.340 --> 00:24:29.750
+So it's just one
+after the other.
+
+00:24:29.750 --> 00:24:32.690
+So it reads this once,
+reads the length,
+
+00:24:32.690 --> 00:24:35.240
+and then it dispatches
+to code that says,
+
+00:24:35.240 --> 00:24:38.580
+OK, now-- basically dispatches
+to the equivalent of my C code,
+
+00:24:38.580 --> 00:24:39.080
+all right?
+
+00:24:39.080 --> 00:24:41.830
+So now once it knows the
+type and the length, then OK,
+
+00:24:41.830 --> 00:24:45.350
+it says it runs this, OK?
+
+00:24:45.350 --> 00:24:46.822
+And that can be quite fast.
+
+00:24:46.822 --> 00:24:48.530
+And the only problem
+is you cannot write,
+
+00:24:48.530 --> 00:24:50.440
+implement this in Python.
+
+00:24:50.440 --> 00:24:53.180
+So Python doesn't
+provide you a way
+
+00:24:53.180 --> 00:24:57.090
+to have that semantics
+to have a list of objects
+
+00:24:57.090 --> 00:24:59.090
+where you say they all
+have to be the same type.
+
+00:24:59.090 --> 00:25:03.230
+There is no way to
+enforce that, or to inform
+
+00:25:03.230 --> 00:25:05.840
+the language of that in Python.
+
+00:25:05.840 --> 00:25:08.120
+And then to tell
+it-- oh, for this,
+
+00:25:08.120 --> 00:25:09.830
+since these are
+all the same type,
+
+00:25:09.830 --> 00:25:11.390
+you can throw away the boxes.
+
+00:25:11.390 --> 00:25:13.280
+Every Python object
+looks like this.
+
+00:25:13.280 --> 00:25:14.870
+So there's no way
+to tell Python.
+
+00:25:14.870 --> 00:25:16.970
+Oh, well, these are
+all the same types.
+
+00:25:16.970 --> 00:25:18.967
+You don't need to
+store the type tags.
+
+00:25:18.967 --> 00:25:20.300
+You don't need to have pointers.
+
+00:25:20.300 --> 00:25:22.160
+You don't need to have
+reference counting.
+
+00:25:22.160 --> 00:25:24.680
+You can just slam the
+values into memory one
+
+00:25:24.680 --> 00:25:26.060
+after the other.
+
+00:25:26.060 --> 00:25:27.830
+It doesn't provide you
+with that facility,
+
+00:25:27.830 --> 00:25:29.750
+and so there's no way to--
+
+00:25:29.750 --> 00:25:32.360
+you can make a fast Python
+compiler that will do this.
+
+00:25:32.360 --> 00:25:35.270
+So NumPy is implemented
+in C. Even with--
+
+00:25:35.270 --> 00:25:37.650
+some of you are
+familiar with PyPy,
+
+00:25:37.650 --> 00:25:40.100
+which is an attempt to make
+a fast-- like a tracing
+
+00:25:40.100 --> 00:25:41.450
+jit for Python.
+
+00:25:41.450 --> 00:25:44.840
+So when they poured
+into NumPy to PyPy,
+
+00:25:44.840 --> 00:25:49.640
+or they attempted to, even then
+they could implement more of it
+
+00:25:49.640 --> 00:25:50.330
+in Python.
+
+00:25:50.330 --> 00:25:53.290
+But they had to
+implement the core in C.
+
+00:25:53.290 --> 00:25:57.200
+OK, but given that,
+I can do this.
+
+00:25:57.200 --> 00:26:00.870
+I can import the NumPy
+module into Julia,
+
+00:26:00.870 --> 00:26:04.970
+get its sum function, and
+benchmark the NumPy sum
+
+00:26:04.970 --> 00:26:07.756
+function, and--
+
+00:26:07.756 --> 00:26:12.440
+OK, again, it takes
+a few seconds to run.
+
+00:26:15.660 --> 00:26:19.590
+OK, and it takes
+3.8 milliseconds.
+
+00:26:19.590 --> 00:26:22.650
+So the C was 10 milliseconds.
+
+00:26:22.650 --> 00:26:24.420
+So it's actually doing
+faster than the C
+
+00:26:24.420 --> 00:26:28.230
+code, almost a little over
+twice as fast, actually.
+
+00:26:28.230 --> 00:26:33.120
+And what's going on is their C
+code is better than my C code.
+
+00:26:33.120 --> 00:26:37.700
+Their C code is using
+SIMD instructions.
+
+00:26:37.700 --> 00:26:40.410
+So and at this point, I'm
+sure that you guys all
+
+00:26:40.410 --> 00:26:41.850
+know about these
+things where you
+
+00:26:41.850 --> 00:26:46.380
+can read in two numbers or four
+numbers into one giant register
+
+00:26:46.380 --> 00:26:50.390
+and one instruction add
+all four numbers at once.
+
+00:26:50.390 --> 00:26:54.200
+OK, so what about if we
+go in the other direction?
+
+00:26:54.200 --> 00:26:55.960
+We write our own
+Python sum function.
+
+00:26:55.960 --> 00:26:59.080
+So we don't use the Python
+sum implemented in C.
+
+00:26:59.080 --> 00:27:00.130
+I write our own Python.
+
+00:27:00.130 --> 00:27:04.040
+So here is a little my
+sum function in Python.
+
+00:27:04.040 --> 00:27:05.290
+Only works for floating point.
+
+00:27:05.290 --> 00:27:07.172
+Oh, I initialize S to 0.0.
+
+00:27:07.172 --> 00:27:09.380
+So really, it only accumulates
+floating point values.
+
+00:27:09.380 --> 00:27:10.510
+But that's OK.
+
+00:27:10.510 --> 00:27:12.510
+And then I just
+loop for x and a,
+
+00:27:12.510 --> 00:27:16.180
+s equals s plus x, return s
+is the most obvious thing you
+
+00:27:16.180 --> 00:27:18.730
+would write in Python.
+
+00:27:18.730 --> 00:27:20.970
+OK, and checked that it works.
+
+00:27:20.970 --> 00:27:22.700
+Yeah, errors 10 the minus 13th.
+
+00:27:22.700 --> 00:27:25.060
+It's giving the right answer.
+
+00:27:25.060 --> 00:27:26.740
+And now let's time it.
+
+00:27:29.680 --> 00:27:31.600
+So remember that C
+was 10 milliseconds.
+
+00:27:31.600 --> 00:27:37.750
+NumPy was 5 milliseconds, and
+then built-in Python was like,
+
+00:27:37.750 --> 00:27:40.920
+the sum was 50 milliseconds
+operating on this list.
+
+00:27:40.920 --> 00:27:44.560
+So now we have C code
+operating on this list
+
+00:27:44.560 --> 00:27:46.060
+with 50 milliseconds.
+
+00:27:46.060 --> 00:27:49.810
+And now we have Python code
+operating on this list.
+
+00:27:49.810 --> 00:27:56.320
+And that is 230
+milliseconds, all right?
+
+00:27:56.320 --> 00:27:58.270
+So it's quite a bit slower.
+
+00:27:58.270 --> 00:28:00.425
+And it's because, basically,
+in Python, there's--
+
+00:28:00.425 --> 00:28:02.050
+in the pure Python
+code, there's no way
+
+00:28:02.050 --> 00:28:04.338
+to implement this fast
+path that checks--
+
+00:28:04.338 --> 00:28:06.130
+oh they're all the same
+type, so I can cash
+
+00:28:06.130 --> 00:28:07.422
+the plus function and so forth.
+
+00:28:07.422 --> 00:28:11.020
+I don't think it's
+feasible to implement that.
+
+00:28:11.020 --> 00:28:13.150
+And so basically
+then on every loop
+
+00:28:13.150 --> 00:28:16.900
+iteration has to look up the
+plus function dynamically
+
+00:28:16.900 --> 00:28:19.570
+and allocate a new
+box for the result
+
+00:28:19.570 --> 00:28:22.990
+and do that 10 to 7 times.
+
+00:28:22.990 --> 00:28:29.370
+Now, so there's a built-in
+sum function in Julia.
+
+00:28:29.370 --> 00:28:31.870
+So [INAUDIBLE] benchmark
+that as a-- it's actually
+
+00:28:31.870 --> 00:28:32.840
+implemented in Julia.
+
+00:28:32.840 --> 00:28:35.537
+It's not implemented
+in C. I won't
+
+00:28:35.537 --> 00:28:37.120
+show you the code
+for the built-in one
+
+00:28:37.120 --> 00:28:39.162
+because it's a little
+messy because it's actually
+
+00:28:39.162 --> 00:28:42.100
+computing the sum more
+accurately than the loop that
+
+00:28:42.100 --> 00:28:43.540
+have done.
+
+00:28:43.540 --> 00:28:48.560
+So that's 3.9 milliseconds.
+
+00:28:48.560 --> 00:28:51.820
+So it's comparable to
+the NumPy code, OK?
+
+00:28:51.820 --> 00:28:55.600
+So it's also using SIMD,
+but so this is also fast.
+
+00:28:58.150 --> 00:29:02.290
+So now so why can Julie do that?
+
+00:29:02.290 --> 00:29:05.020
+So it has to be that the
+array type, first of all,
+
+00:29:05.020 --> 00:29:06.350
+has the type attached to it.
+
+00:29:06.350 --> 00:29:09.410
+So you can see the type of the
+array is an array of low 64.
+
+00:29:09.410 --> 00:29:12.310
+So there's a type tag
+attached to the array itself.
+
+00:29:12.310 --> 00:29:15.850
+So somehow, that's involved.
+
+00:29:15.850 --> 00:29:17.860
+So it looks more
+like an NumPy ray
+
+00:29:17.860 --> 00:29:23.920
+in memory than a Python list.
+
+00:29:23.920 --> 00:29:25.960
+You can make the
+equivalent of a Python list
+
+00:29:25.960 --> 00:29:28.270
+that's called an array of any.
+
+00:29:28.270 --> 00:29:33.230
+So if I convert this to an
+array of any, so an array of any
+
+00:29:33.230 --> 00:29:36.110
+is something where the elements
+types can be any Julia type.
+
+00:29:36.110 --> 00:29:37.943
+And so then it has to
+be stored as something
+
+00:29:37.943 --> 00:29:40.430
+like this as an array
+of pointers to boxes.
+
+00:29:40.430 --> 00:29:42.140
+And when I do that--
+
+00:29:42.140 --> 00:29:46.400
+let's see-- [INAUDIBLE]
+there it is--
+
+00:29:46.400 --> 00:29:48.500
+then it's 355 milliseconds.
+
+00:29:48.500 --> 00:29:50.540
+So it's actually even
+worse than Python.
+
+00:29:50.540 --> 00:29:53.480
+So the Julia-- the
+Python, they spent a lot
+
+00:29:53.480 --> 00:29:55.460
+of time optimizing
+their code past
+
+00:29:55.460 --> 00:29:58.160
+for things that had to allocate
+lots of boxes all the time.
+
+00:29:58.160 --> 00:29:59.960
+So in Julia, it's
+usually understood
+
+00:29:59.960 --> 00:30:01.790
+that if you're
+writing optimized code
+
+00:30:01.790 --> 00:30:05.150
+you're going to do it not on
+arrays of pointers to boxes.
+
+00:30:05.150 --> 00:30:09.200
+You're going to write on
+homogeneous arrays or things
+
+00:30:09.200 --> 00:30:11.690
+where the types are
+known at compile time.
+
+00:30:11.690 --> 00:30:15.980
+OK, so let's write our
+own Julia sum function.
+
+00:30:15.980 --> 00:30:17.570
+So this is a a
+Julia sum function.
+
+00:30:17.570 --> 00:30:18.740
+There's no type declaration.
+
+00:30:18.740 --> 00:30:22.740
+It works on any container type.
+
+00:30:22.740 --> 00:30:26.690
+I initialize s for
+this function called 0
+
+00:30:26.690 --> 00:30:27.810
+for the element type of a.
+
+00:30:27.810 --> 00:30:29.420
+So it initializes into
+the additive identity.
+
+00:30:29.420 --> 00:30:31.460
+So it will work on any
+container of anything
+
+00:30:31.460 --> 00:30:35.510
+that supports a plus function
+that has an additive identity.
+
+00:30:35.510 --> 00:30:36.770
+So it's completely generic.
+
+00:30:36.770 --> 00:30:38.270
+It looks a lot like
+the Python code
+
+00:30:38.270 --> 00:30:41.816
+except for there's no
+0 function in Python.
+
+00:30:41.816 --> 00:30:43.790
+And let's make sure it
+gives the right answer.
+
+00:30:43.790 --> 00:30:45.630
+It does.
+
+00:30:45.630 --> 00:30:46.890
+And let's benchmark it.
+
+00:30:51.835 --> 00:30:53.960
+So this is the code you'd
+like to be able to right.
+
+00:30:53.960 --> 00:30:55.590
+You'd like to be able to
+write high level code that's
+
+00:30:55.590 --> 00:30:57.270
+a straight level straight loop.
+
+00:30:57.270 --> 00:31:00.810
+Unlike the C code, it's
+completely generic, right?
+
+00:31:00.810 --> 00:31:02.550
+It works on any
+container, anything
+
+00:31:02.550 --> 00:31:06.510
+you can loop over, and anything
+that has a plus function, so
+
+00:31:06.510 --> 00:31:09.390
+an array of quarternians
+or whatever.
+
+00:31:09.390 --> 00:31:11.580
+And a benchmark,
+it's 11 milliseconds.
+
+00:31:11.580 --> 00:31:15.060
+It's the same as the C code
+I wrote in the beginning.
+
+00:31:15.060 --> 00:31:16.688
+It's not using SIMD.
+
+00:31:16.688 --> 00:31:17.730
+So the instructions are--
+
+00:31:17.730 --> 00:31:19.647
+that's where the additional
+factors of 2 come.
+
+00:31:19.647 --> 00:31:22.040
+But it's the same as
+the non SIMD C code.
+
+00:31:22.040 --> 00:31:24.900
+And, in fact, if I
+want to use SIMD,
+
+00:31:24.900 --> 00:31:28.590
+there is a little tag you
+can put on a loop to tell--
+
+00:31:28.590 --> 00:31:30.840
+it says compile this with llvm.
+
+00:31:30.840 --> 00:31:33.060
+Tell llvm to try and
+vectorize the loop.
+
+00:31:33.060 --> 00:31:33.930
+Sometimes it can.
+
+00:31:33.930 --> 00:31:35.843
+Sometimes it can't.
+
+00:31:35.843 --> 00:31:37.260
+But something like
+this, it should
+
+00:31:37.260 --> 00:31:40.200
+be able to vectorize
+it simple enough.
+
+00:31:40.200 --> 00:31:43.080
+You don't need to hand code
+SIMD instructions for a loop
+
+00:31:43.080 --> 00:31:43.600
+this simple.
+
+00:31:43.600 --> 00:31:44.185
+Yeah?
+
+00:31:44.185 --> 00:31:46.920
+AUDIENCE: Why don't you
+always put the [INAUDIBLE]??
+
+00:31:46.920 --> 00:31:49.087
+STEVEN JOHNSON: So a yeah,
+why isn't it the default?
+
+00:31:49.087 --> 00:31:53.070
+Because most code, the
+compiler cannot autovectorize.
+
+00:31:53.070 --> 00:31:56.970
+So it increases the completion
+time and often blows
+
+00:31:56.970 --> 00:31:58.410
+to the code size for no benefit.
+
+00:31:58.410 --> 00:32:00.030
+So it's only really--
+
+00:32:00.030 --> 00:32:02.070
+it's really only
+relatively simple loops
+
+00:32:02.070 --> 00:32:05.370
+on doing simple operations and
+arrays that benefit from SIMD.
+
+00:32:05.370 --> 00:32:08.250
+So you don't want
+it to be there.
+
+00:32:08.250 --> 00:32:11.950
+Yeah, so now it's
+4.3 milliseconds.
+
+00:32:11.950 --> 00:32:15.870
+So it's about the same as
+the NumPy and so forth.
+
+00:32:15.870 --> 00:32:18.282
+It's a little slower
+than the NumPy.
+
+00:32:18.282 --> 00:32:18.990
+It's interesting.
+
+00:32:18.990 --> 00:32:21.150
+A year ago when I tried
+this, it was almost exactly
+
+00:32:21.150 --> 00:32:22.890
+the same speed as the NumPy.
+
+00:32:22.890 --> 00:32:25.888
+And then since then, both
+the NumPy and the Julia
+
+00:32:25.888 --> 00:32:26.680
+have gotten better.
+
+00:32:26.680 --> 00:32:27.720
+But the NumPy got better more.
+
+00:32:27.720 --> 00:32:29.730
+So there's something
+going on with basically
+
+00:32:29.730 --> 00:32:32.910
+how well the compiler can
+use AVX instructions by--
+
+00:32:32.910 --> 00:32:35.390
+it seems like we're still
+investigating what that is.
+
+00:32:35.390 --> 00:32:38.650
+But it's an llvm
+limitation looks like.
+
+00:32:38.650 --> 00:32:40.880
+So as it's still
+completely type generic.
+
+00:32:40.880 --> 00:32:43.830
+So it I make a random
+array of complex numbers,
+
+00:32:43.830 --> 00:32:45.570
+and then I sum them--
+
+00:32:48.835 --> 00:32:49.960
+which one am I calling now?
+
+00:32:49.960 --> 00:32:50.960
+Am I calling the vector?
+
+00:32:50.960 --> 00:32:52.890
+My sum is the
+vectorized one, right?
+
+00:32:52.890 --> 00:32:55.590
+So complex numbers--
+each complex number
+
+00:32:55.590 --> 00:32:57.427
+is two floating point numbers.
+
+00:32:57.427 --> 00:32:59.010
+So it should take
+about twice the time
+
+00:32:59.010 --> 00:33:00.650
+to naively think, right?
+
+00:33:00.650 --> 00:33:02.662
+So twice the number
+of operations to add,
+
+00:33:02.662 --> 00:33:04.120
+the same number of
+complex numbers,
+
+00:33:04.120 --> 00:33:05.430
+the same number of real numbers.
+
+00:33:05.430 --> 00:33:06.180
+Yeah, and it does.
+
+00:33:06.180 --> 00:33:08.730
+It takes about 11 milliseconds.
+
+00:33:08.730 --> 00:33:13.140
+So 10 to the 7, which
+is about twice the 5
+
+00:33:13.140 --> 00:33:16.800
+milliseconds it took for the
+same number of real numbers.
+
+00:33:16.800 --> 00:33:18.450
+And the code works
+for everything.
+
+00:33:18.450 --> 00:33:20.520
+So why?
+
+00:33:20.520 --> 00:33:22.260
+OK, so what's going on here?
+
+00:33:24.852 --> 00:33:28.980
+So-- OK, so we saw
+this my sum function.
+
+00:33:28.980 --> 00:33:32.570
+I'll just take out
+the SIMD for now.
+
+00:33:32.570 --> 00:33:34.180
+And we did all that.
+
+00:33:34.180 --> 00:33:34.680
+OK.
+
+00:33:38.070 --> 00:33:39.900
+OK, and it works for any type.
+
+00:33:39.900 --> 00:33:41.910
+It doesn't even
+have to be an array.
+
+00:33:41.910 --> 00:33:44.370
+So, for example, there
+is another container type
+
+00:33:44.370 --> 00:33:49.530
+called a set in Julia, which
+is just an unordered collection
+
+00:33:49.530 --> 00:33:51.270
+of unique elements.
+
+00:33:51.270 --> 00:33:52.530
+But you can also loop over it.
+
+00:33:52.530 --> 00:33:56.220
+If it's a set of integers,
+you can also summit.
+
+00:33:56.220 --> 00:34:00.340
+And I'm waiting for the
+benchmarks to complete.
+
+00:34:00.340 --> 00:34:01.680
+So let me allocate a set.
+
+00:34:05.950 --> 00:34:09.330
+It says there's no
+type declarations here.
+
+00:34:09.330 --> 00:34:10.830
+Mysum a-- there was
+no a-- has to be
+
+00:34:10.830 --> 00:34:13.545
+an array of particular
+type or it doesn't even
+
+00:34:13.545 --> 00:34:14.670
+have to be an array, right?
+
+00:34:14.670 --> 00:34:18.030
+So set is a different
+data structure.
+
+00:34:18.030 --> 00:34:22.624
+And so it's a set of integers.
+
+00:34:22.624 --> 00:34:24.710
+The sets are unique.
+
+00:34:24.710 --> 00:34:27.480
+If I add something to already
+the set-- it's in there--
+
+00:34:27.480 --> 00:34:29.159
+it won't add it twice.
+
+00:34:29.159 --> 00:34:32.030
+And it supports
+the fast checking.
+
+00:34:32.030 --> 00:34:33.120
+Is 2 in the set?
+
+00:34:33.120 --> 00:34:33.810
+Is 3 in the set?
+
+00:34:33.810 --> 00:34:35.852
+It doesn't have to look
+through all the elements.
+
+00:34:35.852 --> 00:34:38.340
+It's a hash internally.
+
+00:34:38.340 --> 00:34:40.449
+But I can call my
+mysum function on it,
+
+00:34:40.449 --> 00:34:46.810
+and it sums up 2 plus 17 plus
+6.24, which is hopefully 49,
+
+00:34:46.810 --> 00:34:47.310
+right?
+
+00:34:47.310 --> 00:34:51.610
+So OK, so what's going on here?
+
+00:34:51.610 --> 00:34:53.290
+So suppose you define--
+
+00:34:53.290 --> 00:34:55.238
+the key, one of
+the keys, there's
+
+00:34:55.238 --> 00:34:57.530
+several things that are going
+on in to make Julia fast.
+
+00:34:57.530 --> 00:35:00.370
+One key thing is that when
+you have a function like this
+
+00:35:00.370 --> 00:35:02.260
+mysum, or even here's
+a simpler function--
+
+00:35:02.260 --> 00:35:04.780
+f of x equals x plus 1--
+
+00:35:04.780 --> 00:35:08.320
+when I call it with a
+particular type of argument,
+
+00:35:08.320 --> 00:35:10.270
+like an integer, or
+an array of integers,
+
+00:35:10.270 --> 00:35:16.720
+or whatever, then it compiles
+a specialized version
+
+00:35:16.720 --> 00:35:19.430
+of that for that type.
+
+00:35:19.430 --> 00:35:21.250
+So here's f of x
+equals x plus 1.
+
+00:35:21.250 --> 00:35:25.980
+It works on any type
+supporting plus.
+
+00:35:25.980 --> 00:35:28.690
+So if I call f of 3--
+
+00:35:28.690 --> 00:35:31.680
+so here I'm passing
+a 64-bit integer.
+
+00:35:31.680 --> 00:35:35.150
+When it did that, it says,
+OK, x is a 64-bit integer.
+
+00:35:35.150 --> 00:35:36.930
+I'm going to compile
+a specialized version
+
+00:35:36.930 --> 00:35:39.630
+of f with that knowledge.
+
+00:35:39.630 --> 00:35:45.280
+And then when I call with
+a different type, 3.1,
+
+00:35:45.280 --> 00:35:46.920
+now x is a floating
+point number.
+
+00:35:46.920 --> 00:35:51.480
+It will compile a specialized
+version with that value.
+
+00:35:51.480 --> 00:35:53.880
+If I call it with
+another integer,
+
+00:35:53.880 --> 00:35:55.980
+it says, oh, that version
+was already compiled.
+
+00:35:55.980 --> 00:35:56.580
+[INAUDIBLE] I'll re-use it.
+
+00:35:56.580 --> 00:35:57.950
+So it only compiles
+it the first time
+
+00:35:57.950 --> 00:35:59.510
+you call it with
+a particular type.
+
+00:35:59.510 --> 00:36:00.720
+If I call it with
+a string, it'll
+
+00:36:00.720 --> 00:36:02.262
+give an error because
+it doesn't know
+
+00:36:02.262 --> 00:36:04.110
+how to add plus to a string.
+
+00:36:04.110 --> 00:36:08.040
+So it's a particular--
+
+00:36:08.040 --> 00:36:10.455
+OK, so what is going on?
+
+00:36:10.455 --> 00:36:13.640
+So we can actually look
+at the compiled code.
+
+00:36:13.640 --> 00:36:17.790
+So the function is called
+code, these macros called code
+
+00:36:17.790 --> 00:36:19.030
+llvm and code native.
+
+00:36:19.030 --> 00:36:22.070
+They say, OK, when I
+call f of 1, what's the--
+
+00:36:22.070 --> 00:36:23.430
+do people know what llvm is?
+
+00:36:23.430 --> 00:36:27.713
+You guys-- OK, so llvm
+compiles to byte code first
+
+00:36:27.713 --> 00:36:29.130
+and then it goes
+to machine codes.
+
+00:36:29.130 --> 00:36:31.200
+So you can see the
+llvm bit code or byte
+
+00:36:31.200 --> 00:36:32.760
+code, or whatever it's called.
+
+00:36:32.760 --> 00:36:34.870
+And you can see the
+native machine code.
+
+00:36:34.870 --> 00:36:36.580
+So here's the llvm
+byte code that it
+
+00:36:36.580 --> 00:36:39.330
+compiles to [INAUDIBLE].
+
+00:36:39.330 --> 00:36:44.760
+So it's a bit called
+add i640 basically
+
+00:36:44.760 --> 00:36:48.780
+one llvm instruction, which
+turns into one machine
+
+00:36:48.780 --> 00:36:52.990
+instruction, load effective
+address is actually
+
+00:36:52.990 --> 00:36:58.220
+a 64-bit edition
+function instruction.
+
+00:36:58.220 --> 00:37:01.440
+So let's think about
+what had to happen there.
+
+00:37:01.440 --> 00:37:04.560
+So you have f of
+x equals x plus 1.
+
+00:37:04.560 --> 00:37:19.790
+Now you want to compile for x
+is a int 64, so 64-bit integer,
+
+00:37:19.790 --> 00:37:24.840
+or in Julia, we'd say
+x colon colon int 64.
+
+00:37:24.840 --> 00:37:28.780
+So colon colon means that
+this is of this type, OK?
+
+00:37:28.780 --> 00:37:30.860
+So this is 64-bit integer type.
+
+00:37:30.860 --> 00:37:33.250
+So what does it have to do?
+
+00:37:33.250 --> 00:37:35.860
+It first has to figure out
+what plus function to call.
+
+00:37:35.860 --> 00:37:39.740
+So plus, it has lots of--
+
+00:37:39.740 --> 00:37:41.780
+there is a plus for
+two matrices, a plus
+
+00:37:41.780 --> 00:37:43.540
+for lots of different things.
+
+00:37:43.540 --> 00:37:45.810
+So depending on the
+types of the arguments,
+
+00:37:45.810 --> 00:37:48.740
+it decides on which
+plus function to call.
+
+00:37:48.740 --> 00:37:53.360
+So it first realizes,
+oh, this is an integer.
+
+00:37:53.360 --> 00:37:54.920
+Oh, this is an integer.
+
+00:37:54.920 --> 00:37:56.960
+This is also a 64-bit integer.
+
+00:37:56.960 --> 00:38:03.495
+So that means I'm going to
+call the plus function for two
+
+00:38:03.495 --> 00:38:03.995
+integers.
+
+00:38:09.080 --> 00:38:12.290
+So I'm going to look
+into that function.
+
+00:38:12.290 --> 00:38:18.400
+And then, oh, that
+one returns an int 64.
+
+00:38:18.400 --> 00:38:20.755
+So that's a return
+value for my function.
+
+00:38:20.755 --> 00:38:22.130
+And oh, by the
+way, this function
+
+00:38:22.130 --> 00:38:26.090
+is so simple that I'm
+going to inline it.
+
+00:38:26.090 --> 00:38:28.850
+So it's type specializing.
+
+00:38:28.850 --> 00:38:34.058
+And this process of going
+from x is an integer to that,
+
+00:38:34.058 --> 00:38:35.600
+to figure out the
+type of the output,
+
+00:38:35.600 --> 00:38:42.380
+is called type inference, OK?
+
+00:38:42.380 --> 00:38:43.550
+So.
+
+00:38:43.550 --> 00:38:50.900
+in general, for
+type inference, it
+
+00:38:50.900 --> 00:38:57.800
+is given the types
+of the inputs,
+
+00:38:57.800 --> 00:39:06.410
+it tries to infer the types
+of the outputs and, in fact,
+
+00:39:06.410 --> 00:39:08.250
+all intermediate values as well.
+
+00:39:15.170 --> 00:39:18.370
+Now what makes it a dynamic
+language is this can fail.
+
+00:39:18.370 --> 00:39:22.120
+So in some languages like
+ml or some other languages,
+
+00:39:22.120 --> 00:39:24.520
+you don't really declare types.
+
+00:39:24.520 --> 00:39:26.377
+But they're designed
+so they could
+
+00:39:26.377 --> 00:39:27.460
+give the types the inputs.
+
+00:39:27.460 --> 00:39:29.320
+So you can figure
+out everything.
+
+00:39:29.320 --> 00:39:31.030
+And if it can't
+figure out everything,
+
+00:39:31.030 --> 00:39:32.238
+it gives an error, basically.
+
+00:39:32.238 --> 00:39:34.480
+It has to infer everything.
+
+00:39:34.480 --> 00:39:35.920
+So Julia is a dynamic language.
+
+00:39:35.920 --> 00:39:37.920
+This can fail and
+have a fallback.
+
+00:39:37.920 --> 00:39:41.110
+If it doesn't know the type,
+it can stick things in a box.
+
+00:39:41.110 --> 00:39:44.740
+But obviously, the fast
+path is when it succeeds.
+
+00:39:44.740 --> 00:39:46.720
+And one of the key
+things is you have
+
+00:39:46.720 --> 00:39:50.230
+to try and make this kind
+of thing work in a language.
+
+00:39:50.230 --> 00:39:52.450
+You have to design
+the language so
+
+00:39:52.450 --> 00:39:55.870
+that at least for all
+the built-in constructs,
+
+00:39:55.870 --> 00:39:57.670
+the standard
+library, in general,
+
+00:39:57.670 --> 00:40:00.460
+in the culture for
+people designing packages
+
+00:40:00.460 --> 00:40:04.775
+and so forth, to design things
+so that this type inference can
+
+00:40:04.775 --> 00:40:05.275
+succeed.
+
+00:40:07.960 --> 00:40:11.270
+And I'll give a counter example
+to that in a minute, right?
+
+00:40:11.270 --> 00:40:13.870
+So and this works recursively.
+
+00:40:13.870 --> 00:40:15.940
+So it's not suppose
+I define a function g
+
+00:40:15.940 --> 00:40:19.570
+of x equals f of x times 2, OK?
+
+00:40:19.570 --> 00:40:21.410
+And then I called g of 1.
+
+00:40:21.410 --> 00:40:26.020
+So it's going to say, OK,
+x here is an integer, OK?
+
+00:40:26.020 --> 00:40:28.040
+I'm going to call f with
+an integer argument.
+
+00:40:28.040 --> 00:40:30.118
+Oh, I should compile f
+for an integer argument,
+
+00:40:30.118 --> 00:40:32.160
+figure out its return
+type, use its returned type
+
+00:40:32.160 --> 00:40:35.380
+to figure out what time's
+function to call and do all
+
+00:40:35.380 --> 00:40:37.150
+of this at compile time, right?
+
+00:40:37.150 --> 00:40:39.320
+Not at runtime, ideally.
+
+00:40:39.320 --> 00:40:41.350
+So we can look at the
+llvm code for this.
+
+00:40:41.350 --> 00:40:46.870
+And, in fact, so remember,
+f of x adds 1 to x.
+
+00:40:46.870 --> 00:40:49.370
+And then we're multiplying by 2.
+
+00:40:49.370 --> 00:40:52.750
+So the result
+computes 2x plus 2.
+
+00:40:52.750 --> 00:40:54.710
+And llvm is smart enough.
+
+00:40:54.710 --> 00:40:57.280
+So f is so simple
+that it inlines it.
+
+00:40:57.280 --> 00:41:00.560
+And then llvm is smart
+enough that I don't have to--
+
+00:41:00.560 --> 00:41:04.570
+well, I know it does it
+by one shift instruction
+
+00:41:04.570 --> 00:41:06.040
+to multiply x by 2.
+
+00:41:06.040 --> 00:41:07.030
+And then it adds 2.
+
+00:41:07.030 --> 00:41:09.760
+So it actually combines
+the times 2 and the plus 1.
+
+00:41:09.760 --> 00:41:12.430
+So it does constant folding, OK?
+
+00:41:12.430 --> 00:41:14.210
+And it can continue on.
+
+00:41:14.210 --> 00:41:17.050
+If you look at h of x
+equals g of x times 2,
+
+00:41:17.050 --> 00:41:23.110
+then that compiles to 1 shift
+instruction to multiply x by 4
+
+00:41:23.110 --> 00:41:24.880
+and then adding 4.
+
+00:41:24.880 --> 00:41:29.710
+So you want the-- so
+this process cascades.
+
+00:41:29.710 --> 00:41:31.930
+So you can even do it
+for recursive function.
+
+00:41:31.930 --> 00:41:34.240
+So here's a stupid
+implementation of the Fibonacci
+
+00:41:34.240 --> 00:41:36.490
+number and calculation of
+recursive limitation, right?
+
+00:41:36.490 --> 00:41:39.120
+So this is given n.
+
+00:41:39.120 --> 00:41:40.960
+It's an integer.
+
+00:41:40.960 --> 00:41:43.420
+OK, if n is less
+than 3, returns 1.
+
+00:41:43.420 --> 00:41:46.870
+Otherwise, it adds the
+previous two numbers.
+
+00:41:46.870 --> 00:41:49.330
+I can compute the first
+call, listen to the first 10
+
+00:41:49.330 --> 00:41:49.880
+integers.
+
+00:41:49.880 --> 00:41:51.730
+Here's the first 10
+Fibonacci numbers.
+
+00:41:51.730 --> 00:41:53.570
+There's also an acute
+notation in Julia.
+
+00:41:53.570 --> 00:41:55.090
+You can say fib dot.
+
+00:41:55.090 --> 00:41:58.510
+So if you do f dot arguments,
+it calls the function element
+
+00:41:58.510 --> 00:42:00.970
+Y's on a collection and
+returns a collection.
+
+00:42:00.970 --> 00:42:05.380
+So F dot 1 to 10 returns the
+first 10 Fibonacci numbers.
+
+00:42:05.380 --> 00:42:06.760
+And I can call--
+
+00:42:06.760 --> 00:42:09.520
+there's a function called code
+1 type that'll tell me what--
+
+00:42:09.520 --> 00:42:13.160
+it'll tell me the output
+of type inference.
+
+00:42:13.160 --> 00:42:15.100
+N is a 1.
+
+00:42:15.100 --> 00:42:18.310
+And it goes through-- this is
+kind of a hard to read format.
+
+00:42:18.310 --> 00:42:19.450
+But this is like the--
+
+00:42:19.450 --> 00:42:24.340
+after one of the compiler passes
+called lowering, but yeah.
+
+00:42:24.340 --> 00:42:27.580
+It's figure out the types
+of every intermediate calls.
+
+00:42:27.580 --> 00:42:30.580
+So here it's invoking
+main dot fib.
+
+00:42:30.580 --> 00:42:31.690
+It's recursively.
+
+00:42:31.690 --> 00:42:34.660
+And it's figured out that the
+return type is also int 64.
+
+00:42:34.660 --> 00:42:38.140
+So it knows everything, OK?
+
+00:42:38.140 --> 00:42:42.030
+So you'll notice that
+here I declared a type.
+
+00:42:42.030 --> 00:42:46.180
+I've said that this
+is an integer, OK?
+
+00:42:46.180 --> 00:42:48.280
+I don't have to do that
+for type inference.
+
+00:42:48.280 --> 00:42:51.190
+This doesn't help
+the compiler at all
+
+00:42:51.190 --> 00:42:54.480
+because it does type inference
+depending on what I pass.
+
+00:42:54.480 --> 00:42:56.320
+So what this is is
+more like a filter.
+
+00:42:56.320 --> 00:42:58.160
+It says that if I pass--
+
+00:42:58.160 --> 00:42:59.900
+this function only
+accepts integers.
+
+00:42:59.900 --> 00:43:02.150
+If you pass something else,
+you should throw an error.
+
+00:43:02.150 --> 00:43:03.733
+Because if I don't
+want this function,
+
+00:43:03.733 --> 00:43:08.080
+because if I pass 3.7,
+if I fill out any number,
+
+00:43:08.080 --> 00:43:09.922
+if you look at the
+3.7, I can check
+
+00:43:09.922 --> 00:43:11.130
+whether it's less than three.
+
+00:43:11.130 --> 00:43:12.640
+You can call it recursively.
+
+00:43:12.640 --> 00:43:14.320
+I mean, the function would run.
+
+00:43:14.320 --> 00:43:16.510
+It would just give
+nonsense, right?
+
+00:43:16.510 --> 00:43:19.510
+So I want to prevent someone
+from passing nonsense for this.
+
+00:43:19.510 --> 00:43:24.210
+So that's one reason to
+do a type declaration.
+
+00:43:24.210 --> 00:43:28.660
+But another reason is to do
+something called dispatch.
+
+00:43:28.660 --> 00:43:30.490
+So what we can do
+is we can define
+
+00:43:30.490 --> 00:43:32.260
+different versions
+of the function
+
+00:43:32.260 --> 00:43:33.470
+for different arguments.
+
+00:43:33.470 --> 00:43:34.720
+So. for example.
+
+00:43:34.720 --> 00:43:37.820
+another nicer version of
+that is a factorial function.
+
+00:43:37.820 --> 00:43:40.240
+So here is a stupid
+recursive implementation
+
+00:43:40.240 --> 00:43:43.000
+of a factorial function that
+takes an integer argument
+
+00:43:43.000 --> 00:43:46.680
+and just recursively
+calls itself an n minus 1.
+
+00:43:46.680 --> 00:43:50.410
+You can call it a
+10 factorial, OK?
+
+00:43:50.410 --> 00:43:53.440
+If I want 100 factorial, I need
+to use a different type, not
+
+00:43:53.440 --> 00:43:54.310
+64-bit integers.
+
+00:43:54.310 --> 00:43:59.450
+I need some arbitrary
+precision integer.
+
+00:43:59.450 --> 00:44:05.800
+And since I said it was an
+integer, if I call in 3.7,
+
+00:44:05.800 --> 00:44:07.930
+it'll given an error.
+
+00:44:07.930 --> 00:44:08.710
+So that's good.
+
+00:44:08.710 --> 00:44:11.330
+But now I can find a
+different version of this.
+
+00:44:11.330 --> 00:44:14.100
+So actually, there
+is a generalization
+
+00:44:14.100 --> 00:44:20.450
+of factorial to arbitrary real,
+in fact, even complex numbers
+
+00:44:20.450 --> 00:44:22.440
+called a gamma function.
+
+00:44:22.440 --> 00:44:25.710
+And so I can define
+a fallback that
+
+00:44:25.710 --> 00:44:29.970
+works for any type of
+number that calls a gamma
+
+00:44:29.970 --> 00:44:31.950
+function from someplace else.
+
+00:44:31.950 --> 00:44:36.090
+And then if I can pass it to
+floating point value, I can--
+
+00:44:36.090 --> 00:44:39.480
+if you take the
+factorial minus 1/2,
+
+00:44:39.480 --> 00:44:41.670
+it turns out that's actually
+a square root of pi.
+
+00:44:41.670 --> 00:44:45.820
+So if I square it, it
+gives pi, all right?
+
+00:44:45.820 --> 00:44:51.300
+So now I have one function and
+I have two methods, all right?
+
+00:44:54.000 --> 00:44:57.610
+So these types here, so
+there's a hierarchy of types.
+
+00:44:57.610 --> 00:44:59.610
+So this is what's called
+an abstract type, which
+
+00:44:59.610 --> 00:45:01.110
+most of you have probably seen.
+
+00:45:01.110 --> 00:45:05.150
+So there's a type called number.
+
+00:45:05.150 --> 00:45:08.760
+And underneath, there's a class
+of subtypes called integer.
+
+00:45:08.760 --> 00:45:15.060
+And underneath, there is,
+for example, int 64 or int 8
+
+00:45:15.060 --> 00:45:17.100
+for 64-bit integers.
+
+00:45:17.100 --> 00:45:20.190
+And underneath number
+there's actually
+
+00:45:20.190 --> 00:45:21.750
+another subtype called real.
+
+00:45:21.750 --> 00:45:24.270
+And underneath that there's
+a couple of subtypes.
+
+00:45:24.270 --> 00:45:30.420
+And then there's say
+flow 64 or float 32
+
+00:45:30.420 --> 00:45:33.727
+for a single precision
+32-bit floating
+
+00:45:33.727 --> 00:45:34.810
+point number and so forth.
+
+00:45:34.810 --> 00:45:36.990
+So there's a hierarchy
+of these things.
+
+00:45:36.990 --> 00:45:39.500
+When I specify something
+can take integer
+
+00:45:39.500 --> 00:45:42.660
+I'm just saying so this type
+is not help the compiler.
+
+00:45:42.660 --> 00:45:44.250
+It's to provide a filter.
+
+00:45:44.250 --> 00:45:46.700
+So this method only
+works for these types.
+
+00:45:46.700 --> 00:45:49.740
+And this other
+method only works--
+
+00:45:49.740 --> 00:45:52.893
+my second method works
+for any number type.
+
+00:45:52.893 --> 00:45:54.810
+So I have one thing that
+works for any number.
+
+00:45:54.810 --> 00:45:55.310
+Whoops.
+
+00:45:55.310 --> 00:45:56.570
+Here it is--
+
+00:45:56.570 --> 00:45:58.560
+One that works for
+any number type,
+
+00:45:58.560 --> 00:46:00.960
+and one method that
+only works for integers.
+
+00:46:00.960 --> 00:46:03.780
+So when I call it for
+3, which ones does it
+
+00:46:03.780 --> 00:46:07.200
+call, because it actually
+called both methods.
+
+00:46:07.200 --> 00:46:09.592
+And what it does is it
+calls the most specific one.
+
+00:46:09.592 --> 00:46:11.800
+It calls the one that sort
+of farthest down the tree.
+
+00:46:11.800 --> 00:46:14.880
+So if I have a method defined
+for number and one defined
+
+00:46:14.880 --> 00:46:17.143
+for integer, if I pass an
+integer, it'll do this.
+
+00:46:17.143 --> 00:46:18.810
+If I have one that's
+defined for number,
+
+00:46:18.810 --> 00:46:20.070
+one that's defined by
+integer, and one that's
+
+00:46:20.070 --> 00:46:21.983
+defined specifically
+for int 8, and I
+
+00:46:21.983 --> 00:46:23.400
+call it a --pass
+an 8 bit integer,
+
+00:46:23.400 --> 00:46:24.858
+it'll call that
+version, all right?
+
+00:46:24.858 --> 00:46:26.688
+So it gives you a filter.
+
+00:46:26.688 --> 00:46:28.980
+But, in general, you can do
+this on multiple arguments.
+
+00:46:28.980 --> 00:46:32.070
+So this is like the key
+abstraction in Julia, something
+
+00:46:32.070 --> 00:46:35.010
+called multiple dispatch.
+
+00:46:35.010 --> 00:46:36.990
+So this was not
+invented by Julia.
+
+00:46:36.990 --> 00:46:41.073
+I guess it was present
+in Small Talk, and Dylan.
+
+00:46:41.073 --> 00:46:42.490
+It's been in a
+bunch of languages.
+
+00:46:42.490 --> 00:46:44.073
+It's been floating
+around for a while.
+
+00:46:44.073 --> 00:46:46.530
+But it's not been in a lot
+of mainstream languages,
+
+00:46:46.530 --> 00:46:48.630
+not in a high performance way.
+
+00:46:48.630 --> 00:46:50.910
+And you can think of
+it as a generalization
+
+00:46:50.910 --> 00:46:53.220
+of advertising and programming.
+
+00:46:53.220 --> 00:46:58.660
+So I'm sure all of you have
+done object oriented programming
+
+00:46:58.660 --> 00:47:01.280
+in Python or C++ or
+something like this.
+
+00:47:01.280 --> 00:47:03.670
+So in object-oriented
+programming typically
+
+00:47:03.670 --> 00:47:09.230
+the way you think of it is
+this is you save an object.
+
+00:47:09.230 --> 00:47:17.050
+It's usually spelled object dot
+method xy for example, right?
+
+00:47:17.050 --> 00:47:27.930
+And what it does, is this
+type, the object type
+
+00:47:27.930 --> 00:47:32.520
+determines the method, right?
+
+00:47:32.520 --> 00:47:35.202
+So you can have a
+method called plus.
+
+00:47:35.202 --> 00:47:37.410
+But it would actually call
+a different class function
+
+00:47:37.410 --> 00:47:40.500
+for a complex number or a real
+number, something like that,
+
+00:47:40.500 --> 00:47:44.260
+or a method called length,
+which for a Python list
+
+00:47:44.260 --> 00:47:49.540
+would call a different function
+than for an NumPy array, OK?
+
+00:47:49.540 --> 00:47:54.930
+In Julia, the way you
+would spell the same thing
+
+00:47:54.930 --> 00:47:56.265
+would you'd say method.
+
+00:48:04.072 --> 00:48:06.535
+And you wouldn't say
+object dot method.
+
+00:48:06.535 --> 00:48:07.660
+So you don't think of the--
+
+00:48:07.660 --> 00:48:11.344
+here, you think of the object
+as sort of owning the method.
+
+00:48:11.344 --> 00:48:12.690
+all right?
+
+00:48:12.690 --> 00:48:14.380
+And Julia-- the
+object would just
+
+00:48:14.380 --> 00:48:15.670
+be maybe the first argument.
+
+00:48:15.670 --> 00:48:18.640
+In fact, under the hood, if you
+looking in Python, for example,
+
+00:48:18.640 --> 00:48:21.370
+the object is passed as an
+implicit first argument called
+
+00:48:21.370 --> 00:48:22.450
+self, all right?
+
+00:48:22.450 --> 00:48:24.130
+So it actually is doing this.
+
+00:48:24.130 --> 00:48:27.310
+It's just different
+spelling of the same thing.
+
+00:48:27.310 --> 00:48:30.720
+But as soon as you read it this
+way, you realized what Python
+
+00:48:30.720 --> 00:48:32.603
+and what op languages
+are doing is
+
+00:48:32.603 --> 00:48:34.645
+they're looking at the
+type of the first argument
+
+00:48:34.645 --> 00:48:36.820
+to determine the method.
+
+00:48:36.820 --> 00:48:39.460
+But why just the first argument?
+
+00:48:39.460 --> 00:48:45.880
+In a multiple dispatch language,
+you look at all the types.
+
+00:48:53.940 --> 00:48:57.520
+So this is sometimes-- in
+Julia, this will sometimes
+
+00:48:57.520 --> 00:49:03.340
+be called single dispatch
+because determining
+
+00:49:03.340 --> 00:49:09.220
+the method is called
+dispatch, figuring out
+
+00:49:09.220 --> 00:49:13.180
+which function is spelled
+length, which function actually
+
+00:49:13.180 --> 00:49:15.510
+are you calling this dispatching
+to the right function.
+
+00:49:15.510 --> 00:49:17.010
+So this is called
+multiple dispatch.
+
+00:49:22.870 --> 00:49:27.910
+And it's clearest if you look at
+something like a plus function.
+
+00:49:27.910 --> 00:49:33.170
+So a plus function,
+if you do a plus
+
+00:49:33.170 --> 00:49:37.830
+b, which plus you do really
+should depend on both a and b,
+
+00:49:37.830 --> 00:49:38.330
+right?
+
+00:49:38.330 --> 00:49:41.340
+It shouldn't depend
+on just a or just b.
+
+00:49:41.340 --> 00:49:44.000
+And so it's actually quite
+awkward in languages,
+
+00:49:44.000 --> 00:49:48.230
+in o op languages like Python
+or especially C++ to overload
+
+00:49:48.230 --> 00:49:51.560
+a plus operation that operates
+on sort of mixed types.
+
+00:49:51.560 --> 00:49:54.890
+As a consequence, for example,
+in C++ there's a built-in
+
+00:49:54.890 --> 00:49:56.460
+complex number type.
+
+00:49:56.460 --> 00:49:59.780
+So you can have a complex
+float, or complex double,
+
+00:49:59.780 --> 00:50:03.080
+complex and complex with
+different real types.
+
+00:50:03.080 --> 00:50:06.972
+But you can't add a complex
+float to a complex double.
+
+00:50:06.972 --> 00:50:08.930
+You can't add a
+single-precision complex number
+
+00:50:08.930 --> 00:50:11.750
+to a double-precision complex
+number or any mixed operation
+
+00:50:11.750 --> 00:50:13.190
+because--
+
+00:50:13.190 --> 00:50:15.110
+any mixed complex
+operation because it
+
+00:50:15.110 --> 00:50:18.150
+can't figure out
+who owns the method.
+
+00:50:18.150 --> 00:50:20.510
+It doesn't have a way of
+doing that kind of promotion,
+
+00:50:20.510 --> 00:50:21.300
+all right?
+
+00:50:21.300 --> 00:50:24.830
+So in Julia, so now
+you can have a method
+
+00:50:24.830 --> 00:50:31.790
+for adding a float
+32 to a float 32,
+
+00:50:31.790 --> 00:50:34.990
+but also a method for adding a--
+
+00:50:34.990 --> 00:50:41.120
+I don't know-- let's see,
+adding a complex number
+
+00:50:41.120 --> 00:50:43.732
+to a real number, for example.
+
+00:50:43.732 --> 00:50:45.440
+You want to specialize--
+or a real number
+
+00:50:45.440 --> 00:50:46.260
+to a complex number.
+
+00:50:46.260 --> 00:50:47.510
+You want to specialize things.
+
+00:50:47.510 --> 00:50:50.970
+In fact, we can click on the
+link here and see the code.
+
+00:50:50.970 --> 00:50:54.140
+So the complex number to
+a real number in Julia
+
+00:50:54.140 --> 00:50:55.420
+looks like this.
+
+00:50:55.420 --> 00:50:57.180
+It's the most obvious thing.
+
+00:50:57.180 --> 00:50:59.080
+It's implemented in Julia.
+
+00:50:59.080 --> 00:51:01.335
+Plus complex real creates
+new complex number.
+
+00:51:01.335 --> 00:51:02.960
+But you only have to
+add the real part.
+
+00:51:02.960 --> 00:51:05.360
+You can leave the
+imaginary part alone.
+
+00:51:05.360 --> 00:51:08.760
+And this works on
+any complex type.
+
+00:51:08.760 --> 00:51:17.380
+OK, so there's too
+many methods for--
+
+00:51:17.380 --> 00:51:19.000
+OK, I can shrink that.
+
+00:51:19.000 --> 00:51:19.773
+Let's see.
+
+00:51:23.560 --> 00:51:28.670
+So but there's another type
+inference thing called--
+
+00:51:28.670 --> 00:51:31.240
+I'll just mention it briefly.
+
+00:51:31.240 --> 00:51:35.140
+So one of the things you've to
+do to make this type inference
+
+00:51:35.140 --> 00:51:38.240
+process work is given the
+types of the arguments
+
+00:51:38.240 --> 00:51:41.440
+you have to figure out the
+type of the return value, OK?
+
+00:51:41.440 --> 00:51:43.690
+So that means when
+you assign a function,
+
+00:51:43.690 --> 00:51:46.320
+it has to be what's
+called type stable.
+
+00:51:46.320 --> 00:51:48.040
+The type of the
+result should depend
+
+00:51:48.040 --> 00:51:49.960
+on the types of the
+arguments and not
+
+00:51:49.960 --> 00:51:52.327
+on the values of the
+arguments because the types
+
+00:51:52.327 --> 00:51:53.410
+are known at compile time.
+
+00:51:53.410 --> 00:51:55.810
+The values are only
+known at runtime.
+
+00:51:55.810 --> 00:51:59.950
+And it turns out if you don't
+have this in mind, in C,
+
+00:51:59.950 --> 00:52:01.480
+you have no choice
+but to obey this.
+
+00:52:01.480 --> 00:52:03.100
+But in something like
+Python and dynamic language,
+
+00:52:03.100 --> 00:52:05.517
+like Python and Matlab, if
+you're not thinking about this,
+
+00:52:05.517 --> 00:52:08.603
+it's really easy to design
+things so that it doesn't work,
+
+00:52:08.603 --> 00:52:09.520
+so that it's not true.
+
+00:52:09.520 --> 00:52:12.790
+So a classic example is
+a square root function.
+
+00:52:12.790 --> 00:52:16.720
+All right, so suppose I
+pass an integer to it, OK?
+
+00:52:16.720 --> 00:52:19.090
+So the square root of--
+
+00:52:19.090 --> 00:52:24.000
+let's do square root
+of 5, all right?
+
+00:52:24.000 --> 00:52:27.300
+The result has to be
+floating point number, right?
+
+00:52:27.300 --> 00:52:28.920
+It's 2.23-- whatever.
+
+00:52:28.920 --> 00:52:31.230
+So if I do square
+root of 4, of course,
+
+00:52:31.230 --> 00:52:33.190
+that square root is an integer.
+
+00:52:33.190 --> 00:52:34.950
+But if I return an
+integer for that type,
+
+00:52:34.950 --> 00:52:36.617
+then it wouldn't be
+type stable anymore.
+
+00:52:36.617 --> 00:52:39.217
+Than the return value
+type would depend
+
+00:52:39.217 --> 00:52:41.550
+on the value of the input,
+whether it's a perfect square
+
+00:52:41.550 --> 00:52:42.420
+or not, all right?
+
+00:52:42.420 --> 00:52:44.457
+So it was returned to
+floating point value,
+
+00:52:44.457 --> 00:52:45.790
+even if the input is an integer.
+
+00:52:45.790 --> 00:52:46.720
+Yes?
+
+00:52:46.720 --> 00:52:49.103
+AUDIENCE: If you
+have enough methods
+
+00:52:49.103 --> 00:52:51.520
+to find for a bunch of different
+types of lookup function?
+
+00:52:51.520 --> 00:52:52.970
+Can that become really slow?
+
+00:52:52.970 --> 00:52:55.230
+STEVEN JOHNSON: Well,
+so the lookup comes--
+
+00:52:55.230 --> 00:52:56.500
+it comes at compile time.
+
+00:52:56.500 --> 00:52:59.560
+So it's really
+kind of irrelevant.
+
+00:52:59.560 --> 00:53:02.300
+At least if type
+inference succeeds,
+
+00:53:02.300 --> 00:53:05.430
+if type inference fails, then
+it's runtime, it's slower.
+
+00:53:05.430 --> 00:53:07.520
+But it's not like--
+
+00:53:07.520 --> 00:53:09.000
+it's like a tree surge.
+
+00:53:09.000 --> 00:53:11.880
+So it's not-- it's not as
+slow as you might think.
+
+00:53:11.880 --> 00:53:14.460
+But most of the time you
+don't worry about that
+
+00:53:14.460 --> 00:53:16.440
+because if you care
+about performance
+
+00:53:16.440 --> 00:53:20.170
+you want to arrange your code
+so that type inference succeeds.
+
+00:53:20.170 --> 00:53:21.523
+So you prototype maybe to--
+
+00:53:21.523 --> 00:53:23.940
+this is something that you do
+in performance optimization.
+
+00:53:23.940 --> 00:53:26.315
+Like when you're prototyping,
+you don't care about types,
+
+00:53:26.315 --> 00:53:27.330
+you say x equals 3.
+
+00:53:27.330 --> 00:53:29.490
+And the next line you
+say x equals an array--
+
+00:53:29.490 --> 00:53:30.030
+whatever.
+
+00:53:30.030 --> 00:53:31.170
+But when you're
+optimizing your code,
+
+00:53:31.170 --> 00:53:32.628
+then, OK, you tweak
+it a little bit
+
+00:53:32.628 --> 00:53:35.100
+to make sure that things
+don't change types willy nilly
+
+00:53:35.100 --> 00:53:37.260
+and that the types
+of function depend
+
+00:53:37.260 --> 00:53:39.580
+on the types of the
+arguments not on the values.
+
+00:53:39.580 --> 00:53:42.990
+So, as I mentioned, square root
+is what really confuses people
+
+00:53:42.990 --> 00:53:46.410
+at first, is if you take
+square root of minus 1,
+
+00:53:46.410 --> 00:53:49.690
+you might think you should
+get a complex value.
+
+00:53:49.690 --> 00:53:53.310
+And instead, it gives
+you an error, right?
+
+00:53:53.310 --> 00:53:57.510
+And basically, what
+are the choices here?
+
+00:53:57.510 --> 00:53:59.460
+It could give you an error.
+
+00:53:59.460 --> 00:54:01.420
+It could give you
+a complex value.
+
+00:54:01.420 --> 00:54:03.090
+But if it gave you
+a complex value,
+
+00:54:03.090 --> 00:54:04.770
+then the return
+type of square root
+
+00:54:04.770 --> 00:54:08.532
+would depend upon the value of
+the input, not just the type.
+
+00:54:08.532 --> 00:54:10.990
+So Matlab, for example, if you
+take square root of minus 1,
+
+00:54:10.990 --> 00:54:13.010
+it will happily give
+you a complex number.
+
+00:54:13.010 --> 00:54:15.660
+But as a result,
+if you have Matlab,
+
+00:54:15.660 --> 00:54:17.760
+Matlab has a compiler, right?
+
+00:54:17.760 --> 00:54:20.130
+But it has many, many
+challenges/ but one simple
+
+00:54:20.130 --> 00:54:22.920
+thing to understand is if the
+Matlab compiler suite sees
+
+00:54:22.920 --> 00:54:26.520
+a square root function,
+anywhere in your function,
+
+00:54:26.520 --> 00:54:28.540
+even if it knows the
+inputs that are real,
+
+00:54:28.540 --> 00:54:32.160
+it doesn't know if the outputs
+are complex or real unless it
+
+00:54:32.160 --> 00:54:34.800
+can prove that the inputs
+were positive or non-negative,
+
+00:54:34.800 --> 00:54:35.370
+right?
+
+00:54:35.370 --> 00:54:39.540
+And that means it could
+then compile two code
+
+00:54:39.540 --> 00:54:41.210
+pass for the output, all right?
+
+00:54:41.210 --> 00:54:43.110
+But then suppose it
+calls square root again
+
+00:54:43.110 --> 00:54:44.360
+or some other function, right?
+
+00:54:44.360 --> 00:54:47.490
+You quickly get a
+combinatorial explosion
+
+00:54:47.490 --> 00:54:51.007
+of possible code paths
+because of possible types.
+
+00:54:51.007 --> 00:54:52.590
+And so at some point,
+you just give up
+
+00:54:52.590 --> 00:54:53.605
+and put things in a box.
+
+00:54:53.605 --> 00:54:55.230
+But as soon as you
+put things in a box,
+
+00:54:55.230 --> 00:54:56.855
+and you're looking
+up types at runtime,
+
+00:54:56.855 --> 00:54:59.860
+you're dead from a
+performance perspective.
+
+00:54:59.860 --> 00:55:02.190
+So Python, actually-- s if
+you want a complex result
+
+00:55:02.190 --> 00:55:04.440
+from square root, you have
+to give it a complex input.
+
+00:55:04.440 --> 00:55:09.690
+So in Julia, a complex
+number, the I is actually m.
+
+00:55:09.690 --> 00:55:12.930
+They decide I is too
+useful for loop variables.
+
+00:55:12.930 --> 00:55:15.362
+So I and J. So m is
+the complex unit.
+
+00:55:15.362 --> 00:55:17.320
+And if you take square
+root of a complex input,
+
+00:55:17.320 --> 00:55:19.740
+it gives you a complex output.
+
+00:55:19.740 --> 00:55:21.600
+So Python actually
+does the same thing.
+
+00:55:21.600 --> 00:55:23.225
+So if in Python if
+it takes square root
+
+00:55:23.225 --> 00:55:25.680
+of a negative value,
+it gives an error
+
+00:55:25.680 --> 00:55:28.310
+unless you give it
+a complex input.
+
+00:55:28.310 --> 00:55:32.220
+But Python made other mistakes.
+
+00:55:32.220 --> 00:55:36.240
+So, for example, in
+Python, an integer
+
+00:55:36.240 --> 00:55:38.250
+is guaranteed never to overflow.
+
+00:55:38.250 --> 00:55:42.390
+If you add 11 plus 1 plus 1
+over and over again in Python,
+
+00:55:42.390 --> 00:55:45.240
+eventually overflow the
+size of a 64-bit integer,
+
+00:55:45.240 --> 00:55:47.010
+and Python will just
+switch under the hood
+
+00:55:47.010 --> 00:55:50.460
+to an arbitrary position
+in an integer, which
+
+00:55:50.460 --> 00:55:52.980
+seem like a nice idea
+probably at the time.
+
+00:55:52.980 --> 00:55:55.260
+And the rest in
+Python is so slow
+
+00:55:55.260 --> 00:55:58.620
+that the performance
+cost of this test
+
+00:55:58.620 --> 00:56:00.660
+makes no difference in
+a typical Python code.
+
+00:56:00.660 --> 00:56:02.610
+But it makes it very
+difficult to compile.
+
+00:56:02.610 --> 00:56:05.190
+Because that means if you have
+integer inputs and you see x
+
+00:56:05.190 --> 00:56:11.010
+plus 1 in Python, the compiler
+cannot just compile that to one
+
+00:56:11.010 --> 00:56:15.570
+instruction, because unless
+you can somehow prove that x is
+
+00:56:15.570 --> 00:56:17.440
+sufficiently small.
+
+00:56:17.440 --> 00:56:20.240
+So in Julia, integer
+arithmetic will overflow.
+
+00:56:20.240 --> 00:56:24.610
+But the default integer
+arithmetic it's 64 bits.
+
+00:56:24.610 --> 00:56:26.310
+So in practice that
+never overflows
+
+00:56:26.310 --> 00:56:27.770
+unless you're doing
+number theory.
+
+00:56:27.770 --> 00:56:29.895
+And you usually know if
+you're doing number theory,
+
+00:56:29.895 --> 00:56:32.310
+and then use arbitrary
+precision integers.
+
+00:56:32.310 --> 00:56:34.500
+It was much worse in the days--
+
+00:56:34.500 --> 00:56:36.510
+this is something
+people worried a lot
+
+00:56:36.510 --> 00:56:40.230
+before you were born when there
+were 16-bit machines, right?
+
+00:56:40.230 --> 00:56:42.180
+And integers, it's
+really, really easy
+
+00:56:42.180 --> 00:56:49.510
+to overflow 16 bits because
+the biggest sine value is then
+
+00:56:49.510 --> 00:56:52.962
+32,767, right?
+
+00:56:52.962 --> 00:56:54.420
+So it's really easy
+to overflow it.
+
+00:56:54.420 --> 00:56:56.460
+So you're constantly
+worrying about overflow.
+
+00:56:56.460 --> 00:56:59.490
+And even 32 bits, the biggest
+sign value is 2 billion.
+
+00:56:59.490 --> 00:57:02.550
+It's really easy to overflow
+that, even just counting bytes,
+
+00:57:02.550 --> 00:57:03.050
+right?
+
+00:57:03.050 --> 00:57:05.830
+You can have files that are
+bigger than 2 gigabytes easily
+
+00:57:05.830 --> 00:57:06.330
+nowadays.
+
+00:57:06.330 --> 00:57:08.580
+So some people worried
+about this all the time.
+
+00:57:08.580 --> 00:57:10.260
+There were 64-bit integers.
+
+00:57:10.260 --> 00:57:12.150
+Basically, 64-bit
+integer will never
+
+00:57:12.150 --> 00:57:14.340
+overflow if it's
+counting objects
+
+00:57:14.340 --> 00:57:18.262
+that exist in the real universe,
+like bytes, or loop iterations,
+
+00:57:18.262 --> 00:57:19.220
+or something like that.
+
+00:57:19.220 --> 00:57:21.860
+So you just-- then you just
+say, OK, it's either 64 bits,
+
+00:57:21.860 --> 00:57:23.110
+or you're doing number theory.
+
+00:57:23.110 --> 00:57:24.850
+You should big ints.
+
+00:57:24.850 --> 00:57:26.300
+So OK.
+
+00:57:26.300 --> 00:57:28.058
+So let me talk about--
+
+00:57:28.058 --> 00:57:30.100
+the final thing I want to
+talk about-- let's see,
+
+00:57:30.100 --> 00:57:33.050
+how much [INAUDIBLE] good--
+
+00:57:33.050 --> 00:57:35.810
+is defining our own types.
+
+00:57:35.810 --> 00:57:40.240
+So this is the real test
+of the language, right?
+
+00:57:40.240 --> 00:57:43.207
+So it's easy to make
+a language where
+
+00:57:43.207 --> 00:57:45.040
+there is a certain
+built-in set of functions
+
+00:57:45.040 --> 00:57:48.580
+and built-in types, and
+those things are fast.
+
+00:57:48.580 --> 00:57:51.040
+So, for example, for
+Python, there actually
+
+00:57:51.040 --> 00:57:54.070
+is a compiler called numba that
+does exactly what Julia does.
+
+00:57:54.070 --> 00:57:57.220
+It looks at the arguments,
+type specializes things,
+
+00:57:57.220 --> 00:58:00.280
+and then calls llvm and
+compiles it to fast code.
+
+00:58:00.280 --> 00:58:03.680
+But it only works if you're
+only container type as an NumPy
+
+00:58:03.680 --> 00:58:06.760
+array and you're only scalar
+type is one of the 12 scalar
+
+00:58:06.760 --> 00:58:08.470
+types that NumPy supports.
+
+00:58:08.470 --> 00:58:11.110
+If you have your own
+user defined number type
+
+00:58:11.110 --> 00:58:13.060
+or your own user
+defined container type,
+
+00:58:13.060 --> 00:58:15.220
+then it doesn't work.
+
+00:58:15.220 --> 00:58:16.870
+And user-defined
+container types,
+
+00:58:16.870 --> 00:58:19.468
+it's probably easy to
+understand why that's useful.
+
+00:58:19.468 --> 00:58:21.760
+User defined number types
+are extremely useful as well.
+
+00:58:21.760 --> 00:58:25.480
+So, for example, there's
+a package in Julia
+
+00:58:25.480 --> 00:58:29.090
+that provides the number
+type called dual numbers.
+
+00:58:29.090 --> 00:58:31.210
+And those have the property
+that if you pass them
+
+00:58:31.210 --> 00:58:35.030
+into the function they compute
+the function in its derivative.
+
+00:58:35.030 --> 00:58:37.750
+And just a slightly different.
+
+00:58:37.750 --> 00:58:40.520
+It basically carries around
+function an derivative values
+
+00:58:40.520 --> 00:58:42.430
+and has a slightly
+different plus and times
+
+00:58:42.430 --> 00:58:45.700
+and so forth that just do the
+product rule and so forth.
+
+00:58:45.700 --> 00:58:47.470
+And it just propagates
+derivatives.
+
+00:58:47.470 --> 00:58:51.610
+And then if you have Julia code,
+like that Vandermonde function,
+
+00:58:51.610 --> 00:58:54.340
+it will just compute
+its derivative as well.
+
+00:58:54.340 --> 00:58:56.503
+OK, so I want to be able
+to find my own type.
+
+00:58:56.503 --> 00:58:58.420
+So a very simple type
+that I might want to add
+
+00:58:58.420 --> 00:59:02.560
+would be points 2D vectors
+in two space, right?
+
+00:59:02.560 --> 00:59:05.320
+So, of course, I could have
+an array of two values.
+
+00:59:05.320 --> 00:59:08.140
+But an array is a really
+heavyweight object
+
+00:59:08.140 --> 00:59:11.470
+for just two values, right?
+
+00:59:11.470 --> 00:59:13.330
+If I know at
+compile time there's
+
+00:59:13.330 --> 00:59:16.150
+two values that I don't
+need to have a pointer to--
+
+00:59:16.150 --> 00:59:17.980
+I can actually store
+them in registers.
+
+00:59:17.980 --> 00:59:20.350
+I I can unroll the loop
+over these and everything
+
+00:59:20.350 --> 00:59:21.740
+should be faster.
+
+00:59:21.740 --> 00:59:24.370
+You can get an order
+of magnitude and speed
+
+00:59:24.370 --> 00:59:29.140
+by specializing on the number
+of elements for small arrays
+
+00:59:29.140 --> 00:59:33.340
+compared to just a general
+ray data structure.
+
+00:59:33.340 --> 00:59:35.650
+So let's make a point, OK?
+
+00:59:35.650 --> 00:59:40.530
+So this is-- and I'm going to
+go through several iterations,
+
+00:59:40.530 --> 00:59:41.890
+starting with a slow iteration.
+
+00:59:41.890 --> 00:59:45.160
+I'm going to define
+a mutable struct.
+
+00:59:45.160 --> 00:59:47.480
+OK, so this will
+be a mutable object
+
+00:59:47.480 --> 00:59:49.630
+where I can add a
+[INAUDIBLE] point
+
+00:59:49.630 --> 00:59:51.280
+that has two values x and y.
+
+00:59:51.280 --> 00:59:53.010
+It can be of any type.
+
+00:59:53.010 --> 00:59:56.862
+I'll define a plus
+function that can add them.
+
+00:59:56.862 --> 00:59:58.320
+And it does the
+most obvious thing.
+
+00:59:58.320 --> 01:00:01.330
+It adds the x components,
+adds the y components.
+
+01:00:01.330 --> 01:00:03.880
+I'll define a 0 function that's
+the additive identity that
+
+01:00:03.880 --> 01:00:06.280
+just returns the point 0, 0.
+
+01:00:06.280 --> 01:00:09.040
+And then I can construct
+an object Point34.
+
+01:00:09.040 --> 01:00:11.500
+I can say 034 plus 0.56.
+
+01:00:11.500 --> 01:00:13.150
+It works.
+
+01:00:13.150 --> 01:00:15.010
+It can hold actually--
+right now it's
+
+01:00:15.010 --> 01:00:17.560
+very generic, and
+probably too generic.
+
+01:00:17.560 --> 01:00:20.200
+So they act like the real
+part can be a floating point
+
+01:00:20.200 --> 01:00:22.482
+number and the imaginary.
+
+01:00:22.482 --> 01:00:24.190
+The x can be a floating
+point number here
+
+01:00:24.190 --> 01:00:28.660
+and the y is a complex
+number of two integers,
+
+01:00:28.660 --> 01:00:31.595
+or even I can make a
+string and an array.
+
+01:00:31.595 --> 01:00:32.720
+It doesn't even make sense.
+
+01:00:32.720 --> 01:00:35.020
+So I probably should
+have restricted
+
+01:00:35.020 --> 01:00:36.417
+the types of x
+and y a little bit
+
+01:00:36.417 --> 01:00:38.500
+just to prevent the user
+from putting in something
+
+01:00:38.500 --> 01:00:42.340
+that makes no sense at all, OK?
+
+01:00:42.340 --> 01:00:44.230
+So these things,
+they can be anything.
+
+01:00:44.230 --> 01:00:48.430
+So this type is not
+ideal in several ways.
+
+01:00:48.430 --> 01:00:52.900
+So let's think about how this
+has to be stored in memory.
+
+01:00:52.900 --> 01:00:58.290
+So this is a 0.1.
+
+01:00:58.290 --> 01:01:03.150
+0.11, 3.7, right?
+
+01:01:03.150 --> 01:01:05.470
+So in memory it's--
+
+01:01:08.000 --> 01:01:11.680
+there is an x and there is a y.
+
+01:01:11.680 --> 01:01:14.180
+But x and y can be of any type.
+
+01:01:14.180 --> 01:01:18.370
+So that means they have
+to be pointers to boxes.
+
+01:01:18.370 --> 01:01:21.460
+There's pointer to
+int 1 and there's
+
+01:01:21.460 --> 01:01:29.090
+a pointer to a float
+64, in this case, 3.7.
+
+01:01:29.090 --> 01:01:30.550
+So oh, this already,
+we know this
+
+01:01:30.550 --> 01:01:33.410
+is not going to be good
+news for performance.
+
+01:01:33.410 --> 01:01:34.690
+And it's mutable.
+
+01:01:34.690 --> 01:01:39.610
+So that mutable struct means
+if I take p equals a point,
+
+01:01:39.610 --> 01:01:41.380
+I can then say p dot x equals 7.
+
+01:01:41.380 --> 01:01:44.890
+I can change the value, which
+seems like a harmless thing
+
+01:01:44.890 --> 01:01:49.640
+to do, but actually is a big
+problem because, for example,
+
+01:01:49.640 --> 01:01:55.810
+if I make an array
+of a three piece,
+
+01:01:55.810 --> 01:01:59.920
+and then I say p dot y equals
+8, and I look at that array,
+
+01:01:59.920 --> 01:02:03.650
+it has to change
+the y component, OK?
+
+01:02:03.650 --> 01:02:06.772
+So if I have a p,
+or in general, if I
+
+01:02:06.772 --> 01:02:11.540
+have a p that's
+looking at that object,
+
+01:02:11.540 --> 01:02:13.720
+if this is an object
+you can mutate,
+
+01:02:13.720 --> 01:02:17.842
+it means that if I have
+another element, a q,
+
+01:02:17.842 --> 01:02:19.300
+it's also pointing
+the same object.
+
+01:02:19.300 --> 01:02:24.280
+And I say p, p dot
+x equals 4, then
+
+01:02:24.280 --> 01:02:29.330
+q dot x had better also
+before at that point.
+
+01:02:29.330 --> 01:02:33.070
+So to have mutable semantics, to
+have the semantics of something
+
+01:02:33.070 --> 01:02:35.580
+you can change, and
+other references
+
+01:02:35.580 --> 01:02:38.110
+can see that change, that
+means that this object has
+
+01:02:38.110 --> 01:02:40.235
+to be stored in memory
+on the heap as a pointer
+
+01:02:40.235 --> 01:02:42.110
+to two objects so that
+you have other pointer
+
+01:02:42.110 --> 01:02:44.410
+to the same object,
+and I mutate it,
+
+01:02:44.410 --> 01:02:45.998
+and the other references see it.
+
+01:02:45.998 --> 01:02:48.040
+It can't just be stuck in
+a register or something
+
+01:02:48.040 --> 01:02:49.240
+like that.
+
+01:02:49.240 --> 01:02:51.970
+It has to be something that
+other references can see.
+
+01:02:51.970 --> 01:02:53.710
+So this is bad.
+
+01:02:53.710 --> 01:02:58.210
+So if I have, so I
+can call 0.1 dot aa
+
+01:02:58.210 --> 01:02:59.850
+calls the constructor
+element-wise.
+
+01:02:59.850 --> 01:03:01.890
+A is this array of 10
+to the 7 random numbers.
+
+01:03:01.890 --> 01:03:03.182
+I was benchmarking them before.
+
+01:03:03.182 --> 01:03:06.310
+That was taking 10
+milliseconds, OK?
+
+01:03:06.310 --> 01:03:09.790
+And I can sum it.
+
+01:03:09.790 --> 01:03:11.915
+I can call the built-in
+some function on this.
+
+01:03:11.915 --> 01:03:13.540
+I can even call my
+sum function on this
+
+01:03:13.540 --> 01:03:15.150
+because it supports
+a 0 function.
+
+01:03:15.150 --> 01:03:16.640
+And so it supports a plus.
+
+01:03:16.640 --> 01:03:18.230
+So here, I have an array.
+
+01:03:18.230 --> 01:03:22.000
+If i just go back up, I
+have an array here of 10
+
+01:03:22.000 --> 01:03:25.330
+to the 7 values of type 0.1.
+
+01:03:25.330 --> 01:03:28.870
+So the type of 0.1 is
+attached to the array.
+
+01:03:31.500 --> 01:03:38.030
+So the array and memory,
+so I have an array of 0.1,
+
+01:03:38.030 --> 01:03:40.030
+the one here means it's
+a one-dimensional array.
+
+01:03:40.030 --> 01:03:42.220
+There's also 2D,
+3D, and so forth.
+
+01:03:42.220 --> 01:03:45.940
+That looks like a 0.1 value,
+a 0.1 value, a 0.1 value.
+
+01:03:48.870 --> 01:03:50.290
+But each one of those now--
+
+01:03:50.290 --> 01:03:55.510
+sorry-- has to be a
+pointer to an x and a y,
+
+01:03:55.510 --> 01:03:57.900
+which themselves are
+pointers to boxes.
+
+01:03:57.900 --> 01:04:00.642
+All right, so summing is
+going to be really slow
+
+01:04:00.642 --> 01:04:02.350
+because there's a lot
+of pointer chasing.
+
+01:04:02.350 --> 01:04:04.750
+It has to run time, check
+what's the type of x,
+
+01:04:04.750 --> 01:04:06.220
+what's the type of y.
+
+01:04:06.220 --> 01:04:07.540
+And, in fact, it was.
+
+01:04:07.540 --> 01:04:10.240
+It took instead of
+10 milliseconds,
+
+01:04:10.240 --> 01:04:14.470
+it took 500 or 600 milliseconds.
+
+01:04:14.470 --> 01:04:17.390
+So to do better, we
+need to do two things.
+
+01:04:17.390 --> 01:04:21.850
+So, first of all,
+x and y, we have
+
+01:04:21.850 --> 01:04:25.050
+to be able to see what
+type they are, OK?
+
+01:04:25.050 --> 01:04:27.140
+It can't be just any
+arbitrary old thing
+
+01:04:27.140 --> 01:04:30.230
+that has to be a
+pointer to a box, OK?
+
+01:04:30.230 --> 01:04:32.210
+And the point object
+has to be mutable.
+
+01:04:32.210 --> 01:04:36.860
+It has to be something where
+if I have p equals something,
+
+01:04:36.860 --> 01:04:39.870
+q equals something, I
+can't change p and expect q
+
+01:04:39.870 --> 01:04:40.370
+to see it.
+
+01:04:40.370 --> 01:04:47.030
+Otherwise, if it's
+mutable, those semantics
+
+01:04:47.030 --> 01:04:50.020
+have to be implemented as some
+pointer to an object someplace.
+
+01:04:50.020 --> 01:04:51.200
+Then you're dead.
+
+01:04:51.200 --> 01:04:53.920
+So I can just say struct.
+
+01:04:53.920 --> 01:04:56.530
+So struct now is not mutable.
+
+01:04:56.530 --> 01:04:58.030
+It doesn't have the
+mutable keyword.
+
+01:04:58.030 --> 01:04:59.488
+And I can give the
+arguments types.
+
+01:04:59.488 --> 01:05:02.150
+I can say they're both flow 64.
+
+01:05:02.150 --> 01:05:04.280
+And x and y are
+both the same type.
+
+01:05:04.280 --> 01:05:05.030
+They're both 64.
+
+01:05:05.030 --> 01:05:06.655
+But floating point
+numbers, I'll define
+
+01:05:06.655 --> 01:05:11.750
+plus the same way, 0 the same
+way, and now I can add them
+
+01:05:11.750 --> 01:05:12.830
+and so forth.
+
+01:05:12.830 --> 01:05:15.810
+But now if I make an
+array of these things,
+
+01:05:15.810 --> 01:05:18.463
+and if I say p dot x equals
+6, it will give an error.
+
+01:05:18.463 --> 01:05:19.880
+It says you can't
+actually mutate.
+
+01:05:19.880 --> 01:05:23.030
+Don't even try to mutate
+it because we can't support
+
+01:05:23.030 --> 01:05:24.980
+those semantics on this type.
+
+01:05:24.980 --> 01:05:30.840
+But that means so that
+type is actually--
+
+01:05:30.840 --> 01:05:34.880
+if you look at look
+at that in memory,
+
+01:05:34.880 --> 01:05:36.500
+what the compiler
+is allowed to do
+
+01:05:36.500 --> 01:05:42.920
+and what it does do for this is
+if you have an array of points
+
+01:05:42.920 --> 01:05:52.620
+0.21, then it looks like just
+the x value, the y value,
+
+01:05:52.620 --> 01:05:56.040
+The value, the y
+value, and so forth.
+
+01:05:56.040 --> 01:06:02.900
+But each of these are
+exactly one 8 byte flow 64.
+
+01:06:02.900 --> 01:06:05.550
+And all the types are
+known at compile time.
+
+01:06:05.550 --> 01:06:09.580
+And so if I sum them, it should
+take about 0.20 milliseconds,
+
+01:06:09.580 --> 01:06:10.080
+right?
+
+01:06:10.080 --> 01:06:12.888
+Because summing real
+numbers was 10 milliseconds.
+
+01:06:12.888 --> 01:06:14.930
+And this is twice as many
+because you have to sum
+
+01:06:14.930 --> 01:06:16.760
+the x's, sum the y's.
+
+01:06:16.760 --> 01:06:19.580
+And let's benchmark it.
+
+01:06:19.580 --> 01:06:22.270
+And let's see.
+
+01:06:22.270 --> 01:06:25.130
+Oh, actually, some of the real
+numbers took 5 milliseconds.
+
+01:06:25.130 --> 01:06:26.910
+So something should
+take about 10.
+
+01:06:26.910 --> 01:06:28.550
+Let's see if that's still true.
+
+01:06:28.550 --> 01:06:30.230
+Yeah, it took about 10.
+
+01:06:30.230 --> 01:06:32.870
+So actually, the
+compiler is smart enough.
+
+01:06:32.870 --> 01:06:35.630
+So, first of all, it
+stores this in line
+
+01:06:35.630 --> 01:06:38.210
+as one big block,
+consecutive block of memory.
+
+01:06:38.210 --> 01:06:41.450
+And then when you sum them,
+remember our sum function.
+
+01:06:41.450 --> 01:06:43.910
+Well, this is the built-in sum.
+
+01:06:43.910 --> 01:06:47.180
+But our sum function will
+work in the same way.
+
+01:06:47.180 --> 01:06:48.890
+The compiler-- llvm
+will be smart enough
+
+01:06:48.890 --> 01:06:51.260
+to say, oh, I can load
+this into a register,
+
+01:06:51.260 --> 01:06:55.640
+load y into a register,
+call, have a tight loop where
+
+01:06:55.640 --> 01:06:59.460
+I basically call one
+instruction to sum the x's,
+
+01:06:59.460 --> 01:07:02.668
+one instruction to sum
+the y's, and then repeat.
+
+01:07:02.668 --> 01:07:04.460
+And so it's about as
+good as you could get.
+
+01:07:04.460 --> 01:07:07.370
+But you paid a big price.
+
+01:07:07.370 --> 01:07:10.400
+We've lost all
+generality, right?
+
+01:07:10.400 --> 01:07:14.780
+These can only be two 64-bit
+floating point numbers.
+
+01:07:14.780 --> 01:07:17.840
+I can't have two
+single-precision numbers or--
+
+01:07:17.840 --> 01:07:23.300
+this is like a struct
+of two doubles in C.
+
+01:07:23.300 --> 01:07:25.658
+So if I have to do this to
+get performance in Julia,
+
+01:07:25.658 --> 01:07:26.450
+then it would suck.
+
+01:07:26.450 --> 01:07:31.370
+Basically, I'm
+basically writing C code
+
+01:07:31.370 --> 01:07:33.030
+in a slightly
+higher level syntax.
+
+01:07:33.030 --> 01:07:36.830
+I'm losing that benefit of
+using a high level language.
+
+01:07:36.830 --> 01:07:41.330
+So the way you get around
+this is you define--
+
+01:07:41.330 --> 01:07:45.448
+what you want is to define
+something like this 0.2 type.
+
+01:07:45.448 --> 01:07:47.240
+But you don't want to
+define just one type.
+
+01:07:47.240 --> 01:07:49.430
+You want to define a
+whole family of types.
+
+01:07:49.430 --> 01:07:52.470
+You want to define this for
+two float 64s, two float 32s.
+
+01:07:52.470 --> 01:07:54.870
+In fact, you want to define
+an infinite family of types,
+
+01:07:54.870 --> 01:07:57.726
+at two things of any type you
+want as long as they're two
+
+01:07:57.726 --> 01:08:00.240
+real numbers, two real types.
+
+01:08:00.240 --> 01:08:04.040
+And so the way you do that in
+Julia is a parametrized type.
+
+01:08:04.040 --> 01:08:06.170
+This is called
+parametric polymorphism.
+
+01:08:06.170 --> 01:08:10.160
+It's similar to what you
+see in C++ templates.
+
+01:08:10.160 --> 01:08:11.880
+So now I have a struct.
+
+01:08:11.880 --> 01:08:12.890
+It's not mutable--
+
+01:08:12.890 --> 01:08:13.880
+Point3.
+
+01:08:13.880 --> 01:08:16.439
+But the curly braces t.
+
+01:08:16.439 --> 01:08:18.500
+It says it's
+parametrized by type t.
+
+01:08:18.500 --> 01:08:19.399
+So x and y--
+
+01:08:19.399 --> 01:08:20.960
+I've restricted
+it slightly here.
+
+01:08:20.960 --> 01:08:22.850
+I've said x and y had
+to be the same type.
+
+01:08:22.850 --> 01:08:25.725
+I didn't have to do
+that, but I could
+
+01:08:25.725 --> 01:08:27.850
+have had two parameters,
+one for the type of x, one
+
+01:08:27.850 --> 01:08:28.558
+to the type of y.
+
+01:08:28.558 --> 01:08:31.052
+But most the time you'd be
+doing something like this,
+
+01:08:31.052 --> 01:08:32.760
+you'd want them both
+to be the same type.
+
+01:08:32.760 --> 01:08:36.050
+But they could be both
+64s, both float 32s,
+
+01:08:36.050 --> 01:08:37.700
+both integers, whatever.
+
+01:08:37.700 --> 01:08:43.020
+So t is any type that less than
+colon means is a subtype of.
+
+01:08:43.020 --> 01:08:46.205
+So t is any subtype of real.
+
+01:08:46.205 --> 01:08:47.450
+It could be float 64.
+
+01:08:47.450 --> 01:08:48.470
+It could be int 64.
+
+01:08:48.470 --> 01:08:49.323
+It could be int 8.
+
+01:08:49.323 --> 01:08:50.240
+It could be big float.
+
+01:08:50.240 --> 01:08:51.573
+It could be a user defined type.
+
+01:08:51.573 --> 01:08:53.210
+It doesn't care.
+
+01:08:53.210 --> 01:08:54.460
+So this is really not--
+
+01:08:54.460 --> 01:08:58.120
+it's a Point3 here.
+
+01:08:58.120 --> 01:08:59.180
+It is a whole hierarchy.
+
+01:08:59.180 --> 01:09:01.630
+So I'm not defining one type.
+
+01:09:01.630 --> 01:09:05.410
+I'm defining a
+whole set of types.
+
+01:09:05.410 --> 01:09:07.859
+So Point3 is a set of types.
+
+01:09:07.859 --> 01:09:13.410
+There's a point Point3 int 64.
+
+01:09:13.410 --> 01:09:24.590
+There is a Point3 float
+32, a float 64 and so on.
+
+01:09:24.590 --> 01:09:27.120
+Infinitely, many types,
+as many as you want,
+
+01:09:27.120 --> 01:09:30.630
+and basically, it'll create
+more types on the fly
+
+01:09:30.630 --> 01:09:32.359
+just by instantiating.
+
+01:09:32.359 --> 01:09:34.910
+So, for example, otherwise
+it looks the same.
+
+01:09:34.910 --> 01:09:36.880
+The plus function is
+basically the same.
+
+01:09:36.880 --> 01:09:38.810
+I add the x components,
+the y components.
+
+01:09:38.810 --> 01:09:42.770
+The 0 function is the same.
+
+01:09:42.770 --> 01:09:46.310
+Except now I make sure there's
+zeros of type t, whatever
+
+01:09:46.310 --> 01:09:47.590
+that type is.
+
+01:09:47.590 --> 01:09:51.350
+And now if I say
+Point34, now I'm
+
+01:09:51.350 --> 01:09:54.590
+instantiating a particular
+instance of this.
+
+01:09:54.590 --> 01:09:57.298
+And now that particular
+instance of Point3 we'll have--
+
+01:09:57.298 --> 01:09:58.340
+this is an abstract type.
+
+01:09:58.340 --> 01:10:00.050
+We'll have one of
+these concrete types.
+
+01:10:00.050 --> 01:10:01.980
+And the concrete type
+it has in this case
+
+01:10:01.980 --> 01:10:08.180
+is a Point3 of two int 64s,
+two 64-bit integers, OK?
+
+01:10:08.180 --> 01:10:09.020
+And I can add them.
+
+01:10:11.690 --> 01:10:14.990
+And actually, adding mixed
+types will already work
+
+01:10:14.990 --> 01:10:22.030
+because the plus, the
+addition function here,
+
+01:10:22.030 --> 01:10:24.430
+it works for any 2.3s.
+
+01:10:24.430 --> 01:10:27.912
+I didn't say there had to
+Point3s of the same type.
+
+01:10:27.912 --> 01:10:30.120
+Any two of these, they don't
+have to be two of these.
+
+01:10:30.120 --> 01:10:32.290
+They could be one of
+these and one of these.
+
+01:10:32.290 --> 01:10:34.390
+And then it determines
+the type of the result
+
+01:10:34.390 --> 01:10:38.120
+by the type of the [INAUDIBLE]
+it does type inference.
+
+01:10:38.120 --> 01:10:40.900
+So if you have a point
+Point3 of two int 64s
+
+01:10:40.900 --> 01:10:45.850
+and Point3 of two float 32s, it
+says, oh, p dot x is an int 64.
+
+01:10:45.850 --> 01:10:48.970
+Q dot x is a full 64.
+
+01:10:48.970 --> 01:10:50.640
+Oh, which plus
+function do I call?
+
+01:10:50.640 --> 01:10:52.750
+There is a plus function
+from that mixing.
+
+01:10:52.750 --> 01:10:54.870
+And it promotes the
+result of flow 64.
+
+01:10:54.870 --> 01:10:56.620
+So that means that
+that sum is flow 64.
+
+01:10:56.620 --> 01:10:58.100
+The other sum is flow 64.
+
+01:10:58.100 --> 01:11:02.020
+Oh, then I'm creating
+a Point3 of flow 64s.
+
+01:11:02.020 --> 01:11:05.855
+So this kind of mixed promotion
+is done automatically.
+
+01:11:05.855 --> 01:11:08.230
+You can actually define your
+own promotion rules in Julia
+
+01:11:08.230 --> 01:11:10.600
+as well.
+
+01:11:10.600 --> 01:11:12.670
+And I can make an array.
+
+01:11:15.430 --> 01:11:25.980
+And so now if I have an
+array of Point3 float 64,
+
+01:11:25.980 --> 01:11:29.040
+so this type is attached
+to the whole array.
+
+01:11:29.040 --> 01:11:32.810
+And this is not an
+arbitrary Point3.
+
+01:11:32.810 --> 01:11:34.550
+It's a Point3 of two float 64s.
+
+01:11:34.550 --> 01:11:40.080
+So it gets stored again as just
+10 to the 7 elements of xy,
+
+01:11:40.080 --> 01:11:42.420
+xy where each one
+is 8 bytes 8 byes,
+
+01:11:42.420 --> 01:11:43.840
+8 bytes, one after the other.
+
+01:11:43.840 --> 01:11:45.220
+The compiler knows
+all the types.
+
+01:11:45.220 --> 01:11:48.510
+And when you submit, it knows
+everything at compile time.
+
+01:11:48.510 --> 01:11:51.330
+And it will sum to these things.
+
+01:11:51.330 --> 01:11:52.830
+But I loaded this
+into a register,
+
+01:11:52.830 --> 01:11:56.660
+load this into a register called
+one instruction-- add them.
+
+01:11:56.660 --> 01:11:59.372
+And so the sum function
+should be fast.
+
+01:11:59.372 --> 01:12:01.080
+So we can call the
+built-in sum function.
+
+01:12:01.080 --> 01:12:02.583
+We can call our
+own sum function.
+
+01:12:02.583 --> 01:12:04.500
+Our own some function,
+I didn't put SIMD here,
+
+01:12:04.500 --> 01:12:06.600
+so it's going to
+be twice as slow.
+
+01:12:06.600 --> 01:12:08.190
+But Yeah.
+
+01:12:08.190 --> 01:12:10.680
+Yeah?
+
+01:12:10.680 --> 01:12:12.365
+AUDIENCE: Will this
+work with SIMD?
+
+01:12:12.365 --> 01:12:13.240
+STEVEN JOHNSON: Yeah.
+
+01:12:13.240 --> 01:12:13.740
+Yeah.
+
+01:12:13.740 --> 01:12:15.850
+In fact, if you look, the
+built-in sum function,
+
+01:12:15.850 --> 01:12:17.933
+the built-in sum function
+is implemented in Julia.
+
+01:12:17.933 --> 01:12:20.440
+It just hasn't [INAUDIBLE]
+SIMD on the sum.
+
+01:12:20.440 --> 01:12:21.230
+So yeah.
+
+01:12:21.230 --> 01:12:25.710
+llvm is smart enough that if you
+give it a struct of two values
+
+01:12:25.710 --> 01:12:27.062
+and load them--
+
+01:12:27.062 --> 01:12:29.020
+and if you tell it that
+you're adding these two
+
+01:12:29.020 --> 01:12:31.690
+values to these two values these
+two values to these two values,
+
+01:12:31.690 --> 01:12:34.690
+it will actually use SIMD
+instructions, I think.
+
+01:12:34.690 --> 01:12:36.710
+Oh, maybe not.
+
+01:12:36.710 --> 01:12:37.210
+No, wait.
+
+01:12:37.210 --> 01:12:38.770
+Did my sum use SIMD?
+
+01:12:38.770 --> 01:12:40.280
+I'm confused.
+
+01:12:40.280 --> 01:12:41.100
+I thought it did.
+
+01:12:41.100 --> 01:12:41.950
+AUDIENCE: [INAUDIBLE]
+removed it.
+
+01:12:41.950 --> 01:12:42.670
+STEVEN JOHNSON: I
+thought I removed it.
+
+01:12:42.670 --> 01:12:45.130
+Yeah, so maybe it's not
+smart enough to use SIMD.
+
+01:12:48.210 --> 01:12:52.200
+I've seen in some cases where
+it's smart enough to use--
+
+01:12:52.200 --> 01:12:52.760
+huh, yeah.
+
+01:12:52.760 --> 01:12:54.800
+OK, so they're the same speed.
+
+01:12:54.800 --> 01:12:56.120
+OK, no.
+
+01:12:56.120 --> 01:12:56.880
+I take it back.
+
+01:12:56.880 --> 01:12:59.790
+So maybe llvm is not
+smart enough in this case
+
+01:12:59.790 --> 01:13:01.280
+to use SIMD automatically.
+
+01:13:01.280 --> 01:13:03.880
+We could try putting the
+SIMD annotation there
+
+01:13:03.880 --> 01:13:05.560
+and try it again.
+
+01:13:05.560 --> 01:13:09.120
+But I thought it
+was, but maybe not.
+
+01:13:09.120 --> 01:13:09.620
+Let's see.
+
+01:13:09.620 --> 01:13:12.530
+Let's put SIMD.
+
+01:13:12.530 --> 01:13:14.910
+So redefine that.
+
+01:13:14.910 --> 01:13:17.810
+And then just rerun this.
+
+01:13:17.810 --> 01:13:20.020
+So it'll notice that I've
+changed the definition.
+
+01:13:20.020 --> 01:13:20.830
+It'll recompile it.
+
+01:13:24.040 --> 01:13:27.040
+But the B time, since it
+times at multiple times,
+
+01:13:27.040 --> 01:13:30.250
+the first time it calls it, it's
+slow because it's compiling it.
+
+01:13:30.250 --> 01:13:32.350
+But it takes the minimum
+over several times.
+
+01:13:32.350 --> 01:13:38.180
+So let's see.
+
+01:13:44.680 --> 01:13:48.910
+Yeah, this is the problem
+in general with vectorizing
+
+01:13:48.910 --> 01:13:51.550
+compilers if they're
+not that smart if you're
+
+01:13:51.550 --> 01:13:54.400
+using anything other than just
+an array of an elementary data
+
+01:13:54.400 --> 01:13:56.600
+type.
+
+01:13:56.600 --> 01:13:57.100
+Yeah, no.
+
+01:13:57.100 --> 01:13:58.090
+It didn't make any difference.
+
+01:13:58.090 --> 01:13:58.840
+So I took it back.
+
+01:13:58.840 --> 01:14:01.900
+So for more complicated
+data structures,
+
+01:14:01.900 --> 01:14:04.990
+you often have to use
+SIMD structure explicitly.
+
+01:14:04.990 --> 01:14:06.650
+And there is a way
+to do that in Julia.
+
+01:14:06.650 --> 01:14:08.775
+And there is a higher level
+library on top of that.
+
+01:14:08.775 --> 01:14:10.990
+You can basically credit a
+tuple and then add things
+
+01:14:10.990 --> 01:14:14.710
+and it will do
+SIMD acceleration.
+
+01:14:14.710 --> 01:14:16.450
+But yeah.
+
+01:14:16.450 --> 01:14:18.530
+So anyway, so that's
+the upside here.
+
+01:14:18.530 --> 01:14:19.840
+There's a whole bunch of--
+
+01:14:19.840 --> 01:14:22.730
+like the story of why Julia
+can be compiled with fast code,
+
+01:14:22.730 --> 01:14:25.210
+it's a combination of
+lots of little things.
+
+01:14:25.210 --> 01:14:27.590
+But there are a few big things.
+
+01:14:27.590 --> 01:14:30.937
+One is that its specialized
+thing is compile times.
+
+01:14:30.937 --> 01:14:33.020
+But, of course, you could
+do that in any language.
+
+01:14:33.020 --> 01:14:34.930
+So that relies on
+designing the language so
+
+01:14:34.930 --> 01:14:36.980
+that you can do type inference.
+
+01:14:36.980 --> 01:14:41.670
+It relies on having these
+kind of parametrized types
+
+01:14:41.670 --> 01:14:43.810
+and giving you a way
+to talk about types
+
+01:14:43.810 --> 01:14:45.760
+and attach types to other types.
+
+01:14:45.760 --> 01:14:50.543
+So the array you notice
+probably-- let's see--
+
+01:14:50.543 --> 01:14:52.960
+and now that you understand
+what these little braces mean,
+
+01:14:52.960 --> 01:14:56.440
+you can see that the
+array is defined in Julia
+
+01:14:56.440 --> 01:14:57.850
+as another parametrized type.
+
+01:14:57.850 --> 01:14:59.800
+It's parametrized by
+the type of the element
+
+01:14:59.800 --> 01:15:02.770
+and also by the dimensionality.
+
+01:15:02.770 --> 01:15:06.430
+So it uses the same mechanism
+to attach types to an array.
+
+01:15:06.430 --> 01:15:08.600
+And you can have your own--
+the array type in Julia
+
+01:15:08.600 --> 01:15:10.215
+is implemented mostly in Julia.
+
+01:15:10.215 --> 01:15:11.590
+And there are
+other packages that
+
+01:15:11.590 --> 01:15:13.930
+implement their
+own types of arrays
+
+01:15:13.930 --> 01:15:16.705
+that have the same performance.
+
+01:15:16.705 --> 01:15:19.600
+One of the goals of Julia is to
+build in as little as possible
+
+01:15:19.600 --> 01:15:23.643
+so that there's not some
+set of privileged types
+
+01:15:23.643 --> 01:15:25.810
+that the compiler knows
+about and everything else is
+
+01:15:25.810 --> 01:15:26.770
+second class.
+
+01:15:26.770 --> 01:15:32.412
+It's like user code is just
+as good as the built-in code.
+
+01:15:32.412 --> 01:15:34.120
+And, in fact, the
+built-in code is mostly
+
+01:15:34.120 --> 01:15:35.200
+just implemented in Julia.
+
+01:15:35.200 --> 01:15:37.033
+There's a small core
+that's implemented in C
+
+01:15:37.033 --> 01:15:40.250
+for bootstrapping, basically.
+
+01:15:40.250 --> 01:15:40.750
+Yeah.
+
+01:15:40.750 --> 01:15:45.760
+So having parametrized types,
+having another technicalities,
+
+01:15:45.760 --> 01:15:50.110
+having all concrete
+types are final in Julia.
+
+01:15:52.967 --> 01:15:55.550
+A concrete type is something you
+can actually store in memory.
+
+01:15:55.550 --> 01:15:59.440
+So Point3864 is something
+you can actually have, right?
+
+01:15:59.440 --> 01:16:01.960
+An object of two
+integers is that type.
+
+01:16:01.960 --> 01:16:04.318
+So it is concrete, as
+opposed to this thing.
+
+01:16:04.318 --> 01:16:05.360
+This is an abstract type.
+
+01:16:05.360 --> 01:16:06.970
+You can't actually
+have one of these.
+
+01:16:06.970 --> 01:16:08.553
+You can only have
+one of the instances
+
+01:16:08.553 --> 01:16:09.490
+of the concrete types.
+
+01:16:09.490 --> 01:16:10.600
+So but there are no--
+
+01:16:10.600 --> 01:16:11.580
+this is final.
+
+01:16:11.580 --> 01:16:14.650
+It's not possible to
+have a subtype of this
+
+01:16:14.650 --> 01:16:16.600
+because if you could,
+then you'd be dead
+
+01:16:16.600 --> 01:16:20.650
+because this is an
+array of these things.
+
+01:16:20.650 --> 01:16:23.950
+If the compiler has to know it's
+actually these things and not
+
+01:16:23.950 --> 01:16:28.550
+some subtype of this, all right,
+whereas in other languages,
+
+01:16:28.550 --> 01:16:31.065
+like Python, you can have
+subtypes of concrete types.
+
+01:16:31.065 --> 01:16:32.440
+And so then even
+if you said this
+
+01:16:32.440 --> 01:16:34.450
+is an array of a
+particular Python type,
+
+01:16:34.450 --> 01:16:36.990
+it wouldn't really
+know it's that type,
+
+01:16:36.990 --> 01:16:38.500
+or it might be some
+subtype of that.
+
+01:16:38.500 --> 01:16:40.270
+That's one of the
+reasons why you can't
+
+01:16:40.270 --> 01:16:42.680
+implement NumPy in Python.
+
+01:16:42.680 --> 01:16:45.070
+This is-- there's no way
+to say this is really
+
+01:16:45.070 --> 01:16:49.020
+that type and nothing else
+in the language level.
+
+01:16:49.020 --> 01:16:49.790
+Yeah?
+
+01:16:49.790 --> 01:16:52.000
+AUDIENCE: Will this
+compilation in Julia work?
+
+01:16:52.000 --> 01:16:53.042
+STEVEN JOHNSON: Oh, yeah.
+
+01:16:53.042 --> 01:16:54.840
+So and it's calling llvm.
+
+01:16:54.840 --> 01:16:58.740
+So basically, the
+stage is you call--
+
+01:16:58.740 --> 01:17:01.130
+so there's a few passes.
+
+01:17:01.130 --> 01:17:06.100
+OK, so and one of
+the fun things is
+
+01:17:06.100 --> 01:17:09.250
+you can actually
+inspect all the passes
+
+01:17:09.250 --> 01:17:12.380
+and almost intercept
+all of them practically.
+
+01:17:12.380 --> 01:17:14.000
+So, of course, typing
+code like this,
+
+01:17:14.000 --> 01:17:16.810
+first, it gets parsed, OK?
+
+01:17:16.810 --> 01:17:20.350
+And you can macro those
+things [INAUDIBLE]
+
+01:17:20.350 --> 01:17:23.290
+actually are functions that
+are called right after parsing.
+
+01:17:23.290 --> 01:17:24.700
+They can just take
+the parse code
+
+01:17:24.700 --> 01:17:26.660
+and rewrite it arbitrarily.
+
+01:17:26.660 --> 01:17:28.910
+So they can extend
+the language that way.
+
+01:17:28.910 --> 01:17:32.380
+But then it parsed, maybe
+rewritten by a macro.
+
+01:17:32.380 --> 01:17:34.700
+And then you get an
+abstract syntax tree.
+
+01:17:34.700 --> 01:17:38.530
+And then when you call it,
+let's say f of 3, then says,
+
+01:17:38.530 --> 01:17:39.860
+oh, x is an integer.
+
+01:17:39.860 --> 01:17:42.880
+Int 64, it runs a
+type inference pass.
+
+01:17:42.880 --> 01:17:47.170
+It tries to figure out what's
+the type of everything,
+
+01:17:47.170 --> 01:17:49.990
+which version of plus
+to call and so forth.
+
+01:17:49.990 --> 01:17:53.050
+Then it decides whether
+to inline some things.
+
+01:17:53.050 --> 01:17:56.500
+And then once it's
+done all that,
+
+01:17:56.500 --> 01:17:59.470
+it spits out llvm byte
+code, then calls llvm,
+
+01:17:59.470 --> 01:18:01.637
+and compiles it to machine code.
+
+01:18:01.637 --> 01:18:03.970
+And then it caches that some
+place for the next time you
+
+01:18:03.970 --> 01:18:08.390
+call, you call f of 4,
+f with another integer.
+
+01:18:08.390 --> 01:18:10.090
+It doesn't repeat
+the same processes.
+
+01:18:10.090 --> 01:18:12.670
+Notice it's cached.
+
+01:18:12.670 --> 01:18:14.603
+So that's-- so yeah.
+
+01:18:14.603 --> 01:18:16.270
+At the lowest level,
+it's just the llvm.
+
+01:18:20.960 --> 01:18:23.240
+So then there's tons of
+things I haven't showed you.
+
+01:18:23.240 --> 01:18:24.290
+So I haven't showed you--
+
+01:18:24.290 --> 01:18:25.700
+I mentioned metaprogramming.
+
+01:18:25.700 --> 01:18:28.010
+So it has this macro facility.
+
+01:18:28.010 --> 01:18:30.080
+So you can basically
+write syntax
+
+01:18:30.080 --> 01:18:32.060
+that rewrites other
+syntax, which is really
+
+01:18:32.060 --> 01:18:33.770
+cool for code generation.
+
+01:18:33.770 --> 01:18:37.400
+You can also intercept it
+after the type inference phase.
+
+01:18:37.400 --> 01:18:39.890
+You can write something called
+the generated function that
+
+01:18:39.890 --> 01:18:41.660
+basically takes--
+because at parse time,
+
+01:18:41.660 --> 01:18:44.000
+it knows how things are spelled.
+
+01:18:44.000 --> 01:18:45.667
+And you can rewrite
+how they're spelled.
+
+01:18:45.667 --> 01:18:47.708
+But it doesn't know what
+anything actually means.
+
+01:18:47.708 --> 01:18:48.880
+It does knows x is a symbol.
+
+01:18:48.880 --> 01:18:50.672
+It doesn't know x as
+an integer-- whatever.
+
+01:18:50.672 --> 01:18:51.860
+It just knows the spelling.
+
+01:18:51.860 --> 01:18:54.260
+So when you actually compile
+f of x, at that point,
+
+01:18:54.260 --> 01:18:56.530
+it knows x is an integer.
+
+01:18:56.530 --> 01:18:59.630
+And so you can write something
+called a generator or a stage
+
+01:18:59.630 --> 01:19:03.470
+function that basically
+runs at that time and says,
+
+01:19:03.470 --> 01:19:04.980
+oh, you told me x is an integer.
+
+01:19:04.980 --> 01:19:07.080
+Now I'll rewrite the
+code based on that.
+
+01:19:07.080 --> 01:19:09.760
+And so this is
+really useful for--
+
+01:19:09.760 --> 01:19:13.010
+there's some cool facilities
+for multidimensional arrays.
+
+01:19:13.010 --> 01:19:15.140
+Because the dimensionality
+of the array
+
+01:19:15.140 --> 01:19:18.050
+is actually part of the type.
+
+01:19:18.050 --> 01:19:20.360
+So you can say, oh, this is
+a three-dimensional array.
+
+01:19:20.360 --> 01:19:21.690
+I'll write three loops.
+
+01:19:21.690 --> 01:19:23.480
+Oh, you have a
+four-dimensional array.
+
+01:19:23.480 --> 01:19:24.860
+I'll write four loops.
+
+01:19:24.860 --> 01:19:29.050
+And it can rewrite the code
+depending on the dimensionality
+
+01:19:29.050 --> 01:19:30.290
+with code generation.
+
+01:19:30.290 --> 01:19:33.350
+So you can have code
+that basically generates
+
+01:19:33.350 --> 01:19:35.550
+any number of nested
+loops depending
+
+01:19:35.550 --> 01:19:36.800
+on the types of the arguments.
+
+01:19:36.800 --> 01:19:38.780
+And all the generation
+is done in compiled time
+
+01:19:38.780 --> 01:19:39.830
+after type inference.
+
+01:19:39.830 --> 01:19:43.670
+So it knows the
+dimensionality of the array.
+
+01:19:43.670 --> 01:19:50.150
+And yeah, so there's lots
+of fun things like that.
+
+01:19:50.150 --> 01:19:53.180
+Of course, it has
+parallel facilities.
+
+01:19:53.180 --> 01:19:55.530
+They're not quite as advanced
+as Cilk at this point,
+
+01:19:55.530 --> 01:19:59.030
+but that's the direction
+there they're heading.
+
+01:19:59.030 --> 01:20:02.390
+There's no global interpreter
+lock like in Python.
+
+01:20:02.390 --> 01:20:04.250
+There's no interpreter.
+
+01:20:04.250 --> 01:20:07.810
+So there's a threading facility.
+
+01:20:07.810 --> 01:20:09.530
+And there's a pool of workers.
+
+01:20:09.530 --> 01:20:12.470
+And you can thread a loop.
+
+01:20:12.470 --> 01:20:17.270
+And the garbage collection
+is threading aware.
+
+01:20:17.270 --> 01:20:18.770
+So that's safe.
+
+01:20:18.770 --> 01:20:22.160
+And they're gradually having
+more and more powerful
+
+01:20:22.160 --> 01:20:23.930
+run times, hopefully,
+eventually hooking
+
+01:20:23.930 --> 01:20:27.890
+into some of Professor
+Leiserson's advanced threading
+
+01:20:27.890 --> 01:20:31.180
+compiler, taper compiler,
+or whatever it is.
+
+01:20:31.180 --> 01:20:34.100
+And there's also--
+most of what I
+
+01:20:34.100 --> 01:20:37.190
+do in my research is more coarse
+grained distributed memory
+
+01:20:37.190 --> 01:20:40.960
+parallelism, so running on
+supercomputers and stuff
+
+01:20:40.960 --> 01:20:41.460
+like that.
+
+01:20:41.460 --> 01:20:43.730
+And there's MPI.
+
+01:20:43.730 --> 01:20:45.950
+There is a remote
+procedure call library.
+
+01:20:45.950 --> 01:20:50.010
+There's different
+flavors of that.
+
+01:20:50.010 --> 01:20:51.570
+But yeah.
+
+01:20:51.570 --> 01:20:55.740
+So any other questions?
+
+01:20:55.740 --> 01:20:56.240
+Yeah?
+
+01:20:56.240 --> 01:20:59.200
+AUDIENCE: How do you
+implement the big number type?
+
+01:20:59.200 --> 01:21:01.630
+STEVEN JOHNSON: The
+big num type in Julia
+
+01:21:01.630 --> 01:21:03.630
+is actually calling GIMP.
+
+01:21:10.850 --> 01:21:12.570
+So that's one of those things.
+
+01:21:12.570 --> 01:21:18.600
+Let me just-- let me
+make a new notebook.
+
+01:21:18.600 --> 01:21:26.670
+So if I say I know
+big int 3, 3,000,
+
+01:21:26.670 --> 01:21:31.200
+and then I'd say that
+to the, say, factorial.
+
+01:21:31.200 --> 01:21:33.944
+I think there's a built-in
+factorial of that.
+
+01:21:33.944 --> 01:21:40.590
+All right, so this is called
+the big num type, right?
+
+01:21:40.590 --> 01:21:43.410
+It's something where the number
+of digits changes at run time.
+
+01:21:43.410 --> 01:21:45.243
+So, of course, these
+are orders of magnitude
+
+01:21:45.243 --> 01:21:47.165
+slower than hardware things.
+
+01:21:47.165 --> 01:21:48.540
+Basically, it has
+to implement it
+
+01:21:48.540 --> 01:21:51.395
+as a loop of digits
+in some base.
+
+01:21:51.395 --> 01:21:52.770
+And when you add
+or multiply, you
+
+01:21:52.770 --> 01:21:54.750
+have to loop over
+those at runtime.
+
+01:21:58.881 --> 01:22:01.710
+These big num libraries,
+they are quite large
+
+01:22:01.710 --> 01:22:02.850
+and heavily optimized.
+
+01:22:02.850 --> 01:22:06.000
+And so nobody has
+reimplemented one in Julia.
+
+01:22:06.000 --> 01:22:08.700
+They're just calling out to
+a C library called the GNU
+
+01:22:08.700 --> 01:22:10.340
+multi-precision library.
+
+01:22:10.340 --> 01:22:14.030
+And for floating
+point values, there
+
+01:22:14.030 --> 01:22:16.302
+is something called big float.
+
+01:22:16.302 --> 01:22:21.295
+So big float of pi is
+that I can actually--
+
+01:22:21.295 --> 01:22:22.960
+let's set precision.
+
+01:22:29.820 --> 01:22:35.310
+Big float to 1000.
+
+01:22:35.310 --> 01:22:37.210
+That's 1,000 binary digits.
+
+01:22:37.210 --> 01:22:42.450
+And then say big float of pi.
+
+01:22:42.450 --> 01:22:43.980
+And [INAUDIBLE] more.
+
+01:22:43.980 --> 01:22:48.070
+By the way, you might have-- so
+I can have a variable alpha--
+
+01:22:48.070 --> 01:22:53.130
+oops-- alpha hat
+sub 2 equals 17.
+
+01:22:53.130 --> 01:22:53.790
+That's allowed.
+
+01:22:58.060 --> 01:23:01.570
+All that's happening
+here is that Julia
+
+01:23:01.570 --> 01:23:05.920
+allows almost arbitrary
+unicode things for identifiers.
+
+01:23:05.920 --> 01:23:06.860
+So I can have--
+
+01:23:06.860 --> 01:23:19.090
+make it bigger so we can have
+an identifier Koala, right?
+
+01:23:21.695 --> 01:23:22.820
+So there's two issues here.
+
+01:23:22.820 --> 01:23:25.220
+So one is just you have
+a language that allows
+
+01:23:25.220 --> 01:23:26.500
+those things as identifiers.
+
+01:23:26.500 --> 01:23:29.090
+So Python 3 also allows
+Unicode identifiers,
+
+01:23:29.090 --> 01:23:32.280
+although I think Julia
+out of all the existing--
+
+01:23:32.280 --> 01:23:34.550
+the common languages--
+it's probably
+
+01:23:34.550 --> 01:23:36.390
+the widest unicode support.
+
+01:23:36.390 --> 01:23:40.760
+Most languages only
+allow a very narrow range
+
+01:23:40.760 --> 01:23:42.840
+of unicode characters
+for identifiers.
+
+01:23:42.840 --> 01:23:46.010
+So Python would allow
+the koala, but Python 3
+
+01:23:46.010 --> 01:23:51.260
+would not allow
+with alpha hat sub 2
+
+01:23:51.260 --> 01:23:53.760
+because the numeric
+subscript unicode
+
+01:23:53.760 --> 01:23:56.300
+characters it doesn't allow.
+
+01:23:56.300 --> 01:23:58.430
+The other thing is how
+do you type these things.
+
+01:23:58.430 --> 01:24:00.180
+And that's more of
+an editor thing.
+
+01:24:00.180 --> 01:24:05.520
+And so in Julia, we implemented
+initially in the repl
+
+01:24:05.520 --> 01:24:07.160
+and in Jupiter.
+
+01:24:07.160 --> 01:24:08.660
+And now all the
+editors support, you
+
+01:24:08.660 --> 01:24:10.400
+can just to tab
+completion of latex.
+
+01:24:10.400 --> 01:24:15.500
+So I can type in
+gamma, tab, and the tab
+
+01:24:15.500 --> 01:24:17.310
+completes to the
+unicode character.
+
+01:24:17.310 --> 01:24:19.780
+I can say dot.
+
+01:24:19.780 --> 01:24:25.100
+And it puts a dot over it
+and backslash superscript 4.
+
+01:24:25.100 --> 01:24:26.290
+And it puts a 4.
+
+01:24:26.290 --> 01:24:30.300
+And that's allowed.
+
+01:24:30.300 --> 01:24:31.845
+So it's quite nice.
+
+01:24:31.845 --> 01:24:34.220
+So when I'm typing emails,
+and I put equations in emails,
+
+01:24:34.220 --> 01:24:37.677
+I go to the Julia rappel and
+tab complete all my LaTeX
+
+01:24:37.677 --> 01:24:39.260
+characters so that
+I can put equations
+
+01:24:39.260 --> 01:24:41.330
+in emails because It's
+the easiest way to type
+
+01:24:41.330 --> 01:24:44.070
+these Unicode math characters.
+
+01:24:44.070 --> 01:24:44.570
+But yeah.
+
+01:24:44.570 --> 01:24:47.860
+So IPython borrowed this.
+
+01:24:47.860 --> 01:24:53.800
+So now do the same thing in
+the IPython notebooks as well.
+
+01:24:53.800 --> 01:24:56.750
+So it's really fun.
+
+01:24:56.750 --> 01:25:00.290
+Because if you read old math
+codes, especially old Fortran
+
+01:25:00.290 --> 01:25:02.660
+codes or things, you
+see lots of variables
+
+01:25:02.660 --> 01:25:05.330
+that are named alpha hat
+or something like that,
+
+01:25:05.330 --> 01:25:07.157
+alpha hat underscore 3.
+
+01:25:07.157 --> 01:25:08.990
+It's so much nicer to
+have a variable that's
+
+01:25:08.990 --> 01:25:10.760
+actually the alpha hat sub 3.
+
+01:25:10.760 --> 01:25:11.903
+So that's cute.
+
+01:25:11.903 --> 01:25:13.820
+CHARLES E. LEISERSON:
+Steve, thanks very much.
+
+01:25:13.820 --> 01:25:14.510
+Thanks.
+
+01:25:14.510 --> 01:25:15.170
+This was great.
+
+01:25:15.170 --> 01:25:16.880
+[APPLAUSE]
+
+01:25:16.880 --> 01:25:19.580
+We are, as Steve
+mentioned, looking actually
+
+01:25:19.580 --> 01:25:22.670
+at a project to merge the
+Julia technology with the Cilk
+
+01:25:22.670 --> 01:25:23.690
+technology.
+
+01:25:23.690 --> 01:25:28.600
+And so we're right now in the
+process of putting together
+
+01:25:28.600 --> 01:25:30.340
+the grant proposal.
+
+01:25:30.340 --> 01:25:34.360
+And if that gets funded,
+there may be some UROPS.

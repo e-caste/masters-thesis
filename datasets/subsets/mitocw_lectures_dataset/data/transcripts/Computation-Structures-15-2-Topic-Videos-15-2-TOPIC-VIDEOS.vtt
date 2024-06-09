@@ -1,0 +1,869 @@
+WEBVTT
+
+00:00:00.500 --> 00:00:03.330
+Now let’s turn our attention
+to control hazards,
+
+00:00:03.330 --> 00:00:06.675
+illustrated by the code
+fragment shown here.
+
+00:00:06.675 --> 00:00:08.800
+Which instruction should
+be executed after the BNE?
+
+00:00:08.800 --> 00:00:14.520
+If the value in R3 is non-zero,
+ADDC should be executed.
+
+00:00:14.520 --> 00:00:19.780
+If the value in R3 is zero, the
+next instruction should be SUB.
+
+00:00:19.780 --> 00:00:23.090
+If the current instruction is
+an explicit transfer of control
+
+00:00:23.090 --> 00:00:27.260
+(i.e., JMPs or branches), the
+choice of the next instruction
+
+00:00:27.260 --> 00:00:30.900
+depends on the execution
+of the current instruction.
+
+00:00:30.900 --> 00:00:33.150
+What are the implications
+of this dependency
+
+00:00:33.150 --> 00:00:36.680
+on our execution pipeline?
+
+00:00:36.680 --> 00:00:38.840
+How does the unpipelined
+implementation
+
+00:00:38.840 --> 00:00:41.190
+determine the next instruction?
+
+00:00:41.190 --> 00:00:44.310
+For branches (BEQ
+or BNE), the value
+
+00:00:44.310 --> 00:00:47.760
+to be loaded into the
+program counter depends on
+
+00:00:47.760 --> 00:00:50.740
+(1) the opcode, i.e.,
+whether the instruction
+
+00:00:50.740 --> 00:00:51.920
+is a BEQ or a BNE,
+
+00:00:51.920 --> 00:00:56.990
+(2) the current value of the
+program counter since that’s
+
+00:00:56.990 --> 00:00:59.330
+used in the offset
+calculation, and
+
+00:00:59.330 --> 00:01:02.860
+(3) the value stored in the
+register specified by the RA
+
+00:01:02.860 --> 00:01:05.810
+field of the instruction
+since that’s the value tested
+
+00:01:05.810 --> 00:01:07.990
+by the branch.
+
+00:01:07.990 --> 00:01:11.180
+For JMP instructions, the next
+value of the program counter
+
+00:01:11.180 --> 00:01:15.140
+depends once again on the opcode
+field and the value of the RA
+
+00:01:15.140 --> 00:01:17.030
+register.
+
+00:01:17.030 --> 00:01:20.340
+For all other instructions,
+the next PC value depends only
+
+00:01:20.340 --> 00:01:25.540
+the opcode of the instruction
+and the value PC+4.
+
+00:01:25.540 --> 00:01:28.560
+Exceptions also change
+the program counter.
+
+00:01:28.560 --> 00:01:32.010
+We’ll deal with them
+later in the lecture.
+
+00:01:32.010 --> 00:01:34.870
+The control hazard is
+triggered by JMP and branches
+
+00:01:34.870 --> 00:01:38.610
+since their execution depends
+on the value in the RA register,
+
+00:01:38.610 --> 00:01:42.330
+i.e., they need to read from
+the register file, which happens
+
+00:01:42.330 --> 00:01:44.320
+in the RF pipeline stage.
+
+00:01:44.320 --> 00:01:47.090
+Our bypass mechanisms ensure
+that we’ll use the correct
+
+00:01:47.090 --> 00:01:50.540
+value for the RA register
+even if it’s not yet written
+
+00:01:50.540 --> 00:01:52.580
+into the register file.
+
+00:01:52.580 --> 00:01:55.690
+What we’re concerned about
+here is that the address
+
+00:01:55.690 --> 00:01:58.380
+of the instruction following
+the JMP or branch will be loaded
+
+00:01:58.380 --> 00:02:01.890
+into program counter at the
+end of the cycle when the JMP
+
+00:02:01.890 --> 00:02:05.070
+or branch is in the RF stage.
+
+00:02:05.070 --> 00:02:08.130
+But what should the IF stage
+be doing while all this is
+
+00:02:08.130 --> 00:02:11.290
+going on in RF stage?
+
+00:02:11.290 --> 00:02:14.770
+The answer is that in the case
+of JMPs and taken branches,
+
+00:02:14.770 --> 00:02:17.810
+we don’t know what the IF stage
+should be doing until those
+
+00:02:17.810 --> 00:02:21.690
+instructions are able to access
+the value of the RA register
+
+00:02:21.690 --> 00:02:23.890
+in the RF stage.
+
+00:02:23.890 --> 00:02:27.310
+One solution is to stall the
+IF stage until the RF stage can
+
+00:02:27.310 --> 00:02:30.200
+compute the necessary result.
+
+00:02:30.200 --> 00:02:32.410
+This was the first of
+our general strategies
+
+00:02:32.410 --> 00:02:34.280
+for dealing with hazards.
+
+00:02:34.280 --> 00:02:36.610
+How would this work?
+
+00:02:36.610 --> 00:02:40.510
+If the opcode in the RF
+stage is JMP, BEQ, or BNE,
+
+00:02:40.510 --> 00:02:43.790
+stall the IF stage
+for one cycle.
+
+00:02:43.790 --> 00:02:47.460
+In the example code shown here,
+assume that the value in R3
+
+00:02:47.460 --> 00:02:50.630
+is non-zero when the
+BNE is executed, i.e.,
+
+00:02:50.630 --> 00:02:53.290
+that the instruction
+following BNE
+
+00:02:53.290 --> 00:02:57.380
+should be the ADDC at
+the top of the loop.
+
+00:02:57.380 --> 00:03:00.750
+The pipeline diagram shows the
+effect we’re trying to achieve:
+
+00:03:00.750 --> 00:03:05.790
+a NOP is inserted into the
+pipeline in cycles 4 and 8.
+
+00:03:05.790 --> 00:03:08.310
+Then execution resumes
+in the next cycle
+
+00:03:08.310 --> 00:03:12.430
+after the RF stage determines
+what instruction comes next.
+
+00:03:12.430 --> 00:03:15.140
+Note, by the way, that we’re
+relying on our bypass logic
+
+00:03:15.140 --> 00:03:19.310
+to deliver the correct value
+for R3 from the MEM stage since
+
+00:03:19.310 --> 00:03:22.480
+the ADDC instruction that
+wrote into R3 is still
+
+00:03:22.480 --> 00:03:28.170
+in the pipeline, i.e., we have
+a data hazard to deal with too!
+
+00:03:28.170 --> 00:03:31.930
+Looking at, say, the WB stage
+in the pipeline diagram,
+
+00:03:31.930 --> 00:03:35.560
+we see it takes 4 cycles
+to execute one iteration
+
+00:03:35.560 --> 00:03:38.060
+of our 3-instruction loop.
+
+00:03:38.060 --> 00:03:44.450
+So the effective CPI is
+4/3, an increase of 33%.
+
+00:03:44.450 --> 00:03:46.700
+Using stall to deal
+with control hazards
+
+00:03:46.700 --> 00:03:49.520
+has had an impact on the
+instruction throughput
+
+00:03:49.520 --> 00:03:50.820
+of our execution pipeline.
+
+00:03:53.350 --> 00:03:56.380
+We’ve already seen the logic
+needed to introduce NOPs
+
+00:03:56.380 --> 00:03:57.900
+into the pipeline.
+
+00:03:57.900 --> 00:04:00.430
+In this case, we add a mux
+to the instruction path
+
+00:04:00.430 --> 00:04:05.380
+in the IF stage, controlled
+by the IRSrc_IF signal.
+
+00:04:05.380 --> 00:04:07.150
+We use the superscript
+on the control
+
+00:04:07.150 --> 00:04:09.710
+signals to indicate which
+pipeline stage holds
+
+00:04:09.710 --> 00:04:10.850
+the logic they control.
+
+00:04:13.390 --> 00:04:16.769
+If the opcode in the RF
+stage is JMP, BEQ, or BNE
+
+00:04:16.769 --> 00:04:20.870
+we set IRSrc_IF
+to 1, which causes
+
+00:04:20.870 --> 00:04:23.110
+a NOP to replace the
+instruction that was
+
+00:04:23.110 --> 00:04:25.330
+being read from main memory.
+
+00:04:25.330 --> 00:04:28.010
+And, of course, we’ll be setting
+the PCSEL control signals
+
+00:04:28.010 --> 00:04:30.180
+to select the correct
+next PC value,
+
+00:04:30.180 --> 00:04:34.030
+so the IF stage will fetch the
+desired follow-on instruction
+
+00:04:34.030 --> 00:04:36.400
+in the next cycle.
+
+00:04:36.400 --> 00:04:39.070
+If we replace an
+instruction with NOP,
+
+00:04:39.070 --> 00:04:42.880
+we say we “annulled”
+the instruction.
+
+00:04:42.880 --> 00:04:45.100
+The branch instructions
+in the Beta ISA
+
+00:04:45.100 --> 00:04:47.480
+make their branch
+decision in the RF stage
+
+00:04:47.480 --> 00:04:51.180
+since they only need the
+value in register RA.
+
+00:04:51.180 --> 00:04:54.360
+But suppose the ISA had a branch
+where the branch decision was
+
+00:04:54.360 --> 00:04:57.480
+made in ALU stage.
+
+00:04:57.480 --> 00:04:59.890
+When the branch decision
+is made in the ALU stage,
+
+00:04:59.890 --> 00:05:02.570
+we need to introduce two
+NOPs into the pipeline,
+
+00:05:02.570 --> 00:05:06.250
+replacing the now unwanted
+instructions in the RF and IF
+
+00:05:06.250 --> 00:05:07.930
+stages.
+
+00:05:07.930 --> 00:05:12.610
+This would increase the
+effective CPI even further.
+
+00:05:12.610 --> 00:05:15.860
+But the tradeoff is that
+the more complex branches
+
+00:05:15.860 --> 00:05:20.000
+may reduce the number of
+instructions in the program.
+
+00:05:20.000 --> 00:05:22.970
+If we annul instructions in all
+the earlier pipeline stages,
+
+00:05:22.970 --> 00:05:25.650
+this is called
+“flushing the pipeline”.
+
+00:05:25.650 --> 00:05:28.440
+Since flushing the pipeline has
+a big impact on the effective
+
+00:05:28.440 --> 00:05:33.320
+CPI, we do it when it’s the
+only way to ensure the correct
+
+00:05:33.320 --> 00:05:37.850
+behavior of the
+execution pipeline.
+
+00:05:37.850 --> 00:05:40.140
+We can be smarter
+about when we choose
+
+00:05:40.140 --> 00:05:42.880
+to flush the pipeline
+when executing branches.
+
+00:05:42.880 --> 00:05:45.430
+If the branch is not
+taken, it turns out
+
+00:05:45.430 --> 00:05:47.550
+that the pipeline has
+been doing the right thing
+
+00:05:47.550 --> 00:05:51.020
+by fetching the instruction
+following the branch.
+
+00:05:51.020 --> 00:05:54.110
+Starting execution of an
+instruction even when we’re
+
+00:05:54.110 --> 00:05:57.030
+unsure whether we really
+want it executed is called
+
+00:05:57.030 --> 00:05:59.310
+“speculation”.
+
+00:05:59.310 --> 00:06:01.960
+Speculative execution is
+okay if we’re able to annul
+
+00:06:01.960 --> 00:06:05.730
+the instruction before it has an
+effect on the CPU state, e.g.,
+
+00:06:05.730 --> 00:06:08.830
+by writing into the register
+file or main memory.
+
+00:06:08.830 --> 00:06:12.010
+Since these state changes
+(called “side effects”) happen
+
+00:06:12.010 --> 00:06:15.610
+in the later pipeline stages,
+an instruction can progress
+
+00:06:15.610 --> 00:06:19.470
+through the IF, RF, and ALU
+stages before we have to make
+
+00:06:19.470 --> 00:06:23.490
+a final decision about
+whether it should be annulled.
+
+00:06:23.490 --> 00:06:26.350
+How does speculation help
+with control hazards?
+
+00:06:26.350 --> 00:06:30.290
+Guessing that the next value of
+the program counter is PC+4 is
+
+00:06:30.290 --> 00:06:34.260
+correct for all but
+JMPs and taken branches.
+
+00:06:34.260 --> 00:06:37.120
+Here’s our example again, but
+this time let’s assume that
+
+00:06:37.120 --> 00:06:42.660
+the BNE is not taken, i.e.,
+that the value in R3 is zero.
+
+00:06:42.660 --> 00:06:44.590
+The SUB instruction
+enters the pipeline
+
+00:06:44.590 --> 00:06:46.560
+at the start of cycle 4.
+
+00:06:46.560 --> 00:06:49.040
+At the end of cycle 4,
+we know whether or not
+
+00:06:49.040 --> 00:06:50.990
+to annul the SUB.
+
+00:06:50.990 --> 00:06:53.660
+If the branch is
+not taken, we want
+
+00:06:53.660 --> 00:06:55.870
+to execute the SUB
+instruction, so we just
+
+00:06:55.870 --> 00:06:58.510
+let it continue
+down the pipeline.
+
+00:06:58.510 --> 00:07:00.730
+In other words, instead
+of always annulling
+
+00:07:00.730 --> 00:07:02.600
+the instruction
+following branch,
+
+00:07:02.600 --> 00:07:05.980
+we only annul it if
+the branch was taken.
+
+00:07:05.980 --> 00:07:07.950
+If the branch is not
+taken, the pipeline
+
+00:07:07.950 --> 00:07:10.710
+has speculated correctly
+and no instructions
+
+00:07:10.710 --> 00:07:13.020
+need to be annulled.
+
+00:07:13.020 --> 00:07:15.740
+However if the BNE
+is taken, the SUB
+
+00:07:15.740 --> 00:07:17.980
+is annulled at
+the end of cycle 4
+
+00:07:17.980 --> 00:07:20.230
+and a NOP is
+executed in cycle 5.
+
+00:07:20.230 --> 00:07:24.160
+So we only introduce a bubble
+in the pipeline when there’s
+
+00:07:24.160 --> 00:07:25.780
+a taken branch.
+
+00:07:25.780 --> 00:07:28.560
+Fewer bubbles will decrease
+the impact of annulment
+
+00:07:28.560 --> 00:07:31.620
+on the effective CPI.
+
+00:07:31.620 --> 00:07:34.420
+We’ll be using the same data
+path circuitry as before,
+
+00:07:34.420 --> 00:07:37.150
+we’ll just be a bit more
+clever about when the value
+
+00:07:37.150 --> 00:07:41.560
+of the IRSrc_IF control
+signal is set to 1.
+
+00:07:41.560 --> 00:07:44.050
+Instead of setting it
+to 1 for all branches,
+
+00:07:44.050 --> 00:07:49.000
+we only set it to 1 when
+the branch is taken.
+
+00:07:49.000 --> 00:07:51.580
+Our naive strategy of always
+speculating that the next
+
+00:07:51.580 --> 00:07:55.210
+instruction comes from PC+4
+is wrong for JMPs and taken
+
+00:07:55.210 --> 00:07:56.840
+branches.
+
+00:07:56.840 --> 00:07:59.580
+Looking at simulated
+execution traces,
+
+00:07:59.580 --> 00:08:03.160
+we’ll see that this error in
+speculation leads to about 10%
+
+00:08:03.160 --> 00:08:05.940
+higher effective CPI.
+
+00:08:05.940 --> 00:08:08.110
+Can we do better?
+
+00:08:08.110 --> 00:08:11.890
+This is an important question
+for CPUs with deep pipelines.
+
+00:08:11.890 --> 00:08:16.100
+For example, Intel’s Nehalem
+processor from 2009 resolves
+
+00:08:16.100 --> 00:08:19.190
+the more complex x86 branch
+instructions quite late
+
+00:08:19.190 --> 00:08:20.940
+in the pipeline.
+
+00:08:20.940 --> 00:09:36.600 --> 00:09:40.930
+complications of dealing with R31.
+
+00:09:40.930 --> 00:09:45.280
+What if there are multiple matches, i.e.,
+if the RF stage is trying to read a register
+
+00:09:45.280 --> 00:09:51.509
+that's the destination for, say, the instructions
+in both the ALU and MEM stages?
+
+00:09:51.509 --> 00:09:53.110
+No problem!
+
+00:09:53.110 --> 00:09:58.180
+We want to select the result from the most
+recent instruction, so we'd chose the ALU
+
+00:09:58.180 --> 00:10:04.089
+match if there is one, then the MEM match,
+then the WB match, then, finally, the output
+
+00:10:04.089 --> 00:10:06.260
+of the register file.
+
+00:10:06.260 --> 00:10:10.060
+Here's diagram showing all the bypass paths
+we'll need.
+
+00:10:10.060 --> 00:10:14.630
+Note that branches and jumps write their PC+4
+value into the register file, so we'll need
+
+00:10:14.630 --> 00:10:21.519
+to bypass from the PC+4 values in the various
+stages as well as the ALU values.
+
+00:10:21.519 --> 00:10:26.839
+Note that the bypassing is happening at the
+end of the cycle, e.g., after the ALU has
+
+00:10:26.839 --> 00:10:28.080
+computed its answer.
+
+00:10:28.080 --> 00:10:33.149
+To accommodate the extra t_PD of the bypass
+mux, we'll have to extend the clock period
+
+00:10:33.149 --> 00:10:35.279
+by a small amount.
+
+00:10:35.279 --> 00:10:41.290
+So once again there's a design tradeoff - the
+increased CPI of stalling vs the slightly
+
+00:10:41.290 --> 00:10:43.660
+increased cycle time of bypassing.
+
+00:10:43.660 --> 00:10:49.170
+And, of course, in the case of bypassing there's
+the extra area needed for the necessary wiring
+
+00:10:49.170 --> 00:10:51.550
+and muxes.
+
+00:10:51.550 --> 00:10:57.070
+We can cut back on the costs by reducing the
+amount of bypassing, say, to only bypassing
+
+00:10:57.070 --> 00:11:03.740
+ALU results from the ALU stage and use stalling
+to deal with all the other data hazards.
+
+00:11:03.740 --> 00:11:08.310
+If we implement full bypassing, do we still
+need the STALL logic?
+
+00:11:08.310 --> 00:11:10.199
+As it turns out, we do!
+
+00:11:10.199 --> 00:11:14.779
+There's one data hazard that bypassing doesn't
+completely address.
+
+00:11:14.779 --> 00:11:18.670
+Consider trying to immediately the use the
+result of a LD instruction.
+
+00:11:18.670 --> 00:11:23.970
+In the example shown here, the SUBC is trying
+to use the value the immediately preceding
+
+00:11:23.970 --> 00:11:26.249
+LD is writing to R2.
+
+00:11:26.249 --> 00:11:29.740
+This is called a load-to-use hazard.
+
+00:11:29.740 --> 00:11:34.379
+Recalling that LD data isn't available in
+the data path until the cycle when LD reaches
+
+00:11:34.379 --> 00:11:41.220
+the WB stage, even with full bypassing we'll
+need to stall SUBC in the RF stage until cycle
+
+00:11:41.220 --> 00:11:45.689
+5, introducing two NOPs into the pipeline.
+
+00:11:45.689 --> 00:11:51.199
+Without bypassing from the WB stage, we need
+to stall until cycle 6.
+
+00:11:51.199 --> 00:11:56.470
+In summary, we have two strategies for dealing
+with data hazards.
+
+00:11:56.470 --> 00:12:01.529
+We can stall the IF and RF stages until the
+register values needed by the instruction
+
+00:12:01.529 --> 00:12:05.259
+in the RF stage are available in the register
+file.
+
+00:12:05.259 --> 00:12:11.300
+The required hardware is simple, but the NOPs
+introduced into the pipeline waste CPU cycles
+
+00:12:11.300 --> 00:12:14.570
+and result in an higher effective CPI.
+
+00:12:14.570 --> 00:12:20.800
+Or we can use bypass paths to route the required
+values to the RF stage assuming they exist
+
+00:12:20.800 --> 00:12:24.040
+somewhere in the pipelined data path.
+
+00:12:24.040 --> 00:12:28.350
+This approach requires more hardware than
+stalling, but doesn't reduce the effective
+
+00:12:28.350 --> 00:12:29.750
+CPI.
+
+00:12:29.750 --> 00:12:35.689
+Even if we implement bypassing, we'll still
+need stalls to deal with load-to-use hazards.
+
+00:12:35.689 --> 00:12:40.329
+Can we keep adding pipeline stages in the
+hopes of further reducing the clock period?
+
+00:12:40.329 --> 00:12:45.439
+More pipeline stages mean more instructions
+in the pipeline at the same time, which in
+
+00:12:45.439 --> 00:12:50.760
+turn increases the chance of a data hazard
+and the necessity of stalling, thus increasing
+
+00:12:50.760 --> 00:12:53.189
+CPI.
+
+00:12:53.189 --> 00:12:57.290
+Compilers can help reduce dependencies by
+reorganizing the assembly language code they
+
+00:12:57.290 --> 00:12:58.339
+produce.
+
+00:12:58.339 --> 00:13:02.009
+Here's the load-to-use hazard example we saw
+earlier.
+
+00:13:02.009 --> 00:13:06.600
+Even with full bypassing, we'd need to stall
+for 2 cycles.
+
+00:13:06.600 --> 00:13:11.430
+But if the compiler (or assembly language
+programmer!) notices that the MUL and XOR
+
+00:13:11.430 --> 00:13:16.790
+instructions are independent of the SUBC instruction
+and hence can be moved before the SUBC,
+
+00:13:16.790 --> 00:13:22.759
+the dependency is now such that the LD is
+naturally in the WB stage when the SUBC is
+
+00:13:22.759 --> 00:13:27.079
+in the RF stage, so no stalls are needed.
+
+00:13:27.079 --> 00:13:31.309
+This optimization only works when the compiler
+can find independent instructions to move
+
+00:13:31.309 --> 00:13:32.910
+around.
+
+00:13:32.910 --> 00:13:39.290
+Unfortunately there are plenty of programs
+where such instructions are hard to find.
+
+00:13:39.290 --> 00:13:41.869
+Then there's one final approach we could take
+-
+
+00:13:41.869 --> 00:13:49.850
+change the ISA so that data hazards are part
+of the ISA, i.e., just explain that writes
+
+00:13:49.850 --> 00:13:54.920
+to the destination register happen with a
+3-instruction delay!
+
+00:13:54.920 --> 00:13:59.100
+If NOPs are needed, make the programmer add
+them to the program.
+
+00:13:59.100 --> 00:14:04.309
+Simplify the hardware at the "small" cost
+of making the compilers work harder.
+
+00:14:04.309 --> 00:14:08.939
+You can imagine exactly how much the compiler
+writers will like this suggestion.
+
+00:14:08.939 --> 00:14:11.959
+Not to mention assembly language programmers!
+
+00:14:11.959 --> 00:14:17.769
+And you can change the ISA again when you
+add more pipeline stages!
+
+00:14:17.769 --> 00:14:23.779
+This is how a compiler writer views CPU architects
+who unilaterally change the ISA to save a
+
+00:14:23.779 --> 00:14:28.420
+few logic gates :)
+The bottom line is that successful ISAs have
+
+00:14:28.420 --> 00:14:34.209
+very long lifetimes and so shouldn't include
+tradeoffs driven by short-term implementation
+
+00:14:34.209 --> 00:14:35.209
+considerations.
+
+00:14:35.209 --> 00:14:36.579
+Best not to go there.

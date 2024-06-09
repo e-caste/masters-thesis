@@ -1,0 +1,508 @@
+WEBVTT
+
+00:00:00.770 --> 00:00:05.600
+Okay, one more cache design decision to make,
+then we're done!
+
+00:00:05.600 --> 00:00:09.130
+How should we handle memory writes in the
+cache?
+
+00:00:09.130 --> 00:00:15.640
+Ultimately we'll need update main memory with
+the new data, but when should that happen?
+
+00:00:15.640 --> 00:00:18.290
+The most obvious choice is to perform the
+write immediately.
+
+00:00:18.290 --> 00:00:24.590
+In other words, whenever the CPU sends a write
+request to the cache, the cache then performs
+
+00:00:24.590 --> 00:00:27.280
+the same write to main memory.
+
+00:00:27.280 --> 00:00:30.050
+This is called "write-through".
+
+00:00:30.050 --> 00:00:34.640
+That way main memory always has the most up-to-date
+value for all locations.
+
+00:00:34.640 --> 00:00:40.140
+But this can be slow if the CPU has to wait
+for a DRAM write access - writes could become
+
+00:00:40.140 --> 00:00:42.440
+a real bottleneck!
+
+00:00:42.440 --> 00:00:48.120
+And what if the program is constantly writing
+a particular memory location, e.g., updating
+
+00:00:48.120 --> 00:00:52.260
+the value of a local variable in the current
+stack frame?
+
+00:00:52.260 --> 00:00:56.880
+In the end we only need to write the last
+value to main memory.
+
+00:00:56.880 --> 00:01:00.960
+Writing all the earlier values is waste of
+memory bandwidth.
+
+00:01:00.960 --> 00:01:05.649
+Suppose we let the CPU continue execution
+while the cache waits for the write to main
+
+00:01:05.649 --> 00:01:09.729
+memory to complete - this is called "write-behind".
+
+00:01:09.729 --> 00:01:14.179
+This will overlap execution of the program
+with the slow writes to main memory.
+
+00:01:14.179 --> 00:01:19.549
+Of course, if there's another cache miss while
+the write is still pending, everything will
+
+00:01:19.549 --> 00:01:24.090
+have to wait at that point until both the
+write and subsequent refill read finish, since
+
+00:01:24.090 --> 00:01:29.929
+the CPU can't proceed until the cache miss
+is resolved.
+
+00:01:29.929 --> 00:01:34.479
+The best strategy is called "write-back" where
+the contents of the cache are updated and
+
+00:01:34.479 --> 00:01:36.561
+the CPU continues execution immediately.
+
+00:01:36.561 --> 00:01:43.060
+The updated cache value is only written to
+main memory when the cache line is chosen
+
+00:01:43.060 --> 00:01:47.029
+as the replacement line for a cache miss.
+
+00:01:47.029 --> 00:01:52.189
+This strategy minimizes the number of accesses
+to main memory, preserving the memory bandwidth
+
+00:01:52.189 --> 00:01:54.549
+for other operations.
+
+00:01:54.549 --> 00:01:58.810
+This is the strategy used by most modern processors.
+
+00:01:58.810 --> 00:02:00.450
+Write-back is easy to implement.
+
+00:02:00.450 --> 00:02:05.289
+Returning to our original cache recipe, we
+simply eliminate the start of the write to
+
+00:02:05.289 --> 00:02:08.348
+main memory when there's a write request to
+the cache.
+
+00:02:08.348 --> 00:02:12.220
+We just update the cache contents and leave
+it at that.
+
+00:02:12.220 --> 00:02:17.790
+However, replacing a cache line becomes a
+more complex operation, since we can't reuse
+
+00:02:17.790 --> 00:02:22.780
+the cache line without first writing its contents
+back to main memory in case they had been
+
+00:02:22.780 --> 00:02:26.180
+modified by an earlier write access.
+
+00:02:26.180 --> 00:02:27.450
+Hmm.
+
+00:02:27.450 --> 00:02:31.890
+Seems like this does a write-back of all replaced
+cache lines whether or not they've been written
+
+00:02:31.890 --> 00:02:34.470
+to.
+
+00:02:34.470 --> 00:02:39.500
+We can avoid unnecessary write-backs by adding
+another state bit to each cache line: the
+
+00:02:39.500 --> 00:02:41.329
+"dirty" bit.
+
+00:02:41.329 --> 00:02:47.480
+The dirty bit is set to 0 when a cache line
+is filled during a cache miss.
+
+00:02:47.480 --> 00:02:52.380
+If a subsequent write operation changes the
+data in a cache line, the dirty bit is set
+
+00:02:52.380 --> 00:02:58.380
+to 1, indicating that value in the cache now
+differs from the value in main memory.
+
+00:02:58.380 --> 00:03:03.080
+When a cache line is selected for replacement,
+we only need to write its data back to main
+
+00:0discussion on the size of
+the working set of a running program, there
+
+00:03:12.731 --> 00:03:16.730
+are a certain number of separate regions we
+need to accommodate to achieve a high hit
+
+00:03:16.730 --> 00:03:20.490
+ratio: program, stack, data, etc.
+
+00:03:20.490 --> 00:03:25.130
+So we need to ensure there are a sufficient
+number of blocks to hold the different addresses
+
+00:03:25.130 --> 00:03:27.450
+in the working set.
+
+00:03:27.450 --> 00:03:33.400
+The bottom line is that there is an optimum
+block size that minimizes the miss ratio and
+
+00:03:33.400 --> 00:03:38.130
+increasing the block size past that point
+will be counterproductive.
+
+00:03:38.130 --> 00:03:44.120
+Combining the information in these two graphs,
+we can use the formula for AMAT to choose
+
+00:03:44.120 --> 00:03:49.460
+the block size the gives us the best possible
+AMAT.
+
+00:03:49.460 --> 00:03:55.430
+In modern processors, a common block size
+is 64 bytes (16 words).
+
+00:03:55.430 --> 00:03:59.570
+DM caches do have an Achilles heel.
+
+00:03:59.570 --> 00:04:04.440
+Consider running the 3-instruction LOOPA code
+with the instructions located starting at
+
+00:04:04.440 --> 00:04:10.710
+word address 1024 and the data starting at
+word address 37 where the program is making
+
+00:04:10.710 --> 00:04:16.120
+alternating accesses to instruction and data,
+e.g., a loop of LD instructions.
+
+00:04:16.120 --> 00:04:22.419
+Assuming a 1024-line DM cache with a block
+size of 1, the steady state hit ratio will
+
+00:04:22.419 --> 00:04:28.610
+be 100% once all six locations have been loaded
+into the cache since each location is mapped
+
+00:04:28.610 --> 00:04:31.800
+to a different cache line.
+
+00:04:31.800 --> 00:04:37.030
+Now consider the execution of the same program,
+but this time the data has been relocated
+
+00:04:37.030 --> 00:04:40.419
+to start at word address 2048.
+
+00:04:40.419 --> 00:04:45.509
+Now the instructions and data are competing
+for use of the same cache lines.
+
+00:04:45.509 --> 00:04:51.099
+For example, the first instruction (at address
+1024) and the first data word (at address
+
+00:04:51.099 --> 00:04:58.710
+2048) both map to cache line 0, so only one
+them can be in the cache at a time.
+
+00:04:58.710 --> 00:05:04.550
+So fetching the first instruction fills cache
+line 0 with the contents of location 1024,
+
+00:05:04.550 --> 00:05:10.020
+but then the first data access misses and
+then refills cache line 0 with the contents
+
+00:05:10.020 --> 00:05:13.180
+of location 2048.
+
+00:05:13.180 --> 00:05:17.749
+The data address is said to "conflict" with
+the instruction address.
+
+00:05:17.749 --> 00:05:21.190
+The next time through the loop, the first
+instruction will no longer be in the cache
+
+00:05:21.190 --> 00:05:25.770
+and it's fetch will cause a cache miss, called
+a "conflict miss".
+
+00:05:25.770 --> 00:05:32.370
+So in the steady state, the cache will never
+contain the word requested by the CPU.
+
+00:05:32.370 --> 00:05:34.550
+This is very unfortunate!
+
+00:05:34.550 --> 00:05:38.960
+We were hoping to design a memory system that
+offered the simple abstraction of a flat,
+
+00:05:38.960 --> 00:05:41.220
+uniform address space.
+
+00:05:41.220 --> 00:05:46.430
+But in this example we see that simply changing
+a few addresses results in the cache hit ratio
+
+00:05:46.430 --> 00:05:50.590
+dropping from 100% to 0%.
+
+00:05:50.590 --> 00:05:54.979
+The programmer will certainly notice her program
+running 10 times slower!
+
+00:05:54.979 --> 00:06:00.599
+So while we like the simplicity of DM caches,
+we'll need to make some architectural changes
+
+00:06:00.599 --> 00:06:03.909
+to avoid the performance problems caused by
+conflict misses.-latency access
+to recently-accessed blocks
+
+00:04:54.670 --> 00:04:56.130
+of data.
+
+00:04:56.130 --> 00:04:58.360
+If the requested
+data is in the cache,
+
+00:04:58.360 --> 00:05:03.350
+we have a “cache hit” and the
+data is supplied by the SRAM.
+
+00:05:03.350 --> 00:05:05.780
+If the requested data
+is not in the cache,
+
+00:05:05.780 --> 00:05:09.110
+we have a “cache miss” and
+a block of data containing
+
+00:05:09.110 --> 00:05:11.940
+the requested location will
+have to be moved from DRAM
+
+00:05:11.940 --> 00:05:13.980
+into the cache.
+
+00:05:13.980 --> 00:05:15.980
+The locality principle
+tells us that we
+
+00:05:15.980 --> 00:05:18.330
+should expect cache
+hits to occur much more
+
+00:05:18.330 --> 00:05:21.820
+frequently than cache misses.
+
+00:05:21.820 --> 00:05:24.500
+Modern computer systems
+often use multiple levels
+
+00:05:24.500 --> 00:05:26.740
+of SRAM caches.
+
+00:05:26.740 --> 00:05:30.190
+The levels closest to the CPU
+are smaller but very fast,
+
+00:05:30.190 --> 00:05:32.350
+while the levels further
+away from the CPU
+
+00:05:32.350 --> 00:05:35.330
+are larger and hence slower.
+
+00:05:35.330 --> 00:05:38.030
+A miss at one level of the
+cache generates an access
+
+00:05:38.030 --> 00:05:42.130
+to the next level, and so on
+until a DRAM access is needed
+
+00:05:42.130 --> 00:05:45.580
+to satisfy the initial request.
+
+00:05:45.580 --> 00:05:47.780
+Caching is used in
+many applications
+
+00:05:47.780 --> 00:05:51.990
+to speed up accesses to
+frequently-accessed data.
+
+00:05:51.990 --> 00:05:53.880
+For example, your
+browser maintains
+
+00:05:53.880 --> 00:05:56.210
+a cache of
+frequently-accessed web pages
+
+00:05:56.210 --> 00:05:58.610
+and uses its local
+copy of the web page
+
+00:05:58.610 --> 00:06:01.040
+if it determines the
+data is still valid,
+
+00:06:01.040 --> 00:06:03.120
+avoiding the delay
+of transferring
+
+00:06:03.120 --> 00:06:05.220
+the data over the Internet.
+
+00:06:05.220 --> 00:06:07.830
+Here’s an example memory
+hierarchy that might be found
+
+00:06:07.830 --> 00:06:09.430
+on a modern computer.
+
+00:06:09.430 --> 00:06:12.190
+There are three levels
+on-chip SRAM caches,
+
+00:06:12.190 --> 00:06:16.240
+followed by DRAM main memory
+and a flash-memory cache
+
+00:06:16.240 --> 00:06:18.430
+for the hard disk drive.
+
+00:06:18.430 --> 00:06:20.460
+The compiler is
+responsible for deciding
+
+00:06:20.460 --> 00:06:23.060
+which data values are
+kept in the CPU registers
+
+00:06:23.060 --> 00:06:27.220
+and which values require
+the use of LDs and STs.
+
+00:06:27.220 --> 00:06:29.370
+The 3-level cache
+and accesses to DRAM
+
+00:06:29.370 --> 00:06:33.190
+are managed by circuity
+in the memory system.
+
+00:06:33.190 --> 00:06:35.810
+After that the access
+times are long enough
+
+00:06:35.810 --> 00:06:37.840
+(many hundreds of
+instruction times)
+
+00:06:37.840 --> 00:06:40.260
+that the job of managing
+the movement of data
+
+00:06:40.260 --> 00:06:42.380
+between the lower
+levels of the hierarchy
+
+00:06:42.380 --> 00:06:45.370
+is turned over to software.
+
+00:06:45.370 --> 00:06:49.370
+Today we’re discussing how
+the on-chip caches work.
+
+00:06:49.370 --> 00:06:52.590
+In Part 3 of the course,
+we’ll discuss how the software
+
+00:06:52.590 --> 00:06:57.240
+manages main memory and
+non-volatile storage devices.
+
+00:06:57.240 --> 00:06:59.480
+Whether managed by
+hardware or software,
+
+00:06:59.480 --> 00:07:00.990
+each layer of the
+memory system is
+
+00:07:00.990 --> 00:07:03.810
+designed to provide
+lower-latency access
+
+00:07:03.810 --> 00:07:07.570
+to frequently-accessed locations
+in the next, slower layer.
+
+00:07:07.570 --> 00:07:10.070
+But, as we’ll see, the
+implementation strategies will
+
+00:07:10.070 --> 00:07:13.650
+be quite different in the
+slower layers of the hierarchy.you
+know the cache just replaced.
+
+00:09:10.760 --> 00:09:16.090
+I'm not sure I care about how well a program
+designed to get bad performance runs on my
+
+00:09:16.090 --> 00:09:21.430
+system, but the point is that most replacement
+strategies will occasionally cause a particular
+
+00:09:21.430 --> 00:09:25.949
+program to execute much more slowly than expected.
+
+00:09:25.949 --> 00:09:31.060
+When all is said and done, an LRU replacement
+strategy or a close approximation is a reasonable
+
+00:09:31.060 --> 00:09:31.490
+choice.

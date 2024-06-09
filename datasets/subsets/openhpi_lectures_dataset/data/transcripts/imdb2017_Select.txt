@@ -1,0 +1,204 @@
+WEBVTT
+
+1
+00:00:05.000 --> 00:00:09.000 
+We want to select some data.
+
+2
+00:00:09.000 --> 00:00:17.000 
+For select we use the fundamental operations
+of the relation in algebra. We want to select
+
+3
+00:00:17.000 --> 00:00:34.000 
+from the relation using the expressions a
+and b connected with an operation equal, smaller
+
+4
+00:00:34.000 --> 00:00:41.000 
+or bigger then, or other expressions which
+are possible, we will see this in the where
+
+5
+00:00:41.000 --> 00:00:49.000 
+clause in a second. And we get a result which
+consists of one or more tuples.
+
+6
+00:00:49.000 --> 00:00:55.000 
+And when we look at this, how it writes in
+SQL, you have done this all your life, so
+
+7
+00:00:55.000 --> 00:01:03.000 
+select first_name, last_name from world_population
+- that’s our table - where country is equal
+
+8
+00:01:03.000 --> 00:01:11.000 
+Italy and gender equal male. And instead of
+literals we can have variables there and we
+
+9
+00:01:11.000 --> 00:01:19.000 
+populate the variables in a program dynamically,
+so we have a SQL statement here. This is a
+
+10
+00:01:19.000 --> 00:01:26.000 
+subset of our table. The table we remember
+is 8 billion rows long.
+
+11
+00:01:26.000 --> 00:01:39.000 
+We issue that statement and the database develops
+a query plan so we have to filter on the country
+
+12
+00:01:39.000 --> 00:01:51.000 
+column for Italy and on the gender column
+for male and then we have to basically and
+
+13
+00:01:51.000 --> 00:01:58.000 
+the two positions, the result lists containing
+positions, and then we can access in the table
+
+14
+00:01:58.000 --> 00:02:07.000 
+the qualified positions and we will get first
+name and last name back as a result set. The
+
+15
+00:02:07.000 --> 00:02:21.000 
+first thing which is obvious in database technology
+is when you have multiple select conditions
+
+16
+00:02:21.000 --> 00:02:29.000 
+we are working with, then it makes sense,
+for a database optimizer, to think a little
+
+17
+00:02:29.000 --> 00:02:39.000 
+bit, shall I run through all people in the
+world and check for male first, and then I
+
+18
+00:02:39.000 --> 00:02:48.000 
+get roughly 4 billion, and then I check the
+4 billion for Italy and then I have the result
+
+19
+00:02:48.000 --> 00:02:56.000 
+set. Or is there a different strategy possible
+and if we take the selectivity or probability
+
+20
+00:02:56.000 --> 00:03:07.000 
+of how we qualify, then it’s obvious we
+qualify only by 50 percent with male and female,
+
+21
+00:03:07.000 --> 00:03:15.000 
+and if we want to optimize this, then the
+optimizer starts thinking and starts from
+
+22
+00:03:15.000 --> 00:03:24.000 
+low selectivity to high selectivity, so the
+first sub query is we go for Italians and
+
+23
+00:03:24.000 --> 00:03:30.000 
+then we have out of the 8 billion only 60
+million, and 60 million times we check for
+
+24
+00:03:30.000 --> 00:03:40.000 
+the males and then we plus/minus have a 30
+million result set.
+
+25
+00:03:40.000 --> 00:03:51.000 
+Whether this is done independently and then
+and-ed, or it is done as a sequence on each
+
+26
+00:03:51.000 --> 00:03:59.000 
+tuple, this depends on the query optimizer,
+in principle we filter out the Italians and
+
+27
+00:03:59.000 --> 00:04:09.000 
+we filter out the males and we and them, in
+reality it will work, we run through a certain
+
+28
+00:04:09.000 --> 00:04:14.000 
+amount of people in the world, filter out
+the Italians and then for each Italian we
+
+29
+00:04:14.000 --> 00:04:24.000 
+check the male, so it will the execution of
+multiple where clause elements will take place
+
+30
+00:04:24.000 --> 00:04:34.000 
+while we walk through the list of the people
+in the world. In order to accelerate this,
+
+31
+00:04:34.000 --> 00:04:39.000 
+this is already in the next one, but we can
+anticipate already because we had encoding
+
+32
+00:04:39.000 --> 00:04:49.000 
+and you remember that it would make sense
+to sort the world population by country. And
+
+33
+00:04:49.000 --> 00:04:55.000 
+if the world population is sorted by country,
+then we could do what? We could just jump
+
+34
+00:04:55.000 --> 00:05:05.000 
+in whether Italians begin and run for all
+60 million Italians and just query for male.
+
+35
+00:05:05.000 --> 00:05:13.000 
+And then we have only 60 million operations
+and filter out the 30 million male Italians.
+
+36
+00:05:13.000 --> 00:05:21.000 
+This stuff is done by the optimizers; there
+is a huge material in the literature about
+
+37
+00:05:21.000 --> 00:05:34.000 
+optimizers. A little bit like the compression,
+there is not so much we can gain with the
+
+38
+00:05:34.000 --> 00:05:41.000 
+optimization, the main thing is, what we will
+discuss in a little bit more detail now, that
+
+39
+00:05:41.000 --> 00:05:50.000 
+we reduce again the amount of data we run
+through and the number one is avoid to run
+
+40
+00:05:50.000 --> 00:06:02.000 
+through the whole table. Therefore we have
+to introduce a kind of index or the data has
+
+41
+00:06:02.000 --> 00:08:02.000 
+to be sorted. In both cases it can work.

@@ -1,0 +1,1184 @@
+WEBVTT
+
+1
+00:00:01.360 --> 00:00:06.020 
+Hi. I'm Andreas and I'll talk to you
+today about submodular maximization,
+
+2
+00:00:06.210 --> 00:00:12.770 
+a core AI this task.
+Before I explain the
+
+3
+00:00:12.770 --> 00:00:20.410 
+terms I use in my title, let us see
+some examples of AI tasks that
+
+4
+00:00:20.630 --> 00:00:23.350 
+we want to solve automatically.
+The first one is
+
+5
+00:00:24.010 --> 00:00:26.420 
+influence maximization
+on the social network.
+
+6
+00:00:26.960 --> 00:00:32.840 
+We're given a social network,
+facebook, twitter or even on
+
+7
+00:00:33.000 --> 00:00:38.060 
+the internet for example in
+a more general sense and
+
+8
+00:00:38.060 --> 00:00:42.290 
+we want to select a subset of
+the most influential users on
+
+9
+00:00:42.290 --> 00:00:45.640 
+this network and we want to
+do it automatically. This
+
+10
+00:00:45.860 --> 00:00:50.490 
+has a lot of application
+such as viral marketing or
+
+11
+00:00:51.320 --> 00:00:55.980 
+personalized recommendations or
+just finding the most influential
+
+12
+00:00:56.130 --> 00:00:59.590 
+users on your network
+no matter what it is.
+
+13
+00:01:00.290 --> 00:01:07.650 
+Another example of an AI task
+is experimental design. So we
+
+14
+00:01:07.650 --> 00:01:11.470 
+want to design and experiment in a way
+that we maximize the information we get
+
+15
+00:01:11.880 --> 00:01:17.740 
+out of this. For example this
+could include any statistical
+
+16
+00:01:17.740 --> 00:01:22.090 
+test or some sensor placement
+tasks. So here in this picture
+
+17
+00:01:22.090 --> 00:01:25.590 
+for example we see weather stations
+spread across the world.
+
+18
+00:01:25.760 --> 00:01:30.500 
+There are much more of them but here
+they have been automatically selected.
+
+19
+00:01:30.720 --> 00:01:34.320 
+The ones that will increase the
+information you get based on
+
+20
+00:01:34.320 --> 00:01:38.840 
+the history of the temperatures and
+this is solved by an actual algorithm
+
+21
+00:01:39.160 --> 00:01:44.470 
+of this instance and these are
+the stations it returns. Okay.
+
+22
+00:01:44.820 --> 00:01:51.130 
+And the third task I want to say is that I want
+to talk about is automatic summarization.
+
+23
+00:01:52.360 --> 00:01:57.090 
+So we have a large set of data
+and we want to select a subset
+
+24
+00:01:57.260 --> 00:02:04.570 
+of these data which could be video,
+text, images that represent
+
+25
+00:02:04.820 --> 00:02:09.440 
+the original data set. So for
+example here in this picture we
+
+26
+00:02:09.440 --> 00:02:14.620 
+have automatically selected
+frames from a movie
+
+27
+00:02:14.630 --> 00:02:18.310 
+which are the most diverse set
+of frames. This for example is
+
+28
+00:02:18.310 --> 00:02:22.510 
+used when you visit youtube. Such
+algos are used to show you
+
+29
+00:02:22.510 --> 00:02:25.920 
+this little preview that you
+see slight after like a frame
+
+30
+00:02:25.920 --> 00:02:29.790 
+after frame when you hover your mouse
+over a youtube video for example.
+
+31
+00:02:30.680 --> 00:02:35.670 
+Ok so what do these three seemingly
+different tasks have in common?
+
+32
+00:02:35.780 --> 00:02:37.900 
+Well at the core
+
+33
+00:02:38.510 --> 00:02:43.420 
+they are submodular
+maximization tasks and
+
+34
+00:02:43.930 --> 00:02:49.070 
+what is a submodular function?
+So a set function is
+
+35
+00:02:49.070 --> 00:02:54.150 
+defined on a ground set Ω
+of some elements and for
+
+36
+00:02:54.150 --> 00:02:57.050 
+example in the video summarization
+the ground set it would be
+
+37
+00:02:57.180 --> 00:02:58.640 
+all the frames
+in the video
+
+38
+00:02:59.560 --> 00:03:04.910 
+and takes as input a subset, so
+a function defined on their
+
+39
+00:03:04.910 --> 00:03:09.270 
+takes as input a subset and
+returns a real value. So in our
+
+40
+00:03:09.270 --> 00:03:12.710 
+case it would be the set of
+frames and the real value would
+
+41
+00:03:12.710 --> 00:03:18.120 
+be how I represent, it would be
+expressing how representative this is
+
+42
+00:03:18.220 --> 00:03:20.670 
+over all the dataset.
+
+43
+00:03:21.410 --> 00:03:28.010 
+Now a function is submodular
+if for all sets AB in your
+
+44
+00:03:28.030 --> 00:03:32.780 
+ground set we have that the
+value of the function
+
+45
+00:03:32.780 --> 00:03:37.400 
+of A plus the value of the function
+of B is greater or equal
+
+46
+00:03:37.590 --> 00:03:40.450 
+to the value of this function
+on the intersection plus the
+
+47
+00:03:40.450 --> 00:03:44.390 
+value of this function on
+the union of this set.
+
+48
+00:03:45.120 --> 00:03:49.500 
+Now the term submodular, so the
+function would be modular if
+
+49
+00:03:49.600 --> 00:03:54.390 
+the inequality we have here in the
+definition would be an equality. So
+
+50
+00:03:54.780 --> 00:03:58.910 
+you know it doesn't matter how
+you define your set, the
+
+51
+00:03:58.910 --> 00:04:03.860 
+value comments is the same but
+since we have an inequality
+
+52
+00:04:03.860 --> 00:04:08.640 
+the function is submodular. If the
+inequality was the opposite way
+
+53
+00:04:08.640 --> 00:04:11.610 
+the function would be
+called supermodular and
+
+54
+00:04:12.540 --> 00:04:18.130 
+in a sense it's the same computational
+problem because you can
+
+55
+00:04:18.520 --> 00:04:21.250 
+convert a supermodular
+function into a submodular
+
+56
+00:04:21.250 --> 00:04:25.120 
+by just taking the
+opposite values.
+
+57
+00:04:25.900 --> 00:04:31.030 
+Submodularity is important in its
+natural notion as it captures
+
+58
+00:04:31.250 --> 00:04:36.330 
+a diminishing return, a phenomenon
+that happens frequent in nature.
+
+59
+00:04:36.460 --> 00:04:38.320 
+So in a sense it takes
+
+60
+00:04:38.930 --> 00:04:42.750 
+the convict setting
+into a set function.
+
+61
+00:04:43.610 --> 00:04:48.520 
+And so what do I mean by that? You can
+see in this equivalent definition
+
+62
+00:04:48.840 --> 00:04:54.980 
+uh that if I have a big set B
+and a smaller set A which
+
+63
+00:04:54.980 --> 00:04:59.830 
+is a subset of B, the marginal
+gain I get which is this
+
+64
+00:05:00.210 --> 00:05:05.770 
+f of A union x minus f of A is
+bigger on the smaller set than
+
+65
+00:05:05.930 --> 00:05:07.090 
+on the largest set.
+
+66
+00:05:09.910 --> 00:05:16.120 
+So just to see how video
+summarization is essentially
+
+67
+00:05:16.120 --> 00:05:20.400 
+a submodular maximization
+problem, assume we have
+
+68
+00:05:20.400 --> 00:05:24.830 
+a video that consists of n frames and
+in a real world in a movie like
+
+69
+00:05:24.830 --> 00:05:28.980 
+it to our movie would be hundred
+over one hundred thousand frames.
+
+70
+00:05:30.440 --> 00:05:32.240 
+Now for each frame i,
+
+71
+00:05:33.320 --> 00:05:38.160 
+we can use a neural network and
+extract a vector that contains
+
+72
+00:05:38.600 --> 00:05:43.040 
+the features of its frame. Such
+features could be a color in
+
+73
+00:05:43.040 --> 00:05:48.670 
+terms of how much rgb pixels
+are there, luminosity how
+
+74
+00:05:48.670 --> 00:05:53.350 
+bright the picture is, how many
+faces appear on a frame and
+
+75
+00:05:53.570 --> 00:05:58.310 
+the SIFT features which are
+some characteristic points
+
+76
+00:05:58.740 --> 00:06:00.060 
+shown in the frame.
+
+77
+00:06:01.310 --> 00:06:07.810 
+Now using these fixture vectors we
+can generate an n X n matrix where
+
+78
+00:06:08.080 --> 00:06:13.820 
+the i j entry of this matrix
+expresses how similar the
+
+79
+00:06:13.820 --> 00:06:18.520 
+two frames are based on the values
+that feature vectors have.
+
+80
+00:06:19.780 --> 00:06:24.950 
+Right so to select the most diverse
+set of frames of the video
+
+81
+00:06:24.950 --> 00:06:30.190 
+we have to find a subset such that
+the determinant of the submatrix
+
+82
+00:06:30.210 --> 00:06:34.750 
+this M restricted on s here that
+I denote is the principal
+
+83
+00:06:34.750 --> 00:06:39.570 
+submatrix restricted on the rows
+and columns indicated by s. So
+
+84
+00:06:39.700 --> 00:06:43.230 
+we want to maximize the
+determinant of this matrix, so
+
+85
+00:06:43.820 --> 00:06:48.050 
+our function that we want to
+optimize is f of s. Ok and it
+
+86
+00:06:48.050 --> 00:06:50.450 
+turns out that this
+function is submodular
+
+87
+00:06:51.340 --> 00:06:55.400 
+and for the video summarization
+it also happens that
+
+88
+00:06:55.400 --> 00:07:00.890 
+the function is monotone here. You
+can show that by monotone I mean
+
+89
+00:07:01.020 --> 00:07:07.830 
+a smaller set give a smaller
+values than bigger sets
+
+90
+00:07:07.840 --> 00:07:10.670 
+or not larger
+values. So
+
+91
+00:07:11.410 --> 00:07:17.370 
+in a sense if the problem is unconstrained
+then of course that the optimum value
+
+92
+00:07:17.590 --> 00:07:24.790 
+is the set Ω of all frames which is
+a summary of itself ironically.
+
+93
+00:07:25.090 --> 00:07:29.070 
+But however
+
+94
+00:07:30.110 --> 00:07:33.700 
+we might want to impose
+further constraints, right,
+
+95
+00:07:33.710 --> 00:07:36.720 
+because we don't want to summarize
+the movie with the whole movie
+
+96
+00:07:36.760 --> 00:07:40.310 
+but we want a subset
+for movies. So
+
+97
+00:07:41.060 --> 00:07:45.140 
+so the problem now becomes hey
+I'm giving you a submodular
+
+98
+00:07:45.150 --> 00:07:50.090 
+function that find a value
+that maximizes this function
+
+99
+00:07:50.690 --> 00:07:55.070 
+from the set from the sets
+from all the allowable sets.
+
+100
+00:07:55.750 --> 00:08:02.490 
+Now I also have some side constraints
+which could be like the most common
+
+101
+00:08:02.670 --> 00:08:07.040 
+examples is cardinality can
+change for example, where I say
+
+102
+00:08:07.040 --> 00:08:10.550 
+hey I want to find the set that
+maximizes the value functions
+
+103
+00:08:10.550 --> 00:08:13.040 
+is that the number of
+elements of the set R
+
+104
+00:08:13.440 --> 00:08:19.870 
+or utmost k or we can have a a
+partition constraint, so for
+
+105
+00:08:19.870 --> 00:08:24.260 
+example in the weather stations
+example let's say each
+
+106
+00:08:24.260 --> 00:08:28.400 
+country has a set of number of
+weather stations. Now I want
+
+107
+00:08:28.400 --> 00:08:32.790 
+to collect the data from the most
+characteristic weather stations
+
+108
+00:08:32.790 --> 00:08:36.870 
+where I want to take a specific
+number for each country. Of course
+
+109
+00:08:36.870 --> 00:08:39.670 
+I don't want to have the same value
+for each country, for example
+
+110
+00:08:39.670 --> 00:08:42.370 
+Russia, I might want to take more
+weather stations because it
+
+111
+00:08:42.370 --> 00:08:46.210 
+covers a bigger area than for
+example Portugal where I would
+
+112
+00:08:46.210 --> 00:08:52.410 
+take fewer weather stations.
+This is sort of a sub case of
+
+113
+00:08:52.540 --> 00:08:56.760 
+matroid constrain. I'm not
+gonna go into what matroid
+
+114
+00:08:56.760 --> 00:08:59.820 
+constraints are because I don't
+have enough time to discuss
+
+115
+00:09:00.050 --> 00:09:04.280 
+but they play an important role in
+a side constraints in submodular
+
+116
+00:09:04.720 --> 00:09:10.180 
+maximisation. And finally Knapsack
+constraints. By Knapsack
+
+117
+00:09:10.190 --> 00:09:14.030 
+constraints we mean that each
+element on our ground set
+
+118
+00:09:14.480 --> 00:09:19.290 
+comes together with a weight and
+now we want to find a solution
+
+119
+00:09:19.740 --> 00:09:24.130 
+such that the sum of all the
+weights on of the elements
+
+120
+00:09:24.130 --> 00:09:27.650 
+in that solution set doesn't
+pass a threshold value.
+
+121
+00:09:28.150 --> 00:09:32.240 
+So in the video summarization
+this makes a lot of sense
+
+122
+00:09:32.460 --> 00:09:35.760 
+because for example we might have
+a limited amount of memory
+
+123
+00:09:35.760 --> 00:09:40.290 
+that we want to store the
+frames and each additional
+
+124
+00:09:40.290 --> 00:09:43.210 
+frame of a video has a
+
+125
+00:09:44.000 --> 00:09:48.690 
+occupies different space. So the
+weight would give sort of the
+
+126
+00:09:48.690 --> 00:09:54.470 
+size of the frame that needed to
+be encoded and the capacity
+
+127
+00:09:54.630 --> 00:09:59.400 
+there is the number of available space
+we have to store these elements.
+
+128
+00:10:00.210 --> 00:10:07.180 
+Hmm good. So as watching it from
+from a computational perspective
+
+129
+00:10:07.370 --> 00:10:11.130 
+usually computing the value
+of the function f requires
+
+130
+00:10:11.690 --> 00:10:18.420 
+a lot of computational power. For
+example if f is a determinant
+
+131
+00:10:18.420 --> 00:10:22.350 
+of a matrix this is if a
+matrix has n entries
+
+132
+00:10:22.800 --> 00:10:26.320 
+the best algorithm for the
+determinant uses n cube time so
+
+133
+00:10:26.320 --> 00:10:30.250 
+in a matrix with a hundred
+two hundred thousand
+
+134
+00:10:30.260 --> 00:10:32.960 
+entries this is
+computationally expensive.
+
+135
+00:10:33.740 --> 00:10:40.790 
+So the how do we measure
+the efficiency of
+
+136
+00:10:40.850 --> 00:10:45.200 
+an algorithm? Is it in terms
+of this grey box complexity?
+
+137
+00:10:46.370 --> 00:10:52.320 
+We want to measure as how many
+evaluations does the algorithm
+
+138
+00:10:52.320 --> 00:10:57.780 
+does to the function f. It's
+not black box because
+
+139
+00:10:57.780 --> 00:11:00.430 
+we assume that we know that the
+function is submodular so we
+
+140
+00:11:00.430 --> 00:11:04.650 
+have some properties of the function
+but not the whole function itself.
+
+141
+00:11:04.960 --> 00:11:09.600 
+So we treat it as a black box
+in our algorithmic setting
+
+142
+00:11:10.320 --> 00:11:15.090 
+because we want our algorithms to be
+applied to all these applications.
+
+143
+00:11:16.470 --> 00:11:21.180 
+And in general maximizing a
+submodules function is NP-complete.
+
+144
+00:11:21.560 --> 00:11:27.180 
+The well known MaxCut problem is a special
+case for submodular maximisation.
+
+145
+00:11:27.780 --> 00:11:33.570 
+Therefore we do not expect
+to find an exact solution
+
+146
+00:11:33.810 --> 00:11:38.130 
+in utmost polynomial number of
+function evaluations in terms of
+
+147
+00:11:38.370 --> 00:11:39.770 
+the size of our
+grand space.
+
+148
+00:11:41.840 --> 00:11:47.920 
+However we can approximate the problem
+and efficient approximation algorithms
+
+149
+00:11:48.060 --> 00:11:50.960 
+work well in theory
+and in practice.
+
+150
+00:11:51.960 --> 00:11:57.510 
+Okay, a very simple algorithm that you
+can think of is the Greedy algorithm.
+
+151
+00:11:57.690 --> 00:12:00.600 
+This is known since
+the seventies.
+
+152
+00:12:01.250 --> 00:12:03.290 
+This has been
+studied for
+
+153
+00:12:03.990 --> 00:12:08.710 
+submodular maximization
+and it is the following
+
+154
+00:12:08.710 --> 00:12:14.170 
+we start with the empty set and
+at each step t we find the
+
+155
+00:12:14.170 --> 00:12:17.810 
+element that if I add it to my
+partial solution that I have
+
+156
+00:12:17.810 --> 00:12:22.740 
+built it so far will maximize the
+marginal gain. The marginal
+
+157
+00:12:22.740 --> 00:12:27.080 
+gain is again this f of the
+current solution union the set
+
+158
+00:12:27.080 --> 00:12:30.790 
+minus f, the value of the function
+in the current solution.
+
+159
+00:12:31.060 --> 00:12:34.380 
+And of course in order to have
+an improvement I require this
+
+160
+00:12:34.390 --> 00:12:36.900 
+quantity to be positive
+
+161
+00:12:38.040 --> 00:12:42.900 
+and then we continue and we stop
+when no element can be added.
+
+162
+00:12:43.230 --> 00:12:47.690 
+This can happen because either
+we have sort of fulfilled
+
+163
+00:12:47.700 --> 00:12:52.080 
+all the site constraints, like we
+have reached a set of cardinality
+
+164
+00:12:52.080 --> 00:12:56.180 
+k or we have maxed out the capacity
+of our knapsack for example
+
+165
+00:12:57.320 --> 00:13:03.270 
+or it could also happen because
+no element would give
+
+166
+00:13:03.900 --> 00:13:09.620 
+that we don't have included in our solution
+so far gives a positive marginal gain.
+
+167
+00:13:10.730 --> 00:13:15.350 
+Now this algorithm takes over
+and squared evaluations of f.
+
+168
+00:13:15.830 --> 00:13:21.120 
+Why? We have n iterations in the
+worst case, we have to build
+
+169
+00:13:21.360 --> 00:13:28.020 
+a solution starting from the empty
+set till we consider maybe
+
+170
+00:13:28.180 --> 00:13:32.290 
+the whole set Ω that's worst
+case analysis of course
+
+171
+00:13:32.710 --> 00:13:35.350 
+and at each
+
+172
+00:13:36.070 --> 00:13:41.820 
+such iteration we have to
+consider n potential elements
+
+173
+00:13:41.950 --> 00:13:45.180 
+that are not in our current
+solution and we have to do this
+
+174
+00:13:45.180 --> 00:13:50.060 
+evaluation of what is the marginal gain
+if I added this element in my solution.
+
+175
+00:13:51.290 --> 00:13:57.390 
+This is a very practical algorithm
+because not its very fast
+
+176
+00:13:58.010 --> 00:14:02.330 
+relatively as you see for a
+hard problem but it's also
+
+177
+00:14:02.330 --> 00:14:04.940 
+very easy to implement.
+
+178
+00:14:05.780 --> 00:14:12.770 
+However if you look for very good
+theoretical approximation guarantees
+
+179
+00:14:12.880 --> 00:14:16.700 
+then you might want to use consider
+more elaborate algorithms.
+
+180
+00:14:17.620 --> 00:14:21.890 
+So for example we can get a one
+half approximation linear time
+
+181
+00:14:21.890 --> 00:14:26.300 
+algorithm for the
+unconstrained problem.
+
+182
+00:14:27.580 --> 00:14:33.670 
+By one half approximation I mean that
+the algorithm terminates after
+
+183
+00:14:34.510 --> 00:14:39.220 
+all of n steps and the solution
+we get is at least a
+
+184
+00:14:39.220 --> 00:14:43.280 
+half as good as the optimal
+solution in this instance.
+
+185
+00:14:44.100 --> 00:14:48.840 
+If we consider additional side constrains
+the problem becomes more complicated
+
+186
+00:14:49.160 --> 00:14:55.510 
+and however commonly in
+applications the function
+
+187
+00:14:55.510 --> 00:15:00.170 
+f is monotone. It's the same
+with this determinant, these
+
+188
+00:15:00.170 --> 00:15:04.830 
+determinant functions such as in video
+summarization or experimental design
+
+189
+00:15:05.060 --> 00:15:09.840 
+and the greedy
+algorithm
+
+190
+00:15:10.760 --> 00:15:14.340 
+if we have only cardinality
+constraints, this will give you
+
+191
+00:15:14.340 --> 00:15:17.880 
+one minus one over ε approximation
+algorithm. This is
+
+192
+00:15:18.040 --> 00:15:24.370 
+roughly two thirds, let's say.
+Now this ratio is known for
+
+193
+00:15:24.990 --> 00:15:29.630 
+the matroid constraints and for knapsack
+constraints but with more complicated algorithms.
+
+194
+00:15:29.900 --> 00:15:34.400 
+The greedy for the matroid constrains will
+give you a half approximation ratio
+
+195
+00:15:34.800 --> 00:15:39.900 
+and for the knapsack constraints
+the greedy gives no
+
+196
+00:15:39.910 --> 00:15:42.180 
+approximation
+guarantee actually.
+
+197
+00:15:43.260 --> 00:15:49.500 
+However in practice if you
+use a greedy, it performs
+
+198
+00:15:49.500 --> 00:15:53.080 
+really well in real world
+instances. So for example this is
+
+199
+00:15:53.460 --> 00:15:57.220 
+finding the max
+cut under
+
+200
+00:15:58.270 --> 00:16:01.850 
+matroid constraints with the
+greedy algorithm and as
+
+201
+00:16:01.850 --> 00:16:05.210 
+you can see in the plot in most
+cases we are far better than
+
+202
+00:16:05.210 --> 00:16:09.400 
+the one half approximation
+guarantee that we get. So
+
+203
+00:16:09.400 --> 00:16:11.140 
+we are close
+to optimal.
+
+204
+00:16:12.390 --> 00:16:18.700 
+Good. Now the last thing
+I want to talk about is
+
+205
+00:16:18.940 --> 00:16:23.200 
+other computational variants of
+this problem, like different
+
+206
+00:16:23.200 --> 00:16:27.950 
+computational settings you might
+consider because so one is streaming.
+
+207
+00:16:28.110 --> 00:16:32.090 
+So you might not have all the
+data available and you cannot
+
+208
+00:16:32.370 --> 00:16:36.010 
+afford to go through them as
+often as you want. So you have
+
+209
+00:16:36.010 --> 00:16:40.820 
+some for example video summarization,
+a stream of video comms
+
+210
+00:16:40.920 --> 00:16:43.770 
+and now you want to
+keep the k-most
+
+211
+00:16:44.250 --> 00:16:50.750 
+relevant frames for example. So the
+question is can you summarize data
+
+212
+00:16:51.780 --> 00:16:57.150 
+on the fly or can you optimize a
+submodular function on the fly where
+
+213
+00:16:57.390 --> 00:17:00.620 
+the elements on your ground
+states are not known beforehand
+
+214
+00:17:00.620 --> 00:17:03.200 
+but you learn them as the
+stream comes through?
+
+215
+00:17:03.670 --> 00:17:08.540 
+So can you do it by only going
+through the data once?
+
+216
+00:17:08.960 --> 00:17:12.740 
+The greedy algorithm of course that we
+discussed before requires multiple passes.
+
+217
+00:17:13.570 --> 00:17:17.530 
+However for the cardinality
+constraint you can
+
+218
+00:17:18.310 --> 00:17:22.640 
+do a greedy streaming algorithm
+that exchanges the elements in
+
+219
+00:17:22.830 --> 00:17:26.950 
+in the solution so you keep the
+first k and then as elements
+
+220
+00:17:26.950 --> 00:17:32.240 
+come you swap them if they give
+you a better marginal value
+
+221
+00:17:32.340 --> 00:17:35.920 
+and this will give you a one
+over half approximation,
+
+222
+00:17:35.920 --> 00:17:37.710 
+umm, a half approximation
+guarantee.
+
+223
+00:17:38.760 --> 00:17:45.050 
+And finally the other computational variant
+is that of the adaptive complexity.
+
+224
+00:17:45.250 --> 00:17:50.850 
+So you might have the data
+available but you also might have
+
+225
+00:17:50.980 --> 00:17:56.900 
+a cloud computer available which
+is very common these days. So
+
+226
+00:17:57.020 --> 00:18:02.150 
+we ask how many of the functions
+evaluations can be done in parallel?
+
+227
+00:18:02.450 --> 00:18:06.880 
+So if you look at Greedy for
+example, you need O(n) adaptive
+
+228
+00:18:06.880 --> 00:18:11.130 
+rounds. So at each round where you try
+to locate the best element to add
+
+229
+00:18:11.320 --> 00:18:16.580 
+this is highly parallelisable so
+if you have n processors you can
+
+230
+00:18:16.830 --> 00:18:20.800 
+assign a different element
+to each processor and then
+
+231
+00:18:20.960 --> 00:18:25.160 
+get the best value that you get
+out of it. However at every
+
+232
+00:18:25.160 --> 00:18:28.350 
+iteration after you've added
+your element going to the next
+
+233
+00:18:28.500 --> 00:18:33.960 
+this cannot be parallelisable. So therefore
+you need all of n adaptive rounds.
+
+234
+00:18:34.880 --> 00:18:40.280 
+This can be improved. You can do
+a much clever algorithm using
+
+235
+00:18:40.600 --> 00:18:45.650 
+randomness and random sequences
+and this can be reduced to
+
+236
+00:18:45.790 --> 00:18:51.990 
+a logarithmic number of adaptive rounds and
+maintain the same approximation guarantees for
+
+237
+00:18:52.210 --> 00:18:53.890 
+a matroid and
+
+238
+00:18:54.990 --> 00:18:58.350 
+cardinality constraints
+such as Greedy.
+
+239
+00:18:59.360 --> 00:19:00.700 
+Thank you for
+your attention.

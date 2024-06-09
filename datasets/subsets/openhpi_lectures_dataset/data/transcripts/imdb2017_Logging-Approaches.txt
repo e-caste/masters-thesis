@@ -1,0 +1,498 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.300 
+Now I want to classify
+different logging approaches.
+
+2
+00:00:03.300 --> 00:00:07.700 
+First of all we can differentiate
+between logical logging
+
+3
+00:00:07.700 --> 00:00:11.110 
+and physical logging and
+then for physical logging
+
+4
+00:00:11.110 --> 00:00:14.140 
+there is undo and redo logging
+and the terms already say
+
+5
+00:00:15.150 --> 00:00:19.190 
+what they mean. Nevertheless,
+I will talk about
+
+6
+00:00:19.190 --> 00:00:22.220 
+more details about both
+
+7
+00:00:22.220 --> 00:00:26.260 
+distinctions. Logical
+logging means or
+
+8
+00:00:26.260 --> 00:00:31.310 
+logs information on higher level
+so think about sql statements
+
+9
+00:00:31.310 --> 00:00:35.350 
+for example update, insert,
+delete which are invoked
+
+10
+00:00:35.350 --> 00:00:40.400 
+by a transaction. One
+benefit of this approach is
+
+11
+00:00:40.400 --> 00:00:43.430 
+it writes less data
+for set operations
+
+12
+00:00:43.430 --> 00:00:47.470 
+so think about large updates
+or large deletes where we
+
+13
+00:00:48.480 --> 00:00:52.520 
+have to access large amount of
+data, we can shorten the log
+
+14
+00:00:52.520 --> 00:00:57.570 
+entry by just writing
+the statement to the log.
+
+15
+00:00:57.570 --> 00:01:01.610 
+But the problem or disadvantage
+of logical logging is
+
+16
+00:01:01.610 --> 00:01:05.650 
+that we just log the
+statements so we don't know
+
+17
+00:01:05.650 --> 00:01:08.680 
+what data structures are
+modified so we have to
+
+18
+00:01:08.680 --> 00:01:11.710 
+re-execute the queries
+during recovery.
+
+19
+00:01:11.710 --> 00:01:15.750 
+Besides this, it
+is non-universal
+
+20
+00:01:15.750 --> 00:01:18.780 
+so think about
+concurrent queries
+
+21
+00:01:18.780 --> 00:01:21.810 
+you have no idea when
+you log the statements
+
+22
+00:01:22.820 --> 00:01:27.870 
+in which all the other transactions
+are executed internally,
+
+23
+00:01:27.870 --> 00:01:31.910 
+besides there are functions
+which can be called by sql
+
+24
+00:01:32.920 --> 00:01:35.950 
+think about
+random or time now
+
+25
+00:01:35.950 --> 00:01:40.100 
+which are non-deterministic
+so we have to also
+
+26
+00:01:40.100 --> 00:01:45.105 
+somehow log the return
+values of non-deterministic
+
+27
+00:01:45.105 --> 00:01:49.109 
+functions. One database
+system which uses logical
+
+28
+00:01:49.109 --> 00:01:54.114 
+logging is VoltDB, it's a highly
+transactional system which
+
+29
+00:01:54.114 --> 00:01:57.117 
+uses a single thread
+to execute transaction
+
+30
+00:01:58.118 --> 00:02:00.120 
+and this is why, so the
+single thread transaction
+
+31
+00:02:00.120 --> 00:02:05.125 
+handling is a reason why it's
+suitable for logical logging.
+
+32
+00:02:05.125 --> 00:02:08.128 
+But the much more common
+approach is physical logging
+
+33
+00:02:08.128 --> 00:02:12.132 
+also HANA uses it,
+we in HyRise use it
+
+34
+00:02:12.132 --> 00:02:16.136 
+and in this case we really
+store the changes to
+
+35
+00:02:16.136 --> 00:02:19.139 
+the physical data
+structure within the log.
+
+36
+00:02:19.139 --> 00:02:22.142 
+An example for this
+is that you store the
+
+37
+00:02:22.142 --> 00:02:26.146 
+old and new value for
+the changed attribute.
+
+38
+00:02:26.146 --> 00:02:30.150 
+As said, it is a general
+
+39
+00:02:30.150 --> 00:02:35.155 
+approach which most databases
+use and the nice feature
+
+40
+00:02:35.155 --> 00:02:39.159 
+of it, concerning
+in-memory databases, is
+
+41
+00:02:39.159 --> 00:02:45.000 
+that we can also log compressed values
+and we will see an example in a minute.
+
+42
+00:02:48.168 --> 00:02:52.172 
+For physical logging we can
+further differentiate between undo
+
+43
+00:02:52.172 --> 00:02:56.176 
+and redo logging
+as the name says
+
+44
+00:02:56.176 --> 00:03:00.180 
+undo logging means we want to
+repair the database by undoing
+
+45
+00:03:00.180 --> 00:03:03.183 
+things so we save the
+state before the change
+
+46
+00:03:04.184 --> 00:03:07.187 
+and in contrast to
+this redo logging
+
+47
+00:03:07.187 --> 00:03:11.191 
+stores the new values
+so that we are able to
+
+48
+00:03:11.191 --> 00:03:15.195 
+redo the transactional changes.
+Now think about in-memory
+
+49
+00:03:15.195 --> 00:03:19.199 
+databases and it's clear
+that we can't apply
+
+50
+00:03:19.199 --> 00:03:21.201 
+undo logging
+unless we use
+
+51
+00:03:21.201 --> 00:03:24.204 
+NVRAM for in-memory
+database structures
+
+52
+00:03:24.204 --> 00:03:30.210 
+because after a system failure
+we don't have any persistency
+
+53
+00:03:30.210 --> 00:03:34.214 
+anymore so we have to
+recover all over again and
+
+54
+00:03:34.214 --> 00:03:38.218 
+this is why we can't use
+undo logging, in contrast
+
+55
+00:03:38.218 --> 00:03:42.222 
+redo logging is also applicable
+for in-memory database structures.
+
+56
+00:03:43.223 --> 00:03:46.226 
+We can also combine
+both approaches so when
+
+57
+00:03:46.226 --> 00:03:50.230 
+storing the old and new value
+for our transactional change,
+
+58
+00:03:50.230 --> 00:03:52.232 
+this is called
+undo/redo logging.
+
+59
+00:03:55.235 --> 00:03:59.239 
+Before we go into details
+and what information we log
+
+60
+00:03:59.239 --> 00:04:04.244 
+let's look at the
+classes of log
+
+61
+00:04:04.244 --> 00:04:07.247 
+entries. We can log that it
+or must log by the transaction
+
+62
+00:04:07.247 --> 00:04:13.253 
+started and ends. Then
+we have to log the case
+
+63
+00:04:13.253 --> 00:04:18.258 
+in which a transaction is aborted
+and then there are the real
+
+64
+00:04:18.258 --> 00:04:22.262 
+transactional changes, so
+how our attributes change
+
+65
+00:04:22.262 --> 00:04:27.267 
+and as said, for undo logging
+we have to log the old values
+
+66
+00:04:27.267 --> 00:04:31.271 
+for a tuple and for redo
+logging we log the new value
+
+67
+00:04:33.273 --> 00:04:39.000 
+or new values. Let's look
+at an example, so first
+
+68
+00:04:39.279 --> 00:04:42.282 
+we start with undo logging
+and we have a transaction
+
+69
+00:04:42.282 --> 00:04:47.287 
+42 coming in, an insert in
+our world population table.
+
+70
+00:04:47.287 --> 00:04:49.289 
+You can see
+the values here
+
+71
+00:04:49.289 --> 00:04:53.293 
+and the write operation for
+undo logging, or the operation
+
+72
+00:04:53.293 --> 00:04:57.297 
+order for undo logging
+is that we first have to
+
+73
+00:04:57.297 --> 00:05:00.300 
+say that our transaction
+starts. We write this to the log
+
+74
+00:05:00.300 --> 00:05:03.303 
+and then we write
+our log entry first
+
+75
+00:05:03.303 --> 00:05:08.308 
+to log and flush it before we
+do the real change to the data.
+
+76
+00:05:08.308 --> 00:05:13.313 
+For an insert there
+is no old value so
+
+77
+00:05:13.313 --> 00:05:18.318 
+what we have to log here is
+information that it is a new value
+
+78
+00:05:18.318 --> 00:05:21.321 
+and then some kind of
+a tuple identifier.
+
+79
+00:05:21.321 --> 00:05:26.326 
+This may be a row ID, we
+could also do all values
+
+80
+00:05:26.326 --> 00:05:30.330 
+but usually you want to
+store as less information
+
+81
+00:05:31.331 --> 00:05:35.335 
+as possible. After you
+flush the log, you are able
+
+82
+00:05:35.335 --> 00:05:38.338 
+to change your
+data elements
+
+83
+00:05:38.338 --> 00:05:41.341 
+and then you have to
+write the commit entry.
+
+84
+00:05:42.342 --> 00:05:46.346 
+Now we want to see
+how this helps in case
+
+85
+00:05:46.346 --> 00:05:48.348 
+of failures at
+different points of
+
+86
+00:05:49.349 --> 00:05:54.354 
+operations. The recovery process
+is in the opposite direction
+
+87
+00:05:54.354 --> 00:05:57.357 
+how we end or how we
+write entries to the log
+
+88
+00:05:58.000 --> 00:06:03.363 
+so we start with the last
+entry and let's imagine
+
+89
+00:06:03.363 --> 00:06:08.368 
+this is a time where our
+system failed. In this case
+
+90
+00:06:08.368 --> 00:06:11.371 
+our transaction is committed
+because the commit entry is in
+
+91
+00:06:11.371 --> 00:06:16.376 
+the log and we have to
+undo nothing, for this
+
+92
+00:06:16.376 --> 00:06:21.381 
+transaction 42. Now think
+about that the commit
+
+93
+00:06:21.381 --> 00:06:25.385 
+entry isn't in the
+log, in this case
+
+94
+00:06:25.385 --> 00:06:28.388 
+our transaction isn't committed
+and we have to undo all changes
+
+95
+00:06:28.388 --> 00:06:32.392 
+of our transaction. In this
+case we can see here it's a new
+
+96
+00:06:32.392 --> 00:06:36.396 
+entry and we have to undo
+it so we remove this entry
+
+97
+00:06:36.396 --> 00:06:37.096 
+from the log.
+
+98
+00:06:39.399 --> 00:06:42.402 
+Here, the last case, so
+the transaction started
+
+99
+00:06:42.402 --> 00:06:46.406 
+but has not committed but
+they are also no changes in
+
+100
+00:06:46.406 --> 00:06:49.409 
+the log so there's
+nothing to be un-done.

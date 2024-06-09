@@ -1,0 +1,2161 @@
+WEBVTT
+
+1
+00:00:03.360 --> 00:00:07.139 
+Welcome, everyone, to the second, clean it open exchange live talk.
+
+2
+00:00:07.140 --> 00:00:11.609 
+My name is Nils König and I am here today with Maximilian Plauth we are
+
+3
+00:00:11.610 --> 00:00:16.229 
+both members from the Sustainability Club at HPI and we are
+
+4
+00:00:16.230 --> 00:00:20.789 
+also part of the clean energy team at HPI and we are going to moderate this
+
+5
+00:00:20.790 --> 00:00:25.709 
+live talk. With us today is Max, Max is a PhD candidate
+
+6
+00:00:25.710 --> 00:00:30.239 
+in the Operating Systems and Middleware Group at the Hasso Plattner Institute.
+
+7
+00:00:30.240 --> 00:00:34.859 
+In 2017, Max was awarded the IBM PhD
+
+8
+00:00:34.860 --> 00:00:39.599 
+Fellowship Award for his work on integrating hardware accelerators and virtualize
+
+9
+00:00:39.600 --> 00:00:44.189 
+environments. Recently, he has focused his research efforts on energy, aware
+
+10
+00:00:44.190 --> 00:00:48.839 
+computing and heterogeneous systems, which we which he will also be talking
+
+11
+00:00:48.840 --> 00:00:50.740 
+about today. Welcome, Max.
+
+12
+00:00:52.690 --> 00:00:55.329 
+Thank you, Nils, for kind introduction.
+
+13
+00:00:55.330 --> 00:00:57.789 
+So let me share my screen.
+
+14
+00:01:00.220 --> 00:01:04.999 
+OK, so I have my screen, it's up and running.
+
+15
+00:01:06.710 --> 00:01:11.139 
+Perfect. Yeah, so today I want to give a little
+
+16
+00:01:11.140 --> 00:01:15.789 
+bit of a recap of my talk that you
+
+17
+00:01:15.790 --> 00:01:18.189 
+might have seen in the book.
+
+18
+00:01:19.660 --> 00:01:24.579 
+But I will also present some additional insights that
+
+19
+00:01:24.580 --> 00:01:28.269 
+are driving our research at the Operating Systems and Middleware Group.
+
+20
+00:01:28.270 --> 00:01:33.429 
+So in particular, my research interests, there is also how
+
+21
+00:01:33.430 --> 00:01:37.899 
+can what kind of trade offs can be made between energy
+
+22
+00:01:37.900 --> 00:01:41.440 
+consumption and processing performance?
+
+23
+00:01:43.120 --> 00:01:47.859 
+So if I'm going to dig into all the detail, just
+
+24
+00:01:47.860 --> 00:01:50.769 
+let me introduce my colleagues at this point.
+
+25
+00:01:50.770 --> 00:01:52.869 
+So that's Angela.
+
+26
+00:01:52.870 --> 00:01:57.339 
+Look, Lento, working with me on the topic in the group
+
+27
+00:01:57.340 --> 00:02:01.809 
+of compressed the pulse of this, leading the operating systems and middleware
+
+28
+00:02:01.810 --> 00:02:06.489 
+group. So if you're interested in the most recent developments, just
+
+29
+00:02:06.490 --> 00:02:07.750 
+check out our website.
+
+30
+00:02:08.850 --> 00:02:13.270 
+So what's driving us is that we really want to understand how.
+
+31
+00:02:16.090 --> 00:02:20.739 
+Yeah, how we can trade energy demand as an operational
+
+32
+00:02:20.740 --> 00:02:25.449 
+resource of the operating system, considering
+
+33
+00:02:25.450 --> 00:02:28.719 
+all the details and aspects of the underlying hardware.
+
+34
+00:02:30.670 --> 00:02:35.259 
+So in this goal, there are things
+
+35
+00:02:35.260 --> 00:02:40.179 
+that are mainly three different strategies, how we can move forward for for influencing
+
+36
+00:02:40.180 --> 00:02:45.219 
+our consumption of your computer infrastructure, that is,
+
+37
+00:02:45.220 --> 00:02:48.399 
+first of all, work differently.
+
+38
+00:02:48.400 --> 00:02:52.989 
+So, for example, use fewer additional compute resources.
+
+39
+00:02:52.990 --> 00:02:57.639 
+So this is something that you may be quite familiar with, especially
+
+40
+00:02:57.640 --> 00:03:02.529 
+in the context of cloud computing, for example, where you can scale
+
+41
+00:03:02.530 --> 00:03:05.689 
+out or in your workload.
+
+42
+00:03:05.690 --> 00:03:10.539 
+So depending on how many users you have to serve
+
+43
+00:03:10.540 --> 00:03:15.039 
+concurrently so you can book more resources or remove resources
+
+44
+00:03:15.040 --> 00:03:17.529 
+from from your set up on the fly.
+
+45
+00:03:17.530 --> 00:03:22.419 
+And by that, yeah, also that
+
+46
+00:03:22.420 --> 00:03:27.099 
+power consumption of your workload and of course, work another
+
+47
+00:03:27.100 --> 00:03:31.479 
+time as another big topic that is well researched.
+
+48
+00:03:31.480 --> 00:03:36.099 
+So that works well for workloads that that are
+
+49
+00:03:36.100 --> 00:03:41.289 
+well known and in advance of that have a certain well-known profile.
+
+50
+00:03:41.290 --> 00:03:46.119 
+And I'm sure most of you know that either from your mobile phones
+
+51
+00:03:46.120 --> 00:03:50.589 
+or from your notebooks. So if the battery's low or a
+
+52
+00:03:50.590 --> 00:03:54.069 
+certain threshold, probably a notebook won't do.
+
+53
+00:03:54.070 --> 00:03:58.749 
+Automatic backups are going to synchronize their photos to your cloud
+
+54
+00:03:58.750 --> 00:04:03.399 
+account or something like that and wait until more energy
+
+55
+00:04:03.400 --> 00:04:09.169 
+is available. Ones that connect the devices connect it back to the power supply.
+
+56
+00:04:09.170 --> 00:04:13.669 
+So what we're most interested in is the question,
+
+57
+00:04:15.290 --> 00:04:19.789 
+how can we work elsewhere, so is it possible to use
+
+58
+00:04:19.790 --> 00:04:25.189 
+other hardware components for a certain task to do the job more
+
+59
+00:04:25.190 --> 00:04:26.190 
+efficiently?
+
+60
+00:04:27.740 --> 00:04:32.389 
+And one very important thing that we that we should
+
+61
+00:04:32.390 --> 00:04:37.009 
+keep in the back of our minds if we're talking about this skull,
+
+62
+00:04:37.010 --> 00:04:41.659 
+is if we're looking at the last couple of years
+
+63
+00:04:41.660 --> 00:04:46.399 
+or decades, so to say, of what happened in the development of
+
+64
+00:04:46.400 --> 00:04:50.839 
+computer hardware. So, yeah, I brought along two graphs
+
+65
+00:04:50.840 --> 00:04:53.359 
+by it, by different colleagues.
+
+66
+00:04:53.360 --> 00:04:57.829 
+So on the right hand side, you can see some
+
+67
+00:04:57.830 --> 00:05:02.479 
+some trends and the kind of transistors and processors
+
+68
+00:05:02.480 --> 00:05:05.239 
+and single track performance and frequency.
+
+69
+00:05:05.240 --> 00:05:09.859 
+And the story that that has been told for quite some time now
+
+70
+00:05:09.860 --> 00:05:14.389 
+is that obviously the frequency has come to a certain
+
+71
+00:05:14.390 --> 00:05:16.639 
+halt. It's not not increasing anymore.
+
+72
+00:05:18.710 --> 00:05:23.419 
+Power consumption is has as reached a certain level
+
+73
+00:05:23.420 --> 00:05:28.579 
+that cannot be said, that cannot be exceeded.
+
+74
+00:05:28.580 --> 00:05:33.109 
+But what is happening in order to keep up performance improvements
+
+75
+00:05:33.110 --> 00:05:36.289 
+is that the number of calls is improving.
+
+76
+00:05:36.290 --> 00:05:38.599 
+So this is on one hand nice.
+
+77
+00:05:38.600 --> 00:05:42.099 
+But it also confronts us with another problem.
+
+78
+00:05:42.100 --> 00:05:46.489 
+Now, what, 20, 10 or so?
+
+79
+00:05:46.490 --> 00:05:51.109 
+We had quad core processors as
+
+80
+00:05:51.110 --> 00:05:53.149 
+high end systems.
+
+81
+00:05:53.150 --> 00:05:57.769 
+And now today, if you're looking at high end server systems, you can
+
+82
+00:05:57.770 --> 00:06:02.299 
+have 60 for course or sometimes even more in one single
+
+83
+00:06:02.300 --> 00:06:06.949 
+processor socket. But that means to keep all these
+
+84
+00:06:06.950 --> 00:06:11.809 
+cops busy, they have to be fed with memory because,
+
+85
+00:06:11.810 --> 00:06:16.609 
+of course, all the processors can only do work if they have data
+
+86
+00:06:16.610 --> 00:06:21.259 
+to work on. So this brings us to a figure on the right on
+
+87
+00:06:21.260 --> 00:06:25.999 
+the left side, which illustrates developmental
+
+88
+00:06:26.000 --> 00:06:30.709 
+developments in different subsystems of of computers.
+
+89
+00:06:30.710 --> 00:06:34.399 
+So in the last decades,
+
+90
+00:06:35.480 --> 00:06:39.919 
+memory, bandwidth of all sorts of different bandwidth
+
+91
+00:06:39.920 --> 00:06:44.539 
+processors socket has increased quite
+
+92
+00:06:44.540 --> 00:06:49.669 
+steadily, the same as network bandwidth and storage bandwidth.
+
+93
+00:06:49.670 --> 00:06:53.540 
+But one problem is the bandwidth
+
+94
+00:06:54.710 --> 00:06:59.299 
+should increase faster than this, especially for memory
+
+95
+00:06:59.300 --> 00:07:04.549 
+bandwidth. Why it? Because we have such large accounts on our processors.
+
+96
+00:07:04.550 --> 00:07:09.499 
+So it might look good at first sight, but
+
+97
+00:07:09.500 --> 00:07:13.939 
+actually we need more memory bandwidth to feed our processor
+
+98
+00:07:13.940 --> 00:07:18.739 
+costs. And the second problem is if we now want to use
+
+99
+00:07:18.740 --> 00:07:23.899 
+heterogeneous computer resources. So that is before our research goal
+
+100
+00:07:23.900 --> 00:07:29.629 
+of identifying other hardware components that might do the job more efficiently.
+
+101
+00:07:29.630 --> 00:07:34.879 
+We need to not only need to move downtime between memory and processor,
+
+102
+00:07:34.880 --> 00:07:39.529 
+but we also need to transfer data between memory,
+
+103
+00:07:39.530 --> 00:07:44.599 
+the processor and now accelerator, such as the use or FPGA
+
+104
+00:07:44.600 --> 00:07:49.249 
+or CPU's or whatever other
+
+105
+00:07:49.250 --> 00:07:50.930 
+accelerators there may be.
+
+106
+00:07:52.310 --> 00:07:56.869 
+And there is another problem. So this graph depicting
+
+107
+00:07:56.870 --> 00:08:01.579 
+PCI Express bandwidth in maximum 16 lanes configuration
+
+108
+00:08:02.960 --> 00:08:07.249 
+as a certain ditching, it calls for a very long time.
+
+109
+00:08:07.250 --> 00:08:10.819 
+The PCI standard hasn't been updated.
+
+110
+00:08:10.820 --> 00:08:15.469 
+And just most recently, there is some some
+
+111
+00:08:15.470 --> 00:08:20.479 
+Payson's being picked up again and some improvements are starting to happening.
+
+112
+00:08:20.480 --> 00:08:25.099 
+But you have to ask yourself if you are getting better and they are memory
+
+113
+00:08:25.100 --> 00:08:28.370 
+hungry and accelerators do so too.
+
+114
+00:08:29.630 --> 00:08:34.099 
+But the fabric that is interconnecting, everything
+
+115
+00:08:34.100 --> 00:08:37.459 
+doesn't become faster. So there's a huge bottleneck.
+
+116
+00:08:37.460 --> 00:08:42.239 
+So. The situation that this produces very often is that we have
+
+117
+00:08:42.240 --> 00:08:47.159 
+several kinds of workloads that are failing to fully utilize to
+
+118
+00:08:47.160 --> 00:08:49.949 
+or other accelerators due to elements.
+
+119
+00:08:49.950 --> 00:08:54.509 
+So that might already happen on the level that that you cannot
+
+120
+00:08:54.510 --> 00:08:58.669 
+move that assets fast enough to accelerate a memory.
+
+121
+00:08:59.940 --> 00:09:04.440 
+But it can also happen on the level that you cannot move,
+
+122
+00:09:05.560 --> 00:09:10.199 
+if you're talking about that had dimensions that do not fit into main memory,
+
+123
+00:09:10.200 --> 00:09:14.969 
+perhaps even, which may be common and big data workloads
+
+124
+00:09:14.970 --> 00:09:19.949 
+even have to get data from persistent storage
+
+125
+00:09:19.950 --> 00:09:22.439 
+and that is even slower.
+
+126
+00:09:22.440 --> 00:09:27.089 
+So the situation is not uncommon that actually
+
+127
+00:09:27.090 --> 00:09:31.559 
+all your nice and precious processing resources need processes,
+
+128
+00:09:31.560 --> 00:09:36.389 
+but also accelerators, that they are idling around waiting
+
+129
+00:09:36.390 --> 00:09:41.429 
+for data and but at the same time still consuming
+
+130
+00:09:41.430 --> 00:09:46.019 
+quite a lot of power would amounting to
+
+131
+00:09:46.020 --> 00:09:50.669 
+to unnecessarily high energy consumption
+
+132
+00:09:50.670 --> 00:09:51.960 
+of your compute workload.
+
+133
+00:09:53.850 --> 00:09:58.499 
+So what can we actually do about this?
+
+134
+00:09:58.500 --> 00:10:02.969 
+So one thing might be so McGrath
+
+135
+00:10:02.970 --> 00:10:08.039 
+has shown PCI Express developments, and with this situation,
+
+136
+00:10:08.040 --> 00:10:12.509 
+a certain pressure has developed on the market that many vendors
+
+137
+00:10:12.510 --> 00:10:17.999 
+are also starting to push custom interconnect technologies to the market.
+
+138
+00:10:18.000 --> 00:10:23.129 
+And one example of this is that India has pushed the unveiling
+
+139
+00:10:23.130 --> 00:10:27.840 
+interconnect, which is proprietary, proprietary for their use.
+
+140
+00:10:29.460 --> 00:10:34.199 
+And you can see a little bit of comparison what
+
+141
+00:10:34.200 --> 00:10:36.389 
+PCI express the state of the art.
+
+142
+00:10:36.390 --> 00:10:40.829 
+So on the left hand side, you have an untraditional set up with a
+
+143
+00:10:40.830 --> 00:10:45.869 
+processor, with a PCI being the interconnect between processor
+
+144
+00:10:45.870 --> 00:10:50.729 
+and to use, which is limited to 32 gigabits
+
+145
+00:10:50.730 --> 00:10:52.799 
+of bidirectional bandwidth.
+
+146
+00:10:54.570 --> 00:10:59.069 
+And in the first iteration and billing doesn't change very much about
+
+147
+00:10:59.070 --> 00:11:03.929 
+it because and building all in order to use and billing between your processor
+
+148
+00:11:03.930 --> 00:11:08.759 
+and the chip, you actually your processor vendor had to integrate and building
+
+149
+00:11:08.760 --> 00:11:13.409 
+facilities, which is a little bit hard with a proprietary
+
+150
+00:11:13.410 --> 00:11:18.209 
+standard. So for that we would actually need open standards succeeding
+
+151
+00:11:18.210 --> 00:11:23.249 
+PCI Express. But what this can already do is that in the middle
+
+152
+00:11:23.250 --> 00:11:28.109 
+you can see that you can interconnect multiple use more efficiently,
+
+153
+00:11:28.110 --> 00:11:32.669 
+which can already help a lot for workloads that may
+
+154
+00:11:32.670 --> 00:11:38.219 
+be bound by a data exchange between different workloads petitions.
+
+155
+00:11:38.220 --> 00:11:42.749 
+But the ultimate goal is that we want to have a setup where
+
+156
+00:11:42.750 --> 00:11:47.429 
+not only computer CPU bandwidth, but also C.P.U to GPU bandwidth
+
+157
+00:11:47.430 --> 00:11:52.109 
+gets faster. And there is right now one
+
+158
+00:11:52.110 --> 00:11:57.049 
+kind of UNICOR and system configuration that can do this, which is
+
+159
+00:11:57.050 --> 00:12:02.159 
+maybe in our mind the CPU, which actually has integrated
+
+160
+00:12:02.160 --> 00:12:06.869 
+and you link to facilities, interconnecting C.P.U and GPU.
+
+161
+00:12:09.360 --> 00:12:14.549 
+Yeah, but this is quite unique configuration and providing
+
+162
+00:12:14.550 --> 00:12:19.019 
+much, much faster transfer of bandwidth across
+
+163
+00:12:19.020 --> 00:12:23.399 
+the entire computer or a memory hierarchy.
+
+164
+00:12:24.900 --> 00:12:29.459 
+And now the question is, we need more standards like this.
+
+165
+00:12:29.460 --> 00:12:33.959 
+So what an option would be that we really have to embrace
+
+166
+00:12:33.960 --> 00:12:38.519 
+this new interconnect technologies and sort
+
+167
+00:12:38.520 --> 00:12:41.790 
+of sort of show vendors that are
+
+168
+00:12:43.140 --> 00:12:47.789 
+brave enough to sort of push forward new interconnects
+
+169
+00:12:47.790 --> 00:12:52.849 
+to perhaps show them that we're interested in this trend, by
+
+170
+00:12:52.850 --> 00:12:54.059 
+the way.
+
+171
+00:12:54.060 --> 00:12:57.249 
+So this is not modern IBM advertising.
+
+172
+00:12:57.250 --> 00:13:01.919 
+So I'm also thinking about ACMD embrace PCI
+
+173
+00:13:01.920 --> 00:13:04.380 
+Express for very early on.
+
+174
+00:13:06.420 --> 00:13:10.229 
+So keep an eye open that you interconnect.
+
+175
+00:13:10.230 --> 00:13:14.879 
+Interconnect technologies are really important to improve
+
+176
+00:13:14.880 --> 00:13:18.869 
+upon the situation. So this is something that is not entirely in our own hands.
+
+177
+00:13:20.980 --> 00:13:24.640 
+But it's something that we definitely have to keep in the back of our heads.
+
+178
+00:13:27.890 --> 00:13:32.389 
+Option B, what we can actually do ourselves is so if
+
+179
+00:13:32.390 --> 00:13:37.099 
+we're stuck in the situation where we cannot really fully utilize
+
+180
+00:13:37.100 --> 00:13:41.749 
+our hardware, we should take take a step back
+
+181
+00:13:41.750 --> 00:13:46.189 
+and ask ourselves, do we always need the
+
+182
+00:13:46.190 --> 00:13:50.779 
+biggest, fastest, most energy hungry
+
+183
+00:13:50.780 --> 00:13:53.219 
+machine in the first place?
+
+184
+00:13:53.220 --> 00:13:58.069 
+Or perhaps we can also, if we already have these machines, can we perhaps operate
+
+185
+00:13:58.070 --> 00:14:02.419 
+them at a more energy preserving setting?
+
+186
+00:14:02.420 --> 00:14:07.639 
+So I would like to motivate here that.
+
+187
+00:14:07.640 --> 00:14:12.499 
+Well, yeah, if we don't already have the hardware and
+
+188
+00:14:12.500 --> 00:14:16.460 
+our server rooms, we can choose more balanced hardware setups
+
+189
+00:14:18.380 --> 00:14:22.849 
+where we're also considering the cost of operation in terms of energy that
+
+190
+00:14:22.850 --> 00:14:27.379 
+is consumed over over the time that the software is kept in operation
+
+191
+00:14:27.380 --> 00:14:31.580 
+next to the actual acquisition costs of this hardware and.
+
+192
+00:14:33.010 --> 00:14:37.449 
+If we already have the hardware set up, we should also consider
+
+193
+00:14:37.450 --> 00:14:41.230 
+running it at more energy preserving settings.
+
+194
+00:14:42.250 --> 00:14:46.719 
+So when this sounds very abstract, but
+
+195
+00:14:46.720 --> 00:14:51.399 
+one nice example that I have found by by some of the
+
+196
+00:14:51.400 --> 00:14:55.929 
+researchers is that they identified a number
+
+197
+00:14:55.930 --> 00:15:00.429 
+of machine learning model training workloads where they were
+
+198
+00:15:00.430 --> 00:15:05.079 
+unable to really utilize their their high end video to produce and
+
+199
+00:15:05.080 --> 00:15:10.029 
+what they did instead as that was happening all of last year
+
+200
+00:15:10.030 --> 00:15:14.749 
+at a time where a lot of people were talking about
+
+201
+00:15:14.750 --> 00:15:19.629 
+Apple's most recent and one GPU
+
+202
+00:15:19.630 --> 00:15:24.759 
+combinations and what they did is they just plotted the workload
+
+203
+00:15:24.760 --> 00:15:29.919 
+to one of those and one systems, which is, of course,
+
+204
+00:15:29.920 --> 00:15:34.749 
+not as powerful as a one hundred CPU, but much, much more energy
+
+205
+00:15:34.750 --> 00:15:35.319 
+efficient.
+
+206
+00:15:35.320 --> 00:15:40.179 
+And it turned out that in the end there, their model training workloads
+
+207
+00:15:40.180 --> 00:15:42.609 
+didn't take much longer.
+
+208
+00:15:42.610 --> 00:15:47.169 
+But since they were able to fully utilize their had
+
+209
+00:15:47.170 --> 00:15:50.469 
+the hardware, they were much more energy efficient.
+
+210
+00:15:50.470 --> 00:15:54.639 
+So, of course, this is not applicable to all kinds of workloads,
+
+211
+00:15:55.930 --> 00:16:00.369 
+but it should teach us that we should shouldn't just blindly
+
+212
+00:16:00.370 --> 00:16:05.319 
+throw workloads at hardware and it by choosing the biggest hardware
+
+213
+00:16:05.320 --> 00:16:09.489 
+to expect that it performs the best or the most efficient.
+
+214
+00:16:09.490 --> 00:16:14.409 
+But we should inspect our workloads and analyze
+
+215
+00:16:14.410 --> 00:16:18.849 
+them using using all available performance investigation tools
+
+216
+00:16:18.850 --> 00:16:23.619 
+and energy measurement tools to find out if they really
+
+217
+00:16:23.620 --> 00:16:27.519 
+make use of this high end hardware or if we can.
+
+218
+00:16:29.390 --> 00:16:32.669 
+Or if it would make sense to switch to more.
+
+219
+00:16:34.970 --> 00:16:39.889 
+Well, better balanced hardware to operate our hardware
+
+220
+00:16:39.890 --> 00:16:42.650 
+that are more conservative, our budget.
+
+221
+00:16:45.430 --> 00:16:49.959 
+Another example for why using balanced hardware
+
+222
+00:16:49.960 --> 00:16:54.579 
+for work load and hence originates from from some of my
+
+223
+00:16:54.580 --> 00:16:58.179 
+own work that I did last year.
+
+224
+00:16:58.180 --> 00:17:03.039 
+So there the idea was to combat this problem
+
+225
+00:17:03.040 --> 00:17:08.739 
+of limited memory bandwidth between processors and accelerators
+
+226
+00:17:08.740 --> 00:17:14.709 
+by using hardware compression units that are available in some processors
+
+227
+00:17:14.710 --> 00:17:19.389 
+to squeeze more data through the same interconnect
+
+228
+00:17:19.390 --> 00:17:22.299 
+in order to improve the overall system performance.
+
+229
+00:17:24.470 --> 00:17:29.089 
+And for that, of course, the accelerator side also needs
+
+230
+00:17:29.090 --> 00:17:33.589 
+to support this compression mechanism, which then is in our case, was implemented
+
+231
+00:17:33.590 --> 00:17:38.459 
+in software. So I had to implement this
+
+232
+00:17:38.460 --> 00:17:42.859 
+eight four two compression or decompression algorithm for GPS.
+
+233
+00:17:44.120 --> 00:17:49.459 
+And I started on a test system using a test like 80 Deepu,
+
+234
+00:17:49.460 --> 00:17:53.659 
+which is not exactly a very recently to you.
+
+235
+00:17:53.660 --> 00:17:58.249 
+But our experience has shown that that many people,
+
+236
+00:17:59.290 --> 00:18:04.309 
+many research labs and sometimes also infrastructure
+
+237
+00:18:04.310 --> 00:18:09.109 
+as a service cloud providers are still offering resources with
+
+238
+00:18:09.110 --> 00:18:10.220 
+GPS like that.
+
+239
+00:18:11.740 --> 00:18:16.299 
+Some them are just still around and it seems like it might be a shame
+
+240
+00:18:16.300 --> 00:18:20.769 
+to just throw them away, but if you're looking
+
+241
+00:18:20.770 --> 00:18:25.419 
+at their final design power, they can take up
+
+242
+00:18:25.420 --> 00:18:29.730 
+to they can consume up to 300 watts of power.
+
+243
+00:18:31.120 --> 00:18:35.589 
+So what I had done was to put
+
+244
+00:18:35.590 --> 00:18:40.179 
+this workload to some other cheaper machines, so to one
+
+245
+00:18:40.180 --> 00:18:44.829 
+really energy saving machine, which is an injection
+
+246
+00:18:44.830 --> 00:18:49.839 
+takes to development board, which is also something comparable
+
+247
+00:18:49.840 --> 00:18:52.389 
+to the one so.
+
+248
+00:18:52.390 --> 00:18:57.129 
+So the system on chip design, where the CPU and the GPU from India
+
+249
+00:18:57.130 --> 00:18:59.260 
+are integrated in the same piece of silicon.
+
+250
+00:19:00.410 --> 00:19:03.829 
+So these systems are usually highly optimized for efficiency,
+
+251
+00:19:04.970 --> 00:19:09.469 
+and it turned out that I could get
+
+252
+00:19:09.470 --> 00:19:13.999 
+one third of the baseline performance of the test like 80,
+
+253
+00:19:15.380 --> 00:19:19.849 
+but doing the math and looking at how much energy was or how
+
+254
+00:19:19.850 --> 00:19:23.299 
+much power the system draws and how much energy the entire task takes,
+
+255
+00:19:24.440 --> 00:19:29.299 
+that was an efficiency improvement almost by seven times
+
+256
+00:19:29.300 --> 00:19:33.960 
+of megabytes per second per watt that I could get out of the system.
+
+257
+00:19:35.000 --> 00:19:39.799 
+And of course, it's such an embedded system is quite exotic
+
+258
+00:19:39.800 --> 00:19:44.629 
+and probably is, at least at this point, not able
+
+259
+00:19:44.630 --> 00:19:50.359 
+to be used for for very demanding
+
+260
+00:19:50.360 --> 00:19:52.339 
+datacenter workloads.
+
+261
+00:19:52.340 --> 00:19:56.029 
+I used another while more and more energy.
+
+262
+00:19:59.930 --> 00:20:04.879 
+Energy, alleged use of the Tazaki for which
+
+263
+00:20:04.880 --> 00:20:10.099 
+already delivered better compression performance
+
+264
+00:20:10.100 --> 00:20:15.079 
+at two point three times better megabytes per watt
+
+265
+00:20:15.080 --> 00:20:19.939 
+readings. So of course, now that Haifaa is much cheaper
+
+266
+00:20:19.940 --> 00:20:25.279 
+than the 80, but still it's aiming at
+
+267
+00:20:25.280 --> 00:20:27.999 
+much lower performance use cases.
+
+268
+00:20:29.030 --> 00:20:34.459 
+But this case just demonstrates that if you don't need
+
+269
+00:20:34.460 --> 00:20:39.469 
+higher throughput, that might be a very good idea to
+
+270
+00:20:39.470 --> 00:20:42.289 
+use more energy conservative to you.
+
+271
+00:20:42.290 --> 00:20:45.169 
+Here are another option that is available.
+
+272
+00:20:45.170 --> 00:20:50.029 
+If you have, for example, the 100 a 100 TPS, you can configure
+
+273
+00:20:50.030 --> 00:20:55.129 
+them to run at a lower speed temporarily
+
+274
+00:20:55.130 --> 00:20:59.809 
+and by then also use much, much less power than the full
+
+275
+00:20:59.810 --> 00:21:04.309 
+300 watts envelope that can draw on the power socket.
+
+276
+00:21:06.420 --> 00:21:11.039 
+And from these observations, we
+
+277
+00:21:11.040 --> 00:21:15.549 
+have made several conclusions. So the problem why this is
+
+278
+00:21:15.550 --> 00:21:20.429 
+a problem that is affecting it, affecting accelerators and use more
+
+279
+00:21:20.430 --> 00:21:25.049 
+intensely than it does for C.P.U based workouts based in
+
+280
+00:21:25.050 --> 00:21:30.029 
+the field, mutualization is very common and
+
+281
+00:21:30.030 --> 00:21:32.999 
+very major technologies.
+
+282
+00:21:33.000 --> 00:21:38.549 
+So their efficiency can be improved by consolidating as many workloads
+
+283
+00:21:38.550 --> 00:21:42.119 
+as possible in order to fully utilize the C.P.U.
+
+284
+00:21:44.200 --> 00:21:48.639 
+That's the acceptable performance levels, but the problem is that
+
+285
+00:21:48.640 --> 00:21:53.199 
+Tipu based fertilization is even though it's
+
+286
+00:21:53.200 --> 00:21:57.669 
+getting better. It's still very early stages compared to CPUSA
+
+287
+00:21:57.670 --> 00:22:02.859 
+fertilization. And this straightforward approach of improving
+
+288
+00:22:02.860 --> 00:22:07.539 
+utilization or improving efficiency by higher
+
+289
+00:22:07.540 --> 00:22:10.569 
+utilization does not apply easily here.
+
+290
+00:22:14.050 --> 00:22:16.589 
+But let's talk for a second.
+
+291
+00:22:17.880 --> 00:22:21.900 
+Well, then, of course, another thing that I already mentioned is that.
+
+292
+00:22:22.930 --> 00:22:27.369 
+Before you're deploying your workload, you should do a little
+
+293
+00:22:27.370 --> 00:22:31.809 
+bit of performance analysis and see if it really fully
+
+294
+00:22:31.810 --> 00:22:36.789 
+utilizes the machine, and depending on that, you can
+
+295
+00:22:36.790 --> 00:22:41.410 
+either use more balanced hardware for achieving better energy efficiency.
+
+296
+00:22:43.290 --> 00:22:48.819 
+Yeah. Or by throttling your hardware and run at a slightly
+
+297
+00:22:48.820 --> 00:22:51.009 
+lower clock.
+
+298
+00:22:51.010 --> 00:22:56.789 
+Speed speeds, for example, also yielding better energy efficiency in some cases.
+
+299
+00:22:56.790 --> 00:23:00.599 
+Another thing that might seem obvious is that.
+
+300
+00:23:01.900 --> 00:23:06.399 
+If you're using hardware that's already on site for an extended period
+
+301
+00:23:06.400 --> 00:23:10.849 
+of time, you might run into a situation like we did with our 80s
+
+302
+00:23:10.850 --> 00:23:15.339 
+that we had to set up with
+
+303
+00:23:15.340 --> 00:23:19.959 
+unnecessarily high powered draw and
+
+304
+00:23:19.960 --> 00:23:24.999 
+by switching to a more recent hardware and we could get
+
+305
+00:23:25.000 --> 00:23:28.329 
+huge energy efficiency improvements.
+
+306
+00:23:28.330 --> 00:23:32.949 
+And last but not least, which is my point of view,
+
+307
+00:23:32.950 --> 00:23:36.579 
+the most important thing that I want you to take away from this
+
+308
+00:23:37.600 --> 00:23:42.999 
+short presentation is that while there are many high level software abstractions
+
+309
+00:23:43.000 --> 00:23:48.129 
+that that provide good entry points or starting points for a wide range of users
+
+310
+00:23:48.130 --> 00:23:52.659 
+to to implement there, for example, machine
+
+311
+00:23:52.660 --> 00:23:56.769 
+learning workloads or also other other things,
+
+312
+00:23:58.630 --> 00:24:03.699 
+it is still important to have a certain understanding what's happening under the hood.
+
+313
+00:24:03.700 --> 00:24:08.169 
+So it's time to start with these high level abstractions and also use
+
+314
+00:24:08.170 --> 00:24:09.170 
+them later on.
+
+315
+00:24:10.080 --> 00:24:14.559 
+But it can really help not only your performance, but also energy
+
+316
+00:24:14.560 --> 00:24:19.209 
+efficiency to once things the initial versions
+
+317
+00:24:19.210 --> 00:24:22.749 
+are perhaps up and running to reconsider what's happening under the hood
+
+318
+00:24:24.340 --> 00:24:29.049 
+and use this knowledge to improve the efficiency of your code.
+
+319
+00:24:29.050 --> 00:24:30.160 
+So, yeah.
+
+320
+00:24:31.330 --> 00:24:35.829 
+That brings me to the end of my brief presentation, and I
+
+321
+00:24:35.830 --> 00:24:40.659 
+would be happy to enter the discussion and
+
+322
+00:24:40.660 --> 00:24:44.139 
+hear what you have to say, ask about this topic.
+
+323
+00:24:44.140 --> 00:24:45.140 
+Thank you very much.
+
+324
+00:24:46.360 --> 00:24:51.009 
+Thank you very much, Max. Their we will now happily proceed
+
+325
+00:24:51.010 --> 00:24:55.479 
+with the QnA session. And if you have any questions, you can either write
+
+326
+00:24:55.480 --> 00:24:59.349 
+them in the chat again or raise their hands so they can pick you.
+
+327
+00:24:59.350 --> 00:25:03.879 
+I think it's always easier if you just want to ask a question person so there are no
+
+328
+00:25:03.880 --> 00:25:06.639 
+misunderstandings through the writing.
+
+329
+00:25:06.640 --> 00:25:08.769 
+And just as a quick note, we are so recording.
+
+330
+00:25:08.770 --> 00:25:13.389 
+So if you don't want to be recognized, you can also ask questions without
+
+331
+00:25:13.390 --> 00:25:18.039 
+putting your camera on. And they have already been two questions in the chat.
+
+332
+00:25:18.040 --> 00:25:22.719 
+The first being, which tools are there to give a better and better idea
+
+333
+00:25:22.720 --> 00:25:26.490 
+of which hardware fits best, including performance and efficiency?
+
+334
+00:25:28.530 --> 00:25:32.759 
+Well, that's unfortunately, that is not an easy answer to this question.
+
+335
+00:25:32.760 --> 00:25:35.459 
+So it's a typical it depends answer.
+
+336
+00:25:35.460 --> 00:25:39.929 
+So for performance tools there, especially if you're using
+
+337
+00:25:39.930 --> 00:25:44.399 
+a Linux set up, there are plenty of tools for
+
+338
+00:25:44.400 --> 00:25:49.109 
+performance analysis, which is a very good start, because in many situations,
+
+339
+00:25:49.110 --> 00:25:53.639 
+a good performance or good optimization for your hardware
+
+340
+00:25:53.640 --> 00:25:58.319 
+also leads to better energy efficiency with a certain but
+
+341
+00:25:58.320 --> 00:25:59.880 
+also in some cases, if you're.
+
+342
+00:26:01.880 --> 00:26:06.919 
+More finely tuned code can also lead to higher energy
+
+343
+00:26:06.920 --> 00:26:11.659 
+demand and in terms of energy demand, there are some
+
+344
+00:26:11.660 --> 00:26:12.359 
+tools around.
+
+345
+00:26:12.360 --> 00:26:17.089 
+So I can at least invite you to test the tool that we've developed
+
+346
+00:26:17.090 --> 00:26:20.169 
+in our group, which is called Pinpoint.
+
+347
+00:26:20.170 --> 00:26:24.649 
+So if you're looking at the awesome website, we can you can find a link
+
+348
+00:26:24.650 --> 00:26:28.729 
+there. But of course, other than that, there are some other approaches.
+
+349
+00:26:28.730 --> 00:26:33.259 
+So if you're using an Internet c.p.u, for example, Intel has
+
+350
+00:26:33.260 --> 00:26:36.409 
+integrated certain energy performance.
+
+351
+00:26:36.410 --> 00:26:40.909 
+Kalinda's, which are known as apple counters, which
+
+352
+00:26:40.910 --> 00:26:45.429 
+can also be used or which can also be queried with the
+
+353
+00:26:45.430 --> 00:26:48.559 
+Linux PERF performance, tooling,
+
+354
+00:26:50.330 --> 00:26:52.160 
+workloads or workflows.
+
+355
+00:26:54.490 --> 00:26:59.169 
+Yeah, so that is perhaps a good starting point and then
+
+356
+00:26:59.170 --> 00:27:03.789 
+it very much depends on what what your task is running
+
+357
+00:27:03.790 --> 00:27:08.559 
+on. So for everyone who doesn't know pinpoint, that's a tool
+
+358
+00:27:08.560 --> 00:27:13.089 
+that was, I think, invented or produced by you and your colleagues as Vancouver.
+
+359
+00:27:13.090 --> 00:27:17.679 
+And he also introduced that already in the movie, in the video
+
+360
+00:27:17.680 --> 00:27:21.879 
+as well in the community forum. And I just have a quick follow up question on that.
+
+361
+00:27:21.880 --> 00:27:26.409 
+Is it worth the while to think me as a private
+
+362
+00:27:26.410 --> 00:27:31.179 
+person when I use my computer for maybe a gaming or also for working?
+
+363
+00:27:31.180 --> 00:27:35.859 
+And is it worth to also think about these aspects of efficiency and energy
+
+364
+00:27:35.860 --> 00:27:40.689 
+efficiency, or is that only worth in terms of real training
+
+365
+00:27:40.690 --> 00:27:43.629 
+or real scientific workloads?
+
+366
+00:27:43.630 --> 00:27:44.630 
+I would call them.
+
+367
+00:27:45.700 --> 00:27:50.409 
+Well, of course, if you're looking at large scale data centers and
+
+368
+00:27:51.610 --> 00:27:56.319 
+especially these very big machine learning models that are talked
+
+369
+00:27:56.320 --> 00:28:00.759 
+about in many publications. So, for example, GPP three, something
+
+370
+00:28:00.760 --> 00:28:05.439 
+like that, they are done by private
+
+371
+00:28:05.440 --> 00:28:08.439 
+companies. So there is no reliable data on that, but.
+
+372
+00:28:10.720 --> 00:28:15.459 
+There are some estimates that they are taking billions of
+
+373
+00:28:15.460 --> 00:28:19.879 
+computers, and if you're doing doing the math, you will end up
+
+374
+00:28:19.880 --> 00:28:24.699 
+and of course, much, much longer commute times over many, many, many notes.
+
+375
+00:28:24.700 --> 00:28:30.259 
+And if you in the end, can optimize these tasks just by.
+
+376
+00:28:30.260 --> 00:28:34.729 
+Small percentage, it's, of course, much more energy that you can save with
+
+377
+00:28:34.730 --> 00:28:37.459 
+your laptop or even gaming rig at home.
+
+378
+00:28:38.750 --> 00:28:39.750 
+But then again.
+
+379
+00:28:41.050 --> 00:28:45.669 
+Well, claiming that Alpinist I don't know how to translate this expression
+
+380
+00:28:45.670 --> 00:28:50.859 
+into into English very well, but even in small contributions,
+
+381
+00:28:51.910 --> 00:28:54.849 
+adding them up can can make a big contribution.
+
+382
+00:28:54.850 --> 00:28:59.709 
+So if you perhaps know you are not
+
+383
+00:28:59.710 --> 00:29:04.239 
+gaming much or doing high end video editing or something like that on your
+
+384
+00:29:04.240 --> 00:29:08.879 
+machine, you can it might be wise to use the integrated
+
+385
+00:29:08.880 --> 00:29:13.299 
+Tipu instead of putting in a high end to pursue that
+
+386
+00:29:13.300 --> 00:29:16.720 
+while being idle, always burns around 60 or 70 watts,
+
+387
+00:29:17.890 --> 00:29:19.509 
+which otherwise wouldn't need.
+
+388
+00:29:21.460 --> 00:29:25.089 
+Thank you. So the next question is about quantum computers.
+
+389
+00:29:25.090 --> 00:29:28.719 
+Have you already worked on quantum technology in your group, e.g.
+
+390
+00:29:28.720 --> 00:29:32.559 
+on Kümmel? And I think there's a theory coming with that.
+
+391
+00:29:32.560 --> 00:29:37.149 
+Using fault tolerant quantum computers as far as available, it would mean an immense
+
+392
+00:29:37.150 --> 00:29:40.629 
+energy saving due to reversibility of processes.
+
+393
+00:29:40.630 --> 00:29:41.709 
+What are you thinking about that?
+
+394
+00:29:43.080 --> 00:29:47.789 
+Well, we haven't really done any
+
+395
+00:29:47.790 --> 00:29:52.469 
+in-depth research on quantum computing yet, so as most most
+
+396
+00:29:52.470 --> 00:29:56.999 
+other people, we are trying to get a better understanding of what what
+
+397
+00:29:57.000 --> 00:30:01.649 
+quantum computing, what potential it brings for for future
+
+398
+00:30:01.650 --> 00:30:06.269 
+applications, and how we can especially integrate quantum
+
+399
+00:30:06.270 --> 00:30:09.859 
+computing in existing workflows just.
+
+400
+00:30:09.860 --> 00:30:14.270 
+At this very moment, our impression is that,
+
+401
+00:30:15.770 --> 00:30:20.419 
+of course, in the future, there might be huge benefits, but at
+
+402
+00:30:20.420 --> 00:30:25.069 
+this moment, using quantum computing as
+
+403
+00:30:25.070 --> 00:30:29.839 
+such a huge effort and energy required to really
+
+404
+00:30:29.840 --> 00:30:34.429 
+such huge amounts of energy, not just the quantum computer itself, but
+
+405
+00:30:34.430 --> 00:30:38.180 
+also the interface between traditional computers and
+
+406
+00:30:39.320 --> 00:30:44.929 
+bringing your data from the digital world to the quantum representation
+
+407
+00:30:44.930 --> 00:30:50.089 
+that already is vastly energy intensive process.
+
+408
+00:30:50.090 --> 00:30:54.709 
+And of course, we need to research and understand these machines, but at
+
+409
+00:30:54.710 --> 00:30:59.209 
+least in the near term future, I wouldn't expect
+
+410
+00:30:59.210 --> 00:31:01.699 
+energy advantages in the long term.
+
+411
+00:31:01.700 --> 00:31:05.170 
+That's, of course, a completely different thing.
+
+412
+00:31:06.200 --> 00:31:11.249 
+And I also hope that that we can get some some advantage
+
+413
+00:31:11.250 --> 00:31:15.679 
+of this technology, then there's probably still much more work to
+
+414
+00:31:15.680 --> 00:31:18.799 
+be done. So I prepared another question.
+
+415
+00:31:18.800 --> 00:31:23.539 
+And you you haven't presented everything here today
+
+416
+00:31:23.540 --> 00:31:27.949 
+that was worked on in your project, for example, in the movie.
+
+417
+00:31:27.950 --> 00:31:30.709 
+There are two more videos from your colleagues.
+
+418
+00:31:30.710 --> 00:31:33.409 
+And I still want to ask, what are the next steps for this project?
+
+419
+00:31:33.410 --> 00:31:37.820 
+So are you currently working on anything new or is there anything planned in the future?
+
+420
+00:31:39.080 --> 00:31:44.809 
+Well, in the end, all the things that we've shown also and the videos,
+
+421
+00:31:44.810 --> 00:31:49.429 
+all these things are small bits and pieces for a bigger system
+
+422
+00:31:49.430 --> 00:31:54.169 
+that we're trying to build. And in the end, what we're working on is the
+
+423
+00:31:54.170 --> 00:31:59.629 
+vision of realizing the vision that we want to
+
+424
+00:31:59.630 --> 00:32:04.129 
+have a system that can decide which workloads are best
+
+425
+00:32:04.130 --> 00:32:08.269 
+deployed on what happened in order to run most energy efficient.
+
+426
+00:32:08.270 --> 00:32:12.769 
+And of course, we first started with pinpoint because in order to
+
+427
+00:32:12.770 --> 00:32:17.209 
+know how much energy it has consumes, we need
+
+428
+00:32:17.210 --> 00:32:21.769 
+to have measurement facilities in place and have them
+
+429
+00:32:21.770 --> 00:32:26.209 
+in place. So if we want to use different hardware, then of course we have to make sure
+
+430
+00:32:26.210 --> 00:32:30.799 
+we have these values available on various hardware sets
+
+431
+00:32:30.800 --> 00:32:35.159 
+and approaches like into the Hubble that I talked about.
+
+432
+00:32:35.160 --> 00:32:39.979 
+Of course, they're only restricted to the internal ecosystem.
+
+433
+00:32:39.980 --> 00:32:44.419 
+So that's what that for us pinpoint, that's the first
+
+434
+00:32:44.420 --> 00:32:48.649 
+step. Another thing that we've done in the meanwhile after the videos have been produced
+
+435
+00:32:48.650 --> 00:32:53.089 
+is a system that analyzes
+
+436
+00:32:53.090 --> 00:32:57.709 
+depending on the energy footprint and other characteristics such
+
+437
+00:32:57.710 --> 00:33:03.109 
+as and utilization, what what class of algorithm
+
+438
+00:33:03.110 --> 00:33:05.719 
+may be running right now.
+
+439
+00:33:05.720 --> 00:33:10.189 
+And this is another sensor that we want to use for this decision
+
+440
+00:33:10.190 --> 00:33:14.719 
+maker process, but then can decide if this
+
+441
+00:33:14.720 --> 00:33:19.699 
+task of future iterations of future occurrences of this task
+
+442
+00:33:19.700 --> 00:33:24.259 
+should perhaps be moved to another machine or another
+
+443
+00:33:24.260 --> 00:33:28.759 
+accelerator, a different appropriate implementation is available.
+
+444
+00:33:28.760 --> 00:33:33.379 
+So this is what we're working on right now to bring all these different
+
+445
+00:33:33.380 --> 00:33:37.879 
+bits and pieces together to hopefully build this
+
+446
+00:33:37.880 --> 00:33:43.099 
+what realized this vision of a system that automatically medically
+
+447
+00:33:43.100 --> 00:33:47.599 
+chooses the best or the most efficient configuration
+
+448
+00:33:47.600 --> 00:33:48.929 
+for certain workloads at hand.
+
+449
+00:33:50.300 --> 00:33:54.859 
+Yes. So you've already had these tips and tricks at the end, what you can look
+
+450
+00:33:54.860 --> 00:33:59.449 
+for when deploying such a workload on GPU or if you are on your
+
+451
+00:33:59.450 --> 00:34:03.319 
+computer, and then maybe also as a follow up question.
+
+452
+00:34:03.320 --> 00:34:06.229 
+And your work has been rather scientific so far.
+
+453
+00:34:06.230 --> 00:34:11.149 
+And you just said that you want to build some bits and pieces
+
+454
+00:34:11.150 --> 00:34:14.569 
+to the final or on the right way.
+
+455
+00:34:14.570 --> 00:34:19.099 
+And what do you think still needs to be done or what are the major points
+
+456
+00:34:19.100 --> 00:34:23.658 
+that have to be done until these systems can really work to
+
+457
+00:34:23.659 --> 00:34:28.579 
+maybe just automatically find the perfect utilization and perfect efficiency?
+
+458
+00:34:29.949 --> 00:34:34.569 
+Well, perhaps this is not something for the fully automated approach,
+
+459
+00:34:34.570 --> 00:34:39.099 
+but for another branch that we're following is so we have the
+
+460
+00:34:39.100 --> 00:34:43.629 
+impression that many so it would help to have
+
+461
+00:34:43.630 --> 00:34:48.069 
+something as easily usable as these performance analysis
+
+462
+00:34:48.070 --> 00:34:52.839 
+tools and Linux, for example, just for energy and for
+
+463
+00:34:52.840 --> 00:34:56.468 
+even a wider range of users than the performance tools.
+
+464
+00:34:56.469 --> 00:35:00.909 
+So if we're thinking about that right now, a massive trend is that
+
+465
+00:35:00.910 --> 00:35:03.189 
+not just computer scientists or
+
+466
+00:35:06.130 --> 00:35:10.629 
+purely software developers are using these tools, but more and
+
+467
+00:35:10.630 --> 00:35:15.339 
+more application experts from various fields, speed
+
+468
+00:35:15.340 --> 00:35:19.510 
+biologists, doctors, physicists or
+
+469
+00:35:20.650 --> 00:35:23.589 
+whatever disciplines are making.
+
+470
+00:35:23.590 --> 00:35:27.729 
+Pretty much all disciplines are making use of compute power nowadays.
+
+471
+00:35:27.730 --> 00:35:32.380 
+And of course, these people need some abstractions and more
+
+472
+00:35:34.330 --> 00:35:38.019 
+convenient tooling for them for doing their development.
+
+473
+00:35:38.020 --> 00:35:43.149 
+And one thing that we've seen that is extremely popular across many domains
+
+474
+00:35:43.150 --> 00:35:47.260 
+are tools like dupatta, notebooks, so that you can
+
+475
+00:35:48.850 --> 00:35:53.919 
+do development in a very simple browser based environment
+
+476
+00:35:53.920 --> 00:35:57.580 
+where you don't have to deal with setting up your
+
+477
+00:35:58.720 --> 00:36:01.209 
+own development toolchain manually.
+
+478
+00:36:01.210 --> 00:36:05.919 
+And one idea that that we're currently trying out is that
+
+479
+00:36:05.920 --> 00:36:10.389 
+if we can extend tools like to put our notebooks,
+
+480
+00:36:10.390 --> 00:36:15.119 
+not just to do well, not just to alleviate
+
+481
+00:36:15.120 --> 00:36:19.869 
+the work for implementing stuff, but then it can also the providing feedback
+
+482
+00:36:19.870 --> 00:36:22.719 
+on is this operation that you just performed.
+
+483
+00:36:22.720 --> 00:36:27.369 
+Is it is it a huge energy draw or is it is it
+
+484
+00:36:27.370 --> 00:36:32.319 
+simply operation? And we are currently working on a prototype
+
+485
+00:36:32.320 --> 00:36:37.239 
+that that provides some feedback there for operators, because the
+
+486
+00:36:37.240 --> 00:36:41.769 
+problem, of course, if you have such a convenient and easy to use
+
+487
+00:36:41.770 --> 00:36:46.259 
+development environment, it's very tempting to just try
+
+488
+00:36:46.260 --> 00:36:48.909 
+stuff. And of course, once
+
+489
+00:36:50.890 --> 00:36:55.449 
+you have to try a lot of stuff to to develop your system in
+
+490
+00:36:55.450 --> 00:37:00.219 
+the end, but perhaps there's a certain level of how much you just
+
+491
+00:37:00.220 --> 00:37:04.749 
+try and then improve stuff based
+
+492
+00:37:04.750 --> 00:37:09.249 
+based on your observations and perhaps motivating you
+
+493
+00:37:09.250 --> 00:37:14.329 
+to just instead of trying three times,
+
+494
+00:37:14.330 --> 00:37:19.219 
+try to times and try to think a little bit harder and
+
+495
+00:37:19.220 --> 00:37:23.829 
+for the second attempt so that you can perhaps try to try a few times
+
+496
+00:37:25.360 --> 00:37:26.360 
+fewer.
+
+497
+00:37:28.980 --> 00:37:34.409 
+So this is something that they're hoping to see in the near future.
+
+498
+00:37:34.410 --> 00:37:38.969 
+I think that idea of getting feedback for what operations are doing some really
+
+499
+00:37:38.970 --> 00:37:42.779 
+very interesting. I can't see any more questions in the chat.
+
+500
+00:37:42.780 --> 00:37:47.459 
+So maybe just as a quick closer question, what was the most interesting
+
+501
+00:37:47.460 --> 00:37:52.109 
+finding for you in this project or maybe in all the research related to
+
+502
+00:37:52.110 --> 00:37:53.389 
+this topic so far for you?
+
+503
+00:37:55.540 --> 00:38:00.219 
+Well, even even though there's a lot of work on
+
+504
+00:38:00.220 --> 00:38:04.210 
+energy, on energy consumption already for.
+
+505
+00:38:05.610 --> 00:38:11.219 
+Several years, not not to say decades in some cases, especially in the embedded
+
+506
+00:38:11.220 --> 00:38:15.689 
+domain. It's surprisingly how hard it
+
+507
+00:38:15.690 --> 00:38:19.290 
+is still to get good or high qualitative
+
+508
+00:38:21.150 --> 00:38:25.769 
+measurements for energy consumption across various
+
+509
+00:38:25.770 --> 00:38:30.989 
+platforms. So some some vendors have facilities in place, but
+
+510
+00:38:30.990 --> 00:38:35.789 
+even they have some some quirks and they may not always be reliable,
+
+511
+00:38:35.790 --> 00:38:40.379 
+reliable. And I think this was a
+
+512
+00:38:40.380 --> 00:38:44.169 
+major eureka moment.
+
+513
+00:38:44.170 --> 00:38:49.019 
+So to say that that in order to solve this problem,
+
+514
+00:38:49.020 --> 00:38:53.489 
+of course, it would be best if we finally had to add some some common ground
+
+515
+00:38:53.490 --> 00:38:58.199 
+where regardless of whether you're working on intel
+
+516
+00:38:58.200 --> 00:39:02.699 
+at the power or GPU based FPGA base that
+
+517
+00:39:02.700 --> 00:39:07.319 
+you have at some common facilities that you could use for
+
+518
+00:39:07.320 --> 00:39:12.089 
+just knowing how much energy your workload consumes.
+
+519
+00:39:12.090 --> 00:39:15.420 
+And I expected a lot of
+
+520
+00:39:16.680 --> 00:39:21.749 
+related work that that already existed, that that would already be
+
+521
+00:39:21.750 --> 00:39:26.360 
+so that we would be further ahead on the road than than we actually are.
+
+522
+00:39:27.430 --> 00:39:32.169 
+So, yeah, I hope that we can contribute a little bit to bringing
+
+523
+00:39:32.170 --> 00:39:33.389 
+us closer to that goal.
+
+524
+00:39:35.730 --> 00:39:37.919 
+I hope so, too, of course.
+
+525
+00:39:37.920 --> 00:39:42.029 
+Yeah, I think I can see any more questions and the one that's raising their hands.
+
+526
+00:39:42.030 --> 00:39:44.099 
+So I think we will end the session now.
+
+527
+00:39:44.100 --> 00:39:46.049 
+Thank you all for your questions in the chat.
+
+528
+00:39:46.050 --> 00:39:50.939 
+And, of course, thank you for your presentation and for answering these questions
+
+529
+00:39:50.940 --> 00:39:53.369 
+for the end. I will quickly share my screen again.
+
+530
+00:39:53.370 --> 00:39:55.800 
+So, of course, if you.
+
+531
+00:39:57.810 --> 00:40:02.249 
+If you want to join the forum where you can find a video of Max Cloud and his colleagues,
+
+532
+00:40:02.250 --> 00:40:07.379 
+Benkler and Loukas, you can do so by clicking on this link.
+
+533
+00:40:07.380 --> 00:40:12.359 
+You can contact us if you have any feedback or any more questions or any ideas at Zenati
+
+534
+00:40:12.360 --> 00:40:15.839 
+at HPI that the and the next live talk.
+
+535
+00:40:15.840 --> 00:40:20.729 
+So after this talk we will go into a short summer break and the next life
+
+536
+00:40:20.730 --> 00:40:25.499 
+will take presumably at the 3rd of August and twenty twenty one.
+
+537
+00:40:25.500 --> 00:40:28.559 
+But we will of course send notifications.
+
+538
+00:40:28.560 --> 00:40:32.789 
+Then again, thank you all for coming here today and yeah.
+
+539
+00:40:32.790 --> 00:40:35.419 
+Have a good summer break and we will see you then.
+
+540
+00:40:36.660 --> 00:40:37.660 
+Bye bye.

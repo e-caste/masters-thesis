@@ -1,0 +1,1253 @@
+WEBVTT
+
+1
+00:00:00.640 --> 00:00:03.129 
+Welcome to this fourth and final
+
+2
+00:00:03.130 --> 00:00:05.709 
+video on this part of the lecture series
+
+3
+00:00:05.710 --> 00:00:06.869 
+on the Power Processor
+
+4
+00:00:06.870 --> 00:00:07.870 
+micro-architecture.
+
+5
+00:00:08.140 --> 00:00:09.140 
+My name is Arni Ingimundarson.
+
+6
+00:00:12.400 --> 00:00:13.929 
+In the previous video we have talked
+
+7
+00:00:13.930 --> 00:00:16.206 
+about, the DLX
+
+8
+00:00:16.207 --> 00:00:18.559 
+micro-architecture, we looked at the
+
+9
+00:00:18.560 --> 00:00:20.679 
+POWER4 and POWER5 micro-architecture and
+
+10
+00:00:20.680 --> 00:00:22.969 
+comparing them to the DLX
+
+11
+00:00:22.970 --> 00:00:23.970 
+micro-architecture.
+
+12
+00:00:24.730 --> 00:00:25.750 
+In the last video,
+
+13
+00:00:26.830 --> 00:00:27.830 
+we looked at
+
+14
+00:00:28.870 --> 00:00:29.870 
+the POWER7
+
+15
+00:00:30.990 --> 00:00:33.099 
+micro-architecture and mainly talked
+
+16
+00:00:33.100 --> 00:00:35.649 
+about the SMP communication
+
+17
+00:00:35.650 --> 00:00:38.019 
+architecture and the broadcast scopes
+
+18
+00:00:38.020 --> 00:00:40.089 
+implemented in POWER7 through POWER9.
+
+19
+00:00:42.700 --> 00:00:45.219 
+In this video, I want to get back to the
+
+20
+00:00:45.220 --> 00:00:46.990 
+micro-architecture of POWER8 and
+
+21
+00:00:48.970 --> 00:00:50.727 
+POWER9. As a reminder, the POWER8 was
+
+22
+00:00:50.728 --> 00:00:52.210 
+introduced in 2014.
+
+23
+00:00:54.390 --> 00:00:56.459 
+Has 12
+
+24
+00:00:56.460 --> 00:00:57.460 
+SMT8 cores
+
+25
+00:00:58.650 --> 00:01:00.759 
+supporting 16 chip
+
+26
+00:01:00.760 --> 00:01:02.400 
+SMP system, giving us
+
+27
+00:01:05.129 --> 00:01:07.169 
+192 way SMP system
+
+28
+00:01:07.170 --> 00:01:09.065 
+of 1536 hardware threads.
+
+29
+00:01:10.290 --> 00:01:12.329 
+The POWER9, which was introduced in
+
+30
+00:01:12.330 --> 00:01:14.369 
+2017, also has
+
+31
+00:01:14.370 --> 00:01:16.469 
+12 SMT8
+
+32
+00:01:16.470 --> 00:01:19.319 
+cores or an alternative configuration
+
+33
+00:01:19.320 --> 00:01:20.820 
+24 SMT4
+
+34
+00:01:22.480 --> 00:01:24.689 
+cores, can also support 16 chip SMP
+
+35
+00:01:24.690 --> 00:01:26.094 
+system giving us
+
+36
+00:01:29.040 --> 00:01:31.589 
+192 cores SMP and
+
+37
+00:01:31.590 --> 00:01:32.640 
+also in total
+
+38
+00:01:33.870 --> 00:01:35.032 
+1536 hardware threads.
+
+39
+00:01:36.570 --> 00:01:39.029 
+The two processors POWER8 implemented
+
+40
+00:01:39.030 --> 00:01:41.040 
+in a 22 nanometer technology while the
+
+41
+00:01:42.090 --> 00:01:44.479 
+POWER9 have
+
+42
+00:01:44.480 --> 00:01:45.601 
+14 nanometer technology.
+
+43
+00:01:49.500 --> 00:01:51.719 
+Looking at the chip diagrams
+
+44
+00:01:51.720 --> 00:01:53.879 
+or chip pictures of the POWER8 and
+
+45
+00:01:53.880 --> 00:01:54.880 
+POWER9,
+
+46
+00:01:56.400 --> 00:01:57.749 
+we see that the arrangements of the
+
+47
+00:01:57.750 --> 00:01:59.759 
+cores have changed, which
+
+48
+00:01:59.760 --> 00:02:02.069 
+is some
+
+49
+00:02:02.070 --> 00:02:03.929 
+indication that the architecture has
+
+50
+00:02:03.930 --> 00:02:06.239 
+changed, which it indeed has
+
+51
+00:02:06.240 --> 00:02:08.549 
+as the POWER9 introduced
+
+52
+00:02:08.550 --> 00:02:10.829 
+quite a different architecture than the
+
+53
+00:02:10.830 --> 00:02:11.830 
+POWER8 systems.
+
+54
+00:02:15.600 --> 00:02:17.879 
+Looking at the POWER8
+
+55
+00:02:17.880 --> 00:02:18.880 
+core block diagram,
+
+56
+00:02:20.160 --> 00:02:22.169 
+which we also briefly reviewed in the
+
+57
+00:02:22.170 --> 00:02:24.689 
+last video, we see
+
+58
+00:02:24.690 --> 00:02:26.849 
+that the diagram is getting
+
+59
+00:02:28.350 --> 00:02:30.749 
+quite a bit complicated, but yet
+
+60
+00:02:30.750 --> 00:02:32.759 
+we can still map
+
+61
+00:02:32.760 --> 00:02:35.309 
+all or most of the functions to the
+
+62
+00:02:35.310 --> 00:02:37.349 
+DLX execution
+
+63
+00:02:37.350 --> 00:02:39.569 
+or instruction pipeline,
+
+64
+00:02:39.570 --> 00:02:41.669 
+which helps us reach this
+
+65
+00:02:41.670 --> 00:02:43.949 
+diagram and I remind you about
+
+66
+00:02:43.950 --> 00:02:46.259 
+the comment I said in the first video
+
+67
+00:02:46.260 --> 00:02:48.659 
+that usually,
+
+68
+00:02:48.660 --> 00:02:51.119 
+as you can imagine, high-level
+
+69
+00:02:51.120 --> 00:02:54.239 
+block diagrams need to leave out
+
+70
+00:02:54.240 --> 00:02:55.500 
+a lot of information
+
+71
+00:02:57.330 --> 00:02:59.399 
+which the reader is thought to
+
+72
+00:02:59.400 --> 00:03:00.489 
+know.
+
+73
+00:03:00.490 --> 00:03:02.819 
+So it usually takes some time
+
+74
+00:03:02.820 --> 00:03:04.889 
+to get used to these diagrams to
+
+75
+00:03:04.890 --> 00:03:07.139 
+be able to understand them, understand
+
+76
+00:03:07.140 --> 00:03:08.140 
+them fully.
+
+77
+00:03:11.010 --> 00:03:13.019 
+We have in this diagram, we
+
+78
+00:03:13.020 --> 00:03:14.020 
+have the
+
+79
+00:03:15.660 --> 00:03:17.669 
+L2 cache, which is a shared data and
+
+80
+00:03:17.670 --> 00:03:19.679 
+instruction cache,
+
+81
+00:03:19.680 --> 00:03:20.680 
+the L1
+
+82
+00:03:22.020 --> 00:03:24.389 
+data cache being pictured here,
+
+83
+00:03:24.390 --> 00:03:26.739 
+and the L1 instruction
+
+84
+00:03:26.740 --> 00:03:28.919 
+cache being pictured here where
+
+85
+00:03:28.920 --> 00:03:29.920 
+we see that the
+
+86
+00:03:31.320 --> 00:03:32.219 
+instruction fetch unit fetching the
+
+87
+00:03:32.220 --> 00:03:33.659 
+instructions from the instruction cache
+
+88
+00:03:33.660 --> 00:03:35.639 
+passing it onto the decode unit
+
+89
+00:03:38.160 --> 00:03:40.292 
+and then onto the dispatch units which
+
+90
+00:03:40.293 --> 00:03:43.049 
+dispatches the instructions to
+
+91
+00:03:43.050 --> 00:03:45.089 
+a series of instructions
+
+92
+00:03:45.090 --> 00:03:46.090 
+sequencing queues.
+
+93
+00:03:48.720 --> 00:03:50.909 
+The global completion table
+
+94
+00:03:50.910 --> 00:03:53.279 
+maps or keeps books
+
+95
+00:03:53.280 --> 00:03:54.749 
+of all the instructions that are in
+
+96
+00:03:54.750 --> 00:03:57.059 
+flight and marks completed
+
+97
+00:03:57.060 --> 00:03:58.060 
+instructions
+
+98
+00:03:59.500 --> 00:04:01.979 
+as completed and removed them from
+
+99
+00:04:01.980 --> 00:04:04.199 
+the listings of in-flight
+
+100
+00:04:04.200 --> 00:04:05.200 
+instructions.
+
+101
+00:04:07.000 --> 00:04:09.039 
+The execution units are shown
+
+102
+00:04:09.040 --> 00:04:10.239 
+here below
+
+103
+00:04:11.410 --> 00:04:13.569 
+with the loads to our unit
+
+104
+00:04:13.570 --> 00:04:15.789 
+here on the right-hand side,
+
+105
+00:04:15.790 --> 00:04:18.039 
+and here we see two blocks
+
+106
+00:04:18.040 --> 00:04:19.709 
+that we haven't talked about before.
+
+107
+00:04:22.200 --> 00:04:24.569 
+And those are the Segment Lookaside
+
+108
+00:04:24.570 --> 00:04:25.710 
+Buffer and the Translation
+
+109
+00:04:27.030 --> 00:04:29.129 
+Lookaside Buffer, which are
+
+110
+00:04:29.130 --> 00:04:31.799 
+involved in the address translation
+
+111
+00:04:31.800 --> 00:04:32.909 
+of a system.
+
+112
+00:04:32.910 --> 00:04:34.859 
+And I want to give you a brief overview
+
+113
+00:04:34.860 --> 00:04:35.860 
+of how POWER
+
+114
+00:04:37.050 --> 00:04:38.730 
+does address translation.
+
+115
+00:04:41.220 --> 00:04:43.829 
+On the POWER architecture, the
+
+116
+00:04:43.830 --> 00:04:46.049 
+address translations is a two-step
+
+117
+00:04:46.050 --> 00:04:47.399 
+process.
+
+118
+00:04:47.400 --> 00:04:49.439 
+We have a 64-bit system
+
+119
+00:04:49.440 --> 00:04:50.440 
+and
+
+120
+00:04:51.750 --> 00:04:53.129 
+the address
+
+121
+00:04:54.210 --> 00:04:56.399 
+that the programmer thinks about and
+
+122
+00:04:56.400 --> 00:04:59.429 
+the programs running on the CPU
+
+123
+00:04:59.430 --> 00:05:01.349 
+are using is called the Effective
+
+124
+00:05:01.350 --> 00:05:02.350 
+Address.
+
+125
+00:05:02.910 --> 00:05:04.829 
+And this address is split into two
+
+126
+00:05:04.830 --> 00:05:07.019 
+groups - we have an Effective Segment
+
+127
+00:05:07.020 --> 00:05:09.149 
+ID, we have a Page number
+
+128
+00:05:09.150 --> 00:05:11.279 
+and we have a Byte offset
+
+129
+00:05:11.280 --> 00:05:13.169 
+of that page.
+
+130
+00:05:13.170 --> 00:05:16.319 
+First step is to translate
+
+131
+00:05:16.320 --> 00:05:18.869 
+that Effect to Segment
+
+132
+00:05:18.870 --> 00:05:21.449 
+ID through the Segment Lookaside Buffer
+
+133
+00:05:21.450 --> 00:05:23.669 
+into a Virtual Segment ID.
+
+134
+00:05:23.670 --> 00:05:25.799 
+And thereby the
+
+135
+00:05:25.800 --> 00:05:27.870 
+Segment ID is expanded,
+
+136
+00:05:28.890 --> 00:05:30.719 
+is increased in size, giving us a
+
+137
+00:05:30.720 --> 00:05:32.990 
+Virtual Address of total 78
+
+138
+00:05:32.991 --> 00:05:35.079 
+bits. The increased
+
+139
+00:05:35.080 --> 00:05:36.080 
+size of the
+
+140
+00:05:37.230 --> 00:05:39.420 
+Virtual Address helps us
+
+141
+00:05:40.470 --> 00:05:43.679 
+manage virtual address
+
+142
+00:05:43.680 --> 00:05:45.869 
+or virtual mapping of
+
+143
+00:05:45.870 --> 00:05:48.119 
+the memory management of
+
+144
+00:05:48.120 --> 00:05:49.470 
+a virtualised systems.
+
+145
+00:05:51.470 --> 00:05:54.059 
+Then the second step is to take
+
+146
+00:05:54.060 --> 00:05:56.129 
+this Virtual Segment
+
+147
+00:05:56.130 --> 00:05:58.679 
+ID plus the Page number,
+
+148
+00:05:58.680 --> 00:06:00.719 
+looking it up in a page table,
+
+149
+00:06:00.720 --> 00:06:02.569 
+giving us a real page number.
+
+150
+00:06:04.440 --> 00:06:06.509 
+And this next diagram
+
+151
+00:06:06.510 --> 00:06:08.579 
+shows us a
+
+152
+00:06:08.580 --> 00:06:09.720 
+depiction on how that
+
+153
+00:06:11.100 --> 00:06:12.449 
+looks like. We take
+
+154
+00:06:13.550 --> 00:06:15.779 
+the Virtual Segment ID and the Page
+
+155
+00:06:15.780 --> 00:06:17.129 
+number which give us a virtual page
+
+156
+00:06:17.130 --> 00:06:19.229 
+number that is
+
+157
+00:06:19.230 --> 00:06:21.689 
+translated through a hash function and
+
+158
+00:06:21.690 --> 00:06:24.209 
+actually under the hood there,
+
+159
+00:06:24.210 --> 00:06:26.339 
+they can be different types of hash
+
+160
+00:06:26.340 --> 00:06:27.340 
+function used.
+
+161
+00:06:30.310 --> 00:06:33.369 
+And the result of that hash function
+
+162
+00:06:33.370 --> 00:06:35.649 
+gives us an index into
+
+163
+00:06:35.650 --> 00:06:37.330 
+a Page table and Regroup
+
+164
+00:06:38.560 --> 00:06:40.599 
+and each page table
+
+165
+00:06:40.600 --> 00:06:42.909 
+and regroup has each page
+
+166
+00:06:42.910 --> 00:06:43.910 
+table entries,
+
+167
+00:06:45.100 --> 00:06:47.019 
+which are all looked up and parallel to
+
+168
+00:06:47.020 --> 00:06:49.149 
+see if we can find the real
+
+169
+00:06:49.150 --> 00:06:51.389 
+page number and that in that group.
+
+170
+00:06:52.570 --> 00:06:54.609 
+And that's how the address translation
+
+171
+00:06:54.610 --> 00:06:56.169 
+is done.
+
+172
+00:06:56.170 --> 00:06:58.419 
+As you can see, this process might
+
+173
+00:06:58.420 --> 00:07:00.579 
+take some time.
+
+174
+00:07:00.580 --> 00:07:02.649 
+And if we go back to the
+
+175
+00:07:02.650 --> 00:07:04.689 
+block diagram when
+
+176
+00:07:04.690 --> 00:07:07.389 
+that process has been done once,
+
+177
+00:07:07.390 --> 00:07:09.519 
+so we have an effective
+
+178
+00:07:09.520 --> 00:07:12.189 
+address and the corresponding
+
+179
+00:07:12.190 --> 00:07:13.190 
+real address
+
+180
+00:07:14.290 --> 00:07:17.259 
+that is cached in the Translation
+
+181
+00:07:17.260 --> 00:07:19.599 
+Lookaside Buffer as a fast
+
+182
+00:07:19.600 --> 00:07:21.909 
+address translation cache,
+
+183
+00:07:21.910 --> 00:07:23.829 
+which is used both by the instruction
+
+184
+00:07:23.830 --> 00:07:26.439 
+unit and the load store unit
+
+185
+00:07:26.440 --> 00:07:27.758 
+or the instruction fetch unit
+
+186
+00:07:29.380 --> 00:07:31.540 
+to do a fast lookup
+
+187
+00:07:32.770 --> 00:07:34.869 
+of effective to
+
+188
+00:07:34.870 --> 00:07:36.009 
+real address mappings.
+
+189
+00:07:43.630 --> 00:07:45.999 
+I want to come to the
+
+190
+00:07:46.000 --> 00:07:47.800 
+POWER9 core.
+
+191
+00:07:49.630 --> 00:07:52.869 
+POWER9, as I mentioned before,
+
+192
+00:07:52.870 --> 00:07:55.359 
+implements quite a bit different
+
+193
+00:07:55.360 --> 00:07:56.360 
+architecture, micro-architecture
+
+194
+00:07:57.640 --> 00:07:59.680 
+than the previous generations.
+
+195
+00:08:01.360 --> 00:08:03.999 
+The POWER9 can support
+
+196
+00:08:04.000 --> 00:08:06.069 
+either two modes, either
+
+197
+00:08:06.070 --> 00:08:08.859 
+an SMT4 or two
+
+198
+00:08:08.860 --> 00:08:11.169 
+SMT4 cores or one combined
+
+199
+00:08:11.170 --> 00:08:13.329 
+core supporting eight
+
+200
+00:08:13.330 --> 00:08:14.330 
+hardware threads.
+
+201
+00:08:14.950 --> 00:08:16.989 
+And here we see a picture
+
+202
+00:08:16.990 --> 00:08:19.479 
+of how that
+
+203
+00:08:19.480 --> 00:08:21.189 
+system is split up.
+
+204
+00:08:21.190 --> 00:08:23.649 
+If we start with an SMT4
+
+205
+00:08:23.650 --> 00:08:25.809 
+core, which is half of
+
+206
+00:08:25.810 --> 00:08:26.810 
+the big core,
+
+207
+00:08:28.210 --> 00:08:30.549 
+we have two super
+
+208
+00:08:30.550 --> 00:08:33.070 
+slices, execution's slices
+
+209
+00:08:35.799 --> 00:08:38.678 
+which handle
+
+210
+00:08:38.679 --> 00:08:40.899 
+each one up to two
+
+211
+00:08:40.900 --> 00:08:41.900 
+threads.
+
+212
+00:08:42.990 --> 00:08:45.719 
+So this
+
+213
+00:08:45.720 --> 00:08:46.720 
+half
+
+214
+00:08:48.120 --> 00:08:50.699 
+big core support 4 threads to two
+
+215
+00:08:50.700 --> 00:08:52.540 
+threads on each super slice and
+
+216
+00:08:53.880 --> 00:08:55.889 
+2 half cores can be combined into
+
+217
+00:08:55.890 --> 00:08:58.169 
+one big core, supporting
+
+218
+00:08:58.170 --> 00:08:59.170 
+up to
+
+219
+00:09:00.330 --> 00:09:02.444 
+eight SMT threads.
+
+220
+00:09:05.040 --> 00:09:06.040 
+Here is
+
+221
+00:09:07.200 --> 00:09:08.909 
+another view of that
+
+222
+00:09:10.050 --> 00:09:12.119 
+split where we have a small
+
+223
+00:09:12.120 --> 00:09:13.230 
+core and a big core
+
+224
+00:09:15.150 --> 00:09:17.189 
+and we
+
+225
+00:09:17.190 --> 00:09:18.629 
+see a little more. We have the
+
+226
+00:09:18.630 --> 00:09:20.429 
+instruction cache, the instruction into
+
+227
+00:09:20.430 --> 00:09:22.439 
+the buffer we have a
+
+228
+00:09:22.440 --> 00:09:24.340 
+dispatch unit and then
+
+229
+00:09:25.680 --> 00:09:27.019 
+instruction sequencing unit
+
+230
+00:09:28.940 --> 00:09:31.159 
+where the instructions are being issued
+
+231
+00:09:31.160 --> 00:09:32.720 
+to the execution units
+
+232
+00:09:35.240 --> 00:09:37.279 
+and to the
+
+233
+00:09:37.280 --> 00:09:39.589 
+load-store units for the
+
+234
+00:09:39.590 --> 00:09:40.820 
+memory instructions.
+
+235
+00:09:42.110 --> 00:09:43.820 
+And I said before, these can be
+
+236
+00:09:45.350 --> 00:09:47.509 
+combined into a bigger
+
+237
+00:09:47.510 --> 00:09:49.729 
+system or
+
+238
+00:09:49.730 --> 00:09:50.730 
+bigger
+
+239
+00:09:51.980 --> 00:09:52.980 
+SMT8 core.
+
+240
+00:09:54.370 --> 00:09:55.967 
+The instruction pipeline of the POWER9
+
+241
+00:09:57.580 --> 00:10:00.189 
+is a little bit slightly
+
+242
+00:10:00.190 --> 00:10:02.289 
+shorter than on the POWER8 we have
+
+243
+00:10:02.290 --> 00:10:03.329 
+an instruction fetch,
+
+244
+00:10:05.980 --> 00:10:08.019 
+instruction stages, we have
+
+245
+00:10:08.020 --> 00:10:09.190 
+decoding stages.
+
+246
+00:10:10.780 --> 00:10:13.449 
+These match well to the
+
+247
+00:10:13.450 --> 00:10:14.679 
+DLX architecture.
+
+248
+00:10:14.680 --> 00:10:17.439 
+We have here further stages, which
+
+249
+00:10:17.440 --> 00:10:19.097 
+don't map very well to the DLX.
+
+250
+00:10:20.860 --> 00:10:22.539 
+I mentioned in the previous video that
+
+251
+00:10:22.540 --> 00:10:24.549 
+some instructions can be
+
+252
+00:10:24.550 --> 00:10:26.919 
+split into smaller
+
+253
+00:10:26.920 --> 00:10:28.699 
+or multiple micro-instructions.
+
+254
+00:10:31.150 --> 00:10:33.490 
+The resource mapping stages
+
+255
+00:10:34.810 --> 00:10:35.889 
+are here
+
+256
+00:10:39.490 --> 00:10:41.259 
+and the dispatch stage, when we actually
+
+257
+00:10:41.260 --> 00:10:43.779 
+send the instruction to the instruction
+
+258
+00:10:46.000 --> 00:10:47.829 
+queues. The last step and that step is a
+
+259
+00:10:47.830 --> 00:10:50.679 
+mapping stage, mapping resources
+
+260
+00:10:50.680 --> 00:10:52.470 
+needed for that, for the instruction.
+
+261
+00:10:54.190 --> 00:10:56.259 
+These stages all run in order.
+
+262
+00:10:57.520 --> 00:10:59.739 
+As soon as we have the
+
+263
+00:10:59.740 --> 00:11:01.779 
+instructions dispatched to the
+
+264
+00:11:01.780 --> 00:11:03.789 
+execution or to the instruction
+
+265
+00:11:03.790 --> 00:11:06.279 
+queues, the instructions
+
+266
+00:11:06.280 --> 00:11:08.079 
+are being executed out of order.
+
+267
+00:11:09.710 --> 00:11:11.748 
+As all their operands
+
+268
+00:11:11.749 --> 00:11:13.899 
+and resources become available and free.
+
+269
+00:11:16.310 --> 00:11:18.139 
+Well, while the instructions are then
+
+270
+00:11:18.140 --> 00:11:20.029 
+being issued to the execution units.
+
+271
+00:11:22.730 --> 00:11:24.879 
+The end of the pipeline is that each
+
+272
+00:11:24.880 --> 00:11:27.039 
+region is marked as finished,
+
+273
+00:11:27.040 --> 00:11:29.139 
+and then it goes to a global completion
+
+274
+00:11:29.140 --> 00:11:31.359 
+table where
+
+275
+00:11:31.360 --> 00:11:32.769 
+the finished instructions are then
+
+276
+00:11:32.770 --> 00:11:34.869 
+completed in order to
+
+277
+00:11:34.870 --> 00:11:36.850 
+be able to maintain the architecture
+
+278
+00:11:38.260 --> 00:11:40.179 
+state of the system in case of an
+
+279
+00:11:41.530 --> 00:11:42.780 
+exception or a fault.
+
+280
+00:11:45.780 --> 00:11:47.429 
+And this diagrams depicts
+
+281
+00:11:48.900 --> 00:11:51.419 
+the shortening of the pipeline
+
+282
+00:11:51.420 --> 00:11:52.861 
+in the POWER9 versus POWER8,
+
+283
+00:11:53.880 --> 00:11:55.949 
+giving us a
+
+284
+00:11:55.950 --> 00:11:58.019 
+performance improvement in the execution
+
+285
+00:11:58.020 --> 00:11:59.190 
+of instructions.
+
+286
+00:12:00.390 --> 00:12:03.209 
+And as we can still see, the
+
+287
+00:12:03.210 --> 00:12:05.129 
+POWER8 instruction sequence, the
+
+288
+00:12:05.130 --> 00:12:06.130 
+pipeline
+
+289
+00:12:07.140 --> 00:12:09.209 
+is indeed also quite similar
+
+290
+00:12:09.210 --> 00:12:11.549 
+and we can map them
+
+291
+00:12:11.550 --> 00:12:14.020 
+as well to the DLX instructions.
+
+292
+00:12:16.320 --> 00:12:18.449 
+And with that, I would like
+
+293
+00:12:18.450 --> 00:12:19.450 
+to conclude
+
+294
+00:12:20.820 --> 00:12:22.859 
+this series - introduction
+
+295
+00:12:22.860 --> 00:12:23.860 
+on the POWER micro-architecture.
+
+296
+00:12:25.380 --> 00:12:27.389 
+I hope you enjoyed those videos.
+
+297
+00:12:27.390 --> 00:12:29.579 
+And I point you to
+
+298
+00:12:29.580 --> 00:12:30.690 
+the reading list
+
+299
+00:12:31.880 --> 00:12:32.880 
+with a well-written, interesting paper
+
+300
+00:12:34.590 --> 00:12:35.549 
+on the POWER processor
+
+301
+00:12:35.550 --> 00:12:37.649 
+micro-architecture, as well as
+
+302
+00:12:37.650 --> 00:12:39.749 
+quite a good Wikipedia page
+
+303
+00:12:39.750 --> 00:12:41.879 
+on the DLX risk processor
+
+304
+00:12:41.880 --> 00:12:42.809 
+describing this.
+
+305
+00:12:42.810 --> 00:12:44.879 
+And I'm sure you all
+
+306
+00:12:44.880 --> 00:12:46.409 
+know where you can search for further
+
+307
+00:12:46.410 --> 00:12:47.829 
+information there.
+
+308
+00:12:47.830 --> 00:12:49.889 
+There is vast information available
+
+309
+00:12:49.890 --> 00:12:52.499 
+on the Internet, on these
+
+310
+00:12:52.500 --> 00:12:53.459 
+processors.
+
+311
+00:12:53.460 --> 00:12:55.619 
+And with that, thank you very much
+
+312
+00:12:55.620 --> 00:12:56.849 
+for your attention. And I hope you
+
+313
+00:12:56.850 --> 00:12:58.429 
+enjoyed these videos.

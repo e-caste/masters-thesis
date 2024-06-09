@@ -1,0 +1,5158 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.490
+The following content is
+provided under a Creative
+
+00:00:02.490 --> 00:00:03.940
+Commons license.
+
+00:00:03.940 --> 00:00:06.330
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.330 --> 00:00:10.660
+continue to offer high quality
+educational resources for free.
+
+00:00:10.660 --> 00:00:13.320
+To make a donation or
+view additional materials
+
+00:00:13.320 --> 00:00:17.160
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.160 --> 00:00:18.252
+at ocw.mit.edu.
+
+00:00:21.580 --> 00:00:24.970
+PROFESSOR: OK, so we
+added another tool,
+
+00:00:24.970 --> 00:00:28.930
+quickly I admit, last
+time to our arsenal,
+
+00:00:28.930 --> 00:00:34.660
+saying that if you've
+got a system where you're
+
+00:00:34.660 --> 00:00:37.690
+trying to do a
+trajectory plan for
+
+00:00:37.690 --> 00:00:41.350
+and your trajectory
+optimizers are failing you,
+
+00:00:41.350 --> 00:00:44.560
+because they're only guaranteed
+to be local, locally good,
+
+00:00:44.560 --> 00:00:48.250
+then there are class
+of more globally more
+
+00:00:48.250 --> 00:00:51.110
+complete algorithms that are
+guaranteed to find a solution,
+
+00:00:51.110 --> 00:00:54.310
+if it exists, based on
+feasible motion planning.
+
+00:00:54.310 --> 00:00:56.920
+So we talked about ROTs mostly.
+
+00:00:56.920 --> 00:01:00.250
+I talked a little bit about
+also the more discreet planning,
+
+00:01:00.250 --> 00:01:02.800
+A*STAR and things like that.
+
+00:01:02.800 --> 00:01:04.660
+OK, so, so far, our
+methods are still
+
+00:01:04.660 --> 00:01:08.080
+clumped in very distinct bins.
+
+00:01:14.950 --> 00:01:17.680
+We still have our value
+iteration type methods,
+
+00:01:17.680 --> 00:01:24.890
+our dynamic programming
+methods, which I love,
+
+00:01:24.890 --> 00:01:30.610
+which give us policies over
+the entire state space, so
+
+00:01:30.610 --> 00:01:31.420
+global policies.
+
+00:01:40.240 --> 00:01:42.280
+But they're stuck by--
+
+00:01:42.280 --> 00:01:46.780
+they're cursed by the
+curse of dimensionality.
+
+00:01:46.780 --> 00:01:48.880
+So it only works for
+low dimensional systems.
+
+00:01:59.500 --> 00:02:02.290
+OK, we've been
+talking also about--
+
+00:02:02.290 --> 00:02:04.828
+and we've been talking about
+policy search in general.
+
+00:02:04.828 --> 00:02:06.370
+And I'm going to,
+later in the class,
+
+00:02:06.370 --> 00:02:07.745
+make a point that
+that's not just
+
+00:02:07.745 --> 00:02:09.280
+about designing trajectories.
+
+00:02:09.280 --> 00:02:10.150
+I made it initially.
+
+00:02:10.150 --> 00:02:12.100
+We'll make it more
+compelling later.
+
+00:02:12.100 --> 00:02:14.500
+But mostly what we've been
+talking about other than that
+
+00:02:14.500 --> 00:02:22.750
+has been falling under the
+class of trajectory planning
+
+00:02:22.750 --> 00:02:24.345
+and/or optimization.
+
+00:02:34.050 --> 00:02:34.890
+OK.
+
+00:02:34.890 --> 00:02:40.620
+And this is only locally
+good but scales very nicely
+
+00:02:40.620 --> 00:02:42.210
+to higher dimensional systems.
+
+00:02:54.830 --> 00:02:59.500
+So you might ask, how
+well does this scale?
+
+00:02:59.500 --> 00:03:02.810
+I don't really think
+there's a good limit.
+
+00:03:02.810 --> 00:03:07.060
+I mean, it just depends on the
+complexity of your problem.
+
+00:03:07.060 --> 00:03:10.900
+People have used ROTs very
+effectively five years ago
+
+00:03:10.900 --> 00:03:13.360
+on 32-dimensional robots.
+
+00:03:13.360 --> 00:03:15.960
+That's pretty darn good, right?
+
+00:03:15.960 --> 00:03:19.270
+If I have a system where
+the start and the goal
+
+00:03:19.270 --> 00:03:24.460
+can be easily found,
+Alex says we can do it
+
+00:03:24.460 --> 00:03:26.540
+in thousands of dimensions.
+
+00:03:26.540 --> 00:03:29.230
+If I have a system where
+the only hope of-- if I have
+
+00:03:29.230 --> 00:03:31.555
+a six-dimensional system
+where the only hope of finding
+
+00:03:31.555 --> 00:03:33.070
+my way from the
+start to the goal
+
+00:03:33.070 --> 00:03:35.170
+is by going through
+this little channel,
+
+00:03:35.170 --> 00:03:37.712
+then I told you that's going to
+fail, even in low dimensions.
+
+00:03:37.712 --> 00:03:41.890
+So it's a hard question
+for me to specifically say
+
+00:03:41.890 --> 00:03:46.480
+what class of system should
+you expect this to work for.
+
+00:03:46.480 --> 00:03:48.640
+But I think they're
+the best tools
+
+00:03:48.640 --> 00:03:50.470
+we have for higher
+dimensional systems, OK.
+
+00:03:53.860 --> 00:03:57.070
+So the big question I
+want to address today
+
+00:03:57.070 --> 00:04:00.490
+is whether these ideas,
+which seem very local--
+
+00:04:00.490 --> 00:04:03.220
+we were talking about
+single trajectory planning--
+
+00:04:03.220 --> 00:04:06.910
+can be used to design a
+feedback policy that's
+
+00:04:06.910 --> 00:04:10.450
+more broadly general, that's
+valid over lots of areas
+
+00:04:10.450 --> 00:04:12.610
+of the state space, OK.
+
+00:04:15.605 --> 00:04:17.230
+Does that makes sense,
+what I'm saying?
+
+00:04:17.230 --> 00:04:17.980
+Yeah?
+
+00:04:17.980 --> 00:04:20.050
+I'm saying I could design
+a single trajectory,
+
+00:04:20.050 --> 00:04:23.530
+but that's really only relevant
+very close to the trajectory.
+
+00:04:23.530 --> 00:04:28.870
+So let's make our
+favorite picture.
+
+00:04:28.870 --> 00:04:31.150
+Let's say I've designed
+for the simple pendulum
+
+00:04:31.150 --> 00:04:35.733
+a nice trajectory, which goes
+up and gets me to the goal.
+
+00:04:35.733 --> 00:04:36.400
+And that's good.
+
+00:04:36.400 --> 00:04:39.790
+If I start here, I know
+exactly what to do.
+
+00:04:39.790 --> 00:04:44.620
+We talked about stabilizing
+it with LTV LQR.
+
+00:04:44.620 --> 00:04:48.770
+So that means if I start here or
+here, I'm in pretty good shape.
+
+00:04:48.770 --> 00:04:51.520
+If I'm smart enough to
+index into the closest
+
+00:04:51.520 --> 00:04:53.830
+point on the trajectory, then
+maybe even starting here,
+
+00:04:53.830 --> 00:04:54.330
+it's fine.
+
+00:04:54.330 --> 00:04:57.130
+I'll just execute the second
+half of that trajectory.
+
+00:04:57.130 --> 00:05:01.570
+But what happens if I start over
+here or if I start over here?
+
+00:05:01.570 --> 00:05:06.478
+Probably, the controller
+based on the linearization
+
+00:05:06.478 --> 00:05:08.770
+is not going to have a lot
+to say about the points that
+
+00:05:08.770 --> 00:05:10.970
+are far from my trajectory.
+
+00:05:10.970 --> 00:05:14.440
+So the goal today is to take
+these methods that we've
+
+00:05:14.440 --> 00:05:17.020
+been pretty happy
+with for designing
+
+00:05:17.020 --> 00:05:19.510
+trajectories, and even
+stabilizing trajectories,
+
+00:05:19.510 --> 00:05:22.690
+and see if we can make them
+useful throughout the state
+
+00:05:22.690 --> 00:05:26.950
+space, just to see how
+well that can work.
+
+00:05:26.950 --> 00:05:32.920
+OK, there's a couple of
+ideas that I want to get to,
+
+00:05:32.920 --> 00:05:42.190
+but first, I want to make
+sure I say that there's
+
+00:05:42.190 --> 00:05:43.390
+no hope of getting--
+
+00:05:43.390 --> 00:05:46.120
+there's no magic bullet here.
+
+00:05:46.120 --> 00:05:53.200
+So there's no hope of me
+finding global optimal policies,
+
+00:05:53.200 --> 00:05:56.800
+unless I'm willing to look
+at every state/action pair.
+
+00:05:56.800 --> 00:05:58.420
+I'm not going to
+tell you that I can
+
+00:05:58.420 --> 00:06:01.247
+use these trajectories
+to just magically do
+
+00:06:01.247 --> 00:06:03.080
+what value iteration
+did in high dimensions.
+
+00:06:03.080 --> 00:06:05.290
+That's not what I'm saying.
+
+00:06:05.290 --> 00:06:07.270
+Unless you have some
+analytical insight which
+
+00:06:07.270 --> 00:06:10.197
+turns the problem into a linear
+problem or something like that,
+
+00:06:10.197 --> 00:06:12.280
+I'm not saying that I'm
+going to give you globally
+
+00:06:12.280 --> 00:06:14.560
+optimal policies.
+
+00:06:14.560 --> 00:06:17.488
+What I'm trying to say is we
+can get good enough policies,
+
+00:06:17.488 --> 00:06:19.030
+potentially, using
+these methods, OK.
+
+00:06:19.030 --> 00:06:23.170
+So I just want to make sure I
+make the point that we really
+
+00:06:23.170 --> 00:06:42.070
+can't expect globally
+optimal policies
+
+00:06:42.070 --> 00:06:56.512
+unless we explore every
+state/action pair, of maybe
+
+00:06:56.512 --> 00:06:57.970
+if we have some
+analytical insight.
+
+00:07:11.492 --> 00:07:14.830
+OK, so the curse of
+dimensionality is real.
+
+00:07:14.830 --> 00:07:17.080
+It's not that some-- the
+value iteration algorithm
+
+00:07:17.080 --> 00:07:18.100
+is a little quirky.
+
+00:07:18.100 --> 00:07:19.850
+It's got this problem
+of dimensionality.
+
+00:07:19.850 --> 00:07:21.630
+It's really not that at all.
+
+00:07:21.630 --> 00:07:23.380
+It's not that somebody
+hasn't just come up
+
+00:07:23.380 --> 00:07:25.510
+with the right algorithm.
+
+00:07:25.510 --> 00:07:30.520
+The problem is you can't know if
+there's a better way unless you
+
+00:07:30.520 --> 00:07:31.720
+look at every possible way.
+
+00:07:31.720 --> 00:07:32.810
+That's the real problem.
+
+00:07:32.810 --> 00:07:35.440
+I mean, so it might
+be that I want
+
+00:07:35.440 --> 00:07:37.900
+to find my way from the start
+of the-- front of the room
+
+00:07:37.900 --> 00:07:39.275
+to the back of
+the room, and I've
+
+00:07:39.275 --> 00:07:41.168
+got some cost function
+which penalizes
+
+00:07:41.168 --> 00:07:42.460
+for the number of steps I take.
+
+00:07:42.460 --> 00:07:44.500
+But unless I go
+down that third row,
+
+00:07:44.500 --> 00:07:47.040
+I didn't know that
+there was actually a--
+
+00:07:47.040 --> 00:07:48.790
+see if I can say
+something not ridiculous,
+
+00:07:48.790 --> 00:07:50.200
+but some pot of
+gold or something
+
+00:07:50.200 --> 00:07:51.640
+in the middle of the third row.
+
+00:07:51.640 --> 00:07:53.710
+And I just didn't
+see it, and I'm never
+
+00:07:53.710 --> 00:07:56.440
+going to see it unless
+I go down the third row.
+
+00:07:56.440 --> 00:07:59.140
+So you really can't
+get around that.
+
+00:08:02.630 --> 00:08:04.540
+So the goal is to really--
+
+00:08:04.540 --> 00:08:08.500
+maybe we can efficiently
+get good enough policies.
+
+00:08:08.500 --> 00:08:10.690
+And I don't care about
+optimality, per se.
+
+00:08:10.690 --> 00:08:13.030
+I've said that before.
+
+00:08:13.030 --> 00:08:15.893
+I just care about using
+optimal control and the like
+
+00:08:15.893 --> 00:08:17.935
+to turn these things into
+computational problems.
+
+00:08:37.000 --> 00:08:37.500
+OK?
+
+00:08:41.730 --> 00:08:44.330
+So there's a couple ideas
+out there that are relevant.
+
+00:08:55.700 --> 00:09:03.500
+The first one sounds
+a little silly,
+
+00:09:03.500 --> 00:09:06.280
+but it's increasingly plausible.
+
+00:09:10.880 --> 00:09:13.700
+Let's say my trajectory
+optimizers or my planning
+
+00:09:13.700 --> 00:09:16.640
+algorithms got so
+fast, or maybe just
+
+00:09:16.640 --> 00:09:19.580
+computers got so
+fast that I didn't
+
+00:09:19.580 --> 00:09:21.680
+have to do any work
+in the algorithms,
+
+00:09:21.680 --> 00:09:24.080
+that it takes me a
+hundredth of a second
+
+00:09:24.080 --> 00:09:28.850
+to design a trajectory from
+the start to the goal here.
+
+00:09:28.850 --> 00:09:31.460
+I've got a real time
+execution task here.
+
+00:09:31.460 --> 00:09:33.887
+Every, let's say,
+hundredth of a second,
+
+00:09:33.887 --> 00:09:35.720
+my control system's
+asking me for a decision
+
+00:09:35.720 --> 00:09:37.020
+about what to do.
+
+00:09:37.020 --> 00:09:39.620
+But if I can plan fast
+enough, and I find myself
+
+00:09:39.620 --> 00:09:42.145
+in this state, then you
+could just plan again.
+
+00:09:42.145 --> 00:09:44.270
+You could really just,
+every time you find yourself
+
+00:09:44.270 --> 00:09:46.340
+in a new state, plan
+a trajectory that's
+
+00:09:46.340 --> 00:09:48.800
+going to get me to the goal.
+
+00:09:48.800 --> 00:09:49.900
+If I find myself--
+
+00:09:49.900 --> 00:09:52.173
+so if I'm executing this
+trajectory and I get
+
+00:09:52.173 --> 00:09:53.840
+pushed off on a
+disturbance, no problem.
+
+00:09:53.840 --> 00:09:58.340
+Every step, I'm just planning
+a trajectory to the goal.
+
+00:09:58.340 --> 00:09:59.278
+If you can plan--
+
+00:09:59.278 --> 00:10:01.070
+if we teach the course
+again in five years,
+
+00:10:01.070 --> 00:10:02.278
+maybe that's the only answer.
+
+00:10:02.278 --> 00:10:02.823
+I don't know.
+
+00:10:02.823 --> 00:10:04.490
+If you can plan fast
+enough, that really
+
+00:10:04.490 --> 00:10:05.570
+is a beautiful answer.
+
+00:10:08.570 --> 00:10:10.820
+For the most part, the
+problems we've looked at so far
+
+00:10:10.820 --> 00:10:13.760
+are not that easy that
+you can plan that fast,
+
+00:10:13.760 --> 00:10:16.270
+but there's a middle ground.
+
+00:10:16.270 --> 00:10:22.280
+So this was basically
+plan every dt.
+
+00:10:37.070 --> 00:10:40.670
+There's a middle ground
+that people use today a lot.
+
+00:10:40.670 --> 00:10:43.280
+I mentioned it once before.
+
+00:10:43.280 --> 00:10:47.030
+But a lot of times what we do
+to make real time-- to make
+
+00:10:47.030 --> 00:10:50.100
+the planning fast enough
+to execute in real time
+
+00:10:50.100 --> 00:10:52.100
+is a lot of times we'll
+do some sort of receding
+
+00:10:52.100 --> 00:10:53.015
+horizon problem.
+
+00:11:09.073 --> 00:11:10.240
+So how's that going to work?
+
+00:11:13.420 --> 00:11:17.320
+The simplest answer is,
+for receding horizon,
+
+00:11:17.320 --> 00:11:19.750
+I've got some long-term
+cost function,
+
+00:11:19.750 --> 00:11:27.970
+and I've got my total
+cost function is from t
+
+00:11:27.970 --> 00:11:36.615
+equals 0 to some t
+final g of xu dt.
+
+00:11:36.615 --> 00:11:37.990
+I could-- I did
+it discrete time.
+
+00:11:37.990 --> 00:11:39.190
+That's fine.
+
+00:11:39.190 --> 00:11:43.990
+So n to capital N
+for discrete time.
+
+00:11:47.310 --> 00:11:50.820
+And let's say it takes me too
+long to plan N steps ahead,
+
+00:11:50.820 --> 00:11:55.920
+but I know I can plan three
+steps ahead really fast.
+
+00:11:55.920 --> 00:11:59.790
+So a lot of times people will
+actually approximate that
+
+00:11:59.790 --> 00:12:05.430
+with the problem of just looking
+some finite receding horizon
+
+00:12:05.430 --> 00:12:06.960
+step ahead.
+
+00:12:06.960 --> 00:12:08.940
+And if you can--
+
+00:12:08.940 --> 00:12:11.460
+if you're doing it at
+every ti-- if at time 2,
+
+00:12:11.460 --> 00:12:13.350
+you're asking for the
+receding horizon plan,
+
+00:12:13.350 --> 00:12:15.390
+then you can just
+look from time 2.
+
+00:12:15.390 --> 00:12:25.320
+So let's say my current time to
+my current time plus 3 gx of u.
+
+00:12:28.550 --> 00:12:32.780
+That could be an arbitrarily bad
+estimate of my long-term cost,
+
+00:12:32.780 --> 00:12:34.350
+of course.
+
+00:12:34.350 --> 00:12:39.230
+If you're clever enough to have
+a guess at the long-term cost,
+
+00:12:39.230 --> 00:12:42.080
+then you can put in
+some sort of estimate
+
+00:12:42.080 --> 00:12:49.430
+of what j x from t plus 3 might
+be, and that's going to help.
+
+00:12:58.700 --> 00:13:02.020
+So for instance, let's
+say I find myself
+
+00:13:02.020 --> 00:13:06.250
+off my trajectory
+somewhere over here,
+
+00:13:06.250 --> 00:13:08.980
+and I'm willing to say
+my planner's fast enough.
+
+00:13:08.980 --> 00:13:10.830
+My controller's
+running at 100 hertz.
+
+00:13:10.830 --> 00:13:12.550
+And in a hundredth
+of a second, I
+
+00:13:12.550 --> 00:13:16.480
+can about solve
+an optimal control
+
+00:13:16.480 --> 00:13:19.600
+problem that's of half a
+second in duration, let's say.
+
+00:13:19.600 --> 00:13:21.490
+That's a reasonable thing.
+
+00:13:21.490 --> 00:13:24.303
+Half a second along puts
+me-- it would put me here.
+
+00:13:24.303 --> 00:13:25.720
+So let's say I'm
+going to design--
+
+00:13:25.720 --> 00:13:27.262
+I'm going to use my
+planner to design
+
+00:13:27.262 --> 00:13:31.308
+a trajectory that gets me
+back to this in half a second.
+
+00:13:31.308 --> 00:13:33.100
+And then I use my cost
+to go that I already
+
+00:13:33.100 --> 00:13:36.070
+knew from this design
+to get me to the goal.
+
+00:13:36.070 --> 00:13:40.690
+That's one way to implement
+what I just said, OK.
+
+00:13:40.690 --> 00:13:46.006
+And it's not just talk.
+
+00:13:46.006 --> 00:13:49.640
+I can show you a
+good example of it.
+
+00:13:49.640 --> 00:13:51.790
+So I showed you guys
+this once before,
+
+00:13:51.790 --> 00:13:54.260
+but let's just look
+at it again quickly.
+
+00:13:58.340 --> 00:14:02.840
+This is Pieter Abbeel's
+and Andrew Ng's work
+
+00:14:02.840 --> 00:14:05.300
+on the autonomous
+helicopters, OK.
+
+00:14:05.300 --> 00:14:11.330
+So they execute these
+comically cool trajectories
+
+00:14:11.330 --> 00:14:13.940
+with their helicopter.
+
+00:14:13.940 --> 00:14:16.910
+The way they do it is actually,
+they get a desired trajectory
+
+00:14:16.910 --> 00:14:18.920
+from a human pilot,
+and then they
+
+00:14:18.920 --> 00:14:20.660
+stabilize that in real time.
+
+00:14:23.420 --> 00:14:27.537
+They do-- he calls it
+DDP, but it's actually
+
+00:14:27.537 --> 00:14:29.120
+what we've been
+calling iterative LQR.
+
+00:14:29.120 --> 00:14:32.300
+I told you that a lot of people
+blur the lines, unfortunately,
+
+00:14:32.300 --> 00:14:33.590
+between those two.
+
+00:14:33.590 --> 00:14:36.213
+So they do an iterative
+LQR controller design,
+
+00:14:36.213 --> 00:14:38.630
+and they decided that it's
+fast enough that they can do it
+
+00:14:38.630 --> 00:14:41.010
+three seconds into the future.
+
+00:14:41.010 --> 00:14:43.760
+So they're doing exactly
+these receding-- every dt
+
+00:14:43.760 --> 00:14:46.760
+for that control
+for that helicopter,
+
+00:14:46.760 --> 00:14:50.150
+they're doing
+iterative LQR to design
+
+00:14:50.150 --> 00:14:51.950
+a trajectory that's
+going to get me back
+
+00:14:51.950 --> 00:14:55.910
+to my pilot's trajectory.
+
+00:14:55.910 --> 00:14:58.650
+And they're running it every dt,
+thinking three seconds ahead,
+
+00:14:58.650 --> 00:15:02.100
+and they say, that's
+comparable to the time of--
+
+00:15:02.100 --> 00:15:04.970
+the dynamics of instability
+for their helicopter.
+
+00:15:04.970 --> 00:15:06.630
+Yeah.
+
+00:15:06.630 --> 00:15:09.690
+Put it all together, and
+you get this thing tracking
+
+00:15:09.690 --> 00:15:12.270
+pretty cool trajectories, OK.
+
+00:15:12.270 --> 00:15:14.097
+It took a lot of
+good engineering
+
+00:15:14.097 --> 00:15:15.930
+behind that, too, of
+getting the model right
+
+00:15:15.930 --> 00:15:17.800
+and getting the
+helicopter right,
+
+00:15:17.800 --> 00:15:20.217
+but it's pretty impressive.
+
+00:15:37.270 --> 00:15:40.628
+OK, so if you can plan fast
+enough-- and like I said,
+
+00:15:40.628 --> 00:15:42.920
+in a few years, maybe the
+planning algorithms are going
+
+00:15:42.920 --> 00:15:43.582
+to be--
+
+00:15:43.582 --> 00:15:45.290
+and the computers are
+going to be so fast
+
+00:15:45.290 --> 00:15:46.100
+and the planning
+algorithms are going
+
+00:15:46.100 --> 00:15:47.990
+to be so fast that we never
+do value iteration anymore,
+
+00:15:47.990 --> 00:15:49.080
+but I kind of doubt it.
+
+00:15:49.080 --> 00:15:50.600
+I think that
+there's always going
+
+00:15:50.600 --> 00:15:55.580
+to be reasons to do
+more global methods.
+
+00:15:55.580 --> 00:15:57.830
+If you can plan fast
+enough, even a little bit
+
+00:15:57.830 --> 00:16:00.620
+into the future, that
+it might be good enough
+
+00:16:00.620 --> 00:16:02.570
+to just turn your
+planner immediately
+
+00:16:02.570 --> 00:16:05.640
+into a feedback policy.
+
+00:16:05.640 --> 00:16:06.140
+OK.
+
+00:16:09.560 --> 00:16:11.580
+We don't do that so
+much in my group.
+
+00:16:11.580 --> 00:16:14.550
+I think it's a good
+idea, and it makes sense.
+
+00:16:14.550 --> 00:16:16.610
+But I do think there's a
+lot of other good ideas
+
+00:16:16.610 --> 00:16:23.270
+out there on how to turn
+your planners into policies.
+
+00:16:23.270 --> 00:16:44.540
+OK, the next one is
+multi-query planning.
+
+00:16:44.540 --> 00:16:46.600
+Anybody know what
+I mean by that?
+
+00:16:51.560 --> 00:16:54.540
+AUDIENCE: [INAUDIBLE]
+
+00:16:54.540 --> 00:16:57.540
+PROFESSOR: No, that's
+not what I mean.
+
+00:16:57.540 --> 00:17:00.300
+You can imagine doing something
+like that and it meaning this,
+
+00:17:00.300 --> 00:17:00.800
+but--
+
+00:17:04.500 --> 00:17:06.750
+so I spent relatively
+little time on the ROTs,
+
+00:17:06.750 --> 00:17:08.849
+but actually, it's one
+of the tools we think
+
+00:17:08.849 --> 00:17:10.500
+a lot about in my group now.
+
+00:17:10.500 --> 00:17:13.530
+It's actually-- the only reason
+I spend little time on it
+
+00:17:13.530 --> 00:17:17.605
+is I think that seeing the
+big idea in class is enough,
+
+00:17:17.605 --> 00:17:19.230
+that the ideas are
+so simple, that when
+
+00:17:19.230 --> 00:17:20.980
+you do your problem
+set and make it work,
+
+00:17:20.980 --> 00:17:23.450
+that's the best way for
+you to learn about it, OK.
+
+00:17:23.450 --> 00:17:30.450
+So it's such a simple idea,
+and it just works very well.
+
+00:17:30.450 --> 00:17:33.000
+OK, so let's say we've got
+these ROTs that we like,
+
+00:17:33.000 --> 00:17:34.200
+we know and love.
+
+00:17:34.200 --> 00:17:35.940
+And for the pendulum,
+I showed you
+
+00:17:35.940 --> 00:17:40.560
+a plot of the ROT trying to
+find its way to the goal.
+
+00:17:40.560 --> 00:17:43.955
+It started splintering
+off lots of--
+
+00:17:43.955 --> 00:17:46.290
+eventually, it'll find
+some trajectory that
+
+00:17:46.290 --> 00:17:48.330
+will find its way there,
+but along the way,
+
+00:17:48.330 --> 00:17:50.490
+it's generated
+lots of trees that
+
+00:17:50.490 --> 00:17:53.550
+do random things and
+lots of paths that
+
+00:17:53.550 --> 00:17:54.885
+didn't turn out to be useful.
+
+00:18:00.010 --> 00:18:04.650
+And what you have is a web.
+
+00:18:04.650 --> 00:18:05.985
+In this case, it's a tree.
+
+00:18:05.985 --> 00:18:08.910
+If you run the ROT
+once, you have a tree
+
+00:18:08.910 --> 00:18:11.160
+of feasible trajectories
+that you could
+
+00:18:11.160 --> 00:18:14.850
+execute on the real robot.
+
+00:18:14.850 --> 00:18:17.160
+It happens that one of
+them got me from the start
+
+00:18:17.160 --> 00:18:21.090
+to the goal in my initial
+problem formulation.
+
+00:18:21.090 --> 00:18:24.990
+OK, but instead of throwing all
+that computation out and just
+
+00:18:24.990 --> 00:18:29.580
+keeping the nominal trajectory,
+I might as well store it.
+
+00:18:29.580 --> 00:18:31.650
+If I get a new
+problem, which is,
+
+00:18:31.650 --> 00:18:35.010
+let's say I wanted to start
+from here, like I said
+
+00:18:35.010 --> 00:18:38.010
+and get to the
+goal, then really,
+
+00:18:38.010 --> 00:18:41.460
+all I need to do in my new
+time, in my new planning problem
+
+00:18:41.460 --> 00:18:44.040
+is connect back to
+my old solution.
+
+00:18:44.040 --> 00:18:46.650
+If I can find a new plan
+that gets me back here,
+
+00:18:46.650 --> 00:18:51.930
+then I can just ride the rest
+of the solution into the goal.
+
+00:18:51.930 --> 00:18:54.750
+Simultaneously, if
+someone were to tell me
+
+00:18:54.750 --> 00:18:56.220
+I want to get to
+a different goal--
+
+00:18:56.220 --> 00:18:58.560
+let's say I want to get
+the system to the upright
+
+00:18:58.560 --> 00:18:59.910
+with some velocity--
+
+00:18:59.910 --> 00:19:02.310
+all I really need
+to do is find a way
+
+00:19:02.310 --> 00:19:05.220
+to connect from my old
+plan to the new goal.
+
+00:19:08.830 --> 00:19:12.100
+So as you design
+these, the first start
+
+00:19:12.100 --> 00:19:13.637
+to the goal planning
+problem, where
+
+00:19:13.637 --> 00:19:15.220
+you're designing
+trees that try to get
+
+00:19:15.220 --> 00:19:17.230
+as-- cover all over
+the place, could
+
+00:19:17.230 --> 00:19:19.590
+be potentially very painful.
+
+00:19:19.590 --> 00:19:23.650
+We might take a long time
+to find your way from start
+
+00:19:23.650 --> 00:19:24.428
+to goal.
+
+00:19:24.428 --> 00:19:26.470
+But if I want to solve a
+new problem which is not
+
+00:19:26.470 --> 00:19:29.410
+so different, then it could
+be actually very efficient
+
+00:19:29.410 --> 00:19:32.890
+to reuse your old
+computation and do
+
+00:19:32.890 --> 00:19:39.700
+a multi-query-- this is a
+multi-query planning idea, OK.
+
+00:19:39.700 --> 00:19:42.220
+And I think that idea is so
+good that it's actually--
+
+00:19:46.165 --> 00:19:50.580
+if you do this again
+and again, you're
+
+00:19:50.580 --> 00:19:55.860
+going to slowly end up with this
+web of feasible trajectories
+
+00:19:55.860 --> 00:19:58.553
+that you could execute.
+
+00:19:58.553 --> 00:19:59.595
+People call it a roadmap.
+
+00:20:03.330 --> 00:20:06.390
+When you have some network,
+some graph of these feasible
+
+00:20:06.390 --> 00:20:08.985
+trajectories, people
+call it a roadmap.
+
+00:20:22.475 --> 00:20:24.350
+If all you care about
+is getting to the goal,
+
+00:20:24.350 --> 00:20:26.475
+then all you need to do is
+connect to your existing
+
+00:20:26.475 --> 00:20:28.727
+roadmap and write
+it to the goal.
+
+00:20:28.727 --> 00:20:31.310
+If your roadmap is so rich that
+once I connect to the roadmap,
+
+00:20:31.310 --> 00:20:33.227
+there's actually a bunch
+of different options,
+
+00:20:33.227 --> 00:20:35.810
+bunch of different paths I could
+take through the graph to get
+
+00:20:35.810 --> 00:20:38.210
+there, well, then at least
+you've got a discrete planning
+
+00:20:38.210 --> 00:20:42.470
+problem, and you can do A*STAR
+on it or something like this.
+
+00:20:42.470 --> 00:20:46.430
+And effectively,
+the trajectories
+
+00:20:46.430 --> 00:20:50.455
+I've already generated
+will turn this back
+
+00:20:50.455 --> 00:20:51.830
+into a discrete
+planning problem.
+
+00:21:34.620 --> 00:21:37.050
+That idea is so good
+that some people
+
+00:21:37.050 --> 00:21:40.500
+believe it's the only
+thing you need to do, OK.
+
+00:21:40.500 --> 00:21:42.870
+There's a camp out there
+that does these probabilistic
+
+00:21:42.870 --> 00:21:44.370
+roadmaps that's--
+
+00:21:44.370 --> 00:21:46.770
+Jean-Claude Latombe,
+I think, is the head
+
+00:21:46.770 --> 00:21:51.060
+of the camp,
+started these ideas.
+
+00:21:51.060 --> 00:21:54.600
+And they believe that you should
+address a complicated motion
+
+00:21:54.600 --> 00:21:57.525
+planning problem in two steps.
+
+00:22:03.380 --> 00:22:09.128
+First you'll construct some
+dense enough graph, a roadmap,
+
+00:22:09.128 --> 00:22:10.170
+I guess I should call it.
+
+00:22:16.950 --> 00:22:23.310
+And then once you've got it, you
+just do your query phase, OK.
+
+00:22:23.310 --> 00:22:27.270
+So let's think about that
+in a configuration space.
+
+00:22:27.270 --> 00:22:37.840
+I've got a bunch
+of obstacles, and I
+
+00:22:37.840 --> 00:22:42.480
+want to get myself from
+some start to some goal.
+
+00:22:42.480 --> 00:22:44.230
+All right, if I know
+I'm going to be doing
+
+00:22:44.230 --> 00:22:46.900
+a lot of these things,
+then it actually
+
+00:22:46.900 --> 00:22:50.290
+makes a lot of sense for
+me to go ahead and build
+
+00:22:50.290 --> 00:22:52.660
+a pretty good graph.
+
+00:22:52.660 --> 00:22:55.480
+So before I even start to
+solve the first problem,
+
+00:22:55.480 --> 00:22:57.550
+let's just drop in a
+lot of random samples
+
+00:22:57.550 --> 00:23:04.810
+throughout the space, choose
+uniformly, OK, at the space.
+
+00:23:04.810 --> 00:23:12.340
+Every time I add a point in
+the configuration space world,
+
+00:23:12.340 --> 00:23:15.490
+they try to connect that
+new point to the end
+
+00:23:15.490 --> 00:23:18.400
+closest points with
+simple strategies.
+
+00:23:31.960 --> 00:23:34.020
+So I'll pick a point
+at random, I'll
+
+00:23:34.020 --> 00:23:36.420
+try to find the guys
+that are close to it,
+
+00:23:36.420 --> 00:23:40.200
+and I'll connect with it.
+
+00:23:40.200 --> 00:23:41.637
+Pick a new point at random.
+
+00:23:41.637 --> 00:23:43.470
+Oh, there's really only
+one guy close to it.
+
+00:23:43.470 --> 00:23:45.240
+I'll connect to it.
+
+00:23:45.240 --> 00:23:46.300
+Pick another point.
+
+00:23:46.300 --> 00:23:48.150
+Maybe these guys are connected.
+
+00:23:48.150 --> 00:23:49.550
+And that's it.
+
+00:23:49.550 --> 00:23:52.050
+And if I do it
+enough, and then I
+
+00:23:52.050 --> 00:23:53.950
+come up with a
+pretty good roadmap--
+
+00:23:53.950 --> 00:23:59.310
+maybe this guy was the one
+that connects to everybody--
+
+00:23:59.310 --> 00:24:03.360
+that when the query
+phase comes along, again,
+
+00:24:03.360 --> 00:24:07.710
+all you need to do is
+connect to your roadmap.
+
+00:24:07.710 --> 00:24:09.600
+I got a new query.
+
+00:24:09.600 --> 00:24:11.340
+I just connect to my roadmap.
+
+00:24:11.340 --> 00:24:14.370
+I do whatever my discrete
+searching problem may--
+
+00:24:14.370 --> 00:24:16.920
+A*STAR or whatever to
+find a path from the start
+
+00:24:16.920 --> 00:24:18.360
+to the goal, OK.
+
+00:24:22.628 --> 00:24:24.420
+I actually think it's
+a very beautiful idea
+
+00:24:24.420 --> 00:24:29.730
+to have this web of possible
+trajectories covering the state
+
+00:24:29.730 --> 00:24:32.110
+space.
+
+00:24:32.110 --> 00:24:34.050
+And then all it takes
+at execution time
+
+00:24:34.050 --> 00:24:39.630
+is connecting and then
+executing your trajectory.
+
+00:24:39.630 --> 00:24:41.310
+Now the probabilistic
+roadmaps, again,
+
+00:24:41.310 --> 00:24:46.500
+this step of connecting
+nearby points
+
+00:24:46.500 --> 00:24:49.320
+in under-actuated
+systems might be hard.
+
+00:24:49.320 --> 00:24:51.390
+Might be as hard
+as finding the path
+
+00:24:51.390 --> 00:24:53.500
+from the start to the goal.
+
+00:24:53.500 --> 00:24:55.110
+So maybe what you
+do here is actually
+
+00:24:55.110 --> 00:24:58.020
+do a [? DR call ?] or
+something to find that path,
+
+00:24:58.020 --> 00:25:00.300
+or you do an RRT, or one
+of any of the other methods
+
+00:25:00.300 --> 00:25:03.940
+we've done to make these
+initial connections.
+
+00:25:03.940 --> 00:25:05.970
+And maybe to make them
+feasible to execute,
+
+00:25:05.970 --> 00:25:11.250
+you've got to do some trajectory
+stabilization to get on that.
+
+00:25:11.250 --> 00:25:15.160
+But if you can solve some
+local planning problems,
+
+00:25:15.160 --> 00:25:17.520
+then you can use these big
+roadmap ideas to maybe do
+
+00:25:17.520 --> 00:25:20.490
+more global behaviors, OK.
+
+00:25:20.490 --> 00:25:24.720
+So again, I think multi-query
+planning is a nice way
+
+00:25:24.720 --> 00:25:30.420
+to go from local policies to
+more globally valid policies.
+
+00:25:30.420 --> 00:25:32.367
+Yeah.
+
+00:25:32.367 --> 00:25:34.200
+AUDIENCE: I can see
+that working pretty well
+
+00:25:34.200 --> 00:25:36.043
+with a static obstacle field.
+
+00:25:36.043 --> 00:25:36.710
+PROFESSOR: Good.
+
+00:25:36.710 --> 00:25:38.320
+AUDIENCE: Could it move
+[? moving ?] obstacles,
+
+00:25:38.320 --> 00:25:38.995
+and might--
+
+00:25:38.995 --> 00:25:42.200
+the roadmap might change?
+
+00:25:42.200 --> 00:25:44.450
+PROFESSOR: Well, I
+don't really know
+
+00:25:44.450 --> 00:25:47.100
+what the proponents would say.
+
+00:25:47.100 --> 00:25:52.940
+But if you know where
+the obstacles are, then--
+
+00:25:52.940 --> 00:25:55.130
+or if you even sense
+where the obstacles are
+
+00:25:55.130 --> 00:25:57.470
+going to be in a
+receding horizon quickly,
+
+00:25:57.470 --> 00:25:59.180
+then you could--
+
+00:25:59.180 --> 00:26:01.898
+maybe this one's blocked, and
+I can just take another path.
+
+00:26:01.898 --> 00:26:03.440
+But if I have a rich
+enough road map,
+
+00:26:03.440 --> 00:26:05.035
+hopefully you can
+get around that.
+
+00:26:05.035 --> 00:26:06.410
+And the other
+thing is, if I have
+
+00:26:06.410 --> 00:26:08.250
+a model of how those
+obstacles are changing,
+
+00:26:08.250 --> 00:26:12.650
+then naively, that just adds one
+dimension in time, let's say,
+
+00:26:12.650 --> 00:26:15.610
+to my plan, and I just have to
+do a higher dimensional plan.
+
+00:26:15.610 --> 00:26:17.360
+But I think the case
+you're thinking about
+
+00:26:17.360 --> 00:26:19.360
+is if these things are
+just moving on their own.
+
+00:26:19.360 --> 00:26:20.690
+I don't have any good model.
+
+00:26:20.690 --> 00:26:22.880
+I suddenly find
+that I'm obstructed.
+
+00:26:22.880 --> 00:26:26.540
+Then, again, you could
+dynamically replan
+
+00:26:26.540 --> 00:26:27.622
+or you could--
+
+00:26:27.622 --> 00:26:30.080
+by either taking a different
+path here or making a new edge
+
+00:26:30.080 --> 00:26:31.430
+if you had to.
+
+00:26:31.430 --> 00:26:36.257
+I don't think it breaks
+the fundamental goal.
+
+00:26:36.257 --> 00:26:38.840
+You could almost think of this
+as having-- in a dynamic sense,
+
+00:26:38.840 --> 00:26:40.460
+you could almost think
+of this as having
+
+00:26:40.460 --> 00:26:42.920
+a bunch of repertoires, a bunch
+of things I know how to do.
+
+00:26:42.920 --> 00:26:45.110
+So maybe if it's
+a walking robot,
+
+00:26:45.110 --> 00:26:47.120
+maybe I know how to
+take a step here.
+
+00:26:47.120 --> 00:26:48.230
+That's one of my edges.
+
+00:26:48.230 --> 00:26:49.040
+I know how to execute that.
+
+00:26:49.040 --> 00:26:50.290
+I know how to take a big step.
+
+00:26:50.290 --> 00:26:51.680
+I know how to take a small step.
+
+00:26:51.680 --> 00:26:56.150
+It's a repertoire of local
+skills, local trajectories
+
+00:26:56.150 --> 00:26:57.380
+in this case.
+
+00:26:57.380 --> 00:27:01.200
+Then I just got to stitch them
+together in the right way.
+
+00:27:01.200 --> 00:27:03.950
+So that's a fairly
+robust thing, even if--
+
+00:27:03.950 --> 00:27:05.757
+yeah.
+
+00:27:05.757 --> 00:27:07.590
+AUDIENCE: Given a rich
+enough roadmap, would
+
+00:27:07.590 --> 00:27:09.800
+you have problems finding--
+
+00:27:09.800 --> 00:27:13.856
+choosing the best path
+among those path nodes,
+
+00:27:13.856 --> 00:27:15.175
+like discrete search?
+
+00:27:15.175 --> 00:27:16.550
+PROFESSOR: The
+discrete search, I
+
+00:27:16.550 --> 00:27:20.120
+think in general, you should
+think of as being unlimitedly--
+
+00:27:20.120 --> 00:27:21.050
+basically unlimited.
+
+00:27:21.050 --> 00:27:23.660
+I mean, compared to all these
+continuous time methods,
+
+00:27:23.660 --> 00:27:25.610
+it's very, very efficient.
+
+00:27:25.610 --> 00:27:28.445
+People doing it on huge
+collections of nodes very
+
+00:27:28.445 --> 00:27:30.320
+efficiently, especially
+if you can do A*STAR,
+
+00:27:30.320 --> 00:27:32.090
+if you find a good heuristic.
+
+00:27:32.090 --> 00:27:35.572
+I mean, this is
+how you can go to--
+
+00:27:35.572 --> 00:27:38.030
+to maybe overplay the title,
+this is how you go to MapQuest
+
+00:27:38.030 --> 00:27:39.988
+and you ask it to go from
+Boston to California,
+
+00:27:39.988 --> 00:27:42.420
+and it just happens.
+
+00:27:42.420 --> 00:27:45.695
+These things are very fast,
+even with a lot of nodes,
+
+00:27:45.695 --> 00:27:46.320
+a lot of roads.
+
+00:27:46.320 --> 00:27:48.730
+Yeah.
+
+00:27:48.730 --> 00:27:49.870
+Yeah.
+
+00:27:49.870 --> 00:27:52.298
+AUDIENCE: How did it compare
+to [INAUDIBLE] discretize
+
+00:27:52.298 --> 00:27:53.373
+in state space?
+
+00:27:53.373 --> 00:27:54.040
+PROFESSOR: Good.
+
+00:27:54.040 --> 00:27:54.370
+AUDIENCE: [INAUDIBLE]
+
+00:27:54.370 --> 00:27:56.160
+PROFESSOR: So this--
+very good question.
+
+00:27:56.160 --> 00:27:58.930
+Let me answer that first,
+and then I'll-- yeah.
+
+00:27:58.930 --> 00:28:01.800
+So I almost talked about
+this last time right
+
+00:28:01.800 --> 00:28:05.040
+after I said, what happens
+when you turn this state
+
+00:28:05.040 --> 00:28:09.600
+space into buckets, how it's
+a reasonable thing to try
+
+00:28:09.600 --> 00:28:11.640
+but not very elegant.
+
+00:28:11.640 --> 00:28:15.030
+I think these guys would have
+put this topic immediately
+
+00:28:15.030 --> 00:28:17.130
+after that, saying,
+instead of discretizing
+
+00:28:17.130 --> 00:28:20.250
+in some unnatural
+grid maneuver, we're
+
+00:28:20.250 --> 00:28:23.430
+discretizing here by
+sampling randomly.
+
+00:28:23.430 --> 00:28:28.080
+That has the benefit that
+you could, for instance--
+
+00:28:28.080 --> 00:28:30.330
+you can actually-- you don't
+have to sample uniformly.
+
+00:28:30.330 --> 00:28:32.310
+Maybe you care more about
+things in this area.
+
+00:28:32.310 --> 00:28:33.850
+You can bias your sampling
+distribution, same way
+
+00:28:33.850 --> 00:28:36.040
+you can add more grid cells
+or something like that.
+
+00:28:36.040 --> 00:28:39.940
+But the real benefit is that
+it's a more continuous process.
+
+00:28:39.940 --> 00:28:42.710
+It's not stuck in some
+very discrete bins.
+
+00:28:42.710 --> 00:28:43.350
+OK.
+
+00:28:43.350 --> 00:28:45.520
+Sorry, second part
+of your question.
+
+00:28:45.520 --> 00:28:47.020
+AUDIENCE: Well, now
+it would follow,
+
+00:28:47.020 --> 00:28:49.425
+like if we have a discrete
+[? board ?] and we can run any
+
+00:28:49.425 --> 00:28:52.670
+of those algorithms on
+[? value ?] [? iteration ?]
+
+00:28:52.670 --> 00:28:54.420
+on top of it, [? we can ?]
+[? find out? ?]
+
+00:28:54.420 --> 00:28:55.420
+PROFESSOR: Yes, exactly.
+
+00:28:55.420 --> 00:28:57.172
+So why did I say A*STAR.
+
+00:28:57.172 --> 00:28:59.130
+I should have said value
+reason on the-- right?
+
+00:28:59.130 --> 00:28:59.850
+Yeah.
+
+00:28:59.850 --> 00:29:01.577
+Right.
+
+00:29:01.577 --> 00:29:03.660
+I mean, A*STAR can be
+faster than value iteration.
+
+00:29:03.660 --> 00:29:06.080
+If you have a good heuristic,
+you don't have to--
+
+00:29:06.080 --> 00:29:07.316
+yeah.
+
+00:29:07.316 --> 00:29:09.440
+AUDIENCE: So when you're
+doing the sampling here--
+
+00:29:09.440 --> 00:29:09.980
+PROFESSOR: Good.
+
+00:29:09.980 --> 00:29:10.480
+Yeah.
+
+00:29:10.480 --> 00:29:11.450
+AUDIENCE: --you were--
+
+00:29:11.450 --> 00:29:13.910
+ROTs do this very
+uniform sampling.
+
+00:29:13.910 --> 00:29:15.695
+And you say you can
+bias the sample.
+
+00:29:15.695 --> 00:29:16.320
+PROFESSOR: Yes.
+
+00:29:16.320 --> 00:29:17.737
+AUDIENCE: But if
+you're doing this
+
+00:29:17.737 --> 00:29:20.990
+before you even do
+your first path,
+
+00:29:20.990 --> 00:29:23.688
+why don't you actually choose
+[? optimal ?] [INAUDIBLE]??
+
+00:29:23.688 --> 00:29:25.980
+Can't you do some kind of
+[INAUDIBLE] diagram with this
+
+00:29:25.980 --> 00:29:29.565
+and just say, I'm going to
+test using the best I can find,
+
+00:29:29.565 --> 00:29:31.190
+given that I have a
+model of the world,
+
+00:29:31.190 --> 00:29:34.190
+and then [? get them ?]
+[? with sampling, ?] [? your ?]
+
+00:29:34.190 --> 00:29:38.030
+[? subcontinuous ?]
+time, and then you find--
+
+00:29:38.030 --> 00:29:39.975
+why is the sampling
+[? still ?] part of this--
+
+00:29:39.975 --> 00:29:41.100
+PROFESSOR: Excellent point.
+
+00:29:41.100 --> 00:29:45.027
+I think if the problem
+permits that, then you
+
+00:29:45.027 --> 00:29:46.110
+should absolutely do that.
+
+00:29:46.110 --> 00:29:46.575
+AUDIENCE: OK.
+
+00:29:46.575 --> 00:29:47.040
+So then--
+
+00:29:47.040 --> 00:29:48.290
+PROFESSOR: I think
+even for the pendulum,
+
+00:29:48.290 --> 00:29:49.915
+though, I wouldn't
+know how to tell you
+
+00:29:49.915 --> 00:29:52.850
+what the optimal sampling is,
+because the way these things
+
+00:29:52.850 --> 00:29:54.028
+connect are non-trivial.
+
+00:29:54.028 --> 00:29:55.820
+They're subject to the
+dynamic constraints.
+
+00:29:55.820 --> 00:29:56.490
+AUDIENCE: Right.
+
+00:29:56.490 --> 00:29:58.910
+PROFESSOR: Right.
+
+00:29:58.910 --> 00:30:00.800
+So if you could formulate
+that and solve it
+
+00:30:00.800 --> 00:30:02.120
+for this-- and maybe you can.
+
+00:30:02.120 --> 00:30:02.960
+Maybe people have.
+
+00:30:02.960 --> 00:30:03.800
+I don't know that.
+
+00:30:03.800 --> 00:30:04.917
+I haven't seen that.
+
+00:30:04.917 --> 00:30:07.250
+But then that sounds like a
+very reasonable thing to do.
+
+00:30:07.250 --> 00:30:08.510
+AUDIENCE: But it doesn't
+have to be quick, right?
+
+00:30:08.510 --> 00:30:09.560
+PROFESSOR: It doesn't
+have to be quick--
+
+00:30:09.560 --> 00:30:09.770
+AUDIENCE: [INAUDIBLE]
+first time--
+
+00:30:09.770 --> 00:30:10.070
+PROFESSOR: No.
+
+00:30:10.070 --> 00:30:11.270
+AUDIENCE: --can be
+as slow as possible--
+
+00:30:11.270 --> 00:30:11.590
+PROFESSOR: It could--
+
+00:30:11.590 --> 00:30:12.080
+AUDIENCE: --because
+you want it-- well--
+
+00:30:12.080 --> 00:30:13.402
+PROFESSOR: Well, right.
+
+00:30:13.402 --> 00:30:15.860
+AUDIENCE: --times the universe
+can explode with that, but--
+
+00:30:15.860 --> 00:30:16.120
+PROFESSOR: Right.
+
+00:30:16.120 --> 00:30:16.790
+AUDIENCE: OK.
+
+00:30:16.790 --> 00:30:17.540
+PROFESSOR: Right.
+
+00:30:17.540 --> 00:30:21.110
+Take a chance to-- this
+is, explore your system.
+
+00:30:21.110 --> 00:30:23.450
+Build things that are good
+in random places, and then
+
+00:30:23.450 --> 00:30:25.305
+worry about
+connecting them later.
+
+00:30:25.305 --> 00:30:25.805
+Mm-hmm.
+
+00:30:31.030 --> 00:30:31.580
+Really good.
+
+00:30:31.580 --> 00:30:33.700
+OK.
+
+00:30:33.700 --> 00:30:40.060
+So again, making
+these connections
+
+00:30:40.060 --> 00:30:42.070
+in under-actuated
+systems is more subtle.
+
+00:30:42.070 --> 00:30:44.320
+It might be that there's a
+lot of one-way connections,
+
+00:30:44.320 --> 00:30:45.195
+but we can still do--
+
+00:30:45.195 --> 00:30:46.750
+we know how to do
+graph search, OK.
+
+00:30:46.750 --> 00:30:48.910
+But these are
+generally good tools,
+
+00:30:48.910 --> 00:30:51.940
+and they've been used a
+lot in robotics lately.
+
+00:30:51.940 --> 00:30:56.200
+These are-- the other ones, the
+Rapidly Exploring Randomized
+
+00:30:56.200 --> 00:30:57.220
+Trees, goes by RRTs.
+
+00:30:57.220 --> 00:31:02.500
+These go by PRMs,
+Probabilistic Roadmaps.
+
+00:31:02.500 --> 00:31:05.260
+A lot of people seem to think
+that they're competitors,
+
+00:31:05.260 --> 00:31:07.185
+intellectual
+competitors with RRTs,
+
+00:31:07.185 --> 00:31:08.810
+and I don't think
+that they are really.
+
+00:31:08.810 --> 00:31:11.420
+I think the RRT
+guys would just say,
+
+00:31:11.420 --> 00:31:14.020
+well, you just use an RRT
+to make the connections,
+
+00:31:14.020 --> 00:31:16.150
+and the roadmap is
+still a very good idea.
+
+00:31:16.150 --> 00:31:20.605
+And I think RRTs
+effectively make roadmaps.
+
+00:31:20.605 --> 00:31:23.620
+So I think they're
+very harmonious ideas.
+
+00:31:26.810 --> 00:31:27.830
+Excellent.
+
+00:31:27.830 --> 00:31:31.820
+So that's at least two ideas
+to take these local trajectory
+
+00:31:31.820 --> 00:31:34.940
+optimizers and turn them into
+more of a feedback policy.
+
+00:31:34.940 --> 00:31:37.670
+But there's a big one,
+big one that I like a lot,
+
+00:31:37.670 --> 00:31:40.520
+that I haven't said, OK.
+
+00:31:40.520 --> 00:31:43.330
+So big I'm going to
+go back to the left.
+
+00:31:43.330 --> 00:31:47.512
+OK, let's say it's
+idea number three--
+
+00:31:47.512 --> 00:31:49.220
+these things aren't
+perfectly orthogonal,
+
+00:31:49.220 --> 00:31:52.690
+but this was the breakdown
+I was most happy with, OK.
+
+00:31:56.900 --> 00:31:58.790
+Feedback motion planning.
+
+00:32:09.220 --> 00:32:11.410
+OK.
+
+00:32:11.410 --> 00:32:16.120
+So, so far, we've talked
+about building some trajectory
+
+00:32:16.120 --> 00:32:20.740
+that we thought was good,
+and then afterwards,
+
+00:32:20.740 --> 00:32:23.800
+go through and stabilize
+it with feedback.
+
+00:32:23.800 --> 00:32:25.660
+That's not always
+the best recipe,
+
+00:32:25.660 --> 00:32:27.400
+because you could
+imagine, for instance,
+
+00:32:27.400 --> 00:32:29.710
+designing a controller that
+locally looked very good
+
+00:32:29.710 --> 00:32:32.590
+but was completely
+unstablizable.
+
+00:32:32.590 --> 00:32:33.308
+I go to then--
+
+00:32:33.308 --> 00:32:34.100
+I'm done with this.
+
+00:32:34.100 --> 00:32:37.750
+I say, perfect, my first
+stage of my control design
+
+00:32:37.750 --> 00:32:39.160
+picked this trajectory.
+
+00:32:39.160 --> 00:32:42.743
+Now I'm going to run LTV
+LQR on it to stabilize it.
+
+00:32:42.743 --> 00:32:44.410
+And then I find out,
+whoops, right there
+
+00:32:44.410 --> 00:32:46.280
+it's not controllable
+or something
+
+00:32:46.280 --> 00:32:49.390
+and that my cost to
+go function blows up.
+
+00:32:49.390 --> 00:32:52.810
+Maybe my open loop
+trajectory optimizer
+
+00:32:52.810 --> 00:32:55.773
+told me to walk along
+the side of a cliff
+
+00:32:55.773 --> 00:32:57.190
+and wasn't really
+paying attention
+
+00:32:57.190 --> 00:33:00.400
+to the fact that
+stabilizing that's hard.
+
+00:33:00.400 --> 00:33:02.530
+Or maybe it was
+saturating my actuators
+
+00:33:02.530 --> 00:33:04.990
+the entire time-- that's
+a very real possibility--
+
+00:33:04.990 --> 00:33:09.865
+and left me no margin of control
+to go back and stabilize it.
+
+00:33:09.865 --> 00:33:11.845
+OK.
+
+00:33:11.845 --> 00:33:15.640
+AUDIENCE: [INAUDIBLE]
+[? putting ?] those edges down,
+
+00:33:15.640 --> 00:33:19.143
+that it is actually feasible
+to go from A to B, so--
+
+00:33:19.143 --> 00:33:19.810
+PROFESSOR: Yeah.
+
+00:33:19.810 --> 00:33:22.630
+It's definitely feasible
+to go from A to B,
+
+00:33:22.630 --> 00:33:24.183
+but it doesn't say that--
+
+00:33:24.183 --> 00:33:25.600
+nothing thought
+about whether if I
+
+00:33:25.600 --> 00:33:29.521
+get disturbed epsilon from
+this, whether I can recover.
+
+00:33:29.521 --> 00:33:32.170
+AUDIENCE: So you're
+worried about the noise.
+
+00:33:32.170 --> 00:33:34.360
+PROFESSOR: I'm worried
+about noise, right.
+
+00:33:34.360 --> 00:33:37.760
+So it's feasible for me to
+walk along the side of a cliff,
+
+00:33:37.760 --> 00:33:40.130
+but I wouldn't
+want to be bumped.
+
+00:33:40.130 --> 00:33:41.690
+If I know I'm
+going to be bumped,
+
+00:33:41.690 --> 00:33:44.360
+then I pick a
+different path, OK.
+
+00:33:44.360 --> 00:33:46.610
+So you can imagine-- for
+maybe each of those examples,
+
+00:33:46.610 --> 00:33:49.910
+you could imagine ways to try
+to make the planning process
+
+00:33:49.910 --> 00:33:51.260
+more--
+
+00:33:51.260 --> 00:33:53.850
+let's say, OK, well, don't
+use your full torque limits.
+
+00:33:53.850 --> 00:33:55.838
+Use 90% of your torque limits.
+
+00:33:55.838 --> 00:33:56.630
+That's a good idea.
+
+00:33:56.630 --> 00:33:57.172
+That'll help.
+
+00:33:57.172 --> 00:34:00.150
+But there's a more general
+philosophy out there,
+
+00:34:00.150 --> 00:34:03.080
+which is that you shouldn't
+just do trajectory planning
+
+00:34:03.080 --> 00:34:04.100
+and then stabilize it.
+
+00:34:04.100 --> 00:34:06.560
+You should really be
+planning with feedback,
+
+00:34:06.560 --> 00:34:07.802
+if that makes any sense, OK.
+
+00:34:07.802 --> 00:34:09.260
+Well, it'll make
+sense in a minute.
+
+00:34:14.757 --> 00:34:16.340
+There's a lot of
+ways to present this.
+
+00:34:16.340 --> 00:34:18.507
+I thought the best way would
+be to start with a case
+
+00:34:18.507 --> 00:34:19.820
+study, someone who--
+
+00:34:19.820 --> 00:34:22.130
+a problem where people
+really use this, OK.
+
+00:34:30.485 --> 00:34:31.860
+There's been a
+lot of people that
+
+00:34:31.860 --> 00:34:34.010
+have been interested in
+making robots juggle.
+
+00:34:34.010 --> 00:34:37.670
+One of them's been
+sitting in the room here.
+
+00:34:37.670 --> 00:34:40.819
+The ones that did a lot of the
+work I'm talking about here
+
+00:34:40.819 --> 00:34:42.260
+is Dan Koditschek's camp.
+
+00:34:47.880 --> 00:34:48.380
+OK.
+
+00:34:52.159 --> 00:34:56.105
+So it's actually
+very, very harmonious
+
+00:34:56.105 --> 00:34:58.220
+with John's lecture
+on running, and that's
+
+00:34:58.220 --> 00:35:00.085
+why Koditschek's done
+both, for instance.
+
+00:35:00.085 --> 00:35:01.460
+Now let's think
+about the problem
+
+00:35:01.460 --> 00:35:02.780
+with making a robot juggle, OK.
+
+00:35:02.780 --> 00:35:04.677
+So the first thing you
+need to think about--
+
+00:35:04.677 --> 00:35:09.110
+and let's make a
+one-dimensional juggler, OK.
+
+00:35:09.110 --> 00:35:11.120
+So we've got a paddle
+here, constrained
+
+00:35:11.120 --> 00:35:15.830
+to live in this plane, and we've
+got a ball, also constrained
+
+00:35:15.830 --> 00:35:17.990
+to live in that plane.
+
+00:35:17.990 --> 00:35:19.430
+Yeah?
+
+00:35:19.430 --> 00:35:21.440
+And your goal is to--
+
+00:35:21.440 --> 00:35:26.510
+if this thing is in a rail,
+it can only move vertically,
+
+00:35:26.510 --> 00:35:29.180
+your goal is just
+to move that paddle
+
+00:35:29.180 --> 00:35:32.357
+to, say, stabilize
+a bouncing height.
+
+00:35:32.357 --> 00:35:33.940
+Let's say you've got
+a desired height.
+
+00:35:40.100 --> 00:35:40.600
+OK.
+
+00:35:43.270 --> 00:35:45.190
+This is the 1-D juggler.
+
+00:35:45.190 --> 00:35:51.130
+I think they call it the
+line juggler by Martin
+
+00:35:51.130 --> 00:35:53.140
+Buehler and Dan Koditschek.
+
+00:35:53.140 --> 00:35:58.480
+Martin went on to build Big Dog
+at VDI, and now he's at iRobot.
+
+00:35:58.480 --> 00:36:02.020
+So these are famous guys, OK.
+
+00:36:02.020 --> 00:36:04.970
+So the dynamics are pretty
+simple to write down.
+
+00:36:04.970 --> 00:36:06.190
+You have a mass of the ball.
+
+00:36:06.190 --> 00:36:08.087
+You have some dynamics
+of your paddle.
+
+00:36:08.087 --> 00:36:09.670
+You assume that the
+mass of the paddle
+
+00:36:09.670 --> 00:36:12.130
+is much, much bigger
+than the ball.
+
+00:36:12.130 --> 00:36:13.790
+That simplifies some things.
+
+00:36:13.790 --> 00:36:19.930
+And so now the dynamics are just
+ballistic flight of the ball.
+
+00:36:31.390 --> 00:36:32.680
+You need some trajectory.
+
+00:36:32.680 --> 00:36:35.410
+Your control is to design
+some trajectory of the paddle,
+
+00:36:35.410 --> 00:36:45.040
+and then you have an impact
+dynamics, which these guys use
+
+00:36:45.040 --> 00:36:48.390
+an elastic model--
+
+00:36:48.390 --> 00:36:51.880
+model it is an instantaneous
+elastic collision
+
+00:36:51.880 --> 00:36:55.540
+with a coefficient
+of restitution.
+
+00:36:55.540 --> 00:36:57.310
+That's a reasonable
+collision model
+
+00:36:57.310 --> 00:36:58.762
+if your energy is conserved.
+
+00:37:03.390 --> 00:37:06.520
+And again, they assume that
+when the collision happens,
+
+00:37:06.520 --> 00:37:10.180
+the ball changes direction
+and keeps 90% of its energy,
+
+00:37:10.180 --> 00:37:12.250
+and the paddle was unaffected.
+
+00:37:12.250 --> 00:37:17.427
+Relative to the mass of the
+paddle, the ball is negligible.
+
+00:37:17.427 --> 00:37:20.010
+AUDIENCE: [INAUDIBLE] juggling
+the balls are almost completely
+
+00:37:20.010 --> 00:37:22.252
+[INAUDIBLE].
+
+00:37:22.252 --> 00:37:23.210
+PROFESSOR: That's true.
+
+00:37:23.210 --> 00:37:25.640
+These are, I guess, not--
+
+00:37:25.640 --> 00:37:29.180
+[? Philipp's ?] are completely
+almost as hard as possible.
+
+00:37:29.180 --> 00:37:30.830
+In his project, he
+said he spent lots
+
+00:37:30.830 --> 00:37:32.747
+of time trying to find
+the perfect ball, which
+
+00:37:32.747 --> 00:37:38.720
+was the perfectly machined,
+very hard precision ball, yeah.
+
+00:37:38.720 --> 00:37:42.440
+Compliant juggling, maybe
+that's our next challenge
+
+00:37:42.440 --> 00:37:44.840
+for robotics, squishy balls.
+
+00:37:49.490 --> 00:37:50.060
+OK, good.
+
+00:37:50.060 --> 00:37:54.590
+So it turns out they do a
+really nice control design.
+
+00:37:54.590 --> 00:37:57.830
+It turns out to be
+very natural to--
+
+00:37:57.830 --> 00:38:10.030
+the controller that they
+come up with for the paddle
+
+00:38:10.030 --> 00:38:11.030
+uses a mirror law.
+
+00:38:17.420 --> 00:38:20.390
+Turns out if you can sense
+the state of the ball
+
+00:38:20.390 --> 00:38:25.310
+and you just do a distorted
+mirror image of that ball,
+
+00:38:25.310 --> 00:38:27.050
+then everything
+gets really easy.
+
+00:38:27.050 --> 00:38:29.300
+Your impacts always happen at 0.
+
+00:38:29.300 --> 00:38:31.170
+It's at the same place.
+
+00:38:31.170 --> 00:38:33.890
+And you can, just by
+changing the velocity here,
+
+00:38:33.890 --> 00:38:37.200
+you can roughly affect
+the impact height.
+
+00:38:37.200 --> 00:38:41.760
+So what they do is they can
+nominally stabilize some limit
+
+00:38:41.760 --> 00:38:44.150
+cycle with just
+mirroring the ball,
+
+00:38:44.150 --> 00:38:46.850
+and they add an extra term to
+stabilize the energy to get it
+
+00:38:46.850 --> 00:38:49.700
+to whatever height they want.
+
+00:38:49.700 --> 00:39:09.710
+So they do a distorted mirror
+image of ball trajectory plus--
+
+00:39:09.710 --> 00:39:14.390
+the distortion is scaled by
+some energy correcting term.
+
+00:39:26.530 --> 00:39:28.600
+It's a beautiful thing.
+
+00:39:28.600 --> 00:39:31.120
+Very, very simple controller.
+
+00:39:31.120 --> 00:39:35.260
+Has a nice, very
+stable solution.
+
+00:39:35.260 --> 00:39:38.050
+In fact, I think they prove
+it's globally stable for--
+
+00:39:38.050 --> 00:39:38.960
+you can tell me if--
+
+00:39:38.960 --> 00:39:41.020
+is it globally stable
+in the 1-D case?
+
+00:39:41.020 --> 00:39:42.190
+I think it probably is.
+
+00:39:46.600 --> 00:39:48.215
+OK.
+
+00:39:48.215 --> 00:39:49.840
+How do they prove
+it's globally stable?
+
+00:39:49.840 --> 00:39:54.700
+They do an apex to
+apex return map.
+
+00:40:01.330 --> 00:40:04.660
+And the same way we did for
+the hopping models and all
+
+00:40:04.660 --> 00:40:08.680
+the other models, these guys
+were pushing the unimodal maps
+
+00:40:08.680 --> 00:40:10.930
+and getting some global
+stability results out of that.
+
+00:40:10.930 --> 00:40:14.870
+That's why I think that they
+had a global result, OK.
+
+00:40:14.870 --> 00:40:17.950
+So it's actually exactly
+like a hopping robot.
+
+00:40:17.950 --> 00:40:21.770
+Just the ball's moving
+instead of the robot.
+
+00:40:24.899 --> 00:40:28.630
+OK, so they got a pretty good
+controller for 1-D juggling,
+
+00:40:28.630 --> 00:40:31.272
+and then they started
+doing 2-D juggling.
+
+00:40:31.272 --> 00:40:32.230
+I think I have the vi--
+
+00:40:32.230 --> 00:40:33.940
+I don't have the video for
+the 1-D juggling somehow,
+
+00:40:33.940 --> 00:40:35.815
+but I do have the video
+for the 2-D juggling.
+
+00:40:41.446 --> 00:40:47.940
+Yeah, so here's your
+2-D case showing off
+
+00:40:47.940 --> 00:40:49.890
+doing two balls
+at once, since all
+
+00:40:49.890 --> 00:40:52.810
+that matters is the state of the
+robot when the impact occurs.
+
+00:40:52.810 --> 00:40:54.400
+So you might as well
+do something else
+
+00:40:54.400 --> 00:40:56.525
+during the other time, like
+stabilize another ball.
+
+00:40:58.688 --> 00:41:00.480
+And you can see that
+actually, it turns out
+
+00:41:00.480 --> 00:41:06.210
+to be pretty easy to get
+stability in this plane,
+
+00:41:06.210 --> 00:41:08.325
+just because if you tend to--
+
+00:41:08.325 --> 00:41:09.930
+if you're too far
+to this side, you
+
+00:41:09.930 --> 00:41:13.590
+tend to get hit earlier, which
+causes you to go out more
+
+00:41:13.590 --> 00:41:14.390
+and vise versa.
+
+00:41:14.390 --> 00:41:16.057
+So that stability
+almost comes for free.
+
+00:41:19.190 --> 00:41:21.020
+AUDIENCE: [INAUDIBLE]
+
+00:41:21.020 --> 00:41:23.300
+PROFESSOR: This is, I think,
+vision off to the side.
+
+00:41:23.300 --> 00:41:24.758
+I know it's vision
+off to the side,
+
+00:41:24.758 --> 00:41:27.170
+where they're tracking
+the bright yellow balls.
+
+00:41:27.170 --> 00:41:28.608
+If it had been
+dark gray balls, it
+
+00:41:28.608 --> 00:41:29.900
+might have been something else.
+
+00:41:29.900 --> 00:41:33.450
+But the bright yellow tennis
+balls suggests vision.
+
+00:41:33.450 --> 00:41:33.950
+Yeah.
+
+00:41:36.890 --> 00:41:42.150
+And they went on to
+do the 3-D juggling.
+
+00:41:42.150 --> 00:41:46.310
+This one was, I remember, in the
+basement of the Michigan AI lab
+
+00:41:46.310 --> 00:41:49.970
+when I was there,
+behind that curtain.
+
+00:41:56.710 --> 00:42:03.660
+It's always using the vision
+sensing for the balls.
+
+00:42:03.660 --> 00:42:05.160
+You could do you
+pretty good things.
+
+00:42:13.510 --> 00:42:15.310
+And then they got
+so good that they
+
+00:42:15.310 --> 00:42:20.230
+started doing other maneuvers
+like catching and palming
+
+00:42:20.230 --> 00:42:22.722
+and things like this, OK.
+
+00:42:22.722 --> 00:42:25.180
+It actually turned out to be
+the same, pretty much, control
+
+00:42:25.180 --> 00:42:25.680
+derivation.
+
+00:42:25.680 --> 00:42:28.840
+They just set the
+desired energy to 0,
+
+00:42:28.840 --> 00:42:31.308
+and suddenly they have
+a catching controller.
+
+00:42:40.100 --> 00:42:45.770
+And then this is palming when
+they're doing their thing, OK.
+
+00:42:45.770 --> 00:42:49.010
+And then they can get it back up
+to catching with the same sort
+
+00:42:49.010 --> 00:42:50.240
+of energy shaping.
+
+00:42:50.240 --> 00:42:55.920
+And I should show you, you don't
+actually need all that feedback
+
+00:42:55.920 --> 00:42:56.420
+to do it.
+
+00:42:56.420 --> 00:42:57.795
+You don't need to
+sense the ball.
+
+00:43:01.610 --> 00:43:02.120
+Here he is.
+
+00:43:04.640 --> 00:43:06.770
+This is [? Phillips. ?]
+We'll show the one
+
+00:43:06.770 --> 00:43:10.250
+where he's pushing it so
+you can tell who it is here.
+
+00:43:10.250 --> 00:43:12.300
+Blind juggler.
+
+00:43:12.300 --> 00:43:14.120
+So this is open loop
+stable juggling.
+
+00:43:20.930 --> 00:43:23.240
+You can see-- actually, do
+you see the ball up there?
+
+00:43:23.240 --> 00:43:24.740
+Yeah, it's going
+to a stable height,
+
+00:43:24.740 --> 00:43:26.120
+and he's moving it around.
+
+00:43:26.120 --> 00:43:28.748
+He's got just a itty
+little bit of concavity
+
+00:43:28.748 --> 00:43:31.040
+in that plate, which gives
+it all the passive stability
+
+00:43:31.040 --> 00:43:31.915
+properties.
+
+00:43:31.915 --> 00:43:34.040
+And you've got versions
+where it's doing things off
+
+00:43:34.040 --> 00:43:36.140
+to the side in 3-D
+or in 2-D and--
+
+00:43:39.346 --> 00:43:41.850
+yeah, so let's open loop stable.
+
+00:43:41.850 --> 00:43:45.425
+So juggling is actually a really
+cool problem for robotics.
+
+00:43:45.425 --> 00:43:50.633
+It's led to a lot of nice
+dynamic insights and party
+
+00:43:50.633 --> 00:43:51.300
+tricks, I guess.
+
+00:43:56.030 --> 00:43:56.530
+Yeah.
+
+00:44:00.510 --> 00:44:06.080
+OK, so these guys said, we
+got pretty good at juggling.
+
+00:44:06.080 --> 00:44:09.620
+We can do a mirror law
+to stabilize whatever
+
+00:44:09.620 --> 00:44:11.510
+juggling height we want.
+
+00:44:11.510 --> 00:44:17.798
+We've got a catching
+controller also,
+
+00:44:17.798 --> 00:44:19.340
+which has roughly
+set the energy to 0
+
+00:44:19.340 --> 00:44:21.650
+and just sort of does this step.
+
+00:44:21.650 --> 00:44:25.197
+And they also had a
+palming controller,
+
+00:44:25.197 --> 00:44:27.530
+which was when the dynamics
+were actually on the paddle,
+
+00:44:27.530 --> 00:44:29.238
+they did a little bit
+of different things
+
+00:44:29.238 --> 00:44:31.820
+to be able to move it around
+without it falling off
+
+00:44:31.820 --> 00:44:33.817
+the paddle.
+
+00:44:33.817 --> 00:44:35.650
+What they were left
+with was this challenge.
+
+00:44:35.650 --> 00:44:39.620
+And we've got these controllers,
+which are good locally.
+
+00:44:39.620 --> 00:44:42.060
+What do we do to make them
+do more interesting things?
+
+00:44:42.060 --> 00:44:45.200
+So they actually--
+so if they want
+
+00:44:45.200 --> 00:44:47.750
+to transition, for instance,
+between the catching
+
+00:44:47.750 --> 00:44:49.952
+and the palming-- the
+bouncing and the palming,
+
+00:44:49.952 --> 00:44:51.410
+they use their
+catching controller.
+
+00:44:51.410 --> 00:44:54.438
+Maybe they want to
+avoid moving obstacles.
+
+00:44:54.438 --> 00:44:55.730
+They want to do multiple balls.
+
+00:44:55.730 --> 00:44:57.830
+They want to do
+all these things.
+
+00:44:57.830 --> 00:45:01.040
+They introduced a really
+nice, beautiful picture
+
+00:45:01.040 --> 00:45:06.245
+of feedback motion
+planning using funnels.
+
+00:45:28.080 --> 00:45:34.310
+OK, so every one of
+those controllers
+
+00:45:34.310 --> 00:45:37.640
+had the property that it
+would take initial conditions
+
+00:45:37.640 --> 00:45:42.780
+in state space and move them
+to some more desirable state.
+
+00:45:42.780 --> 00:45:44.210
+So for instance,
+the ball hopping,
+
+00:45:44.210 --> 00:45:47.120
+the ball could be anywhere here.
+
+00:45:47.120 --> 00:45:49.612
+By applying this controller
+for some finite amount of time,
+
+00:45:49.612 --> 00:45:52.070
+when it's done, it's going to
+be closer to its apex height.
+
+00:45:54.860 --> 00:45:58.645
+In many cases, not
+in the juggling case,
+
+00:45:58.645 --> 00:46:00.270
+not in the experimental
+juggling case--
+
+00:46:00.270 --> 00:46:02.570
+and even in the model
+one, I guess they do.
+
+00:46:02.570 --> 00:46:05.420
+But in many cases, you actually
+have Lyapunov functions
+
+00:46:05.420 --> 00:46:09.050
+which describe the way that
+convergence happens, OK,
+
+00:46:09.050 --> 00:46:11.760
+but it's not strictly necessary.
+
+00:46:11.760 --> 00:46:14.840
+So the idea is, let's think
+about this thing as a funnel,
+
+00:46:14.840 --> 00:46:15.830
+OK.
+
+00:46:15.830 --> 00:46:20.250
+It takes lots of states in.
+
+00:46:20.250 --> 00:46:23.300
+So this is initial states.
+
+00:46:29.720 --> 00:46:36.410
+And after applying it for
+some finite amount of time,
+
+00:46:36.410 --> 00:46:37.970
+I'm going to be some--
+
+00:46:37.970 --> 00:46:39.305
+you get some new final states.
+
+00:46:43.130 --> 00:46:45.710
+And if my controller
+was any good, then
+
+00:46:45.710 --> 00:46:48.620
+hopefully the final states
+are a smaller region
+
+00:46:48.620 --> 00:46:49.640
+than the initial states.
+
+00:46:55.480 --> 00:47:04.270
+So in some sense, this
+is a geometric cartoon
+
+00:47:04.270 --> 00:47:05.440
+for a Lyapunov function.
+
+00:47:17.490 --> 00:47:22.840
+Lyapunov functions take my
+state in, and descend down,
+
+00:47:22.840 --> 00:47:27.600
+and will put me in
+some other state, OK.
+
+00:47:27.600 --> 00:47:30.000
+Experimentally, you can
+also find these things,
+
+00:47:30.000 --> 00:47:32.700
+even if you can't do
+the Lyapunov function.
+
+00:47:32.700 --> 00:47:36.450
+Experimentally, this input
+is basically the basin
+
+00:47:36.450 --> 00:47:38.610
+of attraction of my controller.
+
+00:47:49.892 --> 00:47:51.600
+So if it was really
+a basin of attraction
+
+00:47:51.600 --> 00:47:53.823
+and it stabilized some fixed
+point, then if I ran it
+
+00:47:53.823 --> 00:47:55.740
+long enough that it was
+asymptotically stable,
+
+00:47:55.740 --> 00:47:57.180
+I'd call it a basin
+of attraction.
+
+00:47:57.180 --> 00:47:59.310
+Here I'm just going to run
+it for some finite time.
+
+00:47:59.310 --> 00:48:02.190
+So you have to be a little
+careful calling it a basin,
+
+00:48:02.190 --> 00:48:04.680
+but I think it's still
+intuitive that this is the--
+
+00:48:04.680 --> 00:48:07.200
+there's lots of names for this.
+
+00:48:07.200 --> 00:48:10.660
+Another name for it is pre-image
+in the motion planning world.
+
+00:48:10.660 --> 00:48:15.100
+Lot people call this the
+pre-image of our action.
+
+00:48:15.100 --> 00:48:16.865
+This is, I guess,
+the post-image, yeah.
+
+00:48:16.865 --> 00:48:18.240
+These are the set
+of states where
+
+00:48:18.240 --> 00:48:21.000
+my controller is applicable.
+
+00:48:21.000 --> 00:48:25.805
+I'm going to have a
+funnel for the mirror law.
+
+00:48:25.805 --> 00:48:27.930
+I'm going have a funnel
+for my catching controller.
+
+00:48:27.930 --> 00:48:30.060
+That takes a different
+set of initial conditions
+
+00:48:30.060 --> 00:48:31.560
+and gets me where I want to be.
+
+00:48:31.560 --> 00:48:34.980
+And I have a funnel that
+can allow my palming
+
+00:48:34.980 --> 00:48:37.200
+to do different things, OK.
+
+00:48:37.200 --> 00:48:39.800
+And I might even
+have lots of funnels.
+
+00:48:39.800 --> 00:48:42.690
+So I might have a different
+funnel given the mirror law
+
+00:48:42.690 --> 00:48:47.190
+where my desired energy is
+4, versus the mirror law
+
+00:48:47.190 --> 00:48:48.442
+where my desired energy is 6.
+
+00:48:48.442 --> 00:48:50.400
+Maybe those should look
+like different funnels.
+
+00:48:53.280 --> 00:48:57.450
+So the picture that
+these guys gave us--
+
+00:49:07.060 --> 00:49:10.645
+this is Burridge, Rizzi,
+and Koditschek, the guys.
+
+00:49:14.380 --> 00:49:16.360
+Al Rizzi's at Boston
+Dynamics also--
+
+00:49:23.560 --> 00:49:27.550
+is that you can do
+feedback motion planning
+
+00:49:27.550 --> 00:49:31.770
+as a sequential composition
+of funnels, yeah?
+
+00:50:03.260 --> 00:50:07.562
+So if I want to get from
+one state to another state,
+
+00:50:07.562 --> 00:50:09.770
+and I don't have a single
+controller that will get me
+
+00:50:09.770 --> 00:50:14.780
+there, all I need to do is
+reason about a set of these--
+
+00:50:14.780 --> 00:50:19.520
+a sequence of these funnels for
+which the first funnel takes me
+
+00:50:19.520 --> 00:50:23.330
+from my initial conditions
+into a domain where
+
+00:50:23.330 --> 00:50:26.300
+my second funnel is applicable.
+
+00:50:26.300 --> 00:50:28.820
+And then I can use
+my second funnel
+
+00:50:28.820 --> 00:50:32.360
+to get me somewhere else, and
+then my third funnel maybe
+
+00:50:32.360 --> 00:50:34.520
+will get me to my target.
+
+00:50:37.160 --> 00:50:41.540
+So if my goal state is somewhere
+abstractly here in state space,
+
+00:50:41.540 --> 00:50:44.660
+that's not accessible
+from any one--
+
+00:50:44.660 --> 00:50:46.880
+I can't get from my initial
+condition to my goal
+
+00:50:46.880 --> 00:50:49.130
+with any one of my controllers.
+
+00:50:49.130 --> 00:50:51.860
+I can sequence
+these controllers,
+
+00:50:51.860 --> 00:50:55.550
+just making sure that
+the output of one funnel
+
+00:50:55.550 --> 00:50:57.380
+is covered, completely
+covered by the input
+
+00:50:57.380 --> 00:50:59.270
+of the next funnel.
+
+00:50:59.270 --> 00:51:01.520
+Then that's enough,
+then, to turn this again,
+
+00:51:01.520 --> 00:51:03.890
+to use these funnels
+as an abstraction
+
+00:51:03.890 --> 00:51:05.720
+to take away the
+continuous problem
+
+00:51:05.720 --> 00:51:08.953
+and give me a discrete planning
+problem, which just says I just
+
+00:51:08.953 --> 00:51:11.120
+need to go through this
+funnel, through this funnel,
+
+00:51:11.120 --> 00:51:15.380
+through this funnel, and
+I can get to the goal, OK.
+
+00:51:15.380 --> 00:51:19.640
+So in this case, they
+did tasks like there
+
+00:51:19.640 --> 00:51:23.298
+was a beam here that was--
+
+00:51:23.298 --> 00:51:24.590
+they were bouncing on one side.
+
+00:51:24.590 --> 00:51:26.625
+They wanted to be bouncing
+on the other side.
+
+00:51:26.625 --> 00:51:28.250
+So I think they had
+one controller that
+
+00:51:28.250 --> 00:51:29.000
+went over the top.
+
+00:51:29.000 --> 00:51:30.140
+Then the beam got taller.
+
+00:51:30.140 --> 00:51:32.690
+They had another one where it
+caught it, brought it under,
+
+00:51:32.690 --> 00:51:34.010
+started paddling again.
+
+00:51:34.010 --> 00:51:36.650
+And these things just
+fall naturally out.
+
+00:51:36.650 --> 00:51:38.690
+This could be the catching.
+
+00:51:38.690 --> 00:51:40.250
+Or this could be the--
+
+00:51:40.250 --> 00:51:41.780
+yeah, catching.
+
+00:51:41.780 --> 00:51:46.120
+This could be the palm, and
+this could be my mirror again.
+
+00:51:48.950 --> 00:51:52.670
+And I'm right back to
+where I want to be, OK.
+
+00:51:52.670 --> 00:51:53.900
+Very, very beautiful idea.
+
+00:51:56.420 --> 00:51:59.690
+As far as I could tell,
+everybody who read that paper
+
+00:51:59.690 --> 00:52:02.960
+was enamored by it, and nobody's
+really used it that much,
+
+00:52:02.960 --> 00:52:05.510
+because there was
+one critical problem.
+
+00:52:08.600 --> 00:52:12.830
+Figuring out what those funnels
+looked like are really hard.
+
+00:52:12.830 --> 00:52:19.250
+So really, the only
+issue, I think,
+
+00:52:19.250 --> 00:52:26.000
+is that describing the basins
+of attraction, let's say--
+
+00:52:42.470 --> 00:52:45.920
+so if you read the Burridge,
+Rizzi and Koditschek paper,
+
+00:52:45.920 --> 00:52:48.830
+you'll see a ridiculous
+number of scatter plots
+
+00:52:48.830 --> 00:52:50.900
+where they put the
+ball in this location,
+
+00:52:50.900 --> 00:52:52.610
+they ran their
+controller for a while,
+
+00:52:52.610 --> 00:52:53.900
+and they determined
+experimentally
+
+00:52:53.900 --> 00:52:56.442
+whether it was in the basin of
+attraction of this controller.
+
+00:52:56.442 --> 00:52:57.320
+Yeah?
+
+00:52:57.320 --> 00:53:00.050
+Ouch, right?
+
+00:53:00.050 --> 00:53:04.580
+That's not what I want
+to do with my time.
+
+00:53:04.580 --> 00:53:07.550
+So if you're willing to do that,
+then it's a workable method.
+
+00:53:07.550 --> 00:53:11.090
+But I think today we've
+got a better way to do it.
+
+00:53:15.350 --> 00:53:20.120
+And my group, we've been
+working on an implementation
+
+00:53:20.120 --> 00:53:22.880
+of this feedback motion
+planning idea, which
+
+00:53:22.880 --> 00:53:27.440
+is very much in line with the
+things we've been talking about
+
+00:53:27.440 --> 00:53:40.990
+so far, which we've been
+calling the LQR trees, OK.
+
+00:53:47.160 --> 00:53:52.650
+And the big idea that
+happened is that these guys
+
+00:53:52.650 --> 00:53:54.930
+in LIDS, Pablo Parrilo--
+
+00:53:54.930 --> 00:53:57.120
+anybody know Pablo?
+
+00:53:57.120 --> 00:54:01.800
+And Alex [? McGretsky's ?] the
+one who taught me about this--
+
+00:54:01.800 --> 00:54:05.910
+have figured out
+new effective ways
+
+00:54:05.910 --> 00:54:08.250
+to computationally
+estimate basins
+
+00:54:08.250 --> 00:54:12.570
+of attraction of some
+classes of controls, OK.
+
+00:54:32.865 --> 00:54:34.830
+OK, so this is a new thing.
+
+00:54:34.830 --> 00:54:37.730
+People have been
+doing algorithms
+
+00:54:37.730 --> 00:54:43.132
+to design Lyapunov functions
+for at least a decade.
+
+00:54:43.132 --> 00:54:45.590
+But I think they got really
+practical a couple of years ago
+
+00:54:45.590 --> 00:54:47.120
+in Pablo's thesis, actually.
+
+00:54:55.300 --> 00:54:56.300
+Think it's two Ls, yeah.
+
+00:54:59.750 --> 00:55:06.200
+What Pablo did in his thesis
+is he promoted this sums
+
+00:55:06.200 --> 00:55:08.066
+of squares programming.
+
+00:55:21.210 --> 00:55:25.460
+In fact, you can even
+download SoS tools from his--
+
+00:55:25.460 --> 00:55:31.070
+as a MATLAB package from
+his website to do this.
+
+00:55:31.070 --> 00:55:35.300
+Sums of squares programs
+are efficient ways
+
+00:55:35.300 --> 00:55:41.150
+to check whether a polynomial
+function is negative definite,
+
+00:55:41.150 --> 00:56:11.280
+OK, potentially with free
+parameters, and so on.
+
+00:56:11.280 --> 00:56:12.870
+These can be made--
+
+00:56:12.870 --> 00:56:14.670
+and these can be
+vector variables,
+
+00:56:14.670 --> 00:56:16.710
+can be made uniformly
+negative definite
+
+00:56:16.710 --> 00:56:22.830
+or semidefinite, OK,
+or trivially positive
+
+00:56:22.830 --> 00:56:25.260
+semidefinite.
+
+00:56:25.260 --> 00:56:26.250
+Seems like a little--
+
+00:56:28.960 --> 00:56:32.790
+you can see how it
+might be relevant, OK.
+
+00:56:32.790 --> 00:56:34.770
+So this is just a
+mathematical idea
+
+00:56:34.770 --> 00:56:39.240
+to turn the problem of checking
+the positive definiteness
+
+00:56:39.240 --> 00:56:43.680
+of a polynomial
+into a linear matrix
+
+00:56:43.680 --> 00:56:47.247
+inequality and then a
+convex optimization problem.
+
+00:56:47.247 --> 00:56:49.080
+So I'm not going to go
+into all the details,
+
+00:56:49.080 --> 00:56:52.470
+but know that there's
+these tools out there that
+
+00:56:52.470 --> 00:56:59.213
+use convex optimization to check
+that property of a problem, OK.
+
+00:56:59.213 --> 00:57:00.130
+And you can read more.
+
+00:57:00.130 --> 00:57:04.060
+I've got links if you want
+to read more about that.
+
+00:57:04.060 --> 00:57:09.490
+What that allows us to do now,
+at least in the case of the LQR
+
+00:57:09.490 --> 00:57:15.550
+design we've worked it out,
+it's possible to now check
+
+00:57:15.550 --> 00:57:19.330
+whether a function,
+a polynomial function
+
+00:57:19.330 --> 00:57:21.550
+is a Lyapunov function
+for the system.
+
+00:57:21.550 --> 00:57:25.840
+Lyapunov functions have to have
+their derivatives going down
+
+00:57:25.840 --> 00:57:27.880
+over time, yeah.
+
+00:57:27.880 --> 00:57:30.430
+In order for a good function
+to be a Lyapunov function,
+
+00:57:30.430 --> 00:57:35.980
+its value had better be
+going down at all times.
+
+00:57:35.980 --> 00:57:38.140
+If your candidate
+Lyapunov function is even
+
+00:57:38.140 --> 00:57:40.870
+a vector polynomial
+function, then you
+
+00:57:40.870 --> 00:57:44.350
+can use this to check
+whether it's a valid Lyapunov
+
+00:57:44.350 --> 00:57:46.840
+function for your system, OK.
+
+00:57:46.840 --> 00:57:47.710
+So we can now--
+
+00:57:57.470 --> 00:58:01.374
+AUDIENCE: [SNEEZE]
+
+00:58:01.374 --> 00:58:02.350
+PROFESSOR: Bless you.
+
+00:58:27.760 --> 00:58:30.340
+So I threw this one in
+without saying it before.
+
+00:58:30.340 --> 00:58:34.510
+The only caveat is you have
+to take your nonlinear system
+
+00:58:34.510 --> 00:58:39.100
+and make a polynomial
+approximation of it,
+
+00:58:39.100 --> 00:58:40.263
+a Taylor expansion of it.
+
+00:58:40.263 --> 00:58:41.680
+It doesn't have
+to be first order.
+
+00:58:41.680 --> 00:58:43.570
+That's the linear system.
+
+00:58:43.570 --> 00:58:49.420
+But it has to be polynomial, OK.
+
+00:58:49.420 --> 00:59:00.010
+So suddenly, it turns out
+that for the LQR systems--
+
+00:59:00.010 --> 00:59:03.310
+remember, our value function.
+
+00:59:03.310 --> 00:59:05.950
+Let's just think of the LTI LQR.
+
+00:59:05.950 --> 00:59:10.960
+The value function turns out
+to be this quadratic form.
+
+00:59:10.960 --> 00:59:12.160
+It's the optimal cost to go.
+
+00:59:14.950 --> 00:59:16.660
+That's a Lyapunov function.
+
+00:59:16.660 --> 00:59:20.290
+J of x for the linear system
+is a Lyapunov function.
+
+00:59:20.290 --> 00:59:23.320
+As I take control
+actions, my cost to go
+
+00:59:23.320 --> 00:59:25.400
+is only going to go down.
+
+00:59:25.400 --> 00:59:29.200
+It had better, otherwise it's
+not the optimal cost to go.
+
+00:59:29.200 --> 00:59:57.490
+So OK.
+
+00:59:57.490 --> 01:00:01.820
+If I have a nonlinear
+system, where
+
+01:00:01.820 --> 01:00:06.680
+I've linearized it
+and done LQR control,
+
+01:00:06.680 --> 01:00:09.140
+then I expect that to be--
+
+01:00:09.140 --> 01:00:14.000
+this function to be a Lyapunov
+function over some domain
+
+01:00:14.000 --> 01:00:16.640
+where the
+linearization was good,
+
+01:00:16.640 --> 01:00:18.110
+and eventually,
+to no longer have
+
+01:00:18.110 --> 01:00:21.650
+this nice negative
+definiteness property.
+
+01:00:21.650 --> 01:00:23.930
+Does that make sense?
+
+01:00:23.930 --> 01:00:28.280
+The optimal cost to go from
+LQR isn't a Lyapunov function
+
+01:00:28.280 --> 01:00:29.240
+for the entire state.
+
+01:00:29.240 --> 01:00:32.600
+It's always going to
+descend for the entire--
+
+01:00:32.600 --> 01:00:36.240
+for any initial conditions
+for the linear system.
+
+01:00:36.240 --> 01:00:47.300
+But when I've
+linearized the system,
+
+01:00:47.300 --> 01:00:54.560
+I expect this to
+be, J star to be,
+
+01:00:54.560 --> 01:01:03.960
+a valid Lyapunov function
+near the linearization.
+
+01:01:16.137 --> 01:01:17.720
+You guys should stop
+and ask questions
+
+01:01:17.720 --> 01:01:20.520
+now if you have any questions.
+
+01:01:20.520 --> 01:01:21.950
+Does that make sense?
+
+01:01:21.950 --> 01:01:24.050
+I never actually
+said before that you
+
+01:01:24.050 --> 01:01:26.955
+can think of these cost
+[? to goes ?] as Lyapunov
+
+01:01:26.955 --> 01:01:28.580
+functions, but that's
+a nice connection
+
+01:01:28.580 --> 01:01:31.700
+between the optimal control
+and the stability theory, OK.
+
+01:01:34.480 --> 01:01:39.670
+But the cost to go actually
+is a Lyapunov function.
+
+01:01:39.670 --> 01:01:42.607
+Remember, when we're taking
+a linearization doing LQR,
+
+01:01:42.607 --> 01:01:44.440
+we already know that
+the basin of attraction
+
+01:01:44.440 --> 01:01:45.773
+is going to be something finite.
+
+01:01:45.773 --> 01:01:47.860
+We talked about
+that at the Acrobot.
+
+01:01:47.860 --> 01:01:49.810
+I do a linearization
+around the top.
+
+01:01:49.810 --> 01:01:52.360
+I know if I'm near
+that point, it's
+
+01:01:52.360 --> 01:01:54.640
+got some small finite
+basin of attraction.
+
+01:01:54.640 --> 01:01:57.580
+If I'm inside that region,
+it'll go to the goal.
+
+01:01:57.580 --> 01:01:59.987
+If I'm outside that,
+then the linear design,
+
+01:01:59.987 --> 01:02:02.320
+controller design, isn't valid
+for the nonlinear system.
+
+01:02:02.320 --> 01:02:04.240
+Eventually, you're going to get
+far enough away that it's not
+
+01:02:04.240 --> 01:02:04.823
+going to work.
+
+01:02:04.823 --> 01:02:05.553
+It's going to--
+
+01:02:05.553 --> 01:02:06.970
+I think I even
+showed a simulation
+
+01:02:06.970 --> 01:02:08.797
+of it doing something crazy.
+
+01:02:08.797 --> 01:02:11.380
+So what we did was we designed
+a controller that got up there,
+
+01:02:11.380 --> 01:02:13.030
+and then we turned on
+the linear controller.
+
+01:02:13.030 --> 01:02:13.590
+All was good.
+
+01:02:16.510 --> 01:02:20.440
+So a different way to say
+that exact same thing is
+
+01:02:20.440 --> 01:02:27.100
+that at some point, when I get
+too far from the fixed point,
+
+01:02:27.100 --> 01:02:30.550
+if I evaluate this function
+and look at the time
+
+01:02:30.550 --> 01:02:33.510
+derivative of this
+function, it's
+
+01:02:33.510 --> 01:02:35.045
+no longer going
+to-- my cost is not
+
+01:02:35.045 --> 01:02:36.420
+going to go down
+as time goes up.
+
+01:02:39.097 --> 01:02:40.930
+And in the case for the
+Acrobot, if I'm here
+
+01:02:40.930 --> 01:02:42.100
+and I start going
+this way, then I'm
+
+01:02:42.100 --> 01:02:43.308
+getting further from my goal.
+
+01:02:43.308 --> 01:02:44.380
+My cost is going up.
+
+01:02:44.380 --> 01:02:47.860
+At some point, for
+the nonlinear system,
+
+01:02:47.860 --> 01:02:50.860
+this function is not
+going to be a Lyapunov
+
+01:02:50.860 --> 01:02:53.620
+function for that system, OK.
+
+01:02:53.620 --> 01:02:56.710
+So what we've got, thanks
+to Pablo and [? Sasha ?]
+
+01:02:56.710 --> 01:03:03.080
+[? McGretzky, ?] is a way
+to figure out exactly a--
+
+01:03:03.080 --> 01:03:05.230
+well, not exactly--
+to estimate the place
+
+01:03:05.230 --> 01:03:09.070
+where that transition
+happens using
+
+01:03:09.070 --> 01:03:10.705
+these sums of squares programs.
+
+01:03:13.022 --> 01:03:14.980
+My goal here is to tell
+you about the existence
+
+01:03:14.980 --> 01:03:18.820
+of these things, and
+I'm happy to push you
+
+01:03:18.820 --> 01:03:21.490
+more in that direction if you're
+interested, for your project
+
+01:03:21.490 --> 01:03:23.710
+or for whatever.
+
+01:03:23.710 --> 01:03:27.908
+But we're going to use this
+to do the feedback motion
+
+01:03:27.908 --> 01:03:28.450
+planning, OK.
+
+01:03:28.450 --> 01:03:33.685
+So it turns out J is a scalar.
+
+01:03:37.340 --> 01:03:40.460
+My cost to go is a scalar.
+
+01:03:40.460 --> 01:03:45.500
+It turns out I can very
+succinctly describe the place
+
+01:03:45.500 --> 01:03:48.373
+where this-- a boundary
+of this function--
+
+01:03:48.373 --> 01:03:50.581
+let me just write it, and
+then I'll say it carefully.
+
+01:04:01.890 --> 01:04:05.700
+I can describe a
+region of my system
+
+01:04:05.700 --> 01:04:08.010
+just by looking at the
+height of my cost to go.
+
+01:04:10.770 --> 01:04:13.470
+This is a quadratic function.
+
+01:04:13.470 --> 01:04:16.950
+It's going to look like
+ellipsoids going out.
+
+01:04:16.950 --> 01:04:20.010
+If you were to draw
+this landscape,
+
+01:04:20.010 --> 01:04:24.570
+it's going to look like
+an ellipse, a parabola
+
+01:04:24.570 --> 01:04:27.180
+in high dimensions, yeah.
+
+01:04:27.180 --> 01:04:29.820
+At some point, as I move
+farther from my fixed point,
+
+01:04:29.820 --> 01:04:32.580
+the cost is going to get
+higher and higher, OK.
+
+01:04:32.580 --> 01:04:36.120
+And at some point, it crosses
+some scalar value rho.
+
+01:04:36.120 --> 01:04:38.400
+So the way I want
+to design, I want
+
+01:04:38.400 --> 01:04:40.950
+to call my basin of
+attraction for this system
+
+01:04:40.950 --> 01:04:45.060
+the place where my
+cost to go reaches rho.
+
+01:04:45.060 --> 01:04:49.140
+And we've got a program, thanks
+to [? Sasha and ?] Pablo,
+
+01:04:49.140 --> 01:04:53.520
+which will try to estimate this
+scalar value, rho, as a scalar
+
+01:04:53.520 --> 01:04:57.990
+representative of the basin
+of attraction of my system.
+
+01:04:57.990 --> 01:05:00.120
+AUDIENCE: Why would you
+use a particular cost
+
+01:05:00.120 --> 01:05:05.300
+to go rather than looking
+at what the variation is
+
+01:05:05.300 --> 01:05:07.532
+in the linearization?
+
+01:05:07.532 --> 01:05:09.740
+PROFESSOR: That is-- so
+we're going to determine this
+
+01:05:09.740 --> 01:05:15.290
+by looking at the variation
+based on the linearization.
+
+01:05:15.290 --> 01:05:20.960
+So I could do this in a
+lot of different ways.
+
+01:05:20.960 --> 01:05:23.330
+I could look at boxes
+around my fixed point
+
+01:05:23.330 --> 01:05:25.718
+and try to design some geometry.
+
+01:05:25.718 --> 01:05:27.260
+The real basin of
+attraction is going
+
+01:05:27.260 --> 01:05:28.718
+to be some complicated
+thing, which
+
+01:05:28.718 --> 01:05:31.460
+depends on my LQR controller
+design and the way
+
+01:05:31.460 --> 01:05:33.770
+the non-linearity affects.
+
+01:05:33.770 --> 01:05:37.550
+AUDIENCE: Right, but wouldn't--
+so I guess what would seem more
+
+01:05:37.550 --> 01:05:40.760
+intuitive to me would be to say,
+look at the next highest order
+
+01:05:40.760 --> 01:05:45.730
+term in the expansion and then
+see how that's varying and use
+
+01:05:45.730 --> 01:05:47.060
+that to--
+
+01:05:47.060 --> 01:05:50.270
+PROFESSOR: That's exactly how
+we're going to verify it, OK.
+
+01:05:50.270 --> 01:05:51.440
+So there's two questions.
+
+01:05:51.440 --> 01:05:54.140
+There's a question
+of what shapes are
+
+01:05:54.140 --> 01:05:56.570
+we going to try to verify, OK.
+
+01:05:56.570 --> 01:06:00.230
+The choice here is
+to verify contours
+
+01:06:00.230 --> 01:06:01.355
+of the cost to go function.
+
+01:06:01.355 --> 01:06:03.688
+I'm going to try to find the
+biggest contour of the cost
+
+01:06:03.688 --> 01:06:05.420
+to go function for
+the linear system.
+
+01:06:05.420 --> 01:06:07.712
+You're asking if I could
+choose a different shape based
+
+01:06:07.712 --> 01:06:08.637
+on the contours.
+
+01:06:08.637 --> 01:06:10.220
+What we've elected
+to do-- and I think
+
+01:06:10.220 --> 01:06:13.100
+it's a tighter version, maybe,
+than what you're saying,
+
+01:06:13.100 --> 01:06:14.600
+but I could be wrong.
+
+01:06:14.600 --> 01:06:15.860
+There could be better ways--
+
+01:06:15.860 --> 01:06:19.430
+is to find the biggest contour
+such that the next higher order
+
+01:06:19.430 --> 01:06:22.250
+terms of the
+linearization don't break
+
+01:06:22.250 --> 01:06:23.600
+the negative definiteness.
+
+01:06:23.600 --> 01:06:25.610
+AUDIENCE: OK, so this
+is just for purposes
+
+01:06:25.610 --> 01:06:26.450
+of choosing a shape.
+
+01:06:26.450 --> 01:06:30.800
+PROFESSOR: This is
+choosing my shape, OK.
+
+01:06:30.800 --> 01:06:34.700
+So I'm going to make this
+all concrete right now
+
+01:06:34.700 --> 01:06:37.880
+by trying to show
+you an example here.
+
+01:06:40.460 --> 01:06:44.827
+OK, here's a simple pendulum,
+which we know and love, OK.
+
+01:06:44.827 --> 01:06:46.910
+This is the phase portrait
+of the simple pendulum.
+
+01:06:53.350 --> 01:06:56.400
+OK, and the green is at
+0, 0, which, in this case,
+
+01:06:56.400 --> 01:06:58.200
+is my downward fixed point.
+
+01:06:58.200 --> 01:07:01.260
+The top is my
+unstable fixed point.
+
+01:07:01.260 --> 01:07:06.240
+My goal is to use these local
+trajectory ideas in order
+
+01:07:06.240 --> 01:07:07.800
+to cover--
+
+01:07:07.800 --> 01:07:11.250
+to make all states
+go to them, OK.
+
+01:07:11.250 --> 01:07:15.000
+Now all I told you so far is I
+know how to take an LQR problem
+
+01:07:15.000 --> 01:07:17.490
+and try to estimate the
+basin of attraction, OK.
+
+01:07:17.490 --> 01:07:22.470
+So that's step one, is take a
+linearization around my goal
+
+01:07:22.470 --> 01:07:27.030
+state, estimate-- design
+an LQR controller,
+
+01:07:27.030 --> 01:07:29.880
+and estimate it's basin
+of attraction, OK.
+
+01:07:29.880 --> 01:07:31.920
+And that looks like this, OK.
+
+01:07:31.920 --> 01:07:35.770
+We've seen cost to go
+functions for the ellipsoids,
+
+01:07:35.770 --> 01:07:40.950
+or ellipsoids around
+the fixed point.
+
+01:07:40.950 --> 01:07:42.870
+I do a sums of
+square optimization
+
+01:07:42.870 --> 01:07:46.110
+to verify that this function
+is negative definite, which
+
+01:07:46.110 --> 01:07:48.000
+involves a higher order
+polynomial expansion
+
+01:07:48.000 --> 01:07:50.580
+of the dynamics in this form.
+
+01:07:50.580 --> 01:07:54.540
+And I try to find the biggest
+contour for which that system
+
+01:07:54.540 --> 01:07:56.730
+is still negative definite.
+
+01:07:56.730 --> 01:07:58.158
+That's all the detail.
+
+01:07:58.158 --> 01:08:00.450
+All you really need to know
+is that I can estimate now,
+
+01:08:00.450 --> 01:08:03.630
+with convex optimization,
+the basin of attraction
+
+01:08:03.630 --> 01:08:05.610
+of that system.
+
+01:08:05.610 --> 01:08:08.580
+This is Koditschek's
+funnel at the top.
+
+01:08:08.580 --> 01:08:11.580
+That blue region is the
+beginning of the funnel.
+
+01:08:11.580 --> 01:08:13.800
+In this case, I'm going
+to run it infinitely long,
+
+01:08:13.800 --> 01:08:15.842
+so it's going to eventually
+get to the red point.
+
+01:08:15.842 --> 01:08:17.490
+That's the output.
+
+01:08:17.490 --> 01:08:22.189
+OK, now how do we design funnels
+that try to fill this space?
+
+01:08:22.189 --> 01:08:26.220
+OK, my proposition is
+that we should do roughly
+
+01:08:26.220 --> 01:08:30.870
+what the RRTs are doing
+and start growing out
+
+01:08:30.870 --> 01:08:33.620
+to try to cover the space in
+lots of different directions,
+
+01:08:33.620 --> 01:08:34.620
+OK.
+
+01:08:34.620 --> 01:08:36.090
+The only difference
+is, every time
+
+01:08:36.090 --> 01:08:39.390
+we grow out in
+random directions,
+
+01:08:39.390 --> 01:08:44.250
+I'm going to stabilize that
+trajectory with an LTV feedback
+
+01:08:44.250 --> 01:08:47.460
+and compute the basin
+of attraction on it, OK.
+
+01:08:47.460 --> 01:08:48.270
+So here we go.
+
+01:08:48.270 --> 01:08:50.672
+Pick a point at random, OK.
+
+01:08:50.672 --> 01:08:51.630
+And actually, I'm not--
+
+01:08:51.630 --> 01:08:53.047
+I don't always
+play the RRT trick.
+
+01:08:53.047 --> 01:08:56.710
+So I could do lots of RRTs to
+try to get back to that point,
+
+01:08:56.710 --> 01:08:59.100
+but I'm actually going to
+just use this as my goal
+
+01:08:59.100 --> 01:09:02.040
+and do [? DR call ?] to get me
+there, to design a trajectory
+
+01:09:02.040 --> 01:09:02.729
+to get me there.
+
+01:09:02.729 --> 01:09:04.892
+If that works, that's
+perfectly fine.
+
+01:09:04.892 --> 01:09:05.850
+So that's a trajectory.
+
+01:09:05.850 --> 01:09:06.630
+I didn't draw it nicely.
+
+01:09:06.630 --> 01:09:08.340
+It actually starts
+here, goes this way,
+
+01:09:08.340 --> 01:09:12.569
+wraps around, and comes
+to that red point, OK.
+
+01:09:12.569 --> 01:09:15.060
+From [? DR ?] call, it quickly
+designs that trajectory.
+
+01:09:15.060 --> 01:09:18.359
+Now let's back up and
+start computing the cost
+
+01:09:18.359 --> 01:09:20.460
+to go function, the
+Riccati equation,
+
+01:09:20.460 --> 01:09:22.770
+backwards to stabilize
+that trajectory.
+
+01:09:22.770 --> 01:09:25.050
+And as we go, we'll
+compute the basin
+
+01:09:25.050 --> 01:09:32.430
+of attraction of that
+controller, which has exactly--
+
+01:09:32.430 --> 01:09:35.340
+I drew it in finite
+segments, but I
+
+01:09:35.340 --> 01:09:40.439
+hope you can see that's
+exactly the funnels, yeah?
+
+01:09:40.439 --> 01:09:44.080
+If I start the system inside
+any of that blue region,
+
+01:09:44.080 --> 01:09:46.500
+and I execute the
+trajectory, the LQR,
+
+01:09:46.500 --> 01:09:49.140
+the trajectory stabilizer
+along that trajectory,
+
+01:09:49.140 --> 01:09:52.229
+it's going to take me
+around and get me to my goal
+
+01:09:52.229 --> 01:09:54.840
+and stay there, OK.
+
+01:09:54.840 --> 01:09:59.220
+So this is feedback
+motion planning happening.
+
+01:09:59.220 --> 01:10:02.025
+Now the cool thing is, I told
+you about the multi-query idea.
+
+01:10:02.025 --> 01:10:03.400
+I told you about
+all these ideas,
+
+01:10:03.400 --> 01:10:05.108
+talked about making
+very dense trees that
+
+01:10:05.108 --> 01:10:07.992
+handle all these situations.
+
+01:10:07.992 --> 01:10:10.200
+If you know the basins of
+attraction of your existing
+
+01:10:10.200 --> 01:10:13.770
+controller, you don't have
+to build a very dense tree.
+
+01:10:13.770 --> 01:10:16.020
+I know, if I were to pick
+another random point that
+
+01:10:16.020 --> 01:10:17.622
+was already inside
+my blue region,
+
+01:10:17.622 --> 01:10:19.080
+I'm not going to
+get a lot of value
+
+01:10:19.080 --> 01:10:22.002
+out of adding nodes
+inside that blue region.
+
+01:10:22.002 --> 01:10:23.460
+So let's pick
+another random point,
+
+01:10:23.460 --> 01:10:25.960
+and if it's inside the blue
+region, we'll throw it away.
+
+01:10:25.960 --> 01:10:29.370
+If it's outside, I'll keep it,
+and I'll try to grow to it, OK.
+
+01:10:29.370 --> 01:10:32.450
+So I get another random
+point, which is here.
+
+01:10:32.450 --> 01:10:34.830
+Going to pick the closest
+point in my current tree, which
+
+01:10:34.830 --> 01:10:39.540
+was just, in this case, a
+trajectory, connect that back.
+
+01:10:39.540 --> 01:10:43.120
+Now in this one, my
+dynamic distance metric,
+
+01:10:43.120 --> 01:10:45.690
+which was that LQR
+distance metric,
+
+01:10:45.690 --> 01:10:47.872
+connected and said this
+was the closest point.
+
+01:10:47.872 --> 01:10:49.830
+Looks a little surprising,
+but maybe the torque
+
+01:10:49.830 --> 01:10:51.150
+limits said that one
+couldn't get there,
+
+01:10:51.150 --> 01:10:53.070
+or maybe my distance
+metric just wasn't perfect.
+
+01:10:53.070 --> 01:10:53.987
+But that's reasonable.
+
+01:10:53.987 --> 01:10:57.210
+It tries to go from here,
+add a little bit more torque,
+
+01:10:57.210 --> 01:10:58.260
+and drive out.
+
+01:10:58.260 --> 01:11:01.880
+And I stabilize that
+with the funnel, yeah?
+
+01:11:01.880 --> 01:11:03.960
+OK, now I have two
+trajectories, and I've
+
+01:11:03.960 --> 01:11:06.430
+got a pretty good coverage
+of the space already.
+
+01:11:06.430 --> 01:11:09.420
+You can imagine I design a
+handful more trajectories,
+
+01:11:09.420 --> 01:11:14.640
+picking the state as
+I go, and I can really
+
+01:11:14.640 --> 01:11:22.270
+quickly and efficiently fill
+that state space with funnels
+
+01:11:22.270 --> 01:11:26.340
+which take me to the goal.
+
+01:11:26.340 --> 01:11:28.710
+Does that makes sense?
+
+01:11:28.710 --> 01:11:30.460
+AUDIENCE: So when you
+do your multi-query,
+
+01:11:30.460 --> 01:11:32.848
+how do you choose
+which funnel you're in?
+
+01:11:32.848 --> 01:11:33.640
+PROFESSOR: Awesome.
+
+01:11:33.640 --> 01:11:42.280
+Well, first, even-- so if I
+just want to execute this, yeah.
+
+01:11:42.280 --> 01:11:43.725
+And I want to get
+to that goal, it
+
+01:11:43.725 --> 01:11:45.100
+might be that I
+don't really have
+
+01:11:45.100 --> 01:11:47.080
+to do the-- so you could think
+of this as being every time
+
+01:11:47.080 --> 01:11:48.163
+being a multi-query thing.
+
+01:11:48.163 --> 01:11:50.320
+So every time I--
+if I start, if I
+
+01:11:50.320 --> 01:11:52.750
+pick a point that isn't in
+any basin of attraction,
+
+01:11:52.750 --> 01:11:55.810
+then I'll try to connect
+and grow a tree there.
+
+01:11:55.810 --> 01:11:57.430
+If I, however, pick a point--
+
+01:11:57.430 --> 01:11:59.440
+if it's execution
+time, I say the robot's
+
+01:11:59.440 --> 01:12:01.220
+got to run from
+here, I pick a point.
+
+01:12:01.220 --> 01:12:02.845
+It's already in the
+basin of attraction
+
+01:12:02.845 --> 01:12:04.552
+that I just execute
+that trajectory.
+
+01:12:04.552 --> 01:12:06.010
+If, I think what
+you're alluding to
+
+01:12:06.010 --> 01:12:08.860
+is that it's in the basin of
+attraction of multiple points,
+
+01:12:08.860 --> 01:12:10.848
+then I pick the one with
+the lowest cost to go,
+
+01:12:10.848 --> 01:12:12.640
+because those are all
+estimates of the cost
+
+01:12:12.640 --> 01:12:17.530
+to go that are centered
+around that trajectory, OK.
+
+01:12:17.530 --> 01:12:20.680
+So for the simple pendulum,
+with damping and torque limits
+
+01:12:20.680 --> 01:12:22.735
+and everything set
+the way it was,
+
+01:12:22.735 --> 01:12:27.400
+this little randomized
+algorithm can fill the space
+
+01:12:27.400 --> 01:12:31.158
+with basins of attraction with
+just a handful of trajectories.
+
+01:12:35.062 --> 01:12:35.987
+AUDIENCE: [INAUDIBLE]
+
+01:12:35.987 --> 01:12:37.820
+PROFESSOR: I've never
+said it with so much--
+
+01:12:37.820 --> 01:12:38.960
+[LAUGHTER]
+
+01:12:38.960 --> 01:12:42.350
+--such dramatic force.
+
+01:12:42.350 --> 01:12:44.206
+OK?
+
+01:12:44.206 --> 01:12:47.390
+[CHUCKLES] It's the highlight
+of the class right here.
+
+01:12:47.390 --> 01:12:52.510
+OK, so this is exactly the
+feedback motion planning idea
+
+01:12:52.510 --> 01:12:56.160
+that I'm most excited
+about right now.
+
+01:12:56.160 --> 01:12:58.280
+Because we can suddenly--
+
+01:12:58.280 --> 01:13:01.250
+for LQR controller,
+it depended on--
+
+01:13:01.250 --> 01:13:03.770
+the thing we've worked out
+is, if the cost to go function
+
+01:13:03.770 --> 01:13:06.140
+is this, or in the time
+varying case, this,
+
+01:13:06.140 --> 01:13:09.790
+then I can come up with a
+very nice representation
+
+01:13:09.790 --> 01:13:13.910
+of the basin of attraction
+based on just a scalar value.
+
+01:13:13.910 --> 01:13:18.320
+And I could just start designing
+funnels through my state space.
+
+01:13:18.320 --> 01:13:20.990
+And the vision is, if you
+can think about the funnels
+
+01:13:20.990 --> 01:13:22.672
+as you build them,
+then you actually
+
+01:13:22.672 --> 01:13:24.380
+don't have to build
+too many trajectories
+
+01:13:24.380 --> 01:13:26.951
+to start filling
+the state space.
+
+01:13:26.951 --> 01:13:29.240
+AUDIENCE: Why do you call
+it feedback motion planning.
+
+01:13:29.240 --> 01:13:30.350
+PROFESSOR: Yeah.
+
+01:13:30.350 --> 01:13:33.080
+It's because I'm thinking about
+the feedback control, which
+
+01:13:33.080 --> 01:13:34.900
+is the funnel, as I'm
+doing the planning.
+
+01:13:34.900 --> 01:13:35.400
+Yeah.
+
+01:13:38.917 --> 01:13:41.250
+Do you agree why Koditschek's
+version is feedback motion
+
+01:13:41.250 --> 01:13:43.883
+planning, or do you not like
+that being feedback motion
+
+01:13:43.883 --> 01:13:44.913
+planning?
+
+01:13:44.913 --> 01:13:45.955
+AUDIENCE: It makes sense.
+
+01:13:45.955 --> 01:13:48.292
+I guess I'm used to
+different funnels.
+
+01:13:48.292 --> 01:13:49.250
+PROFESSOR: That's true.
+
+01:13:49.250 --> 01:13:50.060
+You are, yeah.
+
+01:13:50.060 --> 01:13:50.490
+AUDIENCE: [CHUCKLES]
+
+01:13:50.490 --> 01:13:50.900
+PROFESSOR: OK?
+
+01:13:50.900 --> 01:13:52.192
+AUDIENCE: [? Think ?] [? so. ?]
+
+01:13:52.192 --> 01:13:53.810
+PROFESSOR: So these
+are very much--
+
+01:13:53.810 --> 01:13:57.230
+in Koditschek's case,
+there's no debate
+
+01:13:57.230 --> 01:14:00.710
+that each funnel is a
+feedback controller.
+
+01:14:00.710 --> 01:14:02.060
+I think of this as the same way.
+
+01:14:02.060 --> 01:14:03.602
+You could argue with
+it, because it's
+
+01:14:03.602 --> 01:14:06.055
+centered around trajectory
+design, which his is not.
+
+01:14:06.055 --> 01:14:07.430
+So this one has
+a little bit more
+
+01:14:07.430 --> 01:14:12.590
+of a feel of conventional
+motion planning.
+
+01:14:12.590 --> 01:14:15.207
+But by virtue of thinking
+about the feedback
+
+01:14:15.207 --> 01:14:16.790
+as I design the
+trajectories, it means
+
+01:14:16.790 --> 01:14:19.252
+I have to build less
+trajectories, yeah.
+
+01:14:19.252 --> 01:14:21.710
+So it'd be nice to actually
+have the conversation about how
+
+01:14:21.710 --> 01:14:23.666
+these are related
+to float tubes.
+
+01:14:23.666 --> 01:14:24.950
+Mm-hmm.
+
+01:14:24.950 --> 01:14:27.180
+It's pretty similar
+in some ways.
+
+01:14:27.180 --> 01:14:30.970
+But these are very
+effective to compute
+
+01:14:30.970 --> 01:14:34.170
+the stable-- the
+basins of attraction,
+
+01:14:34.170 --> 01:14:35.280
+so I think it's relevant.
+
+01:14:35.280 --> 01:14:37.010
+Yeah.
+
+01:14:37.010 --> 01:14:40.310
+AUDIENCE: Could you
+factor in actuator limits
+
+01:14:40.310 --> 01:14:42.025
+into the Lyapunov function?
+
+01:14:42.025 --> 01:14:42.650
+PROFESSOR: Yes.
+
+01:14:42.650 --> 01:14:48.600
+So OK, actuator limits in the
+Lyapunov function are harder.
+
+01:14:48.600 --> 01:14:50.150
+So what you do is
+you-- everything
+
+01:14:50.150 --> 01:14:54.230
+is based on a Taylor
+expansion of the dynamics
+
+01:14:54.230 --> 01:14:56.240
+around the nominal.
+
+01:14:56.240 --> 01:15:00.050
+So a hard limit, if I linearize
+and I don't see that limit,
+
+01:15:00.050 --> 01:15:03.800
+then I'm not going
+to know about it.
+
+01:15:03.800 --> 01:15:05.508
+So there's a couple
+things you could try.
+
+01:15:05.508 --> 01:15:07.550
+And actually, I recommended
+to Mike earlier today
+
+01:15:07.550 --> 01:15:09.500
+that he should do this
+for his final project,
+
+01:15:09.500 --> 01:15:11.690
+is to do that, the case
+where the actuator limits.
+
+01:15:11.690 --> 01:15:13.870
+So you could imagine
+making a soft limit,
+
+01:15:13.870 --> 01:15:16.970
+some sigmoidal limit,
+and having the gradients
+
+01:15:16.970 --> 01:15:21.410
+of that visible from
+your linearization point.
+
+01:15:21.410 --> 01:15:23.780
+Or you could imagine
+the LQR design
+
+01:15:23.780 --> 01:15:26.780
+that actually does both the
+quadratic cost and the bang
+
+01:15:26.780 --> 01:15:28.250
+bang synonymously.
+
+01:15:28.250 --> 01:15:30.569
+Haven't done it yet, but
+I think that's consistent.
+
+01:15:37.420 --> 01:15:46.360
+OK, so I told you a lot about
+local trajectory optimizers.
+
+01:15:46.360 --> 01:15:48.700
+And today we said there were
+at least three good ways,
+
+01:15:48.700 --> 01:15:51.850
+I think, to make those
+trajectory optimizers
+
+01:15:51.850 --> 01:15:55.330
+into a more feedback plan.
+
+01:15:55.330 --> 01:15:58.870
+So the first idea was
+real time planning.
+
+01:16:02.412 --> 01:16:04.120
+And if it's fast
+enough, well, then we're
+
+01:16:04.120 --> 01:16:08.380
+all out of jobs, because
+we could just do that.
+
+01:16:08.380 --> 01:16:12.100
+The second idea was
+building these trees
+
+01:16:12.100 --> 01:16:17.860
+and doing multi-query,
+keeping your tree around
+
+01:16:17.860 --> 01:16:21.310
+and just finding your way to
+the closest point of the tree
+
+01:16:21.310 --> 01:16:23.530
+every time you execute.
+
+01:16:23.530 --> 01:16:25.975
+And that has the nice feature
+that every time I execute,
+
+01:16:25.975 --> 01:16:27.350
+my tree gets a
+little bit bigger,
+
+01:16:27.350 --> 01:16:31.120
+and I know a little bit more
+about my robot and myself,
+
+01:16:31.120 --> 01:16:32.350
+yeah.
+
+01:16:32.350 --> 01:16:36.160
+And the last one was this
+feedback motion planning,
+
+01:16:36.160 --> 01:16:41.860
+which there are only
+a handful of ideas
+
+01:16:41.860 --> 01:16:44.500
+out there, I think, about
+feedback motion planning
+
+01:16:44.500 --> 01:16:45.850
+that people use.
+
+01:16:45.850 --> 01:16:48.425
+Koditschek's funnels are
+definitely the most prominent.
+
+01:16:56.030 --> 01:16:59.480
+And actually, I think that
+the funnels should probably be
+
+01:16:59.480 --> 01:17:00.770
+on my list, but I haven't--
+
+01:17:00.770 --> 01:17:02.750
+sorry, the float tubes should
+probably be more on my list,
+
+01:17:02.750 --> 01:17:03.470
+but I don't--
+
+01:17:03.470 --> 01:17:07.670
+I've never made a strong
+enough connection.
+
+01:17:07.670 --> 01:17:10.666
+We should make that a goal for
+the rest of the class, yeah.
+
+01:17:10.666 --> 01:17:15.600
+AUDIENCE: [INAUDIBLE]
+float tube or--
+
+01:17:15.600 --> 01:17:18.432
+PROFESSOR: So there's
+definitely differences,
+
+01:17:18.432 --> 01:17:19.890
+but we should really
+figure it out.
+
+01:17:19.890 --> 01:17:23.840
+So [? Brian ?] [? Williams' ?]
+group does planning with float
+
+01:17:23.840 --> 01:17:28.840
+tubes that are, in spirit,
+similar to these funnels.
+
+01:17:28.840 --> 01:17:30.110
+Yeah.
+
+01:17:30.110 --> 01:17:31.940
+And so we should talk
+about whether you
+
+01:17:31.940 --> 01:17:34.400
+can design the float tubes
+for the class of systems
+
+01:17:34.400 --> 01:17:37.091
+that I care about in
+the class and stuff.
+
+01:17:37.091 --> 01:17:39.380
+Mm-hmm.
+
+01:17:39.380 --> 01:17:40.340
+Excellent.
+
+01:17:40.340 --> 01:17:42.990
+OK, so you saw the email
+about the projects.
+
+01:17:42.990 --> 01:17:45.578
+If you have any questions
+about your projects,
+
+01:17:45.578 --> 01:17:47.120
+we could talk for
+a minute right now,
+
+01:17:47.120 --> 01:17:49.370
+or we could schedule a
+meeting before Thursday.
+
+01:17:52.130 --> 01:17:55.010
+There's a few ideas on the
+email we sent in the PDF
+
+01:17:55.010 --> 01:17:55.915
+that we sent out.
+
+01:17:55.915 --> 01:17:57.290
+If you're looking
+for more ideas,
+
+01:17:57.290 --> 01:18:01.455
+I've got a list of other
+ideas that I'm happy to share.
+
+01:18:01.455 --> 01:18:03.830
+It's going to work best if
+you find a problem that you're
+
+01:18:03.830 --> 01:18:05.510
+passionate about,
+something that you
+
+01:18:05.510 --> 01:18:08.510
+got excited about in
+class or from your work,
+
+01:18:08.510 --> 01:18:11.330
+and you apply some
+idea from class.
+
+01:18:11.330 --> 01:18:13.850
+But the goal for Thursday
+is to say enough about it
+
+01:18:13.850 --> 01:18:16.070
+that I can give you
+some real feedback
+
+01:18:16.070 --> 01:18:18.080
+on your half-page
+write-up and try
+
+01:18:18.080 --> 01:18:21.500
+to help you with the
+scope and topic to make it
+
+01:18:21.500 --> 01:18:22.780
+a good project.
+
+01:18:22.780 --> 01:18:23.660
+OK?
+
+01:18:23.660 --> 01:18:25.580
+Let me know if
+there's any questions.
+
+01:18:25.580 --> 01:18:27.490
+See you Thursday.

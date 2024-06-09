@@ -1,0 +1,288 @@
+WEBVTT
+
+1
+00:00:01.000 --> 00:00:07.000 
+The whole architecture of this system can
+fail if we do not solve the problem that the
+
+2
+00:00:07.000 --> 00:00:15.000 
+resorting of dictionaries and resorting and
+reconstruction of the main data areas have
+
+3
+00:00:15.000 --> 00:00:21.000 
+to take place while we are processing the
+data. So there is an issue, we felt this from
+
+4
+00:00:21.000 --> 00:00:27.000 
+the beginning. and we have to tackle this
+now.
+
+5
+00:00:27.000 --> 00:00:35.000 
+When we insert new tuples into a compressed
+structure, especially when we do everything
+
+6
+00:00:35.000 --> 00:00:46.000 
+with insert only so then we only have inserts,
+then we learned that the bringing new values
+
+7
+00:00:46.000 --> 00:00:52.000 
+to a table can require the reorganization
+of the dictionary. Only in a few cases we
+
+8
+00:00:52.000 --> 00:00:58.000 
+are lucky that this is an append in most cases
+this is an insert and it changes the sorting
+
+9
+00:00:58.000 --> 00:01:10.000 
+sequence, it changes the positions and we
+have to revalue the value IDs in the column.
+
+10
+00:01:10.000 --> 00:01:20.000 
+And deletion of tuples is expensive, despite
+we do not want to delete them. The solution
+
+11
+00:01:20.000 --> 00:01:26.000 
+is to introduce a differential buffer.
+
+12
+00:01:26.000 --> 00:01:31.000 
+When a new tuple comes in it does not go against
+something we call now ,,main storage’’,
+
+13
+00:01:31.000 --> 00:01:42.000 
+it goes against a differential buffer. In
+a differential buffer we also keep the data
+
+14
+00:01:42.000 --> 00:01:55.000 
+in column store format. We have column stores
+and we have a dictionary but a much smaller
+
+15
+00:01:55.000 --> 00:02:04.000 
+dictionary, we have only in the dictionary
+here the enters of the tuples we entered into
+
+16
+00:02:04.000 --> 00:02:12.000 
+the differential buffer. We have a number
+here, lets think about 8 billion entries on
+
+17
+00:02:12.000 --> 00:02:30.000 
+the left side and 50 000 entries on the right
+side. So there are 3 orders of magnitude difference
+
+18
+00:02:30.000 --> 00:02:38.000 
+in size of the tables, so there is a 3 order
+of magnitude different performance behaviour.
+
+19
+00:02:38.000 --> 00:02:46.000 
+So all what sounds awful and very slow for
+a large table in the main store when we insert
+
+20
+00:02:46.000 --> 00:02:53.000 
+a new tuple is probably acceptable in the
+differential buffer.
+
+21
+00:02:53.000 --> 00:03:05.000 
+Since the data volume is so much cheaper the
+whole behaviour with regards to cash misses
+
+22
+00:03:05.000 --> 00:03:14.000 
+is better and we achieve now a reasonable
+performance for insert, we slow down a little
+
+23
+00:03:14.000 --> 00:03:20.000 
+bit the performance for queries. Because the
+query has to go against the main store and
+
+24
+00:03:20.000 --> 00:03:25.000 
+the differential store.
+
+25
+00:03:25.000 --> 00:03:32.000 
+So what we achieve is that the inserts are
+faster. We build a tree on the top of the
+
+26
+00:03:32.000 --> 00:03:40.000 
+dictionary and we do not resort the dictionary.
+So this part is then for queries, for joins
+
+27
+00:03:40.000 --> 00:03:49.000 
+slower but since the volume is so small it
+does not matter so much. When it starts to
+
+28
+00:03:49.000 --> 00:03:59.000 
+matter then we have to reorganize the data,
+this is called Merge, we need some more memory
+
+29
+00:03:59.000 --> 00:04:08.000 
+for the differential buffer because we do
+not use any attribute vector compression,
+
+30
+00:04:08.000 --> 00:04:15.000 
+we need an additional tree, but again, it
+does not really matter because the volume
+
+31
+00:04:15.000 --> 00:04:24.000 
+we have to see in 50 000 entries is not that
+much. Now the system has to think a little
+
+32
+00:04:24.000 --> 00:04:31.000 
+bit how large should the differential buffer
+be, when does it start hurting and when it
+
+33
+00:04:31.000 --> 00:04:45.000 
+is better to reorganize data and have a fresh
+main store and an empty differential buffer.
+
+34
+00:04:45.000 --> 00:05:00.000 
+We have an example here. We have a table here
+and we find all Michael Bergs in Potsdam,
+
+35
+00:05:00.000 --> 00:05:15.000 
+in this case 1, and add the new one now in
+Potsdam. Now we have to flag the old one that
+
+36
+00:05:15.000 --> 00:05:28.000 
+it is not valid any more. We have to do this
+in a form that we do not need logs. The real
+
+37
+00:05:28.000 --> 00:05:36.000 
+solution is that we do not need only a valid
+and invalid character, we need actually a
+
+38
+00:05:36.000 --> 00:05:46.000 
+time stamp and then we can do time travel
+because the system can exactly recognize till
+
+39
+00:05:46.000 --> 00:05:55.000 
+when was the tuple valid and when we query
+in the past than we can take the values that
+
+40
+00:05:55.000 --> 00:06:12.000 
+tuple had in the past . If we query per now
+than we take the latest. The invalidated tuple
+
+41
+00:06:12.000 --> 00:06:31.000 
+stay in the database table until the next
+reorganization
+and we skip them in the search operations
+
+42
+00:06:31.000 --> 00:06:41.000 
+because they are invalid and have a time stamp
+when the invalidation took place.
+
+43
+00:06:41.000 --> 00:06:49.000 
+The database has to perform every single function
+now in two different areas, so the SQL works
+
+44
+00:06:49.000 --> 00:06:59.000 
+on two different areas. This is a little bit
+a complication in comparison to a row-based
+
+45
+00:06:59.000 --> 00:07:12.000 
+database. Still the advantage of having the
+extremely fast sequential processing speed
+
+46
+00:07:12.000 --> 00:07:20.000 
+out-weights the disadvantages we get now.
+When we do measurements of direct access we
+
+47
+00:07:20.000 --> 00:07:26.000 
+have to take in to account that the differential
+buffers are not empty. We cannot measure OLTP
+
+48
+00:07:26.000 --> 00:07:32.000 
+and OLAP performance and mix workloads with
+empty sequential buffers because you can instantly
+
+49
+00:07:32.000 --> 00:07:42.000 
+see they are not as fast as the main storage
+and there is an extra penalty for processing
+
+50
+00:07:42.000 --> 00:07:44.000 
+data.
+
+51
+00:07:44.000 --> 00:07:52.000 
+There are various forms, in the beginning
+data was not compressed in the differential
+
+52
+00:07:52.000 --> 00:07:57.000 
+buffer, than it was compressed, now the differential
+buffer looks exactly like the main excepted,
+
+53
+00:07:57.000 --> 00:08:06.000 
+the dictionary is not sorted. You can try
+to calculate everything, I believe that everything
+
+54
+00:08:06.000 --> 00:08:17.000 
+can be calculated in math. So the important
+thing we learned now is that we need a differential
+
+55
+00:08:17.000 --> 00:08:25.000 
+buffer if tables are not absolutely stable.
+If we have inserts for a table we need a differential
+
+56
+00:08:25.000 --> 00:08:32.000 
+buffer and from time to time we have to reorganize
+the tuples in the differential buffer into
+
+57
+00:08:32.000 --> 00:08:48.000 
+the main store and we call this Merge. This
+is one of the characteristics of an In-Memory
+
+58
+00:08:48.000 --> 00:10:48.000 
+database with column store.

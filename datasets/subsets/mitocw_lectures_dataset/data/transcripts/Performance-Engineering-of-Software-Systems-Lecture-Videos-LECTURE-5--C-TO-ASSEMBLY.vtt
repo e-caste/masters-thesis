@@ -1,0 +1,6190 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT Open Courseware
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:17.604
+from hundreds of MIT courses,
+visit MIT OpenCourseware
+
+00:00:17.604 --> 00:00:18.540
+at ocw.mit.edu.
+
+00:00:22.210 --> 00:00:24.260
+JULIAN SHUN: Good
+afternoon, everyone.
+
+00:00:24.260 --> 00:00:27.220
+So today, we have
+TB Schardl here.
+
+00:00:27.220 --> 00:00:30.910
+He's going to give us the
+lecture on C to assembly.
+
+00:00:30.910 --> 00:00:34.690
+So TB's a research
+scientist here at MIT
+
+00:00:34.690 --> 00:00:36.160
+working with Charles Leiserson.
+
+00:00:36.160 --> 00:00:39.910
+He also taught this
+class with me last year,
+
+00:00:39.910 --> 00:00:43.720
+and he got one of the best
+ratings ever for this class.
+
+00:00:43.720 --> 00:00:48.430
+So I'm really looking
+forward to his lecture.
+
+00:00:48.430 --> 00:00:50.680
+TAO SCHARDL: All right, great.
+
+00:00:50.680 --> 00:00:54.590
+So thank you for the
+introduction, Julian.
+
+00:00:54.590 --> 00:00:58.750
+So I hear you just submitted
+the beta for project 1.
+
+00:00:58.750 --> 00:01:01.570
+Hopefully, that
+went pretty well.
+
+00:01:01.570 --> 00:01:05.930
+How many of you slept
+in the last 24 hours?
+
+00:01:05.930 --> 00:01:06.580
+OK, good.
+
+00:01:06.580 --> 00:01:08.850
+All right, so it
+went pretty well.
+
+00:01:08.850 --> 00:01:11.240
+That sounds great.
+
+00:01:11.240 --> 00:01:15.470
+Yeah, so today, we're going to
+be talking about C to assembly.
+
+00:01:15.470 --> 00:01:17.260
+And this is really
+a continuation
+
+00:01:17.260 --> 00:01:19.210
+from the topic of
+last lecture, where
+
+00:01:19.210 --> 00:01:21.880
+you saw computer architecture,
+if I understand correctly.
+
+00:01:21.880 --> 00:01:22.870
+Is that right?
+
+00:01:22.870 --> 00:01:27.690
+You looked at computer
+architecture, x86-64 assembly,
+
+00:01:27.690 --> 00:01:29.320
+that sort of thing.
+
+00:01:29.320 --> 00:01:32.200
+So how many of you walked away
+from that lecture thinking, oh
+
+00:01:32.200 --> 00:01:36.040
+yeah, x86-64 assembly,
+this is easy?
+
+00:01:36.040 --> 00:01:37.320
+This is totally intuitive.
+
+00:01:37.320 --> 00:01:39.080
+Everything makes perfect sense.
+
+00:01:39.080 --> 00:01:42.800
+There's no weirdness
+going on here whatsoever.
+
+00:01:42.800 --> 00:01:46.895
+How many of you walked
+away not thinking that?
+
+00:01:46.895 --> 00:01:49.020
+Thinking that perhaps this
+is a little bit strange,
+
+00:01:49.020 --> 00:01:50.250
+this whole assembly language.
+
+00:01:50.250 --> 00:01:53.130
+Yeah, I'm really in
+the later cab. x86 is
+
+00:01:53.130 --> 00:01:55.200
+kind of a strange beast.
+
+00:01:55.200 --> 00:01:57.690
+There are things in
+there that make no sense.
+
+00:01:57.690 --> 00:01:59.850
+Quad word has 8 bytes.
+
+00:01:59.850 --> 00:02:02.940
+P stands for integer,
+that sort of thing.
+
+00:02:06.740 --> 00:02:11.130
+So when we move on to the
+topic of seeing how C code gets
+
+00:02:11.130 --> 00:02:13.350
+translated into assembly,
+we're translating
+
+00:02:13.350 --> 00:02:17.137
+into something that's
+already pretty complicated.
+
+00:02:17.137 --> 00:02:18.720
+And the translation
+itself isn't going
+
+00:02:18.720 --> 00:02:20.700
+to be that straightforward.
+
+00:02:20.700 --> 00:02:24.180
+So we're going to have to find
+a way to work through that.
+
+00:02:24.180 --> 00:02:26.250
+And I'll outline the
+strategy that we'll
+
+00:02:26.250 --> 00:02:30.447
+be using in the start
+of this presentation.
+
+00:02:30.447 --> 00:02:31.780
+But first, let's quickly review.
+
+00:02:31.780 --> 00:02:33.880
+Why do we care about
+looking at assembly?
+
+00:02:33.880 --> 00:02:37.620
+You should have seen this
+slide from the last lecture.
+
+00:02:37.620 --> 00:02:42.210
+But essentially, assembly is
+a more precise representation
+
+00:02:42.210 --> 00:02:44.750
+of the program than
+the C code itself.
+
+00:02:44.750 --> 00:02:46.420
+And if you look at
+the assembly, that
+
+00:02:46.420 --> 00:02:50.140
+can reveal details about the
+program that are not obvious
+
+00:02:50.140 --> 00:02:53.110
+when you just look at
+the C code directly.
+
+00:02:53.110 --> 00:02:55.870
+There are implicit things
+going on in the C code,
+
+00:02:55.870 --> 00:02:59.410
+such as type cast or
+the usage of registers
+
+00:02:59.410 --> 00:03:01.390
+versus memory on the machine.
+
+00:03:01.390 --> 00:03:03.620
+And those can have
+performance implications.
+
+00:03:03.620 --> 00:03:07.750
+So it's valuable to take a look
+at the assembly code directly.
+
+00:03:07.750 --> 00:03:10.840
+It can also reveal what
+the compiler did or did not
+
+00:03:10.840 --> 00:03:13.810
+do when it tried to
+optimize the program.
+
+00:03:13.810 --> 00:03:16.285
+For example, you may have
+written a division operation
+
+00:03:16.285 --> 00:03:18.190
+or a multiply operation.
+
+00:03:18.190 --> 00:03:20.560
+But somehow, the
+compiler figured out
+
+00:03:20.560 --> 00:03:22.450
+that it didn't really
+need to do a divide
+
+00:03:22.450 --> 00:03:24.670
+or multiply to implement
+that operation.
+
+00:03:24.670 --> 00:03:28.420
+It could implement it more
+quickly using simpler, faster
+
+00:03:28.420 --> 00:03:32.110
+operations, like addition
+and subtraction or shift.
+
+00:03:32.110 --> 00:03:33.490
+And you would be
+able to see that
+
+00:03:33.490 --> 00:03:36.430
+from looking at the assembly.
+
+00:03:36.430 --> 00:03:38.980
+Bugs can also arise
+only at a low level.
+
+00:03:38.980 --> 00:03:42.400
+For example, there may be a
+bug in the program that only
+
+00:03:42.400 --> 00:03:48.790
+creates unexpected behavior when
+you optimize the code at 03.
+
+00:03:48.790 --> 00:03:51.310
+So that means, when you're
+debugging and with that OG
+
+00:03:51.310 --> 00:03:54.610
+or -01, you wouldn't see
+any unusual behaviors.
+
+00:03:54.610 --> 00:03:56.560
+But when you crank up
+the optimization level,
+
+00:03:56.560 --> 00:03:59.860
+suddenly, things
+start to fall apart.
+
+00:03:59.860 --> 00:04:01.570
+Because the C code
+itself didn't change,
+
+00:04:01.570 --> 00:04:03.790
+it can be hard to
+spot those bugs.
+
+00:04:03.790 --> 00:04:07.800
+Looking at the assembly can
+help out in that regard.
+
+00:04:07.800 --> 00:04:10.050
+And when worse comes
+to worse, if you really
+
+00:04:10.050 --> 00:04:11.790
+want to make your
+code fast, it is
+
+00:04:11.790 --> 00:04:15.665
+possible to modify the
+assembly code by hand.
+
+00:04:15.665 --> 00:04:17.790
+One of my favorite uses of
+looking at the assembly,
+
+00:04:17.790 --> 00:04:20.519
+though, is actually
+reverse engineering.
+
+00:04:20.519 --> 00:04:23.620
+If you can read the
+assembly for some code,
+
+00:04:23.620 --> 00:04:26.610
+you can actually decipher
+what that program does,
+
+00:04:26.610 --> 00:04:30.570
+even when you only have access
+to the binary of that program,
+
+00:04:30.570 --> 00:04:32.730
+which is kind of a cool thing.
+
+00:04:32.730 --> 00:04:36.180
+It takes some practice to
+read assembly at that level.
+
+00:04:36.180 --> 00:04:40.920
+One trick that some of us in
+Professor Leiserson's research
+
+00:04:40.920 --> 00:04:43.348
+group have used
+in the past to say
+
+00:04:43.348 --> 00:04:45.140
+figure out what Intel's
+Math Kernel Library
+
+00:04:45.140 --> 00:04:46.515
+is doing to multiply matrices.
+
+00:04:49.600 --> 00:04:52.440
+Now, as I mentioned before,
+at the end of last lecture,
+
+00:04:52.440 --> 00:04:55.110
+you saw some computer
+architecture.
+
+00:04:55.110 --> 00:04:59.790
+And you saw the basics
+of x86-64 assembly,
+
+00:04:59.790 --> 00:05:02.280
+including all the stuff,
+like the instructions,
+
+00:05:02.280 --> 00:05:06.690
+the registers, the various data
+types, memory addressing modes,
+
+00:05:06.690 --> 00:05:09.792
+the RFLAGS registered with
+those condition codes,
+
+00:05:09.792 --> 00:05:10.750
+and that sort of thing.
+
+00:05:10.750 --> 00:05:14.310
+And today, we want to talk about
+how C code gets implemented
+
+00:05:14.310 --> 00:05:17.070
+in that assembly language.
+
+00:05:17.070 --> 00:05:21.780
+OK, well, if we consider
+how C code becomes assembly
+
+00:05:21.780 --> 00:05:24.580
+and what that process
+actually looks like,
+
+00:05:24.580 --> 00:05:26.670
+we know that there is
+a compiler involved.
+
+00:05:26.670 --> 00:05:28.770
+And the compiler is a
+pretty sophisticated piece
+
+00:05:28.770 --> 00:05:29.757
+of software.
+
+00:05:29.757 --> 00:05:31.590
+And, frankly, the
+compiler has a lot of work
+
+00:05:31.590 --> 00:05:36.300
+to do in order to translate
+a C program into assembly.
+
+00:05:36.300 --> 00:05:39.360
+For example, it has to choose
+what assembly instructions are
+
+00:05:39.360 --> 00:05:42.510
+going to be used to
+implement those C operations.
+
+00:05:42.510 --> 00:05:44.730
+It has to implement C
+conditionals and loops--
+
+00:05:44.730 --> 00:05:48.810
+those if, then, elses and
+those for and why loops--
+
+00:05:48.810 --> 00:05:51.150
+into jumps and branches.
+
+00:05:51.150 --> 00:05:53.490
+It has to choose registers
+and memory locations
+
+00:05:53.490 --> 00:05:57.240
+to store all of the
+data in the program.
+
+00:05:57.240 --> 00:05:59.820
+It may have to move data among
+the registers and the memory
+
+00:05:59.820 --> 00:06:03.540
+locations in order to satisfy
+various data dependencies.
+
+00:06:03.540 --> 00:06:05.820
+It has to coordinate all
+the function calls that
+
+00:06:05.820 --> 00:06:09.540
+happen when subroutine A calls
+B and calls C, and then returns,
+
+00:06:09.540 --> 00:06:11.430
+and so on and so forth.
+
+00:06:11.430 --> 00:06:13.500
+And on top of that,
+these days, we
+
+00:06:13.500 --> 00:06:15.360
+expect our compiler
+to try really
+
+00:06:15.360 --> 00:06:17.730
+hard to make that code fast.
+
+00:06:17.730 --> 00:06:20.560
+So that's a lot of work
+that the compiler has to do.
+
+00:06:20.560 --> 00:06:22.980
+And as a result,
+if we take a look
+
+00:06:22.980 --> 00:06:26.550
+at the assembly for any
+arbitrary piece of C code,
+
+00:06:26.550 --> 00:06:30.540
+the mapping from that
+C code to the assembly
+
+00:06:30.540 --> 00:06:34.950
+is not exactly
+obvious, which makes
+
+00:06:34.950 --> 00:06:39.900
+it hard to execute this
+particular lecture and hard to,
+
+00:06:39.900 --> 00:06:43.800
+in general, read the binary or
+the assembly for some program
+
+00:06:43.800 --> 00:06:46.977
+and figure out what's
+really going on.
+
+00:06:46.977 --> 00:06:49.560
+So what we're going to do today
+to understand this translation
+
+00:06:49.560 --> 00:06:53.310
+process is we're going
+to take a look at how
+
+00:06:53.310 --> 00:06:56.490
+that compiler actually
+reasons about translating
+
+00:06:56.490 --> 00:06:58.560
+C code into assembly.
+
+00:06:58.560 --> 00:07:00.300
+Now this is not
+a compiler class.
+
+00:07:00.300 --> 00:07:03.660
+6172 is not a class you
+take if you want to learn
+
+00:07:03.660 --> 00:07:05.092
+how to build a compiler.
+
+00:07:05.092 --> 00:07:07.050
+And you're not going to
+need to know everything
+
+00:07:07.050 --> 00:07:11.400
+about a compiler to
+follow today's lecture.
+
+00:07:11.400 --> 00:07:14.850
+But what we will see is
+just a little bit about
+
+00:07:14.850 --> 00:07:17.970
+how the compiler
+understands a program
+
+00:07:17.970 --> 00:07:22.290
+and, later on, how the compiler
+can translate that program
+
+00:07:22.290 --> 00:07:24.870
+into assembly code.
+
+00:07:24.870 --> 00:07:27.930
+Now when a compiler
+compiles a program,
+
+00:07:27.930 --> 00:07:30.240
+it does so through a
+sequence of stages, which
+
+00:07:30.240 --> 00:07:31.960
+are illustrated on this slide.
+
+00:07:31.960 --> 00:07:35.430
+Starting from the C code, it
+first pre-processes that code,
+
+00:07:35.430 --> 00:07:38.250
+dealing with all the macros.
+
+00:07:38.250 --> 00:07:41.310
+And that produces a
+pre-process source.
+
+00:07:41.310 --> 00:07:43.590
+Then the compiler will
+translate that source code
+
+00:07:43.590 --> 00:07:46.020
+into an intermediate
+representation.
+
+00:07:46.020 --> 00:07:48.000
+For the client compiler
+that you're using,
+
+00:07:48.000 --> 00:07:51.450
+that intermediate representation
+is called LLVM IR.
+
+00:07:51.450 --> 00:07:53.760
+LLVM being the name of
+the underlying compiler,
+
+00:07:53.760 --> 00:07:57.510
+and IR being the creative
+name for the intermediate
+
+00:07:57.510 --> 00:08:00.180
+representation.
+
+00:08:00.180 --> 00:08:04.020
+That LLVM IR is really a
+sort of pseudo-assembly.
+
+00:08:04.020 --> 00:08:08.130
+It's kind of like
+assembly, but as we'll see,
+
+00:08:08.130 --> 00:08:12.050
+it's actually a lot simpler
+than x86-64 assembly.
+
+00:08:12.050 --> 00:08:15.000
+And that's why we'll use it
+to understand this translation
+
+00:08:15.000 --> 00:08:17.133
+process.
+
+00:08:17.133 --> 00:08:18.550
+Now it turns out
+that the compiler
+
+00:08:18.550 --> 00:08:22.090
+does a whole lot of work on that
+intermediate representation.
+
+00:08:22.090 --> 00:08:24.650
+We're not going to
+worry about that today.
+
+00:08:24.650 --> 00:08:26.500
+We'll just skip to the
+end of this pipeline
+
+00:08:26.500 --> 00:08:32.950
+when the compiler translates
+LLVM IR into assembly code.
+
+00:08:32.950 --> 00:08:35.169
+Now the nice thing about
+taking a look at the LLVM IR
+
+00:08:35.169 --> 00:08:37.330
+is that If you're
+curious, you can actually
+
+00:08:37.330 --> 00:08:39.309
+follow along with the compiler.
+
+00:08:39.309 --> 00:08:42.970
+It is possible to ask
+clang to compile your code
+
+00:08:42.970 --> 00:08:46.630
+and give you the LLVM IR
+rather than the assembly.
+
+00:08:46.630 --> 00:08:50.080
+And the flags to do that
+are somewhat familiar.
+
+00:08:50.080 --> 00:08:52.810
+Rather than passing the dash s
+flag, which, hopefully, you've
+
+00:08:52.810 --> 00:08:55.930
+already seen, that will
+translate C code directly
+
+00:08:55.930 --> 00:08:57.110
+into assembly.
+
+00:08:57.110 --> 00:08:59.660
+If you pass dash
+s dash omit LLVM,
+
+00:08:59.660 --> 00:09:00.910
+that will produce the LLVM IR.
+
+00:09:03.630 --> 00:09:06.990
+You can also ask clang to
+translate LLVM IR itself
+
+00:09:06.990 --> 00:09:10.327
+directly into assembly
+code, and that process
+
+00:09:10.327 --> 00:09:11.410
+is pretty straightforward.
+
+00:09:11.410 --> 00:09:13.530
+You just use the dash
+S flag once again.
+
+00:09:16.060 --> 00:09:17.920
+So this is the outline
+of today's lecture.
+
+00:09:17.920 --> 00:09:21.370
+First, we're going to start
+with a simple primer on LLVM IR.
+
+00:09:21.370 --> 00:09:24.340
+I know that LLVM IR sounds
+like another language.
+
+00:09:24.340 --> 00:09:26.560
+Oh, gosh, we have to
+learn another language.
+
+00:09:26.560 --> 00:09:27.280
+But don't worry.
+
+00:09:27.280 --> 00:09:32.080
+This primer, I would say, is
+simpler than the x86-64 primer.
+
+00:09:32.080 --> 00:09:35.110
+Based on the slides,
+for x86-64, that primer
+
+00:09:35.110 --> 00:09:37.630
+was 20-some slides long.
+
+00:09:37.630 --> 00:09:43.660
+This primer is six slides, so
+maybe a little over a quarter.
+
+00:09:43.660 --> 00:09:46.750
+Then we'll take a look at how
+the various constructs in the C
+
+00:09:46.750 --> 00:09:49.780
+programming language get
+translated into LLVM IR,
+
+00:09:49.780 --> 00:09:53.710
+including straight line code,
+C functions, conditionals--
+
+00:09:53.710 --> 00:09:55.210
+in other words, if, then, else--
+
+00:09:55.210 --> 00:09:56.105
+loops.
+
+00:09:56.105 --> 00:09:58.480
+And we'll conclude that section
+with just a brief mention
+
+00:09:58.480 --> 00:10:00.660
+of LLVM IR attributes.
+
+00:10:00.660 --> 00:10:03.100
+And finally, we'll take a
+look at how LLVM IR gets
+
+00:10:03.100 --> 00:10:05.680
+translated into assembly.
+
+00:10:05.680 --> 00:10:07.360
+And for that,
+we'll have to focus
+
+00:10:07.360 --> 00:10:12.378
+on what's called the Linux
+x86-64 calling convention.
+
+00:10:12.378 --> 00:10:14.170
+And we'll conclude with
+a case study, where
+
+00:10:14.170 --> 00:10:18.340
+we see how this whole process
+works on a very simple code
+
+00:10:18.340 --> 00:10:20.075
+to compute Fibonacci numbers.
+
+00:10:20.075 --> 00:10:20.950
+Any questions so far?
+
+00:10:24.750 --> 00:10:26.980
+All right, let's get started.
+
+00:10:26.980 --> 00:10:30.010
+Brief primer on LLVM IR--
+
+00:10:30.010 --> 00:10:33.470
+so I've shown this in smaller
+font on some previous slides,
+
+00:10:33.470 --> 00:10:36.430
+but here is a snippet
+of LLVM IR code.
+
+00:10:36.430 --> 00:10:37.960
+In particular, this
+is one function
+
+00:10:37.960 --> 00:10:41.050
+within an LLVM IR file.
+
+00:10:41.050 --> 00:10:43.430
+And just from
+looking at this code,
+
+00:10:43.430 --> 00:10:46.225
+we can see a couple of the
+basic components of LLVM IR.
+
+00:10:48.730 --> 00:10:51.280
+In LLVM IR, we have functions.
+
+00:10:51.280 --> 00:10:54.220
+That's how code is organized
+into these chunks--
+
+00:10:54.220 --> 00:10:55.940
+chunks called functions.
+
+00:10:55.940 --> 00:10:59.740
+And within each function, the
+operations of the function
+
+00:10:59.740 --> 00:11:02.200
+are encoded within instructions.
+
+00:11:02.200 --> 00:11:05.320
+And each instruction shows
+up, at least on this slide,
+
+00:11:05.320 --> 00:11:07.990
+on a separate line.
+
+00:11:07.990 --> 00:11:11.440
+Those functions operate on what
+are called LLVM IR registers.
+
+00:11:11.440 --> 00:11:14.410
+These are kind of
+like the variables.
+
+00:11:14.410 --> 00:11:17.050
+And each of those variables
+has some associated type.
+
+00:11:17.050 --> 00:11:20.170
+So the types are actually
+explicit within the IR.
+
+00:11:20.170 --> 00:11:22.960
+And we'll take a look
+at the types in more
+
+00:11:22.960 --> 00:11:24.190
+detail in a couple of slides.
+
+00:11:27.290 --> 00:11:31.460
+So based on that
+high-level overview,
+
+00:11:31.460 --> 00:11:33.585
+we can do a little bit of
+a comparison between LLVM
+
+00:11:33.585 --> 00:11:36.060
+IR and assembly language.
+
+00:11:36.060 --> 00:11:38.250
+The first thing that we
+see is that it looks kind
+
+00:11:38.250 --> 00:11:40.920
+of similar to assembly, right?
+
+00:11:40.920 --> 00:11:43.620
+It still has a simple
+instruction format.
+
+00:11:43.620 --> 00:11:46.980
+There is some destination
+operand, which
+
+00:11:46.980 --> 00:11:48.560
+we are calling a register.
+
+00:11:48.560 --> 00:11:52.110
+And then there is an equal sign
+and then an op code, be it add,
+
+00:11:52.110 --> 00:11:54.540
+or call, or what
+have you, and then
+
+00:11:54.540 --> 00:11:55.950
+some list of source operations.
+
+00:11:55.950 --> 00:11:59.340
+That's roughly what each
+instruction looks like.
+
+00:11:59.340 --> 00:12:04.680
+We can also see that the
+LLVM IR code, it'll turn out.
+
+00:12:04.680 --> 00:12:07.950
+The LLVM IR code adopts
+a similar structure
+
+00:12:07.950 --> 00:12:10.800
+to the assembly code itself.
+
+00:12:10.800 --> 00:12:12.780
+And control flow, once
+again, is implemented
+
+00:12:12.780 --> 00:12:17.662
+using conditional branches, as
+well as unconditional branches.
+
+00:12:17.662 --> 00:12:19.620
+But one thing that we'll
+notice is that LLVM IR
+
+00:12:19.620 --> 00:12:21.450
+is simpler than assembly.
+
+00:12:21.450 --> 00:12:24.270
+It has a much smaller
+instruction set.
+
+00:12:24.270 --> 00:12:26.760
+And unlike assembly
+language, LLVM IR
+
+00:12:26.760 --> 00:12:28.950
+supports an infinite
+number of registers.
+
+00:12:28.950 --> 00:12:30.960
+If you can name it,
+it's a register.
+
+00:12:30.960 --> 00:12:34.680
+So in that sense, LLVM's
+notion of registers
+
+00:12:34.680 --> 00:12:37.990
+is a lot closer to C's
+notion of variables.
+
+00:12:37.990 --> 00:12:41.370
+And when you read LLVM IR,
+and you see those registers,
+
+00:12:41.370 --> 00:12:44.910
+you should just think
+about C variables.
+
+00:12:44.910 --> 00:12:48.210
+There's no implicit RFLAGS
+register, and there no implicit
+
+00:12:48.210 --> 00:12:49.570
+condition codes going on.
+
+00:12:49.570 --> 00:12:53.670
+Everything is pretty explicit
+in terms of the LLVM.
+
+00:12:53.670 --> 00:12:56.530
+There's no explicit stack
+pointer or frame pointer.
+
+00:12:56.530 --> 00:13:01.050
+There's a type system that's
+explicit in the IR itself.
+
+00:13:01.050 --> 00:13:03.480
+And it's C like in
+nature, and there
+
+00:13:03.480 --> 00:13:08.968
+are C-like functions for
+organizing the code overall.
+
+00:13:08.968 --> 00:13:11.010
+So let's take a look at
+each of these components,
+
+00:13:11.010 --> 00:13:13.020
+starting with LLVM IR registers.
+
+00:13:13.020 --> 00:13:16.080
+This is basically LLVM's
+name for a variable.
+
+00:13:16.080 --> 00:13:18.675
+All of the data in LLVM IR
+is stored in these variables,
+
+00:13:18.675 --> 00:13:19.800
+which are called registers.
+
+00:13:19.800 --> 00:13:23.780
+And the syntax is a percent
+symbol followed by a name.
+
+00:13:23.780 --> 00:13:28.647
+So %0, %1, %2,
+that sort of thing.
+
+00:13:28.647 --> 00:13:30.480
+And as I mentioned
+before, LLVM IR registers
+
+00:13:30.480 --> 00:13:32.248
+are a lot like c variables.
+
+00:13:32.248 --> 00:13:34.290
+LLVM supports an infinite
+number of these things,
+
+00:13:34.290 --> 00:13:39.040
+and each distinct register is
+just distinguished by its name.
+
+00:13:39.040 --> 00:13:42.330
+So %0 is different from %1,
+because they have different
+
+00:13:42.330 --> 00:13:43.840
+names.
+
+00:13:43.840 --> 00:13:48.310
+Register names are also local
+to each LLVM IR function.
+
+00:13:48.310 --> 00:13:52.260
+And in this regard, they're
+also similar to C variables.
+
+00:13:52.260 --> 00:13:55.260
+If you wrote a C program
+with two functions, A and B,
+
+00:13:55.260 --> 00:13:58.260
+and each function had
+a local variable apple,
+
+00:13:58.260 --> 00:14:00.300
+those are two different apples.
+
+00:14:00.300 --> 00:14:03.670
+The apple in A is not the
+same thing as the apple in B.
+
+00:14:03.670 --> 00:14:07.140
+Similarly, if you had two
+different LLVM IR functions,
+
+00:14:07.140 --> 00:14:10.890
+and they both described
+some register five,
+
+00:14:10.890 --> 00:14:14.568
+those are two
+different variables.
+
+00:14:14.568 --> 00:14:15.985
+They're not
+automatically aliased.
+
+00:14:18.660 --> 00:14:20.640
+So here's an example
+of an LLVM IR snippet.
+
+00:14:20.640 --> 00:14:22.620
+And what we've done
+here is just highlighted
+
+00:14:22.620 --> 00:14:23.560
+all of the registers.
+
+00:14:23.560 --> 00:14:25.560
+Some of them are being
+assigned, because they're
+
+00:14:25.560 --> 00:14:27.780
+on the left-hand side
+of an equal symbol.
+
+00:14:27.780 --> 00:14:30.390
+And some of them are being used
+as arguments when they show up
+
+00:14:30.390 --> 00:14:32.190
+on the right-hand side.
+
+00:14:32.190 --> 00:14:36.240
+There is one catch, which
+we'll see later on, namely
+
+00:14:36.240 --> 00:14:39.120
+that the syntax
+for LLVM registers
+
+00:14:39.120 --> 00:14:42.960
+ends up being hijacked
+when LLVM needs to refer
+
+00:14:42.960 --> 00:14:44.490
+to different basic blocks.
+
+00:14:44.490 --> 00:14:45.990
+We haven't defined
+basic blocks yet.
+
+00:14:45.990 --> 00:14:49.775
+We'll see what that's all about
+in just a couple of slides.
+
+00:14:49.775 --> 00:14:50.650
+Everyone good so far?
+
+00:14:56.990 --> 00:15:02.060
+So LLVM IR code is
+organized into instructions,
+
+00:15:02.060 --> 00:15:03.680
+and the syntax for
+these instructions
+
+00:15:03.680 --> 00:15:06.390
+is pretty straightforward.
+
+00:15:06.390 --> 00:15:09.958
+We have a register name
+on the left-hand side,
+
+00:15:09.958 --> 00:15:11.750
+then an equal symbol,
+and then and op code,
+
+00:15:11.750 --> 00:15:14.180
+followed by an operand list.
+
+00:15:14.180 --> 00:15:18.440
+For example, the top
+highlight instruction
+
+00:15:18.440 --> 00:15:24.100
+has register six equal
+to add of sum arguments.
+
+00:15:24.100 --> 00:15:28.357
+And we'll see a little bit more
+about those arguments later.
+
+00:15:28.357 --> 00:15:30.440
+That's the syntax for when
+an instruction actually
+
+00:15:30.440 --> 00:15:31.650
+returns some value.
+
+00:15:31.650 --> 00:15:35.840
+So addition returns the
+sum of the two operands.
+
+00:15:35.840 --> 00:15:38.990
+Other instructions don't
+return a value, per se,
+
+00:15:38.990 --> 00:15:42.230
+not a value that you'd
+store in a local register.
+
+00:15:42.230 --> 00:15:44.000
+And so the syntax for
+those instructions
+
+00:15:44.000 --> 00:15:48.080
+is just an op code followed
+by a list of operands.
+
+00:15:48.080 --> 00:15:52.610
+Ironically, the
+return instruction
+
+00:15:52.610 --> 00:15:54.650
+that you'd find at
+the end of a function
+
+00:15:54.650 --> 00:15:59.530
+doesn't assign a
+particular register value.
+
+00:15:59.530 --> 00:16:01.990
+And of course, the operands
+can be either registers,
+
+00:16:01.990 --> 00:16:04.420
+or constants, or, as
+we'll see later on,
+
+00:16:04.420 --> 00:16:07.720
+they can identify basic
+blocks within the function.
+
+00:16:10.920 --> 00:16:14.980
+The LLVM IR instruction set
+is smaller than that of x86.
+
+00:16:14.980 --> 00:16:17.220
+x86 contains hundreds
+of instructions
+
+00:16:17.220 --> 00:16:19.790
+when you start counting up
+all the vector instructions.
+
+00:16:19.790 --> 00:16:22.800
+And LLVM IR is far more
+modest in that regard.
+
+00:16:22.800 --> 00:16:26.050
+There's some instructions
+for data movements,
+
+00:16:26.050 --> 00:16:30.240
+including stack allocation,
+reading memory, writing memory,
+
+00:16:30.240 --> 00:16:31.545
+converting between types.
+
+00:16:34.230 --> 00:16:35.920
+Yeah, that's pretty much it.
+
+00:16:35.920 --> 00:16:39.000
+There are some instructions
+for doing arithmetic or logic,
+
+00:16:39.000 --> 00:16:42.300
+including integer arithmetic,
+floating-point arithmetic,
+
+00:16:42.300 --> 00:16:46.988
+Boolean logic, binary logic,
+or address calculations.
+
+00:16:46.988 --> 00:16:48.780
+And then there are a
+couple of instructions
+
+00:16:48.780 --> 00:16:50.350
+to do control flow.
+
+00:16:50.350 --> 00:16:52.840
+There are unconditional
+branches or jumps,
+
+00:16:52.840 --> 00:16:56.010
+conditional branches
+or jumps, subroutines--
+
+00:16:56.010 --> 00:16:58.110
+that's call or return--
+
+00:16:58.110 --> 00:16:59.910
+and then there's this
+magical phi function,
+
+00:16:59.910 --> 00:17:06.690
+which we'll see more of
+later on in these slides.
+
+00:17:06.690 --> 00:17:09.020
+Finally, as I mentioned
+before, everything in LLVM IR
+
+00:17:09.020 --> 00:17:10.560
+is explicitly typed.
+
+00:17:10.560 --> 00:17:13.630
+It's a strongly-typed
+language in that sense.
+
+00:17:13.630 --> 00:17:16.839
+And the type system looks
+something like this.
+
+00:17:16.839 --> 00:17:19.740
+For integers, whenever there's
+a variable of an integer type,
+
+00:17:19.740 --> 00:17:21.650
+you'll see an i
+followed by some number.
+
+00:17:21.650 --> 00:17:26.260
+And that number defines the
+number of bits in that integer.
+
+00:17:26.260 --> 00:17:29.590
+So if you see a
+variable of type i64,
+
+00:17:29.590 --> 00:17:33.030
+that means it's
+a 64-bit integer.
+
+00:17:33.030 --> 00:17:36.630
+If you see a
+variable of type i1,
+
+00:17:36.630 --> 00:17:39.160
+that would be a 1-bit
+integer or, in other words,
+
+00:17:39.160 --> 00:17:41.400
+a Boolean value.
+
+00:17:41.400 --> 00:17:42.900
+There are also
+floating-point types,
+
+00:17:42.900 --> 00:17:45.030
+such as double and float.
+
+00:17:45.030 --> 00:17:48.330
+There are pointer types,
+when you follow an integer
+
+00:17:48.330 --> 00:17:51.960
+or floating-point type with
+a star, much like in C,
+
+00:17:51.960 --> 00:17:52.970
+you can have a raise.
+
+00:17:52.970 --> 00:17:56.663
+And that uses a square
+bracket notation,
+
+00:17:56.663 --> 00:17:58.080
+where, within the
+square brackets,
+
+00:17:58.080 --> 00:18:02.247
+you'll have some number and then
+times and then some other type.
+
+00:18:02.247 --> 00:18:04.080
+Maybe it's a primitive
+type, like an integer
+
+00:18:04.080 --> 00:18:05.340
+or a floating-point.
+
+00:18:05.340 --> 00:18:08.010
+Maybe it's something
+more complicated.
+
+00:18:08.010 --> 00:18:10.080
+You can have structs
+with an LLVM IR.
+
+00:18:10.080 --> 00:18:13.770
+And that uses squiggly
+brackets with types
+
+00:18:13.770 --> 00:18:15.300
+enumerated on the inside.
+
+00:18:15.300 --> 00:18:18.630
+You can have vector types,
+which uses angle brackets
+
+00:18:18.630 --> 00:18:23.410
+and otherwise adopts a similar
+syntax to the array type.
+
+00:18:23.410 --> 00:18:26.977
+Finally, you can
+occasionally see a variable,
+
+00:18:26.977 --> 00:18:28.560
+which looks like an
+ordinary register,
+
+00:18:28.560 --> 00:18:30.860
+except that its type is label.
+
+00:18:30.860 --> 00:18:33.030
+And that actually
+refers to a basic block.
+
+00:18:35.670 --> 00:18:37.650
+Those are the basic
+components of LLVM IR.
+
+00:18:37.650 --> 00:18:38.670
+Any questions so far?
+
+00:18:42.430 --> 00:18:43.750
+Everything clear?
+
+00:18:43.750 --> 00:18:44.545
+Everything unclear?
+
+00:18:47.170 --> 00:18:50.360
+STUDENT: What's the
+basic [INAUDIBLE]??
+
+00:18:50.360 --> 00:18:51.860
+TAO SCHARDL: That
+should be unclear,
+
+00:18:51.860 --> 00:18:53.730
+and we'll talk about it.
+
+00:18:53.730 --> 00:18:54.230
+Yeah?
+
+00:18:54.230 --> 00:18:56.540
+STUDENT: Is the
+vector notation there
+
+00:18:56.540 --> 00:19:01.163
+for the vectorization that's
+done, like the special register
+
+00:19:01.163 --> 00:19:02.120
+is used?
+
+00:19:02.120 --> 00:19:04.790
+TAO SCHARDL: Is the vector
+notation used for the vector
+
+00:19:04.790 --> 00:19:06.950
+registers?
+
+00:19:06.950 --> 00:19:08.360
+In a sense, yes.
+
+00:19:08.360 --> 00:19:11.000
+The vector operations
+with an LLVM
+
+00:19:11.000 --> 00:19:14.660
+don't look like
+SEC or AVX, per se.
+
+00:19:14.660 --> 00:19:16.760
+They look more like
+ordinary operations,
+
+00:19:16.760 --> 00:19:20.690
+except those ordinary operations
+work on a vector type.
+
+00:19:20.690 --> 00:19:24.830
+So that's how the vector
+operations show up in LLVM IR.
+
+00:19:24.830 --> 00:19:26.240
+That make some sense?
+
+00:19:26.240 --> 00:19:27.700
+Cool.
+
+00:19:27.700 --> 00:19:28.290
+Anything else?
+
+00:19:32.610 --> 00:19:34.320
+OK, that's the whole primer.
+
+00:19:34.320 --> 00:19:36.223
+That's pretty much
+all of the language
+
+00:19:36.223 --> 00:19:37.640
+that you're going
+to need to know,
+
+00:19:37.640 --> 00:19:39.720
+at least for this slide deck.
+
+00:19:39.720 --> 00:19:42.690
+We'll cover some of the
+details as we go along.
+
+00:19:42.690 --> 00:19:45.255
+Let's start translating
+C code into LLVM IR.
+
+00:19:45.255 --> 00:19:48.060
+Is that good?
+
+00:19:48.060 --> 00:19:50.610
+All right, let's start with
+pretty much the simplest
+
+00:19:50.610 --> 00:19:51.660
+thing we can--
+
+00:19:51.660 --> 00:19:53.490
+straight line C code.
+
+00:19:53.490 --> 00:19:55.320
+What do I mean by
+straight line C code?
+
+00:19:55.320 --> 00:19:57.240
+I mean that this
+is a blob of C code
+
+00:19:57.240 --> 00:20:00.420
+that contains no
+conditionals or loops.
+
+00:20:00.420 --> 00:20:04.620
+So it's just a whole
+sequence of operations.
+
+00:20:04.620 --> 00:20:07.410
+And that sequence of
+operations in C code
+
+00:20:07.410 --> 00:20:12.090
+turns into a sequence of
+operations in LLVM IR.
+
+00:20:12.090 --> 00:20:15.840
+So in this example here,
+we have foo of n minus 1
+
+00:20:15.840 --> 00:20:17.220
+plus bar of n minus 2.
+
+00:20:17.220 --> 00:20:19.620
+That is a sequence
+of operations.
+
+00:20:19.620 --> 00:20:23.283
+And it turns into the
+LLVM IR on the right.
+
+00:20:23.283 --> 00:20:24.450
+We can see how that happens.
+
+00:20:24.450 --> 00:20:25.825
+There are a couple
+rules of thumb
+
+00:20:25.825 --> 00:20:27.360
+when reading
+straight line C code
+
+00:20:27.360 --> 00:20:30.150
+and interpreting it in the IR.
+
+00:20:30.150 --> 00:20:32.640
+Arguments to any
+operation are evaluated
+
+00:20:32.640 --> 00:20:35.527
+before the operation itself.
+
+00:20:35.527 --> 00:20:36.610
+So what do I mean by that?
+
+00:20:36.610 --> 00:20:40.750
+Well, in this case, we
+need to evaluate n minus 1
+
+00:20:40.750 --> 00:20:44.790
+before we pass the
+results to foo.
+
+00:20:44.790 --> 00:20:46.500
+And what we see
+in the LLVM IR is
+
+00:20:46.500 --> 00:20:48.510
+that we have an
+addition operation that
+
+00:20:48.510 --> 00:20:49.935
+computes n minus 1.
+
+00:20:49.935 --> 00:20:51.750
+And then the result of that--
+
+00:20:51.750 --> 00:20:54.780
+stored into register 4--
+gets passed to the call
+
+00:20:54.780 --> 00:20:56.700
+instruction on the
+next line, which
+
+00:20:56.700 --> 00:20:59.226
+calls out to function foo.
+
+00:20:59.226 --> 00:21:02.600
+Sound good?
+
+00:21:02.600 --> 00:21:05.510
+Similarly, we need
+to evaluate n minus 2
+
+00:21:05.510 --> 00:21:08.470
+before passing its results
+to the function bar.
+
+00:21:08.470 --> 00:21:11.540
+And we see that
+sequence of instructions
+
+00:21:11.540 --> 00:21:14.050
+showing up next in the LLVM IR.
+
+00:21:14.050 --> 00:21:16.300
+And now, we actually need
+the return value-- oh, yeah?
+
+00:21:16.300 --> 00:21:16.800
+Question?
+
+00:21:16.800 --> 00:21:18.392
+STUDENT: What is NSW?
+
+00:21:18.392 --> 00:21:19.100
+TAO SCHARDL: NSW?
+
+00:21:22.093 --> 00:21:23.510
+Essentially, that
+is an attribute,
+
+00:21:23.510 --> 00:21:25.910
+which we'll talk about later.
+
+00:21:25.910 --> 00:21:28.730
+These are things that decorate
+the instructions, as well
+
+00:21:28.730 --> 00:21:31.250
+as the types, within
+LLVM IR, basically,
+
+00:21:31.250 --> 00:21:33.090
+as the compiler
+figures stuff out.
+
+00:21:33.090 --> 00:21:38.648
+So it helps the compiler along
+with analysis and optimization.
+
+00:21:38.648 --> 00:21:41.550
+Good?
+
+00:21:41.550 --> 00:21:43.460
+So for the last
+operation here, we
+
+00:21:43.460 --> 00:21:48.110
+had to evaluate both foo and
+bar and get their return values
+
+00:21:48.110 --> 00:21:50.420
+before we could
+add them together.
+
+00:21:50.420 --> 00:21:53.000
+And so the very last
+operation in this sequence
+
+00:21:53.000 --> 00:21:54.230
+is the addition.
+
+00:21:54.230 --> 00:21:57.500
+That just takes us those return
+values and computes their sum.
+
+00:22:01.630 --> 00:22:06.580
+Now all of that used primitive
+types, in particular, integers.
+
+00:22:06.580 --> 00:22:09.400
+But it's possible that your
+code uses aggregate types.
+
+00:22:09.400 --> 00:22:12.460
+By aggregating types, I
+mean, arrays or struts,
+
+00:22:12.460 --> 00:22:13.960
+that sort of thing.
+
+00:22:13.960 --> 00:22:17.260
+And aggregate types are harder
+to store within registers,
+
+00:22:17.260 --> 00:22:19.270
+typically speaking.
+
+00:22:19.270 --> 00:22:22.630
+And so they're typically
+stored within memory.
+
+00:22:22.630 --> 00:22:25.000
+As a result, if you
+want to access something
+
+00:22:25.000 --> 00:22:28.090
+within an aggregate type, if you
+want to read some elements out
+
+00:22:28.090 --> 00:22:31.810
+of an array, that involves
+performing a memory access
+
+00:22:31.810 --> 00:22:35.680
+or, more precisely, computing
+some address into memory,
+
+00:22:35.680 --> 00:22:38.930
+and then loading or
+storing that address.
+
+00:22:38.930 --> 00:22:43.460
+So here, for example, we have
+an array A of seven integers.
+
+00:22:43.460 --> 00:22:45.780
+And we're going
+to access A sub x.
+
+00:22:45.780 --> 00:22:49.150
+In LLVM IR, that turns
+into two instructions--
+
+00:22:49.150 --> 00:22:52.760
+this getelementptr
+followed by a load.
+
+00:22:52.760 --> 00:22:57.700
+And in the getelementptr
+case, this computes an address
+
+00:22:57.700 --> 00:22:59.650
+into memory and
+stores the result
+
+00:22:59.650 --> 00:23:03.520
+of that address into a register,
+in this case, register 5.
+
+00:23:03.520 --> 00:23:06.160
+The next instruction,
+the load, takes
+
+00:23:06.160 --> 00:23:10.300
+the address stored in
+register 5 and simply loads
+
+00:23:10.300 --> 00:23:12.850
+that particular memory
+address, storing
+
+00:23:12.850 --> 00:23:16.608
+the result into another
+register, in this case, 6.
+
+00:23:16.608 --> 00:23:17.546
+Pretty simple.
+
+00:23:20.830 --> 00:23:23.340
+When reading the
+getelementptr instruction,
+
+00:23:23.340 --> 00:23:26.740
+the basic syntax
+involves a pointer
+
+00:23:26.740 --> 00:23:29.740
+into memory followed by
+a sequence of indices.
+
+00:23:29.740 --> 00:23:31.420
+And all that
+getelementptr really
+
+00:23:31.420 --> 00:23:35.530
+does is it computes an
+address by taking that pointer
+
+00:23:35.530 --> 00:23:38.410
+and then adding on that
+sequence of indices.
+
+00:23:38.410 --> 00:23:42.070
+So in this case, we have a
+getelementptr instruction,
+
+00:23:42.070 --> 00:23:46.150
+which takes the
+address in register 2,
+
+00:23:46.150 --> 00:23:48.490
+and then adds onto it--
+
+00:23:48.490 --> 00:23:49.990
+yeah, that's a
+pointer into memory--
+
+00:23:49.990 --> 00:23:51.900
+and then it adds
+onto it to indices.
+
+00:23:51.900 --> 00:23:55.360
+One is the literal
+value 0, and the other
+
+00:23:55.360 --> 00:23:57.580
+is the value stored
+in register 4.
+
+00:23:57.580 --> 00:23:59.850
+So that just
+computes the address,
+
+00:23:59.850 --> 00:24:04.420
+starting at 2 plus 0 plus
+whatever was in register 4.
+
+00:24:08.090 --> 00:24:10.280
+That's all for
+straight line code.
+
+00:24:10.280 --> 00:24:11.030
+Good so far?
+
+00:24:13.780 --> 00:24:17.260
+feel free to interrupt
+if you have questions.
+
+00:24:17.260 --> 00:24:18.520
+Cool.
+
+00:24:18.520 --> 00:24:21.650
+Functions-- let's talk
+about C functions.
+
+00:24:21.650 --> 00:24:24.970
+So when there's a
+function in your C code,
+
+00:24:24.970 --> 00:24:27.880
+generally speaking, you'll have
+a function within the LLVM code
+
+00:24:27.880 --> 00:24:30.708
+as well.
+
+00:24:30.708 --> 00:24:33.250
+And similarly, when there's a
+return statement in the C code,
+
+00:24:33.250 --> 00:24:36.520
+you'll end up with a return
+statement in the LLVM IR.
+
+00:24:36.520 --> 00:24:39.730
+So here, we have
+just the bare bones C
+
+00:24:39.730 --> 00:24:42.160
+code for this fib routine.
+
+00:24:42.160 --> 00:24:49.720
+That corresponds to this
+fib function within LLVM IR.
+
+00:24:49.720 --> 00:24:52.810
+And the function
+declaration itself
+
+00:24:52.810 --> 00:24:59.820
+looks pretty similar to what
+you would get in ordinary C.
+
+00:24:59.820 --> 00:25:02.010
+The return statement
+is also similar.
+
+00:25:02.010 --> 00:25:05.490
+It may take an argument,
+if you're returning
+
+00:25:05.490 --> 00:25:07.530
+some value to the caller.
+
+00:25:07.530 --> 00:25:09.150
+In this case, for
+the fib routine,
+
+00:25:09.150 --> 00:25:11.670
+we're going to return
+a 64-bit integer.
+
+00:25:11.670 --> 00:25:14.700
+And so we see that this
+return statement returns
+
+00:25:14.700 --> 00:25:24.460
+the 64-bit integer stored in
+register 0, a lot like in C.
+
+00:25:24.460 --> 00:25:26.300
+Functions can have parameters.
+
+00:25:26.300 --> 00:25:29.050
+And when you have a C function
+with a list of parameters,
+
+00:25:29.050 --> 00:25:30.570
+basically, in LLVM
+IR, you're going
+
+00:25:30.570 --> 00:25:32.500
+to end up with a
+similar looking function
+
+00:25:32.500 --> 00:25:36.820
+with the exact same list
+of parameters translated
+
+00:25:36.820 --> 00:25:38.860
+into LLVM IR.
+
+00:25:38.860 --> 00:25:44.150
+So here, we have this C code
+for the mm base routine.
+
+00:25:44.150 --> 00:25:45.970
+And we have the
+corresponding LLVM IR
+
+00:25:45.970 --> 00:25:48.400
+for an mm-based function.
+
+00:25:48.400 --> 00:25:52.270
+And what we see is we
+have a pointer to a double
+
+00:25:52.270 --> 00:25:56.140
+as the first parameter,
+followed by a 32-bit integer,
+
+00:25:56.140 --> 00:25:58.210
+followed by another
+pointer to a double,
+
+00:25:58.210 --> 00:26:00.400
+followed by another
+32-bit integer,
+
+00:26:00.400 --> 00:26:02.650
+following another
+pointer to a double,
+
+00:26:02.650 --> 00:26:08.390
+and another 33-bit integer,
+and another 32-bit integer.
+
+00:26:08.390 --> 00:26:10.640
+One implicit thing with an
+LLVM IR if you're looking
+
+00:26:10.640 --> 00:26:13.520
+at a function declaration
+or definition,
+
+00:26:13.520 --> 00:26:18.470
+the parameters are
+automatically named %0, %1, %2,
+
+00:26:18.470 --> 00:26:19.710
+so on and so forth.
+
+00:26:19.710 --> 00:26:22.160
+There's one unfortunate
+thing about LLVM IR.
+
+00:26:22.160 --> 00:26:24.710
+The registers are a
+lot like C functions,
+
+00:26:24.710 --> 00:26:26.450
+but unfortunately,
+that implies that when
+
+00:26:26.450 --> 00:26:30.200
+you're reading LLVM IR,
+it's a lot like reading
+
+00:26:30.200 --> 00:26:34.640
+the code from your teammate, who
+always insists on naming things
+
+00:26:34.640 --> 00:26:37.910
+with nondescript,
+single-letter variable names.
+
+00:26:37.910 --> 00:26:40.407
+Also, that teammate doesn't
+comment his code, or her code,
+
+00:26:40.407 --> 00:26:40.990
+or their code.
+
+00:26:47.990 --> 00:26:50.240
+OK, so basic blocks--
+
+00:26:50.240 --> 00:26:52.460
+when we look at the
+code within a function,
+
+00:26:52.460 --> 00:26:56.270
+that code gets
+partitioned into chunks,
+
+00:26:56.270 --> 00:26:58.400
+which are called basic blocks.
+
+00:26:58.400 --> 00:27:00.950
+A basic block has
+a property that's
+
+00:27:00.950 --> 00:27:02.300
+a sequence of instructions.
+
+00:27:02.300 --> 00:27:05.240
+In other words, it's a
+blob a straight line code,
+
+00:27:05.240 --> 00:27:09.230
+where control can only enter
+from the first instruction
+
+00:27:09.230 --> 00:27:10.880
+in that block.
+
+00:27:10.880 --> 00:27:15.750
+And it can only leave from the
+last instruction in that block.
+
+00:27:15.750 --> 00:27:19.490
+So here we have the C code
+for this routine fib.c.
+
+00:27:19.490 --> 00:27:22.640
+We're going to see a lot of
+this routine fib.c, by the way.
+
+00:27:22.640 --> 00:27:25.460
+And we have the
+corresponding LLVM IR.
+
+00:27:25.460 --> 00:27:28.130
+And what we have in the C
+code, what the C code is
+
+00:27:28.130 --> 00:27:30.560
+telling us is that
+if n is less than 2,
+
+00:27:30.560 --> 00:27:32.400
+you want to do one thing.
+
+00:27:32.400 --> 00:27:36.230
+Otherwise, you want to do
+some complicated computation
+
+00:27:36.230 --> 00:27:38.760
+and then return that result.
+
+00:27:38.760 --> 00:27:40.710
+And if we think about that.
+
+00:27:40.710 --> 00:27:42.740
+We've got this branch
+in our control flow.
+
+00:27:42.740 --> 00:27:47.060
+And what we'll end up with
+are three different blocks
+
+00:27:47.060 --> 00:27:49.330
+within the LLVM IR.
+
+00:27:49.330 --> 00:27:51.980
+So we end up with
+one block, which
+
+00:27:51.980 --> 00:27:56.110
+does the computation
+is n less than 2.
+
+00:27:56.110 --> 00:27:59.920
+And then we end up with
+another block that says, well,
+
+00:27:59.920 --> 00:28:03.770
+in one case, just go ahead and
+return something, in this case,
+
+00:28:03.770 --> 00:28:06.170
+the input to the function.
+
+00:28:06.170 --> 00:28:09.560
+In the other case, do some
+complicated calculations,
+
+00:28:09.560 --> 00:28:17.170
+some straight line code,
+and then return that result.
+
+00:28:17.170 --> 00:28:22.240
+Now when we partition
+the code of a function
+
+00:28:22.240 --> 00:28:24.190
+into these basic
+blocks, we actually
+
+00:28:24.190 --> 00:28:26.530
+have connections
+between the basic blocks
+
+00:28:26.530 --> 00:28:31.730
+based on how control can move
+between the basic blocks.
+
+00:28:31.730 --> 00:28:34.970
+These control flow instructions,
+in particular, the branch
+
+00:28:34.970 --> 00:28:37.970
+instructions, as we'll
+see, induce edges
+
+00:28:37.970 --> 00:28:39.320
+among these basic blocks.
+
+00:28:39.320 --> 00:28:44.000
+Whenever there's a branch
+instruction that can specify,
+
+00:28:44.000 --> 00:28:46.280
+that control can
+leave this basic block
+
+00:28:46.280 --> 00:28:49.100
+and go to that
+other basic block,
+
+00:28:49.100 --> 00:28:52.830
+or that other basic block,
+or maybe one or the other,
+
+00:28:52.830 --> 00:28:57.770
+depending on how the result
+of some computation unfolded.
+
+00:28:57.770 --> 00:29:00.620
+And so for the fib function
+that we saw before,
+
+00:29:00.620 --> 00:29:02.420
+we had those three basic blocks.
+
+00:29:02.420 --> 00:29:05.510
+And based on whether or
+not n was than 2, either
+
+00:29:05.510 --> 00:29:08.240
+we would execute the
+simple return statement,
+
+00:29:08.240 --> 00:29:10.130
+or we would execute the
+blob of straight line
+
+00:29:10.130 --> 00:29:11.540
+code shown on the left.
+
+00:29:15.940 --> 00:29:18.020
+So those are basic
+blocks and functions.
+
+00:29:18.020 --> 00:29:21.480
+Everyone still good so far?
+
+00:29:21.480 --> 00:29:23.910
+Any questions?
+
+00:29:23.910 --> 00:29:24.680
+Clear as mud?
+
+00:29:30.360 --> 00:29:31.610
+Let's talk about conditionals.
+
+00:29:31.610 --> 00:29:33.620
+You've already seen one
+of these conditionals.
+
+00:29:33.620 --> 00:29:36.560
+That's given rise to these basic
+blocks and these control flow
+
+00:29:36.560 --> 00:29:37.060
+edges.
+
+00:29:37.060 --> 00:29:41.393
+So let's tease that apart
+a little bit further.
+
+00:29:41.393 --> 00:29:43.310
+When we have a C
+conditional-- in other words,
+
+00:29:43.310 --> 00:29:45.680
+an if-then-else statement
+or a switch statement,
+
+00:29:45.680 --> 00:29:47.990
+for that matter--
+
+00:29:47.990 --> 00:29:51.740
+that gets translated
+into a conditional branch
+
+00:29:51.740 --> 00:29:56.570
+instruction, or BR, in the
+LLVM IR representation.
+
+00:29:56.570 --> 00:30:01.850
+So what we saw before is that
+we have this if n less than 2
+
+00:30:01.850 --> 00:30:04.420
+and this basic block
+with two outgoing edges.
+
+00:30:04.420 --> 00:30:09.170
+If we take a really close look
+at that first basic block,
+
+00:30:09.170 --> 00:30:14.450
+we can tease it apart and
+see what each operation does.
+
+00:30:14.450 --> 00:30:18.395
+So first, in order to do
+this conditional operation,
+
+00:30:18.395 --> 00:30:20.520
+we need to compute whether
+or not n is less than 2.
+
+00:30:20.520 --> 00:30:23.450
+We need to do a
+comparison between n
+
+00:30:23.450 --> 00:30:25.400
+and the literal value 2.
+
+00:30:25.400 --> 00:30:29.270
+That comparison operation
+turns into an icmp instruction
+
+00:30:29.270 --> 00:30:34.730
+within the LLVM IR, an integer
+comparison in the LLVM IR.
+
+00:30:34.730 --> 00:30:36.350
+The result of that
+comparison then
+
+00:30:36.350 --> 00:30:40.610
+gets passed to a conditional
+branch as one of its arguments,
+
+00:30:40.610 --> 00:30:45.470
+and the conditional branch
+specifies a couple of things
+
+00:30:45.470 --> 00:30:47.810
+beyond that one argument.
+
+00:30:47.810 --> 00:30:50.900
+In particular, that conditional
+branch takes out 1-bit
+
+00:30:50.900 --> 00:30:53.390
+integer-- that Boolean result--
+
+00:30:53.390 --> 00:30:57.940
+as well as labels of two
+different basic blocks.
+
+00:30:57.940 --> 00:31:01.522
+So that Boolean value
+is called the predicate.
+
+00:31:01.522 --> 00:31:03.730
+And that's, in this case,
+a result of that comparison
+
+00:31:03.730 --> 00:31:05.040
+from before.
+
+00:31:05.040 --> 00:31:06.670
+And then the two
+basic blocks say
+
+00:31:06.670 --> 00:31:09.190
+where to go if the
+predicate is true
+
+00:31:09.190 --> 00:31:11.990
+or where to go if the
+predicate is false.
+
+00:31:11.990 --> 00:31:14.860
+The first label is the
+destination when it's true,
+
+00:31:14.860 --> 00:31:17.080
+second label destination
+when it's false--
+
+00:31:17.080 --> 00:31:18.255
+pretty straightforward.
+
+00:31:21.230 --> 00:31:24.300
+And if we decide to map
+this onto our control flow
+
+00:31:24.300 --> 00:31:27.180
+graph, which we were
+looking at before,
+
+00:31:27.180 --> 00:31:30.210
+we can identify the
+two branches coming out
+
+00:31:30.210 --> 00:31:34.080
+of our first basic block
+as either the true branch
+
+00:31:34.080 --> 00:31:36.690
+or the false branch
+based on whether or not
+
+00:31:36.690 --> 00:31:39.090
+you follow that edge when
+the predicate is true
+
+00:31:39.090 --> 00:31:41.880
+or you follow it when
+the predicate is false.
+
+00:31:41.880 --> 00:31:43.280
+Sound good?
+
+00:31:43.280 --> 00:31:46.650
+That should be straightforward.
+
+00:31:46.650 --> 00:31:47.650
+Let me know if it's not.
+
+00:31:47.650 --> 00:31:50.540
+Let me know if it's confusing.
+
+00:31:53.620 --> 00:31:55.240
+Now it's also
+possible that you can
+
+00:31:55.240 --> 00:31:58.840
+have an unconditional
+branch in LLVM IR.
+
+00:31:58.840 --> 00:32:01.660
+You can just have a branch
+instruction with one operand,
+
+00:32:01.660 --> 00:32:05.620
+and that one operand
+specifies a basic block.
+
+00:32:05.620 --> 00:32:06.570
+There's no predicate.
+
+00:32:06.570 --> 00:32:07.840
+There is no true or false.
+
+00:32:07.840 --> 00:32:09.280
+It's just the one basic block.
+
+00:32:09.280 --> 00:32:13.900
+And what that instruction
+says is, when you get here,
+
+00:32:13.900 --> 00:32:16.760
+now, go to that
+other basic block.
+
+00:32:16.760 --> 00:32:18.560
+This might seem kind
+of silly, right?
+
+00:32:18.560 --> 00:32:22.340
+Why wouldn't we just need to
+jump to another basic block?
+
+00:32:22.340 --> 00:32:25.220
+Why not just merge
+this code with the code
+
+00:32:25.220 --> 00:32:27.363
+in the subsequent basic block?
+
+00:32:27.363 --> 00:32:27.905
+Any thoughts?
+
+00:32:31.360 --> 00:32:32.860
+STUDENT: For instance,
+in this case,
+
+00:32:32.860 --> 00:32:34.815
+other things might jump in.
+
+00:32:34.815 --> 00:32:35.690
+TAO SCHARDL: Correct.
+
+00:32:35.690 --> 00:32:38.080
+Other things might go
+to that basic block.
+
+00:32:38.080 --> 00:32:41.450
+And in general, when we
+look at the structure
+
+00:32:41.450 --> 00:32:45.680
+that we get for any
+particular conditional in C,
+
+00:32:45.680 --> 00:32:47.480
+we end up with this
+sort of diamond shape.
+
+00:32:47.480 --> 00:32:50.240
+And in order to implement
+that diamond shape,
+
+00:32:50.240 --> 00:32:53.150
+we need these
+unconditional branches.
+
+00:32:53.150 --> 00:32:55.750
+So there's a good reason
+for them to be around.
+
+00:32:55.750 --> 00:32:57.350
+And here, we just
+have an example
+
+00:32:57.350 --> 00:33:00.800
+of a slightly more
+complicated conditional
+
+00:33:00.800 --> 00:33:04.730
+that creates this diamond shape
+in our control flow graph.
+
+00:33:04.730 --> 00:33:08.060
+So lets tease this
+piece of code apart.
+
+00:33:08.060 --> 00:33:11.760
+In the first block, we're going
+to evaluate if some predicate--
+
+00:33:11.760 --> 00:33:15.710
+and in this case, our
+predicate is x bitwise and 1.
+
+00:33:15.710 --> 00:33:17.660
+And what we see in
+the first basic block
+
+00:33:17.660 --> 00:33:21.350
+is that we compute the
+bitwise and store that result,
+
+00:33:21.350 --> 00:33:25.760
+do a comparison between that
+result, and the value 1.
+
+00:33:25.760 --> 00:33:30.050
+That gives us a Boolean value,
+which is stored in register 3.
+
+00:33:30.050 --> 00:33:35.190
+And we branch conditionally
+on whether 3 is true or false.
+
+00:33:35.190 --> 00:33:38.660
+In the case that it's true,
+we'll branch to block 4.
+
+00:33:38.660 --> 00:33:42.680
+And in block 4, that contains
+the code for the consequence,
+
+00:33:42.680 --> 00:33:45.500
+the then clause of
+the if, then, else.
+
+00:33:45.500 --> 00:33:48.110
+And in the call square,
+we just call function foo.
+
+00:33:48.110 --> 00:33:50.180
+And then we need to
+leave the conditional,
+
+00:33:50.180 --> 00:33:53.830
+so we'll just branch
+unconditionally.
+
+00:33:53.830 --> 00:34:00.640
+The alternative, if x and
+1 is zero, if it's false,
+
+00:34:00.640 --> 00:34:04.050
+then we will execute
+the function bar,
+
+00:34:04.050 --> 00:34:07.450
+but then also need to
+leave the conditional.
+
+00:34:07.450 --> 00:34:10.030
+And so we see in
+block 5, following
+
+00:34:10.030 --> 00:34:11.640
+the false branch
+that we call bar,
+
+00:34:11.640 --> 00:34:14.409
+then we'd just
+branch to block 6.
+
+00:34:14.409 --> 00:34:18.520
+And finally, in block
+6, we return the result.
+
+00:34:18.520 --> 00:34:20.860
+So we end up with this
+diamond pattern whenever we
+
+00:34:20.860 --> 00:34:22.300
+have a conditional, in general.
+
+00:34:22.300 --> 00:34:25.650
+We may delete
+certain basic blocks
+
+00:34:25.650 --> 00:34:28.050
+if the conditional in the
+code is particularly simple.
+
+00:34:28.050 --> 00:34:29.800
+But in general, it's
+going to be this kind
+
+00:34:29.800 --> 00:34:32.965
+of diamond-looking thing.
+
+00:34:32.965 --> 00:34:33.840
+Everyone good so far?
+
+00:34:36.969 --> 00:34:39.340
+One last C construct-- loops.
+
+00:34:39.340 --> 00:34:42.010
+Unfortunately, this is the
+most complicated C construct
+
+00:34:42.010 --> 00:34:44.920
+when it comes to the LLVM IR.
+
+00:34:44.920 --> 00:34:46.880
+But things haven't
+been too bad so far.
+
+00:34:46.880 --> 00:34:52.139
+So yeah, let's walk into
+this with some confidence.
+
+00:34:52.139 --> 00:34:57.540
+So the simple part is
+that what we will see
+
+00:34:57.540 --> 00:35:01.170
+is the C code for
+a loop translates
+
+00:35:01.170 --> 00:35:04.270
+into LLVM IR that, in
+the control flow graph
+
+00:35:04.270 --> 00:35:07.070
+representation, is a loop.
+
+00:35:07.070 --> 00:35:09.590
+So a loop in C is
+literally a loop
+
+00:35:09.590 --> 00:35:13.340
+in this graph representation,
+which is kind of nice.
+
+00:35:13.340 --> 00:35:17.140
+But to figure out what's really
+going on with these loops,
+
+00:35:17.140 --> 00:35:20.100
+let's first tease apart
+the components of a C loop.
+
+00:35:20.100 --> 00:35:22.460
+Because we have a couple
+of different pieces
+
+00:35:22.460 --> 00:35:23.600
+in an arbitrary C loop.
+
+00:35:23.600 --> 00:35:25.670
+We have a loop body,
+which is what's
+
+00:35:25.670 --> 00:35:27.400
+executed on each iteration.
+
+00:35:27.400 --> 00:35:29.060
+And then we have
+some loop control,
+
+00:35:29.060 --> 00:35:34.430
+which manages all of the
+iterations of that loop.
+
+00:35:34.430 --> 00:35:36.190
+So in this case, we
+have a simple C loop,
+
+00:35:36.190 --> 00:35:38.050
+which multiplies each
+element of an input
+
+00:35:38.050 --> 00:35:42.280
+vector x by some scale over a
+and stores the result into y.
+
+00:35:42.280 --> 00:35:45.280
+That body gets translated into
+a blob of straight line code.
+
+00:35:45.280 --> 00:35:48.530
+I won't step through all of the
+straight line code just now.
+
+00:35:48.530 --> 00:35:50.770
+There's plenty of
+it, and you'll be
+
+00:35:50.770 --> 00:35:54.740
+able to see the slides
+after this lecture.
+
+00:35:54.740 --> 00:35:56.210
+But that blob of
+straight line code
+
+00:35:56.210 --> 00:35:57.650
+corresponds to a loop body.
+
+00:35:57.650 --> 00:36:00.470
+And the rest of the code
+in the LLVM IR snippet
+
+00:36:00.470 --> 00:36:03.590
+corresponds to the loop control.
+
+00:36:03.590 --> 00:36:06.830
+So we have the
+initial assignment
+
+00:36:06.830 --> 00:36:08.120
+of the induction variable.
+
+00:36:08.120 --> 00:36:10.520
+The comparison would
+be end of the loop
+
+00:36:10.520 --> 00:36:13.150
+and the increment
+operation at the end.
+
+00:36:13.150 --> 00:36:17.270
+All of that gets encoded in the
+stuff highlighted in yellow,
+
+00:36:17.270 --> 00:36:18.250
+that loop control part.
+
+00:36:21.530 --> 00:36:23.930
+Now if we take a
+look at this code,
+
+00:36:23.930 --> 00:36:29.040
+there's one odd piece that we
+haven't really understood yet,
+
+00:36:29.040 --> 00:36:31.870
+and it's this phi
+instruction at the beginning.
+
+00:36:31.870 --> 00:36:37.848
+The phi instruction is weird,
+and it arises pretty commonly
+
+00:36:37.848 --> 00:36:39.140
+when you're dealing with loops.
+
+00:36:42.020 --> 00:36:44.690
+It basically is there
+to solve a problem
+
+00:36:44.690 --> 00:36:47.360
+with LLVM's representation
+of the code.
+
+00:36:47.360 --> 00:36:49.110
+So before we describe
+the phi instruction,
+
+00:36:49.110 --> 00:36:51.710
+let's actually take
+a look at the problem
+
+00:36:51.710 --> 00:36:53.930
+that this phi instruction
+tries to solve.
+
+00:36:59.120 --> 00:37:04.370
+So let's first tease apart the
+loop to reveal the problem.
+
+00:37:04.370 --> 00:37:06.500
+The C loop produces
+this looping pattern
+
+00:37:06.500 --> 00:37:09.320
+in the control flow graph,
+literally, an edge that
+
+00:37:09.320 --> 00:37:10.758
+goes back to the beginning.
+
+00:37:10.758 --> 00:37:12.800
+If we look at the different
+basic blocks we have,
+
+00:37:12.800 --> 00:37:15.290
+we have one block at
+the beginning, which
+
+00:37:15.290 --> 00:37:17.330
+initializes the induction
+variable and sees
+
+00:37:17.330 --> 00:37:19.830
+if there are any iterations of
+the loop that need to be run.
+
+00:37:23.847 --> 00:37:25.680
+If there aren't any
+iterations, then they'll
+
+00:37:25.680 --> 00:37:27.520
+branch directly to
+the end of loop.
+
+00:37:27.520 --> 00:37:29.540
+It will just skip
+the loop entirely.
+
+00:37:29.540 --> 00:37:32.530
+No need to try to
+execute any of that code.
+
+00:37:32.530 --> 00:37:35.810
+And in this case, it
+will simply return.
+
+00:37:35.810 --> 00:37:37.850
+And then inside
+the loop block, we
+
+00:37:37.850 --> 00:37:40.160
+have these two
+incoming edges-- one
+
+00:37:40.160 --> 00:37:43.670
+from the entry point of
+the loop, where i has just
+
+00:37:43.670 --> 00:37:47.600
+been set to zero, and another
+where we're repeating the loop,
+
+00:37:47.600 --> 00:37:51.355
+where we've decided there's
+one more iteration to execute.
+
+00:37:51.355 --> 00:37:53.480
+And we're going to go back
+from the end of the loop
+
+00:37:53.480 --> 00:37:54.410
+to the beginning.
+
+00:37:54.410 --> 00:37:57.020
+And that back edge is what
+creates the loop structure
+
+00:37:57.020 --> 00:37:59.115
+in the control flow graph.
+
+00:37:59.115 --> 00:37:59.615
+Make sense?
+
+00:38:02.346 --> 00:38:03.970
+I at least see one
+nod over there.
+
+00:38:03.970 --> 00:38:05.527
+So that's encouraging.
+
+00:38:08.390 --> 00:38:11.450
+OK, so if we take a look
+at the loop control,
+
+00:38:11.450 --> 00:38:13.830
+there are a couple of
+components to that loop control.
+
+00:38:13.830 --> 00:38:16.640
+There's the initialization
+of the induction variable.
+
+00:38:16.640 --> 00:38:19.340
+There is the condition,
+and there's the increment.
+
+00:38:19.340 --> 00:38:20.960
+Condition says when do you exit.
+
+00:38:20.960 --> 00:38:26.580
+Increment updates the value
+of the induction variable.
+
+00:38:26.580 --> 00:38:28.910
+And we can translate
+each of these components
+
+00:38:28.910 --> 00:38:31.550
+from the C code for
+the loop control
+
+00:38:31.550 --> 00:38:35.010
+into the LLVM IR
+code for that loop.
+
+00:38:35.010 --> 00:38:36.710
+So the increment,
+we would expect
+
+00:38:36.710 --> 00:38:42.510
+to see some sort of addition
+where we add 1 to some register
+
+00:38:42.510 --> 00:38:43.010
+somewhere.
+
+00:38:43.010 --> 00:38:45.380
+And lo and behold, there
+is an add operation.
+
+00:38:45.380 --> 00:38:48.790
+So we'll call that
+the increment.
+
+00:38:48.790 --> 00:38:51.700
+For the condition, we expect
+some comparison operation
+
+00:38:51.700 --> 00:38:54.910
+and a conditional branch
+based on that comparison.
+
+00:38:54.910 --> 00:38:55.480
+Look at that.
+
+00:38:55.480 --> 00:38:56.897
+Right after the
+increment, there's
+
+00:38:56.897 --> 00:38:59.100
+a compare and a
+conditional branch
+
+00:38:59.100 --> 00:39:01.890
+that we'll either take us back
+to the beginning of the loop
+
+00:39:01.890 --> 00:39:03.997
+or out of the loop entirely.
+
+00:39:07.200 --> 00:39:12.150
+And we do see that there is
+some form of initialization.
+
+00:39:12.150 --> 00:39:15.030
+The initial value of this
+induction variable is 0.
+
+00:39:15.030 --> 00:39:17.640
+And we do see a 0 among
+this loop control code.
+
+00:39:17.640 --> 00:39:21.490
+It's kind of squirreled away
+in that weird notation there.
+
+00:39:21.490 --> 00:39:23.130
+And that weird notation
+is sitting next
+
+00:39:23.130 --> 00:39:26.380
+to the phi instruction.
+
+00:39:26.380 --> 00:39:29.320
+What's not so clear
+here is where exactly
+
+00:39:29.320 --> 00:39:31.180
+is the induction variable.
+
+00:39:31.180 --> 00:39:34.640
+We had this single
+variable i in our C code.
+
+00:39:34.640 --> 00:39:36.490
+And what we're looking
+at in the LLVM IR
+
+00:39:36.490 --> 00:39:38.830
+are a whole bunch of
+different registers.
+
+00:39:38.830 --> 00:39:40.840
+We have a register
+that stores what
+
+00:39:40.840 --> 00:39:42.850
+we're claiming to
+be i plus 1, then
+
+00:39:42.850 --> 00:39:45.730
+we do this comparison
+and branch thing.
+
+00:39:45.730 --> 00:39:48.160
+And then we have
+this phi instruction
+
+00:39:48.160 --> 00:39:53.260
+that takes 0 or the
+result of the increment.
+
+00:39:53.260 --> 00:39:54.820
+Where did i actually go?
+
+00:39:58.820 --> 00:40:02.780
+So the problem here
+is that i is really
+
+00:40:02.780 --> 00:40:05.570
+represented across all
+of those instructions.
+
+00:40:05.570 --> 00:40:08.600
+And that happens because the
+value of the induction variable
+
+00:40:08.600 --> 00:40:11.330
+changes as you execute the loop.
+
+00:40:11.330 --> 00:40:15.320
+The value of i is different on
+iteration 0 versus iteration 1
+
+00:40:15.320 --> 00:40:17.210
+versus iteration 2
+versus iteration 3
+
+00:40:17.210 --> 00:40:18.380
+and so on and so forth.
+
+00:40:18.380 --> 00:40:22.090
+i is changing as you
+execute the loop.
+
+00:40:22.090 --> 00:40:24.910
+And there's this
+funny invariant.
+
+00:40:24.910 --> 00:40:28.315
+Yeah, so if we try to map that
+induction variable to the LLVM
+
+00:40:28.315 --> 00:40:32.470
+IR, it kind of maps to
+all of these locations.
+
+00:40:32.470 --> 00:40:35.200
+It maps to various
+uses in the loop body.
+
+00:40:35.200 --> 00:40:38.110
+It maps, roughly speaking, to
+the return value of this field
+
+00:40:38.110 --> 00:40:41.200
+instruction, even though we're
+not sure what that's all about.
+
+00:40:41.200 --> 00:40:43.367
+But we can tell it maps to
+that, because we're going
+
+00:40:43.367 --> 00:40:44.740
+to increment that later on.
+
+00:40:44.740 --> 00:40:47.147
+And we're going to use
+that in a comparison.
+
+00:40:47.147 --> 00:40:48.730
+So it kind of maps
+all over the place.
+
+00:40:53.779 --> 00:41:01.200
+And because it changes values
+with the increment operation,
+
+00:41:01.200 --> 00:41:04.337
+we're going to encounter--
+
+00:41:04.337 --> 00:41:05.670
+so why does it change registers?
+
+00:41:05.670 --> 00:41:08.520
+Well, we have this
+property in LLVM
+
+00:41:08.520 --> 00:41:11.730
+that each instruction
+defines the value
+
+00:41:11.730 --> 00:41:14.220
+of a register, at most, once.
+
+00:41:14.220 --> 00:41:17.310
+So for any particular
+register with LLVM,
+
+00:41:17.310 --> 00:41:20.120
+we can identify a
+unique place in the code
+
+00:41:20.120 --> 00:41:24.020
+of the function that
+defines that register value.
+
+00:41:24.020 --> 00:41:27.180
+This invariant is called
+the static single assignment
+
+00:41:27.180 --> 00:41:28.980
+invariant.
+
+00:41:28.980 --> 00:41:31.560
+And it seems a little bit
+weird, but it turns out
+
+00:41:31.560 --> 00:41:35.530
+to be an extremely powerful
+invariant within the compiler.
+
+00:41:35.530 --> 00:41:37.740
+It assists with a lot of
+the compiler analysis.
+
+00:41:37.740 --> 00:41:40.305
+And it also can help
+with reading the LLVM
+
+00:41:40.305 --> 00:41:45.810
+IR if you expect it.
+
+00:41:45.810 --> 00:41:47.970
+So this is a nice
+invariant, but it
+
+00:41:47.970 --> 00:41:49.590
+poses a problem
+when we're dealing
+
+00:41:49.590 --> 00:41:55.780
+with induction variables, which
+change as the loop unfolds.
+
+00:41:55.780 --> 00:42:00.870
+And so what happens when
+control flow merges at the entry
+
+00:42:00.870 --> 00:42:03.850
+point of a loop, for example?
+
+00:42:03.850 --> 00:42:05.470
+How do we define
+what the induction
+
+00:42:05.470 --> 00:42:06.760
+variable is at that location?
+
+00:42:06.760 --> 00:42:08.687
+Because it could
+either be 0, if this
+
+00:42:08.687 --> 00:42:11.020
+is the first time through the
+loop, or whatever you lost
+
+00:42:11.020 --> 00:42:12.680
+incremented.
+
+00:42:12.680 --> 00:42:15.368
+And the solution to that
+problem is the phi instruction.
+
+00:42:18.060 --> 00:42:23.130
+The phi instruction defines
+a register that says,
+
+00:42:23.130 --> 00:42:26.220
+depending on how you get to
+this location in the code,
+
+00:42:26.220 --> 00:42:31.140
+this register will have one
+of several different values.
+
+00:42:31.140 --> 00:42:33.090
+And the phi instruction
+simply lists
+
+00:42:33.090 --> 00:42:36.000
+what the value of
+that register will be,
+
+00:42:36.000 --> 00:42:39.720
+depending on which basic
+block you came from.
+
+00:42:39.720 --> 00:42:42.630
+So in this particular code,
+the phi instruction says,
+
+00:42:42.630 --> 00:42:45.690
+if you came from block
+6, which was the entry
+
+00:42:45.690 --> 00:42:50.160
+point of the loop, where you
+initially checked if there were
+
+00:42:50.160 --> 00:42:54.300
+any loop iterations to perform,
+if you come from that block,
+
+00:42:54.300 --> 00:42:58.620
+then this register 9 is
+going to adopt the value 0.
+
+00:42:58.620 --> 00:43:01.593
+If, however, you followed
+the back edge of the loop,
+
+00:43:01.593 --> 00:43:03.510
+then the register is
+going to adopt the value,
+
+00:43:03.510 --> 00:43:05.520
+in this case, 14.
+
+00:43:05.520 --> 00:43:07.200
+And 14, lo and
+behold, is the result
+
+00:43:07.200 --> 00:43:09.185
+of the incremental operation.
+
+00:43:09.185 --> 00:43:10.560
+And so this phi
+instruction says,
+
+00:43:10.560 --> 00:43:12.510
+either you're going
+to start from zero,
+
+00:43:12.510 --> 00:43:14.400
+or you're going to be i plus 1.
+
+00:43:18.015 --> 00:43:19.390
+Just to note, the
+phi instruction
+
+00:43:19.390 --> 00:43:20.710
+is not a real instruction.
+
+00:43:20.710 --> 00:43:25.390
+It's really a solution to
+a problem with an LLVM.
+
+00:43:25.390 --> 00:43:28.247
+And when you translate
+this code into assembly,
+
+00:43:28.247 --> 00:43:29.830
+the phi instruction
+isn't going to map
+
+00:43:29.830 --> 00:43:32.470
+to any particular
+assembly instruction.
+
+00:43:32.470 --> 00:43:35.537
+It's really a
+representational trick.
+
+00:43:35.537 --> 00:43:36.620
+Does that make some sense?
+
+00:43:36.620 --> 00:43:38.420
+Any questions about that?
+
+00:43:38.420 --> 00:43:38.920
+Yeah?
+
+00:43:38.920 --> 00:43:40.953
+STUDENT: Why is it called phi?
+
+00:43:40.953 --> 00:43:42.370
+TAO SCHARDL: Why
+is it called phi?
+
+00:43:42.370 --> 00:43:43.580
+That's a great question.
+
+00:43:43.580 --> 00:43:47.137
+I actually don't know why
+they chose the name phi.
+
+00:43:47.137 --> 00:43:48.970
+I don't think they had
+a particular affinity
+
+00:43:48.970 --> 00:43:52.410
+for the Golden
+Ratio, but I'm not
+
+00:43:52.410 --> 00:43:53.918
+sure what the rationale was.
+
+00:43:53.918 --> 00:43:55.335
+I don't know if
+anyone else knows.
+
+00:43:57.930 --> 00:43:59.120
+Yeah?
+
+00:43:59.120 --> 00:44:00.980
+Google knows all, sort of.
+
+00:44:03.610 --> 00:44:10.430
+Yeah, so adopt the value 0 from
+block 6 or 14 from block 8.
+
+00:44:10.430 --> 00:44:12.170
+So that's all of
+the basic components
+
+00:44:12.170 --> 00:44:15.643
+of C translated into LLVM IR.
+
+00:44:15.643 --> 00:44:17.060
+The last thing I
+want to leave you
+
+00:44:17.060 --> 00:44:19.730
+with in this section on
+LLVM IR is a discussion
+
+00:44:19.730 --> 00:44:20.797
+of these attributes.
+
+00:44:20.797 --> 00:44:22.880
+And we already saw one of
+these attributes before.
+
+00:44:22.880 --> 00:44:27.920
+It was this NSW thing
+attached the add instruction.
+
+00:44:27.920 --> 00:44:31.520
+In general, these
+LLVM IR constructs
+
+00:44:31.520 --> 00:44:36.140
+might be decorated with these
+extra words and keywords.
+
+00:44:36.140 --> 00:44:38.900
+And those are the keywords I'm
+referring to as attributes.
+
+00:44:38.900 --> 00:44:45.060
+Those attributes convey
+a variety of information.
+
+00:44:45.060 --> 00:44:47.540
+So in this case, what
+we have here is C code
+
+00:44:47.540 --> 00:44:51.880
+that performs this
+memory calculation,
+
+00:44:51.880 --> 00:44:55.090
+which you might have seen
+from our previous lecture.
+
+00:44:55.090 --> 00:44:57.710
+And what we see in the
+corresponding LLVM IR
+
+00:44:57.710 --> 00:45:01.270
+is that there's some extra
+stuff tacked onto that load
+
+00:45:01.270 --> 00:45:04.090
+instruction where
+you load memory.
+
+00:45:04.090 --> 00:45:08.890
+One of those pieces of extra
+information is this align 4.
+
+00:45:08.890 --> 00:45:11.670
+And what that align
+4 attribute says
+
+00:45:11.670 --> 00:45:15.770
+is it describes the alignment
+of that read from memory.
+
+00:45:15.770 --> 00:45:17.770
+And so if subsequent
+stages of the compiler
+
+00:45:17.770 --> 00:45:20.830
+can employ that information,
+if they can optimize
+
+00:45:20.830 --> 00:45:26.170
+reads that are 4-byte aligned,
+then this attribute will say,
+
+00:45:26.170 --> 00:45:28.630
+this is a load that you
+can go ahead and optimize.
+
+00:45:31.975 --> 00:45:33.350
+There are a bunch
+of places where
+
+00:45:33.350 --> 00:45:34.475
+attributes might come from.
+
+00:45:34.475 --> 00:45:37.100
+Some of them are derived
+directly from the source code.
+
+00:45:37.100 --> 00:45:38.870
+If you write a
+function that takes
+
+00:45:38.870 --> 00:45:42.740
+a parameter marked as const,
+or marked as restrict, then
+
+00:45:42.740 --> 00:45:46.070
+in the LLVM IR, you might see
+that the corresponding function
+
+00:45:46.070 --> 00:45:49.700
+parameter is marked as no alias,
+because the restricted keyword
+
+00:45:49.700 --> 00:45:53.718
+said this pointer can ever
+alias or the const keyword says,
+
+00:45:53.718 --> 00:45:55.760
+you're only ever going to
+read from this pointer.
+
+00:45:55.760 --> 00:45:58.160
+So this pointer is going
+to be marked read-only.
+
+00:45:58.160 --> 00:46:02.540
+So in that case, the source
+code itself-- the C code--
+
+00:46:02.540 --> 00:46:05.060
+was the source of
+the information
+
+00:46:05.060 --> 00:46:06.850
+for those attributes.
+
+00:46:06.850 --> 00:46:09.770
+There are some other
+attributes that occur simply
+
+00:46:09.770 --> 00:46:11.450
+because the compiler
+is smart, and it
+
+00:46:11.450 --> 00:46:14.340
+does some clever analysis.
+
+00:46:14.340 --> 00:46:18.050
+So in this case, the LLVM
+IR has a load operation
+
+00:46:18.050 --> 00:46:20.912
+that's 8-byte aligned.
+
+00:46:20.912 --> 00:46:23.120
+It was really analysis that
+figured out the alignment
+
+00:46:23.120 --> 00:46:24.568
+of that load operation.
+
+00:46:27.560 --> 00:46:30.110
+Good so far?
+
+00:46:30.110 --> 00:46:31.660
+Cool.
+
+00:46:31.660 --> 00:46:36.570
+So let's summarize this part
+of the discussion with what
+
+00:46:36.570 --> 00:46:39.140
+we've seen about LLVM IR.
+
+00:46:39.140 --> 00:46:42.340
+LLVM IR is similar to
+assembly, but a lot simpler
+
+00:46:42.340 --> 00:46:44.260
+in many, many ways.
+
+00:46:44.260 --> 00:46:46.780
+All of the computed values
+are stored in registers.
+
+00:46:46.780 --> 00:46:48.640
+And, really, when
+you're reading LLVM IR,
+
+00:46:48.640 --> 00:46:50.890
+you can think of
+those registers a lot
+
+00:46:50.890 --> 00:46:55.060
+like ordinary C variables.
+
+00:46:55.060 --> 00:46:57.280
+LLVM IR is a little
+bit funny in that
+
+00:46:57.280 --> 00:46:59.950
+it adopts a static, single
+assignment paradigm--
+
+00:46:59.950 --> 00:47:03.460
+this invariant-- where each
+registered name, each variable
+
+00:47:03.460 --> 00:47:07.820
+is written by, at most, one
+instruction within the LLVM IR
+
+00:47:07.820 --> 00:47:09.600
+code.
+
+00:47:09.600 --> 00:47:13.080
+So if you're ever curious where
+%14 is defined within this
+
+00:47:13.080 --> 00:47:16.950
+function, just do a search for
+where %14 is on the left-hand
+
+00:47:16.950 --> 00:47:21.270
+side of an equals,
+and there you go.
+
+00:47:21.270 --> 00:47:23.040
+We can model of
+function in LLVM IR
+
+00:47:23.040 --> 00:47:25.200
+as a control flow
+graph, whose nodes
+
+00:47:25.200 --> 00:47:27.240
+correspond to basic blocks--
+
+00:47:27.240 --> 00:47:29.250
+these blobs of
+straight line code--
+
+00:47:29.250 --> 00:47:32.590
+and whose edges do node control
+flow among those basic blocks.
+
+00:47:32.590 --> 00:47:37.330
+And compared to C, LLVM
+IR is pretty similar,
+
+00:47:37.330 --> 00:47:40.350
+except that all of these
+operations are explicit.
+
+00:47:40.350 --> 00:47:42.330
+The types are
+explicit everywhere.
+
+00:47:42.330 --> 00:47:44.630
+The integer sizes
+are all apparent.
+
+00:47:44.630 --> 00:47:46.380
+You don't have to
+remember that int really
+
+00:47:46.380 --> 00:47:49.110
+means a 32-bit
+integer, and you need
+
+00:47:49.110 --> 00:47:53.050
+n-64 to be a 64-bit integer,
+or you need a long or anything.
+
+00:47:53.050 --> 00:47:56.820
+It's just i and
+then a bit width.
+
+00:47:56.820 --> 00:47:59.730
+There no implicit operations
+at the LLVM IR level.
+
+00:47:59.730 --> 00:48:02.640
+All the typecasts are explicit.
+
+00:48:02.640 --> 00:48:07.440
+In some sense, LLVM
+IR is like assembly
+
+00:48:07.440 --> 00:48:09.687
+if assembly were more like c.
+
+00:48:09.687 --> 00:48:11.520
+And that's doubly a
+statement that would not
+
+00:48:11.520 --> 00:48:13.160
+have made sense 40 minutes ago.
+
+00:48:17.290 --> 00:48:22.800
+All right, so you've seen how to
+translate C code into LLVM IR.
+
+00:48:22.800 --> 00:48:23.850
+There's one last step.
+
+00:48:23.850 --> 00:48:27.740
+We want to translate the
+LLVM IR into assembly.
+
+00:48:27.740 --> 00:48:30.520
+And it turns out that
+structurally speaking,
+
+00:48:30.520 --> 00:48:33.030
+LLVM IR is very
+similar to assembly.
+
+00:48:33.030 --> 00:48:37.470
+We can, more or less,
+map each line of LLVM IR
+
+00:48:37.470 --> 00:48:43.230
+to some sequence of lines
+in the final assembly code.
+
+00:48:43.230 --> 00:48:44.970
+But there is some
+additional complexity.
+
+00:48:44.970 --> 00:48:46.680
+The compiler isn't
+done with its work
+
+00:48:46.680 --> 00:48:53.040
+yet when it's compiling
+C to LLVM IR to assembly.
+
+00:48:53.040 --> 00:48:55.350
+There are three main tasks
+that the compiler still
+
+00:48:55.350 --> 00:49:01.440
+has to perform in order
+to generate x86-64.
+
+00:49:01.440 --> 00:49:04.320
+First, it has to select
+the actual x86 assembly
+
+00:49:04.320 --> 00:49:07.300
+instructions that are going to
+implement these various LLVM IR
+
+00:49:07.300 --> 00:49:08.640
+operations.
+
+00:49:08.640 --> 00:49:12.150
+It has to decide which general
+purpose registers are going
+
+00:49:12.150 --> 00:49:14.790
+to hold different
+values and which values
+
+00:49:14.790 --> 00:49:17.370
+need to be squirreled
+away into memory,
+
+00:49:17.370 --> 00:49:19.740
+because it just has
+no other choice.
+
+00:49:19.740 --> 00:49:22.260
+And it has to coordinate
+all of the function calls.
+
+00:49:22.260 --> 00:49:23.760
+And it's not just
+the function calls
+
+00:49:23.760 --> 00:49:26.850
+within this particular
+source file.
+
+00:49:26.850 --> 00:49:29.820
+It's also function calls
+between that source file,
+
+00:49:29.820 --> 00:49:31.950
+and other source files
+that you're compiling,
+
+00:49:31.950 --> 00:49:35.727
+and binary libraries that are
+just sitting on the system.
+
+00:49:35.727 --> 00:49:37.560
+But the compiler never
+really gets to touch.
+
+00:49:37.560 --> 00:49:40.170
+It has to coordinate
+all of those calls.
+
+00:49:40.170 --> 00:49:41.410
+That's a bit complicated.
+
+00:49:41.410 --> 00:49:44.730
+That is going to be the reason
+for a lot of the remaining
+
+00:49:44.730 --> 00:49:46.050
+complexity.
+
+00:49:46.050 --> 00:49:48.960
+And that's what brings our
+discussion to the Linux
+
+00:49:48.960 --> 00:49:53.285
+x86-64 calling convention.
+
+00:49:53.285 --> 00:49:54.660
+This isn't a very
+fun convention.
+
+00:49:54.660 --> 00:49:56.310
+Don't worry.
+
+00:49:56.310 --> 00:49:59.990
+But nevertheless, it's useful.
+
+00:49:59.990 --> 00:50:02.540
+So to talk about
+this convention,
+
+00:50:02.540 --> 00:50:05.540
+let's first take a look at
+how a program gets laid out
+
+00:50:05.540 --> 00:50:08.510
+in memory when you run it.
+
+00:50:08.510 --> 00:50:11.240
+So when a program
+executes, virtually memory
+
+00:50:11.240 --> 00:50:14.030
+gets organized into a whole
+bunch of different chunks
+
+00:50:14.030 --> 00:50:15.620
+which are called segments.
+
+00:50:15.620 --> 00:50:18.620
+There's a segment that
+corresponds to the stack that's
+
+00:50:18.620 --> 00:50:20.750
+actually located near the
+top of virtual memory,
+
+00:50:20.750 --> 00:50:22.280
+and it grows downwards.
+
+00:50:22.280 --> 00:50:23.660
+The stack grows down.
+
+00:50:23.660 --> 00:50:25.290
+Remember this.
+
+00:50:25.290 --> 00:50:28.040
+There is a heap segment,
+which grows upwards
+
+00:50:28.040 --> 00:50:31.160
+from a middle
+location in memory.
+
+00:50:31.160 --> 00:50:36.860
+And those two
+dynamically-allocated segments
+
+00:50:36.860 --> 00:50:39.783
+live at the top of the
+virtual address space.
+
+00:50:39.783 --> 00:50:41.450
+There are then two
+additional segments--
+
+00:50:41.450 --> 00:50:45.050
+the bss segment for
+uninitialized data
+
+00:50:45.050 --> 00:50:48.613
+and the data segment
+for initialized data.
+
+00:50:48.613 --> 00:50:50.780
+And finally, at the bottom
+of virtual address space,
+
+00:50:50.780 --> 00:50:51.853
+there's a tech segment.
+
+00:50:51.853 --> 00:50:54.020
+And that just stores the
+code of the program itself.
+
+00:50:58.910 --> 00:51:03.470
+Now when you read
+assembly code directly,
+
+00:51:03.470 --> 00:51:04.880
+you'll see that
+the assembly code
+
+00:51:04.880 --> 00:51:08.960
+contains more than just some
+labels and some instructions.
+
+00:51:08.960 --> 00:51:13.200
+In fact, it's decorated with
+a whole bunch of other stuff.
+
+00:51:13.200 --> 00:51:16.490
+And these are called
+assembler directives,
+
+00:51:16.490 --> 00:51:19.460
+and these directives operate
+on different sections
+
+00:51:19.460 --> 00:51:20.810
+of the assembly code.
+
+00:51:20.810 --> 00:51:24.140
+Some of those directives
+refer to the various segments
+
+00:51:24.140 --> 00:51:25.540
+of virtual memory.
+
+00:51:25.540 --> 00:51:27.920
+And those segment
+directives are used
+
+00:51:27.920 --> 00:51:32.120
+to organize the content
+of the assembly file.
+
+00:51:32.120 --> 00:51:36.350
+For example, the .text
+directive identifies some chunk
+
+00:51:36.350 --> 00:51:39.200
+of the assembly, which is really
+code and should be located
+
+00:51:39.200 --> 00:51:41.990
+in the text segment
+when the program is run.
+
+00:51:41.990 --> 00:51:45.470
+The .bss segment
+identifies stuff that lives
+
+00:51:45.470 --> 00:51:48.880
+in the assembler directive
+to identify stuff in the bss
+
+00:51:48.880 --> 00:51:50.080
+segment.
+
+00:51:50.080 --> 00:51:53.150
+The .data directive identify
+stuff in the data segment,
+
+00:51:53.150 --> 00:51:54.800
+so on and so forth.
+
+00:51:54.800 --> 00:51:56.600
+There are also various
+storage directives
+
+00:51:56.600 --> 00:51:59.480
+that will store
+content of some variety
+
+00:51:59.480 --> 00:52:02.600
+directly into the current
+segment-- whatever was last
+
+00:52:02.600 --> 00:52:04.940
+identified by a
+segment directive.
+
+00:52:04.940 --> 00:52:10.320
+So if, at some point, there
+is a directive x colon
+
+00:52:10.320 --> 00:52:13.200
+dot space 20, that
+space directive says,
+
+00:52:13.200 --> 00:52:15.030
+allocate some amount of memory.
+
+00:52:15.030 --> 00:52:18.300
+And in this case, it says,
+allocate 20 bytes of memory.
+
+00:52:18.300 --> 00:52:21.280
+And we're going to
+label that location x.
+
+00:52:21.280 --> 00:52:27.268
+The .long segment says, store
+a constant long integer value--
+
+00:52:27.268 --> 00:52:28.060
+in this case, 172--
+
+00:52:30.890 --> 00:52:34.330
+in this example, at location y.
+
+00:52:34.330 --> 00:52:38.350
+The asciz segment
+similarly stores a string
+
+00:52:38.350 --> 00:52:40.250
+at that particular location.
+
+00:52:40.250 --> 00:52:45.020
+So here, we're storing the
+string 6.172 at location z.
+
+00:52:45.020 --> 00:52:48.460
+There is an align
+directive that aligns
+
+00:52:48.460 --> 00:52:55.540
+the next content in the assembly
+file to an 8-byte boundary.
+
+00:52:55.540 --> 00:52:58.930
+There are additional segments
+for the linker to obey,
+
+00:52:58.930 --> 00:53:01.450
+and those are the scope
+and linkage directives.
+
+00:53:01.450 --> 00:53:05.710
+For example, you might see
+.globl in front of a label.
+
+00:53:05.710 --> 00:53:09.640
+And that single is linker
+that that particular symbol
+
+00:53:09.640 --> 00:53:13.470
+should be visible to the other
+files that the linker touches.
+
+00:53:13.470 --> 00:53:19.330
+In this case, .globl fib makes
+fib visible to the other object
+
+00:53:19.330 --> 00:53:22.810
+files, and that allows this
+other object files to call
+
+00:53:22.810 --> 00:53:24.625
+or refer to this fib location.
+
+00:53:27.770 --> 00:53:30.800
+Now, let's turn our
+attention to the segment
+
+00:53:30.800 --> 00:53:34.430
+at the top, the stack segment.
+
+00:53:34.430 --> 00:53:37.250
+This segment is used to store
+data and memory in order
+
+00:53:37.250 --> 00:53:40.640
+to manage function
+calls and returns.
+
+00:53:40.640 --> 00:53:44.030
+That's a nice high-level
+description, but what exactly
+
+00:53:44.030 --> 00:53:45.500
+ends up in the stack segment?
+
+00:53:45.500 --> 00:53:47.630
+Why do we need a stack?
+
+00:53:47.630 --> 00:53:49.538
+What data will end
+up going there?
+
+00:53:49.538 --> 00:53:50.330
+Can anyone tell me?
+
+00:53:55.120 --> 00:53:56.712
+STUDENT: Local
+variables in function?
+
+00:53:56.712 --> 00:53:58.420
+TAO SCHARDL: Local
+variables in function.
+
+00:53:58.420 --> 00:54:01.240
+Anything else?
+
+00:54:01.240 --> 00:54:02.880
+You already answered once.
+
+00:54:02.880 --> 00:54:04.130
+I may call on you again.
+
+00:54:04.130 --> 00:54:04.630
+Go ahead.
+
+00:54:04.630 --> 00:54:05.710
+STUDENT: Function arguments?
+
+00:54:05.710 --> 00:54:05.950
+TAO SCHARDL: Sorry?
+
+00:54:05.950 --> 00:54:07.000
+STUDENT: Function arguments?
+
+00:54:07.000 --> 00:54:08.950
+TAO SCHARDL: Function
+arguments-- very good.
+
+00:54:08.950 --> 00:54:10.760
+Anything else?
+
+00:54:10.760 --> 00:54:12.385
+I thought I saw a
+hand over here, but--
+
+00:54:16.750 --> 00:54:18.210
+STUDENT: The return address?
+
+00:54:18.210 --> 00:54:19.543
+TAO SCHARDL: The return address.
+
+00:54:22.330 --> 00:54:22.930
+Anything else?
+
+00:54:22.930 --> 00:54:23.430
+Yeah?
+
+00:54:26.310 --> 00:54:29.500
+There's one other
+important thing
+
+00:54:29.500 --> 00:54:30.664
+that gets stored on stack.
+
+00:54:35.020 --> 00:54:35.988
+Yeah?
+
+00:54:35.988 --> 00:54:38.420
+STUDENT: The return value?
+
+00:54:38.420 --> 00:54:40.135
+TAO SCHARDL: The return value--
+
+00:54:40.135 --> 00:54:41.510
+actually, that
+one's interesting.
+
+00:54:41.510 --> 00:54:44.510
+It might be stored on the
+stack, but it might not
+
+00:54:44.510 --> 00:54:47.270
+be stored on the stack.
+
+00:54:47.270 --> 00:54:48.240
+Good guess, though.
+
+00:54:48.240 --> 00:54:48.740
+Yeah?
+
+00:54:48.740 --> 00:54:50.513
+STUDENT: Intermediate results?
+
+00:54:50.513 --> 00:54:51.930
+TAO SCHARDL:
+Intermediate results,
+
+00:54:51.930 --> 00:54:54.000
+in a manner of speaking, yes.
+
+00:54:54.000 --> 00:54:55.560
+There are more
+intermediate results
+
+00:54:55.560 --> 00:54:59.760
+than meets the eye when
+it comes to assembly
+
+00:54:59.760 --> 00:55:04.430
+or comparing it to
+C. But in particular,
+
+00:55:04.430 --> 00:55:07.580
+by intermediate results,
+let's say, register state.
+
+00:55:07.580 --> 00:55:10.400
+There are only so many
+registers on the machine.
+
+00:55:10.400 --> 00:55:13.970
+And sometimes,
+that's not enough.
+
+00:55:13.970 --> 00:55:17.000
+And so the function may
+want to squirrel away
+
+00:55:17.000 --> 00:55:19.970
+some data that's in registers
+and stash it somewhere
+
+00:55:19.970 --> 00:55:21.538
+in order to read it back later.
+
+00:55:21.538 --> 00:55:23.330
+The stack is a very
+natural place to do it.
+
+00:55:23.330 --> 00:55:26.456
+That's the dedicated
+place to do it.
+
+00:55:26.456 --> 00:55:29.150
+So yeah, that's pretty
+much all the content
+
+00:55:29.150 --> 00:55:35.100
+of what ends up on the call
+stack as the program executes.
+
+00:55:35.100 --> 00:55:36.740
+Now, here's the thing.
+
+00:55:36.740 --> 00:55:39.860
+There are a whole bunch of
+functions in the program.
+
+00:55:39.860 --> 00:55:45.950
+Some of them may have been
+defined in the source file
+
+00:55:45.950 --> 00:55:47.530
+that you're compiling right now.
+
+00:55:47.530 --> 00:55:49.790
+Some of them might be defined
+in other source files.
+
+00:55:49.790 --> 00:55:51.830
+Some of them might be
+defined in libraries
+
+00:55:51.830 --> 00:55:53.680
+that were compiled
+by someone else,
+
+00:55:53.680 --> 00:55:57.140
+possibly using a different
+compiler, with different flags,
+
+00:55:57.140 --> 00:55:59.180
+under different
+parameters, presumably,
+
+00:55:59.180 --> 00:56:02.030
+for this architecture--
+at least, one hopes.
+
+00:56:02.030 --> 00:56:07.870
+But those libraries are
+completely out of your control.
+
+00:56:07.870 --> 00:56:09.640
+And now, we have this problem.
+
+00:56:09.640 --> 00:56:13.288
+All those object files might
+define these functions.
+
+00:56:13.288 --> 00:56:15.580
+And those functions want to
+call each other, regardless
+
+00:56:15.580 --> 00:56:18.460
+of where those functions
+are necessarily defined.
+
+00:56:18.460 --> 00:56:21.970
+And so somehow, we need to
+coordinate all those function
+
+00:56:21.970 --> 00:56:24.700
+calls and make sure that
+if one function wants
+
+00:56:24.700 --> 00:56:27.250
+to use these registers,
+and this other function
+
+00:56:27.250 --> 00:56:29.650
+wants to use the same
+registers, those functions
+
+00:56:29.650 --> 00:56:32.160
+aren't going to interfere
+with each other.
+
+00:56:32.160 --> 00:56:34.090
+Or if they both want
+to read stack memory,
+
+00:56:34.090 --> 00:56:38.080
+they're not going to
+clobber each other's stacks.
+
+00:56:38.080 --> 00:56:42.020
+So how do we deal with
+this coordination problem?
+
+00:56:42.020 --> 00:56:44.590
+At a high level, what's
+the high-level strategy
+
+00:56:44.590 --> 00:56:47.110
+we're going to adopt to deal
+with this coordination problem?
+
+00:56:50.399 --> 00:56:52.607
+STUDENT: Put the values of
+the registers on the stack
+
+00:56:52.607 --> 00:56:54.770
+before you go into the function.
+
+00:56:54.770 --> 00:56:56.480
+TAO SCHARDL: That
+will be part of it.
+
+00:56:56.480 --> 00:56:59.730
+But for the higher
+level strategy--
+
+00:56:59.730 --> 00:57:02.190
+so that's a component of
+this higher level strategy.
+
+00:57:02.190 --> 00:57:02.690
+Yeah?
+
+00:57:02.690 --> 00:57:03.330
+Go ahead.
+
+00:57:03.330 --> 00:57:04.070
+STUDENT: Calling convention?
+
+00:57:04.070 --> 00:57:04.850
+TAO SCHARDL: Calling convention.
+
+00:57:04.850 --> 00:57:07.250
+You remembered the title of
+this section of the talk.
+
+00:57:07.250 --> 00:57:08.870
+Great.
+
+00:57:08.870 --> 00:57:11.780
+We're going to make sure
+that every single function,
+
+00:57:11.780 --> 00:57:14.600
+regardless of where it's
+defined, they all abide
+
+00:57:14.600 --> 00:57:16.640
+by the same calling convention.
+
+00:57:16.640 --> 00:57:19.040
+So it's a standard
+that all the functions
+
+00:57:19.040 --> 00:57:24.280
+will obey in order to make sure
+they all play nicely together.
+
+00:57:24.280 --> 00:57:27.380
+So let's unpack the Linux
+x86-64 calling convention.
+
+00:57:27.380 --> 00:57:29.380
+Well, not the whole thing,
+because it's actually
+
+00:57:29.380 --> 00:57:32.200
+pretty complicated, but at
+least enough to understand
+
+00:57:32.200 --> 00:57:34.960
+the basics of what's going on.
+
+00:57:34.960 --> 00:57:39.010
+So a high level, this calling
+convention organizes the stack
+
+00:57:39.010 --> 00:57:43.630
+segment into frames, such that
+each function instantiation--
+
+00:57:43.630 --> 00:57:45.610
+each time you call a function--
+
+00:57:45.610 --> 00:57:50.890
+that instantiation gets a
+single frame all to itself.
+
+00:57:50.890 --> 00:57:52.820
+And to manage all
+those stack frames,
+
+00:57:52.820 --> 00:57:55.930
+the calling convention is going
+to use these two pointers-- rbp
+
+00:57:55.930 --> 00:57:58.750
+and rsp, which you
+should've seen last time.
+
+00:57:58.750 --> 00:58:01.840
+rbp, the base pointer,
+will point to the top
+
+00:58:01.840 --> 00:58:03.330
+of the current stack frame.
+
+00:58:03.330 --> 00:58:05.980
+rsp will point to the bottom
+up the current stack frame.
+
+00:58:05.980 --> 00:58:07.720
+And remember, the stack grows.
+
+00:58:11.260 --> 00:58:15.130
+Now when the code executes
+call-and-return instructions,
+
+00:58:15.130 --> 00:58:19.630
+those instructions
+are going to operate
+
+00:58:19.630 --> 00:58:22.630
+on the stack, these various
+stock pointers, as well
+
+00:58:22.630 --> 00:58:25.090
+as the instruction
+pointer, rip, in order
+
+00:58:25.090 --> 00:58:28.960
+to manage the return
+address of each function.
+
+00:58:28.960 --> 00:58:33.160
+In particular, when a call
+instruction gets executed,
+
+00:58:33.160 --> 00:58:35.320
+in x86, that call
+instruction will
+
+00:58:35.320 --> 00:58:38.910
+push the current value
+of rip onto the stack,
+
+00:58:38.910 --> 00:58:40.980
+and that will be
+the return address.
+
+00:58:40.980 --> 00:58:43.910
+And then the call instruction
+will jump to its operand.
+
+00:58:43.910 --> 00:58:50.020
+It's operand being the address
+of some function in the program
+
+00:58:50.020 --> 00:58:52.360
+memory, or, at least, one hopes.
+
+00:58:52.360 --> 00:58:55.150
+Perhaps there was buffer
+overflow corruption
+
+00:58:55.150 --> 00:58:59.710
+of some kind, and your
+program is in dire straits.
+
+00:58:59.710 --> 00:59:04.950
+But presumably, it's the
+address of a function.
+
+00:59:04.950 --> 00:59:07.210
+The return instruction
+complements the call,
+
+00:59:07.210 --> 00:59:09.880
+and it's going to undo the
+operations of that call
+
+00:59:09.880 --> 00:59:10.630
+instruction.
+
+00:59:10.630 --> 00:59:14.260
+It'll pop the return
+address off the stack
+
+00:59:14.260 --> 00:59:16.180
+and put that into rip.
+
+00:59:16.180 --> 00:59:17.950
+And that will
+cause the execution
+
+00:59:17.950 --> 00:59:21.580
+to return to the caller
+and resume execution
+
+00:59:21.580 --> 00:59:24.400
+from the statement right
+after the original call.
+
+00:59:27.040 --> 00:59:29.880
+So that's the high level of
+how the stack gets managed
+
+00:59:29.880 --> 00:59:31.590
+as well as the return address.
+
+00:59:31.590 --> 00:59:33.420
+How about, how do we
+maintain registers
+
+00:59:33.420 --> 00:59:35.705
+across all those calls?
+
+00:59:35.705 --> 00:59:37.080
+Well, there's a
+bit of a problem.
+
+00:59:37.080 --> 00:59:39.420
+Because we might have
+two different functions
+
+00:59:39.420 --> 00:59:41.660
+that want to use
+the same registers.
+
+00:59:41.660 --> 00:59:49.200
+Some of this might be review,
+by the way, from 6004.
+
+00:59:49.200 --> 00:59:51.928
+If you have questions,
+just let me know.
+
+00:59:51.928 --> 00:59:54.220
+So we have this problem,
+where two different functions,
+
+00:59:54.220 --> 00:59:56.095
+function A, which might
+call another function
+
+00:59:56.095 --> 01:00:00.670
+B. Those two functions might
+want to use the same registers.
+
+01:00:00.670 --> 01:00:03.580
+So who's responsible
+for making sure
+
+01:00:03.580 --> 01:00:07.720
+that if function B operates
+on the same registers as A,
+
+01:00:07.720 --> 01:00:09.790
+that when B is done,
+A doesn't end up
+
+01:00:09.790 --> 01:00:13.210
+with corrupted state
+in its registers?
+
+01:00:13.210 --> 01:00:14.823
+Well, they're two
+different strategies
+
+01:00:14.823 --> 01:00:15.740
+that could be adopted.
+
+01:00:15.740 --> 01:00:19.760
+One is to have the caller
+save off the register
+
+01:00:19.760 --> 01:00:22.410
+state before invoking a call.
+
+01:00:22.410 --> 01:00:24.650
+But that has some downsides.
+
+01:00:24.650 --> 01:00:26.750
+The caller might waste
+work, saying, well,
+
+01:00:26.750 --> 01:00:29.840
+I have to save all of this
+register state in case
+
+01:00:29.840 --> 01:00:32.923
+the function I'm calling
+wants to use those registers.
+
+01:00:32.923 --> 01:00:35.090
+If the calling function
+doesn't use those registers,
+
+01:00:35.090 --> 01:00:38.030
+that was a bunch of wasted work.
+
+01:00:38.030 --> 01:00:40.200
+So on the other side,
+you might say, well,
+
+01:00:40.200 --> 01:00:43.655
+let's just have the callee
+save all that registered state.
+
+01:00:43.655 --> 01:00:45.693
+But that could waste
+work if the callee
+
+01:00:45.693 --> 01:00:48.110
+is going to save off register
+state that the caller wasn't
+
+01:00:48.110 --> 01:00:49.022
+using.
+
+01:00:49.022 --> 01:00:50.480
+So if the callee
+says, well, I want
+
+01:00:50.480 --> 01:00:51.605
+to use all these registers.
+
+01:00:51.605 --> 01:00:54.500
+I don't know what the
+calling function used,
+
+01:00:54.500 --> 01:00:56.930
+so I'm just going to push
+everything on the stack, that
+
+01:00:56.930 --> 01:00:59.570
+could be a lot of wasted work.
+
+01:00:59.570 --> 01:01:02.150
+So what does the x86
+calling convention
+
+01:01:02.150 --> 01:01:04.528
+do, if you had to guess?
+
+01:01:07.920 --> 01:01:08.420
+Yeah?
+
+01:01:08.420 --> 01:01:14.473
+STUDENT: [INAUDIBLE]
+
+01:01:14.473 --> 01:01:15.890
+TAO SCHARDL: That's
+exactly right.
+
+01:01:15.890 --> 01:01:17.290
+It does a little bit of both.
+
+01:01:17.290 --> 01:01:19.450
+It specifies some
+of the registers
+
+01:01:19.450 --> 01:01:23.110
+as being callee-saved registers,
+and the rest of the registers
+
+01:01:23.110 --> 01:01:25.150
+are caller-saved registers.
+
+01:01:25.150 --> 01:01:28.180
+And so the caller will
+be responsible for saving
+
+01:01:28.180 --> 01:01:29.170
+some stuff.
+
+01:01:29.170 --> 01:01:33.070
+The callee will be responsible
+for saving other stuff.
+
+01:01:33.070 --> 01:01:35.380
+And if either of those
+functions doesn't
+
+01:01:35.380 --> 01:01:40.396
+need one of those registers,
+then it can avoid wasted work.
+
+01:01:40.396 --> 01:01:44.380
+In x86-64, in this
+calling convention,
+
+01:01:44.380 --> 01:01:47.980
+turns out that the rbx, rbp,
+and r12 through r15 registers
+
+01:01:47.980 --> 01:01:50.380
+are all callee saved, and
+the rest of the registers
+
+01:01:50.380 --> 01:01:51.760
+are caller saved.
+
+01:01:51.760 --> 01:01:54.700
+In particular, the
+C linkage defined
+
+01:01:54.700 --> 01:01:57.860
+by this calling convention
+for all the registers
+
+01:01:57.860 --> 01:01:59.690
+looks something like this.
+
+01:01:59.690 --> 01:02:02.610
+And that identifies
+lots of stuff.
+
+01:02:02.610 --> 01:02:05.800
+It identifies a register for
+storing the return value,
+
+01:02:05.800 --> 01:02:08.350
+registers for storing a
+bunch of the arguments,
+
+01:02:08.350 --> 01:02:11.860
+caller-save registers,
+callee-saved registers,
+
+01:02:11.860 --> 01:02:14.140
+a register just for linking.
+
+01:02:14.140 --> 01:02:18.130
+I don't expect you to
+memorize this in 12 seconds.
+
+01:02:18.130 --> 01:02:20.530
+And I think on
+any quiz-- well, I
+
+01:02:20.530 --> 01:02:24.196
+won't say what the course app
+will do on quizzes this year.
+
+01:02:24.196 --> 01:02:25.560
+STUDENT: [INAUDIBLE] everyone.
+
+01:02:25.560 --> 01:02:27.310
+TAO SCHARDL: Yeah, OK,
+well, there you go.
+
+01:02:27.310 --> 01:02:29.530
+So you'll have
+these slides later.
+
+01:02:29.530 --> 01:02:30.910
+You can practice
+memorizing them.
+
+01:02:34.550 --> 01:02:35.570
+Not sure on this slide.
+
+01:02:35.570 --> 01:02:37.250
+There are a couple
+other registers
+
+01:02:37.250 --> 01:02:40.820
+that are used for saving
+function arguments and return
+
+01:02:40.820 --> 01:02:42.210
+values.
+
+01:02:42.210 --> 01:02:44.990
+And, in particular, whenever
+you're passing floating point
+
+01:02:44.990 --> 01:02:48.380
+stuff around, the xmm
+register 0 through 7
+
+01:02:48.380 --> 01:02:52.680
+are used to deal with those
+floating point values.
+
+01:02:52.680 --> 01:02:53.180
+Cool.
+
+01:02:53.180 --> 01:02:55.970
+So we have strategies for
+maintaining the stack.
+
+01:02:55.970 --> 01:03:00.170
+We have strategies for
+maintaining register states.
+
+01:03:00.170 --> 01:03:02.570
+But we still have
+the situation where
+
+01:03:02.570 --> 01:03:05.120
+functions may want
+to use overlapping
+
+01:03:05.120 --> 01:03:06.677
+parts of stack memory.
+
+01:03:06.677 --> 01:03:09.260
+And so we need to coordinate how
+all those functions are going
+
+01:03:09.260 --> 01:03:13.320
+to use the stack memory itself.
+
+01:03:13.320 --> 01:03:14.640
+This is a bit hard to describe.
+
+01:03:14.640 --> 01:03:16.930
+The cleanest way I know
+describe it is just
+
+01:03:16.930 --> 01:03:19.030
+to work through an example.
+
+01:03:19.030 --> 01:03:20.710
+So here's the setup.
+
+01:03:20.710 --> 01:03:23.280
+Let's imagine that we
+have some function A that
+
+01:03:23.280 --> 01:03:25.290
+is called of
+function B. And we're
+
+01:03:25.290 --> 01:03:27.380
+in the midst of
+executing function B,
+
+01:03:27.380 --> 01:03:33.520
+and now, function B is about
+to call some other function C.
+
+01:03:33.520 --> 01:03:37.802
+As we mentioned before, B
+has a frame all to itself.
+
+01:03:37.802 --> 01:03:39.760
+And that frame contains
+a whole bunch of stuff.
+
+01:03:39.760 --> 01:03:42.160
+It contains arguments
+that A passed to B.
+
+01:03:42.160 --> 01:03:43.810
+It contains a return address.
+
+01:03:43.810 --> 01:03:45.910
+It contains a base pointer.
+
+01:03:45.910 --> 01:03:47.680
+It contains some
+local variables.
+
+01:03:47.680 --> 01:03:49.450
+And because B is
+about to call C,
+
+01:03:49.450 --> 01:03:52.390
+it's also going to contain
+some data for arguments
+
+01:03:52.390 --> 01:03:56.290
+that B will pass to C.
+
+01:03:56.290 --> 01:03:57.820
+So that's our setup.
+
+01:03:57.820 --> 01:04:02.070
+We have one function
+ready to call another.
+
+01:04:02.070 --> 01:04:03.820
+Let's take a look at
+how this stack memory
+
+01:04:03.820 --> 01:04:06.630
+is organized first.
+
+01:04:06.630 --> 01:04:09.750
+So at the top, we have what's
+called a linkage block.
+
+01:04:09.750 --> 01:04:12.667
+And in this linkage
+block, this is the region
+
+01:04:12.667 --> 01:04:14.250
+of stack memory,
+where function B will
+
+01:04:14.250 --> 01:04:19.400
+access non-register arguments
+from its caller, function A.
+
+01:04:19.400 --> 01:04:22.020
+It will access these
+by indexing off
+
+01:04:22.020 --> 01:04:24.960
+of the base pointer, rbp,
+using positive offsets.
+
+01:04:24.960 --> 01:04:26.850
+Again, the stack grows down.
+
+01:04:32.100 --> 01:04:35.140
+B will also have a
+block of stack space
+
+01:04:35.140 --> 01:04:38.260
+after the linkage block
+and return address and bass
+
+01:04:38.260 --> 01:04:39.100
+pointer.
+
+01:04:39.100 --> 01:04:42.190
+It will have a region of its
+frame for local variables,
+
+01:04:42.190 --> 01:04:44.110
+and it can access
+those local variables
+
+01:04:44.110 --> 01:04:47.740
+by indexing off of rbp in
+the negative direction.
+
+01:04:47.740 --> 01:04:49.420
+Stack grows down.
+
+01:04:49.420 --> 01:04:51.640
+If you don't have anything
+else, stack grows down.
+
+01:04:55.350 --> 01:04:58.940
+Now B is about to
+call a function C,
+
+01:04:58.940 --> 01:05:02.740
+and we want to see how
+all of this unfolds.
+
+01:05:02.740 --> 01:05:07.100
+So before calling C, B is going
+to place non-register arguments
+
+01:05:07.100 --> 01:05:13.730
+for C on to a reserved linkage
+block in its own stack memory
+
+01:05:13.730 --> 01:05:15.200
+below its local variables.
+
+01:05:17.750 --> 01:05:19.530
+And it will access
+those by indexing rbp
+
+01:05:19.530 --> 01:05:22.430
+with negative offsets.
+
+01:05:22.430 --> 01:05:24.580
+So those arguments
+from B to its callers
+
+01:05:24.580 --> 01:05:28.992
+will specify those to be
+arguments from B to C. And then
+
+01:05:28.992 --> 01:05:29.950
+what's going to happen?
+
+01:05:29.950 --> 01:05:33.130
+Then B is going to call
+C. And as we saw before,
+
+01:05:33.130 --> 01:05:36.040
+the call instruction saves
+off the return address
+
+01:05:36.040 --> 01:05:38.920
+onto the stack, and
+then it branches
+
+01:05:38.920 --> 01:05:45.620
+control to the entry
+point of function C.
+
+01:05:45.620 --> 01:05:47.420
+When the function C
+starts, it's going
+
+01:05:47.420 --> 01:05:49.860
+to execute what's called
+the function prologue.
+
+01:05:49.860 --> 01:05:52.590
+And the function prologue
+consists of a couple of steps.
+
+01:05:52.590 --> 01:05:54.440
+First, it's going
+to save off the base
+
+01:05:54.440 --> 01:05:56.870
+pointer for B's stack frame.
+
+01:05:56.870 --> 01:06:01.900
+So it'll just squirrel away the
+value of rbp onto the stack.
+
+01:06:01.900 --> 01:06:04.610
+Then it's going to
+set rbp equal to rsp,
+
+01:06:04.610 --> 01:06:06.740
+because we're now
+entering a brand new frame
+
+01:06:06.740 --> 01:06:10.740
+for the invocation of C.
+
+01:06:10.740 --> 01:06:13.620
+And then C can go ahead
+and allocate the space
+
+01:06:13.620 --> 01:06:15.460
+that it needs on the stack.
+
+01:06:15.460 --> 01:06:18.990
+This will be space that C needs
+for its own local variables,
+
+01:06:18.990 --> 01:06:23.400
+as well as space that C will
+use for any linkage blocks
+
+01:06:23.400 --> 01:06:26.520
+that it creates for the
+things that it calls.
+
+01:06:30.940 --> 01:06:32.890
+Now there is one
+common optimization
+
+01:06:32.890 --> 01:06:35.560
+that the compiler will
+attempt to perform.
+
+01:06:35.560 --> 01:06:40.720
+If a function never needs to
+perform stack allocations,
+
+01:06:40.720 --> 01:06:43.310
+except to handle
+these function calls--
+
+01:06:43.310 --> 01:06:46.630
+in other words, if the
+difference between rbp and rsp
+
+01:06:46.630 --> 01:06:49.600
+is a compile time
+constant, then the compiler
+
+01:06:49.600 --> 01:06:53.080
+might go ahead and
+just get rid of rbp
+
+01:06:53.080 --> 01:06:57.583
+and do all of the indexing
+based off the stack pointer rsp.
+
+01:06:57.583 --> 01:06:59.500
+And the reason it'll do
+that is because, if it
+
+01:06:59.500 --> 01:07:02.170
+could get one more general
+purpose register out
+
+01:07:02.170 --> 01:07:05.860
+of our rbp, well, now,
+rpb is general purpose.
+
+01:07:05.860 --> 01:07:07.540
+And it has one extra
+register to use
+
+01:07:07.540 --> 01:07:09.400
+to do all of its calculations.
+
+01:07:09.400 --> 01:07:12.430
+Reading from a register
+takes some time.
+
+01:07:12.430 --> 01:07:16.270
+Reading from even L1 cache takes
+significantly more, I think,
+
+01:07:16.270 --> 01:07:19.600
+four times that amount.
+
+01:07:19.600 --> 01:07:21.100
+And so this is a
+common optimization
+
+01:07:21.100 --> 01:07:23.420
+that the compiler
+will want to perform.
+
+01:07:23.420 --> 01:07:25.640
+Now, turns out that
+there's a lot more
+
+01:07:25.640 --> 01:07:27.320
+to the calling
+convention than just
+
+01:07:27.320 --> 01:07:29.150
+what's shown on these slides.
+
+01:07:29.150 --> 01:07:31.310
+We're not going to go
+through that today.
+
+01:07:31.310 --> 01:07:33.590
+If you'd like to
+have more details,
+
+01:07:33.590 --> 01:07:36.950
+there's a nice document--
+the System V ABI--
+
+01:07:36.950 --> 01:07:40.305
+that describes the whole
+calling convention.
+
+01:07:40.305 --> 01:07:41.180
+Any questions so far?
+
+01:07:46.730 --> 01:07:50.820
+All right, so let's wrap all
+this up with a final case
+
+01:07:50.820 --> 01:07:53.940
+study, and let's take a look
+at how all these components fit
+
+01:07:53.940 --> 01:07:54.880
+together.
+
+01:07:54.880 --> 01:07:56.640
+When we're
+translating a simple C
+
+01:07:56.640 --> 01:07:58.980
+function to compute
+Fibonacci numbers
+
+01:07:58.980 --> 01:08:01.570
+all the way down to assembly.
+
+01:08:01.570 --> 01:08:03.790
+And as you've been
+describing this whole time,
+
+01:08:03.790 --> 01:08:06.410
+we're going to take
+this in two steps.
+
+01:08:06.410 --> 01:08:08.560
+Let's describe our
+starting point, fib.c.
+
+01:08:08.560 --> 01:08:11.530
+This should be basically no
+surprise to you at this point.
+
+01:08:11.530 --> 01:08:15.400
+This is a C function fib, which
+computes the nth Fibonacci
+
+01:08:15.400 --> 01:08:20.319
+number in one of the worst
+computational ways possible,
+
+01:08:20.319 --> 01:08:21.130
+it turns out.
+
+01:08:21.130 --> 01:08:22.930
+But it computes the
+nth Fibonacci number
+
+01:08:22.930 --> 01:08:26.200
+f of n recursively
+using the formula f of n
+
+01:08:26.200 --> 01:08:29.080
+is equal to n when
+n is either 0 or 1.
+
+01:08:29.080 --> 01:08:33.640
+Or it computes f of n
+minus 1 and f of n minus 2
+
+01:08:33.640 --> 01:08:35.067
+and takes their sum.
+
+01:08:35.067 --> 01:08:36.609
+This is an exponential
+time algorithm
+
+01:08:36.609 --> 01:08:38.660
+to compute Fibonacci numbers.
+
+01:08:38.660 --> 01:08:40.160
+I would say, don't
+run this at home,
+
+01:08:40.160 --> 01:08:42.279
+except, invariably,
+you'll run this at home.
+
+01:08:42.279 --> 01:08:45.529
+There are much faster algorithms
+to compute Fibonacci numbers.
+
+01:08:45.529 --> 01:08:48.043
+But this is good enough
+for a didactic example.
+
+01:08:48.043 --> 01:08:49.960
+We're not really worried
+about how fast can we
+
+01:08:49.960 --> 01:08:52.750
+compute fib today.
+
+01:08:52.750 --> 01:08:55.840
+Now the C code fib.c
+is even simpler
+
+01:08:55.840 --> 01:08:57.670
+than the recurrence implies.
+
+01:08:57.670 --> 01:09:00.369
+We're not even going to bother
+checking that the input value
+
+01:09:00.369 --> 01:09:02.830
+n is some non-negative value.
+
+01:09:02.830 --> 01:09:05.770
+What we're going to do is say,
+look, if n is less than 2,
+
+01:09:05.770 --> 01:09:07.569
+go ahead and return
+that value of n.
+
+01:09:07.569 --> 01:09:11.710
+Otherwise, do the
+recursive thing.
+
+01:09:11.710 --> 01:09:14.080
+We've already seen this
+go a couple of times.
+
+01:09:14.080 --> 01:09:15.189
+Everyone good so far?
+
+01:09:15.189 --> 01:09:18.096
+Any questions on
+these three lines?
+
+01:09:18.096 --> 01:09:20.390
+Great.
+
+01:09:20.390 --> 01:09:23.890
+All right, so let's
+translate fib.c into fib.ll.
+
+01:09:23.890 --> 01:09:28.538
+We've seen a lot of these
+pieces in lectures so far.
+
+01:09:28.538 --> 01:09:30.580
+And here, we've just
+rewritten fib.c a little bit
+
+01:09:30.580 --> 01:09:35.810
+to make drawing all the
+lines a little bit simpler.
+
+01:09:35.810 --> 01:09:38.130
+So here, we have the
+C code for fib.c.
+
+01:09:38.130 --> 01:09:41.950
+The corresponding LLVM
+IR looks like this.
+
+01:09:41.950 --> 01:09:46.240
+And as we could guess from
+looking at the code for fib.c,
+
+01:09:46.240 --> 01:09:49.750
+we have this
+conditional and then
+
+01:09:49.750 --> 01:09:52.240
+two different things
+that might occur based on
+
+01:09:52.240 --> 01:09:54.310
+whether or not n is less than 2.
+
+01:09:54.310 --> 01:09:57.040
+And so we end up with three
+basic blocks within the LLVM
+
+01:09:57.040 --> 01:09:58.730
+IR.
+
+01:09:58.730 --> 01:10:01.250
+The first basic block
+checks event is less than 2
+
+01:10:01.250 --> 01:10:03.800
+and then branches
+based on that result.
+
+01:10:03.800 --> 01:10:07.286
+And we've seen how all
+that works previously.
+
+01:10:07.286 --> 01:10:10.850
+If n happens to be less than
+2, then the consequent--
+
+01:10:10.850 --> 01:10:13.410
+the true case of that branch--
+
+01:10:13.410 --> 01:10:14.660
+ends up showing up at the end.
+
+01:10:14.660 --> 01:10:17.160
+And all it does is it
+returns the input value,
+
+01:10:17.160 --> 01:10:19.900
+which is stored in register 0.
+
+01:10:19.900 --> 01:10:22.810
+Otherwise, it's going
+to do some straight line
+
+01:10:22.810 --> 01:10:27.960
+code to compute fib of n
+minus 1 and fib of n minus 2.
+
+01:10:27.960 --> 01:10:31.240
+It will take those return
+values, add them together,
+
+01:10:31.240 --> 01:10:35.810
+return that result. That's
+the end Fibonacci number.
+
+01:10:35.810 --> 01:10:38.835
+So that gets us from
+C code to LLVM IR.
+
+01:10:38.835 --> 01:10:39.710
+Questions about that?
+
+01:10:45.130 --> 01:10:48.960
+All right, fib n minus 1, fib
+n minus 2, add them, return it.
+
+01:10:48.960 --> 01:10:49.760
+We're good.
+
+01:10:49.760 --> 01:10:51.500
+OK, so one last step.
+
+01:10:51.500 --> 01:10:54.920
+We want to compile LLVM IR
+all the way down to assembly.
+
+01:10:54.920 --> 01:10:58.370
+As I alluded to before,
+roughly speaking,
+
+01:10:58.370 --> 01:11:01.550
+the structure of the LLVM
+IR resembles the structure
+
+01:11:01.550 --> 01:11:02.780
+of the assembly code.
+
+01:11:02.780 --> 01:11:06.270
+There's just extra stuff
+in the assembly code.
+
+01:11:06.270 --> 01:11:09.630
+And so we're going to translate
+the LLVM IR, more or less,
+
+01:11:09.630 --> 01:11:11.960
+line by line into
+the assembly code
+
+01:11:11.960 --> 01:11:14.178
+and see where that
+extra stuff shows up.
+
+01:11:17.600 --> 01:11:19.270
+So at the beginning,
+we have a function.
+
+01:11:19.270 --> 01:11:21.220
+We were defining a function fib.
+
+01:11:21.220 --> 01:11:23.230
+And in the assembly
+code, we make
+
+01:11:23.230 --> 01:11:28.360
+sure that fib is a globally
+accessible function using
+
+01:11:28.360 --> 01:11:32.710
+some assembler directives,
+the globlfib directive.
+
+01:11:32.710 --> 01:11:34.710
+We do an alignment to
+make sure that function
+
+01:11:34.710 --> 01:11:37.830
+lies in a nice location
+in the instruction memory,
+
+01:11:37.830 --> 01:11:44.980
+and then we declare the symbol
+fib, which just defines where
+
+01:11:44.980 --> 01:11:48.600
+this function lives in memory.
+
+01:11:48.600 --> 01:11:53.380
+All right, let's take a
+look at this assembly.
+
+01:11:53.380 --> 01:11:55.330
+The next thing that
+we see here are
+
+01:11:55.330 --> 01:11:58.390
+these two instructions--
+a push queue or rbp
+
+01:11:58.390 --> 01:12:02.190
+and a movq of rsp, rbp.
+
+01:12:02.190 --> 01:12:03.506
+Who can tell me what these do?
+
+01:12:12.440 --> 01:12:13.666
+Yes?
+
+01:12:13.666 --> 01:12:15.760
+STUDENT: Push the base
+[INAUDIBLE] on the stack,
+
+01:12:15.760 --> 01:12:18.590
+then [INAUDIBLE].
+
+01:12:18.590 --> 01:12:19.340
+TAO SCHARDL: Cool.
+
+01:12:19.340 --> 01:12:23.750
+Does that sound like a familiar
+thing we described earlier
+
+01:12:23.750 --> 01:12:26.160
+in this lecture?
+
+01:12:26.160 --> 01:12:27.920
+STUDENT: the calling convention?
+
+01:12:27.920 --> 01:12:30.650
+TAO SCHARDL: Yep, it's part
+of the calling convention.
+
+01:12:30.650 --> 01:12:32.390
+This is part of the
+function prologue.
+
+01:12:32.390 --> 01:12:37.640
+Save off rpb, and then
+set rbp equal to rsp.
+
+01:12:37.640 --> 01:12:39.760
+So we already have a
+couple extra instructions
+
+01:12:39.760 --> 01:12:42.490
+that weren't in the LLVM IR,
+but must be in the assembly
+
+01:12:42.490 --> 01:12:45.040
+in order to coordinate everyone.
+
+01:12:45.040 --> 01:12:49.250
+OK, so now, we have
+these two instructions.
+
+01:12:49.250 --> 01:12:52.980
+We're now going to push a couple
+more registers onto the stack.
+
+01:12:52.980 --> 01:12:55.960
+So why does the
+assembly do this?
+
+01:12:55.960 --> 01:12:58.766
+Any guesses?
+
+01:12:58.766 --> 01:12:59.266
+Yeah?
+
+01:12:59.266 --> 01:13:00.650
+STUDENT: Callee-saved registers?
+
+01:13:00.650 --> 01:13:04.140
+TAO SCHARDL:
+Callee-saved registers--
+
+01:13:04.140 --> 01:13:07.080
+yes, callee-saved registers.
+
+01:13:07.080 --> 01:13:09.560
+The fib routing,
+we're guessing, will
+
+01:13:09.560 --> 01:13:13.100
+want to use r14 rbx
+during this calculation.
+
+01:13:13.100 --> 01:13:16.310
+And so if there are interesting
+values in those registers,
+
+01:13:16.310 --> 01:13:18.248
+save them off onto the stack.
+
+01:13:18.248 --> 01:13:19.790
+Presumably, we'll
+restore them later.
+
+01:13:22.850 --> 01:13:30.598
+Then we have this move
+instruction for rdi into rbx.
+
+01:13:30.598 --> 01:13:32.640
+This requires a little
+bit more arcane knowledge,
+
+01:13:32.640 --> 01:13:35.360
+but any guesses as
+to what this is for?
+
+01:13:42.332 --> 01:13:46.188
+STUDENT: rdi is probably the
+argument to the function.
+
+01:13:46.188 --> 01:13:48.230
+TAO SCHARDL: rdi is the
+argument to the function.
+
+01:13:48.230 --> 01:13:48.890
+Exactly.
+
+01:13:48.890 --> 01:13:50.360
+That's the arcane knowledge.
+
+01:13:50.360 --> 01:13:54.860
+So this is implicit
+from the assembly, which
+
+01:13:54.860 --> 01:14:01.300
+is why you either have to
+memorize that huge chart of GPR
+
+01:14:01.300 --> 01:14:03.860
+C linkage nonsense.
+
+01:14:03.860 --> 01:14:06.650
+But all this operation
+does is it takes whatever
+
+01:14:06.650 --> 01:14:10.170
+that argument was, and it's
+squirrels it away into the rbx
+
+01:14:10.170 --> 01:14:14.825
+register for some purpose that
+we'll find out about soon.
+
+01:14:17.730 --> 01:14:21.270
+Then we have this instruction,
+and this corresponds
+
+01:14:21.270 --> 01:14:23.730
+to the highlighted
+instruction on the left,
+
+01:14:23.730 --> 01:14:25.590
+in case that gives any hints.
+
+01:14:25.590 --> 01:14:29.200
+What does this instruction do?
+
+01:14:29.200 --> 01:14:30.118
+STUDENT: [INAUDIBLE].
+
+01:14:30.118 --> 01:14:30.910
+TAO SCHARDL: Sorry.
+
+01:14:30.910 --> 01:14:34.055
+STUDENT: It calculates whether
+n is small [INAUDIBLE]..
+
+01:14:34.055 --> 01:14:34.930
+TAO SCHARDL: Correct.
+
+01:14:34.930 --> 01:14:37.023
+It evaluates the predicate.
+
+01:14:37.023 --> 01:14:38.440
+It's just going
+to do a comparison
+
+01:14:38.440 --> 01:14:44.780
+between the value of n and
+the literal value of 2,
+
+01:14:44.780 --> 01:14:47.950
+comparing against 2.
+
+01:14:47.950 --> 01:14:50.920
+So based on the result of that
+comparison, if you recall,
+
+01:14:50.920 --> 01:14:53.950
+last lecture, the
+results of a comparison
+
+01:14:53.950 --> 01:14:58.150
+will set some bits in this
+implicit EFLAGS flags register,
+
+01:14:58.150 --> 01:15:00.220
+or RFLAGS register.
+
+01:15:00.220 --> 01:15:03.520
+And based on the
+setting of those bits,
+
+01:15:03.520 --> 01:15:07.090
+the various conditional jumps
+that occur next in the code
+
+01:15:07.090 --> 01:15:09.860
+will have varying behavior.
+
+01:15:09.860 --> 01:15:12.760
+So in case the comparison
+results to false-- if n is,
+
+01:15:12.760 --> 01:15:14.890
+in fact, greater
+than or equal to 2--
+
+01:15:14.890 --> 01:15:20.790
+then the next instruction is
+jge, will jump to the label
+
+01:15:20.790 --> 01:15:22.780
+LBB0 underscore 1.
+
+01:15:22.780 --> 01:15:25.131
+You can tell already that
+reading assembly is super-fun.
+
+01:15:28.900 --> 01:15:32.370
+Now that's a conditional jump.
+
+01:15:32.370 --> 01:15:36.840
+And it's possible that the
+setting of bits in RFLAGS
+
+01:15:36.840 --> 01:15:42.115
+doesn't evaluate true
+for that condition code.
+
+01:15:42.115 --> 01:15:44.490
+And so it's possible that the
+code will just fall through
+
+01:15:44.490 --> 01:15:47.400
+pass this jge instruction
+and, instead, execute
+
+01:15:47.400 --> 01:15:48.590
+these operations.
+
+01:15:48.590 --> 01:15:52.260
+And these operations correspond
+to the true side of the LLVM IR
+
+01:15:52.260 --> 01:15:53.430
+branch operation.
+
+01:15:53.430 --> 01:15:58.350
+When n is less than 2,
+this will move n into rax,
+
+01:15:58.350 --> 01:16:02.150
+and then jumped to
+the label LBB03.
+
+01:16:02.150 --> 01:16:04.230
+Any guesses as to why
+it moves n into our rax?
+
+01:16:11.236 --> 01:16:12.194
+Yeah?
+
+01:16:12.194 --> 01:16:14.110
+STUDENT: That's
+the return value.
+
+01:16:14.110 --> 01:16:16.510
+TAO SCHARDL: That's a
+return value-- exactly.
+
+01:16:16.510 --> 01:16:18.550
+If it can return a
+value through registers,
+
+01:16:18.550 --> 01:16:20.780
+it will return it through rax.
+
+01:16:20.780 --> 01:16:23.570
+Very good.
+
+01:16:23.570 --> 01:16:25.850
+So now, we see this label LBBO1.
+
+01:16:25.850 --> 01:16:27.590
+That's the label,
+as we saw before,
+
+01:16:27.590 --> 01:16:29.500
+for the false side
+of the LLVM branch.
+
+01:16:32.300 --> 01:16:35.700
+And the first thing in that
+label is this operation--
+
+01:16:35.700 --> 01:16:39.530
+leaq minus 1 of rbx rdi.
+
+01:16:39.530 --> 01:16:41.120
+Any guesses as to
+what that's for?
+
+01:16:41.120 --> 01:16:43.430
+The corresponding LLVM IR
+is highlighted on the left,
+
+01:16:43.430 --> 01:16:45.740
+by the way.
+
+01:16:45.740 --> 01:16:50.330
+The lea instruction means
+load-effective address.
+
+01:16:50.330 --> 01:16:53.600
+All lea does is an
+address calculation.
+
+01:16:53.600 --> 01:16:56.210
+But something that
+compilers really like to do
+
+01:16:56.210 --> 01:17:00.920
+is exploit the lea instruction
+to do simple integer arithmetic
+
+01:17:00.920 --> 01:17:04.340
+as long as that integer
+arithmetic fits with the things
+
+01:17:04.340 --> 01:17:06.980
+that lea can actually compute.
+
+01:17:06.980 --> 01:17:08.630
+And so all this
+instruction is doing
+
+01:17:08.630 --> 01:17:11.420
+is adding negative 1 to rbx.
+
+01:17:11.420 --> 01:17:15.770
+And rbx, as we recall,
+stored the input value of n.
+
+01:17:15.770 --> 01:17:17.600
+And it will store
+the result into rdi.
+
+01:17:20.970 --> 01:17:24.680
+That's all that this
+instruction does.
+
+01:17:24.680 --> 01:17:28.965
+So it computes the negative
+1, stores it into rbi.
+
+01:17:28.965 --> 01:17:30.090
+How about this instruction?
+
+01:17:30.090 --> 01:17:31.721
+This one should be easier.
+
+01:17:31.721 --> 01:17:38.104
+STUDENT: For the previous one,
+how did you get [INAUDIBLE]??
+
+01:17:38.104 --> 01:17:41.541
+I'm familiar with [INAUDIBLE]
+because [INAUDIBLE]..
+
+01:17:41.541 --> 01:17:46.105
+But is there no add
+immediate instruction in x86?
+
+01:17:46.105 --> 01:17:48.230
+TAO SCHARDL: Is there no
+add immediate instruction?
+
+01:17:48.230 --> 01:17:51.170
+So you can do an add
+instruction in x86
+
+01:17:51.170 --> 01:17:53.030
+and specify an immediate value.
+
+01:17:53.030 --> 01:17:55.220
+The advantage of
+this instruction
+
+01:17:55.220 --> 01:17:59.720
+is that you can specify a
+different destination operand.
+
+01:17:59.720 --> 01:18:02.330
+That's why compilers
+like to use it.
+
+01:18:02.330 --> 01:18:04.280
+More arcane knowledge.
+
+01:18:04.280 --> 01:18:07.100
+I don't blame you if
+this kind of thing
+
+01:18:07.100 --> 01:18:08.728
+turns you off from reading x86.
+
+01:18:08.728 --> 01:18:10.520
+It certainly turns me
+off from reading x86.
+
+01:18:13.250 --> 01:18:15.350
+So this instruction should
+be a little bit easier.
+
+01:18:15.350 --> 01:18:16.400
+Guess as to why it does?
+
+01:18:16.400 --> 01:18:18.067
+Feel free to shout
+it out, because we're
+
+01:18:18.067 --> 01:18:19.850
+running a little short on time.
+
+01:18:19.850 --> 01:18:21.110
+STUDENT: Calls a function.
+
+01:18:21.110 --> 01:18:21.720
+TAO SCHARDL: Calls a function.
+
+01:18:21.720 --> 01:18:22.130
+What function?
+
+01:18:22.130 --> 01:18:22.970
+STUDENT: Call fib.
+
+01:18:22.970 --> 01:18:24.800
+TAO SCHARDL: Call fib, exactly.
+
+01:18:24.800 --> 01:18:25.820
+Great.
+
+01:18:25.820 --> 01:18:27.380
+Then we have this
+move operation,
+
+01:18:27.380 --> 01:18:29.810
+which moves rax into r14.
+
+01:18:29.810 --> 01:18:31.192
+Any guess as to why we do this?
+
+01:18:34.390 --> 01:18:35.130
+Say it.
+
+01:18:35.130 --> 01:18:37.283
+STUDENT: Get the
+result of the call.
+
+01:18:37.283 --> 01:18:38.950
+TAO SCHARDL: Get the
+result of the call.
+
+01:18:38.950 --> 01:18:42.867
+So rax is going to store the
+return value of that call.
+
+01:18:42.867 --> 01:18:44.950
+And we're just going to
+squirrel it away into r14.
+
+01:18:44.950 --> 01:18:45.741
+Question?
+
+01:18:45.741 --> 01:18:47.938
+STUDENT: [INAUDIBLE]
+
+01:18:47.938 --> 01:18:48.730
+TAO SCHARDL: Sorry.
+
+01:18:48.730 --> 01:18:51.487
+STUDENT: It stores [INAUDIBLE]?
+
+01:18:51.487 --> 01:18:53.820
+TAO SCHARDL: It'll actually
+store the whole return value
+
+01:18:53.820 --> 01:18:55.515
+from the previous call.
+
+01:18:55.515 --> 01:18:59.838
+STUDENT: [INAUDIBLE]
+
+01:18:59.838 --> 01:19:01.630
+TAO SCHARDL: It's part
+of that result. This
+
+01:19:01.630 --> 01:19:04.090
+will be a component in
+computing the return
+
+01:19:04.090 --> 01:19:05.350
+value for this call of fib.
+
+01:19:05.350 --> 01:19:06.580
+You're exactly right.
+
+01:19:06.580 --> 01:19:09.010
+But we need to save
+off this result,
+
+01:19:09.010 --> 01:19:12.400
+because we're going to do, as
+we see, another call to fib.
+
+01:19:12.400 --> 01:19:15.740
+And that's going to clobber rax.
+
+01:19:15.740 --> 01:19:17.640
+Make sense?
+
+01:19:17.640 --> 01:19:18.890
+Cool.
+
+01:19:18.890 --> 01:19:20.990
+So rax stores the
+result of the function.
+
+01:19:20.990 --> 01:19:21.900
+Save it into r14.
+
+01:19:21.900 --> 01:19:22.400
+Great.
+
+01:19:25.550 --> 01:19:27.520
+Since we're running
+short of time,
+
+01:19:27.520 --> 01:19:29.270
+anyone want to tell
+me really quickly what
+
+01:19:29.270 --> 01:19:30.920
+these instructions do?
+
+01:19:30.920 --> 01:19:32.802
+Just a wild guess if you had to.
+
+01:19:37.562 --> 01:19:38.520
+STUDENT: N minus 2
+
+01:19:38.520 --> 01:19:40.260
+TAO SCHARDL: n minus 2.
+
+01:19:40.260 --> 01:19:42.860
+Compute n minus 2 by
+this addition operation.
+
+01:19:42.860 --> 01:19:46.250
+Stash it into rdi.
+
+01:19:46.250 --> 01:19:49.100
+And then you call
+fib on n minus 2.
+
+01:19:49.100 --> 01:19:54.740
+And that will return the results
+into rax, as we saw before.
+
+01:19:54.740 --> 01:19:55.990
+So now, we do this operation.
+
+01:19:55.990 --> 01:19:57.820
+Add r14 into rax.
+
+01:19:57.820 --> 01:19:59.962
+And this does what?
+
+01:20:03.364 --> 01:20:06.766
+STUDENT: Ends our last
+function return to what
+
+01:20:06.766 --> 01:20:08.050
+was going off this one.
+
+01:20:08.050 --> 01:20:09.670
+TAO SCHARDL: Exactly.
+
+01:20:09.670 --> 01:20:12.540
+So rax stores the result of
+the last function return.
+
+01:20:12.540 --> 01:20:14.830
+Add it into r14, which
+is where we stashed
+
+01:20:14.830 --> 01:20:17.528
+the result of fib of n minus 1.
+
+01:20:17.528 --> 01:20:18.028
+Cool.
+
+01:20:20.740 --> 01:20:25.490
+Then we have a label for
+the true side of the branch.
+
+01:20:25.490 --> 01:20:28.100
+This is the last pop
+quiz question I'll ask.
+
+01:20:28.100 --> 01:20:32.510
+Pop quiz-- God, I didn't
+even intend that one.
+
+01:20:32.510 --> 01:20:35.012
+Why do we do these
+pop operations?
+
+01:20:41.868 --> 01:20:42.410
+In the front.
+
+01:20:42.410 --> 01:20:45.360
+STUDENT: To restore the register
+before exiting the stack frame?
+
+01:20:45.360 --> 01:20:47.030
+TAO SCHARDL: Restore
+the registers
+
+01:20:47.030 --> 01:20:50.090
+before exiting the
+stack frame-- exactly.
+
+01:20:50.090 --> 01:20:51.680
+In calling convention
+terms, that's
+
+01:20:51.680 --> 01:20:53.990
+called the function epilogue.
+
+01:20:53.990 --> 01:20:56.120
+And then finally, we return.
+
+01:20:59.460 --> 01:21:02.330
+So that is how we get
+from C to assembly.
+
+01:21:02.330 --> 01:21:07.940
+This is just a summary slide
+of everything we covered today.
+
+01:21:07.940 --> 01:21:12.290
+We took the trip from C
+to assembly via LLVM IR.
+
+01:21:12.290 --> 01:21:15.860
+And we saw how we can represent
+things in a control flow graph
+
+01:21:15.860 --> 01:21:19.497
+as basic blocks connected
+by control flow edges.
+
+01:21:19.497 --> 01:21:21.080
+And then there's
+additional complexity
+
+01:21:21.080 --> 01:21:23.750
+when you get to the actual
+assembly, mostly to deal
+
+01:21:23.750 --> 01:21:25.760
+with this calling invention.
+
+01:21:25.760 --> 01:21:27.300
+That's all I have for you today.
+
+01:21:27.300 --> 01:21:29.110
+Thanks for your time.

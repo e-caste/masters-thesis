@@ -1,0 +1,317 @@
+WEBVTT
+
+1
+00:00:00.810 --> 00:00:04.360 
+We are now leaving the context of web applications and go back to more general
+
+2
+00:00:04.710 --> 00:00:05.950 
+software development again.
+
+3
+00:00:07.080 --> 00:00:10.760 
+There is one topic left which i'd like to talk about which is caching.
+
+4
+00:00:11.330 --> 00:00:14.280 
+Caching can tremendously improve performance and therefore
+
+5
+00:00:14.320 --> 00:00:16.130 
+also efficiency of your programs.
+
+6
+00:00:18.030 --> 00:00:21.720 
+According to this definition a cache is a high speed data storage layer
+
+7
+00:00:21.990 --> 00:00:25.480 
+which stores a subset of data, typically transient in nature
+
+8
+00:00:25.790 --> 00:00:28.750 
+so that future requests for the data are served up faster.
+
+9
+00:00:29.410 --> 00:00:32.760 
+Caching allows you to efficiently re-use previously retrieved
+
+10
+00:00:32.770 --> 00:00:34.090 
+or recomputed data.
+
+11
+00:00:36.700 --> 00:00:40.930 
+The purpose of caching is to temporarily keep data in a quickly accessible storage.
+
+12
+00:00:41.250 --> 00:00:44.140 
+To either not have to recompute or re- download it again.
+
+13
+00:00:44.780 --> 00:00:48.170 
+Because remember memory is usually cheaper than computation.
+
+14
+00:00:49.240 --> 00:00:52.590 
+Caching now can happen on various different levels, for instance
+
+15
+00:00:52.880 --> 00:00:56.670 
+as I mentioned earlier resources on the web can be cached inside the browser
+
+16
+00:00:57.140 --> 00:01:00.780 
+and also caching can happen on a more low level in code for
+
+17
+00:01:00.780 --> 00:01:02.300 
+instance as part of an algorithm.
+
+18
+00:01:03.150 --> 00:01:06.980 
+A requirement for being able to use a cache is that the cache data
+
+19
+00:01:07.110 --> 00:01:09.350 
+either doesn't change during the lifetime of the cache
+
+20
+00:01:09.810 --> 00:01:12.470 
+or you are just not interested in the change of the data.
+
+21
+00:01:15.740 --> 00:01:19.610 
+Oftentimes you will face a trade-off between speed and up to
+
+22
+00:01:19.610 --> 00:01:22.640 
+dateness of data. Let me give you an example/.
+
+23
+00:01:23.410 --> 00:01:27.660 
+Say you want to develop an application that checks for the current outside temperature
+
+24
+00:01:28.020 --> 00:01:31.790 
+by requesting different weather services or external external sensors,
+
+25
+00:01:32.260 --> 00:01:34.920 
+and just averaging their reported temperature values.
+
+26
+00:01:36.070 --> 00:01:40.390 
+So each time you open the application a multitude of outgoing requests is made,
+
+27
+00:01:40.710 --> 00:01:44.260 
+plus some calculations are performed for averaging the data.
+
+28
+00:01:44.830 --> 00:01:46.320 
+This can become quite costly.
+
+29
+00:01:47.010 --> 00:01:51.380 
+If you now accept the temperature value to be slightly outdated for instance only
+
+30
+00:01:51.900 --> 00:01:56.230 
+accurate by thirty minutes since it is not expected to change so much anyway
+
+31
+00:01:56.620 --> 00:01:59.830 
+then you could just cache the value and save a lot of resources.
+
+32
+00:02:00.580 --> 00:02:04.250 
+So opening the application ten times in a row would only result
+
+33
+00:02:04.250 --> 00:02:06.770 
+in one expensive computation instead of ten.
+
+34
+00:02:10.020 --> 00:02:13.220 
+Here you can see two sequence diagrams of how it might look
+
+35
+00:02:13.220 --> 00:02:16.670 
+like to run the application a second time shortly after the first run.
+
+36
+00:02:17.460 --> 00:02:21.240 
+And as you can see it things are much faster with cache and
+
+37
+00:02:21.500 --> 00:02:25.100 
+the external services or sensors are not being bothered at all.
+
+38
+00:02:28.270 --> 00:02:32.450 
+To give you some actual code, here is an exemplary and slightly simplified
+
+39
+00:02:32.690 --> 00:02:34.660 
+implementation of our weather application.
+
+40
+00:02:35.250 --> 00:02:38.890 
+Don't worry you don't have to understand it in detail, I just want to demonstrate
+
+41
+00:02:39.040 --> 00:02:41.320 
+how easily caching can be added to a program.
+
+42
+00:02:42.790 --> 00:02:48.450 
+So firstly we have two methods. One for requesting the outside temperature by
+
+43
+00:02:48.780 --> 00:02:51.610 
+making calls to external services and sensors,
+
+44
+00:02:52.110 --> 00:02:55.530 
+and another one that takes a list of temperature values as an input,
+
+45
+00:02:56.110 --> 00:03:00.190 
+and simply returns their average as an output.
+
+46
+00:03:01.450 --> 00:03:04.990 
+The magic basically happens here inside this main method which is called run,
+
+47
+00:03:05.440 --> 00:03:07.430 
+but first let's jump to the very top again
+
+48
+00:03:07.980 --> 00:03:09.330 
+where the cache is defined.
+
+49
+00:03:09.970 --> 00:03:15.010 
+Here in line five the cache is defined as just a simple Python dictionary
+
+50
+00:03:15.610 --> 00:03:17.810 
+which is a mapping from keys to values.
+
+51
+00:03:18.510 --> 00:03:22.560 
+In this case the key will be the name of the location to
+
+52
+00:03:22.560 --> 00:03:26.180 
+request the temperature for and the value is a tuple.
+
+53
+00:03:27.090 --> 00:03:31.290 
+The tuple will contain obviously the temperature value itself
+
+54
+00:03:31.640 --> 00:03:34.860 
+and also a timestamp of when the temperature value was retrieved
+
+55
+00:03:35.420 --> 00:03:38.240 
+which is then later used for invalidating the cache.
+
+56
+00:03:39.580 --> 00:03:41.740 
+Okay let's now go to this run method,
+
+57
+00:03:42.520 --> 00:03:46.390 
+which takes a location as an input and this can for instance be
+
+58
+00:03:46.790 --> 00:03:48.190 
+the name of the city of Berlin
+
+59
+00:03:49.790 --> 00:03:50.910 
+and then it goes ahead.
+
+60
+00:03:53.100 --> 00:03:57.410 
+First it checks whether this location is already present in the cache,
+
+61
+00:03:57.900 --> 00:04:00.520 
+and whether the cache value is not yet outdated,
+
+62
+00:04:01.360 --> 00:04:05.350 
+and if yes if this is true the cache value is just returned.
+
+63
+00:04:05.710 --> 00:04:08.370 
+And the external services are not being bothered at all.
+
+64
+00:04:09.150 --> 00:04:12.430 
+If no cache value is present then we are going through this
+
+65
+00:04:12.430 --> 00:04:16.060 
+procedure of requesting the external services or sensors,
+
+66
+00:04:16.870 --> 00:04:18.300 
+and then averaging their data.
+
+67
+00:04:19.790 --> 00:04:23.360 
+Lastly this newly computed value is added to a cache
+
+68
+00:04:24.050 --> 00:04:25.960 
+to our cache which we defined previously
+
+69
+00:04:26.530 --> 00:04:27.610 
+and the value is returned.
+
+70
+00:04:28.450 --> 00:04:32.270 
+So this is how you can very easily and in a simplified form
+
+71
+00:04:32.420 --> 00:04:33.910 
+add caching to your program.
+
+72
+00:04:35.710 --> 00:04:38.870 
+Because similar to this example you're going to add simple
+
+73
+00:04:38.870 --> 00:04:41.950 
+caching to your program yourself in the coding exercise.
+
+74
+00:04:43.140 --> 00:04:46.890 
+The take away here is always question yourself. How up to date
+
+75
+00:04:46.900 --> 00:04:48.160 
+do I need my data to be.
+
+76
+00:04:49.470 --> 00:04:53.790 
+Can't I just cache my results or any intermediate results instead
+
+77
+00:04:53.790 --> 00:04:55.530 
+of free computing or downloading them?
+
+78
+00:04:56.470 --> 00:05:00.370 
+Because caching can speed up applications potentially even
+
+79
+00:05:00.370 --> 00:05:01.570 
+by orders of magnitude.

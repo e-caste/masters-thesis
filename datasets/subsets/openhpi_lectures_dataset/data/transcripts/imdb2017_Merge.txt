@@ -1,0 +1,698 @@
+WEBVTT
+
+1
+00:00:00.400 --> 00:00:03.700 
+Then I have something
+I kindly ask you
+
+2
+00:00:03.700 --> 00:00:07.110 
+to walk through yourself because
+it's like a movie and I can not
+
+3
+00:00:07.110 --> 00:00:10.140 
+flip it fast enough that
+we understand how the
+
+4
+00:00:10.140 --> 00:00:15.190 
+merge works. We learned that insert
+and updates go into a differential
+
+5
+00:00:15.190 --> 00:00:20.240 
+buffer first. The
+read operations
+
+6
+00:00:20.240 --> 00:00:23.270 
+on the differential buffer are
+a little bit more expensive than
+
+7
+00:00:23.270 --> 00:00:28.320 
+on the main store and the
+dictionary is unsorted
+
+8
+00:00:28.320 --> 00:00:32.360 
+there. If we update a
+tuple, then the out dated
+
+9
+00:00:32.360 --> 00:00:36.400 
+tuples in the main store is
+invalidated, we talked about this
+
+10
+00:00:36.400 --> 00:00:41.450 
+and to improve
+the performance
+
+11
+00:00:41.450 --> 00:00:45.490 
+the differential buffer needs
+to be merged periodically into
+
+12
+00:00:45.490 --> 00:00:48.520 
+the main store. When
+does that happen?
+
+13
+00:00:49.530 --> 00:00:53.570 
+This is triggered by
+the amount of tuples
+
+14
+00:00:53.570 --> 00:00:55.590 
+in the buffer and a
+cost model so there are
+
+15
+00:00:55.590 --> 00:00:58.620 
+simple cost models
+when it makes sense to
+
+16
+00:00:58.620 --> 00:01:04.680 
+move the delta into
+the main and then
+
+17
+00:01:05.690 --> 00:01:09.730 
+we have an operation, a
+process we start which
+
+18
+00:01:10.740 --> 00:01:14.780 
+starts with prepare merge
+than we do it attribute merge
+
+19
+00:01:14.780 --> 00:01:19.830 
+and then we commit the merge,
+but the operation has to continue
+
+20
+00:01:19.830 --> 00:01:21.850 
+the whole time. This
+is what we see here
+
+21
+00:01:22.860 --> 00:01:25.890 
+on this picture. This is
+how the system looks like
+
+22
+00:01:26.900 --> 00:01:28.920 
+main store differential
+buffer. The
+
+23
+00:01:29.930 --> 00:01:34.980 
+main store was created at
+previous time and since,
+
+24
+00:01:34.980 --> 00:01:39.103 
+ever since all new inserts or
+updates with insert-only went
+
+25
+00:01:39.103 --> 00:01:43.107 
+into the differential
+buffer. Now we start
+
+26
+00:01:43.107 --> 00:01:47.111 
+a prepare, from
+this moment on
+
+27
+00:01:48.112 --> 00:01:54.118 
+we do not put the new
+inserts or the insert-only
+
+28
+00:01:54.118 --> 00:01:57.121 
+updates in this
+differential buffer.
+
+29
+00:01:58.122 --> 00:02:01.125 
+We have a new differential
+buffer so the ongoing
+
+30
+00:02:02.126 --> 00:02:06.130 
+activity of the system goes
+into this new differential
+
+31
+00:02:06.130 --> 00:02:10.134 
+buffer but we use the main
+store, the old differential
+
+32
+00:02:10.134 --> 00:02:13.137 
+buffer and the new differential
+buffer simultaneously,
+
+33
+00:02:13.137 --> 00:02:16.140 
+this is what obviously
+some people think is
+
+34
+00:02:16.140 --> 00:02:19.143 
+are a little bit more complicated
+and always want to get rid
+
+35
+00:02:19.143 --> 00:02:21.145 
+of but
+
+36
+00:02:23.147 --> 00:02:27.151 
+I think it is a very good concept
+and obviously totally superior
+
+37
+00:02:27.151 --> 00:02:30.154 
+to others who didn't do it
+with the differential buffer.
+
+38
+00:02:31.155 --> 00:02:35.159 
+So basically main
+store and differential
+
+39
+00:02:35.159 --> 00:02:39.163 
+buffer are now fixed,
+I have space for a new
+
+40
+00:02:39.163 --> 00:02:44.168 
+main store, we want to merge
+these two into this new main store
+
+41
+00:02:44.168 --> 00:02:47.171 
+and then we start with
+this main store and this
+
+42
+00:02:48.172 --> 00:02:51.175 
+differential
+buffer, new.
+
+43
+00:02:51.175 --> 00:02:54.178 
+And you will see
+with the concept
+
+44
+00:02:54.178 --> 00:02:57.181 
+of the sorted dictionary
+
+45
+00:02:58.182 --> 00:03:01.185 
+every, every area has
+its own dictionary.
+
+46
+00:03:01.185 --> 00:03:04.188 
+This main storage
+has a sorted
+
+47
+00:03:04.188 --> 00:03:07.191 
+dictionary, this has an unsorted
+dictionary, this will have
+
+48
+00:03:07.191 --> 00:03:10.194 
+a sorted dictionary again, this
+is an unsorted dictionary and
+
+49
+00:03:10.194 --> 00:03:15.199 
+the dictionaries
+are different.
+
+50
+00:03:16.200 --> 00:03:20.204 
+So in the first step the system
+has to, the merge has to check
+
+51
+00:03:21.205 --> 00:03:24.208 
+whether the entries
+are still valid
+
+52
+00:03:25.209 --> 00:03:29.213 
+because with the merge operation
+we also have to merge from
+
+53
+00:03:29.213 --> 00:03:33.217 
+the main and the
+delta updated stuff,
+
+54
+00:03:33.217 --> 00:03:36.220 
+old stuff, invalidated
+stuff into the history.
+
+55
+00:03:38.222 --> 00:03:41.225 
+Then we have to merge
+the main and differential
+
+56
+00:03:41.225 --> 00:03:45.229 
+buffer dictionaries because the
+dictionaries are not the same
+
+57
+00:03:45.229 --> 00:03:46.230 
+and this is
+
+58
+00:03:49.233 --> 00:03:52.236 
+not complicated but it is an
+operation which has to take place.
+
+59
+00:03:53.237 --> 00:03:57.241 
+Then we can
+get a mapping,
+
+60
+00:03:57.241 --> 00:04:02.246 
+basically a translation table,
+all old IDs in to new IDs
+
+61
+00:04:02.246 --> 00:04:06.250 
+if the ID has changed. Then
+we create a new main column.
+
+62
+00:04:07.251 --> 00:04:14.258 
+If there is a change
+and we have new data,
+
+63
+00:04:16.260 --> 00:04:20.264 
+if there is a change in
+the dictionary and then
+
+64
+00:04:20.264 --> 00:04:25.269 
+we rewrite the main store
+column attribute vector.
+
+65
+00:04:25.269 --> 00:04:32.276 
+We have to
+
+66
+00:04:32.276 --> 00:04:37.281 
+recreate it probably because
+the bit value range extended.
+
+67
+00:04:37.281 --> 00:04:42.286 
+We have the great idea in our
+little example that gender
+
+68
+00:04:42.286 --> 00:04:45.289 
+is not only male and female
+but we get a few other genders
+
+69
+00:04:46.290 --> 00:04:49.293 
+then we can't do this
+in one bit anymore so we
+
+70
+00:04:49.293 --> 00:04:53.297 
+need probably four bits
+and then we have to sort
+
+71
+00:04:53.297 --> 00:04:58.302 
+the changed dictionary
+values. The example
+
+72
+00:04:58.302 --> 00:05:03.307 
+is very very small, one we
+start with three people just how
+
+73
+00:05:03.307 --> 00:05:06.310 
+to read this.
+This is actually,
+
+74
+00:05:06.310 --> 00:05:10.314 
+for simplicity we use
+the same value ID,
+
+75
+00:05:10.314 --> 00:05:14.318 
+are for actually two different
+parts of the dictionary.
+
+76
+00:05:14.318 --> 00:05:20.324 
+It took me some time if you
+put in here zero, one, two.
+
+77
+00:05:23.327 --> 00:05:27.331 
+It will be easier to understand
+because this has nothing
+
+78
+00:05:27.331 --> 00:05:30.334 
+to do, Albert and Berlin have
+nothing to do with each other. It
+
+79
+00:05:30.334 --> 00:05:34.338 
+is only in the relative first
+position in the dictionary
+
+80
+00:05:34.338 --> 00:05:37.341 
+Albert in the first name
+dictionary and Berlin
+
+81
+00:05:38.342 --> 00:05:42.346 
+in the city dictionary
+and these are the real
+
+82
+00:05:42.346 --> 00:05:47.351 
+people, so we have in
+the attribute vector
+
+83
+00:05:47.351 --> 00:05:53.357 
+Nadja from Berlin
+and we have Michael
+
+84
+00:05:53.357 --> 00:05:58.362 
+from London and this
+is how you have to
+
+85
+00:05:58.362 --> 00:06:02.366 
+interpret this. Then
+Michael moves from London
+
+86
+00:06:02.366 --> 00:06:06.370 
+to Berlin, then
+the Michael gets
+
+87
+00:06:06.370 --> 00:06:12.376 
+in the validity vector in-valid.
+In reality there is a time
+
+88
+00:06:12.376 --> 00:06:18.382 
+stamp, it is now
+not valid any more
+
+89
+00:06:19.383 --> 00:06:21.385 
+and in the
+differential buffer
+
+90
+00:06:21.385 --> 00:06:24.388 
+we have now, in the
+dictionary, a new zero
+
+91
+00:06:27.391 --> 00:06:30.394 
+because we have a new entry,
+it was empty at the beginning.
+
+92
+00:06:30.394 --> 00:06:36.400 
+Michael and Berlin with
+zero zero and though we work
+
+93
+00:06:36.400 --> 00:06:39.403 
+now through step by
+step by step by step
+
+94
+00:06:39.403 --> 00:06:43.407 
+and I kindly ask you, you do
+this one time probably you do it
+
+95
+00:06:43.407 --> 00:06:47.411 
+with two together so
+they don't fall asleep.
+
+96
+00:06:48.412 --> 00:06:52.416 
+The interesting thing
+is that you then realize
+
+97
+00:06:52.416 --> 00:06:56.420 
+when we have to combine
+dictionaries, the dictionary from
+
+98
+00:06:56.420 --> 00:06:59.423 
+the main and the dictionary
+from the delta, that
+
+99
+00:06:59.423 --> 00:07:02.426 
+we have to do a
+translation of the valueID.
+
+100
+00:07:04.428 --> 00:07:07.431 
+Because the valueIDs,
+the new dictionary
+
+101
+00:07:07.431 --> 00:07:12.436 
+which will be a sorted one again,
+requests that the valueID changes.
+
+102
+00:07:13.437 --> 00:07:18.442 
+This is the relatively
+expensive part of this concept.
+
+103
+00:07:19.443 --> 00:07:24.448 
+But since that happens
+only maximum once a day
+
+104
+00:07:24.448 --> 00:07:29.453 
+and the system can continue to
+operate while this is happening,
+
+105
+00:07:30.454 --> 00:07:34.458 
+it has not created
+any problem
+
+106
+00:07:34.458 --> 00:07:36.460 
+up to date, people don't
+know that this is happening.
+
+107
+00:07:36.460 --> 00:07:41.465 
+Then it continues, we
+create the new dictionary,
+
+108
+00:07:41.465 --> 00:07:46.470 
+we combined the dictionaries
+and now we have to
+
+109
+00:07:46.470 --> 00:07:51.475 
+translate the vectors. We have
+the mappings, old main, new
+
+110
+00:07:51.475 --> 00:07:57.481 
+main and then
+we do this for
+
+111
+00:07:57.481 --> 00:08:01.485 
+the delta and we do this for
+the main so that both get
+
+112
+00:08:01.485 --> 00:08:05.489 
+a new dictionary. Then we can
+combine the main data and the
+
+113
+00:08:05.489 --> 00:08:09.493 
+dictionary data and when
+we have done all this
+
+114
+00:08:10.494 --> 00:08:13.497 
+step by step by step.
+
+115
+00:08:17.501 --> 00:08:20.504 
+Is that great that you
+have copy and paste?
+
+116
+00:08:21.505 --> 00:08:26.510 
+Yeah but it's
+good so finally
+
+117
+00:08:26.510 --> 00:08:32.516 
+it becomes so now we have a
+translated attribute vector now
+
+118
+00:08:32.516 --> 00:08:35.519 
+we translate
+every single one.
+
+119
+00:08:38.522 --> 00:08:43.527 
+What? Oh and this
+
+120
+00:08:43.527 --> 00:08:47.531 
+is the end and there's
+only one thing missing.
+
+121
+00:08:47.531 --> 00:08:50.534 
+You have now also
+
+122
+00:08:51.535 --> 00:08:54.538 
+translated the invalid,
+the three invalid
+
+123
+00:08:54.538 --> 00:08:59.543 
+ones which go now to the history
+and now he has to do another
+
+124
+00:08:59.543 --> 00:09:02.546 
+job, he has to update the
+history because the history
+
+125
+00:09:02.546 --> 00:09:06.550 
+shares the same dictionary
+with the main and he
+
+126
+00:09:06.550 --> 00:09:08.552 
+has to get the
+new dictionary
+
+127
+00:09:10.554 --> 00:09:14.558 
+because something comes into
+the... - it doesn't share,
+
+128
+00:09:14.558 --> 00:09:17.561 
+it has its own. I said
+probably something which is not
+
+129
+00:09:17.561 --> 00:09:21.565 
+right. Who knows whether
+history has its own dictionary?
+
+130
+00:09:25.569 --> 00:09:28.572 
+Then the dictionary of the
+history has to be changed
+
+131
+00:09:28.572 --> 00:09:33.577 
+when invalid tuples
+go to the history.
+
+132
+00:09:35.579 --> 00:09:37.581 
+So the first half of
+the sentence was right,
+
+133
+00:09:37.581 --> 00:09:40.584 
+these guys, the grey guys,
+go to the history and
+
+134
+00:09:41.585 --> 00:09:43.587 
+the history, before they
+can go to the history,
+
+135
+00:09:44.588 --> 00:09:48.592 
+has also to be
+changed to the
+
+136
+00:09:49.593 --> 00:09:50.594 
+new dictionary.
+
+137
+00:09:52.596 --> 00:09:56.600 
+Ok these were, this was the
+old the explanation of this and
+
+138
+00:09:57.601 --> 00:10:01.605 
+actually I stumble every time
+when I see this once a year.
+
+139
+00:10:01.605 --> 00:10:04.608 
+It was a little
+bit too complicated
+
+140
+00:10:06.610 --> 00:10:08.612 
+how this works and
+therefore we skip it so
+
+141
+00:10:08.612 --> 00:10:13.617 
+please walk once through it then
+you know how the merge works.

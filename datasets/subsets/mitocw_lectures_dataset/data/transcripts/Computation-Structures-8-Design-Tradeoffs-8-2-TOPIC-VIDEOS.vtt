@@ -1,0 +1,936 @@
+WEBVTT
+
+00:00:00.500 --> 00:00:03.410
+In this final chapter, we’re
+going to look into optimizing
+
+00:00:03.410 --> 00:00:06.380
+digital systems to make
+them smaller, faster,
+
+00:00:06.380 --> 00:00:10.650
+higher performance, more
+energy efficient, and so on.
+
+00:00:10.650 --> 00:00:12.200
+It would be
+wonderful if we could
+
+00:00:12.200 --> 00:00:15.670
+achieve all these goals at the
+same time and for some circuits
+
+00:00:15.670 --> 00:00:16.930
+we can.
+
+00:00:16.930 --> 00:00:20.130
+But, in general,
+optimizing in one dimension
+
+00:00:20.130 --> 00:00:23.200
+usually means doing
+less well in another.
+
+00:00:23.200 --> 00:00:27.710
+In other words, there are
+design tradeoffs to be made.
+
+00:00:27.710 --> 00:00:29.710
+Making tradeoffs
+correctly requires
+
+00:00:29.710 --> 00:00:32.200
+that we have a clear
+understanding of our design
+
+00:00:32.200 --> 00:00:33.930
+goals for the system.
+
+00:00:33.930 --> 00:00:36.300
+Consider two different
+design teams:
+
+00:00:36.300 --> 00:00:38.700
+one is charged with
+building a high-end graphics
+
+00:00:38.700 --> 00:00:43.510
+card for gaming, the other
+with building the Apple watch.
+
+00:00:43.510 --> 00:00:45.210
+The team building
+the graphics card
+
+00:00:45.210 --> 00:00:47.000
+is mostly concerned
+with performance
+
+00:00:47.000 --> 00:00:49.990
+and, within limits, is willing
+to trade-off cost and power
+
+00:00:49.990 --> 00:00:53.450
+consumption to achieve
+their performance goals.
+
+00:00:53.450 --> 00:00:56.940
+Graphics cards have a set size,
+so there’s a high priority
+
+00:00:56.940 --> 00:00:59.450
+in making the system small
+enough to meet the required
+
+00:00:59.450 --> 00:01:02.830
+size, but there’s little to
+be gained in making it smaller
+
+00:01:02.830 --> 00:01:04.890
+than that.
+
+00:01:04.890 --> 00:01:08.320
+The team building the watch
+has very different goals.
+
+00:01:08.320 --> 00:01:11.620
+Size and power consumption
+are critical since it has fit
+
+00:01:11.620 --> 00:01:15.060
+on a wrist and run all day
+without leaving scorch marks
+
+00:01:15.060 --> 00:01:17.700
+on the wearer’s wrist!
+
+00:01:17.700 --> 00:01:20.310
+Suppose both teams are
+thinking about pipelining
+
+00:01:20.310 --> 00:01:23.310
+part of their logic for
+increased performance.
+
+00:01:23.310 --> 00:01:26.800
+Pipelining registers are
+an obvious additional cost.
+
+00:01:26.800 --> 00:01:29.140
+The overlapped execution
+and higher t_CLK
+
+00:01:29.140 --> 00:01:31.040
+made possible by
+pipelining would
+
+00:01:31.040 --> 00:01:33.380
+increase the power
+consumption and the need
+
+00:01:33.380 --> 00:01:35.920
+to dissipate that power somehow.
+
+00:01:35.920 --> 00:01:37.650
+You can imagine
+the two teams might
+
+00:01:37.650 --> 00:01:39.450
+come to very
+different conclusions
+
+00:01:39.450 --> 00:01:42.640
+about the correct
+course of action!
+
+00:01:42.640 --> 00:01:46.000
+This chapter takes a look at
+some of the possible tradeoffs.
+
+00:01:46.000 --> 00:01:49.800
+But as designers you’ll have to
+pick and choose which tradeoffs
+
+00:01:49.800 --> 00:01:51.660
+are right for your design.
+
+00:01:51.660 --> 00:01:53.330
+This is the sort
+of design challenge
+
+00:01:53.330 --> 00:01:55.970
+on which good engineers thrive!
+
+00:01:55.970 --> 00:01:58.400
+Nothing is more satisfying
+than delivering more
+
+00:01:58.400 --> 00:02:01.100
+than anyone thought possible
+within the specified
+
+00:02:01.100 --> 00:02:02.790
+constraints.
+
+00:02:02.790 --> 00:02:05.840
+Our first optimization
+topic is power dissipation,
+
+00:02:05.840 --> 00:02:08.820
+where the usual goal is to
+either meet a certain power
+
+00:02:08.820 --> 00:02:11.950
+budget, or to minimize power
+consumption while meeting
+
+00:02:11.950 --> 00:02:14.440
+all the other design targets.
+
+00:02:14.440 --> 00:02:16.630
+In CMOS circuits, there
+are several sources
+
+00:02:16.630 --> 00:02:21.120
+of power dissipation, some
+under our control, some not.
+
+00:02:21.120 --> 00:02:23.540
+Static power
+dissipation is power
+
+00:02:23.540 --> 00:02:26.090
+that is consumed even
+when the circuit is idle,
+
+00:02:26.090 --> 00:02:29.520
+i.e., no nodes are
+changing value.
+
+00:02:29.520 --> 00:02:32.750
+Using our simple switch model
+for the operation of MOSFETs,
+
+00:02:32.750 --> 00:02:35.860
+we’d expect CMOS circuits
+to have zero static power
+
+00:02:35.860 --> 00:02:37.200
+dissipation.
+
+00:02:37.200 --> 00:02:39.190
+And in the early
+days of CMOS, we
+
+00:02:39.190 --> 00:02:42.180
+came pretty close to
+meeting that ideal.
+
+00:02:42.180 --> 00:02:45.090
+But as the physical dimensions
+of the MOSFET have shrunk
+
+00:02:45.090 --> 00:02:47.530
+and the operating voltages
+have been lowered,
+
+00:02:47.530 --> 00:02:51.000
+there are two sources of static
+power dissipation in MOSFETs
+
+00:02:51.000 --> 00:02:54.130
+that have begun to loom large.
+
+00:02:54.130 --> 00:02:56.530
+We’ll discuss the effects
+as they appear in n-channel
+
+00:02:56.530 --> 00:02:59.650
+MOSFETs, but keep in mind
+that they appear in p-channel
+
+00:02:59.650 --> 00:03:02.240
+MOSFETs too.
+
+00:03:02.240 --> 00:03:05.280
+The first effect depends on the
+thickness of the MOSFET’s gate
+
+00:03:05.280 --> 00:03:09.320
+oxide, shown as the thin yellow
+layer in the MOSFET diagram
+
+00:03:09.320 --> 00:03:11.080
+on the left.
+
+00:03:11.080 --> 00:03:14.790
+In each new generation of
+integrated circuit technology,
+
+00:03:14.790 --> 00:03:16.990
+the thickness of this
+layer has shrunk,
+
+00:03:16.990 --> 00:03:21.720
+as part of the general reduction
+in all the physical dimensions.
+
+00:03:21.720 --> 00:03:23.340
+The thinner
+insulating layer means
+
+00:03:23.340 --> 00:03:26.210
+stronger electrical fields
+that cause a deeper inversion
+
+00:03:26.210 --> 00:03:29.930
+layer that leads to NFETs that
+carry more current, producing
+
+00:03:29.930 --> 00:03:32.270
+faster gate speeds.
+
+00:03:32.270 --> 00:03:34.310
+Unfortunately the layers
+are now thin enough
+
+00:03:34.310 --> 00:03:36.800
+that electrons can tunnel
+through the insulator,
+
+00:03:36.800 --> 00:03:41.110
+creating a small flow of current
+from the gate to the substrate.
+
+00:03:41.110 --> 00:03:43.380
+With billions of NFETs
+in a single circuit,
+
+00:03:43.380 --> 00:03:48.180
+even tiny currents can add up
+to non-negligible power drain.
+
+00:03:48.180 --> 00:03:50.320
+The second effect is
+caused by current flowing
+
+00:03:50.320 --> 00:03:52.950
+between the drain and
+source of a NFET that
+
+00:03:52.950 --> 00:03:56.800
+is, in theory, not conducting
+because V_GS is less
+
+00:03:56.800 --> 00:03:59.250
+than the threshold voltage.
+
+00:03:59.250 --> 00:04:02.620
+Appropriately this effect is
+called sub-threshold conduction
+
+00:04:02.620 --> 00:04:05.580
+and is exponentially
+related to V_GS -
+
+00:04:05.580 --> 00:04:09.740
+V_TH (a negative value
+when the NFET is off).
+
+00:04:09.740 --> 00:04:13.010
+So as V_TH has been reduced
+in each new generation
+
+00:04:13.010 --> 00:04:17.269
+of technology, V_GS -
+V_TH is less negative
+
+00:04:17.269 --> 00:04:21.019
+and the sub-threshold
+conduction has increased.
+
+00:04:21.019 --> 00:04:23.810
+One fix has been to change
+the geometry of the NFET
+
+00:04:23.810 --> 00:04:27.680
+so the conducting channel is a
+tall, narrow fin with the gate
+
+00:04:27.680 --> 00:04:30.760
+terminal wrapped around 3
+sides, sometimes referred
+
+00:04:30.760 --> 00:04:33.660
+to as a tri-gate configuration.
+
+00:04:33.660 --> 00:04:35.820
+This has reduced the
+sub-threshold conduction
+
+00:04:35.820 --> 00:04:37.640
+by an order-of-magnitude
+or more,
+
+00:04:37.640 --> 00:04:41.242
+solving this particular
+problem for now.
+
+00:04:41.242 --> 00:04:43.700
+Neither of these effects is
+under the control of the system
+
+00:04:43.700 --> 00:04:46.740
+designer, except of course, if
+they’re free to choose an older
+
+00:04:46.740 --> 00:04:49.020
+manufacturing process!
+
+00:04:49.020 --> 00:04:51.480
+We mention them here so
+that you’re aware that newer
+
+00:04:51.480 --> 00:04:54.800
+technologies often bring
+additional costs that then
+
+00:04:54.800 --> 00:04:57.880
+become part of the
+trade-off process.
+
+00:04:57.880 --> 00:05:00.710
+A designer does have some
+control over the dynamic power
+
+00:05:00.710 --> 00:05:03.170
+dissipation of the circuit,
+the amount of power
+
+00:05:03.170 --> 00:05:05.300
+spent causing nodes
+to change value
+
+00:05:05.300 --> 00:05:07.450
+during a sequence
+of computations.
+
+00:05:07.450 --> 00:05:11.030
+Each time a node changes
+from 0-to-1 or 1-to-0,
+
+00:05:11.030 --> 00:05:14.780
+currents flow through the MOSFET
+pullup and pulldown networks,
+
+00:05:14.780 --> 00:05:18.340
+charging and discharging the
+output node’s capacitance
+
+00:05:18.340 --> 00:05:20.600
+and thus changing its voltage.
+
+00:05:20.600 --> 00:05:22.950
+Consider the operation
+of an inverter.
+
+00:05:22.950 --> 00:05:25.230
+As the voltage of
+the input changes,
+
+00:05:25.230 --> 00:05:28.470
+the pullup and pulldown
+networks turn on and off,
+
+00:05:28.470 --> 00:05:32.500
+connecting the inverter’s
+output node to VDD or ground.
+
+00:05:32.500 --> 00:05:35.600
+This charges or discharges
+the capacitance of the output
+
+00:05:35.600 --> 00:05:37.430
+node changing its voltage.
+
+00:05:37.430 --> 00:05:39.680
+We can compute the
+energy dissipated
+
+00:05:39.680 --> 00:05:42.640
+by integrating the
+instantaneous power associated
+
+00:05:42.640 --> 00:05:46.210
+with the current flow into
+and out of the capacitor
+
+00:05:46.210 --> 00:05:50.640
+times the voltage across the
+capacitor over the time taken
+
+00:05:50.640 --> 00:05:52.610
+by the output transition.
+
+00:05:52.610 --> 00:05:54.620
+The instantaneous
+power dissipated
+
+00:05:54.620 --> 00:05:56.940
+across the resistance
+of the MOSFET channel
+
+00:05:56.940 --> 00:05:58.970
+is simply I_DS times V_DS.
+
+00:05:58.970 --> 00:06:02.840
+Here’s the power calculation
+using the energy integral
+
+00:06:02.840 --> 00:06:05.580
+for the 1-to-0 transition
+of the output node,
+
+00:06:05.580 --> 00:06:09.250
+where we’re measuring I_DS using
+the equation for the current
+
+00:06:09.250 --> 00:06:14.480
+flowing out of the output
+node’s capacitor: I = C dV/dt.
+
+00:06:14.480 --> 00:06:17.980
+Assuming that the input signal
+is a clock signal of period
+
+00:06:17.980 --> 00:06:22.080
+t_CLK and that each transition
+is taking half a clock cycle,
+
+00:06:22.080 --> 00:06:25.260
+we can work through the math to
+determine that power dissipated
+
+00:06:25.260 --> 00:06:29.590
+through the pulldown
+network is 0.5 f C VDD^2,
+
+00:06:29.590 --> 00:06:32.490
+where the frequency
+f tells us the number
+
+00:06:32.490 --> 00:06:34.570
+of such transitions per second,
+
+00:06:34.570 --> 00:06:39.140
+C is the nodal capacitance, and
+VDD (the power supply voltage)
+
+00:06:39.140 --> 00:06:42.230
+is the starting voltage
+of the nodal capacitor.
+
+00:06:42.230 --> 00:06:44.610
+There’s a similar integral
+for the current dissipated
+
+00:06:44.610 --> 00:06:47.890
+by the pullup network when
+charging the capacitor and it
+
+00:06:47.890 --> 00:06:49.700
+yields the same result.
+
+00:06:49.700 --> 00:06:53.060
+So one complete cycle of
+charging then discharging
+
+00:06:53.060 --> 00:06:56.930
+dissipates f C V-squared watts.
+
+00:06:56.930 --> 00:07:00.360
+Note the all this power has
+come from the power supply.
+
+00:07:00.360 --> 00:07:03.630
+The first half is dissipated
+when the output node is charged
+
+00:07:03.630 --> 00:07:07.310
+and the other half stored
+as energy in the capacitor.
+
+00:07:07.310 --> 00:07:10.440
+Then the capacitor’s energy is
+dissipated as it discharges.
+
+00:07:14.140 --> 00:07:17.020
+These results are summarized
+in the lower left.
+
+00:07:17.020 --> 00:07:19.430
+We’ve added the calculation
+for the power dissipation
+
+00:07:19.430 --> 00:07:22.750
+of an entire circuit assuming
+N of the circuit’s nodes change
+
+00:07:22.750 --> 00:07:24.780
+each clock cycle.
+
+00:07:24.780 --> 00:07:28.520
+How much power could be consumed
+by a modern integrated circuit?
+
+00:07:28.520 --> 00:07:30.580
+Here’s a quick
+back-of-the-envelope estimate
+
+00:07:30.580 --> 00:07:33.100
+for a current
+generation CPU chip.
+
+00:07:33.100 --> 00:07:36.490
+It’s operating at, say, 1
+GHz and will have 100 million
+
+00:07:36.490 --> 00:07:39.620
+internal nodes that could
+change each clock cycle.
+
+00:07:39.620 --> 00:07:42.440
+Each nodal capacitance
+is around 1 femto Farad
+
+00:07:42.440 --> 00:07:45.220
+and the power
+supply is about 1V.
+
+00:07:45.220 --> 00:07:47.690
+With these numbers, the
+estimated power consumption
+
+00:07:47.690 --> 00:07:48.980
+is 100 watts.
+
+00:07:48.980 --> 00:07:52.370
+We all know how hot a
+100W light bulb gets!
+
+00:07:52.370 --> 00:07:56.380
+You can see it would be hard to
+keep the CPU from overheating.
+
+00:07:56.380 --> 00:07:58.550
+This is way too much
+power to be dissipated
+
+00:07:58.550 --> 00:08:01.210
+in many applications,
+and modern CPUs
+
+00:08:01.210 --> 00:08:03.420
+intended, say, for
+laptops only dissipate
+
+00:08:03.420 --> 00:08:05.280
+a fraction of this energy.
+
+00:08:05.280 --> 00:08:08.270
+So the CPU designers must have
+some tricks up their sleeve,
+
+00:08:08.270 --> 00:08:10.470
+some of which we’ll
+see in a minute.
+
+00:08:10.470 --> 00:08:13.520
+But first notice how important
+it’s been to be able to reduce
+
+00:08:13.520 --> 00:08:16.500
+the power supply voltage in
+modern integrated circuits.
+
+00:08:16.500 --> 00:08:19.330
+If we’re able to reduce the
+power supply voltage from 3.3V
+
+00:08:19.330 --> 00:08:23.970
+to 1V, that alone accounts
+for more than a factor of 10
+
+00:08:23.970 --> 00:08:25.460
+in power dissipation.
+
+00:08:25.460 --> 00:08:29.400
+So the newer circuit can be
+say, 5 times larger and 2 times
+
+00:08:29.400 --> 00:08:32.240
+faster with the
+same power budget!
+
+00:08:32.240 --> 00:08:34.809
+Newer technologies
+trends are shown here.
+
+00:08:34.809 --> 00:08:37.230
+The net effect is that
+newer chips would naturally
+
+00:08:37.230 --> 00:08:40.840
+dissipate more power if we
+could afford to have them do so.
+
+00:08:40.840 --> 00:08:45.290
+We have to be very clever in how
+we use more and faster MOSFETs
+
+00:08:45.290 --> 00:08:47.340
+in order not to run
+up against the power
+
+00:08:47.340 --> 00:08:49.050
+dissipation constraints we face.
+
+00:08:53.630 --> 00:08:56.090
+To see what we can do to
+reduce power consumption,
+
+00:08:56.090 --> 00:08:59.890
+consider the following diagram
+of an arithmetic and logic unit
+
+00:08:59.890 --> 00:09:03.830
+(ALU) like the one you’ll design
+in the final lab in this part
+
+00:09:03.830 --> 00:09:05.350
+of the course.
+
+00:09:05.350 --> 00:09:07.890
+There are four independent
+component modules,
+
+00:09:07.890 --> 00:09:10.850
+performing the separate
+arithmetic, boolean, shifting
+
+00:09:10.850 --> 00:09:15.120
+and comparison operations
+typically found in an ALU.
+
+00:09:15.120 --> 00:09:16.950
+Some of the ALU
+control signals are
+
+00:09:16.950 --> 00:09:19.850
+used to select the desired
+result in a particular clock
+
+00:09:19.850 --> 00:09:22.840
+cycle, basically ignoring
+the answers produced
+
+00:09:22.840 --> 00:09:24.840
+by the other modules.
+
+00:09:24.840 --> 00:09:27.630
+Of course, just because the
+other answers aren’t selected
+
+00:09:27.630 --> 00:09:31.930
+doesn’t mean we didn’t dissipate
+energy in computing them.
+
+00:09:31.930 --> 00:09:35.200
+This suggests an opportunity
+for saving power!
+
+00:09:35.200 --> 00:09:38.310
+Suppose we could somehow “turn
+off” modules whose outputs we
+
+00:09:38.310 --> 00:09:39.400
+didn’t need?
+
+00:09:39.400 --> 00:09:42.370
+One way to prevent them from
+dissipating power is to prevent
+
+00:09:42.370 --> 00:09:44.500
+the module’s inputs
+from changing,
+
+00:09:44.500 --> 00:09:47.780
+thus ensuring that no
+internal nodes would change
+
+00:09:47.780 --> 00:09:50.800
+and hence reducing the dynamic
+power dissipation of the “off”
+
+00:09:50.800 --> 00:09:52.790
+module to zero.
+
+00:09:52.790 --> 00:09:56.080
+One idea is to put latches
+on the inputs to each module,
+
+00:09:56.080 --> 00:10:00.020
+only opening a module’s input
+latch if an answer was required
+
+00:10:00.020 --> 00:10:03.050
+from that module in
+the current cycle.
+
+00:10:03.050 --> 00:10:05.090
+If a module’s latch
+stayed closed,
+
+00:10:05.090 --> 00:10:07.280
+its internal nodes
+would remain unchanged,
+
+00:10:07.280 --> 00:10:11.120
+eliminating the module’s
+dynamic power dissipation.
+
+00:10:11.120 --> 00:10:14.130
+This could save a
+substantial amount of power.
+
+00:10:14.130 --> 00:10:16.320
+For example, the
+shifter circuitry has
+
+00:10:16.320 --> 00:10:19.180
+many internal nodes and so
+has a large dynamic power
+
+00:10:19.180 --> 00:10:20.340
+dissipation.
+
+00:10:20.340 --> 00:10:23.230
+But there are comparatively
+few shift operations in most
+
+00:10:23.230 --> 00:10:25.620
+programs, so with
+our proposed fix,
+
+00:10:25.620 --> 00:10:30.390
+most of the time those energy
+costs wouldn’t be incurred.
+
+00:10:30.390 --> 00:10:33.140
+A more draconian approach
+to power conservation
+
+00:10:33.140 --> 00:10:36.190
+is to literally turn off
+unused portions of the circuit
+
+00:10:36.190 --> 00:10:39.430
+by switching off
+their power supply.
+
+00:10:39.430 --> 00:10:41.280
+This is more
+complicated to achieve,
+
+00:10:41.280 --> 00:10:43.450
+so this technique
+is usually reserved
+
+00:10:43.450 --> 00:10:46.180
+for special power-saving
+modes of operation,
+
+00:10:46.180 --> 00:10:49.250
+where we can afford the time
+it takes to reliably power
+
+00:10:49.250 --> 00:10:52.310
+the circuity back up.
+
+00:10:52.310 --> 00:10:55.580
+Another idea is to slow the
+clock (reducing the frequency
+
+00:10:55.580 --> 00:10:58.710
+of nodal transitions) when
+there’s nothing for the circuit
+
+00:10:58.710 --> 00:11:00.210
+to do.
+
+00:11:00.210 --> 00:11:02.610
+This is particularly
+effective for devices
+
+00:11:02.610 --> 00:11:04.720
+that interact with
+the real world,
+
+00:11:04.720 --> 00:11:08.000
+where the time scales for
+significant external events
+
+00:11:08.000 --> 00:11:10.350
+are measured in milliseconds.
+
+00:11:10.350 --> 00:11:13.940
+The device can run slowly
+until an external event needs
+
+00:11:13.940 --> 00:11:16.120
+attention, then
+speed up the clock
+
+00:11:16.120 --> 00:11:18.790
+while it deals with the event.
+
+00:11:18.790 --> 00:11:20.640
+All of these
+techniques and more are
+
+00:11:20.640 --> 00:11:24.000
+used in modern mobile devices
+to conserve battery power
+
+00:11:24.000 --> 00:11:28.530
+without limiting the ability to
+deliver bursts of performance.
+
+00:11:28.530 --> 00:11:30.120
+There is much more
+innovation waiting
+
+00:11:30.120 --> 00:11:32.500
+to be done in this area,
+something you may be
+
+00:11:32.500 --> 00:11:35.580
+asked to tackle as designers!
+
+00:11:35.580 --> 00:11:37.910
+One last question is
+whether computation
+
+00:11:37.910 --> 00:11:40.010
+has to consume energy?
+
+00:11:40.010 --> 00:11:42.900
+There have been some interesting
+theoretical speculations about
+
+00:11:42.900 --> 00:11:47.090
+this question — see section
+6.5 of the course notes to read
+
+00:11:47.090 --> 00:11:48.640
+more.

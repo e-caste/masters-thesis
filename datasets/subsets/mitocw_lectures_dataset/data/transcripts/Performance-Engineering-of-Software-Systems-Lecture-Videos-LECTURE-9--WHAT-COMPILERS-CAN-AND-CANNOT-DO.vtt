@@ -1,0 +1,5891 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT OpenCourseWare
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high-quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:18.140
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:18.140 --> 00:00:19.026
+at ocw.mit.edu.
+
+00:00:21.860 --> 00:00:23.860
+CHARLES E. LEISERSON: Hi,
+it's my great pleasure
+
+00:00:23.860 --> 00:00:28.030
+to introduce, again, TB Schardl.
+
+00:00:28.030 --> 00:00:36.640
+TB is not only a fabulous,
+world-class performance
+
+00:00:36.640 --> 00:00:44.020
+engineer, he is a world-class
+performance meta engineer.
+
+00:00:44.020 --> 00:00:52.030
+In other words, building the
+tools and such to make it
+
+00:00:52.030 --> 00:00:55.690
+so that people can
+engineer fast code.
+
+00:00:55.690 --> 00:00:59.560
+And he's the author
+of the technology
+
+00:00:59.560 --> 00:01:01.540
+that we're using in
+our compiler, the taper
+
+00:01:01.540 --> 00:01:05.810
+technology that's in the open
+compiler for parallelism.
+
+00:01:05.810 --> 00:01:09.130
+So he implemented all of that,
+and all the optimizations,
+
+00:01:09.130 --> 00:01:12.160
+and so forth, which has
+greatly improved the quality
+
+00:01:12.160 --> 00:01:15.290
+of the programming environment.
+
+00:01:15.290 --> 00:01:18.310
+So today, he's going to talk
+about something near and dear
+
+00:01:18.310 --> 00:01:21.520
+to his heart,
+which is compilers,
+
+00:01:21.520 --> 00:01:24.778
+and what they can and cannot do.
+
+00:01:24.778 --> 00:01:26.320
+TAO B. SCHARDL:
+Great, thank you very
+
+00:01:26.320 --> 00:01:28.400
+much for that introduction.
+
+00:01:28.400 --> 00:01:30.700
+Can everyone hear
+me in the back?
+
+00:01:30.700 --> 00:01:32.740
+Yes, great.
+
+00:01:32.740 --> 00:01:35.170
+All right, so as
+I understand it,
+
+00:01:35.170 --> 00:01:37.780
+last lecture you talked about
+multi-threaded algorithms.
+
+00:01:37.780 --> 00:01:40.690
+And you spent the lecture
+studying those algorithms,
+
+00:01:40.690 --> 00:01:42.970
+analyzing them in a
+theoretical sense,
+
+00:01:42.970 --> 00:01:46.990
+essentially analyzing their
+asymptotic running times, work
+
+00:01:46.990 --> 00:01:48.520
+and span complexity.
+
+00:01:48.520 --> 00:01:51.370
+This lecture is not that at all.
+
+00:01:51.370 --> 00:01:53.650
+We're not going to
+do that kind of math
+
+00:01:53.650 --> 00:01:56.260
+anywhere in the course
+of this lecture.
+
+00:01:56.260 --> 00:01:59.920
+Instead, this lecture is going
+to take a look at compilers,
+
+00:01:59.920 --> 00:02:03.790
+as professor mentioned, and what
+compilers can and cannot do.
+
+00:02:06.440 --> 00:02:09.490
+So the last time, you
+saw me standing up here
+
+00:02:09.490 --> 00:02:11.500
+was back in lecture five.
+
+00:02:11.500 --> 00:02:13.000
+And during that
+lecture we talked
+
+00:02:13.000 --> 00:02:17.530
+about LLVM IR and
+x8664 assembly,
+
+00:02:17.530 --> 00:02:25.750
+and how C code got translated
+into assembly code via LLVM IR.
+
+00:02:25.750 --> 00:02:27.730
+In this lecture,
+we're going to talk
+
+00:02:27.730 --> 00:02:32.050
+more about what happens between
+the LLVM IR and assembly
+
+00:02:32.050 --> 00:02:33.050
+stages.
+
+00:02:33.050 --> 00:02:35.830
+And, essentially, that's what
+happens when the compiler is
+
+00:02:35.830 --> 00:02:41.200
+allowed to edit and optimize the
+code in its IR representation,
+
+00:02:41.200 --> 00:02:45.230
+while it's producing
+the assembly.
+
+00:02:45.230 --> 00:02:47.380
+So last time, we were
+talking about this IR,
+
+00:02:47.380 --> 00:02:49.010
+and the assembly.
+
+00:02:49.010 --> 00:02:51.190
+And this time, they called
+the compiler guy back,
+
+00:02:51.190 --> 00:02:55.260
+I suppose, to tell you about
+the boxes in the middle.
+
+00:02:55.260 --> 00:02:58.780
+Now, even though you're
+predominately dealing with C
+
+00:02:58.780 --> 00:03:02.080
+code within this class, I hope
+that some of the lessons from
+
+00:03:02.080 --> 00:03:06.490
+today's lecture you will be able
+to take away into any job that
+
+00:03:06.490 --> 00:03:10.060
+you pursue in the future,
+because there are a lot
+
+00:03:10.060 --> 00:03:16.000
+of languages today that do end
+up being compiled, C and C++,
+
+00:03:16.000 --> 00:03:18.940
+Rust, Swift, even
+Haskell, Julia, Halide,
+
+00:03:18.940 --> 00:03:20.140
+the list goes on and on.
+
+00:03:20.140 --> 00:03:21.640
+And those languages
+all get compiled
+
+00:03:21.640 --> 00:03:23.410
+for a variety of
+different what we
+
+00:03:23.410 --> 00:03:29.080
+call backends, different machine
+architectures, not just x86-64.
+
+00:03:29.080 --> 00:03:33.370
+And, in fact, a lot
+of those languages
+
+00:03:33.370 --> 00:03:37.450
+get compiled using very
+similar compilation technology
+
+00:03:37.450 --> 00:03:40.537
+to what you have in
+the Clang LLVM compiler
+
+00:03:40.537 --> 00:03:41.870
+that you're using in this class.
+
+00:03:41.870 --> 00:03:45.040
+In fact, many of
+those languages today
+
+00:03:45.040 --> 00:03:47.340
+are optimized by LLVM itself.
+
+00:03:47.340 --> 00:03:50.590
+LLVM is the internal
+engine within the compiler
+
+00:03:50.590 --> 00:03:53.860
+that actually does all
+of the optimization.
+
+00:03:53.860 --> 00:03:57.100
+So that's my hope, that the
+lessons you'll learn here today
+
+00:03:57.100 --> 00:03:58.840
+don't just apply to 172.
+
+00:03:58.840 --> 00:04:00.460
+They'll, in fact,
+apply to software
+
+00:04:00.460 --> 00:04:05.740
+that you use and develop
+for many years on the road.
+
+00:04:05.740 --> 00:04:08.170
+But let's take a step
+back, and ask ourselves,
+
+00:04:08.170 --> 00:04:11.950
+why bother studying the
+compiler optimizations at all?
+
+00:04:11.950 --> 00:04:13.750
+Why should we take
+a look at what's
+
+00:04:13.750 --> 00:04:19.810
+going on within this, up to this
+point, black box of software?
+
+00:04:19.810 --> 00:04:20.860
+Any ideas?
+
+00:04:20.860 --> 00:04:21.899
+Any suggestions?
+
+00:04:27.910 --> 00:04:29.190
+In the back?
+
+00:04:29.190 --> 00:04:31.110
+AUDIENCE: [INAUDIBLE]
+
+00:04:33.607 --> 00:04:35.190
+TAO B. SCHARDL: You
+can avoid manually
+
+00:04:35.190 --> 00:04:37.190
+trying to optimize things
+that the compiler will
+
+00:04:37.190 --> 00:04:38.910
+do for you, great answer.
+
+00:04:38.910 --> 00:04:39.990
+Great, great answer.
+
+00:04:39.990 --> 00:04:40.800
+Any other answers?
+
+00:04:47.450 --> 00:04:49.940
+AUDIENCE: You learn
+how to best write
+
+00:04:49.940 --> 00:04:53.565
+your code to take advantages
+of the compiler optimizations.
+
+00:04:53.565 --> 00:04:54.940
+TAO B. SCHARDL:
+You can learn how
+
+00:04:54.940 --> 00:04:57.700
+to write your code to take
+advantage of the compiler
+
+00:04:57.700 --> 00:05:02.260
+optimizations, how to suggest
+to the compiler what it should
+
+00:05:02.260 --> 00:05:04.510
+or should not do as
+you're constructing
+
+00:05:04.510 --> 00:05:07.720
+your program, great
+answer as well.
+
+00:05:07.720 --> 00:05:08.860
+Very good, in the front.
+
+00:05:08.860 --> 00:05:11.330
+AUDIENCE: It might
+help for debugging
+
+00:05:11.330 --> 00:05:13.306
+if the compiler has bugs.
+
+00:05:15.615 --> 00:05:16.990
+TAO B. SCHARDL:
+It can absolutely
+
+00:05:16.990 --> 00:05:19.630
+help for debugging when the
+compiler itself has bugs.
+
+00:05:19.630 --> 00:05:21.640
+The compiler is a big
+piece of software.
+
+00:05:21.640 --> 00:05:25.120
+And you may have noticed that a
+lot of software contains bugs.
+
+00:05:25.120 --> 00:05:26.860
+The compiler is no exception.
+
+00:05:26.860 --> 00:05:30.520
+And it helps to understand where
+the compiler might have made
+
+00:05:30.520 --> 00:05:33.940
+a mistake, or where the
+compiler simply just
+
+00:05:33.940 --> 00:05:37.420
+didn't do what you thought
+it should be able to do.
+
+00:05:37.420 --> 00:05:39.850
+Understanding more of what
+happens in the compiler
+
+00:05:39.850 --> 00:05:44.860
+can demystify some
+of those oddities.
+
+00:05:44.860 --> 00:05:46.420
+Good answer.
+
+00:05:46.420 --> 00:05:47.728
+Any other thoughts?
+
+00:05:47.728 --> 00:05:48.520
+AUDIENCE: It's fun.
+
+00:05:50.898 --> 00:05:51.940
+TAO B. SCHARDL: It's fun.
+
+00:05:51.940 --> 00:05:55.930
+Well, OK, so in my
+completely biased opinion,
+
+00:05:55.930 --> 00:05:57.820
+I would agree that
+it's fun to understand
+
+00:05:57.820 --> 00:05:59.900
+what the compiler does.
+
+00:05:59.900 --> 00:06:01.870
+You may have different opinions.
+
+00:06:01.870 --> 00:06:03.430
+That's OK.
+
+00:06:03.430 --> 00:06:05.620
+I won't judge.
+
+00:06:05.620 --> 00:06:08.650
+So I put together
+a list of reasons
+
+00:06:08.650 --> 00:06:12.790
+why, in general, we
+may care about what
+
+00:06:12.790 --> 00:06:14.070
+goes on inside the compiler.
+
+00:06:14.070 --> 00:06:18.710
+I highlighted that last
+point from this list, my bad.
+
+00:06:18.710 --> 00:06:23.572
+Compilers can have a really
+big impact on software.
+
+00:06:23.572 --> 00:06:24.530
+It's kind of like this.
+
+00:06:24.530 --> 00:06:27.670
+Imagine that you're working
+on some software project.
+
+00:06:27.670 --> 00:06:30.050
+And you have a
+teammate on your team
+
+00:06:30.050 --> 00:06:32.960
+he's pretty quiet
+but extremely smart.
+
+00:06:32.960 --> 00:06:36.220
+And what that teammate does
+is whenever that teammate gets
+
+00:06:36.220 --> 00:06:39.460
+access to some
+code, they jump in
+
+00:06:39.460 --> 00:06:43.510
+and immediately start trying
+to make that code work faster.
+
+00:06:43.510 --> 00:06:46.360
+And that's really cool, because
+that teammate does good work.
+
+00:06:46.360 --> 00:06:49.510
+And, oftentimes, you see that
+what the teammate produces
+
+00:06:49.510 --> 00:06:52.480
+is, indeed, much faster
+code than what you wrote.
+
+00:06:52.480 --> 00:06:55.390
+Now, in other industries,
+you might just sit back
+
+00:06:55.390 --> 00:06:58.720
+and say, this teammate
+does fantastic work.
+
+00:06:58.720 --> 00:07:00.130
+Maybe they don't
+talk very often.
+
+00:07:00.130 --> 00:07:01.420
+But that's OK.
+
+00:07:01.420 --> 00:07:03.230
+Teammate, you do you.
+
+00:07:03.230 --> 00:07:05.460
+But in this class, we're
+performance engineers.
+
+00:07:05.460 --> 00:07:09.190
+We want to understand what that
+teammate did to the software.
+
+00:07:09.190 --> 00:07:11.980
+How did that teammate get
+so much performance out
+
+00:07:11.980 --> 00:07:13.660
+of the code?
+
+00:07:13.660 --> 00:07:16.330
+The compiler is kind
+of like that teammate.
+
+00:07:16.330 --> 00:07:18.280
+And so understanding
+what the compiler does
+
+00:07:18.280 --> 00:07:21.670
+is valuable in that sense.
+
+00:07:21.670 --> 00:07:24.550
+As mentioned before,
+compilers can save you
+
+00:07:24.550 --> 00:07:25.840
+performance engineering work.
+
+00:07:25.840 --> 00:07:28.300
+If you understand
+that the compiler can
+
+00:07:28.300 --> 00:07:30.040
+do some optimization
+for you, then you
+
+00:07:30.040 --> 00:07:31.720
+don't have to do it yourself.
+
+00:07:31.720 --> 00:07:34.030
+And that means that
+you can continue
+
+00:07:34.030 --> 00:07:37.210
+writing simple, and readable,
+and maintainable code
+
+00:07:37.210 --> 00:07:40.780
+without sacrificing performance.
+
+00:07:40.780 --> 00:07:43.510
+You can also understand the
+differences between the source
+
+00:07:43.510 --> 00:07:46.600
+code and whatever you might
+see show up in either the LLVM
+
+00:07:46.600 --> 00:07:49.630
+IR or the assembly,
+if you have to look
+
+00:07:49.630 --> 00:07:56.260
+at the assembly language
+produced for your executable.
+
+00:07:56.260 --> 00:07:58.632
+And compilers can make mistakes.
+
+00:07:58.632 --> 00:08:01.090
+Sometimes, that's because of
+a genuine bug in the compiler.
+
+00:08:01.090 --> 00:08:03.400
+And other times, it's
+because the compiler just
+
+00:08:03.400 --> 00:08:06.250
+couldn't understand something
+about what was going on.
+
+00:08:06.250 --> 00:08:10.300
+And having some insight into how
+the compiler reasons about code
+
+00:08:10.300 --> 00:08:12.910
+can help you understand why
+those mistakes were made,
+
+00:08:12.910 --> 00:08:17.620
+or figure out ways to work
+around those mistakes,
+
+00:08:17.620 --> 00:08:20.620
+or let you write meaningful
+bug reports to the compiler
+
+00:08:20.620 --> 00:08:22.955
+developers.
+
+00:08:22.955 --> 00:08:24.580
+And, of course,
+understanding computers
+
+00:08:24.580 --> 00:08:26.350
+can help you use them
+more effectively.
+
+00:08:26.350 --> 00:08:30.010
+Plus, I think it's fun.
+
+00:08:30.010 --> 00:08:32.110
+So the first thing to
+understand about a compiler
+
+00:08:32.110 --> 00:08:35.440
+is a basic anatomy of
+how the compiler works.
+
+00:08:35.440 --> 00:08:38.710
+The compiler takes
+as input LLVM IR.
+
+00:08:38.710 --> 00:08:40.900
+And up until this
+point, we thought of it
+
+00:08:40.900 --> 00:08:43.030
+as just a big black box.
+
+00:08:43.030 --> 00:08:47.740
+That does stuff to the IR,
+and out pops more LLVM IR,
+
+00:08:47.740 --> 00:08:49.990
+but it's somehow optimized.
+
+00:08:49.990 --> 00:08:53.350
+In fact, what's going
+on within that black box
+
+00:08:53.350 --> 00:08:55.300
+the compiler is
+executing a sequence
+
+00:08:55.300 --> 00:08:58.990
+of what we call transformation
+passes on the code.
+
+00:08:58.990 --> 00:09:03.100
+Each transformation pass
+takes a look at its input,
+
+00:09:03.100 --> 00:09:05.380
+and analyzes that
+code, and then tries
+
+00:09:05.380 --> 00:09:07.690
+to edit the code in
+an effort to optimize
+
+00:09:07.690 --> 00:09:09.850
+the code's performance.
+
+00:09:09.850 --> 00:09:13.460
+Now, a transformation pass might
+end up running multiple times.
+
+00:09:13.460 --> 00:09:15.970
+And those passes
+run in some order.
+
+00:09:15.970 --> 00:09:19.990
+That order ends up being
+a predetermined order
+
+00:09:19.990 --> 00:09:22.600
+that the compiler
+writers found to work
+
+00:09:22.600 --> 00:09:25.240
+pretty well on their tests.
+
+00:09:25.240 --> 00:09:27.340
+That's about the
+level of insight that
+
+00:09:27.340 --> 00:09:29.650
+went into picking the order.
+
+00:09:29.650 --> 00:09:32.990
+It seems to work well.
+
+00:09:32.990 --> 00:09:34.870
+Now, some good news,
+in terms of trying
+
+00:09:34.870 --> 00:09:37.240
+to understand what
+the compiler does,
+
+00:09:37.240 --> 00:09:40.710
+you can actually just ask the
+compiler, what did you do?
+
+00:09:40.710 --> 00:09:43.360
+And you've already used
+this functionality,
+
+00:09:43.360 --> 00:09:45.585
+as I understand, in some
+of your assignments.
+
+00:09:45.585 --> 00:09:46.960
+You've already
+asked the compiler
+
+00:09:46.960 --> 00:09:49.330
+to give you a
+report specifically
+
+00:09:49.330 --> 00:09:52.300
+about whether or not it
+could vectorize some code.
+
+00:09:52.300 --> 00:09:56.050
+But, in fact, LLVM, the
+compiler you have access to,
+
+00:09:56.050 --> 00:09:58.870
+can produce reports not
+just for factorization,
+
+00:09:58.870 --> 00:10:01.480
+but for a lot of the
+different transformation
+
+00:10:01.480 --> 00:10:03.898
+passes that it tries to perform.
+
+00:10:03.898 --> 00:10:05.440
+And there's some
+syntax that you have
+
+00:10:05.440 --> 00:10:08.275
+to pass to the compiler,
+some compiler flags
+
+00:10:08.275 --> 00:10:10.995
+that you have to specify in
+order to get those reports.
+
+00:10:10.995 --> 00:10:12.370
+Those are described
+on the slide.
+
+00:10:12.370 --> 00:10:13.828
+I won't walk you
+through that text.
+
+00:10:13.828 --> 00:10:16.540
+You can look at the
+slides afterwards.
+
+00:10:16.540 --> 00:10:18.790
+At the end of the day, the
+string that you're passing
+
+00:10:18.790 --> 00:10:20.202
+is actually a
+regular expression.
+
+00:10:20.202 --> 00:10:21.910
+If you know what
+regular expressions are,
+
+00:10:21.910 --> 00:10:24.340
+great, then you can
+use that to narrow down
+
+00:10:24.340 --> 00:10:27.140
+the search for your report.
+
+00:10:27.140 --> 00:10:29.500
+If you don't, and you just
+want to see the whole report,
+
+00:10:29.500 --> 00:10:32.945
+just provide dot star as a
+string and you're good to go.
+
+00:10:32.945 --> 00:10:33.820
+That's the good news.
+
+00:10:33.820 --> 00:10:37.810
+You can get the compiler to
+tell you exactly what it did.
+
+00:10:37.810 --> 00:10:41.220
+The bad news is that when you
+ask the compiler what it did,
+
+00:10:41.220 --> 00:10:43.600
+it will give you a report.
+
+00:10:43.600 --> 00:10:46.957
+And the report looks
+something like this.
+
+00:10:46.957 --> 00:10:48.790
+In fact, I've highlighted
+most of the report
+
+00:10:48.790 --> 00:10:50.590
+for this particular
+piece of code,
+
+00:10:50.590 --> 00:10:53.403
+because the report ends
+up being very long.
+
+00:10:53.403 --> 00:10:54.820
+And as you might
+have noticed just
+
+00:10:54.820 --> 00:10:58.090
+from reading some of the
+texts, there are definitely
+
+00:10:58.090 --> 00:11:00.970
+English words in this text.
+
+00:11:00.970 --> 00:11:06.130
+And there are pointers to pieces
+of code that you've compiled.
+
+00:11:06.130 --> 00:11:08.710
+But it is very jargon,
+and hard to understand.
+
+00:11:11.780 --> 00:11:16.770
+This isn't the easiest
+report to make sense of.
+
+00:11:16.770 --> 00:11:18.782
+OK, so that's some good
+news and some bad news
+
+00:11:18.782 --> 00:11:19.990
+about these compiler reports.
+
+00:11:19.990 --> 00:11:21.782
+The good news is, you
+can ask the compiler.
+
+00:11:21.782 --> 00:11:25.000
+And it'll happily tell you all
+about the things that it did.
+
+00:11:25.000 --> 00:11:28.900
+It can tell you about which
+transformation passes were
+
+00:11:28.900 --> 00:11:31.300
+successfully able to
+transform the code.
+
+00:11:31.300 --> 00:11:33.730
+It can tell you
+conclusions that it drew
+
+00:11:33.730 --> 00:11:37.080
+about its analysis of the code.
+
+00:11:37.080 --> 00:11:39.400
+But the bad news
+is, these reports
+
+00:11:39.400 --> 00:11:41.260
+are kind of complicated.
+
+00:11:41.260 --> 00:11:42.670
+They can be long.
+
+00:11:42.670 --> 00:11:45.670
+They use a lot of internal
+compiler jargon, which
+
+00:11:45.670 --> 00:11:48.100
+if you're not familiar
+with that jargon,
+
+00:11:48.100 --> 00:11:50.830
+it makes it hard to understand.
+
+00:11:50.830 --> 00:11:53.380
+It also turns out that not
+all of the transformation
+
+00:11:53.380 --> 00:11:56.930
+passes in the compiler give
+you these nice reports.
+
+00:11:56.930 --> 00:11:58.820
+So you don't get to
+see the whole picture.
+
+00:11:58.820 --> 00:12:00.528
+And, in general, the
+reports don't really
+
+00:12:00.528 --> 00:12:03.400
+tell you the whole story
+about what the compiler did
+
+00:12:03.400 --> 00:12:04.430
+or did not do.
+
+00:12:04.430 --> 00:12:07.250
+And we'll see another
+example of that later on.
+
+00:12:07.250 --> 00:12:09.220
+So part of the goal
+of today's lecture
+
+00:12:09.220 --> 00:12:12.840
+is to get some context for
+understanding the reports
+
+00:12:12.840 --> 00:12:17.630
+that you might see if you pass
+those flags to the compiler.
+
+00:12:17.630 --> 00:12:19.550
+And the structure
+of today's lecture
+
+00:12:19.550 --> 00:12:21.220
+is basically divided
+up into two parts.
+
+00:12:21.220 --> 00:12:23.350
+First, I want to give
+you some examples
+
+00:12:23.350 --> 00:12:25.840
+of compiler optimizations,
+just simple examples
+
+00:12:25.840 --> 00:12:30.370
+so you get a sense as to how a
+compiler mechanically reasons
+
+00:12:30.370 --> 00:12:34.142
+about the code it's given, and
+tries to optimize that code.
+
+00:12:34.142 --> 00:12:36.100
+We'll take a look at how
+the compiler optimizes
+
+00:12:36.100 --> 00:12:39.460
+a single scalar value, how
+it can optimize a structure,
+
+00:12:39.460 --> 00:12:41.110
+how it can optimize
+function calls,
+
+00:12:41.110 --> 00:12:43.780
+and how it can optimize
+loops, just simple examples
+
+00:12:43.780 --> 00:12:46.060
+to give some flavor.
+
+00:12:46.060 --> 00:12:47.560
+And then the second
+half of lecture,
+
+00:12:47.560 --> 00:12:49.900
+I have a few case
+studies for you
+
+00:12:49.900 --> 00:12:54.220
+which get into diagnosing ways
+in which the compiler failed,
+
+00:12:54.220 --> 00:12:56.890
+not due to bugs,
+per se, but simply
+
+00:12:56.890 --> 00:13:00.420
+didn't do an optimization you
+might have expected it to do.
+
+00:13:00.420 --> 00:13:02.620
+But, to be frank, I
+think all those case
+
+00:13:02.620 --> 00:13:03.850
+studies are really cool.
+
+00:13:03.850 --> 00:13:06.520
+But it's not totally
+crucial that we
+
+00:13:06.520 --> 00:13:10.050
+get through every single case
+study during today's lecture.
+
+00:13:10.050 --> 00:13:11.860
+The slides will be
+available afterwards.
+
+00:13:11.860 --> 00:13:13.277
+So when we get to
+that part, we'll
+
+00:13:13.277 --> 00:13:15.710
+just see how many case
+studies we can cover.
+
+00:13:15.710 --> 00:13:16.250
+Sound good?
+
+00:13:16.250 --> 00:13:17.125
+Any questions so far?
+
+00:13:21.000 --> 00:13:24.010
+All right, let's get to it.
+
+00:13:24.010 --> 00:13:25.650
+Let's start with
+a quick overview
+
+00:13:25.650 --> 00:13:28.450
+of compiler optimizations.
+
+00:13:28.450 --> 00:13:30.750
+So here is a summary
+of the various--
+
+00:13:30.750 --> 00:13:36.210
+oh, I forgot that I
+just copied this slide
+
+00:13:36.210 --> 00:13:40.060
+from a previous lecture
+given in this class.
+
+00:13:40.060 --> 00:13:44.700
+You might recognize this slide
+I think from lecture two.
+
+00:13:44.700 --> 00:13:46.590
+Sorry about that.
+
+00:13:46.590 --> 00:13:47.920
+That's OK.
+
+00:13:47.920 --> 00:13:49.350
+We can fix this.
+
+00:13:49.350 --> 00:13:53.310
+We'll just go ahead and
+add this slide right now.
+
+00:13:53.310 --> 00:13:55.070
+We need to change the title.
+
+00:13:55.070 --> 00:13:59.400
+So let's cross that out
+and put in our new title.
+
+00:13:59.400 --> 00:14:05.730
+OK, so, great, and now we
+should double check these lists
+
+00:14:05.730 --> 00:14:07.650
+and make sure that
+they're accurate.
+
+00:14:07.650 --> 00:14:10.980
+Data structures, we'll come
+back to data structures.
+
+00:14:10.980 --> 00:14:14.670
+Loops, hoisting, yeah, the
+compiler can do hoisting.
+
+00:14:14.670 --> 00:14:17.260
+Sentinels, not
+really, the compiler
+
+00:14:17.260 --> 00:14:19.230
+is not good at sentinels.
+
+00:14:19.230 --> 00:14:22.110
+Loop unrolling, yeah, it
+absolutely does loop unrolling.
+
+00:14:22.110 --> 00:14:25.680
+Loop fusion, yeah,
+it can, but there are
+
+00:14:25.680 --> 00:14:27.450
+some restrictions that apply.
+
+00:14:27.450 --> 00:14:29.220
+Your mileage might vary.
+
+00:14:29.220 --> 00:14:33.390
+Eliminate waste iterations,
+some restrictions might apply.
+
+00:14:33.390 --> 00:14:36.030
+OK, logic, constant folding
+and propagation, yeah,
+
+00:14:36.030 --> 00:14:37.090
+it's good on that.
+
+00:14:37.090 --> 00:14:38.880
+Common subexpression
+elimination, yeah, I
+
+00:14:38.880 --> 00:14:41.930
+can find common subexpressions,
+you're fin there.
+
+00:14:41.930 --> 00:14:43.770
+It knows algebra, yeah good.
+
+00:14:43.770 --> 00:14:45.390
+Short circuiting,
+yes, absolutely.
+
+00:14:45.390 --> 00:14:49.230
+Ordering tests,
+depends on the tests--
+
+00:14:49.230 --> 00:14:50.850
+I'll give it to the compiler.
+
+00:14:50.850 --> 00:14:54.300
+But I'll say,
+restrictions apply.
+
+00:14:54.300 --> 00:14:57.210
+Creating a fast path,
+compilers aren't
+
+00:14:57.210 --> 00:14:58.950
+that smart about fast paths.
+
+00:14:58.950 --> 00:15:00.810
+They come up with really
+boring fast paths.
+
+00:15:00.810 --> 00:15:02.580
+I'm going to take
+that off the list.
+
+00:15:02.580 --> 00:15:05.507
+Combining tests, again, it
+kind of depends on the tests.
+
+00:15:05.507 --> 00:15:07.590
+Functions, compilers are
+pretty good at functions.
+
+00:15:07.590 --> 00:15:09.330
+So inling, it can do that.
+
+00:15:09.330 --> 00:15:11.760
+Tail recursion elimination,
+yes, absolutely.
+
+00:15:11.760 --> 00:15:15.150
+Coarsening, not so much.
+
+00:15:15.150 --> 00:15:16.320
+OK, great.
+
+00:15:16.320 --> 00:15:18.240
+Let's come back to
+data structures,
+
+00:15:18.240 --> 00:15:20.370
+which we skipped before.
+
+00:15:20.370 --> 00:15:24.840
+Packing, augmentation--
+OK, honestly, the compiler
+
+00:15:24.840 --> 00:15:27.540
+does a lot with data
+structures but really
+
+00:15:27.540 --> 00:15:29.050
+none of those things.
+
+00:15:29.050 --> 00:15:31.380
+The compiler isn't smart
+about data structures
+
+00:15:31.380 --> 00:15:33.515
+in that particular way.
+
+00:15:33.515 --> 00:15:34.890
+Really, the way
+that the compiler
+
+00:15:34.890 --> 00:15:38.730
+is smart about data
+structures is shown here,
+
+00:15:38.730 --> 00:15:41.730
+if we expand this list to
+include even more compiler
+
+00:15:41.730 --> 00:15:43.410
+optimizations.
+
+00:15:43.410 --> 00:15:45.780
+Bottom line with data
+structures, the compiler
+
+00:15:45.780 --> 00:15:48.190
+knows a lot about architecture.
+
+00:15:48.190 --> 00:15:50.760
+And it really has
+put a lot of effort
+
+00:15:50.760 --> 00:15:54.450
+into figuring out how to use
+registers really effectively.
+
+00:15:54.450 --> 00:15:57.150
+Reading and writing and
+register is super fast.
+
+00:15:57.150 --> 00:15:59.530
+Touching memory is not so fast.
+
+00:15:59.530 --> 00:16:03.450
+And so the compiler works really
+hard to allocate registers, put
+
+00:16:03.450 --> 00:16:08.460
+anything that lives in memory
+ordinarily into registers,
+
+00:16:08.460 --> 00:16:11.250
+manipulate aggregate
+types to use registers,
+
+00:16:11.250 --> 00:16:13.800
+as we'll see in a couple
+of slides, align data
+
+00:16:13.800 --> 00:16:15.390
+that has to live in memory.
+
+00:16:15.390 --> 00:16:17.165
+Compilers are good at that.
+
+00:16:17.165 --> 00:16:18.540
+Compilers are also
+good at loops.
+
+00:16:18.540 --> 00:16:20.950
+We already saw some
+example optimization
+
+00:16:20.950 --> 00:16:22.080
+on the previous slide.
+
+00:16:22.080 --> 00:16:23.610
+It can vectorize.
+
+00:16:23.610 --> 00:16:25.110
+It does a lot of
+other cool stuff.
+
+00:16:25.110 --> 00:16:26.610
+Unswitching is a
+cool optimization
+
+00:16:26.610 --> 00:16:28.140
+that I won't cover here.
+
+00:16:28.140 --> 00:16:30.540
+Idiom replacement, it
+finds common patterns,
+
+00:16:30.540 --> 00:16:33.000
+and does something
+smart with those.
+
+00:16:33.000 --> 00:16:36.330
+Vision, skewing, tiling,
+interchange, those all
+
+00:16:36.330 --> 00:16:41.430
+try to process the iterations
+of the loop in some clever way
+
+00:16:41.430 --> 00:16:43.020
+to make stuff go fast.
+
+00:16:43.020 --> 00:16:44.430
+And some restrictions apply.
+
+00:16:44.430 --> 00:16:47.750
+Those are really in
+development in LLVM.
+
+00:16:47.750 --> 00:16:51.313
+Logic, it does a lot more with
+logic than what we saw before.
+
+00:16:51.313 --> 00:16:53.480
+It can eliminate instructions
+that aren't necessary.
+
+00:16:53.480 --> 00:16:56.250
+It can do strength reduction,
+and other cool optimization.
+
+00:16:56.250 --> 00:16:59.340
+I think we saw that one
+in the Bentley slides.
+
+00:16:59.340 --> 00:17:01.080
+It gets rid of dead code.
+
+00:17:01.080 --> 00:17:02.580
+It can do more
+idiom replacement.
+
+00:17:02.580 --> 00:17:05.817
+Branch reordering is kind
+like reordering tests.
+
+00:17:05.817 --> 00:17:07.859
+Global value numbering,
+another cool optimization
+
+00:17:07.859 --> 00:17:09.510
+that we won't talk about today.
+
+00:17:09.510 --> 00:17:11.550
+Functions, it can do
+more on switching.
+
+00:17:11.550 --> 00:17:13.740
+It can eliminate arguments
+that aren't necessary.
+
+00:17:13.740 --> 00:17:16.763
+So the compiler can do
+a lot of stuff for you.
+
+00:17:16.763 --> 00:17:18.930
+And at the end the day,
+writing down this whole list
+
+00:17:18.930 --> 00:17:22.880
+is kind of a futile activity
+because it changes over time.
+
+00:17:22.880 --> 00:17:24.810
+Compilers are a moving target.
+
+00:17:24.810 --> 00:17:27.150
+Compiler developers,
+they're software engineers
+
+00:17:27.150 --> 00:17:28.470
+like you and me.
+
+00:17:28.470 --> 00:17:29.700
+And they're clever.
+
+00:17:29.700 --> 00:17:31.980
+And they're trying to apply
+all their clever software
+
+00:17:31.980 --> 00:17:35.220
+engineering practice to
+this compiler code base
+
+00:17:35.220 --> 00:17:37.980
+to make it do more stuff.
+
+00:17:37.980 --> 00:17:40.830
+And so they are constantly
+adding new optimizations
+
+00:17:40.830 --> 00:17:44.985
+to the compiler, new clever
+analyses, all the time.
+
+00:17:44.985 --> 00:17:46.860
+So, really, what we're
+going to look at today
+
+00:17:46.860 --> 00:17:49.290
+is just a couple examples
+to get a flavor for what
+
+00:17:49.290 --> 00:17:52.378
+the compiler does internally.
+
+00:17:52.378 --> 00:17:54.920
+Now, if you want to follow along
+with how the compiler works,
+
+00:17:54.920 --> 00:17:57.210
+the good news is,
+by and large, you
+
+00:17:57.210 --> 00:18:01.080
+can take a look at
+the LLVM IR to see
+
+00:18:01.080 --> 00:18:03.930
+what happens as the compiler
+processes your code.
+
+00:18:03.930 --> 00:18:06.570
+You don't need to
+look out the assembly.
+
+00:18:06.570 --> 00:18:08.700
+That's generally true.
+
+00:18:08.700 --> 00:18:11.800
+But there are some exceptions.
+
+00:18:11.800 --> 00:18:15.510
+So, for example, if we have
+these three snippets of C code
+
+00:18:15.510 --> 00:18:21.300
+on the left, and we look at what
+your LLVM compiler generates,
+
+00:18:21.300 --> 00:18:23.670
+in terms of the IR,
+we can see that there
+
+00:18:23.670 --> 00:18:25.860
+are some optimizations
+reflected, but not
+
+00:18:25.860 --> 00:18:28.445
+too many interesting ones.
+
+00:18:28.445 --> 00:18:32.580
+The multiply by 8 turns into
+a shift left operation by 3,
+
+00:18:32.580 --> 00:18:33.780
+because 8 is a power of 2.
+
+00:18:33.780 --> 00:18:35.120
+That's straightforward.
+
+00:18:35.120 --> 00:18:37.010
+Good, we can see that in the IR.
+
+00:18:37.010 --> 00:18:40.440
+The multiply by 15 still
+looks like a multiply by 15.
+
+00:18:40.440 --> 00:18:42.150
+No changes there.
+
+00:18:42.150 --> 00:18:45.610
+The divide by 71 looks
+like a divide by 71.
+
+00:18:45.610 --> 00:18:49.270
+Again, no changes there.
+
+00:18:49.270 --> 00:18:51.090
+Now, with arithmetic
+ops, the difference
+
+00:18:51.090 --> 00:18:53.585
+between what you
+see in the LLVM IR
+
+00:18:53.585 --> 00:18:54.960
+and what you see
+in the assembly,
+
+00:18:54.960 --> 00:18:56.580
+this is where it's
+most pronounced,
+
+00:18:56.580 --> 00:18:59.220
+at least in my
+experience, because if we
+
+00:18:59.220 --> 00:19:02.120
+take a look at these
+same snippets of C code,
+
+00:19:02.120 --> 00:19:06.360
+and we look at the corresponding
+x86 assembly for it,
+
+00:19:06.360 --> 00:19:09.180
+we get the stuff on the right.
+
+00:19:09.180 --> 00:19:12.660
+And this looks different.
+
+00:19:12.660 --> 00:19:14.280
+Let's pick through
+what this assembly
+
+00:19:14.280 --> 00:19:15.700
+code does one line at a time.
+
+00:19:15.700 --> 00:19:19.500
+So the first one in the C
+code, takes the argument n,
+
+00:19:19.500 --> 00:19:20.870
+and multiplies it by 8.
+
+00:19:20.870 --> 00:19:23.190
+And then the assembly, we
+have this LEA instruction.
+
+00:19:23.190 --> 00:19:26.260
+Anyone remember what the
+LEA instruction does?
+
+00:19:26.260 --> 00:19:27.760
+I see one person
+shaking their head.
+
+00:19:27.760 --> 00:19:29.385
+That's a perfectly
+reasonable response.
+
+00:19:29.385 --> 00:19:31.107
+Yeah, go for it?
+
+00:19:31.107 --> 00:19:32.940
+Load effective address,
+what does that mean?
+
+00:19:38.040 --> 00:19:40.630
+Load the address, but don't
+actually access memory.
+
+00:19:40.630 --> 00:19:44.750
+Another way to phrase that,
+do this address calculation.
+
+00:19:44.750 --> 00:19:47.010
+And give me the result of
+the address calculation.
+
+00:19:47.010 --> 00:19:49.110
+Don't read or write
+memory at that address.
+
+00:19:49.110 --> 00:19:51.330
+Just do the calculation.
+
+00:19:51.330 --> 00:19:56.340
+That's what loading an effective
+address means, essentially.
+
+00:19:56.340 --> 00:19:58.380
+But you're exactly right.
+
+00:19:58.380 --> 00:20:01.445
+The LEA instruction does
+an address calculation,
+
+00:20:01.445 --> 00:20:03.570
+and stores the result in
+the register on the right.
+
+00:20:03.570 --> 00:20:08.070
+Anyone remember enough about
+x86 address calculations
+
+00:20:08.070 --> 00:20:12.570
+to tell me how that LEA in
+particular works, the first LEA
+
+00:20:12.570 --> 00:20:13.200
+on the slide?
+
+00:20:16.710 --> 00:20:17.708
+Yeah?
+
+00:20:17.708 --> 00:20:21.500
+AUDIENCE: [INAUDIBLE]
+
+00:20:23.267 --> 00:20:25.600
+TAO B. SCHARDL: But before
+the first comma, in this case
+
+00:20:25.600 --> 00:20:29.100
+nothing, gets added to the
+product of the second two
+
+00:20:29.100 --> 00:20:30.420
+arguments in those parens.
+
+00:20:30.420 --> 00:20:31.530
+You're exactly right.
+
+00:20:31.530 --> 00:20:36.850
+So this LEA takes the value
+8, multiplies it by whatever
+
+00:20:36.850 --> 00:20:40.920
+is in register RDI,
+which holds the value n.
+
+00:20:40.920 --> 00:20:42.960
+And it stores the
+result into AX.
+
+00:20:42.960 --> 00:20:47.190
+So, perfect, it does
+a multiply by 8.
+
+00:20:47.190 --> 00:20:50.430
+The address calculator is
+only capable of a small range
+
+00:20:50.430 --> 00:20:51.090
+of operations.
+
+00:20:51.090 --> 00:20:52.380
+It can do additions.
+
+00:20:52.380 --> 00:20:55.980
+And it can multiply
+by 1, 2, 4, or 8.
+
+00:20:55.980 --> 00:20:56.910
+That's it.
+
+00:20:56.910 --> 00:21:00.450
+So it's a really simple
+circuit in the hardware.
+
+00:21:00.450 --> 00:21:01.410
+But it's fast.
+
+00:21:01.410 --> 00:21:04.920
+It's optimized heavily
+by modern processors.
+
+00:21:04.920 --> 00:21:07.260
+And so if the
+compiler can use it,
+
+00:21:07.260 --> 00:21:09.900
+they tend to try to use
+these LEA instructions.
+
+00:21:09.900 --> 00:21:11.432
+So good job.
+
+00:21:11.432 --> 00:21:12.390
+How about the next one?
+
+00:21:12.390 --> 00:21:16.170
+Multiply by 15 turns into
+these two LEA instructions.
+
+00:21:16.170 --> 00:21:19.035
+Can anyone tell
+me how these work?
+
+00:21:19.035 --> 00:21:23.738
+AUDIENCE: [INAUDIBLE]
+
+00:21:23.738 --> 00:21:25.780
+TAO B. SCHARDL: You're
+basically multiplying by 5
+
+00:21:25.780 --> 00:21:29.350
+and multiplying by
+3, exactly right.
+
+00:21:29.350 --> 00:21:31.040
+We can step through
+this as well.
+
+00:21:31.040 --> 00:21:32.980
+If we look at the
+first LEA instruction,
+
+00:21:32.980 --> 00:21:35.880
+we take RDI, which
+stores the value n.
+
+00:21:35.880 --> 00:21:38.200
+We multiply that by 4.
+
+00:21:38.200 --> 00:21:41.520
+We add it to the
+original value of RDI.
+
+00:21:41.520 --> 00:21:47.590
+And so that computes 4 times n,
+plus n, which is five times n.
+
+00:21:47.590 --> 00:21:49.690
+And that result
+gets stored into AX.
+
+00:21:49.690 --> 00:21:52.960
+Could, we've effectively
+multiplied by 5.
+
+00:21:52.960 --> 00:21:54.970
+The next instruction
+takes whatever
+
+00:21:54.970 --> 00:22:01.180
+is in REX, which is now 5n,
+multiplies that by 2, adds it
+
+00:22:01.180 --> 00:22:05.230
+to whatever is currently in
+REX, which is once again 5n.
+
+00:22:05.230 --> 00:22:10.570
+So that computes 2
+times 5n, plus 5n, which
+
+00:22:10.570 --> 00:22:14.740
+is 3 times 5n, which is 15n.
+
+00:22:14.740 --> 00:22:16.750
+So just like that,
+we've done our multiply
+
+00:22:16.750 --> 00:22:19.780
+with two LEA instructions.
+
+00:22:19.780 --> 00:22:21.410
+How about the last one?
+
+00:22:21.410 --> 00:22:26.230
+In this last piece of code,
+we take the arguments in RDI.
+
+00:22:26.230 --> 00:22:28.720
+We move it into EX.
+
+00:22:28.720 --> 00:22:36.940
+We then move the
+value 3,871,519,817,
+
+00:22:36.940 --> 00:22:40.840
+and put that into
+ECX, as you do.
+
+00:22:40.840 --> 00:22:43.980
+We multiply those
+two values together.
+
+00:22:43.980 --> 00:22:46.500
+And then we shift the
+product right by 38.
+
+00:22:49.180 --> 00:22:50.700
+So, obviously,
+this divides by 71.
+
+00:22:53.920 --> 00:22:57.370
+Any guesses as to
+how this performs
+
+00:22:57.370 --> 00:23:01.720
+the division operation we want?
+
+00:23:01.720 --> 00:23:03.670
+Both of you answered.
+
+00:23:03.670 --> 00:23:06.700
+I might still call on you.
+
+00:23:06.700 --> 00:23:08.390
+give a little more
+time for someone else
+
+00:23:08.390 --> 00:23:09.223
+to raise their hand.
+
+00:23:15.460 --> 00:23:16.307
+Go for it.
+
+00:23:16.307 --> 00:23:19.795
+AUDIENCE: [INAUDIBLE]
+
+00:23:19.795 --> 00:23:22.420
+TAO B. SCHARDL: It has a lot to
+do with 2 to the 38, very good.
+
+00:23:25.950 --> 00:23:29.050
+Yeah, all right,
+any further guesses
+
+00:23:29.050 --> 00:23:30.580
+before I give the answer away?
+
+00:23:30.580 --> 00:23:31.517
+Yeah, in the back?
+
+00:23:31.517 --> 00:23:36.654
+AUDIENCE: [INAUDIBLE]
+
+00:23:42.760 --> 00:23:43.760
+TAO B. SCHARDL: Kind of.
+
+00:23:43.760 --> 00:23:48.620
+So this is what's technically
+called a magic number.
+
+00:23:48.620 --> 00:23:51.830
+And, yes, it's technically
+called a magic number.
+
+00:23:51.830 --> 00:23:53.480
+And this magic
+number is equal to 2
+
+00:23:53.480 --> 00:23:58.070
+to the 38, divided by 71, plus
+1 to deal with some rounding
+
+00:23:58.070 --> 00:23:59.390
+effects.
+
+00:23:59.390 --> 00:24:03.200
+What this code does
+is it says, let's
+
+00:24:03.200 --> 00:24:08.035
+compute n divided by 71, by
+first computing n divided
+
+00:24:08.035 --> 00:24:13.640
+by 71, times 2 to the 38, and
+then shifting off the lower 38
+
+00:24:13.640 --> 00:24:17.600
+bits with that shift
+right operation.
+
+00:24:17.600 --> 00:24:23.150
+And by converting the
+operation into this,
+
+00:24:23.150 --> 00:24:26.360
+it's able to replace
+the division operation
+
+00:24:26.360 --> 00:24:28.270
+with a multiply.
+
+00:24:28.270 --> 00:24:31.760
+And if you remember, hopefully,
+from the architecture lecture,
+
+00:24:31.760 --> 00:24:34.040
+multiply operations, they're
+not the cheapest things
+
+00:24:34.040 --> 00:24:34.582
+in the world.
+
+00:24:34.582 --> 00:24:35.780
+But they're not too bad.
+
+00:24:35.780 --> 00:24:37.550
+Division is really expensive.
+
+00:24:37.550 --> 00:24:41.060
+If you want fast
+code, never divide.
+
+00:24:41.060 --> 00:24:43.960
+Also, never compute
+modulus, or access memory.
+
+00:24:43.960 --> 00:24:45.056
+Yeah, question?
+
+00:24:45.056 --> 00:24:46.550
+AUDIENCE: Why did you choose 38?
+
+00:24:46.550 --> 00:24:48.050
+TAO B. SCHARDL: Why
+did I choose 38?
+
+00:24:51.050 --> 00:24:54.740
+I think it shows 38
+because 38 works.
+
+00:24:54.740 --> 00:24:56.750
+There's actually a formula for--
+
+00:24:56.750 --> 00:24:59.660
+pretty much it
+doesn't want to choose
+
+00:24:59.660 --> 00:25:02.408
+a value that's too large,
+or else it'll overflow.
+
+00:25:02.408 --> 00:25:04.700
+And it doesn't want to choose
+a value that's too small,
+
+00:25:04.700 --> 00:25:06.680
+or else you lose precision.
+
+00:25:06.680 --> 00:25:10.130
+So it's able to find
+a balancing point.
+
+00:25:10.130 --> 00:25:12.470
+If you want to know more
+about magic numbers,
+
+00:25:12.470 --> 00:25:16.370
+I recommend checking out this
+book called Hackers Delight.
+
+00:25:16.370 --> 00:25:18.490
+For any of you who are
+familiar with this book,
+
+00:25:18.490 --> 00:25:20.810
+it is a book full of bit tricks.
+
+00:25:20.810 --> 00:25:22.550
+Seriously, that's
+the entire book.
+
+00:25:22.550 --> 00:25:24.110
+It's just a book
+full of bit tricks.
+
+00:25:24.110 --> 00:25:26.300
+And there's a whole
+section in there describing
+
+00:25:26.300 --> 00:25:31.790
+how you do division by various
+constants using multiplication,
+
+00:25:31.790 --> 00:25:33.770
+either signed or unsigned.
+
+00:25:33.770 --> 00:25:35.560
+It's very cool.
+
+00:25:35.560 --> 00:25:38.810
+But magic number to
+convert a division
+
+00:25:38.810 --> 00:25:41.720
+into a multiply, that's
+the kind of thing
+
+00:25:41.720 --> 00:25:43.370
+that you might see
+from the assembly.
+
+00:25:43.370 --> 00:25:46.390
+That's one of these examples
+of arithmetic operations
+
+00:25:46.390 --> 00:25:49.520
+that are really optimized
+at the very last step.
+
+00:25:49.520 --> 00:25:51.200
+But for the rest of
+the optimizations,
+
+00:25:51.200 --> 00:25:53.477
+fortunately we can
+focus on the IR.
+
+00:25:53.477 --> 00:25:54.810
+Any questions about that so far?
+
+00:25:57.730 --> 00:25:59.590
+Cool.
+
+00:25:59.590 --> 00:26:02.670
+OK, so for the next
+part of the lecture,
+
+00:26:02.670 --> 00:26:05.790
+I want to show you a couple
+example optimizations in terms
+
+00:26:05.790 --> 00:26:07.470
+of the LLVM IR.
+
+00:26:07.470 --> 00:26:09.210
+And to show you
+these optimizations,
+
+00:26:09.210 --> 00:26:12.870
+we'll have a little bit of
+code that we'll work through,
+
+00:26:12.870 --> 00:26:15.280
+a running example, if you will.
+
+00:26:15.280 --> 00:26:17.640
+And this running example
+will be some code
+
+00:26:17.640 --> 00:26:22.680
+that I stole from I think it was
+a serial program that simulates
+
+00:26:22.680 --> 00:26:27.060
+the behavior of n massive
+bodies in 2D space
+
+00:26:27.060 --> 00:26:29.010
+under the law of gravitation.
+
+00:26:29.010 --> 00:26:31.020
+So we've got a whole
+bunch of point masses.
+
+00:26:31.020 --> 00:26:33.335
+Those point masses
+have varying masses.
+
+00:26:33.335 --> 00:26:34.710
+And we just want
+to simulate what
+
+00:26:34.710 --> 00:26:42.510
+happens due to gravity as these
+masses interact in the plane.
+
+00:26:42.510 --> 00:26:46.420
+At a high level, the n
+body code is pretty simple.
+
+00:26:46.420 --> 00:26:48.990
+We have a top level
+simulate routine,
+
+00:26:48.990 --> 00:26:50.670
+which just loops
+over all the time
+
+00:26:50.670 --> 00:26:55.050
+steps, during which we want
+to perform this simulation.
+
+00:26:55.050 --> 00:26:58.830
+And at each time step, it
+calculates the various forces
+
+00:26:58.830 --> 00:27:00.630
+acting on those
+different bodies.
+
+00:27:00.630 --> 00:27:02.580
+And then it updates the
+position of each body,
+
+00:27:02.580 --> 00:27:05.187
+based on those forces.
+
+00:27:05.187 --> 00:27:06.520
+In order to do that calculation.
+
+00:27:06.520 --> 00:27:08.220
+It has some internal
+data structures,
+
+00:27:08.220 --> 00:27:10.860
+one to represent each
+body, which contains
+
+00:27:10.860 --> 00:27:12.650
+a couple of vector types.
+
+00:27:12.650 --> 00:27:14.160
+And we define our
+own vector type
+
+00:27:14.160 --> 00:27:18.227
+to store to double precision
+floating point values.
+
+00:27:18.227 --> 00:27:20.310
+Now, we don't need to see
+the entire code in order
+
+00:27:20.310 --> 00:27:23.910
+to look at some
+compiler optimizations.
+
+00:27:23.910 --> 00:27:26.160
+The one routine that
+we will take a look at
+
+00:27:26.160 --> 00:27:27.900
+is this one to
+update the positions.
+
+00:27:27.900 --> 00:27:33.750
+This is a simple loop that
+takes each body, one at a time,
+
+00:27:33.750 --> 00:27:35.610
+computes the new
+velocity on that body,
+
+00:27:35.610 --> 00:27:38.490
+based on the forces
+acting on that body,
+
+00:27:38.490 --> 00:27:41.780
+and uses vector
+operations to do that.
+
+00:27:41.780 --> 00:27:43.530
+Then it updates the
+position of that body,
+
+00:27:43.530 --> 00:27:47.800
+again using these vector
+operations that we've defined.
+
+00:27:47.800 --> 00:27:50.517
+And then it stores the results
+into the data structure
+
+00:27:50.517 --> 00:27:51.100
+for that body.
+
+00:27:54.200 --> 00:27:56.180
+So all these methods
+with this code
+
+00:27:56.180 --> 00:28:00.770
+make use of these basic routines
+on 2D vectors, points in x, y,
+
+00:28:00.770 --> 00:28:03.248
+or points in 2D space.
+
+00:28:03.248 --> 00:28:04.790
+And these routines
+are pretty simple.
+
+00:28:04.790 --> 00:28:06.600
+There is one to add two vectors.
+
+00:28:06.600 --> 00:28:10.725
+There's another to scale a
+vector by a scalar value.
+
+00:28:10.725 --> 00:28:13.100
+And there's a third to compute
+the length, which we won't
+
+00:28:13.100 --> 00:28:14.183
+actually look at too much.
+
+00:28:17.640 --> 00:28:20.230
+Everyone good so far?
+
+00:28:20.230 --> 00:28:23.640
+OK, so let's try
+to start simple.
+
+00:28:23.640 --> 00:28:27.440
+Let's take a look at just
+one of these one line vector
+
+00:28:27.440 --> 00:28:30.260
+operations, vec scale.
+
+00:28:30.260 --> 00:28:36.260
+All vec scale does is it takes
+one of these vector inputs
+
+00:28:36.260 --> 00:28:38.180
+at a scalar value a.
+
+00:28:38.180 --> 00:28:43.190
+And it multiplies x by a, and
+y by a, and stores the results
+
+00:28:43.190 --> 00:28:46.090
+into a vector type,
+and return to it.
+
+00:28:46.090 --> 00:28:49.340
+Great, couldn't be simpler.
+
+00:28:49.340 --> 00:28:52.260
+If we compile this with no
+optimizations whatsoever,
+
+00:28:52.260 --> 00:28:54.530
+and we take a look
+at the LLVM IR,
+
+00:28:54.530 --> 00:29:01.250
+we get that, which is a
+little more complicated
+
+00:29:01.250 --> 00:29:03.110
+than you might imagine.
+
+00:29:06.260 --> 00:29:09.890
+The good news, though, is that
+if you turn on optimizations,
+
+00:29:09.890 --> 00:29:14.630
+and you just turn on the first
+level of optimization, just 01,
+
+00:29:14.630 --> 00:29:20.420
+whereas we got this code before,
+now we get this, which is far,
+
+00:29:20.420 --> 00:29:24.790
+far simpler, and so simple I
+can blow up the font size so you
+
+00:29:24.790 --> 00:29:29.180
+can actually read the
+code on the slide.
+
+00:29:29.180 --> 00:29:35.520
+So to see, again, no
+optimizations, optimizations.
+
+00:29:35.520 --> 00:29:41.990
+So a lot of stuff happened to
+optimize this simple function.
+
+00:29:41.990 --> 00:29:45.782
+We're going to see what those
+optimizations actually were.
+
+00:29:45.782 --> 00:29:47.240
+But, first, let's
+pick apart what's
+
+00:29:47.240 --> 00:29:49.070
+going on in this function.
+
+00:29:49.070 --> 00:29:52.280
+We have our vec scale
+routine in LLVM IR.
+
+00:29:52.280 --> 00:29:54.500
+It takes a structure
+as its first argument.
+
+00:29:54.500 --> 00:29:57.680
+And that's represented
+using two doubles.
+
+00:29:57.680 --> 00:29:59.840
+It takes a scalar as
+the second argument.
+
+00:29:59.840 --> 00:30:05.810
+And what the operation does
+is it multiplies those two
+
+00:30:05.810 --> 00:30:09.840
+fields by the third
+argument, the double A.
+
+00:30:09.840 --> 00:30:16.220
+It then packs those values
+into a struct that'll return.
+
+00:30:16.220 --> 00:30:19.460
+And, finally, it
+returns that struct.
+
+00:30:19.460 --> 00:30:21.680
+So that's what the
+optimized code does.
+
+00:30:21.680 --> 00:30:25.360
+Let's see actually how we
+get to this optimized code.
+
+00:30:25.360 --> 00:30:28.710
+And we'll do this
+one step at a time.
+
+00:30:28.710 --> 00:30:31.400
+Let's start by optimizing the
+operations on a single scalar
+
+00:30:31.400 --> 00:30:32.000
+value.
+
+00:30:32.000 --> 00:30:34.850
+That's why I picked
+this example.
+
+00:30:34.850 --> 00:30:36.350
+So we go back to the 00 code.
+
+00:30:36.350 --> 00:30:38.690
+And we just pick out
+the operations that
+
+00:30:38.690 --> 00:30:41.450
+dealt with that scalar value.
+
+00:30:41.450 --> 00:30:46.160
+We our scope down
+to just these lines.
+
+00:30:46.160 --> 00:30:51.110
+So the argument double A is
+the final argument in the list.
+
+00:30:51.110 --> 00:30:54.080
+And what we see is that
+within the vector scale
+
+00:30:54.080 --> 00:30:59.010
+routine, compiler to 0, we
+allocate some local storage.
+
+00:30:59.010 --> 00:31:02.240
+We store that double A
+into the local storage.
+
+00:31:02.240 --> 00:31:04.490
+And then later on,
+we'll load the value out
+
+00:31:04.490 --> 00:31:07.940
+of the local storage
+before the multiply.
+
+00:31:07.940 --> 00:31:12.470
+And then we load it again
+before the other multiply.
+
+00:31:12.470 --> 00:31:17.045
+OK, any ideas how we could
+make this code faster?
+
+00:31:21.400 --> 00:31:23.800
+Don't store in memory,
+what a great idea.
+
+00:31:23.800 --> 00:31:25.900
+How do we get around not
+storing it in memory?
+
+00:31:28.440 --> 00:31:30.430
+Saving a register.
+
+00:31:30.430 --> 00:31:34.750
+In particular, what property of
+LLVM IR makes that really easy?
+
+00:31:37.900 --> 00:31:39.540
+There are infinite registers.
+
+00:31:39.540 --> 00:31:44.050
+And, in fact, the argument
+is already in a register.
+
+00:31:44.050 --> 00:31:48.180
+It's already in the register
+percent two, if I recall.
+
+00:31:48.180 --> 00:31:50.830
+So we don't need to
+move it into a register.
+
+00:31:50.830 --> 00:31:53.560
+It's already there.
+
+00:31:53.560 --> 00:31:56.530
+So how do we go about optimizing
+that code in this case?
+
+00:31:56.530 --> 00:32:00.430
+Well, let's find the places
+where we're using the value.
+
+00:32:00.430 --> 00:32:04.750
+And we're using the
+value loaded from memory.
+
+00:32:04.750 --> 00:32:08.080
+And what we're going to do
+is just replace those loads
+
+00:32:08.080 --> 00:32:10.090
+from memory with the
+original argument.
+
+00:32:10.090 --> 00:32:12.430
+We know exactly what
+operation we're trying to do.
+
+00:32:12.430 --> 00:32:15.670
+We know we're trying
+to do a multiply
+
+00:32:15.670 --> 00:32:18.340
+by the original parameter.
+
+00:32:18.340 --> 00:32:20.950
+So we just find those two uses.
+
+00:32:20.950 --> 00:32:22.090
+We cross them out.
+
+00:32:22.090 --> 00:32:27.010
+And we put in the input
+parameter in its place.
+
+00:32:27.010 --> 00:32:29.110
+That make sense?
+
+00:32:29.110 --> 00:32:31.670
+Questions so far?
+
+00:32:31.670 --> 00:32:33.040
+Cool.
+
+00:32:33.040 --> 00:32:36.370
+So now, those multipliers
+aren't using the values
+
+00:32:36.370 --> 00:32:38.247
+returned by the loads.
+
+00:32:38.247 --> 00:32:39.830
+How further can we
+optimize this code?
+
+00:32:45.900 --> 00:32:47.290
+Delete the loads.
+
+00:32:47.290 --> 00:32:48.290
+What else can we delete?
+
+00:32:55.980 --> 00:32:58.380
+So there's no address
+calculation here
+
+00:32:58.380 --> 00:33:03.090
+just because the code is so
+simple, but good insight.
+
+00:33:03.090 --> 00:33:07.920
+The allocation and
+the store, great.
+
+00:33:07.920 --> 00:33:09.870
+So those loads are dead code.
+
+00:33:09.870 --> 00:33:11.550
+The store is dead code.
+
+00:33:11.550 --> 00:33:12.960
+The allocation is dead code.
+
+00:33:12.960 --> 00:33:15.690
+We eliminate all that dead code.
+
+00:33:15.690 --> 00:33:17.040
+We got rid of those loads.
+
+00:33:17.040 --> 00:33:19.450
+We just used the value
+living in the register.
+
+00:33:19.450 --> 00:33:23.080
+And we've already eliminated
+a bunch of instructions.
+
+00:33:23.080 --> 00:33:26.920
+So the net effect of that was
+to turn the code optimizer at 00
+
+00:33:26.920 --> 00:33:29.730
+that we had in the background
+into the code we have
+
+00:33:29.730 --> 00:33:34.230
+in the foreground, which
+is slightly shorter,
+
+00:33:34.230 --> 00:33:36.190
+but not that much.
+
+00:33:36.190 --> 00:33:39.960
+So it's a little bit faster,
+but not that much faster.
+
+00:33:39.960 --> 00:33:42.350
+How do we optimize
+this function further?
+
+00:33:42.350 --> 00:33:45.180
+Do it for every
+variable we have.
+
+00:33:45.180 --> 00:33:47.310
+In particular, the only
+other variable we have
+
+00:33:47.310 --> 00:33:50.130
+is a structure that
+we're passing in.
+
+00:33:50.130 --> 00:33:55.300
+So we want to do this kind of
+optimization on the structure.
+
+00:33:55.300 --> 00:33:58.380
+Make sense?
+
+00:33:58.380 --> 00:34:02.130
+So let's see how we
+optimize this structure.
+
+00:34:02.130 --> 00:34:03.660
+Now, the problem
+is that structures
+
+00:34:03.660 --> 00:34:07.350
+are harder to handle than
+individual scalar values,
+
+00:34:07.350 --> 00:34:10.020
+because, in general, you can't
+store the whole structure
+
+00:34:10.020 --> 00:34:11.840
+in just a single register.
+
+00:34:11.840 --> 00:34:14.969
+It's more complicated
+to juggle all the data
+
+00:34:14.969 --> 00:34:17.310
+within a structure.
+
+00:34:17.310 --> 00:34:18.929
+But, nevertheless,
+let's take a look
+
+00:34:18.929 --> 00:34:21.239
+at the code that operates
+on the structure,
+
+00:34:21.239 --> 00:34:23.280
+or at least operates
+on the structure
+
+00:34:23.280 --> 00:34:26.620
+that we pass in to the function.
+
+00:34:26.620 --> 00:34:28.350
+So when we eliminate
+all the other code,
+
+00:34:28.350 --> 00:34:31.420
+we see that we've
+got an allocation.
+
+00:34:31.420 --> 00:34:32.989
+See if I animations
+here, yeah, I do.
+
+00:34:32.989 --> 00:34:34.860
+We have an allocation.
+
+00:34:34.860 --> 00:34:38.560
+So we can store the
+structure onto the stack.
+
+00:34:38.560 --> 00:34:40.380
+Then we have an
+address calculation
+
+00:34:40.380 --> 00:34:43.560
+that lets us store the
+first part of the structure
+
+00:34:43.560 --> 00:34:45.449
+onto the stack.
+
+00:34:45.449 --> 00:34:46.949
+We have a second
+address calculation
+
+00:34:46.949 --> 00:34:49.800
+to store the second
+field on the stack.
+
+00:34:49.800 --> 00:34:52.469
+And later on, when
+we need those values,
+
+00:34:52.469 --> 00:34:55.980
+we load the first
+field out of memory.
+
+00:34:55.980 --> 00:34:58.020
+And we load the second
+field out of memory.
+
+00:34:58.020 --> 00:35:00.870
+It's a very similar pattern
+to what we had before,
+
+00:35:00.870 --> 00:35:03.990
+except we've got more
+going on in this case.
+
+00:35:08.480 --> 00:35:12.340
+So how do we go about
+optimizing this structure?
+
+00:35:12.340 --> 00:35:16.420
+Any ideas, high level ideas?
+
+00:35:16.420 --> 00:35:19.690
+Ultimately, we want to get
+rid of all of the memory
+
+00:35:19.690 --> 00:35:26.170
+references and all that
+storage for the structure.
+
+00:35:26.170 --> 00:35:28.750
+How do we reason through
+eliminating all that stuff
+
+00:35:28.750 --> 00:35:33.640
+in a mechanical fashion, based
+on what we've seen so far?
+
+00:35:33.640 --> 00:35:35.411
+Go for it.
+
+00:35:35.411 --> 00:35:39.794
+AUDIENCE: [INAUDIBLE]
+
+00:35:43.458 --> 00:35:46.000
+TAO B. SCHARDL: They are passed
+in using separate parameters,
+
+00:35:46.000 --> 00:35:50.120
+separate registers if you will,
+as a quirk of how LLVM does it.
+
+00:35:50.120 --> 00:35:55.158
+So given that insight,
+how would you optimize it?
+
+00:35:55.158 --> 00:35:58.567
+AUDIENCE: [INAUDIBLE]
+
+00:36:01.600 --> 00:36:03.600
+TAO B. SCHARDL: Cross out
+percent 12, percent 6,
+
+00:36:03.600 --> 00:36:07.640
+and put in the relevant field.
+
+00:36:07.640 --> 00:36:08.677
+Cool.
+
+00:36:08.677 --> 00:36:10.510
+Let me phrase that a
+little bit differently.
+
+00:36:10.510 --> 00:36:13.680
+Let's do this one
+field at a time.
+
+00:36:13.680 --> 00:36:16.660
+We've got a structure,
+which has multiple fields.
+
+00:36:16.660 --> 00:36:18.900
+Let's just take it
+one step at a time.
+
+00:36:23.140 --> 00:36:25.980
+All right, so let's
+look at the first field.
+
+00:36:25.980 --> 00:36:29.320
+And let's look at the operations
+that deal with the first field.
+
+00:36:29.320 --> 00:36:34.710
+We have, in our code, in
+our LLVM IR, some address
+
+00:36:34.710 --> 00:36:38.787
+calculations that refer to the
+same field of the structure.
+
+00:36:38.787 --> 00:36:40.870
+In this case, I believe
+it's the first field, yes.
+
+00:36:45.300 --> 00:36:49.220
+And, ultimately, we end up
+loading from this location
+
+00:36:49.220 --> 00:36:51.260
+in local memory.
+
+00:36:51.260 --> 00:36:54.485
+So what value is this
+load going to retrieve?
+
+00:36:54.485 --> 00:36:56.360
+How do we know that both
+address calculations
+
+00:36:56.360 --> 00:36:57.410
+refer to the same field?
+
+00:36:57.410 --> 00:36:59.000
+Good question.
+
+00:36:59.000 --> 00:37:02.060
+What we do in this case
+is very careful analysis
+
+00:37:02.060 --> 00:37:04.770
+of the math that's going on.
+
+00:37:04.770 --> 00:37:10.640
+We know that the alga, the
+location in local memory,
+
+00:37:10.640 --> 00:37:12.320
+that's just a fixed location.
+
+00:37:12.320 --> 00:37:15.830
+And from that, we can interpret
+what each of the instructions
+
+00:37:15.830 --> 00:37:18.390
+does in terms of an
+address calculation.
+
+00:37:18.390 --> 00:37:21.860
+And we can determine that
+they're the same value.
+
+00:37:29.340 --> 00:37:35.410
+So we have this location in
+memory that we operate on.
+
+00:37:35.410 --> 00:37:39.940
+And before you do a
+multiply, we end up
+
+00:37:39.940 --> 00:37:43.070
+loading from that
+location in memory.
+
+00:37:43.070 --> 00:37:46.660
+So what value do we know is
+going to be loaded by that load
+
+00:37:46.660 --> 00:37:49.098
+instruction?
+
+00:37:49.098 --> 00:37:50.589
+Go for it.
+
+00:37:54.818 --> 00:37:57.360
+AUDIENCE: So what we're doing
+right now is taking some value,
+
+00:37:57.360 --> 00:37:59.760
+and then storing it, and
+then getting it back out,
+
+00:37:59.760 --> 00:38:02.552
+and putting it back.
+
+00:38:02.552 --> 00:38:04.760
+TAO B. SCHARDL: Not putting
+it back, but we don't you
+
+00:38:04.760 --> 00:38:05.970
+worry about putting it back.
+
+00:38:05.970 --> 00:38:08.944
+AUDIENCE: So we don't need
+to put it somewhere just
+
+00:38:08.944 --> 00:38:11.300
+to take it back out?
+
+00:38:11.300 --> 00:38:12.890
+TAO B. SCHARDL: Correct.
+
+00:38:12.890 --> 00:38:13.820
+Correct.
+
+00:38:13.820 --> 00:38:17.315
+So what are we multiplying in
+that multiply, which value?
+
+00:38:22.370 --> 00:38:23.680
+First element of the struct.
+
+00:38:23.680 --> 00:38:25.000
+It's percent zero.
+
+00:38:25.000 --> 00:38:29.042
+It's the value that
+we stored right there.
+
+00:38:29.042 --> 00:38:29.750
+That makes sense?
+
+00:38:29.750 --> 00:38:30.958
+Everyone see that?
+
+00:38:30.958 --> 00:38:32.000
+Any questions about that?
+
+00:38:39.040 --> 00:38:42.710
+All right, so we're storing
+the first element of the struct
+
+00:38:42.710 --> 00:38:43.820
+into this location.
+
+00:38:43.820 --> 00:38:46.670
+Later, we load it out
+of that same location.
+
+00:38:46.670 --> 00:38:49.280
+Nothing else happened
+to that location.
+
+00:38:49.280 --> 00:38:52.070
+So let's go ahead and
+optimize it just the same way
+
+00:38:52.070 --> 00:38:54.200
+we optimize the scalar.
+
+00:38:54.200 --> 00:38:56.450
+We see that we use the result
+of the load right there.
+
+00:38:56.450 --> 00:39:00.230
+But we know that load is going
+to return the first field
+
+00:39:00.230 --> 00:39:03.560
+of our struct input.
+
+00:39:03.560 --> 00:39:07.512
+So we'll just cross it out,
+and replace it with that field.
+
+00:39:07.512 --> 00:39:09.470
+So now we're not using
+the result of that load.
+
+00:39:09.470 --> 00:39:11.900
+What do we get to
+do as the compiler?
+
+00:39:17.548 --> 00:39:18.840
+I can tell you know the answer.
+
+00:39:23.790 --> 00:39:27.060
+Delete the dead code,
+delete all of it.
+
+00:39:27.060 --> 00:39:30.450
+Remove the now dead code,
+which is all those address
+
+00:39:30.450 --> 00:39:33.030
+calculations, as well as the
+load operation, and the store
+
+00:39:33.030 --> 00:39:34.800
+operation.
+
+00:39:34.800 --> 00:39:36.930
+And that's pretty much it.
+
+00:39:36.930 --> 00:39:39.770
+Yeah, good.
+
+00:39:39.770 --> 00:39:42.030
+So we replace that operation.
+
+00:39:42.030 --> 00:39:46.800
+And we got rid of a bunch of
+other code from our function.
+
+00:39:46.800 --> 00:39:50.970
+We've now optimized one of
+the two fields in our struct.
+
+00:39:50.970 --> 00:39:51.810
+What do we do next?
+
+00:39:55.510 --> 00:39:58.190
+Optimize the next one.
+
+00:39:58.190 --> 00:39:59.330
+That happened similarly.
+
+00:39:59.330 --> 00:40:02.090
+I won't walk you through
+that a second time.
+
+00:40:02.090 --> 00:40:04.760
+We find where we're using
+the result of that load.
+
+00:40:04.760 --> 00:40:09.238
+We can cross it out, and replace
+it with the appropriate input,
+
+00:40:09.238 --> 00:40:11.030
+and then delete all
+the relevant dead code.
+
+00:40:11.030 --> 00:40:13.550
+And now, we get to delete
+the original allocation
+
+00:40:13.550 --> 00:40:16.133
+because nothing's getting
+stored to that memory.
+
+00:40:16.133 --> 00:40:16.800
+That make sense?
+
+00:40:16.800 --> 00:40:18.360
+Any questions about that?
+
+00:40:18.360 --> 00:40:19.910
+Yeah?
+
+00:40:19.910 --> 00:40:23.690
+AUDIENCE: So when we first
+compile it to LLVM IR,
+
+00:40:23.690 --> 00:40:25.420
+does it unpack the
+struct and just
+
+00:40:25.420 --> 00:40:28.572
+put in separate parameters?
+
+00:40:28.572 --> 00:40:30.530
+TAO B. SCHARDL: When we
+first compiled LLVM IR,
+
+00:40:30.530 --> 00:40:32.870
+do we unpack the struct and
+pass in the separate parameters?
+
+00:40:32.870 --> 00:40:34.400
+AUDIENCE: Like, how we
+have three parameters here
+
+00:40:34.400 --> 00:40:35.108
+that are doubled.
+
+00:40:35.108 --> 00:40:39.721
+Wasn't our original C code
+just a struct of vectors in
+
+00:40:39.721 --> 00:40:40.730
+the double?
+
+00:40:40.730 --> 00:40:44.780
+TAO B. SCHARDL: So LLVM IR in
+this case, when we compiled it
+
+00:40:44.780 --> 00:40:50.360
+as zero, decided to pass
+it as separate parameters,
+
+00:40:50.360 --> 00:40:54.350
+just as it's representation.
+
+00:40:54.350 --> 00:40:56.660
+So in that sense, yes.
+
+00:40:56.660 --> 00:41:00.440
+But it was still
+doing the standard,
+
+00:41:00.440 --> 00:41:02.870
+create some local storage,
+store the parameters
+
+00:41:02.870 --> 00:41:05.930
+on to local storage, and
+then all operations just
+
+00:41:05.930 --> 00:41:07.760
+read out of local storage.
+
+00:41:07.760 --> 00:41:11.810
+It's the standard thing that
+the compiler generates when
+
+00:41:11.810 --> 00:41:13.980
+it's asked to compile C code.
+
+00:41:13.980 --> 00:41:17.180
+And with no other optimizations,
+that's what you get.
+
+00:41:17.180 --> 00:41:19.230
+That makes sense?
+
+00:41:19.230 --> 00:41:19.845
+Yeah?
+
+00:41:19.845 --> 00:41:22.430
+AUDIENCE: What are
+all the align eights?
+
+00:41:22.430 --> 00:41:24.680
+TAO B. SCHARDL: What are all
+the aligned eights doing?
+
+00:41:24.680 --> 00:41:27.770
+The align eights
+are attributes that
+
+00:41:27.770 --> 00:41:31.340
+specify the alignment of
+that location in memory.
+
+00:41:31.340 --> 00:41:34.340
+This is alignment
+information that the compiler
+
+00:41:34.340 --> 00:41:38.240
+either determines by
+analysis, or implements
+
+00:41:38.240 --> 00:41:41.180
+as part of a standard.
+
+00:41:41.180 --> 00:41:44.060
+So they're specifying how
+values are aligned in memory.
+
+00:41:44.060 --> 00:41:47.180
+That matters a lot more for
+ultimate code generation,
+
+00:41:47.180 --> 00:41:49.310
+unless we're able to
+just delete the memory
+
+00:41:49.310 --> 00:41:51.020
+references altogether.
+
+00:41:51.020 --> 00:41:51.886
+Make sense?
+
+00:41:51.886 --> 00:41:53.670
+Cool.
+
+00:41:53.670 --> 00:41:54.743
+Any other questions?
+
+00:41:58.610 --> 00:42:02.940
+All right, so we
+optimized the first field.
+
+00:42:02.940 --> 00:42:05.880
+We optimize the second
+field in a similar way.
+
+00:42:05.880 --> 00:42:08.610
+Turns out, there's
+additional optimizations
+
+00:42:08.610 --> 00:42:10.620
+that need to happen
+in order to return
+
+00:42:10.620 --> 00:42:14.610
+a structure from this function.
+
+00:42:14.610 --> 00:42:17.160
+Those operations can be
+optimized in a similar way.
+
+00:42:17.160 --> 00:42:18.300
+They're shown here.
+
+00:42:18.300 --> 00:42:21.150
+We're not going to go through
+exactly how that works.
+
+00:42:21.150 --> 00:42:23.070
+But at the end of
+the day, after we've
+
+00:42:23.070 --> 00:42:27.210
+optimized all of that
+code we end up with this.
+
+00:42:27.210 --> 00:42:30.930
+We end up with our
+function compiled at 01.
+
+00:42:30.930 --> 00:42:32.477
+And it's far simpler.
+
+00:42:32.477 --> 00:42:33.810
+I think it's far more intuitive.
+
+00:42:33.810 --> 00:42:35.643
+This is what I would
+imagine the code should
+
+00:42:35.643 --> 00:42:40.920
+look like when I wrote the
+C code in the first place.
+
+00:42:40.920 --> 00:42:41.970
+Take your input.
+
+00:42:41.970 --> 00:42:44.070
+Do a couple of multiplications.
+
+00:42:44.070 --> 00:42:48.310
+And then it does them operations
+to create the return value,
+
+00:42:48.310 --> 00:42:51.460
+and ultimately
+return that value.
+
+00:42:51.460 --> 00:42:54.330
+So, in summary,
+the compiler works
+
+00:42:54.330 --> 00:42:57.570
+hard to transform data
+structures and scalar
+
+00:42:57.570 --> 00:42:59.370
+values to store as
+much as it possibly
+
+00:42:59.370 --> 00:43:02.760
+can purely within
+registers, and avoid using
+
+00:43:02.760 --> 00:43:06.064
+any local storage, if possible.
+
+00:43:06.064 --> 00:43:09.360
+Everyone good with that so far?
+
+00:43:09.360 --> 00:43:11.250
+Cool.
+
+00:43:11.250 --> 00:43:12.900
+Let's move on to
+another optimization.
+
+00:43:12.900 --> 00:43:15.600
+Let's talk about function calls.
+
+00:43:15.600 --> 00:43:17.790
+Let's take a look
+at how the compiler
+
+00:43:17.790 --> 00:43:19.260
+can optimize function calls.
+
+00:43:19.260 --> 00:43:20.940
+By and large,
+these optimizations
+
+00:43:20.940 --> 00:43:29.510
+will occur if you pass
+optimization level 2 or higher,
+
+00:43:29.510 --> 00:43:31.310
+just FYI.
+
+00:43:31.310 --> 00:43:33.490
+So from our original
+C code, we had
+
+00:43:33.490 --> 00:43:37.150
+some lines that performed a
+bunch of vector operations.
+
+00:43:37.150 --> 00:43:40.690
+We had a vec add that added two
+vectors together, one of which
+
+00:43:40.690 --> 00:43:42.880
+was the result of
+a vec scale, which
+
+00:43:42.880 --> 00:43:47.270
+scaled the result of a vec
+add by some scalar value.
+
+00:43:47.270 --> 00:43:52.353
+So we had this chain
+of calls in our code.
+
+00:43:52.353 --> 00:43:54.270
+And if we take a look
+at the code compile that
+
+00:43:54.270 --> 00:43:57.130
+was 0, what we end up
+with is this snippet shown
+
+00:43:57.130 --> 00:44:01.720
+on the bottom, which performs
+some operations on these vector
+
+00:44:01.720 --> 00:44:04.720
+structures, does this
+multiply operation,
+
+00:44:04.720 --> 00:44:07.000
+and then calls this
+vector scale routine,
+
+00:44:07.000 --> 00:44:12.230
+the vector scale routine that
+we decide to focus on first.
+
+00:44:12.230 --> 00:44:18.340
+So any ideas for how we
+go about optimizing this?
+
+00:44:21.880 --> 00:44:25.810
+So to give you a little bit of
+a hint, what the compiler sees
+
+00:44:25.810 --> 00:44:29.320
+when it looks at that call is
+it sees a snippet containing
+
+00:44:29.320 --> 00:44:30.920
+the call instruction.
+
+00:44:30.920 --> 00:44:36.730
+And in our example, it also
+sees the code for the vec scale
+
+00:44:36.730 --> 00:44:38.620
+function that we
+were just looking at.
+
+00:44:38.620 --> 00:44:40.870
+And we're going to suppose
+that it's already optimized
+
+00:44:40.870 --> 00:44:42.280
+vec scale as best as it can.
+
+00:44:42.280 --> 00:44:45.260
+It's produced this code
+for the vec scale routine.
+
+00:44:45.260 --> 00:44:47.830
+And so it sees that
+call instruction.
+
+00:44:47.830 --> 00:44:52.400
+And it sees this code for the
+function that's being called.
+
+00:44:52.400 --> 00:44:54.790
+So what could the
+compiler do at this point
+
+00:44:54.790 --> 00:45:01.570
+to try to make the
+code above even faster?
+
+00:45:04.498 --> 00:45:08.402
+AUDIENCE: [INAUDIBLE]
+
+00:45:09.638 --> 00:45:11.180
+TAO B. SCHARDL:
+You're exactly right.
+
+00:45:11.180 --> 00:45:15.020
+Remove the call, and just put
+the body of the vec scale code
+
+00:45:15.020 --> 00:45:17.450
+right there in
+place of the call.
+
+00:45:17.450 --> 00:45:20.130
+It takes a little bit of
+effort to pull that off.
+
+00:45:20.130 --> 00:45:22.070
+But, roughly
+speaking, yeah, we're
+
+00:45:22.070 --> 00:45:25.220
+just going to copy and paste
+this code in our function
+
+00:45:25.220 --> 00:45:28.800
+into the place where we're
+calling the function.
+
+00:45:28.800 --> 00:45:30.620
+And so if we do that
+simple copy paste,
+
+00:45:30.620 --> 00:45:34.358
+we end up with some garbage
+code as an intermediate.
+
+00:45:34.358 --> 00:45:35.900
+We had to do a little
+bit of renaming
+
+00:45:35.900 --> 00:45:39.040
+to make everything work out.
+
+00:45:39.040 --> 00:45:40.580
+But at this point,
+we have the code
+
+00:45:40.580 --> 00:45:43.910
+from our function in
+the place of that call.
+
+00:45:43.910 --> 00:45:46.782
+And now, we can observe
+that to restore correctness,
+
+00:45:46.782 --> 00:45:47.990
+we don't want to do the call.
+
+00:45:47.990 --> 00:45:51.980
+And we don't want to do
+the return that we just
+
+00:45:51.980 --> 00:45:54.200
+pasted in place.
+
+00:45:54.200 --> 00:45:55.610
+So we'll just go
+ahead and remove
+
+00:45:55.610 --> 00:45:58.370
+both that call and the return.
+
+00:45:58.370 --> 00:46:00.350
+That is called
+function inlining.
+
+00:46:00.350 --> 00:46:03.260
+We identify some function
+call, or the compiler
+
+00:46:03.260 --> 00:46:04.790
+identifies some function call.
+
+00:46:04.790 --> 00:46:06.710
+And it takes the
+body of the function,
+
+00:46:06.710 --> 00:46:11.360
+and just pastes it right
+in place of that call.
+
+00:46:11.360 --> 00:46:13.520
+Sound good?
+
+00:46:13.520 --> 00:46:14.480
+Make sense?
+
+00:46:14.480 --> 00:46:15.200
+Anyone confused?
+
+00:46:21.472 --> 00:46:22.930
+Raise your hand if
+you're confused.
+
+00:46:29.370 --> 00:46:32.610
+Now, once you've done some
+amount of function inlining,
+
+00:46:32.610 --> 00:46:35.680
+we can actually do some
+more optimizations.
+
+00:46:35.680 --> 00:46:37.470
+So here, we have the
+code after we got rid
+
+00:46:37.470 --> 00:46:39.530
+of the unnecessary
+call and return.
+
+00:46:39.530 --> 00:46:42.840
+And we have a couple multiply
+operations sitting in place.
+
+00:46:42.840 --> 00:46:44.370
+That looks fine.
+
+00:46:44.370 --> 00:46:47.070
+But if we expand our
+scope just a little bit,
+
+00:46:47.070 --> 00:46:49.500
+what we see, so we
+have some operations
+
+00:46:49.500 --> 00:46:53.670
+happening that were
+sitting there already
+
+00:46:53.670 --> 00:46:56.215
+after the original call.
+
+00:46:56.215 --> 00:46:57.840
+What the compiler
+can do is it can take
+
+00:46:57.840 --> 00:46:59.970
+a look at these instructions.
+
+00:46:59.970 --> 00:47:02.940
+And long story
+short, it realizes
+
+00:47:02.940 --> 00:47:05.130
+that all these
+instructions do is
+
+00:47:05.130 --> 00:47:08.280
+pack some data into a structure,
+and then immediately unpack
+
+00:47:08.280 --> 00:47:09.690
+the structure.
+
+00:47:09.690 --> 00:47:12.630
+So it's like you put a
+bunch of stuff into a bag,
+
+00:47:12.630 --> 00:47:15.540
+and then immediately
+dump out the bag.
+
+00:47:15.540 --> 00:47:17.010
+That was kind of
+a waste of time.
+
+00:47:17.010 --> 00:47:18.637
+That's kind of a waste of code.
+
+00:47:18.637 --> 00:47:19.470
+Let's get rid of it.
+
+00:47:23.540 --> 00:47:24.830
+Those operations are useless.
+
+00:47:24.830 --> 00:47:25.580
+Let's delete them.
+
+00:47:25.580 --> 00:47:29.252
+The compiler has a great
+time deleting dead code.
+
+00:47:29.252 --> 00:47:30.710
+It's like it's what
+it lives to do.
+
+00:47:33.410 --> 00:47:36.410
+All right, now, in fact,
+in the original code,
+
+00:47:36.410 --> 00:47:38.090
+we didn't just have
+one function call.
+
+00:47:38.090 --> 00:47:40.340
+We had a whole sequence
+of function calls.
+
+00:47:40.340 --> 00:47:44.180
+And if we expand our LLVM IR
+snippet even a little further,
+
+00:47:44.180 --> 00:47:45.770
+we can include
+those two function
+
+00:47:45.770 --> 00:47:49.730
+calls, the original call to
+vec ad, followed by the code
+
+00:47:49.730 --> 00:47:52.490
+that we've now
+optimized by inlining,
+
+00:47:52.490 --> 00:47:56.960
+ultimately followed by yet
+another call to vec add.
+
+00:47:56.960 --> 00:48:00.290
+Minor spoiler, the vec add
+routine, once it's optimized,
+
+00:48:00.290 --> 00:48:04.420
+looks pretty similar to
+the vec scalar routine.
+
+00:48:04.420 --> 00:48:06.650
+And, in particular,
+it has comparable size
+
+00:48:06.650 --> 00:48:08.570
+to the vector scale routine.
+
+00:48:08.570 --> 00:48:11.620
+So what's the compiler is going
+to do to those to call sites?
+
+00:48:20.710 --> 00:48:24.460
+Inline it, do more
+inlining, inlining is great.
+
+00:48:24.460 --> 00:48:28.840
+We'll inline these
+functions as well,
+
+00:48:28.840 --> 00:48:31.430
+and then remove all of the
+additional, now-useless
+
+00:48:31.430 --> 00:48:32.600
+instructions.
+
+00:48:32.600 --> 00:48:34.220
+We'll walk through that process.
+
+00:48:34.220 --> 00:48:37.980
+The result of that process
+looks something like this.
+
+00:48:37.980 --> 00:48:40.040
+So in the original C
+code, we had this vec
+
+00:48:40.040 --> 00:48:42.250
+add, which called
+the vec scale as one
+
+00:48:42.250 --> 00:48:44.000
+of its arguments, which
+called the vec add
+
+00:48:44.000 --> 00:48:45.500
+is one of its arguments.
+
+00:48:45.500 --> 00:48:48.000
+And what we end up with
+in the optimized IR
+
+00:48:48.000 --> 00:48:50.600
+is just a bunch of straight
+line code that performs
+
+00:48:50.600 --> 00:48:52.580
+floating point operations.
+
+00:48:52.580 --> 00:48:57.860
+It's almost as if the compiler
+took the original C code,
+
+00:48:57.860 --> 00:49:00.800
+and transformed it into
+the equivalency code shown
+
+00:49:00.800 --> 00:49:03.740
+on the bottom, where
+it just operates
+
+00:49:03.740 --> 00:49:07.970
+on a whole bunch of doubles, and
+just does primitive operations.
+
+00:49:07.970 --> 00:49:12.230
+So function inlining, as well as
+the additional transformations
+
+00:49:12.230 --> 00:49:14.600
+it was able to
+perform as a result,
+
+00:49:14.600 --> 00:49:17.030
+together those were
+able to eliminate
+
+00:49:17.030 --> 00:49:18.360
+all of those function calls.
+
+00:49:18.360 --> 00:49:20.330
+It was able to
+completely eliminate
+
+00:49:20.330 --> 00:49:25.130
+any costs associated with the
+function call abstraction,
+
+00:49:25.130 --> 00:49:27.270
+at least in this code.
+
+00:49:27.270 --> 00:49:27.950
+Make sense?
+
+00:49:30.500 --> 00:49:32.060
+I think that's pretty cool.
+
+00:49:32.060 --> 00:49:34.520
+You write code that has a
+bunch of function calls,
+
+00:49:34.520 --> 00:49:37.250
+because that's how you've
+constructed your interfaces.
+
+00:49:37.250 --> 00:49:39.500
+But you're not really paying
+for those function calls.
+
+00:49:39.500 --> 00:49:41.210
+Function calls aren't
+the cheapest operation
+
+00:49:41.210 --> 00:49:42.830
+in the world,
+especially if you think
+
+00:49:42.830 --> 00:49:44.420
+about everything
+that goes on in terms
+
+00:49:44.420 --> 00:49:47.090
+of the registers and the stack.
+
+00:49:47.090 --> 00:49:50.420
+But the compiler is able to
+avoid all of that overhead,
+
+00:49:50.420 --> 00:49:54.540
+and just perform the floating
+point operations we care about.
+
+00:49:54.540 --> 00:49:57.380
+OK, well, if function
+inlining is so great,
+
+00:49:57.380 --> 00:50:00.560
+and it enables so many
+great optimizations,
+
+00:50:00.560 --> 00:50:03.248
+why doesn't the compiler just
+inline every function call?
+
+00:50:06.320 --> 00:50:08.190
+Go for it.
+
+00:50:08.190 --> 00:50:12.630
+Recursion, it's really hard
+to inline a recursive call.
+
+00:50:12.630 --> 00:50:15.940
+In general, you can't inline
+a function into itself,
+
+00:50:15.940 --> 00:50:17.940
+although it turns out
+there are some exceptions.
+
+00:50:17.940 --> 00:50:20.580
+So, yes, recursion
+creates problems
+
+00:50:20.580 --> 00:50:21.900
+with function inlining.
+
+00:50:21.900 --> 00:50:23.670
+Any other thoughts?
+
+00:50:23.670 --> 00:50:25.545
+In the back.
+
+00:50:25.545 --> 00:50:29.505
+AUDIENCE: [INAUDIBLE]
+
+00:50:38.057 --> 00:50:40.140
+TAO B. SCHARDL: You're
+definitely on to something.
+
+00:50:40.140 --> 00:50:43.170
+So we had to do a bunch
+of this renaming stuff
+
+00:50:43.170 --> 00:50:45.090
+when we inlined the
+first time, and when
+
+00:50:45.090 --> 00:50:47.760
+we inlined every single time.
+
+00:50:47.760 --> 00:50:51.870
+And even though LLVM IR has an
+infinite number of registers,
+
+00:50:51.870 --> 00:50:53.760
+the machine doesn't.
+
+00:50:53.760 --> 00:50:56.790
+And so all of that renaming
+does create a problem.
+
+00:50:56.790 --> 00:50:59.370
+But there are other
+problems as well of
+
+00:50:59.370 --> 00:51:02.770
+a similar nature when you start
+inlining all those functions.
+
+00:51:02.770 --> 00:51:06.100
+For example, you copy
+pasted a bunch of code.
+
+00:51:06.100 --> 00:51:09.422
+And that made the original call
+site even bigger, and bigger,
+
+00:51:09.422 --> 00:51:10.380
+and bigger, and bigger.
+
+00:51:10.380 --> 00:51:13.950
+And programs, we generally
+don't think about the space
+
+00:51:13.950 --> 00:51:15.125
+they take in memory.
+
+00:51:15.125 --> 00:51:16.500
+But they do take
+space in memory.
+
+00:51:16.500 --> 00:51:19.120
+And that does have an
+impact on performance.
+
+00:51:19.120 --> 00:51:22.140
+So great answer,
+any other thoughts?
+
+00:51:25.056 --> 00:51:29.430
+AUDIENCE: [INAUDIBLE]
+
+00:51:35.487 --> 00:51:37.570
+TAO B. SCHARDL: If your
+function becomes too long,
+
+00:51:37.570 --> 00:51:39.443
+then it may not fit
+in instruction cache.
+
+00:51:39.443 --> 00:51:41.110
+And that can increase
+the amount of time
+
+00:51:41.110 --> 00:51:43.850
+it takes just to
+execute the function.
+
+00:51:43.850 --> 00:51:47.367
+Right, because you're now
+not getting hash hits,
+
+00:51:47.367 --> 00:51:47.950
+exactly right.
+
+00:51:47.950 --> 00:51:50.570
+That's one of the problems
+with this code size blow
+
+00:51:50.570 --> 00:51:52.630
+up from inlining everything.
+
+00:51:52.630 --> 00:51:54.010
+Any other thoughts?
+
+00:51:54.010 --> 00:51:54.810
+Any final thoughts?
+
+00:52:03.290 --> 00:52:05.790
+So there are three main
+reasons why the compiler
+
+00:52:05.790 --> 00:52:07.140
+won't inline every function.
+
+00:52:07.140 --> 00:52:11.070
+I think we touched
+on two of them here.
+
+00:52:11.070 --> 00:52:13.770
+For some function calls,
+like recursive calls,
+
+00:52:13.770 --> 00:52:15.960
+it's impossible to inline
+them, because you can't
+
+00:52:15.960 --> 00:52:18.450
+inline a function into itself.
+
+00:52:18.450 --> 00:52:21.300
+But there are exceptions
+to that, namely
+
+00:52:21.300 --> 00:52:22.710
+recursive tail calls.
+
+00:52:22.710 --> 00:52:26.280
+If the last thing in a
+function is a function call,
+
+00:52:26.280 --> 00:52:28.110
+then it turns out
+you can effectively
+
+00:52:28.110 --> 00:52:31.860
+inline that function
+call as an optimization.
+
+00:52:31.860 --> 00:52:34.680
+We're not going to talk too
+much about how that works.
+
+00:52:34.680 --> 00:52:36.940
+But there are corner cases.
+
+00:52:36.940 --> 00:52:42.120
+But, in general, you can't
+inline a recursive call.
+
+00:52:42.120 --> 00:52:43.800
+The compiler has
+another problem.
+
+00:52:43.800 --> 00:52:47.570
+Namely, if the function
+that you're calling
+
+00:52:47.570 --> 00:52:50.070
+is in a different castle, if
+it's in a different compilation
+
+00:52:50.070 --> 00:52:54.240
+unit, literally in
+a different file
+
+00:52:54.240 --> 00:52:57.720
+that's compiled independently,
+then the compiler
+
+00:52:57.720 --> 00:53:00.238
+can't very well
+inline that function,
+
+00:53:00.238 --> 00:53:02.030
+because it doesn't know
+about the function.
+
+00:53:02.030 --> 00:53:05.280
+It doesn't have access
+to that function's code.
+
+00:53:05.280 --> 00:53:07.020
+There is a way to get
+around that problem
+
+00:53:07.020 --> 00:53:09.750
+with modern compiler technology
+that involves whole program
+
+00:53:09.750 --> 00:53:11.040
+optimization.
+
+00:53:11.040 --> 00:53:13.440
+And I think there's some backup
+slides that will tell you
+
+00:53:13.440 --> 00:53:16.260
+how to do that with LLVM.
+
+00:53:16.260 --> 00:53:19.350
+But, in general, if it's in
+a different compilation unit,
+
+00:53:19.350 --> 00:53:21.390
+it can't be inline.
+
+00:53:21.390 --> 00:53:24.060
+And, finally, as touched
+on, function inlining
+
+00:53:24.060 --> 00:53:28.200
+can increase code size,
+which can hurt performance.
+
+00:53:28.200 --> 00:53:31.620
+OK, so some functions
+are OK to inline.
+
+00:53:31.620 --> 00:53:34.110
+Other functions could create
+this performance problem,
+
+00:53:34.110 --> 00:53:35.890
+because you've
+increased code size.
+
+00:53:35.890 --> 00:53:38.820
+So how does the compiler
+know whether or not
+
+00:53:38.820 --> 00:53:42.660
+inlining any particular
+function at a call site
+
+00:53:42.660 --> 00:53:45.480
+could hurt performance?
+
+00:53:45.480 --> 00:53:47.780
+Any guesses?
+
+00:53:47.780 --> 00:53:48.844
+Yeah?
+
+00:53:48.844 --> 00:53:52.580
+AUDIENCE: [INAUDIBLE]
+
+00:53:55.975 --> 00:53:56.850
+TAO B. SCHARDL: Yeah.
+
+00:53:56.850 --> 00:53:59.740
+So the compiler has some
+cost model, which gives it
+
+00:53:59.740 --> 00:54:02.740
+some information
+about, how much will it
+
+00:54:02.740 --> 00:54:06.370
+cost to inline that function?
+
+00:54:06.370 --> 00:54:07.690
+Is the cost model always right?
+
+00:54:10.560 --> 00:54:12.040
+It is not.
+
+00:54:12.040 --> 00:54:15.270
+So the answer, how
+does the compiler know,
+
+00:54:15.270 --> 00:54:17.400
+is, really, it doesn't know.
+
+00:54:17.400 --> 00:54:21.210
+It makes a best guess
+using that cost model,
+
+00:54:21.210 --> 00:54:24.000
+and other heuristics,
+to determine,
+
+00:54:24.000 --> 00:54:27.840
+when does it make sense to
+try to inline a function?
+
+00:54:27.840 --> 00:54:29.820
+And because it's
+making a best guess,
+
+00:54:29.820 --> 00:54:33.490
+sometimes the compiler
+guesses wrong.
+
+00:54:33.490 --> 00:54:35.430
+So to wrap up this
+part, here are just
+
+00:54:35.430 --> 00:54:38.160
+a couple of tips for
+controlling function inlining
+
+00:54:38.160 --> 00:54:39.630
+in your own programs.
+
+00:54:39.630 --> 00:54:42.810
+If there's a function that you
+know must always be inlined,
+
+00:54:42.810 --> 00:54:46.470
+no matter what happens,
+you can mark that function
+
+00:54:46.470 --> 00:54:49.963
+with a special attribute, namely
+the always inline attribute.
+
+00:54:49.963 --> 00:54:51.630
+For example, if you
+have a function that
+
+00:54:51.630 --> 00:54:53.900
+does some complex
+address calculation,
+
+00:54:53.900 --> 00:54:57.330
+and it should be inlined
+rather than called,
+
+00:54:57.330 --> 00:55:00.413
+you may want to mark that with
+an always inline attribute.
+
+00:55:00.413 --> 00:55:02.580
+Similarly, if you have a
+function that really should
+
+00:55:02.580 --> 00:55:04.980
+never be inlined, it's
+never cost effective
+
+00:55:04.980 --> 00:55:08.160
+to inline that function,
+you can mark that function
+
+00:55:08.160 --> 00:55:11.100
+with the no inline attribute.
+
+00:55:11.100 --> 00:55:15.150
+And, finally, if you want to
+enable more function inlining
+
+00:55:15.150 --> 00:55:19.560
+in the compiler, you can use
+link time optimization, or LTO,
+
+00:55:19.560 --> 00:55:22.380
+to enable whole
+program optimization.
+
+00:55:22.380 --> 00:55:24.940
+Won't go into that
+during these slides.
+
+00:55:24.940 --> 00:55:28.170
+Let's move on, and talk
+about loop optimizations.
+
+00:55:28.170 --> 00:55:31.590
+Any questions so
+far, before continue?
+
+00:55:31.590 --> 00:55:32.213
+Yeah?
+
+00:55:32.213 --> 00:55:35.460
+AUDIENCE: [INAUDIBLE]
+
+00:55:35.460 --> 00:55:36.688
+TAO B. SCHARDL: Sorry?
+
+00:55:36.688 --> 00:55:40.520
+AUDIENCE: [INAUDIBLE]
+
+00:55:42.773 --> 00:55:44.190
+TAO B. SCHARDL:
+Does static inline
+
+00:55:44.190 --> 00:55:47.100
+guarantee you the compiler
+will always inline it?
+
+00:55:47.100 --> 00:55:49.440
+It actually doesn't.
+
+00:55:49.440 --> 00:55:54.420
+The inline keyword will
+provide a hint to the compiler
+
+00:55:54.420 --> 00:55:56.700
+that it should think about
+inlining the function.
+
+00:55:56.700 --> 00:55:58.890
+But it doesn't provide
+any guarantees.
+
+00:55:58.890 --> 00:56:01.230
+If you want a strong guarantee,
+use the always inline
+
+00:56:01.230 --> 00:56:03.048
+attribute.
+
+00:56:03.048 --> 00:56:03.965
+Good question, though.
+
+00:56:08.060 --> 00:56:10.967
+All right, loop optimizations--
+
+00:56:10.967 --> 00:56:12.800
+you've already seen
+some loop optimizations.
+
+00:56:12.800 --> 00:56:17.010
+You've seen vectorization,
+for example.
+
+00:56:17.010 --> 00:56:19.400
+It turns out, the compiler
+does a lot of work
+
+00:56:19.400 --> 00:56:21.590
+to try to optimize loops.
+
+00:56:21.590 --> 00:56:24.230
+So first, why is that?
+
+00:56:24.230 --> 00:56:27.890
+Why would the compiler
+engineers invest so much effort
+
+00:56:27.890 --> 00:56:30.480
+into optimizing loops?
+
+00:56:30.480 --> 00:56:32.218
+Why loops in particular?
+
+00:56:42.470 --> 00:56:44.640
+They're extremely
+common control structure
+
+00:56:44.640 --> 00:56:47.310
+that also has a branch.
+
+00:56:47.310 --> 00:56:48.930
+Both things are true.
+
+00:56:48.930 --> 00:56:52.710
+I think there's a higher
+level reason, though,
+
+00:56:52.710 --> 00:56:55.854
+or more fundamental
+reason, if you will.
+
+00:56:55.854 --> 00:56:56.788
+Yeah?
+
+00:56:56.788 --> 00:57:00.787
+AUDIENCE: Most of the time, the
+loop takes up the most time.
+
+00:57:00.787 --> 00:57:02.870
+TAO B. SCHARDL: Most of
+the time the loop takes up
+
+00:57:02.870 --> 00:57:04.070
+the most time.
+
+00:57:04.070 --> 00:57:05.120
+You got it.
+
+00:57:05.120 --> 00:57:09.830
+Loops account for a lot of the
+execution time of programs.
+
+00:57:09.830 --> 00:57:12.050
+The way I like to
+think about this
+
+00:57:12.050 --> 00:57:14.270
+is with a really simple
+thought experiment.
+
+00:57:14.270 --> 00:57:16.790
+Let's imagine that you've got
+a machine with a two gigahertz
+
+00:57:16.790 --> 00:57:17.360
+processor.
+
+00:57:17.360 --> 00:57:19.670
+We've chosen these
+values to be easier
+
+00:57:19.670 --> 00:57:23.413
+to think about
+using mental math.
+
+00:57:23.413 --> 00:57:24.830
+Suppose you've got
+a two gigahertz
+
+00:57:24.830 --> 00:57:26.870
+processor with 16 cores.
+
+00:57:26.870 --> 00:57:29.570
+Each core executes one
+instruction per cycle.
+
+00:57:29.570 --> 00:57:32.120
+And suppose you've
+got a program which
+
+00:57:32.120 --> 00:57:35.900
+contains a trillion instructions
+and ample parallelism
+
+00:57:35.900 --> 00:57:37.490
+for those 16 cores.
+
+00:57:37.490 --> 00:57:41.560
+But all of those instructions
+are simple, straight line code.
+
+00:57:41.560 --> 00:57:42.900
+There are no branches.
+
+00:57:42.900 --> 00:57:43.850
+There are no loops.
+
+00:57:43.850 --> 00:57:46.760
+There no complicated
+operations like IO.
+
+00:57:46.760 --> 00:57:50.180
+It's just a bunch of really
+simple straight line code.
+
+00:57:50.180 --> 00:57:52.310
+Each instruction takes
+a cycle to execute.
+
+00:57:52.310 --> 00:57:56.060
+The processor executes
+one instruction per cycle.
+
+00:57:56.060 --> 00:58:01.640
+How long does it take to
+run this code, to execute
+
+00:58:01.640 --> 00:58:04.175
+the entire terabyte binary?
+
+00:58:15.740 --> 00:58:19.770
+2 to the 40th cycles for
+2 to the 40 instructions.
+
+00:58:19.770 --> 00:58:24.610
+But you're using a two gigahertz
+processor and 16 cores.
+
+00:58:24.610 --> 00:58:26.650
+And you've got ample
+parallelism in the program
+
+00:58:26.650 --> 00:58:28.930
+to keep them all saturated.
+
+00:58:28.930 --> 00:58:30.304
+So how much time?
+
+00:58:35.174 --> 00:58:38.110
+AUDIENCE: 32 seconds.
+
+00:58:38.110 --> 00:58:43.210
+TAO B. SCHARDL: 32
+seconds, nice job.
+
+00:58:43.210 --> 00:58:47.620
+This one has mastered power
+of 2 arithmetic in one's head.
+
+00:58:47.620 --> 00:58:50.860
+It's a good skill to have,
+especially in core six.
+
+00:58:50.860 --> 00:58:53.770
+Yeah, so if you have
+just a bunch of simple,
+
+00:58:53.770 --> 00:58:57.610
+straight line code, and
+you have a terabyte of it.
+
+00:58:57.610 --> 00:58:58.690
+That's a lot of code.
+
+00:58:58.690 --> 00:59:01.330
+That is a big binary.
+
+00:59:01.330 --> 00:59:04.035
+And, yet, the program,
+this processor,
+
+00:59:04.035 --> 00:59:05.410
+this relatively
+simple processor,
+
+00:59:05.410 --> 00:59:08.980
+can execute the whole thing
+in just about 30 seconds.
+
+00:59:08.980 --> 00:59:11.290
+Now, in your experience
+working with software,
+
+00:59:11.290 --> 00:59:12.880
+you might have
+noticed that there
+
+00:59:12.880 --> 00:59:17.480
+are some programs that take
+longer than 30 seconds to run.
+
+00:59:17.480 --> 00:59:22.420
+And some of those programs don't
+have terabyte size binaries.
+
+00:59:22.420 --> 00:59:25.720
+The reason that those
+programs take longer to run,
+
+00:59:25.720 --> 00:59:27.760
+by and large, is loops.
+
+00:59:27.760 --> 00:59:30.580
+So loops account for
+a lot of the execution
+
+00:59:30.580 --> 00:59:31.960
+time in real programs.
+
+00:59:34.718 --> 00:59:36.760
+Now, you've already seen
+some loop optimizations.
+
+00:59:36.760 --> 00:59:38.802
+We're just going to take
+a look at one other loop
+
+00:59:38.802 --> 00:59:42.040
+optimization today, namely
+code hoisting, also known
+
+00:59:42.040 --> 00:59:44.360
+as loop invariant code motion.
+
+00:59:44.360 --> 00:59:46.540
+To look at that,
+we're going to take
+
+00:59:46.540 --> 00:59:48.370
+a look at a different
+snippet of code
+
+00:59:48.370 --> 00:59:50.500
+from the end body simulation.
+
+00:59:50.500 --> 00:59:53.860
+This code calculates
+the forces going
+
+00:59:53.860 --> 00:59:55.980
+on each of the end bodies.
+
+00:59:55.980 --> 00:59:58.810
+And it does it with
+a doubly nested loop.
+
+00:59:58.810 --> 01:00:01.943
+For all the zero to
+number of bodies,
+
+01:00:01.943 --> 01:00:03.610
+for all body zero
+number bodies, as long
+
+01:00:03.610 --> 01:00:05.470
+as you're not looking
+at the same body,
+
+01:00:05.470 --> 01:00:10.210
+call this add force routine,
+which calculates to--
+
+01:00:10.210 --> 01:00:13.690
+calculate the force
+between those two bodies.
+
+01:00:13.690 --> 01:00:16.600
+And add that force
+to one of the bodies.
+
+01:00:16.600 --> 01:00:19.810
+That's all that's
+going on in this code.
+
+01:00:19.810 --> 01:00:22.330
+If we translate this
+code into LLVM IR,
+
+01:00:22.330 --> 01:00:25.810
+we end up with,
+hopefully unsurprisingly,
+
+01:00:25.810 --> 01:00:28.210
+a doubly nested loop.
+
+01:00:28.210 --> 01:00:29.510
+It looks something like this.
+
+01:00:29.510 --> 01:00:31.930
+The body of the code, the
+body of the innermost loop,
+
+01:00:31.930 --> 01:00:35.170
+has been lighted, just so
+things can fit on the slide.
+
+01:00:35.170 --> 01:00:37.900
+But we can see the
+overall structure.
+
+01:00:37.900 --> 01:00:41.070
+On the outside, we have
+some outer loop control.
+
+01:00:41.070 --> 01:00:45.010
+This should look familiar
+from lecture five, hopefully.
+
+01:00:45.010 --> 01:00:48.278
+Inside of that outer loop,
+we have an inner loop.
+
+01:00:48.278 --> 01:00:50.320
+And at the top and the
+bottom of that inner loop,
+
+01:00:50.320 --> 01:00:52.420
+we have the inner loop control.
+
+01:00:52.420 --> 01:00:54.670
+And within that
+inner loop, we do
+
+01:00:54.670 --> 01:00:57.190
+have one branch, which
+can skip a bunch of code
+
+01:00:57.190 --> 01:01:01.930
+if you're looking at the
+same body for i and j.
+
+01:01:01.930 --> 01:01:06.130
+But, otherwise, we have the loop
+body of the inner most loop,
+
+01:01:06.130 --> 01:01:08.590
+basic structure.
+
+01:01:08.590 --> 01:01:11.290
+Now, if we just zoom
+in on the top part
+
+01:01:11.290 --> 01:01:15.910
+of this doubly-nested loop, just
+the topmost three basic blocks,
+
+01:01:15.910 --> 01:01:19.240
+take a look at more of the
+code that's going on here,
+
+01:01:19.240 --> 01:01:22.200
+we end up with something
+that looks like this.
+
+01:01:22.200 --> 01:01:23.950
+And if you remember
+some of the discussion
+
+01:01:23.950 --> 01:01:26.680
+from lecture five about the
+loop induction variables,
+
+01:01:26.680 --> 01:01:29.830
+and what that looks like
+in LLVM IR, what you find
+
+01:01:29.830 --> 01:01:32.710
+is that for the outer loop
+we have an induction variable
+
+01:01:32.710 --> 01:01:33.430
+at the very top.
+
+01:01:33.430 --> 01:01:37.270
+It's that weird fee
+instruction, once again.
+
+01:01:37.270 --> 01:01:39.640
+Inside that outer loop,
+we have the loop control
+
+01:01:39.640 --> 01:01:43.090
+for the inner loop, which has
+its own induction variable.
+
+01:01:43.090 --> 01:01:44.800
+Once again, we have
+another fee node.
+
+01:01:44.800 --> 01:01:46.750
+That's how we can spot it.
+
+01:01:46.750 --> 01:01:50.360
+And then we have the body
+of the innermost loop.
+
+01:01:50.360 --> 01:01:51.610
+And this is just the start of.
+
+01:01:51.610 --> 01:01:54.260
+It it's just a couple
+address calculations.
+
+01:01:54.260 --> 01:01:56.920
+But can anyone tell me
+some interesting property
+
+01:01:56.920 --> 01:02:00.370
+about just a couple of
+these address calculations
+
+01:02:00.370 --> 01:02:02.532
+that could lead to
+an optimization?
+
+01:02:05.400 --> 01:02:07.670
+AUDIENCE: [INAUDIBLE]
+
+01:02:07.670 --> 01:02:10.070
+TAO B. SCHARDL: The first
+two address calculations only
+
+01:02:10.070 --> 01:02:14.600
+depend on the outermost
+loop variable, the iteration
+
+01:02:14.600 --> 01:02:18.920
+variable for the outer
+loop, exactly right.
+
+01:02:18.920 --> 01:02:21.614
+So what can we do with
+those instructions?
+
+01:02:31.460 --> 01:02:33.260
+Bring them out of
+the inner loop.
+
+01:02:33.260 --> 01:02:35.840
+Why should we keep
+computing these addresses
+
+01:02:35.840 --> 01:02:38.750
+in the innermost loop when we
+could just compute them once
+
+01:02:38.750 --> 01:02:40.460
+in the outer loop?
+
+01:02:40.460 --> 01:02:45.120
+That optimization is called
+code hoisting, or loop invariant
+
+01:02:45.120 --> 01:02:46.110
+code motion.
+
+01:02:46.110 --> 01:02:48.260
+Those instructions are
+invariant to the code
+
+01:02:48.260 --> 01:02:49.400
+in the innermost loop.
+
+01:02:49.400 --> 01:02:51.430
+So you hoist them out.
+
+01:02:51.430 --> 01:02:53.210
+And once you hoist
+them out, you end up
+
+01:02:53.210 --> 01:02:57.260
+with a transformed loop that
+looks something like this.
+
+01:02:57.260 --> 01:03:01.040
+What we have is the same outer
+loop control at the very top.
+
+01:03:01.040 --> 01:03:04.410
+But now, we're doing some
+address calculations there.
+
+01:03:04.410 --> 01:03:06.620
+And we no longer have
+those address calculations
+
+01:03:06.620 --> 01:03:07.320
+on the inside.
+
+01:03:10.310 --> 01:03:13.100
+And as a result, those
+hoisted calculations
+
+01:03:13.100 --> 01:03:17.150
+are performed just once per
+iteration of the outer loop,
+
+01:03:17.150 --> 01:03:20.590
+rather than once per
+iteration of the inner loop.
+
+01:03:20.590 --> 01:03:23.110
+And so those instructions
+are run far fewer times.
+
+01:03:23.110 --> 01:03:24.860
+You get to save a
+lot of running time.
+
+01:03:28.450 --> 01:03:29.920
+So the effect of
+this optimization
+
+01:03:29.920 --> 01:03:31.337
+in terms of C code,
+because it can
+
+01:03:31.337 --> 01:03:34.080
+be a little tedious
+to look at LLVM IR,
+
+01:03:34.080 --> 01:03:35.590
+is essentially like this.
+
+01:03:35.590 --> 01:03:38.580
+We took this
+doubly-nested loop in C.
+
+01:03:38.580 --> 01:03:43.390
+We're calling add force of blah,
+blah, blah, calculate force,
+
+01:03:43.390 --> 01:03:44.480
+blah, blah, blah.
+
+01:03:44.480 --> 01:03:48.340
+And now, we just move
+the address calculation
+
+01:03:48.340 --> 01:03:51.130
+to get the ith body
+that we care about.
+
+01:03:51.130 --> 01:03:53.710
+We move that to the outer.
+
+01:03:53.710 --> 01:03:56.410
+Now, this was an example of loop
+invariant code motion on just
+
+01:03:56.410 --> 01:03:57.790
+a couple address calculations.
+
+01:03:57.790 --> 01:04:00.400
+In general, the
+compiler will try
+
+01:04:00.400 --> 01:04:04.630
+to prove that some calculation
+is invariant across all
+
+01:04:04.630 --> 01:04:05.680
+the iterations of a loop.
+
+01:04:05.680 --> 01:04:07.120
+And whenever it
+can prove that, it
+
+01:04:07.120 --> 01:04:10.030
+will try to hoist that
+code out of the loop.
+
+01:04:10.030 --> 01:04:13.210
+If it can get code out
+of the body of a loop,
+
+01:04:13.210 --> 01:04:15.250
+that reduces the running
+time of the loop,
+
+01:04:15.250 --> 01:04:16.960
+saves a lot of execution time.
+
+01:04:16.960 --> 01:04:20.550
+Huge bang for the buck.
+
+01:04:20.550 --> 01:04:21.160
+Make sense?
+
+01:04:21.160 --> 01:04:25.130
+Any questions about that so far?
+
+01:04:25.130 --> 01:04:27.190
+All right, so just to
+summarize this part,
+
+01:04:27.190 --> 01:04:28.600
+what can the compiler do?
+
+01:04:28.600 --> 01:04:31.480
+The compiler optimizes code
+by performing a sequence
+
+01:04:31.480 --> 01:04:33.100
+of transformation passes.
+
+01:04:33.100 --> 01:04:35.680
+All those passes are
+pretty mechanical.
+
+01:04:35.680 --> 01:04:37.570
+The compiler goes
+through the code.
+
+01:04:37.570 --> 01:04:40.675
+It tries to find some property,
+like this address calculation
+
+01:04:40.675 --> 01:04:43.120
+is the same as that
+address calculation.
+
+01:04:43.120 --> 01:04:46.620
+And so this load will return
+the same value as that store,
+
+01:04:46.620 --> 01:04:47.620
+and so on, and so forth.
+
+01:04:47.620 --> 01:04:49.840
+And based on that
+analysis, it tries
+
+01:04:49.840 --> 01:04:55.180
+to get rid of some dead code,
+and replace certain register
+
+01:04:55.180 --> 01:04:57.323
+values with other
+register values,
+
+01:04:57.323 --> 01:04:59.240
+replace things that live
+in memory with things
+
+01:04:59.240 --> 01:05:00.900
+that just live in registers.
+
+01:05:00.900 --> 01:05:04.660
+A lot of the transformations
+resemble Bentley-rule work
+
+01:05:04.660 --> 01:05:06.610
+optimizations that you've
+seen in lecture two.
+
+01:05:06.610 --> 01:05:08.650
+So as you're studying
+for your upcoming quiz,
+
+01:05:08.650 --> 01:05:10.960
+you can kind of get
+two for one by looking
+
+01:05:10.960 --> 01:05:15.410
+at those Bentley-rule
+optimizations.
+
+01:05:15.410 --> 01:05:18.430
+And one transformation pass, in
+particular function inlining,
+
+01:05:18.430 --> 01:05:19.660
+was a good example of this.
+
+01:05:19.660 --> 01:05:22.630
+One transformation can
+enable other transformations.
+
+01:05:22.630 --> 01:05:26.627
+And those together can
+compound to give you fast code.
+
+01:05:26.627 --> 01:05:28.960
+In general, compilers perform
+a lot more transformations
+
+01:05:28.960 --> 01:05:30.650
+than just the ones we saw today.
+
+01:05:30.650 --> 01:05:33.310
+But there are things that
+the compiler can't do.
+
+01:05:33.310 --> 01:05:34.750
+Here's one very simple example.
+
+01:05:37.025 --> 01:05:38.650
+In this case, we're
+taking another look
+
+01:05:38.650 --> 01:05:40.900
+at this calculate
+forces routine.
+
+01:05:40.900 --> 01:05:44.740
+Although the compiler
+can optimize the code
+
+01:05:44.740 --> 01:05:47.050
+by moving address
+calculations out of loop,
+
+01:05:47.050 --> 01:05:50.350
+one thing that I can't
+do is exploit symmetry
+
+01:05:50.350 --> 01:05:51.630
+in the problem.
+
+01:05:51.630 --> 01:05:54.100
+So in this problem,
+what's going on
+
+01:05:54.100 --> 01:05:57.130
+is we're computing the
+forces on any pair of bodies
+
+01:05:57.130 --> 01:05:59.350
+using the law of gravitation.
+
+01:05:59.350 --> 01:06:03.940
+And it turns out that the force
+acting on one body by another
+
+01:06:03.940 --> 01:06:07.210
+is exactly the opposite the
+force acting on the other body
+
+01:06:07.210 --> 01:06:08.610
+by the one.
+
+01:06:08.610 --> 01:06:12.910
+So F of 12 is equal
+to minus F of 21.
+
+01:06:12.910 --> 01:06:15.610
+The compiler will
+not figure that out.
+
+01:06:15.610 --> 01:06:17.230
+The compiler knows algebra.
+
+01:06:17.230 --> 01:06:18.760
+It doesn't know physics.
+
+01:06:18.760 --> 01:06:20.370
+So it won't be
+able to figure out
+
+01:06:20.370 --> 01:06:21.980
+that there's symmetry
+in this problem,
+
+01:06:21.980 --> 01:06:26.880
+and it can avoid
+wasted operations.
+
+01:06:26.880 --> 01:06:27.490
+Make sense?
+
+01:06:29.933 --> 01:06:31.350
+All right, so that
+was an overview
+
+01:06:31.350 --> 01:06:33.600
+of some simple
+compiler optimizations.
+
+01:06:33.600 --> 01:06:38.460
+We now have some examples
+of some case studies
+
+01:06:38.460 --> 01:06:42.080
+to see where the compiler
+can get tripped up.
+
+01:06:42.080 --> 01:06:44.580
+And it doesn't matter if we get
+through all of these or not.
+
+01:06:44.580 --> 01:06:46.450
+You'll have access to
+the slides afterwards.
+
+01:06:46.450 --> 01:06:47.908
+But I think these
+are kind of cool.
+
+01:06:47.908 --> 01:06:48.960
+So shall we take a look?
+
+01:06:52.950 --> 01:06:58.200
+Simple question-- does the
+compiler vectorize this loop?
+
+01:07:04.290 --> 01:07:08.720
+So just to go over what this
+loop does, it's a simple loop.
+
+01:07:08.720 --> 01:07:13.100
+The function takes
+two vectors as inputs,
+
+01:07:13.100 --> 01:07:15.470
+or two arrays as
+inputs, I should say--
+
+01:07:15.470 --> 01:07:21.920
+an array called y, of like then,
+and an array x of like then,
+
+01:07:21.920 --> 01:07:24.230
+and some scalar value a.
+
+01:07:24.230 --> 01:07:26.090
+And all that this
+function does is
+
+01:07:26.090 --> 01:07:30.200
+it loops over each element of
+the vector, multiplies x of i
+
+01:07:30.200 --> 01:07:34.790
+by the input scalar, adds
+the product into y's of i.
+
+01:07:34.790 --> 01:07:36.380
+So does the loop vectorize?
+
+01:07:36.380 --> 01:07:37.270
+Yes?
+
+01:07:37.270 --> 01:07:41.500
+AUDIENCE: [INAUDIBLE]
+
+01:07:42.920 --> 01:07:44.578
+TAO B. SCHARDL: y
+and x could overlap.
+
+01:07:44.578 --> 01:07:46.870
+And there is no information
+about whether they overlap.
+
+01:07:46.870 --> 01:07:49.520
+So do they vectorize?
+
+01:07:49.520 --> 01:07:51.990
+We have a vote for no.
+
+01:07:51.990 --> 01:07:55.860
+Anyone think that
+it does vectorize?
+
+01:07:55.860 --> 01:07:57.360
+You made a very
+convincing argument.
+
+01:07:57.360 --> 01:08:04.850
+So everyone believes that
+this loop does not vectorize.
+
+01:08:04.850 --> 01:08:07.590
+Is that true?
+
+01:08:07.590 --> 01:08:10.860
+Anyone uncertain?
+
+01:08:10.860 --> 01:08:14.220
+Anyone unwilling to commit
+to yes or no right here?
+
+01:08:16.402 --> 01:08:18.569
+All right, a bunch of people
+are unwilling to commit
+
+01:08:18.569 --> 01:08:19.319
+to yes or no.
+
+01:08:19.319 --> 01:08:21.990
+All right, let's
+resolve this question.
+
+01:08:21.990 --> 01:08:23.740
+Let's first ask for the report.
+
+01:08:23.740 --> 01:08:26.590
+Let's look at the
+vectorization report.
+
+01:08:26.590 --> 01:08:27.390
+We compile it.
+
+01:08:27.390 --> 01:08:29.490
+We pass the flags to get
+the vectorization report.
+
+01:08:29.490 --> 01:08:33.750
+And the vectorization
+report says, yes, it
+
+01:08:33.750 --> 01:08:37.590
+does vectorize this loop,
+which is interesting,
+
+01:08:37.590 --> 01:08:40.460
+because we have this
+great argument that says,
+
+01:08:40.460 --> 01:08:44.060
+but you don't know how these
+addresses fit in memory.
+
+01:08:44.060 --> 01:08:46.920
+You don't know if x and y
+overlap with each other.
+
+01:08:46.920 --> 01:08:50.160
+How can you possibly vectorize?
+
+01:08:50.160 --> 01:08:52.720
+Kind of a mystery.
+
+01:08:52.720 --> 01:08:57.540
+Well, if we take a look at the
+actual compiled code when we
+
+01:08:57.540 --> 01:09:01.210
+optimize this at 02, turns
+out you can pass certain flags
+
+01:09:01.210 --> 01:09:04.590
+to the compiler, and get it to
+print out not just the LLVM IR,
+
+01:09:04.590 --> 01:09:08.490
+but the LLVM IR formatted
+as a control flow graph.
+
+01:09:08.490 --> 01:09:13.200
+And the control flow graph for
+this simple two line function
+
+01:09:13.200 --> 01:09:17.609
+is the thing on the
+right, which you obviously
+
+01:09:17.609 --> 01:09:20.819
+can't, read because
+it's a little bit
+
+01:09:20.819 --> 01:09:22.319
+small, in terms of its text.
+
+01:09:22.319 --> 01:09:26.520
+And it seems have
+a lot going on.
+
+01:09:26.520 --> 01:09:29.130
+So I took the liberty of
+redrawing that control flow
+
+01:09:29.130 --> 01:09:32.520
+graph with none of
+the code inside,
+
+01:09:32.520 --> 01:09:35.010
+just get a picture of
+what the structure looks
+
+01:09:35.010 --> 01:09:37.740
+like for this compiled function.
+
+01:09:37.740 --> 01:09:42.130
+And, structurally speaking,
+it looks like this.
+
+01:09:42.130 --> 01:09:45.312
+And with a bit of practice
+staring at control flow graphs,
+
+01:09:45.312 --> 01:09:47.729
+which you might get if you
+spend way too much time working
+
+01:09:47.729 --> 01:09:50.819
+on compilers, you might look
+at this control flow graph,
+
+01:09:50.819 --> 01:09:55.020
+and think, this graph looks
+a little too complicated
+
+01:09:55.020 --> 01:09:59.010
+for the two line function
+that we gave as input.
+
+01:09:59.010 --> 01:10:02.170
+So what's going on here?
+
+01:10:02.170 --> 01:10:04.783
+Well, we've got three
+different loops in this code.
+
+01:10:04.783 --> 01:10:06.450
+And it turns out that
+one of those loops
+
+01:10:06.450 --> 01:10:08.910
+is full of vector operations.
+
+01:10:08.910 --> 01:10:13.100
+OK, the other two loops are
+not full of vector operations.
+
+01:10:13.100 --> 01:10:15.480
+That's unvectorized code.
+
+01:10:15.480 --> 01:10:17.190
+And then there's this
+basic block right
+
+01:10:17.190 --> 01:10:20.460
+at the top that has
+a conditional branch
+
+01:10:20.460 --> 01:10:23.460
+at the end of it, branching
+to either the vectorized loop
+
+01:10:23.460 --> 01:10:24.960
+or the unvectorized loop.
+
+01:10:24.960 --> 01:10:27.280
+And, yeah, there's a lot of
+other control flow going on
+
+01:10:27.280 --> 01:10:27.780
+as well.
+
+01:10:27.780 --> 01:10:32.610
+But we can focus on just these
+components for the time being.
+
+01:10:32.610 --> 01:10:35.910
+So what's that
+conditional branch doing?
+
+01:10:35.910 --> 01:10:38.400
+Well, we can zoom in on
+just this one basic block,
+
+01:10:38.400 --> 01:10:43.590
+and actually show it to
+be readable on the slide.
+
+01:10:43.590 --> 01:10:46.830
+And the basic block
+looks like this.
+
+01:10:46.830 --> 01:10:49.530
+So let's just study
+this LLVM IR code.
+
+01:10:49.530 --> 01:10:54.320
+In this case, we have got the
+address y stored in register 0.
+
+01:10:54.320 --> 01:10:56.940
+The address of x is
+stored in register 2.
+
+01:10:56.940 --> 01:10:59.290
+And register 3 stores
+the value of n.
+
+01:10:59.290 --> 01:11:01.200
+So one instruction
+at a time, who
+
+01:11:01.200 --> 01:11:05.010
+can tell me what the first
+instruction in this code does?
+
+01:11:05.010 --> 01:11:06.286
+Yes?
+
+01:11:06.286 --> 01:11:09.640
+AUDIENCE: [INAUDIBLE]
+
+01:11:09.640 --> 01:11:11.455
+TAO B. SCHARDL: Gets
+the address of y.
+
+01:11:14.263 --> 01:11:15.560
+Is that what you said?
+
+01:11:19.090 --> 01:11:21.130
+So it does use the address of y.
+
+01:11:21.130 --> 01:11:24.790
+It's an address calculation that
+operates on register 0, which
+
+01:11:24.790 --> 01:11:26.320
+stores the address of y.
+
+01:11:26.320 --> 01:11:31.302
+But it's not just
+computing the address of y.
+
+01:11:31.302 --> 01:11:33.628
+AUDIENCE: [INAUDIBLE]
+
+01:11:33.628 --> 01:11:35.420
+TAO B. SCHARDL: It's
+getting me the address
+
+01:11:35.420 --> 01:11:36.830
+of the nth element of y.
+
+01:11:36.830 --> 01:11:40.010
+It's adding in whatever is in
+register 3, which is the value
+
+01:11:40.010 --> 01:11:42.860
+n, into the address of y.
+
+01:11:42.860 --> 01:11:46.100
+So that computes the
+address y plus n.
+
+01:11:46.100 --> 01:11:50.130
+This is testing your memory
+of pointer arithmetic
+
+01:11:50.130 --> 01:11:52.460
+in C just a little bit but.
+
+01:11:52.460 --> 01:11:53.420
+Don't worry.
+
+01:11:53.420 --> 01:11:55.070
+It won't be too rough.
+
+01:11:55.070 --> 01:11:57.290
+So that's what the first
+address calculation does.
+
+01:11:57.290 --> 01:11:59.875
+What does the next
+instruction do?
+
+01:11:59.875 --> 01:12:02.150
+AUDIENCE: It does x plus n.
+
+01:12:02.150 --> 01:12:04.388
+TAO B. SCHARDL: That
+computes x plus, very good.
+
+01:12:04.388 --> 01:12:06.778
+How about the next one?
+
+01:12:12.992 --> 01:12:16.440
+AUDIENCE: It compares
+whether x plus n and y plus n
+
+01:12:16.440 --> 01:12:18.880
+are the same.
+
+01:12:18.880 --> 01:12:22.785
+TAO B. SCHARDL: It compares
+x plus n, versus y plus n.
+
+01:12:22.785 --> 01:12:29.250
+AUDIENCE: [INAUDIBLE] compares
+the 33, which is x plus n,
+
+01:12:29.250 --> 01:12:30.660
+and compares it to y.
+
+01:12:30.660 --> 01:12:35.590
+So if x plus n is bigger
+than y, there's overlap.
+
+01:12:35.590 --> 01:12:37.930
+TAO B. SCHARDL: Right,
+so it does a comparison.
+
+01:12:37.930 --> 01:12:40.030
+We'll take that a
+little more slowly.
+
+01:12:40.030 --> 01:12:42.490
+It does a comparison of x
+plus n, versus y in checks.
+
+01:12:42.490 --> 01:12:44.290
+Is x plus n greater than y?
+
+01:12:44.290 --> 01:12:45.430
+Perfect.
+
+01:12:45.430 --> 01:12:47.644
+How about the next instruction?
+
+01:12:51.572 --> 01:12:53.050
+Yeah?
+
+01:12:53.050 --> 01:12:55.698
+AUDIENCE: It compares
+y plus n versus x.
+
+01:12:55.698 --> 01:12:57.240
+TAO B. SCHARDL: It
+compares y plus n,
+
+01:12:57.240 --> 01:12:59.930
+versus x, is y plus n
+even greater than x.
+
+01:12:59.930 --> 01:13:02.476
+How would the last
+instruction before the branch?
+
+01:13:14.335 --> 01:13:14.960
+Yep, go for it?
+
+01:13:14.960 --> 01:13:16.220
+AUDIENCE: [INAUDIBLE]
+
+01:13:16.220 --> 01:13:19.420
+TAO B. SCHARDL: [INAUDIBLE]
+one of the results.
+
+01:13:19.420 --> 01:13:22.430
+So this computes the
+comparison, is x plus n
+
+01:13:22.430 --> 01:13:23.930
+greater than y, bit-wise?
+
+01:13:23.930 --> 01:13:28.330
+And is y plus n greater than x.
+
+01:13:28.330 --> 01:13:29.840
+Fair enough.
+
+01:13:29.840 --> 01:13:31.850
+So what does the result
+of that condition mean?
+
+01:13:31.850 --> 01:13:34.700
+I think we've pretty much
+already spoiled the answer.
+
+01:13:34.700 --> 01:13:36.910
+Anyone want to hear
+it one last time?
+
+01:13:40.326 --> 01:13:42.766
+We had this whole setup.
+
+01:13:45.710 --> 01:13:46.242
+Go for it.
+
+01:13:46.242 --> 01:13:47.200
+AUDIENCE: They overlap.
+
+01:13:47.200 --> 01:13:49.218
+TAO B. SCHARDL: Checks
+if they overlap.
+
+01:13:49.218 --> 01:13:51.010
+So let's look at this
+condition in a couple
+
+01:13:51.010 --> 01:13:52.430
+of different situations.
+
+01:13:52.430 --> 01:13:55.210
+If we have x living in
+one place in memory,
+
+01:13:55.210 --> 01:13:57.790
+and y living in another
+place in memory,
+
+01:13:57.790 --> 01:14:02.770
+then no matter how we
+resolve this condition,
+
+01:14:02.770 --> 01:14:05.740
+if we check is both y
+plus n greater than x,
+
+01:14:05.740 --> 01:14:11.300
+and x plus n greater than y,
+the results will be false.
+
+01:14:11.300 --> 01:14:15.380
+But if we have this
+situation, where
+
+01:14:15.380 --> 01:14:20.600
+x and y overlap in memory
+some portion of memory,
+
+01:14:20.600 --> 01:14:23.210
+then it turns out that
+regardless of whether x or y is
+
+01:14:23.210 --> 01:14:25.910
+first, x plus n will
+be greater than y. y
+
+01:14:25.910 --> 01:14:28.040
+plus n will be greater than x.
+
+01:14:28.040 --> 01:14:30.060
+And the condition
+will return true.
+
+01:14:30.060 --> 01:14:32.090
+In other words, the
+condition returns true,
+
+01:14:32.090 --> 01:14:35.960
+if and only if these portions
+of memory pointed by x and y
+
+01:14:35.960 --> 01:14:38.470
+alias.
+
+01:14:38.470 --> 01:14:41.240
+So going back to our
+original looping code,
+
+01:14:41.240 --> 01:14:44.810
+we have a situation where
+we have a branch based on
+
+01:14:44.810 --> 01:14:46.280
+whether or not they alias.
+
+01:14:46.280 --> 01:14:50.900
+And in one case, it executes
+the vectorized loop.
+
+01:14:50.900 --> 01:14:55.190
+And in another case, it
+executes a non-vectorized code.
+
+01:14:55.190 --> 01:14:57.620
+So returning to our original
+question, in particular
+
+01:14:57.620 --> 01:15:01.030
+is a vectorized loop
+if they don't alias.
+
+01:15:01.030 --> 01:15:04.130
+So returning to our
+original question,
+
+01:15:04.130 --> 01:15:06.590
+does this code get vectorized?
+
+01:15:06.590 --> 01:15:09.800
+The answer is yes and no.
+
+01:15:09.800 --> 01:15:12.780
+So if you voted yes,
+you're actually right.
+
+01:15:12.780 --> 01:15:15.950
+If you voted no, and you were
+persuaded, you were right.
+
+01:15:15.950 --> 01:15:18.960
+And if you didn't commit to
+an answer, I can't help you.
+
+01:15:21.472 --> 01:15:22.430
+But that's interesting.
+
+01:15:22.430 --> 01:15:27.560
+The compiler actually generated
+multiple versions of this loop,
+
+01:15:27.560 --> 01:15:30.110
+due to uncertainty
+about memory aliasing.
+
+01:15:30.110 --> 01:15:31.422
+Yeah, question?
+
+01:15:31.422 --> 01:15:36.342
+AUDIENCE: [INAUDIBLE]
+
+01:15:47.180 --> 01:15:49.520
+TAO B. SCHARDL: So the
+question is, could the compiler
+
+01:15:49.520 --> 01:15:52.010
+figure out this
+condition statically
+
+01:15:52.010 --> 01:15:53.630
+while it's compiling
+the function?
+
+01:15:53.630 --> 01:15:55.463
+Because we know the
+function is going to get
+
+01:15:55.463 --> 01:15:57.950
+called from somewhere.
+
+01:15:57.950 --> 01:16:01.100
+The answer is, sometimes it can.
+
+01:16:01.100 --> 01:16:03.200
+A lot of times it can't.
+
+01:16:03.200 --> 01:16:05.370
+If it's not capable of
+inlining this function,
+
+01:16:05.370 --> 01:16:08.660
+for example, then it probably
+doesn't have enough information
+
+01:16:08.660 --> 01:16:11.848
+to tell whether or not these
+two pointers will alias.
+
+01:16:11.848 --> 01:16:13.640
+For example, you're
+just building a library
+
+01:16:13.640 --> 01:16:17.417
+with a bunch of vector routines.
+
+01:16:17.417 --> 01:16:19.250
+You don't know the code
+that's going to call
+
+01:16:19.250 --> 01:16:23.090
+this routine eventually.
+
+01:16:23.090 --> 01:16:25.080
+Now, in general,
+memory aliasing,
+
+01:16:25.080 --> 01:16:28.010
+this will be the last point
+before we wrap up, in general,
+
+01:16:28.010 --> 01:16:30.925
+memory aliasing can
+cause a lot of issues
+
+01:16:30.925 --> 01:16:32.550
+when it comes to
+compiler optimization.
+
+01:16:32.550 --> 01:16:36.320
+It can cause the compiler
+to act very conservatively.
+
+01:16:36.320 --> 01:16:39.470
+In this example, we have
+a simple serial base case
+
+01:16:39.470 --> 01:16:41.555
+for a matrix multiply routine.
+
+01:16:41.555 --> 01:16:43.430
+But we don't know anything
+about the pointers
+
+01:16:43.430 --> 01:16:46.400
+to the C, A, or B matrices.
+
+01:16:46.400 --> 01:16:48.620
+And when we try to compile
+this and optimize it,
+
+01:16:48.620 --> 01:16:52.130
+the compiler complains that it
+can't do loop invariant code
+
+01:16:52.130 --> 01:16:55.310
+motion, because it doesn't know
+anything about these pointers.
+
+01:16:55.310 --> 01:16:58.310
+It could be that
+the pointer changes
+
+01:16:58.310 --> 01:16:59.480
+within the innermost loop.
+
+01:16:59.480 --> 01:17:02.120
+So it can't move
+some calculation out
+
+01:17:02.120 --> 01:17:02.930
+to an outer loop.
+
+01:17:05.760 --> 01:17:10.070
+Compilers try to deal with this
+statically using an analysis
+
+01:17:10.070 --> 01:17:12.600
+technique called alias analysis.
+
+01:17:12.600 --> 01:17:14.960
+And they do try very
+hard to figure out,
+
+01:17:14.960 --> 01:17:18.740
+when are these pointers
+going to alias?
+
+01:17:18.740 --> 01:17:22.280
+Or when are they
+guaranteed to not alias?
+
+01:17:22.280 --> 01:17:25.220
+Now, in general, it turns
+out that alias analysis
+
+01:17:25.220 --> 01:17:26.150
+isn't just hard.
+
+01:17:26.150 --> 01:17:27.470
+It's undecidable.
+
+01:17:27.470 --> 01:17:30.940
+If only it were hard,
+maybe we'd have some hope.
+
+01:17:30.940 --> 01:17:32.930
+But compilers, in
+practice, are faced
+
+01:17:32.930 --> 01:17:34.460
+with this undecidable question.
+
+01:17:34.460 --> 01:17:37.550
+And they try a variety of tricks
+to get useful alias analysis
+
+01:17:37.550 --> 01:17:38.870
+results in practice.
+
+01:17:38.870 --> 01:17:42.570
+For example, based on
+information in the source code,
+
+01:17:42.570 --> 01:17:44.960
+the compiler might
+annotate instructions
+
+01:17:44.960 --> 01:17:48.860
+with various metadata to track
+this aliasing information.
+
+01:17:48.860 --> 01:17:54.140
+For example, TBAA is aliasing
+information based on types.
+
+01:17:54.140 --> 01:17:57.092
+There's some scoping
+information for aliasing.
+
+01:17:57.092 --> 01:17:58.550
+There is some
+information that says
+
+01:17:58.550 --> 01:18:01.640
+it's guaranteed not to alias
+with this other operation,
+
+01:18:01.640 --> 01:18:03.080
+all kinds of metadata.
+
+01:18:03.080 --> 01:18:04.580
+Now, what can you
+do as a programmer
+
+01:18:04.580 --> 01:18:08.330
+to avoid these issues
+of memory aliasing?
+
+01:18:08.330 --> 01:18:10.850
+Always annotate
+your pointers, kids.
+
+01:18:10.850 --> 01:18:13.310
+Always annotate your pointers.
+
+01:18:13.310 --> 01:18:15.170
+The restrict keyword
+you've seen before.
+
+01:18:15.170 --> 01:18:18.730
+It tells the compiler,
+address calculations based off
+
+01:18:18.730 --> 01:18:21.830
+this pointer won't alias
+with address calculations
+
+01:18:21.830 --> 01:18:23.670
+based off other pointers.
+
+01:18:23.670 --> 01:18:26.110
+The const keyword provides
+a little more information.
+
+01:18:26.110 --> 01:18:29.740
+It says, these addresses
+will only be read from.
+
+01:18:29.740 --> 01:18:31.700
+They won't be written to.
+
+01:18:31.700 --> 01:18:35.030
+And that can enable a lot
+more compiler optimizations.
+
+01:18:35.030 --> 01:18:36.830
+Now, that's all the
+time that we have.
+
+01:18:36.830 --> 01:18:39.950
+There are a couple of other
+cool case studies in the slides.
+
+01:18:39.950 --> 01:18:42.390
+You're welcome to peruse
+the slides afterwards.
+
+01:18:42.390 --> 01:18:44.490
+Thanks for listening.

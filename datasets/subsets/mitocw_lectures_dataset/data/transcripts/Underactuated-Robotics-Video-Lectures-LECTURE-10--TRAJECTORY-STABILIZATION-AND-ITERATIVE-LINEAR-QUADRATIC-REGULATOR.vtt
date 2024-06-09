@@ -1,0 +1,4546 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.520
+The following content is
+provided under a Creative
+
+00:00:02.520 --> 00:00:03.970
+Commons license.
+
+00:00:03.970 --> 00:00:06.330
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.330 --> 00:00:10.660
+continue to offer high-quality
+educational resources for free.
+
+00:00:10.660 --> 00:00:13.320
+To make a donation or
+view additional materials
+
+00:00:13.320 --> 00:00:17.160
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.160 --> 00:00:18.370
+at ocw.mit.edu.
+
+00:00:22.060 --> 00:00:23.800
+RUSS TEDRAKE: OK, welcome back.
+
+00:00:27.020 --> 00:00:31.510
+So last week, we spent the week
+talking about policy search
+
+00:00:31.510 --> 00:00:36.130
+methods, and trying to make
+a distinction between those
+
+00:00:36.130 --> 00:00:39.040
+and the value-based
+methods we started with.
+
+00:00:39.040 --> 00:00:42.100
+And by the end of the
+week, we had a couple
+
+00:00:42.100 --> 00:00:46.660
+pretty slick methods
+for optimizing
+
+00:00:46.660 --> 00:00:50.390
+an open-loop trajectory
+of the system.
+
+00:00:50.390 --> 00:00:52.360
+So we talked about
+at least two ways.
+
+00:01:15.790 --> 00:01:17.790
+So by open-loop, I mean
+it's a function of time,
+
+00:01:17.790 --> 00:01:20.880
+not a function of state.
+
+00:01:20.880 --> 00:01:30.750
+We talked about the
+shooting methods,
+
+00:01:30.750 --> 00:01:47.070
+where we evaluated J of alpha
+x0 times 0 just by simulation.
+
+00:01:47.070 --> 00:01:55.495
+And we evaluated-- explicitly
+evaluated the gradients by--
+
+00:01:55.495 --> 00:01:57.120
+well, I gave you two
+algorithms for it.
+
+00:01:57.120 --> 00:02:01.750
+I gave you one that I called
+back prop through time--
+
+00:02:01.750 --> 00:02:03.570
+which was an adjoint method--
+
+00:02:03.570 --> 00:02:06.990
+and another one
+that I called RTRL--
+
+00:02:06.990 --> 00:02:08.889
+real-time recurrent
+learning, which
+
+00:02:08.889 --> 00:02:10.889
+are the names from the
+neural network community,
+
+00:02:10.889 --> 00:02:14.490
+but perfectly good
+names for those methods.
+
+00:02:26.292 --> 00:02:27.750
+And then the claim
+was that, if you
+
+00:02:27.750 --> 00:02:33.780
+can compute those two
+things by simulation or--
+
+00:02:33.780 --> 00:02:37.470
+forward simulation and then
+a back propagation pass,
+
+00:02:37.470 --> 00:02:40.890
+or a simulation, which carried
+also the derivatives forward
+
+00:02:40.890 --> 00:02:44.340
+in time, then we could
+hand those gradients
+
+00:02:44.340 --> 00:02:50.365
+to SNOPT or some other
+non-linear optimization
+
+00:02:50.365 --> 00:02:50.865
+package.
+
+00:02:54.400 --> 00:02:56.400
+And if we're good, we
+can also lean on SNOPT
+
+00:02:56.400 --> 00:02:58.650
+to handle things like
+final value constraints.
+
+00:02:58.650 --> 00:03:00.900
+If you want to make sure
+the trajectory succeeds
+
+00:03:00.900 --> 00:03:02.610
+in getting you
+exactly to the goal
+
+00:03:02.610 --> 00:03:05.193
+or if you want to make sure that
+your torques are never bigger
+
+00:03:05.193 --> 00:03:07.500
+than some maximum
+talk allowed, then you
+
+00:03:07.500 --> 00:03:10.770
+can take advantage of that.
+
+00:03:10.770 --> 00:03:14.190
+And the second method, remember,
+was direct co-location method,
+
+00:03:14.190 --> 00:03:17.400
+which we often
+abbreviate as DIRCOL.
+
+00:03:21.660 --> 00:03:26.290
+And the big idea there
+was to over-parameterized
+
+00:03:26.290 --> 00:03:38.100
+our optimization with the
+open-loop trajectory, but also
+
+00:03:38.100 --> 00:03:44.780
+the state trajectory,
+which makes coming up
+
+00:03:44.780 --> 00:03:51.485
+with gradients simple.
+
+00:03:55.610 --> 00:04:05.455
+And then I have to enforce
+the constraint that x of--
+
+00:04:05.455 --> 00:04:06.830
+let's say, in
+discrete time here,
+
+00:04:06.830 --> 00:04:11.301
+n plus 1 had better be
+subject to the dynamics--
+
+00:04:17.560 --> 00:04:23.230
+so two very similar
+methods of trying
+
+00:04:23.230 --> 00:04:28.673
+to compute some
+open-loop trajectory
+
+00:04:28.673 --> 00:04:29.590
+as a function of time.
+
+00:04:29.590 --> 00:04:33.610
+Ultimately, what I care
+about is a set of actions
+
+00:04:33.610 --> 00:04:37.540
+that I apply over time that
+will get me to the goal
+
+00:04:37.540 --> 00:04:41.320
+or minimize my cost function.
+
+00:04:41.320 --> 00:04:44.020
+In the case where I
+explicitly parameterized
+
+00:04:44.020 --> 00:04:50.770
+an open-loop trajectory,
+both of these results
+
+00:04:50.770 --> 00:04:53.980
+in a solution which satisfies
+the Pontryagin minimum
+
+00:04:53.980 --> 00:04:59.323
+principle, subject
+to discretization
+
+00:04:59.323 --> 00:05:00.490
+errors and things like that.
+
+00:05:29.636 --> 00:05:34.053
+AUDIENCE: [INAUDIBLE]
+
+00:05:34.053 --> 00:05:35.220
+RUSS TEDRAKE: We did, right.
+
+00:05:35.220 --> 00:05:40.540
+So I should say, subject
+to time discretization.
+
+00:05:40.540 --> 00:05:45.130
+That's the one place
+where technically, it
+
+00:05:45.130 --> 00:05:47.980
+would satisfy a discrete
+time version of Pontryagin's
+
+00:05:47.980 --> 00:05:48.730
+minimum principle.
+
+00:05:48.730 --> 00:06:01.895
+AUDIENCE: [INAUDIBLE]
+
+00:06:01.895 --> 00:06:03.270
+RUSS TEDRAKE: You
+can think of it
+
+00:06:03.270 --> 00:06:06.060
+whichever way it
+makes you happier--
+
+00:06:06.060 --> 00:06:09.900
+so in fact, the parameters
+that you hand in--
+
+00:06:09.900 --> 00:06:12.710
+maybe it's easier to think
+of it as a function--
+
+00:06:12.710 --> 00:06:15.210
+a discrete function of time,
+because you're going to hand it
+
+00:06:15.210 --> 00:06:20.310
+u at certain points in time,
+and you're going to handle x--
+
+00:06:20.310 --> 00:06:23.760
+hand it x at certain
+points in time.
+
+00:06:23.760 --> 00:06:27.300
+And this discrete time update
+can be an Euler integration
+
+00:06:27.300 --> 00:06:31.260
+or a higher order integration
+of your continuous dynamics,
+
+00:06:31.260 --> 00:06:32.760
+but you only satisfy
+the constraints
+
+00:06:32.760 --> 00:06:33.960
+of discrete intervals of time.
+
+00:06:33.960 --> 00:06:34.460
+Yeah.
+
+00:06:39.660 --> 00:06:42.940
+OK, I did give you a
+slightly more general--
+
+00:06:42.940 --> 00:06:47.470
+I tried to point out that these
+methods could equally well
+
+00:06:47.470 --> 00:06:52.390
+compute, find good parameters of
+a feedback control or something
+
+00:06:52.390 --> 00:06:53.800
+too.
+
+00:06:53.800 --> 00:06:56.770
+The simple case was
+when my parameters alpha
+
+00:06:56.770 --> 00:07:00.880
+were explicitly my
+control tape, but more
+
+00:07:00.880 --> 00:07:03.460
+generally, if you wanted
+to tune a feedback
+
+00:07:03.460 --> 00:07:05.320
+controller-- a linear
+feedback controller,
+
+00:07:05.320 --> 00:07:06.580
+or a non-linear
+feedback controller,
+
+00:07:06.580 --> 00:07:08.290
+or a neural network,
+or whatever it is,
+
+00:07:08.290 --> 00:07:11.500
+you can use the same
+methods to do that.
+
+00:07:11.500 --> 00:07:13.600
+I would only make this
+statement in the case
+
+00:07:13.600 --> 00:07:17.740
+where the controller
+specifically
+
+00:07:17.740 --> 00:07:26.267
+is the open-loop tape,
+because if I parameterized
+
+00:07:26.267 --> 00:07:28.600
+my trajectory by some feedback
+controller, for instance,
+
+00:07:28.600 --> 00:07:31.120
+then that's going to
+restrict the policy class.
+
+00:07:31.120 --> 00:07:33.250
+That's going to restrict
+the class of tapes
+
+00:07:33.250 --> 00:07:36.430
+that I can look over, which
+makes it a more compact, more
+
+00:07:36.430 --> 00:07:38.890
+efficient way to solve
+your optimization,
+
+00:07:38.890 --> 00:07:41.290
+but potentially prevents
+you from achieving
+
+00:07:41.290 --> 00:07:43.150
+a perfect minimum.
+
+00:07:46.998 --> 00:07:50.110
+AUDIENCE: [INAUDIBLE]
+
+00:07:50.110 --> 00:07:50.860
+RUSS TEDRAKE: Yep.
+
+00:07:50.860 --> 00:07:53.163
+So by virtue of saying
+that they satisfy
+
+00:07:53.163 --> 00:07:54.580
+Pontryagin's minimum
+principle, we
+
+00:07:54.580 --> 00:07:56.860
+know that that's
+only a local optima.
+
+00:07:56.860 --> 00:08:01.480
+This says that I can't
+make a small change in u
+
+00:08:01.480 --> 00:08:04.000
+to get better performance.
+
+00:08:04.000 --> 00:08:04.960
+Yep.
+
+00:08:04.960 --> 00:08:08.692
+But it's only a necessary
+condition for optimality, not
+
+00:08:08.692 --> 00:08:09.400
+a sufficient one.
+
+00:08:11.980 --> 00:08:16.220
+But there's a bigger problem
+with it-- with both of those.
+
+00:08:16.220 --> 00:08:19.750
+And that's the fact
+that they're completely
+
+00:08:19.750 --> 00:08:23.320
+useless in real
+life, unless I do
+
+00:08:23.320 --> 00:08:26.350
+one more step, which is to
+stabilize the trajectory as I
+
+00:08:26.350 --> 00:08:28.210
+get out.
+
+00:08:28.210 --> 00:08:35.530
+So finding some open-loop
+trajectory by these methods,
+
+00:08:35.530 --> 00:08:38.740
+satisfying Pontryagin's
+minimum principle-- fine.
+
+00:08:38.740 --> 00:08:42.760
+But there's nothing in
+this process that says,
+
+00:08:42.760 --> 00:08:46.750
+if I don't-- if I changed my
+initial conditions by epsilon,
+
+00:08:46.750 --> 00:08:48.970
+I could completely
+diverge when I follow--
+
+00:08:48.970 --> 00:08:52.180
+when I execute that
+open-loop trajectory.
+
+00:08:52.180 --> 00:08:55.330
+If I change my simulation
+time step by a little bit,
+
+00:08:55.330 --> 00:08:56.320
+I might diverge.
+
+00:08:56.320 --> 00:08:58.610
+If I have modeling
+errors, I might diverge.
+
+00:09:01.120 --> 00:09:04.695
+So in order to make these
+useful for a real system,
+
+00:09:04.695 --> 00:09:06.070
+we have to do
+another step, which
+
+00:09:06.070 --> 00:09:08.350
+is trajectory stabilization.
+
+00:09:08.350 --> 00:09:11.020
+And it actually follows quite
+naturally from the things
+
+00:09:11.020 --> 00:09:13.530
+we've already talked about.
+
+00:09:13.530 --> 00:09:17.080
+OK, so today we're going
+to give these guys teeth
+
+00:09:17.080 --> 00:09:18.896
+with a trajectory optimization.
+
+00:09:52.160 --> 00:09:54.650
+And I'll show you
+examples of a trajectory
+
+00:09:54.650 --> 00:09:56.870
+that's optimized beautifully
+for the pendulum even,
+
+00:09:56.870 --> 00:09:59.060
+and if I simulate it a
+little differently back--
+
+00:09:59.060 --> 00:10:00.143
+just does the wrong thing.
+
+00:10:00.143 --> 00:10:01.550
+It never gets to the top.
+
+00:10:01.550 --> 00:10:06.460
+So we want to get
+rid of that problem.
+
+00:10:09.190 --> 00:10:12.675
+OK, so the solution is to design
+a trajectory stabilization.
+
+00:10:19.330 --> 00:10:27.040
+Now, for those of
+you that have been
+
+00:10:27.040 --> 00:10:28.893
+playing with robots
+for many years, when
+
+00:10:28.893 --> 00:10:30.310
+you hear trajectory
+stabilization,
+
+00:10:30.310 --> 00:10:31.360
+what do you think of?
+
+00:10:31.360 --> 00:10:33.730
+What kind of tricks
+to people use
+
+00:10:33.730 --> 00:10:35.368
+for trajectory stabilization?
+
+00:10:37.735 --> 00:10:38.860
+AUDIENCE: Sliding surfaces.
+
+00:10:38.860 --> 00:10:41.830
+RUSS TEDRAKE: Sliding surfaces--
+that's a good one for--
+
+00:10:41.830 --> 00:10:45.820
+[INAUDIBLE] often will
+design a sliding surface
+
+00:10:45.820 --> 00:10:47.470
+and squish the aerodynamics.
+
+00:10:50.800 --> 00:10:53.320
+That's actually
+pretty encompassing.
+
+00:10:53.320 --> 00:10:56.380
+I think a lot of the
+trajectory stabilizers
+
+00:10:56.380 --> 00:10:59.410
+are based on sliding
+modes or feedback
+
+00:10:59.410 --> 00:11:02.440
+linearization in some form.
+
+00:11:02.440 --> 00:11:06.388
+And all I'll say about it
+is that the story's sort
+
+00:11:06.388 --> 00:11:07.930
+of the same as
+everything we've said.
+
+00:11:07.930 --> 00:11:10.090
+If you have a fully
+actuated system,
+
+00:11:10.090 --> 00:11:14.980
+it's not hard to design
+a trajectory stabilizer.
+
+00:11:14.980 --> 00:11:16.930
+A good sliding mode
+controller could take--
+
+00:11:16.930 --> 00:11:21.190
+could work even for an
+underactuated system,
+
+00:11:21.190 --> 00:11:22.580
+but I think there's a--
+
+00:11:22.580 --> 00:11:25.570
+I prefer the linear
+quadratic form
+
+00:11:25.570 --> 00:11:27.610
+of these trajectories
+stabilizers.
+
+00:11:27.610 --> 00:11:31.690
+OK, so we want to do a
+trajectory stabilization that's
+
+00:11:31.690 --> 00:11:33.410
+suitable for
+underactuated systems.
+
+00:11:45.070 --> 00:11:47.200
+And the approach is
+going to be with LQR.
+
+00:12:02.490 --> 00:12:03.870
+OK, so if we're
+going to use LQR,
+
+00:12:03.870 --> 00:12:06.285
+we better be able to
+linearize our system.
+
+00:12:08.920 --> 00:12:11.670
+So far, when we've done
+the linearizations,
+
+00:12:11.670 --> 00:12:15.875
+we've only done them
+at fixed points.
+
+00:12:15.875 --> 00:12:17.250
+So the first thing
+we have to ask
+
+00:12:17.250 --> 00:12:21.060
+ourselves is, what happens if
+we try to linearize at a more
+
+00:12:21.060 --> 00:12:23.440
+arbitrary point in state space?
+
+00:12:23.440 --> 00:12:23.940
+Yeah.
+
+00:12:31.860 --> 00:12:38.890
+So let's say I've got the
+system x dot equals f of xu,
+
+00:12:38.890 --> 00:12:46.200
+and now I want to linearize
+around some x0, u0, but not
+
+00:12:46.200 --> 00:12:48.990
+necessarily a carefully
+chosen x0, u0--
+
+00:12:48.990 --> 00:12:51.270
+just something random
+in state space.
+
+00:12:54.480 --> 00:12:57.810
+The Taylor expansion
+of this says
+
+00:12:57.810 --> 00:13:01.980
+that this thing's going
+to be approximately
+
+00:13:01.980 --> 00:13:09.579
+f of x0, u0, partial f,
+partial x evaluated at x.
+
+00:13:27.210 --> 00:13:30.720
+OK, and we called this
+before A and this B,
+
+00:13:30.720 --> 00:13:49.510
+and so that thing we can
+actually write as, in general,
+
+00:13:49.510 --> 00:13:53.332
+in the case where f
+of x0, u0-- if x0,
+
+00:13:53.332 --> 00:13:54.790
+u0 was a fixed
+point of the system,
+
+00:13:54.790 --> 00:13:59.620
+that term disappears,
+but be careful.
+
+00:13:59.620 --> 00:14:02.860
+If you're doing your
+linearization out here,
+
+00:14:02.860 --> 00:14:05.230
+if you're at-- not
+at a fixed point,
+
+00:14:05.230 --> 00:14:07.180
+if you have any
+velocity, for instance,
+
+00:14:07.180 --> 00:14:11.915
+then, in the original
+x-coordinates,
+
+00:14:11.915 --> 00:14:14.290
+it's not actually-- the Taylor
+expansion doesn't give you
+
+00:14:14.290 --> 00:14:15.370
+a linear system.
+
+00:14:15.370 --> 00:14:16.810
+It gives you some affine system.
+
+00:14:16.810 --> 00:14:18.768
+This thing is harder
+to work with-- not
+
+00:14:18.768 --> 00:14:20.560
+incredibly harder, but
+harder to work with.
+
+00:14:23.820 --> 00:14:26.230
+The solution is quite
+simple, but I just
+
+00:14:26.230 --> 00:14:30.820
+wanted to say it
+the bad way first
+
+00:14:30.820 --> 00:14:34.420
+so that you appreciate
+the good way.
+
+00:14:34.420 --> 00:14:47.780
+If we change coordinates
+and we use instead
+
+00:14:47.780 --> 00:14:57.530
+for our coordinates the
+difference between x and x0
+
+00:14:57.530 --> 00:15:27.080
+of t, then x bar dot is going
+to be x dot minus x0 dot
+
+00:15:27.080 --> 00:15:37.730
+equals x dot minus f of
+x0, u0, which is that C.
+
+00:15:37.730 --> 00:15:45.150
+This guy here is taken care of
+in this new coordinate system,
+
+00:15:45.150 --> 00:15:47.900
+which allows me to write
+the whole thing as x
+
+00:15:47.900 --> 00:15:51.680
+bar dot equals A of x bar.
+
+00:16:03.220 --> 00:16:04.740
+You with me on that?
+
+00:16:04.740 --> 00:16:11.290
+Linearizing a system at
+a more arbitrary point--
+
+00:16:11.290 --> 00:16:14.100
+doing a Taylor expansion
+results in a linear system
+
+00:16:14.100 --> 00:16:17.640
+only if you change
+coordinates to lie
+
+00:16:17.640 --> 00:16:21.810
+on some system trajectory.
+
+00:16:21.810 --> 00:16:40.650
+So x0, u0 must be a solution of
+x of f of xu of that equation.
+
+00:16:40.650 --> 00:16:46.830
+And then the system reduces to
+a linear system description.
+
+00:16:46.830 --> 00:16:51.670
+But the cost you pay for
+this beautiful, simple--
+
+00:16:51.670 --> 00:16:54.600
+well, let me be even a
+little bit more careful.
+
+00:16:54.600 --> 00:17:01.690
+So A here, this
+partial f, partial x,
+
+00:17:01.690 --> 00:17:07.030
+is evaluated at xt u of t.
+
+00:17:07.030 --> 00:17:09.160
+And in general,
+A and B in this--
+
+00:17:09.160 --> 00:17:15.603
+when I do this are functions
+of time, as well as x and t.
+
+00:17:18.407 --> 00:17:19.740
+That's a pretty important point.
+
+00:17:22.730 --> 00:17:25.760
+So if I'm willing to change
+coordinates to live along
+
+00:17:25.760 --> 00:17:29.420
+the trajectory, then the
+result is I can get this linear
+
+00:17:29.420 --> 00:17:34.310
+time-varying model of the
+dynamics along feasible
+
+00:17:34.310 --> 00:17:35.540
+trajectories--
+
+00:17:35.540 --> 00:17:37.460
+system trajectories.
+
+00:17:37.460 --> 00:17:39.380
+The cost is that
+you have to work
+
+00:17:39.380 --> 00:17:43.340
+in a coordinate system that
+moves along your trajectory.
+
+00:17:43.340 --> 00:17:46.438
+So we'll see where that
+comes in in a little bit.
+
+00:17:46.438 --> 00:17:48.980
+But the first question is, OK,
+let's say I've got this linear
+
+00:17:48.980 --> 00:17:51.080
+time-varying--
+
+00:17:51.080 --> 00:17:52.550
+time-varying linear system.
+
+00:17:52.550 --> 00:17:55.940
+Can I do all the things
+I want to do with that?
+
+00:17:55.940 --> 00:17:59.690
+In most of our control classes,
+we end up doing LTI systems.
+
+00:18:02.780 --> 00:18:05.907
+LTV systems-- linear
+time-varying--
+
+00:18:19.070 --> 00:18:24.680
+are actually a fantastically
+rich class of systems
+
+00:18:24.680 --> 00:18:27.470
+that we don't talk about
+enough, I think, in life.
+
+00:18:27.470 --> 00:18:29.600
+They're still linear systems.
+
+00:18:29.600 --> 00:18:33.320
+Superposition still holds.
+
+00:18:33.320 --> 00:18:42.210
+If I have initial
+condition 1 and some u
+
+00:18:42.210 --> 00:18:48.650
+trajectory 1 for t
+greater than equal to t0,
+
+00:18:48.650 --> 00:18:52.850
+and that gives me some
+resulting x trajectory out
+
+00:18:52.850 --> 00:19:00.710
+for t greater than t0, and
+I have another solution
+
+00:19:00.710 --> 00:19:05.270
+with a different
+initial condition
+
+00:19:05.270 --> 00:19:14.760
+and a different control, and
+that gives me a different--
+
+00:19:14.760 --> 00:19:20.240
+I call this x1, x2 for t
+greater than or equal to t0--
+
+00:19:25.420 --> 00:19:28.120
+if I have that,
+then it better be
+
+00:19:28.120 --> 00:19:37.960
+the case that alpha 1 x1
+of t0 plus alpha 2 x2 of t0
+
+00:19:37.960 --> 00:19:48.520
+plus alpha 1 u1 tape
+plus alpha 2 u2 tape
+
+00:19:48.520 --> 00:19:50.320
+is going to result
+in a trajectory which
+
+00:19:50.320 --> 00:19:55.780
+is alpha 1 x1 plus alpha 2 x2.
+
+00:20:00.040 --> 00:20:01.330
+That's superposition.
+
+00:20:01.330 --> 00:20:08.470
+That's the defining
+characteristic of linearity.
+
+00:20:08.470 --> 00:20:11.290
+And even though this is a
+richer class of systems--
+
+00:20:11.290 --> 00:20:17.200
+these A of t, x of
+t, B of t, u of t--
+
+00:20:17.200 --> 00:20:18.670
+superposition still holds.
+
+00:20:22.710 --> 00:20:25.560
+And in fact, a lot
+of our derivations
+
+00:20:25.560 --> 00:20:28.140
+that we've done that are for
+linear systems still hold.
+
+00:20:36.660 --> 00:20:39.600
+OK, so now the question
+is, how do we design--
+
+00:20:39.600 --> 00:20:42.950
+how do we work with the fact
+that this thing is still easy,
+
+00:20:42.950 --> 00:20:45.050
+and design a
+controller that works
+
+00:20:45.050 --> 00:20:47.320
+with this new linearized system?
+
+00:21:13.118 --> 00:21:15.660
+Maybe first I should break out
+my colored chalk and make sure
+
+00:21:15.660 --> 00:21:16.868
+we have intuition about this.
+
+00:21:21.278 --> 00:21:22.820
+Do you understand
+what this is doing,
+
+00:21:22.820 --> 00:21:26.770
+if I do this time-varying
+linearization?
+
+00:21:26.770 --> 00:21:29.020
+Let me do an example
+with the pendulum
+
+00:21:29.020 --> 00:21:34.480
+here, our favorite
+theta, theta dot.
+
+00:21:34.480 --> 00:21:37.390
+And let's say we carve up--
+
+00:21:37.390 --> 00:21:43.420
+we find some nice solution which
+gets me from my one fixed point
+
+00:21:43.420 --> 00:21:45.425
+to the other fixed point.
+
+00:21:45.425 --> 00:21:47.800
+The ones we were getting were
+these pump-up trajectories,
+
+00:21:47.800 --> 00:21:49.570
+which looked
+something like this.
+
+00:21:56.030 --> 00:21:59.990
+I'm moving through
+state space here,
+
+00:21:59.990 --> 00:22:05.660
+and the dynamics here vary
+with state in a non-linear way.
+
+00:22:05.660 --> 00:22:08.660
+But if I have a trajectory,
+a feasible trajectory
+
+00:22:08.660 --> 00:22:12.230
+that goes through the
+relevant parts of state space,
+
+00:22:12.230 --> 00:22:15.410
+then this time-varying
+linearization takes
+
+00:22:15.410 --> 00:22:20.570
+my non-linear system, and
+makes it parameterized
+
+00:22:20.570 --> 00:22:23.883
+only-- instead of by being
+parameterized by state,
+
+00:22:23.883 --> 00:22:25.550
+it's going to make
+it parameterized only
+
+00:22:25.550 --> 00:22:28.483
+by time along the trajectory.
+
+00:22:33.060 --> 00:22:41.910
+The trick is the
+trajectory allows
+
+00:22:41.910 --> 00:23:01.720
+me to reparameterize my
+non-linearity in terms of time,
+
+00:23:01.720 --> 00:23:03.548
+instead of state.
+
+00:23:03.548 --> 00:23:04.840
+It sounds like a simple thing--
+
+00:23:04.840 --> 00:23:06.130
+I'm just reparameterizing it--
+
+00:23:06.130 --> 00:23:08.170
+but it makes all the
+difference in the world.
+
+00:23:08.170 --> 00:23:11.110
+If things are parameterized
+as a function of time,
+
+00:23:11.110 --> 00:23:13.902
+and are otherwise linear,
+then I could do all kinds
+
+00:23:13.902 --> 00:23:14.860
+of computation on them.
+
+00:23:14.860 --> 00:23:17.290
+I can integrate the equations.
+
+00:23:17.290 --> 00:23:20.832
+I can design quadratic
+regulators on it.
+
+00:23:20.832 --> 00:23:22.540
+It makes all the
+difference in the world.
+
+00:23:26.650 --> 00:23:29.530
+So what I'm effectively
+doing is coming up
+
+00:23:29.530 --> 00:23:34.360
+with local linear
+representations of the dynamics
+
+00:23:34.360 --> 00:23:35.290
+along the trajectory.
+
+00:23:35.290 --> 00:23:37.630
+I'm not sure if this is a
+helpful way for me to draw it,
+
+00:23:37.630 --> 00:23:41.710
+but you can think of this thing
+as approximating the dynamics
+
+00:23:41.710 --> 00:23:43.840
+along that trajectory.
+
+00:23:43.840 --> 00:23:45.760
+At every given
+instant in time, I'm
+
+00:23:45.760 --> 00:23:49.600
+going to use one of
+these linear models.
+
+00:23:49.600 --> 00:23:51.730
+This is supposed
+to be some plane
+
+00:23:51.730 --> 00:23:53.122
+that you're driving through--
+
+00:23:53.122 --> 00:23:54.580
+not sure if that's
+actually helpful
+
+00:23:54.580 --> 00:23:57.920
+graphic, but it's the
+way I think of it.
+
+00:24:01.190 --> 00:24:04.280
+And by virtue of taking a
+particular path through,
+
+00:24:04.280 --> 00:24:07.670
+I can make locally linear
+models on which these things
+
+00:24:07.670 --> 00:24:09.320
+have eigenvectors,
+and eigenvalues,
+
+00:24:09.320 --> 00:24:14.480
+or whatever that are
+valid in the neighborhood
+
+00:24:14.480 --> 00:24:18.210
+of the trajectory.
+
+00:24:18.210 --> 00:24:22.970
+So if you can imagine, even
+without any stabilization,
+
+00:24:22.970 --> 00:24:26.000
+it could be that I
+could quickly assess
+
+00:24:26.000 --> 00:24:30.170
+the stability of my
+time-varying linear model.
+
+00:24:30.170 --> 00:24:32.150
+And trajectories in
+this linear model
+
+00:24:32.150 --> 00:24:35.900
+may converge to the
+nominal limit cycle,
+
+00:24:35.900 --> 00:24:40.150
+or they may diverge,
+depending on A and B.
+
+00:24:40.150 --> 00:24:42.380
+Or they may blow up.
+
+00:24:46.250 --> 00:24:48.470
+This is by far the more
+common case, unfortunately.
+
+00:24:48.470 --> 00:24:51.020
+You'd be very lucky to come
+out of a shooting method
+
+00:24:51.020 --> 00:24:53.570
+or a direct co-location method,
+and end up with a system
+
+00:24:53.570 --> 00:24:55.403
+where if you played it
+out, it just happened
+
+00:24:55.403 --> 00:24:58.280
+to be a stable trajectory.
+
+00:24:58.280 --> 00:25:00.260
+But we can assess
+all that quickly
+
+00:25:00.260 --> 00:25:05.810
+with these time-varying
+linearizations found locally.
+
+00:25:05.810 --> 00:25:06.660
+Make sense?
+
+00:25:06.660 --> 00:25:07.404
+Yeah?
+
+00:25:07.404 --> 00:25:12.330
+AUDIENCE: [INAUDIBLE]
+talk about that there
+
+00:25:12.330 --> 00:25:13.790
+is a bad way of doing this.
+
+00:25:13.790 --> 00:25:16.130
+This is not a bad way
+of doing this, right?
+
+00:25:16.130 --> 00:25:17.246
+We were talkinga about it.
+
+00:25:21.560 --> 00:25:24.560
+RUSS TEDRAKE: If I do a
+Taylor expansion of my system
+
+00:25:24.560 --> 00:25:28.040
+in the original coordinate
+system, which is x,
+
+00:25:28.040 --> 00:25:30.500
+then it's not linear.
+
+00:25:30.500 --> 00:25:33.170
+End parentheses, that
+was the bad way to do it.
+
+00:25:33.170 --> 00:25:34.610
+Yeah?
+
+00:25:34.610 --> 00:25:35.750
+Good way to do it--
+
+00:25:35.750 --> 00:25:39.500
+change the coordinates to
+a coordinate system, which
+
+00:25:39.500 --> 00:25:43.070
+moves with the trajectory.
+
+00:25:43.070 --> 00:25:46.523
+If you do that, things
+become time-varying linear.
+
+00:25:46.523 --> 00:25:48.440
+That was a good way to
+do it, and that's still
+
+00:25:48.440 --> 00:25:49.200
+in open parentheses.
+
+00:25:49.200 --> 00:25:49.970
+We're still going.
+
+00:25:49.970 --> 00:25:50.470
+Yeah.
+
+00:26:00.210 --> 00:26:06.360
+OK, so our task now is to
+design a time-varying feedback
+
+00:26:06.360 --> 00:26:08.250
+controller-- since our
+model is time-varying,
+
+00:26:08.250 --> 00:26:11.970
+you'd expect our solution
+to also be time-varying--
+
+00:26:11.970 --> 00:26:15.715
+which takes these bad, unstable
+trajectories of the system--
+
+00:26:15.715 --> 00:26:16.590
+and they really are--
+
+00:26:16.590 --> 00:26:19.350
+I'll show you simple pendulum.
+
+00:26:19.350 --> 00:26:20.825
+This trajectory comes out.
+
+00:26:20.825 --> 00:26:22.950
+Actually, if you just
+integrate in a different way,
+
+00:26:22.950 --> 00:26:24.930
+it'll go off and
+do the wrong thing.
+
+00:26:24.930 --> 00:26:27.520
+It typically doesn't go off
+and add energy to the system
+
+00:26:27.520 --> 00:26:28.193
+so much.
+
+00:26:28.193 --> 00:26:28.860
+The ones I get--
+
+00:26:28.860 --> 00:26:31.230
+I see, I'll show you, are more--
+
+00:26:31.230 --> 00:26:33.930
+they diverge and the other way,
+and end up just floating around
+
+00:26:33.930 --> 00:26:37.260
+here, for instance.
+
+00:26:37.260 --> 00:26:40.860
+But they're not going
+to get you up here.
+
+00:26:40.860 --> 00:26:45.150
+So can we design a
+time-varying stabilizer
+
+00:26:45.150 --> 00:26:46.958
+that regulates that trajectory?
+
+00:26:56.230 --> 00:27:04.570
+OK, I did actually do the
+original finite horizon LQR
+
+00:27:04.570 --> 00:27:10.420
+derivation on the
+board that day--
+
+00:27:10.420 --> 00:27:12.910
+definitely won't write
+all that again, but let
+
+00:27:12.910 --> 00:27:22.790
+me say that roughly nothing
+in that derivation breaks--
+
+00:27:22.790 --> 00:27:24.880
+I'm going to show you
+the important pieces--
+
+00:27:24.880 --> 00:27:28.260
+nothing in that derivation
+breaks, surprisingly,
+
+00:27:28.260 --> 00:27:32.670
+if A and B are now
+a function of time.
+
+00:27:32.670 --> 00:27:33.670
+So let's remember that--
+
+00:27:42.480 --> 00:27:43.860
+the LQR derivation.
+
+00:27:56.860 --> 00:28:01.040
+Now I'm working with this
+x bar coordinate system.
+
+00:28:12.150 --> 00:28:13.860
+And I want to design
+a cost function
+
+00:28:13.860 --> 00:28:17.460
+to minimize here, which lives
+in this coordinate system
+
+00:28:17.460 --> 00:28:18.900
+again here.
+
+00:28:18.900 --> 00:28:24.795
+Let's say it's the
+final horizon times Qf--
+
+00:28:29.100 --> 00:28:30.600
+I've been trying
+to use t little f,
+
+00:28:30.600 --> 00:28:34.590
+since my transposes look
+like the final horizon time
+
+00:28:34.590 --> 00:28:36.180
+otherwise--
+
+00:28:36.180 --> 00:28:40.350
+0 to tf dt x bar--
+
+00:28:40.350 --> 00:28:46.380
+again, transpose
+Q plus u bar Ru.
+
+00:28:57.800 --> 00:29:00.050
+OK, in the original
+LQR derivation,
+
+00:29:00.050 --> 00:29:03.590
+we guessed that the form--
+
+00:29:03.590 --> 00:29:13.850
+that the optimal policy had
+the form x bar S of t x bar.
+
+00:29:13.850 --> 00:29:15.080
+That's still intact.
+
+00:29:15.080 --> 00:29:16.850
+That's still a good assumption.
+
+00:29:16.850 --> 00:29:19.108
+This thing's linear.
+
+00:29:19.108 --> 00:29:20.900
+It's just in a different
+coordinate system.
+
+00:29:25.620 --> 00:29:30.350
+And we started cranking through
+the sufficiency theorem,
+
+00:29:30.350 --> 00:29:32.900
+the Hamilton-Jacobi-Bellman
+equation.
+
+00:29:41.590 --> 00:29:44.740
+And we found that our
+optimal feedback policy--
+
+00:29:44.740 --> 00:29:47.080
+first of all, our
+optimal cost-to-go
+
+00:29:47.080 --> 00:29:51.790
+was described by this
+Riccati equation, which
+
+00:29:51.790 --> 00:30:00.670
+was negative S of t
+is Q minus S of t B
+
+00:30:00.670 --> 00:30:14.500
+our inverse B transpose S of t
+plus S of t A plus A transpose
+
+00:30:14.500 --> 00:30:16.180
+S of t.
+
+00:30:16.180 --> 00:30:18.610
+And it turns out that,
+with the-- if you have
+
+00:30:18.610 --> 00:30:21.490
+a time-varying A
+and B, that it's--
+
+00:30:21.490 --> 00:30:24.890
+exact same dynamics govern it.
+
+00:30:24.890 --> 00:30:30.100
+You just have your time
+dependence also in A and B.
+
+00:30:30.100 --> 00:30:35.190
+And that exact same
+Riccati equation works,
+
+00:30:35.190 --> 00:30:40.220
+and our final value
+condition was just Qf.
+
+00:30:49.813 --> 00:30:52.980
+And you can see from this, if it
+didn't make a difference for me
+
+00:30:52.980 --> 00:30:56.160
+when A and B became
+functions of time,
+
+00:30:56.160 --> 00:30:59.650
+it's pretty simple-- although
+less interesting, I guess.
+
+00:30:59.650 --> 00:31:02.160
+If Q were to be a function
+of time-- no problem.
+
+00:31:02.160 --> 00:31:03.960
+If R was a function
+of time-- no problem.
+
+00:31:08.040 --> 00:31:14.580
+They still have to be positive
+definite and symmetric.
+
+00:31:24.450 --> 00:31:27.510
+Oops-- I did it the wrong way.
+
+00:31:27.510 --> 00:31:29.520
+Q can be 0, but R can not be 0.
+
+00:31:38.910 --> 00:31:41.280
+OK, so the LQR
+you know and love,
+
+00:31:41.280 --> 00:31:48.120
+that you've used in Matlab,
+is the time invariant infinite
+
+00:31:48.120 --> 00:31:50.813
+horizon LQR.
+
+00:31:50.813 --> 00:31:52.980
+I told you that, if you
+cared about a finite horizon
+
+00:31:52.980 --> 00:31:55.530
+and you had a time invariant
+linear system, then
+
+00:31:55.530 --> 00:31:56.640
+suddenly you had to--
+
+00:31:56.640 --> 00:31:59.070
+you couldn't just find the
+stationary points in this.
+
+00:31:59.070 --> 00:32:01.590
+Remember, Matlab's solution
+just tells you the long-term
+
+00:32:01.590 --> 00:32:06.780
+behavior of S. In the time--
+
+00:32:06.780 --> 00:32:10.180
+finite horizon time,
+even the LTI case,
+
+00:32:10.180 --> 00:32:13.480
+which is the A and B
+do not depend on time--
+
+00:32:13.480 --> 00:32:15.420
+the linear time invariant case--
+
+00:32:15.420 --> 00:32:18.120
+I still had to integrate back
+this Riccati equation in order
+
+00:32:18.120 --> 00:32:20.730
+to get my LQR controller.
+
+00:32:20.730 --> 00:32:22.710
+It's no more expensive
+to do the same thing
+
+00:32:22.710 --> 00:32:25.890
+in the linear time-varying
+feedback case.
+
+00:32:30.720 --> 00:32:32.400
+And the resulting
+controller is--
+
+00:32:36.140 --> 00:32:45.650
+u star is my nominal controller
+minus my R inverse B transpose
+
+00:32:45.650 --> 00:32:47.210
+S of t x bar.
+
+00:32:59.810 --> 00:33:03.890
+These equations come
+up enough that these
+
+00:33:03.890 --> 00:33:07.220
+are pretty famous, pretty
+important equations, and so I--
+
+00:33:07.220 --> 00:33:10.097
+those I know off
+the top of my head.
+
+00:33:10.097 --> 00:33:11.180
+They come up all the time.
+
+00:33:15.320 --> 00:33:18.410
+And this is the resulting
+optimal trajectory,
+
+00:33:18.410 --> 00:33:22.840
+which is my nominal trajectory
+plus my feedback gain, which
+
+00:33:22.840 --> 00:33:24.650
+came out of my original
+LQR controller,
+
+00:33:24.650 --> 00:33:25.525
+if you remember that.
+
+00:33:28.872 --> 00:33:32.978
+AUDIENCE: [INAUDIBLE]
+
+00:33:32.978 --> 00:33:34.020
+RUSS TEDRAKE: Yes-- good.
+
+00:33:34.020 --> 00:33:39.372
+I should definitely put
+a T under B. Thank you.
+
+00:33:39.372 --> 00:33:41.580
+I haven't written that case,
+but R could equally well
+
+00:33:41.580 --> 00:33:42.780
+be time-dependent.
+
+00:33:49.020 --> 00:33:51.870
+OK, so something
+big just happened.
+
+00:33:54.660 --> 00:33:59.880
+I can take a really, really
+complicated non-linear system
+
+00:33:59.880 --> 00:34:04.020
+along some trajectory-- if
+I find a good trajectory,
+
+00:34:04.020 --> 00:34:06.210
+then I can actually
+linearize that system
+
+00:34:06.210 --> 00:34:09.955
+along this trajectory
+and stabilize it.
+
+00:34:09.955 --> 00:34:12.330
+The thing I haven't convinced
+you of yet-- because I only
+
+00:34:12.330 --> 00:34:14.790
+know how to do it
+from showing examples,
+
+00:34:14.790 --> 00:34:17.590
+but it really works well.
+
+00:34:17.590 --> 00:34:20.460
+So even though it's
+a linear system--
+
+00:34:20.460 --> 00:34:23.610
+it's a linear approximation
+of the non-linear system,
+
+00:34:23.610 --> 00:34:27.690
+something like the [INAUDIBLE]
+or the cartpole swing-up.
+
+00:34:27.690 --> 00:34:29.699
+It's got a huge
+basin of attraction.
+
+00:34:29.699 --> 00:34:31.440
+Lots and lots of
+initial conditions
+
+00:34:31.440 --> 00:34:35.340
+will find their way to the
+trajectory and get to the goal.
+
+00:34:35.340 --> 00:34:38.969
+If you want to do non-linear
+control of a humanoid robot
+
+00:34:38.969 --> 00:34:45.449
+or something like this, this
+actually scales pretty nicely.
+
+00:34:45.449 --> 00:34:47.520
+I just have to
+solve this equation.
+
+00:34:47.520 --> 00:34:48.840
+S is the size--
+
+00:34:48.840 --> 00:34:54.570
+is a matrix that's
+by number of states.
+
+00:34:54.570 --> 00:34:56.560
+But I could do that
+in 30 dimensions.
+
+00:34:56.560 --> 00:34:59.160
+That's no problem.
+
+00:34:59.160 --> 00:35:01.500
+And even for very
+non-linear systems,
+
+00:35:01.500 --> 00:35:06.000
+local linear feedback
+works very, very well--
+
+00:35:06.000 --> 00:35:08.740
+so well, in fact, that I
+think that, if you ask--
+
+00:35:08.740 --> 00:35:11.550
+and when I did ask
+the [INAUDIBLE] guys,
+
+00:35:11.550 --> 00:35:13.743
+Sasha Megretski says,
+this is definitely
+
+00:35:13.743 --> 00:35:15.660
+what I would do if I was
+controlling a walking
+
+00:35:15.660 --> 00:35:19.770
+robot or something like that.
+
+00:35:19.770 --> 00:35:21.750
+We're trying to do the
+same thing to control
+
+00:35:21.750 --> 00:35:23.645
+neurons in a dish now.
+
+00:35:23.645 --> 00:35:25.020
+We're trying to
+build good models
+
+00:35:25.020 --> 00:35:27.810
+of the dynamics-- time-varying
+models, for instance--
+
+00:35:27.810 --> 00:35:30.530
+and then doing this
+kind of control.
+
+00:35:30.530 --> 00:35:32.010
+Yeah.
+
+00:35:32.010 --> 00:35:34.860
+It works really, really well.
+
+00:35:34.860 --> 00:35:37.500
+The only complaint
+about it is that it's
+
+00:35:37.500 --> 00:35:41.680
+going to have-- it's based
+on this linear approximation,
+
+00:35:41.680 --> 00:35:43.560
+so it will have a finite
+basin of attraction.
+
+00:35:43.560 --> 00:35:46.680
+For some systems,
+it can be quite big.
+
+00:35:46.680 --> 00:35:48.810
+If you have systems with
+hard non-linearities,
+
+00:35:48.810 --> 00:35:51.113
+it won't be as big.
+
+00:35:51.113 --> 00:35:52.530
+Later in the course,
+I'll show you
+
+00:35:52.530 --> 00:35:55.320
+ways to explicitly reason
+about the size of those basins
+
+00:35:55.320 --> 00:35:57.540
+of attraction, but
+today let's just
+
+00:35:57.540 --> 00:36:00.523
+say this is a good
+thing to know,
+
+00:36:00.523 --> 00:36:01.940
+good thing to have
+in your pocket.
+
+00:36:06.430 --> 00:36:08.510
+Let me show you a working--
+
+00:36:08.510 --> 00:36:10.810
+try to convince you
+that it's pretty good.
+
+00:36:43.910 --> 00:36:47.720
+OK, so let's see where
+I've left myself here.
+
+00:36:47.720 --> 00:36:50.020
+I took this-- the pendulum--
+
+00:36:50.020 --> 00:36:51.270
+let's do the shooting version.
+
+00:36:51.270 --> 00:36:54.080
+They both work fine, but
+let's do the shooting version.
+
+00:37:00.130 --> 00:37:02.350
+Is that bigger than
+I did last time?
+
+00:37:02.350 --> 00:37:03.390
+That's pretty obnoxious.
+
+00:37:03.390 --> 00:37:04.923
+Maybe it's always
+been obnoxious.
+
+00:37:09.660 --> 00:37:11.550
+Can we get away with that?
+
+00:37:11.550 --> 00:37:13.080
+Yeah.
+
+00:37:13.080 --> 00:37:16.300
+You guys are like,
+I'm not blind.
+
+00:37:16.300 --> 00:37:16.800
+OK.
+
+00:37:22.090 --> 00:37:24.910
+So I showed you last
+time the shooting code.
+
+00:37:24.910 --> 00:37:31.810
+It comes out with a
+resulting tape x, t, and u.
+
+00:37:31.810 --> 00:37:34.090
+After the result of these
+trajectory optimizers,
+
+00:37:34.090 --> 00:37:37.180
+whether it's shooting
+or whether it's
+
+00:37:37.180 --> 00:37:38.980
+direct co-location--
+whatever it is--
+
+00:37:38.980 --> 00:37:40.720
+it comes up with
+some open-loop tape.
+
+00:37:40.720 --> 00:37:43.720
+I put x in there too just to--
+as the reference trajectory
+
+00:37:43.720 --> 00:37:45.700
+that results, but
+what really matters
+
+00:37:45.700 --> 00:37:50.140
+is the time stamps and u
+command, the open-loop tape.
+
+00:38:18.120 --> 00:38:19.370
+Why don't I save it this time?
+
+00:38:34.260 --> 00:38:35.870
+OK, so it comes
+up-- in this case,
+
+00:38:35.870 --> 00:38:37.470
+with these parameters
+I've chosen,
+
+00:38:37.470 --> 00:38:39.170
+comes up with some
+one-pump policy.
+
+00:38:39.170 --> 00:38:41.750
+With the torque limits I
+have, the [INAUDIBLE] I have,
+
+00:38:41.750 --> 00:38:44.390
+it comes up with a one-pump
+policy that gets me
+
+00:38:44.390 --> 00:38:47.510
+to the top in four seconds.
+
+00:38:47.510 --> 00:38:53.421
+OK, let me now just simulate
+that a little bit differently.
+
+00:39:06.190 --> 00:39:09.390
+So the only thing I'm
+going to do here now is--
+
+00:39:09.390 --> 00:39:15.600
+this control_ode is just a
+simulation which plays back
+
+00:39:15.600 --> 00:39:19.303
+exactly the same open-loop
+tape, but it plays it back
+
+00:39:19.303 --> 00:39:20.970
+with a little more
+careful integration--
+
+00:39:20.970 --> 00:39:23.137
+because in the actual-- in
+the shooting code I used,
+
+00:39:23.137 --> 00:39:26.010
+I used the big time step just
+so I don't waste time computing
+
+00:39:26.010 --> 00:39:27.810
+gradients to the n-th
+degree of accuracy.
+
+00:39:27.810 --> 00:39:29.070
+That's not worthwhile.
+
+00:39:29.070 --> 00:39:31.140
+If I simulate the
+exact same thing back
+
+00:39:31.140 --> 00:39:32.782
+with a more careful
+ode integration,
+
+00:39:32.782 --> 00:39:33.740
+let's see what happens.
+
+00:39:43.690 --> 00:39:47.090
+So that was that same
+trajectory that--
+
+00:39:47.090 --> 00:39:49.980
+exact same control inputs,
+just simulated more carefully.
+
+00:39:49.980 --> 00:39:52.505
+It made its honest
+effort to get up there,
+
+00:39:52.505 --> 00:39:53.880
+but it didn't
+quite get up there,
+
+00:39:53.880 --> 00:39:56.550
+turned around, and
+came back down.
+
+00:39:56.550 --> 00:39:59.820
+I'm trying to show
+it also in just--
+
+00:39:59.820 --> 00:40:03.640
+this is the different state
+trajectories over time.
+
+00:40:03.640 --> 00:40:05.760
+You can see that the
+red and blue lines
+
+00:40:05.760 --> 00:40:09.570
+are the desired versus actual
+in the-- in theta, in this case.
+
+00:40:09.570 --> 00:40:13.260
+And these two lines
+are the desired versus
+
+00:40:13.260 --> 00:40:15.075
+actual in theta dot.
+
+00:40:15.075 --> 00:40:17.640
+They start off exactly
+on top of each other,
+
+00:40:17.640 --> 00:40:20.070
+but just little
+differences in the numerics
+
+00:40:20.070 --> 00:40:23.020
+causes them to go in
+different directions--
+
+00:40:23.020 --> 00:40:23.700
+part ways.
+
+00:40:27.680 --> 00:40:32.240
+OK, so now I've got
+this LTV LQR solution,
+
+00:40:32.240 --> 00:40:34.210
+which is exactly what
+I just showed you.
+
+00:40:40.020 --> 00:40:43.070
+So I was just simulating
+a just now with just u
+
+00:40:43.070 --> 00:40:44.360
+being the nominal u.
+
+00:40:44.360 --> 00:40:47.810
+Now I'm going to add this
+time-varying feedback term,
+
+00:40:47.810 --> 00:40:48.950
+x minus x desired.
+
+00:40:55.030 --> 00:40:57.880
+And now my more
+careful integration
+
+00:40:57.880 --> 00:41:00.830
+results in a closed-loop system,
+which not only got to the goal,
+
+00:41:00.830 --> 00:41:02.705
+but actually stayed up
+at the goal, because I
+
+00:41:02.705 --> 00:41:06.590
+have a stable system
+all the way to the top.
+
+00:41:06.590 --> 00:41:07.450
+OK?
+
+00:41:07.450 --> 00:41:09.970
+All right, so what I just
+said was very unimpressive.
+
+00:41:09.970 --> 00:41:15.580
+I said I computed a open-loop
+policy with my methods
+
+00:41:15.580 --> 00:41:16.510
+from Thursday.
+
+00:41:16.510 --> 00:41:17.530
+I simulated them back.
+
+00:41:17.530 --> 00:41:19.450
+They didn't work.
+
+00:41:19.450 --> 00:41:21.212
+But I then put a
+feedback controller
+
+00:41:21.212 --> 00:41:23.170
+on, and from the exact
+same initial conditions,
+
+00:41:23.170 --> 00:41:25.930
+I now can simulate
+them, and they work.
+
+00:41:25.930 --> 00:41:29.510
+So it's disappointing that
+we had to do that at all,
+
+00:41:29.510 --> 00:41:32.590
+but I can now--
+
+00:41:32.590 --> 00:41:34.870
+the stability is more
+than just stabilizing
+
+00:41:34.870 --> 00:41:36.310
+the initial conditions.
+
+00:41:36.310 --> 00:41:39.632
+Let's add some fairly
+big random numbers
+
+00:41:39.632 --> 00:41:41.590
+to that initial condition
+and see what happens.
+
+00:41:45.850 --> 00:41:49.387
+It's recomputing the
+policy every time,
+
+00:41:49.387 --> 00:41:50.970
+just because it was
+fast enough that I
+
+00:41:50.970 --> 00:41:53.800
+didn't bother to change it.
+
+00:41:53.800 --> 00:41:55.710
+OK, so that actually
+started with pretty big
+
+00:41:55.710 --> 00:41:57.900
+different initial conditions.
+
+00:41:57.900 --> 00:42:00.756
+So theta was off by--
+
+00:42:00.756 --> 00:42:03.480
+I don't know-- 2/10 of a
+radian or something like this.
+
+00:42:03.480 --> 00:42:06.212
+The velocities were off by
+1/2 a radian per second.
+
+00:42:06.212 --> 00:42:07.170
+We could crank that up.
+
+00:42:07.170 --> 00:42:08.970
+I bet it does a lot
+better than that.
+
+00:42:08.970 --> 00:42:11.610
+But if you watch
+these things, they
+
+00:42:11.610 --> 00:42:16.260
+converge quite nicely to
+together at the end there.
+
+00:42:22.580 --> 00:42:24.440
+And what matters is
+they get up to the top.
+
+00:42:32.070 --> 00:42:34.590
+So again, these things come
+together, find their way up
+
+00:42:34.590 --> 00:42:37.770
+to the top, and live.
+
+00:42:37.770 --> 00:42:44.280
+I bet, if I put it a lot
+bigger, it'll still work.
+
+00:42:44.280 --> 00:42:46.110
+I normally do an
+order of magnitude,
+
+00:42:46.110 --> 00:42:50.470
+but let's not be silly.
+
+00:42:50.470 --> 00:42:53.963
+Oh-- didn't make it.
+
+00:42:53.963 --> 00:42:56.130
+There's only one reason it
+didn't make it, actually.
+
+00:42:56.130 --> 00:42:58.860
+It's because, if
+you look in here,
+
+00:42:58.860 --> 00:43:02.830
+I'm actually honest about
+implementing the max torques.
+
+00:43:02.830 --> 00:43:03.330
+Yeah.
+
+00:43:03.330 --> 00:43:05.340
+So I actually have a
+torque limit, I impose it,
+
+00:43:05.340 --> 00:43:06.870
+and it lives on there.
+
+00:43:06.870 --> 00:43:08.532
+If I didn't, I bet
+I could convince you
+
+00:43:08.532 --> 00:43:09.990
+it works for any
+initial condition.
+
+00:43:09.990 --> 00:43:13.170
+But let's try it one more
+time-- get a little more lucky
+
+00:43:13.170 --> 00:43:14.561
+with the initial conditions.
+
+00:43:17.950 --> 00:43:18.450
+Oh, come on.
+
+00:43:18.450 --> 00:43:19.450
+Come on.
+
+00:43:19.450 --> 00:43:21.420
+Yes.
+
+00:43:21.420 --> 00:43:24.330
+OK, that was pretty far off, and
+it's still found its way back
+
+00:43:24.330 --> 00:43:26.100
+to the trajectory.
+
+00:43:26.100 --> 00:43:27.780
+Good-- yeah?
+
+00:43:27.780 --> 00:43:29.970
+Look at how big those
+initial conditions are.
+
+00:43:29.970 --> 00:43:34.680
+There and there versus--
+wow, that's really good.
+
+00:43:34.680 --> 00:43:35.610
+OK.
+
+00:43:35.610 --> 00:43:36.710
+Did I see a question?
+
+00:43:36.710 --> 00:43:38.950
+No?
+
+00:43:38.950 --> 00:43:42.690
+All right, so this stuff
+works for pendulum.
+
+00:43:42.690 --> 00:43:44.520
+It works for more
+interesting systems too.
+
+00:43:44.520 --> 00:43:47.330
+I'll just show you the
+cartpole real quick here.
+
+00:43:53.140 --> 00:43:54.097
+I won't do the--
+
+00:43:54.097 --> 00:43:55.930
+here is what it looks
+like without feedback.
+
+00:43:55.930 --> 00:44:02.680
+I'll just do the initial
+conditions corrupted solution,
+
+00:44:02.680 --> 00:44:04.610
+pump up--
+
+00:44:04.610 --> 00:44:07.640
+OK, so if you remember my
+solutions from last time,
+
+00:44:07.640 --> 00:44:09.140
+I never drove off
+the screen before,
+
+00:44:09.140 --> 00:44:11.557
+so that it was actually it
+catching it by deviating enough
+
+00:44:11.557 --> 00:44:13.098
+that it came off
+the screen, and then
+
+00:44:13.098 --> 00:44:14.720
+slowly coming back to the top.
+
+00:44:21.000 --> 00:44:24.250
+It must be its x position
+or something going way off.
+
+00:44:24.250 --> 00:44:25.810
+No, not x position--
+what is that?
+
+00:44:25.810 --> 00:44:26.560
+That's my control.
+
+00:44:26.560 --> 00:44:27.460
+Yeah.
+
+00:44:27.460 --> 00:44:28.918
+Did I do torque
+limits on that one?
+
+00:44:28.918 --> 00:44:30.130
+I still did torque limits.
+
+00:44:30.130 --> 00:44:33.590
+I just set them high, I guess.
+
+00:44:33.590 --> 00:44:34.550
+Yeah.
+
+00:44:34.550 --> 00:44:36.440
+So it really works.
+
+00:44:36.440 --> 00:44:39.320
+And the cool thing is
+the cost of implementing
+
+00:44:39.320 --> 00:44:43.760
+that LQR LTV stabilizer
+was negligibly
+
+00:44:43.760 --> 00:44:46.040
+more than implementing the--
+
+00:44:46.040 --> 00:44:48.709
+most of that time was the
+shooting optimization.
+
+00:44:55.575 --> 00:44:56.440
+Yes?
+
+00:44:56.440 --> 00:45:00.083
+AUDIENCE: Why do you
+always start at the 0 time?
+
+00:45:00.083 --> 00:45:01.750
+You could look at the
+initial conditions
+
+00:45:01.750 --> 00:45:03.880
+and look where is
+the closest point
+
+00:45:03.880 --> 00:45:08.110
+on my nominal trajectories and
+then do your control policy
+
+00:45:08.110 --> 00:45:10.180
+from that moment in time.
+
+00:45:10.180 --> 00:45:11.197
+RUSS TEDRAKE: OK.
+
+00:45:11.197 --> 00:45:12.530
+So that's a really, really good.
+
+00:45:12.530 --> 00:45:15.530
+OK, that's exactly what I want
+to talk about next, actually.
+
+00:45:23.740 --> 00:45:31.480
+I designed a time-varying
+feedback controller,
+
+00:45:31.480 --> 00:45:36.580
+is negative K of t x bar of t.
+
+00:45:36.580 --> 00:45:39.230
+I designed that ahead of time.
+
+00:45:39.230 --> 00:45:41.200
+And then, from the
+initial conditions,
+
+00:45:41.200 --> 00:45:45.970
+I started simulating from 0,
+and I just played out the--
+
+00:45:45.970 --> 00:45:48.460
+my nominal trajectory just
+marched forward with time,
+
+00:45:48.460 --> 00:45:50.710
+my feedback controller just
+marched forward with time,
+
+00:45:50.710 --> 00:45:54.070
+and my aerodynamics just
+marched forward with time.
+
+00:45:54.070 --> 00:45:56.770
+OK, so before I explicitly
+address your question,
+
+00:45:56.770 --> 00:45:57.760
+let me point out--
+
+00:45:57.760 --> 00:46:02.320
+let me ask even a
+simpler question here.
+
+00:46:08.187 --> 00:46:10.770
+If I had plotted that in state
+space, what you would have seen
+
+00:46:10.770 --> 00:46:14.040
+is that the trajectory starts
+off somewhere in state space
+
+00:46:14.040 --> 00:46:14.950
+and comes together.
+
+00:46:14.950 --> 00:46:15.850
+That would have a good idea.
+
+00:46:15.850 --> 00:46:17.308
+Maybe I should do
+that in a minute.
+
+00:46:17.308 --> 00:46:21.390
+But it comes together and finds
+its way onto that trajectory.
+
+00:46:21.390 --> 00:46:21.890
+Yeah?
+
+00:46:24.880 --> 00:46:26.220
+OK, so here's the question.
+
+00:46:28.950 --> 00:46:31.080
+Instead of just changes
+in initial conditions,
+
+00:46:31.080 --> 00:46:34.110
+what happens if I
+have disturbances
+
+00:46:34.110 --> 00:46:35.783
+that push me off the trajectory?
+
+00:46:35.783 --> 00:46:36.450
+Well, that's OK.
+
+00:46:36.450 --> 00:46:39.900
+That's no different really than
+a different initial condition.
+
+00:46:39.900 --> 00:46:41.612
+They'll come back on here.
+
+00:46:41.612 --> 00:46:43.320
+What happens if I have
+a disturbance that
+
+00:46:43.320 --> 00:46:49.140
+pushes me along the trajectory
+with this controller?
+
+00:46:49.140 --> 00:46:54.330
+Let's say I've got the
+helpful disturbance, which,
+
+00:46:54.330 --> 00:46:57.690
+when I was right
+here, just happened
+
+00:46:57.690 --> 00:46:59.610
+to push me right to there.
+
+00:47:03.090 --> 00:47:06.030
+What's my feedback
+controller going to do?
+
+00:47:06.030 --> 00:47:07.320
+AUDIENCE: Slow it down.
+
+00:47:07.320 --> 00:47:12.910
+RUSS TEDRAKE: Yeah-- probably
+in a dramatic fashion.
+
+00:47:12.910 --> 00:47:17.760
+It's the same way-- it tries
+to quickly converge from here.
+
+00:47:17.760 --> 00:47:20.850
+It's going to push itself back
+towards that point, possibly.
+
+00:47:20.850 --> 00:47:22.830
+Slowing down doesn't--
+makes it sound--
+
+00:47:22.830 --> 00:47:24.402
+no big deal.
+
+00:47:24.402 --> 00:47:25.860
+It can't go backwards,
+but it might
+
+00:47:25.860 --> 00:47:29.880
+try to do something more
+severe to try to catch up
+
+00:47:29.880 --> 00:47:33.510
+with that old trajectory.
+
+00:47:33.510 --> 00:47:37.680
+So the major limitation of
+this is that it's blindly--
+
+00:47:37.680 --> 00:47:39.870
+in order to have the strong
+convergence properties
+
+00:47:39.870 --> 00:47:43.710
+that we have, the controller
+is blindly marching forward
+
+00:47:43.710 --> 00:47:45.330
+in time.
+
+00:47:45.330 --> 00:47:48.870
+The great thing about switching
+to a time parameterization
+
+00:47:48.870 --> 00:47:52.080
+I can compute everything--
+everything's linear again.
+
+00:47:52.080 --> 00:47:56.730
+The bad thing is
+you're a slave to time.
+
+00:47:56.730 --> 00:47:59.100
+So Phillip asked
+a next question.
+
+00:47:59.100 --> 00:48:00.600
+He says, so why not--
+
+00:48:00.600 --> 00:48:05.010
+why do I just blindly start
+marching forward from time 0?
+
+00:48:05.010 --> 00:48:08.700
+Maybe, if I have a
+controller, I should just
+
+00:48:08.700 --> 00:48:12.030
+look for the closest
+point in my trajectory,
+
+00:48:12.030 --> 00:48:13.920
+and then, instead of
+indexing off time,
+
+00:48:13.920 --> 00:48:18.780
+index off some sort of phase,
+some fraction of my trajectory,
+
+00:48:18.780 --> 00:48:21.900
+and then execute
+that controller.
+
+00:48:21.900 --> 00:48:25.710
+And you can do that.
+
+00:48:25.710 --> 00:48:27.600
+I wish you the best
+if you do that,
+
+00:48:27.600 --> 00:48:31.950
+but my suspicion is
+that, if on every dt,
+
+00:48:31.950 --> 00:48:34.220
+you pick the closest
+point in the trajectory,
+
+00:48:34.220 --> 00:48:36.720
+then the result is you're going
+to chatter like you wouldn't
+
+00:48:36.720 --> 00:48:38.370
+believe.
+
+00:48:38.370 --> 00:48:41.550
+So there's a lot of
+protection you get when you--
+
+00:48:41.550 --> 00:48:42.960
+you could think
+of this very much
+
+00:48:42.960 --> 00:48:46.980
+as a gain-scheduled
+linear controller.
+
+00:48:46.980 --> 00:48:50.220
+This is a time-varying
+gain scheduling,
+
+00:48:50.220 --> 00:48:52.900
+and the problem is if
+I switch gain quickly,
+
+00:48:52.900 --> 00:48:54.540
+then you're going
+to get chattering.
+
+00:48:54.540 --> 00:48:57.310
+So it might make a lot
+of sense, for instance,
+
+00:48:57.310 --> 00:49:00.743
+if you were to get a big
+disturbance, to re-evaluate,
+
+00:49:00.743 --> 00:49:02.160
+and try to find
+the closest point,
+
+00:49:02.160 --> 00:49:06.690
+and start executing that new
+policy with time re-indexed.
+
+00:49:06.690 --> 00:49:10.380
+But it's probably a bad
+idea, in my experience,
+
+00:49:10.380 --> 00:49:12.450
+to decide which part
+of the trajectory
+
+00:49:12.450 --> 00:49:14.340
+you're closest to on every--
+
+00:49:14.340 --> 00:49:16.385
+every dt.
+
+00:49:16.385 --> 00:49:17.510
+That's probably a bad idea.
+
+00:49:23.250 --> 00:49:24.840
+Yes?
+
+00:49:24.840 --> 00:49:26.760
+AUDIENCE: Could you
+maybe play some tricks
+
+00:49:26.760 --> 00:49:28.815
+if you had some idea of
+the basin of attraction
+
+00:49:28.815 --> 00:49:31.630
+of the current point
+you're trying to get to?
+
+00:49:31.630 --> 00:49:33.530
+And if you know that
+you're outside of it,
+
+00:49:33.530 --> 00:49:36.540
+then work around
+it, [INAUDIBLE]??
+
+00:49:36.540 --> 00:49:37.290
+RUSS TEDRAKE: Yes.
+
+00:49:40.930 --> 00:49:45.270
+So I have a particular trick
+the does that does that in--
+
+00:49:45.270 --> 00:49:48.240
+we'll talk about it in
+the motion planning, but--
+
+00:49:48.240 --> 00:49:50.400
+yeah, so Mark knows
+about these tricks
+
+00:49:50.400 --> 00:49:53.170
+for computing basins of
+attraction pretty efficiently.
+
+00:49:53.170 --> 00:49:57.150
+And so these days what
+we do is we actually
+
+00:49:57.150 --> 00:49:59.060
+try to compute the funnel--
+
+00:49:59.060 --> 00:50:00.810
+the basin of attraction
+of this trajectory
+
+00:50:00.810 --> 00:50:05.610
+around the trajectory, and
+you could know discretely
+
+00:50:05.610 --> 00:50:07.698
+if you left that
+basin of attraction.
+
+00:50:07.698 --> 00:50:09.240
+So I'll give you
+the recipe for that,
+
+00:50:09.240 --> 00:50:11.010
+but it actually
+makes more sense,
+
+00:50:11.010 --> 00:50:13.860
+I think, in the motion planning
+context, where we actually
+
+00:50:13.860 --> 00:50:16.713
+will design
+trajectories that fill
+
+00:50:16.713 --> 00:50:17.880
+the space with these basins.
+
+00:50:21.660 --> 00:50:24.190
+This is very similar to
+the concept of flow tubes.
+
+00:50:24.190 --> 00:50:24.690
+Yes.
+
+00:50:32.390 --> 00:50:36.170
+OK, so big idea--
+
+00:50:36.170 --> 00:50:40.160
+turn my non-linear system into
+a linear time-varying system,
+
+00:50:40.160 --> 00:50:43.730
+because I've re-parameterized
+it that along the trajectory.
+
+00:50:43.730 --> 00:50:48.770
+Do linear time-varying control,
+and even really complicated
+
+00:50:48.770 --> 00:50:51.230
+systems-- it'll work well.
+
+00:50:51.230 --> 00:50:53.655
+We're doing on our
+[INAUDIBLE] plane.
+
+00:50:53.655 --> 00:50:56.510
+I mean, it's really
+a pretty good idea.
+
+00:50:59.168 --> 00:51:00.710
+When I first started
+working with it,
+
+00:51:00.710 --> 00:51:05.600
+I thought that it would
+have the problem that--
+
+00:51:09.380 --> 00:51:12.500
+it would have the property
+that it uses a lot of control
+
+00:51:12.500 --> 00:51:14.120
+to force itself back
+to the trajectory
+
+00:51:14.120 --> 00:51:16.550
+and rigidly follow
+the trajectory.
+
+00:51:16.550 --> 00:51:19.130
+It's easy to equate
+linear control
+
+00:51:19.130 --> 00:51:22.673
+with high-gain linear feedback,
+which people do a lot of,
+
+00:51:22.673 --> 00:51:24.590
+but it doesn't necessarily
+need that property.
+
+00:51:24.590 --> 00:51:26.780
+If R is small in
+this derivation,
+
+00:51:26.780 --> 00:51:30.440
+it can actually take very
+subtle approaches back
+
+00:51:30.440 --> 00:51:31.190
+to the trajectory.
+
+00:51:31.190 --> 00:51:34.470
+Your system might come
+in and do whatever
+
+00:51:34.470 --> 00:51:36.470
+it needs to get back on
+the trajectory with very
+
+00:51:36.470 --> 00:51:37.053
+little torque.
+
+00:51:41.880 --> 00:51:44.720
+The only price you pay is,
+if your torque is smaller,
+
+00:51:44.720 --> 00:51:48.650
+if you're penalizing
+torque use higher,
+
+00:51:48.650 --> 00:51:50.938
+then you might restrict
+your-- that might shrink
+
+00:51:50.938 --> 00:51:51.980
+your basin of attraction.
+
+00:51:51.980 --> 00:51:56.450
+It might be that, because it's
+trying to use less torque,
+
+00:51:56.450 --> 00:51:59.140
+it will not overcome
+the non-linearities.
+
+00:51:59.140 --> 00:52:00.890
+But in the neighborhood
+of the trajectory,
+
+00:52:00.890 --> 00:52:05.090
+you can get these
+very elegant solutions
+
+00:52:05.090 --> 00:52:07.370
+which look like minimal
+energy kind of solutions
+
+00:52:07.370 --> 00:52:09.380
+for the non-linear
+problem in the vicinity
+
+00:52:09.380 --> 00:52:10.830
+of these trajectories.
+
+00:52:10.830 --> 00:52:12.560
+So one of the ideas we'll
+talk about later is how do you
+
+00:52:12.560 --> 00:52:14.518
+design the minimal set
+of trajectories-- which,
+
+00:52:14.518 --> 00:52:19.077
+if you use these controllers,
+which do the right thing
+
+00:52:19.077 --> 00:52:19.910
+in a lot of places--
+
+00:52:25.187 --> 00:52:27.270
+if you walked away from
+this class knowing nothing
+
+00:52:27.270 --> 00:52:31.350
+but direct co-location and
+linear time-varying feedback
+
+00:52:31.350 --> 00:52:34.930
+control, I bet you could
+control a lot of cool systems.
+
+00:52:34.930 --> 00:52:35.430
+Yeah.
+
+00:52:35.430 --> 00:52:37.555
+I guess you also have to
+know sys id, which I'm not
+
+00:52:37.555 --> 00:52:39.750
+going to tell you about.
+
+00:52:39.750 --> 00:52:40.800
+That's the gotcha.
+
+00:52:40.800 --> 00:52:42.633
+You have to have a model
+for all this stuff.
+
+00:52:45.295 --> 00:52:46.920
+If someone gives you
+a model, if you're
+
+00:52:46.920 --> 00:52:50.130
+willing to construct a model,
+then you can do a lot of things
+
+00:52:50.130 --> 00:52:50.880
+with this.
+
+00:52:58.570 --> 00:53:05.770
+OK, I want to give you
+one more mental picture
+
+00:53:05.770 --> 00:53:09.070
+to think about what this
+is doing so it launches
+
+00:53:09.070 --> 00:53:13.340
+into the next thing here.
+
+00:53:13.340 --> 00:53:20.140
+So my cost-to-go function, which
+I just erased, is, remember--
+
+00:53:20.140 --> 00:53:29.890
+my cost-to-go function, J of x
+bar t, is x bar S of t x bar.
+
+00:53:34.600 --> 00:53:35.680
+This is a quadratic form.
+
+00:53:35.680 --> 00:53:37.990
+Just like the original
+LQR, you can think
+
+00:53:37.990 --> 00:53:39.850
+of this as a quadratic bowl.
+
+00:53:39.850 --> 00:53:42.340
+In the LTI LQR case--
+
+00:53:42.340 --> 00:53:45.880
+am I OK throwing around
+these three-letter acronyms?
+
+00:53:45.880 --> 00:53:51.340
+In the LTI LQR case, it
+was a static quadratic bowl
+
+00:53:51.340 --> 00:53:54.220
+centered around the point
+I'm trying to stabilize--
+
+00:53:54.220 --> 00:53:55.210
+so my cost-to-go.
+
+00:53:55.210 --> 00:53:59.260
+It said-- says, as I move
+away from the point I'm trying
+
+00:53:59.260 --> 00:54:04.380
+to regulate, I'm going to incur
+more cost in the direction--
+
+00:54:04.380 --> 00:54:10.810
+the rate it grows depends
+on the variables inside S.
+
+00:54:10.810 --> 00:54:15.910
+Now, in this picture, I
+have still a time-varying--
+
+00:54:15.910 --> 00:54:18.850
+I have a time-varying
+quadratic bowl,
+
+00:54:18.850 --> 00:54:22.630
+but it's also
+moving through time,
+
+00:54:22.630 --> 00:54:27.940
+because it's based on x bar.
+
+00:54:27.940 --> 00:54:36.100
+So in my pendulum world, if I
+have this nominal trajectory,
+
+00:54:36.100 --> 00:54:39.010
+you can think of it as having
+some quadratic bowl here.
+
+00:54:41.950 --> 00:54:45.490
+And the LTI stabilizer
+that we did come up
+
+00:54:45.490 --> 00:54:47.080
+with that was based
+on LQR did have
+
+00:54:47.080 --> 00:54:50.320
+some sort of quadratic bowl
+shape that looked like that.
+
+00:54:53.377 --> 00:54:55.960
+Backwards in time, there's going
+to be another quadratic bowl.
+
+00:54:55.960 --> 00:54:58.450
+Can I draw it very
+badly like this?
+
+00:55:04.010 --> 00:55:07.190
+If I can just draw coming off
+the board a little bit-- so
+
+00:55:07.190 --> 00:55:11.940
+there's some quadratic bowl
+centered around this point,
+
+00:55:11.940 --> 00:55:13.220
+which is my costs-to-go.
+
+00:55:13.220 --> 00:55:15.540
+At that point, if I marched
+further backwards in time,
+
+00:55:15.540 --> 00:55:18.740
+I've got some other quadratic
+bowl around this point.
+
+00:55:18.740 --> 00:55:20.775
+That makes the
+point, again, that--
+
+00:55:24.590 --> 00:55:27.050
+if my quadratic
+ball is currently
+
+00:55:27.050 --> 00:55:29.720
+this because time is 5--
+
+00:55:29.720 --> 00:55:32.930
+or I had a 4-second trajectory--
+maybe times 3 here--
+
+00:55:32.930 --> 00:55:34.430
+and I'm pushed along
+the trajectory,
+
+00:55:34.430 --> 00:55:37.520
+it's actually going to
+incur just as much cost,
+
+00:55:37.520 --> 00:55:39.680
+roughly, as I'm pushed
+another direction.
+
+00:55:39.680 --> 00:55:43.700
+There's a quadratic bowl
+literally centered around x0
+
+00:55:43.700 --> 00:55:46.310
+at time t.
+
+00:55:46.310 --> 00:55:49.070
+That's what this equation says.
+
+00:55:51.810 --> 00:55:56.070
+And this quadratic bowl is
+the cost-to-go estimate.
+
+00:55:56.070 --> 00:56:00.780
+It says, if I'm away
+from the trajectory,
+
+00:56:00.780 --> 00:56:04.350
+I should expect the cost
+I incur in getting back
+
+00:56:04.350 --> 00:56:10.080
+towards that trajectory
+to be this quadratic form.
+
+00:56:10.080 --> 00:56:10.580
+Is that OK?
+
+00:56:15.810 --> 00:56:18.270
+And the key point is,
+because I've re-parameterized
+
+00:56:18.270 --> 00:56:23.670
+my equations in terms of x
+bar, this quadratic bowl always
+
+00:56:23.670 --> 00:56:26.718
+lives on that trajectory.
+
+00:56:30.570 --> 00:56:34.620
+My cost function
+was x bar Q x bar.
+
+00:56:34.620 --> 00:56:36.195
+My best thing to
+do is to drive x
+
+00:56:36.195 --> 00:56:38.940
+bar to 0, which means
+to drive my system back
+
+00:56:38.940 --> 00:56:40.132
+to the trajectory.
+
+00:56:42.970 --> 00:56:45.170
+People OK with that imagery?
+
+00:56:45.170 --> 00:56:46.420
+It doesn't look like they are.
+
+00:56:46.420 --> 00:56:47.050
+Everybody's OK.
+
+00:56:50.870 --> 00:56:52.660
+Are we OK here
+the LTI stabilizer
+
+00:56:52.660 --> 00:56:55.570
+being an LQR bowl--
+or a quadratic bowl?
+
+00:56:55.570 --> 00:56:59.440
+So the farther I am away in
+the directions defined by S,
+
+00:56:59.440 --> 00:57:02.620
+I'm going to cut some
+cost getting back.
+
+00:57:02.620 --> 00:57:05.470
+This is just the
+same thing that says,
+
+00:57:05.470 --> 00:57:08.920
+if I'm at this point
+in the trajectory,
+
+00:57:08.920 --> 00:57:12.010
+I'm going to cover
+this cost-to-go.
+
+00:57:12.010 --> 00:57:14.770
+And the best thing to do,
+the minimal cost-to-go
+
+00:57:14.770 --> 00:57:18.670
+is living right on
+that trajectory.
+
+00:57:18.670 --> 00:57:21.190
+As a consequence, the
+optimal controller,
+
+00:57:21.190 --> 00:57:24.610
+which tries to go down the
+landscape of the cost-to-go,
+
+00:57:24.610 --> 00:57:28.210
+is going to drive you
+back to the trajectory.
+
+00:57:28.210 --> 00:57:30.460
+Now, I said all that because
+I'm about to do something
+
+00:57:30.460 --> 00:57:31.600
+that sounds totally wacky.
+
+00:57:40.580 --> 00:57:44.420
+Would it ever make sense for me
+to design a slightly different
+
+00:57:44.420 --> 00:57:48.200
+cost function, which, when
+I linearize and design
+
+00:57:48.200 --> 00:57:52.730
+the feedback controller, I end
+up with a cost-to-go over here?
+
+00:57:56.930 --> 00:57:58.940
+Let's say I have some
+nominal trajectory.
+
+00:57:58.940 --> 00:58:01.970
+I found, through
+whatever method,
+
+00:58:01.970 --> 00:58:06.230
+some reasonable system
+trajectory, but I really--
+
+00:58:06.230 --> 00:58:07.700
+I'm still not happy with that.
+
+00:58:07.700 --> 00:58:13.260
+The trajectory I really wanted
+was something like this,
+
+00:58:13.260 --> 00:58:15.620
+let's say.
+
+00:58:15.620 --> 00:58:18.880
+Would it make any sense
+to do my linearization
+
+00:58:18.880 --> 00:58:23.840
+around this trajectory,
+and try to drive the system
+
+00:58:23.840 --> 00:58:25.327
+to this other trajectory?
+
+00:58:29.303 --> 00:58:32.648
+AUDIENCE: You mean like scaling
+your optimal trajectory?
+
+00:58:32.648 --> 00:58:34.315
+RUSS TEDRAKE: I don't
+even mean scaling.
+
+00:58:34.315 --> 00:58:35.170
+They could cross.
+
+00:58:35.170 --> 00:58:36.202
+They could do whatever.
+
+00:58:36.202 --> 00:58:37.285
+It's not a simple scaling.
+
+00:58:39.830 --> 00:58:42.210
+Let me give you a simpler
+version of the problem.
+
+00:58:50.511 --> 00:58:54.792
+AUDIENCE: [INAUDIBLE]
+
+00:58:54.792 --> 00:58:56.000
+RUSS TEDRAKE: Say that again.
+
+00:58:56.000 --> 00:59:05.520
+AUDIENCE: [INAUDIBLE]
+
+00:59:05.520 --> 00:59:06.390
+RUSS TEDRAKE: Yes.
+
+00:59:06.390 --> 00:59:10.440
+I'm going to divine a
+cost function, which
+
+00:59:10.440 --> 00:59:15.210
+would have it so I prefer
+to live on that trajectory.
+
+00:59:15.210 --> 00:59:17.430
+Let me do it in the
+time invariant case
+
+00:59:17.430 --> 00:59:18.480
+just so it's clear.
+
+00:59:32.700 --> 00:59:35.880
+Let's say my coordinate
+system's back and simple.
+
+00:59:35.880 --> 00:59:36.735
+It lives around 0.
+
+00:59:39.820 --> 00:59:42.870
+Let's say I have that
+cost function, or actually
+
+00:59:42.870 --> 00:59:44.520
+that dynamics.
+
+00:59:44.520 --> 00:59:47.460
+And instead of-- my original
+cost function was just x
+
+00:59:47.460 --> 00:59:49.050
+transpose Qx--
+
+00:59:49.050 --> 00:59:53.775
+let's say my cost
+function now is--
+
+01:00:39.687 --> 01:00:41.520
+let's think about this
+problem for a second.
+
+01:00:49.610 --> 01:00:51.910
+So let's say I have
+a linear system.
+
+01:00:51.910 --> 01:00:53.980
+Now, the LQR controller
+we did initially--
+
+01:00:57.950 --> 01:00:59.939
+little sloppy with that.
+
+01:01:04.630 --> 01:01:06.820
+The LQR controller
+I did initially
+
+01:01:06.820 --> 01:01:09.410
+always assumed that the desired
+place you wanted to be in life
+
+01:01:09.410 --> 01:01:09.910
+was 0.
+
+01:01:12.760 --> 01:01:15.640
+If the desired place you want
+to be in life is a constant--
+
+01:01:15.640 --> 01:01:17.560
+it's 3, let's say--
+
+01:01:17.560 --> 01:01:21.670
+then you can still do your
+linear quadratic regulator.
+
+01:01:21.670 --> 01:01:25.390
+Just move your coordinate
+system so the 3 is 0.
+
+01:01:25.390 --> 01:01:27.100
+But let's say I've
+got a linear system,
+
+01:01:27.100 --> 01:01:30.250
+but I want to drive it
+through some trajectory--
+
+01:01:30.250 --> 01:01:34.570
+time-varying trajectory-- x
+desired as a function of time.
+
+01:01:34.570 --> 01:01:37.905
+Then I can't quite just
+recenter the origin.
+
+01:01:37.905 --> 01:01:39.280
+I've got to think
+about, how do I
+
+01:01:39.280 --> 01:01:42.312
+drive my linear system through
+some other trajectories?
+
+01:01:48.590 --> 01:01:51.440
+Now the-- it's actually--
+
+01:01:55.040 --> 01:02:00.900
+LTI system, but my cost function
+is time-varying, because my--
+
+01:02:00.900 --> 01:02:05.120
+I have the desired trajectory
+that varies with time.
+
+01:02:05.120 --> 01:02:07.790
+The result-- I won't
+write it down again--
+
+01:02:07.790 --> 01:02:12.180
+again, I can do this
+Riccati equation.
+
+01:02:12.180 --> 01:02:12.680
+Back up.
+
+01:02:15.410 --> 01:02:19.460
+The only difference is
+that the quadratic bowl
+
+01:02:19.460 --> 01:02:23.682
+is no longer going to be
+centered on the origin.
+
+01:02:23.682 --> 01:02:25.890
+The quadratic bowl is going
+to move with that desired
+
+01:02:25.890 --> 01:02:26.920
+trajectory.
+
+01:02:29.860 --> 01:02:30.520
+OK?
+
+01:02:30.520 --> 01:02:31.048
+Yeah?
+
+01:02:31.048 --> 01:02:33.340
+AUDIENCE: If that's far away
+from where you linearized,
+
+01:02:33.340 --> 01:02:34.330
+could you--
+
+01:02:34.330 --> 01:02:37.542
+RUSS TEDRAKE: That's
+an excellent question.
+
+01:02:37.542 --> 01:02:39.250
+But this is a linear
+system, so first, we
+
+01:02:39.250 --> 01:02:41.230
+don't have to worry
+about that, but don't let
+
+01:02:41.230 --> 01:02:42.438
+me forget to go back to that.
+
+01:02:46.330 --> 01:02:50.020
+So I can drive my linear system
+through some trajectory that's
+
+01:02:50.020 --> 01:02:54.940
+non-zero beautifully
+with an LQR controller.
+
+01:02:54.940 --> 01:02:57.250
+The only problem is
+that my LQR controller
+
+01:02:57.250 --> 01:03:01.720
+has to have has a cost-to-go
+function and a controller which
+
+01:03:01.720 --> 01:03:03.940
+is not pointing me
+always at the origin.
+
+01:03:03.940 --> 01:03:06.763
+You wouldn't want that.
+
+01:03:06.763 --> 01:03:08.930
+So in fact, the way it
+looks-- there's a lot of ways
+
+01:03:08.930 --> 01:03:10.030
+that people derive it.
+
+01:03:10.030 --> 01:03:13.360
+With Pontryagin, it's
+not too hard to derive.
+
+01:03:13.360 --> 01:03:16.285
+I prefer to derive
+it with the HJB.
+
+01:03:25.850 --> 01:03:29.855
+I'm not going to do
+the derivation, but--
+
+01:03:29.855 --> 01:03:31.730
+I don't mean to bore
+you, but what you end up
+
+01:03:31.730 --> 01:03:43.730
+with is J of x of t has a form
+x transpose S of t x plus x
+
+01:03:43.730 --> 01:03:44.510
+transpose--
+
+01:03:44.510 --> 01:03:46.610
+I call this S2--
+
+01:03:46.610 --> 01:03:51.035
+S1 of t plus S0 of t.
+
+01:03:51.035 --> 01:03:52.160
+It's a full quadratic form.
+
+01:03:55.350 --> 01:03:58.500
+When I just have this, it's
+always a quadratic bowl.
+
+01:03:58.500 --> 01:04:00.325
+It's always centered around 0.
+
+01:04:00.325 --> 01:04:02.700
+If you want it, in general,
+to be a quadratic bowl that's
+
+01:04:02.700 --> 01:04:06.270
+not necessarily at 0, you
+need the full quadratic form.
+
+01:04:06.270 --> 01:04:07.860
+I could equally well
+have written this
+
+01:04:07.860 --> 01:04:14.550
+as x minus x something
+desired, S of t.
+
+01:04:14.550 --> 01:04:15.990
+But let's work with this form.
+
+01:04:15.990 --> 01:04:16.490
+Yeah?
+
+01:04:23.260 --> 01:04:26.590
+So this is just an equation of a
+quadratic bowl, not necessarily
+
+01:04:26.590 --> 01:04:29.620
+centered on the origin.
+
+01:04:29.620 --> 01:04:35.920
+And the LQR derivation gives me
+my backwards dynamics for S2.
+
+01:04:35.920 --> 01:04:40.060
+It gives me the backwards
+dynamics for S1 and for S0.
+
+01:04:45.440 --> 01:04:46.940
+And it's in the notes.
+
+01:04:46.940 --> 01:04:49.010
+It's actually already
+in your notes.
+
+01:04:49.010 --> 01:04:53.330
+It's in the HJB chapter that
+has been up there for a while.
+
+01:04:57.170 --> 01:05:03.770
+OK, now, the reason
+I'm on about all this
+
+01:05:03.770 --> 01:05:06.410
+is that there's another way--
+
+01:05:06.410 --> 01:05:08.180
+I told you about
+shooting methods.
+
+01:05:08.180 --> 01:05:10.170
+I told you about
+direct co-location.
+
+01:05:10.170 --> 01:05:11.810
+There is yet another
+way that people
+
+01:05:11.810 --> 01:05:19.998
+like to design trajectories,
+which use LQR directly.
+
+01:05:25.250 --> 01:05:27.578
+And that's this
+iterative LQR procedure.
+
+01:05:42.910 --> 01:05:43.410
+OK.
+
+01:06:06.090 --> 01:06:09.900
+So let's say I have some
+trajectory that I've already
+
+01:06:09.900 --> 01:06:16.440
+found, x 0 of t, and I have
+some different trajectory, which
+
+01:06:16.440 --> 01:06:20.460
+is my desired trajectory,
+x desired of t.
+
+01:06:24.710 --> 01:06:27.260
+Then, using this
+optimal tracking--
+
+01:06:27.260 --> 01:06:30.020
+if you stick back in the
+time-varying components,
+
+01:06:30.020 --> 01:06:32.990
+using this optimal
+tracking, I can
+
+01:06:32.990 --> 01:06:35.420
+linearize my dynamical
+system around that.
+
+01:06:35.420 --> 01:06:37.108
+So I have no guarantees
+that x desired
+
+01:06:37.108 --> 01:06:38.150
+is a feasible trajectory.
+
+01:06:38.150 --> 01:06:40.250
+In fact, many cases-- it's not.
+
+01:06:40.250 --> 01:06:44.030
+For instance, x desired might
+be B at the goal at all times.
+
+01:06:44.030 --> 01:06:47.840
+If I came up with a perfectly
+feasible x desired trajectory,
+
+01:06:47.840 --> 01:06:52.280
+I probably wouldn't be
+running an open-loop solver.
+
+01:06:52.280 --> 01:06:54.650
+I want to get to I want to
+get as close as desired--
+
+01:06:54.650 --> 01:06:57.710
+as possible to the x
+desired while potentially
+
+01:06:57.710 --> 01:07:00.220
+minimizing cost and respecting
+the dynamics of the system.
+
+01:07:02.880 --> 01:07:04.820
+Here's one way to do it--
+
+01:07:04.820 --> 01:07:10.100
+linearize my system around
+my initial guess, x0 of t,
+
+01:07:10.100 --> 01:07:12.860
+then design a linear
+optimal tracking--
+
+01:07:12.860 --> 01:07:15.020
+linear time-varying
+optimal tracking which
+
+01:07:15.020 --> 01:07:17.690
+tries to regulate my
+system as close as
+
+01:07:17.690 --> 01:07:21.240
+possible to that trajectory.
+
+01:07:21.240 --> 01:07:24.600
+Now, what Steven said
+was exactly on point.
+
+01:07:24.600 --> 01:07:30.510
+If I drive my system away
+from where I linearized,
+
+01:07:30.510 --> 01:07:32.940
+there's no guarantee
+that my linear model
+
+01:07:32.940 --> 01:07:36.660
+is going to be any good here.
+
+01:07:36.660 --> 01:07:40.310
+But the hope is that this
+trajectory is better--
+
+01:07:40.310 --> 01:07:44.480
+a better guess than
+the one before.
+
+01:07:44.480 --> 01:07:52.310
+And you iterate, make another
+approximation around there,
+
+01:07:52.310 --> 01:07:55.550
+design the LQR controller, run
+the LQR controller that drives
+
+01:07:55.550 --> 01:07:58.040
+me here to find the new u tape.
+
+01:07:58.040 --> 01:08:01.100
+That defines my new
+trajectory-- repeat.
+
+01:08:01.100 --> 01:08:02.270
+OK?
+
+01:08:02.270 --> 01:08:05.120
+That's called iterative LQR.
+
+01:08:05.120 --> 01:08:06.760
+What else is it called?
+
+01:08:06.760 --> 01:08:07.760
+Do you know?
+
+01:08:19.728 --> 01:08:20.840
+Yeah.
+
+01:08:20.840 --> 01:08:22.092
+Do you see that?
+
+01:08:22.092 --> 01:08:24.145
+It's differential
+dynamic programming--
+
+01:08:37.740 --> 01:08:38.327
+almost.
+
+01:08:38.327 --> 01:08:40.410
+There's a subtle difference,
+which I can tell you,
+
+01:08:40.410 --> 01:08:42.640
+if you want.
+
+01:08:42.640 --> 01:08:44.069
+There's a lot of names for it.
+
+01:08:44.069 --> 01:08:48.149
+There's another guy, Bobrow--
+some of you know Jim Bobrow--
+
+01:08:48.149 --> 01:08:50.609
+he wrote this up called the
+sequential linear quadratic
+
+01:08:50.609 --> 01:08:53.979
+regulators.
+
+01:08:53.979 --> 01:08:57.423
+Any four-letter acronym
+that ends in LQR--
+
+01:08:57.423 --> 01:08:59.340
+if you put it in Google,
+you'll find something
+
+01:08:59.340 --> 01:09:00.423
+that's probably this idea.
+
+01:09:00.423 --> 01:09:01.350
+Yeah.
+
+01:09:01.350 --> 01:09:04.050
+If you put in whatever arbitrary
+constant in front of it,
+
+01:09:04.050 --> 01:09:06.558
+you'll probably
+get this idea out.
+
+01:09:06.558 --> 01:09:10.645
+AUDIENCE: What prevents
+your actuator costs
+
+01:09:10.645 --> 01:09:14.978
+from accumulating from
+one iteration to another?
+
+01:09:14.978 --> 01:09:16.520
+RUSS TEDRAKE: Every
+iteration, you're
+
+01:09:16.520 --> 01:09:19.140
+trying to minimize
+your actuator cost.
+
+01:09:19.140 --> 01:09:23.051
+AUDIENCE: Right, but I mean, if
+you have a lot of iterations,
+
+01:09:23.051 --> 01:09:25.540
+couldn't that potentially grow?
+
+01:09:25.540 --> 01:09:28.950
+RUSS TEDRAKE: I don't
+actually add to my old u tape.
+
+01:09:28.950 --> 01:09:31.740
+I actually completely
+replace my old u tape
+
+01:09:31.740 --> 01:09:34.350
+with a new controller which
+drives me to the system.
+
+01:09:34.350 --> 01:09:35.170
+AUDIENCE: Oh, OK.
+
+01:09:35.170 --> 01:09:39.510
+RUSS TEDRAKE: So there's no
+worries about additive actions.
+
+01:09:39.510 --> 01:09:42.060
+It actually tells me in my
+original non-linear system
+
+01:09:42.060 --> 01:09:44.700
+what's my best guess as
+a u tape that goes there.
+
+01:09:47.990 --> 01:09:50.520
+AUDIENCE: Is this
+basically a trick
+
+01:09:50.520 --> 01:09:53.882
+to get rid of the
+slow [INAUDIBLE]??
+
+01:09:53.882 --> 01:09:55.840
+RUSS TEDRAKE: So very,
+very good-- so why would
+
+01:09:55.840 --> 01:09:56.590
+I want to do this?
+
+01:09:56.590 --> 01:09:58.648
+Why didn't I tell you
+about this first, or why--
+
+01:09:58.648 --> 01:10:00.440
+how does this compare
+to the other methods?
+
+01:10:03.220 --> 01:10:06.170
+There is a sense by which-- and
+I thought about doing the whole
+
+01:10:06.170 --> 01:10:07.420
+derivation, but I think this--
+
+01:10:07.420 --> 01:10:12.130
+I hope that this short
+discussion is sufficient.
+
+01:10:12.130 --> 01:10:14.230
+So what I'm roughly
+doing is I'm using
+
+01:10:14.230 --> 01:10:19.660
+LQR to come up with a quadratic
+approximation of where
+
+01:10:19.660 --> 01:10:20.500
+my cost--
+
+01:10:20.500 --> 01:10:21.730
+where my minimum is.
+
+01:10:24.760 --> 01:10:27.970
+This is very much in
+the spirit of those SQP
+
+01:10:27.970 --> 01:10:31.150
+methods, the sequential
+quadratic methods.
+
+01:10:31.150 --> 01:10:33.970
+I'm using computation
+on this line
+
+01:10:33.970 --> 01:10:37.447
+to come up with a quadratic
+approximation of where I think
+
+01:10:37.447 --> 01:10:38.530
+the new minimum should be.
+
+01:10:41.110 --> 01:11:01.400
+So as such, it's a relatively
+cheap way with SQP properties,
+
+01:11:01.400 --> 01:11:02.935
+convergence properties.
+
+01:11:12.640 --> 01:11:15.030
+OK.
+
+01:11:15.030 --> 01:11:18.180
+The methods I told you
+about on Thursday--
+
+01:11:18.180 --> 01:11:19.890
+the backprop through
+time, the RTRL--
+
+01:11:22.530 --> 01:11:25.770
+they computed J
+over my trajectory.
+
+01:11:25.770 --> 01:11:30.000
+They computed partial J, partial
+alpha over my trajectory.
+
+01:11:30.000 --> 01:11:34.830
+They did not ever explicitly
+compute the second derivative.
+
+01:11:34.830 --> 01:11:42.450
+I never computed partial J,
+partial alpha, partial alpha.
+
+01:11:42.450 --> 01:11:45.030
+To explicitly do an
+SQP update, somebody
+
+01:11:45.030 --> 01:11:50.280
+needs to compute the Hessian
+of that optimization.
+
+01:11:50.280 --> 01:11:53.160
+I'm relying on SNOPT
+to do some bookkeeping
+
+01:11:53.160 --> 01:11:57.660
+to estimate the Hessian to
+do the second-order update.
+
+01:11:57.660 --> 01:12:00.300
+I would do better if
+I had an efficient way
+
+01:12:00.300 --> 01:12:02.370
+to compute the
+second derivatives,
+
+01:12:02.370 --> 01:12:04.830
+and I could hand that
+directly to SNOPT or whatever,
+
+01:12:04.830 --> 01:12:09.270
+and we'd get-- expect
+faster convergence.
+
+01:12:09.270 --> 01:12:12.760
+This isn't quite the
+gradients that I want,
+
+01:12:12.760 --> 01:12:15.810
+but it has that feel to it,
+and it has similar convergence
+
+01:12:15.810 --> 01:12:16.715
+properties.
+
+01:12:16.715 --> 01:12:18.090
+So what you should
+think about is
+
+01:12:18.090 --> 01:12:19.632
+you should think
+about this is a more
+
+01:12:19.632 --> 01:12:22.020
+explicit second-order
+method for making
+
+01:12:22.020 --> 01:12:29.287
+a large jump in my trajectories
+with sequential quadratic
+
+01:12:29.287 --> 01:12:30.120
+convergence results.
+
+01:12:32.820 --> 01:12:36.270
+I feel like I've lost everybody
+now, but ask questions,
+
+01:12:36.270 --> 01:12:38.820
+if you need to.
+
+01:12:38.820 --> 01:12:43.680
+The advantage of it
+is that it's fast.
+
+01:12:43.680 --> 01:12:45.870
+It could potentially
+require very few iterations
+
+01:12:45.870 --> 01:12:48.465
+to converge.
+
+01:12:48.465 --> 01:12:51.090
+One of the strongest advantages
+is that there's no explicit way
+
+01:12:51.090 --> 01:12:53.108
+to do constraints.
+
+01:12:53.108 --> 01:12:55.650
+You have to think harder about
+how to do constraints in this.
+
+01:12:58.170 --> 01:12:59.700
+And I know less
+formal guarantees
+
+01:12:59.700 --> 01:13:01.920
+that it will succeed,
+because it's an approximation
+
+01:13:01.920 --> 01:13:03.645
+of that quadratic.
+
+01:13:06.930 --> 01:13:10.860
+So the RL community
+uses DDP a lot,
+
+01:13:10.860 --> 01:13:12.900
+and actually, a lot of
+people who do DDP do
+
+01:13:12.900 --> 01:13:14.180
+iterative LQR, for instance.
+
+01:13:14.180 --> 01:13:16.180
+For instance, Peter
+[INAUDIBLE] and those guys--
+
+01:13:16.180 --> 01:13:17.010
+they always call DDP.
+
+01:13:17.010 --> 01:13:18.552
+They're actually
+doing iterative LQR.
+
+01:13:18.552 --> 01:13:21.930
+DDP explicitly actually has--
+
+01:13:21.930 --> 01:13:25.800
+you have to do a second-order
+expansion of your dynamics,
+
+01:13:25.800 --> 01:13:27.840
+so you don't just get A of t x.
+
+01:13:27.840 --> 01:13:30.930
+You actually go to second-order
+expansion of your dynamics.
+
+01:13:30.930 --> 01:13:33.750
+So it's a little bit more
+expensive of an update,
+
+01:13:33.750 --> 01:13:37.440
+but most people equate it
+almost exactly to iterative LQR.
+
+01:13:40.570 --> 01:13:44.970
+AUDIENCE: So this
+x0 trajectory, this
+
+01:13:44.970 --> 01:13:47.460
+isn't a trajectory
+you found by doing
+
+01:13:47.460 --> 01:13:49.010
+RTRL or something like that?
+
+01:13:49.010 --> 01:13:50.318
+This is something different?
+
+01:13:50.318 --> 01:13:51.860
+RUSS TEDRAKE: Good--
+so this could be
+
+01:13:51.860 --> 01:13:54.350
+a standard replacement to RTRL.
+
+01:13:54.350 --> 01:13:57.240
+I could start with a
+random x0 trajectory.
+
+01:13:57.240 --> 01:14:00.560
+So maybe it's better to start
+with a random u trajectory,
+
+01:14:00.560 --> 01:14:03.530
+simulate it, and get
+an x0 trajectory.
+
+01:14:03.530 --> 01:14:06.500
+And then it will
+quickly reshape until it
+
+01:14:06.500 --> 01:14:09.869
+gets as close as possible to
+this x desired trajectory.
+
+01:14:09.869 --> 01:14:12.202
+AUDIENCE: But you're reshaping
+your control actions that
+
+01:14:12.202 --> 01:14:13.340
+get you to the x trajectory?
+
+01:14:13.340 --> 01:14:14.090
+RUSS TEDRAKE: Yes.
+
+01:14:14.090 --> 01:14:17.840
+So I'm reshaping u,
+resimulating to get the new x.
+
+01:14:17.840 --> 01:14:18.440
+Yeah.
+
+01:14:18.440 --> 01:14:20.590
+I wrote it more carefully
+in the notes, and--
+
+01:14:20.590 --> 01:14:24.560
+but I hope this is the
+right level to do the class.
+
+01:14:24.560 --> 01:14:26.900
+And there's one
+extra thing that--
+
+01:14:26.900 --> 01:14:29.930
+so I say this works if
+you have a desired x--
+
+01:14:29.930 --> 01:14:36.180
+desired trajectory, which
+means your cost function
+
+01:14:36.180 --> 01:14:37.410
+has this sort of a form.
+
+01:14:40.170 --> 01:14:43.590
+The advocates of
+iterative LQR and DDP
+
+01:14:43.590 --> 01:14:47.530
+say that every cost
+function has this form.
+
+01:14:47.530 --> 01:14:50.590
+This is just a second-order
+Taylor expansion
+
+01:14:50.590 --> 01:14:54.842
+of whatever non-linear
+cost function you want.
+
+01:14:54.842 --> 01:14:56.800
+So write down whatever
+non-linear cost function
+
+01:14:56.800 --> 01:15:00.070
+you have, do a second-order
+expansion on it,
+
+01:15:00.070 --> 01:15:05.160
+and you end up with a quadratic
+cost function like this.
+
+01:15:05.160 --> 01:15:08.540
+And you can then
+approximate that solution
+
+01:15:08.540 --> 01:15:10.970
+with an iterative LQR scheme--
+
+01:15:10.970 --> 01:15:13.760
+or RTRL, or backprop
+through time.
+
+01:15:13.760 --> 01:15:18.020
+This is the third out
+of our list of methods.
+
+01:15:18.020 --> 01:15:19.087
+My goal is only to know--
+
+01:15:19.087 --> 01:15:20.420
+so that you know that it exists.
+
+01:15:20.420 --> 01:15:22.253
+And you can read the
+notes if you want more,
+
+01:15:22.253 --> 01:15:24.450
+and you can read the
+papers if you want more.
+
+01:15:24.450 --> 01:15:25.957
+OK?
+
+01:15:25.957 --> 01:15:26.540
+Yeah, Michael?
+
+01:15:26.540 --> 01:15:28.145
+AUDIENCE: So I
+think last time you
+
+01:15:28.145 --> 01:15:31.130
+talked about you're
+parallelizing the deviation
+
+01:15:31.130 --> 01:15:33.020
+from your non-control input.
+
+01:15:33.020 --> 01:15:35.780
+So what if you were--
+like as you iterate
+
+01:15:35.780 --> 01:15:37.580
+the controller, [INAUDIBLE]?
+
+01:15:41.660 --> 01:15:48.620
+RUSS TEDRAKE: Good-- the total
+cost is actually the cost
+
+01:15:48.620 --> 01:15:52.760
+with respect to some u desired.
+
+01:15:52.760 --> 01:15:55.460
+So I end up trying to optimize
+that in a coordinate system
+
+01:15:55.460 --> 01:16:00.950
+based on u0, but the cost I'm
+trying to minimize is the u
+
+01:16:00.950 --> 01:16:03.258
+the original coordinate
+system minus u desired--
+
+01:16:03.258 --> 01:16:04.550
+which, in a lot of cases, is 0.
+
+01:16:07.850 --> 01:16:09.860
+Although I do it in a
+weird coordinate system,
+
+01:16:09.860 --> 01:16:12.410
+and it actually eventually
+subtracts itself out
+
+01:16:12.410 --> 01:16:16.010
+because I add it back
+in at the end, and--
+
+01:16:16.010 --> 01:16:18.170
+it's quite easy
+to, for instance,
+
+01:16:18.170 --> 01:16:21.560
+minimize u squared in the
+original coordinate system.
+
+01:16:21.560 --> 01:16:22.060
+OK?
+
+01:16:27.217 --> 01:16:29.050
+So on Thursday, we get
+to do walking robots.
+
+01:16:29.050 --> 01:16:31.008
+We're going to move on
+to the next major thing.
+
+01:16:31.008 --> 01:16:37.120
+But you've now learned three
+of the open-loop trajectory
+
+01:16:37.120 --> 01:16:39.510
+optimizers that
+people really use--
+
+01:16:39.510 --> 01:16:45.010
+iterative LQR very quickly,
+RTRL backprop through time--
+
+01:16:45.010 --> 01:16:46.540
+I grouped as one--
+
+01:16:46.540 --> 01:16:50.800
+the shooting methods
+and direct co-location.
+
+01:16:50.800 --> 01:16:53.173
+There's another one
+that's recent addition
+
+01:16:53.173 --> 01:16:55.090
+to the scene, which is
+this discrete mechanics
+
+01:16:55.090 --> 01:16:57.765
+and optimal control, this DMOC.
+
+01:16:57.765 --> 01:16:59.140
+If anybody was
+excited about that
+
+01:16:59.140 --> 01:17:00.310
+and wanted to do a
+class project on that,
+
+01:17:00.310 --> 01:17:01.780
+that would be a perfect thing.
+
+01:17:01.780 --> 01:17:03.630
+Grab that paper.
+
+01:17:03.630 --> 01:17:06.047
+Show us that it works on
+the [INAUDIBLE] carpole.
+
+01:17:06.047 --> 01:17:06.880
+That'd be beautiful.
+
+01:17:06.880 --> 01:17:09.920
+I'd love to have that--
+
+01:17:09.920 --> 01:17:13.840
+have us try that and see how it
+compares to the other methods.
+
+01:17:18.083 --> 01:17:20.500
+You've got a pretty good toolkit
+for optimal control now--
+
+01:17:20.500 --> 01:17:23.650
+practical optimal control.
+
+01:17:23.650 --> 01:17:26.950
+And it works for flying
+robots, but it also
+
+01:17:26.950 --> 01:17:30.070
+worked for your wheeled robots,
+if you want to control them
+
+01:17:30.070 --> 01:17:31.210
+with better control.
+
+01:17:35.470 --> 01:17:38.260
+You could do a drop-in
+replacement LTI optimal
+
+01:17:38.260 --> 01:17:40.450
+tracking controller,
+and it would be better--
+
+01:17:40.450 --> 01:17:42.880
+assuming your model's better.
+
+01:17:42.880 --> 01:17:46.300
+So you have these tools.
+
+01:17:46.300 --> 01:17:49.190
+Quick procedural things--
+I know we're out of time.
+
+01:17:49.190 --> 01:17:52.150
+So next Thursday-- well, so let
+me say the good thing first.
+
+01:17:52.150 --> 01:17:54.640
+In two weeks, you're
+on spring break.
+
+01:17:54.640 --> 01:17:56.560
+Yeah.
+
+01:17:56.560 --> 01:17:58.945
+The Thursday preceding
+that is our midterm.
+
+01:18:02.270 --> 01:18:04.458
+We haven't had a midterm
+in the class before,
+
+01:18:04.458 --> 01:18:06.250
+so there's no old exams
+for me to give you,
+
+01:18:06.250 --> 01:18:08.000
+but John and I are
+going to try to come up
+
+01:18:08.000 --> 01:18:10.810
+with some representative
+problems for you
+
+01:18:10.810 --> 01:18:13.570
+to take home for
+Thursday of this week
+
+01:18:13.570 --> 01:18:17.350
+so you can have some problems
+to munch on over the weekend.
+
+01:18:17.350 --> 01:18:21.170
+It'll be an in-class exam
+Thursday before spring break,
+
+01:18:21.170 --> 01:18:23.800
+which is a week from Thursday.
+
+01:18:23.800 --> 01:18:25.690
+OK?
+
+01:18:25.690 --> 01:18:27.280
+AUDIENCE: [INAUDIBLE]
+
+01:18:27.280 --> 01:18:28.030
+RUSS TEDRAKE: Yes.
+
+01:18:28.030 --> 01:18:32.410
+So open-book-- well, you
+can grab whatever notes--
+
+01:18:32.410 --> 01:18:36.760
+open-note exam-- absolutely.
+
+01:18:36.760 --> 01:18:38.950
+Well, I'll say it more in
+the preparation package,
+
+01:18:38.950 --> 01:18:40.782
+but roughly, we're going to--
+
+01:18:40.782 --> 01:18:42.490
+I think, if you have
+your notes with you,
+
+01:18:42.490 --> 01:18:44.350
+if you've done the problem set--
+
+01:18:44.350 --> 01:18:47.470
+and most importantly, if you
+know how these algorithms--
+
+01:18:47.470 --> 01:18:51.190
+where the algorithms relate to
+each other and where they'd be
+
+01:18:51.190 --> 01:18:52.390
+used in different systems--
+
+01:18:52.390 --> 01:18:56.020
+I can guarantee I'm going to
+ask you something about that--
+
+01:18:56.020 --> 01:18:58.540
+then it's not designed
+to be a killer.
+
+01:19:02.560 --> 01:19:06.385
+Good-- and I hope you start
+thinking about projects.
+
+01:19:09.400 --> 01:19:12.830
+Just out of being a
+fairly nice person,
+
+01:19:12.830 --> 01:19:16.627
+I wasn't going to ask you to do
+projects before your midterm.
+
+01:19:16.627 --> 01:19:18.460
+But this time last year,
+I was asking people
+
+01:19:18.460 --> 01:19:21.310
+to submit project proposals.
+
+01:19:21.310 --> 01:19:23.950
+We're going to do that
+immediately after the midterm.
+
+01:19:23.950 --> 01:19:26.518
+If you've been chewing
+on, this method
+
+01:19:26.518 --> 01:19:28.810
+looked like a really good
+match to my research problem,
+
+01:19:28.810 --> 01:19:32.390
+or I've never actually thought
+about juggling robots before,
+
+01:19:32.390 --> 01:19:35.722
+or something like
+this, you can imagine--
+
+01:19:35.722 --> 01:19:37.180
+so in the fairly
+near future, we're
+
+01:19:37.180 --> 01:19:41.290
+going to ask you for a
+half-page project proposal
+
+01:19:41.290 --> 01:19:43.450
+that we can iterate
+with you on to get going
+
+01:19:43.450 --> 01:19:46.120
+on a world-class final project.
+
+01:19:46.120 --> 01:19:48.070
+Yeah?
+
+01:19:48.070 --> 01:19:49.860
+See you Thursday.

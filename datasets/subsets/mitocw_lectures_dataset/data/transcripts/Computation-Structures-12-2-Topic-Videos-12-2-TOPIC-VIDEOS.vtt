@@ -1,0 +1,813 @@
+WEBVTT
+
+00:00:01.350 --> 00:00:06.029
+In order to understand how procedures are
+implemented on the beta, we will take a look
+
+00:00:06.029 --> 00:00:11.770
+at a mystery function and its translation
+into beta assembly code.
+
+00:00:11.770 --> 00:00:18.290
+The mystery function is shown here:
+The function f takes an argument x as an input.
+
+00:00:18.290 --> 00:00:24.090
+It then performs a logical AND operation on
+the input x and the constant 5 to produce
+
+00:00:24.090 --> 00:00:28.840
+the variable a.
+After that, it checks if the input x is equal
+
+00:00:28.840 --> 00:00:35.600
+to 0, and if so returns the value 0, otherwise
+it returns an unknown value which we need
+
+00:00:35.600 --> 00:00:39.550
+to determine.
+We are provided with the translation of this
+
+00:00:39.550 --> 00:00:45.050
+C code into beta assembly as shown here.
+We take a closer look at the various parts
+
+00:00:45.050 --> 00:00:50.899
+of this code to understand how this function
+as well as procedures in general work on the
+
+00:00:50.899 --> 00:00:56.010
+beta.
+The code that calls the procedure is responsible
+
+00:00:56.010 --> 00:01:01.589
+for pushing any arguments onto the stack.
+This is shown in pink in the code and on the
+
+00:01:01.589 --> 00:01:05.180
+stack.
+If there are multiple arguments then they
+
+00:01:05.180 --> 00:01:11.580
+are pushed in reverse order so that the first
+argument is always in the same location relative
+
+00:01:11.580 --> 00:01:17.280
+to the BP, or base pointer, register which
+we will see in a moment.
+
+00:01:17.280 --> 00:01:23.939
+The BR instruction branches to label f after
+storing the return address, which is b, into
+
+00:01:23.939 --> 00:01:30.960
+the LP, or linkage pointer, register.
+In yellow, we see the entry sequence for the
+
+00:01:30.960 --> 00:01:35.000
+procedure.
+The structure of this entry sequence is identical
+
+00:01:35.000 --> 00:01:40.158
+for all procedures.
+The first thing it does is PUSH(LP) which
+
+00:01:40.158 --> 00:01:45.670
+pushes the LP register onto the stack immediately
+after the arguments that were pushed onto
+
+00:01:45.670 --> 00:01:51.469
+the stack by the caller.
+Next it pushes the BP onto the stack in order
+
+00:01:51.469 --> 00:01:56.749
+to save the most recent value of the BP register
+before updating it.
+
+00:01:56.749 --> 00:02:04.270
+Now, a MOVE(SP, BP) is performed.
+SP is the stack pointer which always points
+
+00:02:04.270 --> 00:02:10.780
+to the next empty location on the stack.
+At the time that this MOVE operation is executed,
+
+00:02:10.780 --> 00:02:15.950
+the SP, points to the location immediately
+following the saved BP.
+
+00:02:15.950 --> 00:02:21.260
+This move instruction makes the BP point to
+the same location that the SP is currently
+
+00:02:21.260 --> 00:02:27.320
+pointing to, which is the location that is
+immediately following the saved BP.
+
+00:02:27.320 --> 00:02:33.360
+Note, that once the BP register is set up,
+one can always find the first argument at
+
+00:02:33.360 --> 00:02:41.100
+location BP – 12 (or in other words, 3 words
+before the current BP register).
+
+00:02:41.100 --> 00:02:48.480
+If there was a second argument, it could be
+found in location BP – 16, and so on.
+
+00:02:48.480 --> 00:02:53.850
+Next, we allocate space on the stack for any
+local variables.
+
+00:02:53.850 --> 00:02:57.590
+This procedure allocates space for one local
+variable.
+
+00:02:57.590 --> 00:03:03.980
+Finally, we push all registers that are going
+to be modified by our procedure onto the stack.
+
+00:03:03.980 --> 00:03:08.810
+Doing this makes it possible to recover the
+registers' original values once the procedure
+
+00:03:08.810 --> 00:03:13.960
+completes execution.
+In this example, register R1 is saved onto
+
+00:03:13.960 --> 00:03:19.090
+the stack.
+Once the entry sequence is complete, the BP
+
+00:03:19.090 --> 00:03:23.430
+register still points to the location immediately
+following the saved BP.
+
+00:03:23.430 --> 00:03:31.560
+The SP, however, now points to the location
+immediately following the saved R1 register.
+
+00:03:31.560 --> 00:03:36.780
+So for this procedure, after executing the
+entry sequence, the stack has been modified
+
+00:03:36.780 --> 00:03:41.260
+as shown here.
+The procedure return, or exit, sequence for
+
+00:03:41.260 --> 00:03:47.150
+all beta procedures follows the same structure.
+It is assumed that the return value for the
+
+00:03:47.150 --> 00:03:51.380
+procedure has already been placed into register
+R0.
+
+00:03:51.380 --> 00:03:57.420
+Next, all registers that were used in the
+procedure body, are restored to their original
+
+00:03:57.420 --> 00:04:00.690
+values.
+This is followed by deallocating all of the
+
+00:04:00.690 --> 00:04:06.300
+local variables from the stack.
+We then restore the BP, followed by the LP
+
+00:04:06.300 --> 00:04:10.560
+register.
+Finally, we jump to LP which contains the
+
+00:04:10.560 --> 00:04:16.380
+return address of our procedure.
+In this case, LP contains the address b which
+
+00:04:16.380 --> 00:04:21.410
+is the address of the next instruction that
+should be executed following the execution
+
+00:04:21.410 --> 00:04:26.860
+of the f procedure.
+Taking a closer look at the details for our
+
+00:04:26.860 --> 00:04:32.880
+example, we see that we begin our exit sequence
+with POP(R1) in order to restore the original
+
+00:04:32.880 --> 00:04:37.390
+value of register R1.
+Note that this also frees up the location
+
+00:04:37.390 --> 00:04:41.280
+on the stack that was used to store the value
+of R1.
+
+00:04:41.280 --> 00:04:46.190
+Next, we get rid of the local variables we
+stored on the stack.
+
+00:04:46.190 --> 00:04:53.110
+This is achieved using the MOVE(BP, SP) instruction
+which makes the SP point to the same location
+
+00:04:53.110 --> 00:05:00.970
+as the BP thus specifying that all the locations
+following the updated SP are now considered
+
+00:05:00.970 --> 00:05:05.010
+unused.
+Next, we restore the BP register.
+
+00:05:05.010 --> 00:05:10.490
+Restoring the BP register is particularly
+important for nested procedure calls.
+
+00:05:10.490 --> 00:05:15.680
+If we did not restore the BP register, then
+upon return to the calling procedure, the
+
+00:05:15.680 --> 00:05:21.530
+calling procedure would no longer have a correct
+BP, so it would not be able to rely on the
+
+00:05:21.530 --> 00:05:27.560
+fact that it's first argument is located at
+location BP-12, for example.
+
+00:05:27.560 --> 00:05:34.550
+Finally, we restore the LP register and JMP
+to the location of the restored LP register.
+
+00:05:34.550 --> 00:05:40.080
+This is the return address, so by jumping
+to LP, we return from our procedure call and
+
+00:05:40.080 --> 00:05:43.960
+are now ready to execute the next instruction
+at label b.
+
+00:05:43.960 --> 00:05:49.250
+Now let's get back to our original procedure
+and its translation to beta assembly.
+
+00:05:49.250 --> 00:05:54.380
+We will now try to understand what this mystery
+function is actually doing by examining the
+
+00:05:54.380 --> 00:05:59.750
+remaining sections of our assembly code highlighted
+here.
+
+00:05:59.750 --> 00:06:05.660
+Let's zoom into the highlighted code.
+The LD instruction loads the first argument
+
+00:06:05.660 --> 00:06:10.060
+into register R0.
+Recall that the first argument can always
+
+00:06:10.060 --> 00:06:17.590
+be found at location BP – 12, or in other
+words, 3 words before the current BP register.
+
+00:06:17.590 --> 00:06:22.960
+This means that the value x is loaded into
+R0.
+
+00:06:22.960 --> 00:06:29.020
+Next we perform a binary AND operation between
+R0 and the constant 5, and store the result
+
+00:06:29.020 --> 00:06:35.330
+of that operation into register R1.
+Note that its okay to overwrite R1 because
+
+00:06:35.330 --> 00:06:40.580
+the entry sequence already saved a copy of
+the original R1 onto the stack.
+
+00:06:40.580 --> 00:06:46.790
+Also, note that overwriting R0 is considered
+fine because we ultimately expect the result
+
+00:06:46.790 --> 00:06:55.540
+to be returned in R0, so there is no expectation
+of maintaining the original value of R0.
+
+00:06:55.540 --> 00:07:00.960
+Looking back at the c code of our function,
+we see that the bitwise AND of x and 5 is
+
+00:07:00.960 --> 00:07:08.381
+stored into a local variable named a.
+In our entry sequence, we allocated 1 word
+
+00:07:08.381 --> 00:07:13.390
+on the stack for our local variables.
+That is where we want to store this intermediate
+
+00:07:13.390 --> 00:07:16.850
+result.
+The address of this location is equal to the
+
+00:07:16.850 --> 00:07:23.330
+contents of the BP register.
+Since the destination of a store operation
+
+00:07:23.330 --> 00:07:29.150
+is determined by adding the contents of the
+last register in the instruction to the constant,
+
+00:07:29.150 --> 00:07:34.590
+the destination of this store operation is
+the value of BP + 0.
+
+00:07:34.590 --> 00:07:41.800
+So as expected, variable a is stored at the
+location pointed to by the BP register.
+
+00:07:41.800 --> 00:07:47.360
+Now we check if x equals 0 and if so we want
+to return the value 0.
+
+00:07:47.360 --> 00:07:53.840
+This is achieved in beta assembly by checking
+if R0 is equal to 0 since R0 was loaded with
+
+00:07:53.840 --> 00:08:00.110
+the value of x by the LD operation.
+The BEQ operation checks whether or not this
+
+00:08:00.110 --> 00:08:06.270
+condition holds and if so, it branches to
+label bye which is our exit sequence.
+
+00:08:06.270 --> 00:08:12.900
+In that situation, we just saw that R0 = 0,
+so R0 already contains the correct return
+
+00:08:12.900 --> 00:08:18.460
+value and we are ready to execute our return
+sequence.
+
+00:08:18.460 --> 00:08:23.780
+If x is not equal to 0, then we perform the
+instructions after label xx.
+
+00:08:23.780 --> 00:08:30.100
+By figuring out what these instructions do,
+we can identify the value of our mystery function
+
+00:08:30.100 --> 00:08:36.909
+labeled ?????.
+We begin by decrementing R0 by 1.
+
+00:08:36.909 --> 00:08:41.209
+This means that R0 will be updated to hold
+x-1.
+
+00:08:41.209 --> 00:08:46.199
+We then push this value onto the stack and
+make a recursive call to procedure f.
+
+00:08:46.199 --> 00:08:51.879
+In other words, we call f again with a new
+argument which is equal to x-1.
+
+00:08:51.879 --> 00:08:58.089
+So far we know that our mystery function will
+contain the term f(x-1).
+
+00:08:58.089 --> 00:09:05.769
+We also see that LP gets updated with the
+new return address which is yy + 4.
+
+00:09:05.769 --> 00:09:11.680
+So just before our recursive call to f with
+the new argument x-1, our stack looks like
+
+00:09:11.680 --> 00:09:17.850
+this.
+After the procedure entry sequence is executed
+
+00:09:17.850 --> 00:09:21.910
+in the first recursive call, our stack looks
+like this.
+
+00:09:21.910 --> 00:09:27.670
+Note that this time the saved LP is yy + 4
+because that is our return address for the
+
+00:09:27.670 --> 00:09:33.019
+recursive procedure call.
+The previous BP points to where the BP was
+
+00:09:33.019 --> 00:09:38.829
+pointing to in the original call to f.
+Another term for this group of stack elements
+
+00:09:38.829 --> 00:09:43.910
+is the activation record.
+In this example, each activation record consists
+
+00:09:43.910 --> 00:09:49.199
+of 5 elements.
+These are the argument to f, the saved LP,
+
+00:09:49.199 --> 00:09:54.339
+the saved BP, the local variable, and the
+saved R1.
+
+00:09:54.339 --> 00:10:01.230
+Each time that f is called recursively another
+activation record will be added to the stack.
+
+00:10:01.230 --> 00:10:06.019
+When we finally return from all of these recursive
+calls, we are back to a stack that looks like
+
+00:10:06.019 --> 00:10:11.350
+this with a single activation record left
+on the stack plus the first argument with
+
+00:10:11.350 --> 00:10:16.550
+which the recursive call was made.
+The DEALLOCATE(1) instruction then removes
+
+00:10:16.550 --> 00:10:23.130
+this argument from the stack.
+So the SP is now pointing to the location
+
+00:10:23.130 --> 00:10:30.459
+where we previously pushed the argument x-1.
+R0 holds the return value from the recursive
+
+00:10:30.459 --> 00:10:38.920
+call to f which is the value of f(x-1).
+Now, we execute a LD into register R1 of the
+
+00:10:38.920 --> 00:10:43.179
+address that is the contents of register BP
++ 0.
+
+00:10:43.179 --> 00:10:48.110
+This value is a.
+We then ADD R1 to R0 to produce our final
+
+00:10:48.110 --> 00:10:55.429
+result in R0.
+R0 is now equal to a + f(x-1), so we have
+
+00:10:55.429 --> 00:11:01.819
+discovered that our mystery function is a
++ f(x-1).
+
+00:11:01.819 --> 00:11:06.300
+Before we continue with analyzing a stack
+trace from this problem, let's answer a few
+
+00:11:06.300 --> 00:11:10.399
+simpler questions.
+The first question is whether or not variable
+
+00:11:10.399 --> 00:11:16.779
+a, from the statement a = x & 5, is stored
+on the stack and if so where is it stored
+
+00:11:16.779 --> 00:11:22.670
+relative to the BP register.
+Earlier we saw that our assembly program allocates
+
+00:11:22.670 --> 00:11:28.279
+space for one local variable on the stack.
+It then stores R1, which holds the result
+
+00:11:28.279 --> 00:11:34.800
+of performing a binary ANDC between x and
+the constant 5, into the location pointed
+
+00:11:34.800 --> 00:11:41.779
+to by the BP register, as shown here.
+Next, we want to translate the instruction
+
+00:11:41.779 --> 00:11:52.559
+at label yy into its binary representation.
+The instruction at label yy is BR(f, LP).
+
+00:11:52.559 --> 00:12:01.220
+This instruction is actually a macro that
+translates to a BEQ(R31, f, LP).
+
+00:12:01.220 --> 00:12:07.760
+Note that because R31 always equals 0, this
+branch is always taken.
+
+00:12:07.760 --> 00:12:14.279
+The format of the binary representation for
+this instruction is a 6-bit opcode, followed
+
+00:12:14.279 --> 00:12:21.379
+by a 5 bit Rc identifier, followed by another
+5 bits which specify Ra, and then followed
+
+00:12:21.379 --> 00:12:27.959
+by a 16 bit literal.
+The opcode for BEQ is 011100.
+
+00:12:27.959 --> 00:12:37.910
+Rc = LP which is register R28.
+The 5-bit encoding of 28 is 11100.
+
+00:12:37.910 --> 00:12:47.079
+Ra is R31 whose encoding is 11111.
+Now, we need to determine the value of the
+
+00:12:47.079 --> 00:12:51.869
+literal in this instruction.
+The literal in a branch instruction stores
+
+00:12:51.869 --> 00:12:57.959
+the offset measured in words from the instruction
+immediately following the branch, to the destination
+
+00:12:57.959 --> 00:13:02.259
+address.
+Looking at our assembly code for this function,
+
+00:13:02.259 --> 00:13:07.220
+we see that we want to count the number of
+words from the DEALLOCATE(1) instruction back
+
+00:13:07.220 --> 00:13:12.589
+to label f.
+Recall that the PUSH and POP macros are actually
+
+00:13:12.589 --> 00:13:18.490
+each made of up two instructions so each of
+those counts as 2 words.
+
+00:13:18.490 --> 00:13:23.339
+Counting back, and accounting for the two
+instructions per push and pop, we see that
+
+00:13:23.339 --> 00:13:31.839
+we have to go back 16 instructions, so our
+literal is -16 expressed as a 16 bit binary
+
+00:13:31.839 --> 00:13:41.850
+number.
+Positive 16 is 0000 0000 0001 0000, so -16
+
+00:13:41.850 --> 00:13:52.629
+is 1111 1111 1111 0000.
+Now, suppose that the function f is called
+
+00:13:52.629 --> 00:13:58.230
+from an external main program, and the machine
+is halted when a recursive call to f is about
+
+00:13:58.230 --> 00:14:06.870
+to execute the BEQ instruction tagged xx.
+The BP register of the halted machine contains
+
+00:14:06.870 --> 00:14:14.100
+0x174, and the hex contents of a region of
+memory are shown here.
+
+00:14:14.100 --> 00:14:19.360
+The values on the left of the stack are the
+addresses of each location on the stack.
+
+00:14:19.360 --> 00:14:26.199
+We first want to determine the current value
+of the SP, or stack pointer, register.
+
+00:14:26.199 --> 00:14:31.430
+We were told that the machine is halted when
+a recursive call to f is about to execute
+
+00:14:31.430 --> 00:14:41.309
+the BEQ instruction tagged xx.
+And that the BP register was 0x174 at that
+
+00:14:41.309 --> 00:14:45.540
+point.
+We see that after the BP was updated to be
+
+00:14:45.540 --> 00:14:52.019
+equal to the SP in the MOVE operation, two
+additional entries were made on the stack.
+
+00:14:52.019 --> 00:14:57.739
+The first was an ALLOCATE instruction which
+allocated space for one local variable, thus
+
+00:14:57.739 --> 00:15:06.721
+making the SP point to location 0x178, and
+then PUSH(R1), which saves a copy of R1 on
+
+00:15:06.721 --> 00:15:15.739
+the stack, thus moving the SP register one
+further location down to 0x17C.
+
+00:15:15.739 --> 00:15:21.420
+We now want to answer some questions about
+the stack trace itself to help us better understand
+
+00:15:21.420 --> 00:15:25.980
+its structure.
+We first want to determine the value of local
+
+00:15:25.980 --> 00:15:33.639
+variable a in the current stack frame.
+We know that a is stored at location BP +
+
+00:15:33.639 --> 00:15:39.040
+0.
+So a is the variable stored at address 0x174,
+
+00:15:39.040 --> 00:15:44.199
+and that value is 5.
+From here, we can label all the entries in
+
+00:15:44.199 --> 00:15:49.999
+the stack trace as follows.
+We saw earlier, that each activation record
+
+00:15:49.999 --> 00:15:57.600
+consists of 5 words, the argument x followed
+by the saved LP, the saved BP, the local variable,
+
+00:15:57.600 --> 00:16:02.829
+and the saved register R1.
+We can apply this structure to label our stack
+
+00:16:02.829 --> 00:16:06.779
+trace.
+Now that our stack trace is fully labeled
+
+00:16:06.779 --> 00:16:12.130
+we can take a closer look at the details of
+implementing procedures on the beta.
+
+00:16:12.130 --> 00:16:17.049
+We begin by looking at the multiple LP values
+that were stored on the stack.
+
+00:16:17.049 --> 00:16:25.309
+Note that the first one at address 0x144 has
+a value of 0x5C whereas the following two
+
+00:16:25.309 --> 00:16:30.799
+have a value of 0xA4.
+This occurs because the LP value stored at
+
+00:16:30.799 --> 00:16:37.759
+address 0x144 is the return address from the
+main procedure that originally called procedure
+
+00:16:37.759 --> 00:16:43.310
+f, whereas the following two LP values are
+the return addresses from recursive calls
+
+00:16:43.310 --> 00:16:49.639
+to f made from within the f function itself.
+Using this information you can now answer
+
+00:16:49.639 --> 00:16:55.399
+the question: What is the address of the BR
+instruction that made the original call to
+
+00:16:55.399 --> 00:17:01.069
+f from the external main program?
+Recall that the value stored in the LP register
+
+00:17:01.069 --> 00:17:05.839
+is actually the return address which is the
+address of the instruction immediately following
+
+00:17:05.839 --> 00:17:13.000
+the branch instruction.
+So if the original LP value was 0x5C, that
+
+00:17:13.000 --> 00:17:18.909
+means that the address of the branch instruction
+was 0x58.
+
+00:17:18.909 --> 00:17:24.970
+We can also answer the question, what is the
+value of the PC when the program is halted.
+
+00:17:24.970 --> 00:17:30.840
+We know that the program was halted just before
+executing the instruction at label xx.
+
+00:17:30.840 --> 00:17:36.519
+We also know, that the instruction at label
+yy makes a recursive call to f.
+
+00:17:36.519 --> 00:17:42.690
+We know that the LP value from the recursive
+calls is 0xA4.
+
+00:17:42.690 --> 00:17:49.230
+This means that the address of the DEALLOCATE(1)
+instruction is 0xA4.
+
+00:17:49.230 --> 00:17:54.539
+Counting backwards by 4 bytes, and accounting
+for the fact that a PUSH operation consists
+
+00:17:54.539 --> 00:18:03.400
+of two instructions, we see that label xx
+= 0x90 and that is the value of the PC when
+
+00:18:03.400 --> 00:18:09.230
+the program is halted.
+As our last question, we want to consider
+
+00:18:09.230 --> 00:18:14.010
+the following: Suppose that you are told that
+you could delete 4 instructions from your
+
+00:18:14.010 --> 00:18:18.299
+program without affecting the behavior of
+the program.
+
+00:18:18.299 --> 00:18:25.240
+The 4 instructions to be removed are a LD,
+a ST, an ALLOCATE, and a MOVE instruction.
+
+00:18:25.240 --> 00:18:29.010
+Removing these instructions would make our
+program shorter and faster.
+
+00:18:29.010 --> 00:18:34.240
+So, our goal is to determine whether or not
+this is possible without affecting the behavior
+
+00:18:34.240 --> 00:18:38.310
+of the program.
+Let's first consider removing the ALLOCATE
+
+00:18:38.310 --> 00:18:42.059
+instruction.
+If this instruction is removed, that means
+
+00:18:42.059 --> 00:18:45.760
+that we will not be saving space on the stack
+for local variable a.
+
+00:18:45.760 --> 00:18:51.960
+However, if we take a closer look at the 3
+lines of code highlighted in yellow, we see
+
+00:18:51.960 --> 00:18:57.630
+that the actual value of a is first computed
+in R1 before storing it in local variable
+
+00:18:57.630 --> 00:19:01.010
+a.
+Since R1 is going to be saved on the stack
+
+00:19:01.010 --> 00:19:06.769
+during each recursive call, we could get away
+without saving a on the stack because we can
+
+00:19:06.769 --> 00:19:12.639
+find its value in the stored R1 of the next
+activation record as shown in the highlighted
+
+00:19:12.639 --> 00:19:18.360
+pairs of a and R1 on the stack.
+This means that we could safely remove the
+
+00:19:18.360 --> 00:19:23.909
+ALLOCATE instruction.
+As a result, this also means that we don't
+
+00:19:23.909 --> 00:19:29.910
+need the ST operation that stores a on the
+stack or the LD operation that reloads a into
+
+00:19:29.910 --> 00:19:35.289
+register R1.
+Finally, because there are no longer any local
+
+00:19:35.289 --> 00:19:42.180
+variables stored on the stack, then the instruction
+MOVE(BP,SP) which is normally used to deallocate
+
+00:19:42.180 --> 00:19:48.940
+all local variables, can be skipped because
+after popping R1, the BP and SP registers
+
+00:19:48.940 --> 00:19:55.019
+will already point to the same location.
+So, in conclusion the 4 operations can be
+
+00:19:55.019 --> 00:19:59.070
+removed from the program without changing
+the behavior of the code.

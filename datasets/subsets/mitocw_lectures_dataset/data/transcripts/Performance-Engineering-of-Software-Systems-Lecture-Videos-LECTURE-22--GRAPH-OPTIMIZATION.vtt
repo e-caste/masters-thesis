@@ -1,0 +1,6036 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT OpenCourseWare
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high-quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:18.140
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:18.140 --> 00:00:19.026
+at ocw.mit.edu.
+
+00:00:23.420 --> 00:00:25.592
+JULIAN SHUN: Hi, good
+afternoon, everyone.
+
+00:00:25.592 --> 00:00:27.050
+So today, we're
+going to be talking
+
+00:00:27.050 --> 00:00:30.650
+about graph optimizations.
+
+00:00:30.650 --> 00:00:32.689
+And as a reminder,
+on Thursday, we're
+
+00:00:32.689 --> 00:00:36.980
+going to have a guest lecture
+by Professor Johnson of the MIT
+
+00:00:36.980 --> 00:00:38.097
+Math Department.
+
+00:00:38.097 --> 00:00:39.680
+And he'll be talking
+about performance
+
+00:00:39.680 --> 00:00:40.730
+of high-level languages.
+
+00:00:40.730 --> 00:00:46.670
+So please be sure to attend
+the guest lecture on Thursday.
+
+00:00:46.670 --> 00:00:48.410
+So here's an outline
+of what I'm going
+
+00:00:48.410 --> 00:00:49.500
+to be talking about today.
+
+00:00:49.500 --> 00:00:54.480
+So we're first going to remind
+ourselves what a graph is.
+
+00:00:54.480 --> 00:00:57.020
+And then we're going to
+talk about various ways
+
+00:00:57.020 --> 00:01:00.880
+to represent a graph in memory.
+
+00:01:00.880 --> 00:01:02.930
+And then we'll talk
+about how to implement
+
+00:01:02.930 --> 00:01:06.470
+an efficient breadth-first
+search algorithm, both serially
+
+00:01:06.470 --> 00:01:08.930
+and also in parallel.
+
+00:01:08.930 --> 00:01:12.810
+And then I'll talk about how to
+use graph compression and graph
+
+00:01:12.810 --> 00:01:15.890
+reordering to improve the
+locality of graph algorithms.
+
+00:01:18.410 --> 00:01:21.830
+So first of all,
+what is a graph?
+
+00:01:21.830 --> 00:01:24.410
+So a graph contains
+vertices and edges,
+
+00:01:24.410 --> 00:01:27.950
+where vertices represent
+certain objects of interest,
+
+00:01:27.950 --> 00:01:32.330
+and edges between objects model
+relationships between the two
+
+00:01:32.330 --> 00:01:34.530
+objects.
+
+00:01:34.530 --> 00:01:36.440
+For example, you can
+have a social network,
+
+00:01:36.440 --> 00:01:39.290
+where the people are
+represented as vertices
+
+00:01:39.290 --> 00:01:41.570
+and edges between
+people mean that they're
+
+00:01:41.570 --> 00:01:44.390
+friends with each other.
+
+00:01:44.390 --> 00:01:49.100
+The edges in this graph don't
+have to be bi-directional.
+
+00:01:49.100 --> 00:01:51.260
+So you could have a
+one-way relationship.
+
+00:01:51.260 --> 00:01:53.510
+For example, if you're looking
+at the Twitter network,
+
+00:01:53.510 --> 00:01:55.940
+Alice could follow Bob,
+but Bob doesn't necessarily
+
+00:01:55.940 --> 00:01:58.790
+have to follow Alice back.
+
+00:01:58.790 --> 00:02:01.400
+The graph also doesn't
+have to be connected.
+
+00:02:01.400 --> 00:02:04.160
+So here, this graph
+here is connected.
+
+00:02:04.160 --> 00:02:08.270
+But, for example, there
+could be some people
+
+00:02:08.270 --> 00:02:09.919
+who don't like to
+talk to other people.
+
+00:02:09.919 --> 00:02:14.150
+And then they're just off
+in their own component.
+
+00:02:14.150 --> 00:02:17.060
+You can also use graphs to
+model protein networks, where
+
+00:02:17.060 --> 00:02:20.330
+the vertices are proteins,
+and edges between vertices
+
+00:02:20.330 --> 00:02:22.190
+means that there's some
+sort of interaction
+
+00:02:22.190 --> 00:02:23.600
+between the proteins.
+
+00:02:23.600 --> 00:02:27.560
+So this is useful in
+computational biology.
+
+00:02:27.560 --> 00:02:29.180
+As I said, edges
+can be directed,
+
+00:02:29.180 --> 00:02:33.290
+so their relationship can
+go one way or both ways.
+
+00:02:33.290 --> 00:02:37.190
+In this graph here, we have some
+directed edges and then also
+
+00:02:37.190 --> 00:02:40.620
+some edges that are
+directed in both directions.
+
+00:02:40.620 --> 00:02:42.770
+So here, John follows Alice.
+
+00:02:42.770 --> 00:02:44.330
+Alice follows Peter.
+
+00:02:44.330 --> 00:02:49.130
+And then Alice follows Bob,
+and Bob also follows Alice.
+
+00:02:49.130 --> 00:02:52.400
+If you use a graph to
+represent the world wide web,
+
+00:02:52.400 --> 00:02:54.470
+then the vertices
+would be websites,
+
+00:02:54.470 --> 00:02:58.280
+and then the edges would denote
+that there is a hyperlink
+
+00:02:58.280 --> 00:03:00.360
+from one website to another.
+
+00:03:00.360 --> 00:03:03.980
+And again, the edges here
+don't have to be bi-directional
+
+00:03:03.980 --> 00:03:06.200
+because website A could
+have a link to website B.
+
+00:03:06.200 --> 00:03:08.000
+But website B
+doesn't necessarily
+
+00:03:08.000 --> 00:03:11.000
+have to have a link back.
+
+00:03:11.000 --> 00:03:12.382
+Edges can also be weighted.
+
+00:03:12.382 --> 00:03:14.090
+So you can have a
+weight on the edge that
+
+00:03:14.090 --> 00:03:16.520
+denotes the strength
+of the relationship
+
+00:03:16.520 --> 00:03:19.850
+or some sort of distance
+measure corresponding
+
+00:03:19.850 --> 00:03:21.950
+to that relationship.
+
+00:03:21.950 --> 00:03:26.180
+So here, I have an example
+where I am using a graph
+
+00:03:26.180 --> 00:03:28.430
+to represent cities.
+
+00:03:28.430 --> 00:03:31.340
+And the edges
+between cities have
+
+00:03:31.340 --> 00:03:34.220
+a weight that corresponds to
+the distance between the two
+
+00:03:34.220 --> 00:03:35.240
+cities.
+
+00:03:35.240 --> 00:03:38.255
+And if I want to find the
+quickest way to get from city A
+
+00:03:38.255 --> 00:03:41.090
+to city B, then I would
+be interested in finding
+
+00:03:41.090 --> 00:03:44.600
+the shortest path from A
+to B in this graph here.
+
+00:03:47.400 --> 00:03:50.340
+Here's another example,
+where the edge weights now
+
+00:03:50.340 --> 00:03:53.790
+are the costs of a direct
+flight from city A to city B.
+
+00:03:53.790 --> 00:03:55.500
+And here the edges are directed.
+
+00:03:55.500 --> 00:03:57.180
+So, for example, this
+says that there's
+
+00:03:57.180 --> 00:04:01.080
+a flight from San
+Francisco to LA for $45.
+
+00:04:01.080 --> 00:04:02.790
+And if I want to
+find the cheapest
+
+00:04:02.790 --> 00:04:06.450
+way to get from one
+city to another city,
+
+00:04:06.450 --> 00:04:09.720
+then, again, I would try to find
+the shortest path in this graph
+
+00:04:09.720 --> 00:04:14.800
+from city A to city B.
+
+00:04:14.800 --> 00:04:18.760
+Vertices and edges can
+also have metadata on them,
+
+00:04:18.760 --> 00:04:20.089
+and they can also have types.
+
+00:04:20.089 --> 00:04:22.630
+So, for example, here's
+the Google Knowledge Graph,
+
+00:04:22.630 --> 00:04:25.360
+which represents all the
+knowledge on the internet
+
+00:04:25.360 --> 00:04:27.130
+that Google knows about.
+
+00:04:27.130 --> 00:04:30.140
+And here, the nodes
+have metadata on them.
+
+00:04:30.140 --> 00:04:32.740
+So, for example, the node
+corresponding to da Vinci
+
+00:04:32.740 --> 00:04:37.160
+is labeled with his date
+of birth and date of death.
+
+00:04:37.160 --> 00:04:38.880
+And the vertices
+also have a color
+
+00:04:38.880 --> 00:04:44.788
+corresponding to the type of
+knowledge that they refer to.
+
+00:04:44.788 --> 00:04:46.830
+So you can see that some
+of these nodes are blue,
+
+00:04:46.830 --> 00:04:49.290
+some of them are red,
+some of them are green,
+
+00:04:49.290 --> 00:04:51.780
+and some of them have
+other things on them.
+
+00:04:51.780 --> 00:04:54.840
+So in general, graphs can
+have types and metadata
+
+00:04:54.840 --> 00:04:56.895
+on both the vertices
+as well as the edges.
+
+00:04:59.400 --> 00:05:03.580
+Let's look at some more
+applications of graphs.
+
+00:05:03.580 --> 00:05:07.420
+So graphs are very useful
+for implementing queries
+
+00:05:07.420 --> 00:05:09.920
+on social networks.
+
+00:05:09.920 --> 00:05:11.552
+So here are some
+examples of queries
+
+00:05:11.552 --> 00:05:13.510
+that you might want to
+ask on a social network.
+
+00:05:13.510 --> 00:05:16.270
+So, for example, you might
+be interested in finding
+
+00:05:16.270 --> 00:05:19.120
+all of your friends who went
+to the same high school as you
+
+00:05:19.120 --> 00:05:20.650
+on Facebook.
+
+00:05:20.650 --> 00:05:24.710
+So that can be implemented
+using a graph algorithm.
+
+00:05:24.710 --> 00:05:26.560
+You might also be
+interested in finding
+
+00:05:26.560 --> 00:05:29.260
+all of the common friends
+you have with somebody else--
+
+00:05:29.260 --> 00:05:31.680
+again, a graph algorithm.
+
+00:05:31.680 --> 00:05:34.540
+And a social network service
+might run a graph algorithm
+
+00:05:34.540 --> 00:05:37.750
+to recommend people that
+you might know and want
+
+00:05:37.750 --> 00:05:40.060
+to become friends with.
+
+00:05:40.060 --> 00:05:41.620
+And they might use
+a graph algorithm
+
+00:05:41.620 --> 00:05:43.480
+to recommend certain
+products that you
+
+00:05:43.480 --> 00:05:45.843
+might be interested in.
+
+00:05:45.843 --> 00:05:48.010
+So these are all examples
+of social network queries.
+
+00:05:48.010 --> 00:05:49.780
+And there are many
+other queries that you
+
+00:05:49.780 --> 00:05:51.940
+might be interested in
+running on a social network.
+
+00:05:51.940 --> 00:05:53.680
+And many of them
+can be implemented
+
+00:05:53.680 --> 00:05:57.580
+using graph algorithms.
+
+00:05:57.580 --> 00:06:00.030
+Another important
+application is clustering.
+
+00:06:00.030 --> 00:06:02.320
+So here, the goal is to
+find groups of vertices
+
+00:06:02.320 --> 00:06:03.940
+in a graph that
+are well-connected
+
+00:06:03.940 --> 00:06:07.310
+internally and
+poorly-connected externally.
+
+00:06:07.310 --> 00:06:11.890
+So in this image here, each blob
+of vertices of the same color
+
+00:06:11.890 --> 00:06:13.870
+corresponds to a cluster.
+
+00:06:13.870 --> 00:06:15.980
+And you can see that
+inside a cluster,
+
+00:06:15.980 --> 00:06:18.790
+there are a lot of edges
+going among the vertices.
+
+00:06:18.790 --> 00:06:24.010
+And between clusters, there
+are relatively fewer edges.
+
+00:06:24.010 --> 00:06:26.020
+And some applications
+of clustering
+
+00:06:26.020 --> 00:06:28.488
+include community detection
+and social networks.
+
+00:06:28.488 --> 00:06:30.280
+So here, you might be
+interested in finding
+
+00:06:30.280 --> 00:06:33.190
+groups of people with
+similar interests or hobbies.
+
+00:06:33.190 --> 00:06:36.370
+You can also use clustering
+to detect fraudulent websites
+
+00:06:36.370 --> 00:06:37.540
+on the internet.
+
+00:06:37.540 --> 00:06:40.420
+You can use it for
+clustering documents.
+
+00:06:40.420 --> 00:06:42.070
+So you would cluster
+documents that
+
+00:06:42.070 --> 00:06:44.350
+have similar text together.
+
+00:06:44.350 --> 00:06:47.710
+And clustering is often used
+for unsupervised learning
+
+00:06:47.710 --> 00:06:49.290
+and machine learning
+applications.
+
+00:06:52.950 --> 00:06:55.320
+Another application
+is connectomics.
+
+00:06:55.320 --> 00:06:59.910
+So connectomics is the study
+of the structure, the network
+
+00:06:59.910 --> 00:07:01.390
+structure of the brain.
+
+00:07:01.390 --> 00:07:04.500
+And here, the vertices
+correspond to neurons.
+
+00:07:04.500 --> 00:07:06.630
+And edges between
+two vertices means
+
+00:07:06.630 --> 00:07:09.840
+that there's some sort of
+interaction between the two
+
+00:07:09.840 --> 00:07:10.950
+neurons.
+
+00:07:10.950 --> 00:07:13.830
+And recently, there's
+been a lot of work
+
+00:07:13.830 --> 00:07:17.040
+on trying to do
+high-performance connectomics.
+
+00:07:17.040 --> 00:07:20.130
+And some of this work has
+been going on here at MIT
+
+00:07:20.130 --> 00:07:23.550
+by Professor Charles Leiserson
+and Professor Nir Shavit's
+
+00:07:23.550 --> 00:07:24.360
+research group.
+
+00:07:24.360 --> 00:07:29.280
+So recently, this has
+been a very hot area.
+
+00:07:29.280 --> 00:07:31.230
+Graphs are also used
+in computer vision--
+
+00:07:31.230 --> 00:07:33.630
+for example, in
+image segmentation.
+
+00:07:33.630 --> 00:07:36.030
+So here, you want to
+segment your image
+
+00:07:36.030 --> 00:07:40.140
+into the distinct objects
+that appear in the image.
+
+00:07:40.140 --> 00:07:43.050
+And you can construct a graph
+by representing the pixels
+
+00:07:43.050 --> 00:07:44.310
+as vertices.
+
+00:07:44.310 --> 00:07:46.800
+And then you would place
+an edge between every pair
+
+00:07:46.800 --> 00:07:50.100
+of neighboring pixels with
+a weight that corresponds
+
+00:07:50.100 --> 00:07:52.740
+to their similarity.
+
+00:07:52.740 --> 00:07:56.430
+And then you would run some sort
+of minimum cost cut algorithm
+
+00:07:56.430 --> 00:07:59.640
+to partition your graph into
+the different objects that
+
+00:07:59.640 --> 00:08:02.478
+appear in the image.
+
+00:08:02.478 --> 00:08:04.020
+So there are many
+other applications.
+
+00:08:04.020 --> 00:08:05.910
+And I'm not going to have
+time to go through all of them
+
+00:08:05.910 --> 00:08:06.580
+today.
+
+00:08:06.580 --> 00:08:11.850
+But here's just a flavor of some
+of the applications of graphs.
+
+00:08:11.850 --> 00:08:13.150
+So any questions so far?
+
+00:08:20.820 --> 00:08:23.690
+OK, so next, let's
+look at how we can
+
+00:08:23.690 --> 00:08:25.415
+represent a graph in memory.
+
+00:08:29.110 --> 00:08:30.610
+So for the rest of
+this lecture, I'm
+
+00:08:30.610 --> 00:08:33.929
+going to assume that my vertices
+are labeled in the range from 0
+
+00:08:33.929 --> 00:08:35.140
+to n minus 1.
+
+00:08:35.140 --> 00:08:37.960
+So they have an
+integer in this range.
+
+00:08:37.960 --> 00:08:40.630
+Sometimes, your graph
+might be given to you
+
+00:08:40.630 --> 00:08:43.510
+where the vertices are
+already labeled in this range,
+
+00:08:43.510 --> 00:08:44.380
+sometimes, not.
+
+00:08:44.380 --> 00:08:46.060
+But you can always
+get these labels
+
+00:08:46.060 --> 00:08:48.100
+by mapping each
+of the identifiers
+
+00:08:48.100 --> 00:08:50.482
+to a unique integer
+in this range.
+
+00:08:50.482 --> 00:08:51.940
+So for the rest of
+the lecture, I'm
+
+00:08:51.940 --> 00:08:54.670
+just going to assume that
+we have these labels from 0
+
+00:08:54.670 --> 00:08:57.250
+to n minus 1 for the vertices.
+
+00:08:57.250 --> 00:09:02.090
+One way to represent a graph
+is to use an adjacency matrix.
+
+00:09:02.090 --> 00:09:04.660
+So this is going to
+be n by n matrix.
+
+00:09:04.660 --> 00:09:09.040
+And there's a 1 bit in
+i-th row in j-th column
+
+00:09:09.040 --> 00:09:12.400
+if there's an edge that goes
+from vertex I to vertex J,
+
+00:09:12.400 --> 00:09:15.910
+and 0 otherwise.
+
+00:09:15.910 --> 00:09:20.130
+Another way to represent a graph
+is the edgeless representation,
+
+00:09:20.130 --> 00:09:22.300
+where we just store a
+list of the edges that
+
+00:09:22.300 --> 00:09:23.660
+appear in the graph.
+
+00:09:23.660 --> 00:09:26.320
+So we have one
+pair for each edge,
+
+00:09:26.320 --> 00:09:29.260
+where the pair contains the
+two coordinates of that edge.
+
+00:09:31.960 --> 00:09:34.060
+So what is the space
+requirement for each
+
+00:09:34.060 --> 00:09:37.270
+of these two representations in
+terms of the number of edges m
+
+00:09:37.270 --> 00:09:41.760
+and the number of
+vertices n in the graph?
+
+00:09:41.760 --> 00:09:43.060
+So it should be pretty easy.
+
+00:09:45.740 --> 00:09:46.680
+Yes.
+
+00:09:46.680 --> 00:09:48.640
+AUDIENCE: n squared
+for the [INAUDIBLE]
+
+00:09:48.640 --> 00:09:50.110
+and m for the [INAUDIBLE].
+
+00:09:50.110 --> 00:09:52.730
+JULIAN SHUN: Yes, so the
+space for the adjacency matrix
+
+00:09:52.730 --> 00:09:54.560
+is order n squared
+because you have n
+
+00:09:54.560 --> 00:09:56.990
+squared cells in this matrix.
+
+00:09:56.990 --> 00:09:59.540
+And you have 1 bit
+for each of the cells.
+
+00:09:59.540 --> 00:10:01.730
+For the edge list, it's
+going to be order m
+
+00:10:01.730 --> 00:10:03.020
+because you have m edges.
+
+00:10:03.020 --> 00:10:05.270
+And for each edge, you're
+storing a constant amount
+
+00:10:05.270 --> 00:10:06.490
+of data in the edge list.
+
+00:10:10.346 --> 00:10:13.160
+So here's another way
+to represent a graph.
+
+00:10:13.160 --> 00:10:16.850
+This is known as the
+adjacency list format.
+
+00:10:16.850 --> 00:10:18.500
+And idea here is
+that we're going
+
+00:10:18.500 --> 00:10:21.440
+to have an array of
+pointers, 1 per vertex.
+
+00:10:21.440 --> 00:10:25.160
+And each pointer points
+to a linked list storing
+
+00:10:25.160 --> 00:10:27.020
+the edges for that vertex.
+
+00:10:27.020 --> 00:10:32.030
+And the linked list is
+unordered in this example.
+
+00:10:32.030 --> 00:10:35.104
+So what's the space requirement
+of this representation?
+
+00:10:42.020 --> 00:10:43.510
+AUDIENCE: It's n plus m.
+
+00:10:43.510 --> 00:10:46.430
+JULIAN SHUN: Yeah, so it's
+going to be order n plus m.
+
+00:10:46.430 --> 00:10:48.770
+And this is because
+we have n pointers.
+
+00:10:48.770 --> 00:10:52.730
+And the number of entries
+across all of the linked lists
+
+00:10:52.730 --> 00:10:55.500
+is just equal to the number of
+edges in the graph, which is m.
+
+00:10:58.340 --> 00:11:02.450
+What's one potential issue with
+this sort of representation
+
+00:11:02.450 --> 00:11:05.870
+if you think in terms
+of cache performance?
+
+00:11:05.870 --> 00:11:08.760
+Does anyone see a potential
+performance issue here?
+
+00:11:13.360 --> 00:11:13.916
+Yeah.
+
+00:11:13.916 --> 00:11:15.499
+AUDIENCE: So it
+could be [INAUDIBLE]..
+
+00:11:22.560 --> 00:11:24.210
+JULIAN SHUN: Right.
+
+00:11:24.210 --> 00:11:26.430
+So the issue here
+is that if you're
+
+00:11:26.430 --> 00:11:28.770
+trying to loop over all of
+the neighbors of a vertex,
+
+00:11:28.770 --> 00:11:31.860
+you're going to have to
+dereference the pointer
+
+00:11:31.860 --> 00:11:33.270
+in every linked list node.
+
+00:11:33.270 --> 00:11:35.520
+Because these are not
+contiguous in memory.
+
+00:11:35.520 --> 00:11:38.362
+And every time you
+dereference linked lists node,
+
+00:11:38.362 --> 00:11:40.320
+that's going to be a
+random access into memory.
+
+00:11:40.320 --> 00:11:43.110
+So that can be bad
+for cache performance.
+
+00:11:43.110 --> 00:11:45.720
+One way you can improve
+cache performance
+
+00:11:45.720 --> 00:11:49.980
+is instead of using linked
+lists for each of these neighbor
+
+00:11:49.980 --> 00:11:51.580
+lists, you can use an array.
+
+00:11:51.580 --> 00:11:54.870
+So now you can store the
+neighbors just in this array,
+
+00:11:54.870 --> 00:11:57.013
+and they'll be
+contiguous in memory.
+
+00:11:57.013 --> 00:11:58.680
+One drawback of this
+approach is that it
+
+00:11:58.680 --> 00:12:01.680
+becomes more expensive if you're
+trying to update the graph.
+
+00:12:01.680 --> 00:12:03.300
+And we'll talk more
+about that later.
+
+00:12:06.440 --> 00:12:07.840
+So any questions so far?
+
+00:12:18.250 --> 00:12:21.120
+So what's another way to
+represent the graph that we've
+
+00:12:21.120 --> 00:12:22.870
+seen in a previous lecture?
+
+00:12:29.400 --> 00:12:31.920
+What's a more compressed
+or compact way
+
+00:12:31.920 --> 00:12:35.220
+to represent a graph,
+especially a sparse graph?
+
+00:12:46.660 --> 00:12:50.400
+So does anybody remember the
+compressed sparse row format?
+
+00:12:53.050 --> 00:12:56.550
+So we looked at this in
+one of the early lectures.
+
+00:12:56.550 --> 00:13:00.450
+And in that lecture, we used
+it to store a sparse matrix.
+
+00:13:00.450 --> 00:13:03.510
+But you can also use it
+to store a sparse graph.
+
+00:13:03.510 --> 00:13:06.810
+And as a reminder, we have two
+arrays in the compressed sparse
+
+00:13:06.810 --> 00:13:08.490
+row, or CSR format.
+
+00:13:08.490 --> 00:13:11.480
+We have the Offsets array
+and the Edges array.
+
+00:13:11.480 --> 00:13:14.760
+The Offsets array stores
+an offset for each vertex
+
+00:13:14.760 --> 00:13:17.160
+into the Edges array,
+telling us where
+
+00:13:17.160 --> 00:13:18.990
+the edges for that
+particular vertex
+
+00:13:18.990 --> 00:13:21.860
+begins in the Edges array.
+
+00:13:21.860 --> 00:13:23.760
+So Offsets of i
+stores the offset
+
+00:13:23.760 --> 00:13:27.330
+of where vertex i's edges
+start in the Edges array.
+
+00:13:27.330 --> 00:13:31.780
+So in this example, vertex
+0 has an offset of 0.
+
+00:13:31.780 --> 00:13:35.550
+So its edges start at
+position 0 in the Edges array.
+
+00:13:35.550 --> 00:13:37.740
+Vertex 1 has an
+offset of 4, so it
+
+00:13:37.740 --> 00:13:42.270
+starts at index 4 in
+this Offsets array.
+
+00:13:42.270 --> 00:13:43.950
+So with this
+representation, how can we
+
+00:13:43.950 --> 00:13:45.370
+get the degree of a vertex?
+
+00:13:45.370 --> 00:13:47.820
+So we're not storing the
+degree explicitly here.
+
+00:13:47.820 --> 00:13:49.905
+Can we get the
+degree efficiently?
+
+00:13:55.345 --> 00:13:55.845
+Yes.
+
+00:13:55.845 --> 00:13:58.820
+AUDIENCE: [INAUDIBLE]
+
+00:13:58.820 --> 00:14:01.650
+JULIAN SHUN: Yeah, so you can
+get the degree of a vertex
+
+00:14:01.650 --> 00:14:03.240
+just by looking
+at the difference
+
+00:14:03.240 --> 00:14:06.480
+between the next offset
+and its own offset.
+
+00:14:06.480 --> 00:14:10.170
+So for vertex 0, you can
+see that its degree is 4
+
+00:14:10.170 --> 00:14:14.590
+because vertex 1's offset is
+4, and vertex 0's offset is 0.
+
+00:14:14.590 --> 00:14:19.320
+And similarly you can do that
+for all of the other vertices.
+
+00:14:19.320 --> 00:14:22.234
+So what's the space usage
+of this representation?
+
+00:14:28.042 --> 00:14:29.628
+AUDIENCE: [INAUDIBLE]
+
+00:14:29.628 --> 00:14:31.086
+JULIAN SHUN: Sorry,
+can you repeat?
+
+00:14:31.086 --> 00:14:32.900
+AUDIENCE: [INAUDIBLE]
+
+00:14:32.900 --> 00:14:35.600
+JULIAN SHUN: Yeah, so again,
+it's going to be order m plus n
+
+00:14:35.600 --> 00:14:39.530
+because you need order n space
+for the Offsets array and order
+
+00:14:39.530 --> 00:14:42.830
+m space for the Edges array.
+
+00:14:42.830 --> 00:14:46.070
+You can also store values
+or weights on their edges.
+
+00:14:46.070 --> 00:14:50.510
+One way to do this is to create
+an additional array of size m.
+
+00:14:50.510 --> 00:14:54.050
+And then for edge i, you
+just store the weight
+
+00:14:54.050 --> 00:14:58.430
+or the value in the i-th
+index of this additional array
+
+00:14:58.430 --> 00:15:00.020
+that you created.
+
+00:15:00.020 --> 00:15:03.380
+If you're always accessing the
+weight when you access an edge,
+
+00:15:03.380 --> 00:15:05.390
+then it's actually better
+for a cache locality
+
+00:15:05.390 --> 00:15:09.620
+to interleave the weights
+with the edge targets.
+
+00:15:09.620 --> 00:15:11.750
+So instead of creating
+two arrays of size m,
+
+00:15:11.750 --> 00:15:14.150
+you have one array of size 2m.
+
+00:15:14.150 --> 00:15:18.170
+And every other
+entry is the weight.
+
+00:15:18.170 --> 00:15:20.720
+And this improves cache
+locality because every time
+
+00:15:20.720 --> 00:15:24.200
+you access an edge, its weight
+is going to be right next to it
+
+00:15:24.200 --> 00:15:24.800
+in memory.
+
+00:15:24.800 --> 00:15:27.600
+And it's going to likely
+be on the same cache line.
+
+00:15:27.600 --> 00:15:30.660
+So that's one way to
+improve cache locality.
+
+00:15:30.660 --> 00:15:32.070
+Any questions so far?
+
+00:15:37.365 --> 00:15:38.990
+So let's look at some
+of the trade-offs
+
+00:15:38.990 --> 00:15:40.790
+in these different
+graph representations
+
+00:15:40.790 --> 00:15:42.990
+that we've looked at so far.
+
+00:15:42.990 --> 00:15:44.750
+So here, I'm listing
+the storage costs
+
+00:15:44.750 --> 00:15:46.520
+for each of these
+representations which
+
+00:15:46.520 --> 00:15:47.870
+we already discussed.
+
+00:15:47.870 --> 00:15:50.900
+This is also the cost for just
+scanning the whole graph in one
+
+00:15:50.900 --> 00:15:53.090
+of these representations.
+
+00:15:53.090 --> 00:15:55.400
+What's the cost of
+adding an edge in each
+
+00:15:55.400 --> 00:15:56.480
+of these representations?
+
+00:15:56.480 --> 00:16:01.830
+So for adjacency matrix, what's
+the cost of adding an edge?
+
+00:16:01.830 --> 00:16:03.210
+AUDIENCE: Order 1.
+
+00:16:03.210 --> 00:16:04.800
+JULIAN SHUN: So for
+adjacency matrix,
+
+00:16:04.800 --> 00:16:08.400
+it's just order
+1 to add an edge.
+
+00:16:08.400 --> 00:16:12.180
+Because you have random
+access into this matrix,
+
+00:16:12.180 --> 00:16:15.120
+so you just have to
+access to i, j-th entry
+
+00:16:15.120 --> 00:16:18.510
+and flip the bit from 0 to 1.
+
+00:16:18.510 --> 00:16:20.130
+What about for the edge list?
+
+00:16:30.040 --> 00:16:31.930
+So assuming that the
+edge list is unordered,
+
+00:16:31.930 --> 00:16:37.300
+so you don't have to keep
+the list in any sorted order.
+
+00:16:37.300 --> 00:16:37.800
+Yeah.
+
+00:16:37.800 --> 00:16:39.695
+AUDIENCE: I guess it's O of 1.
+
+00:16:39.695 --> 00:16:41.570
+JULIAN SHUN: Yeah, so
+again, it's just O of 1
+
+00:16:41.570 --> 00:16:44.700
+because you can just add it
+to the end of the edge list.
+
+00:16:44.700 --> 00:16:47.870
+So that's a constant time.
+
+00:16:47.870 --> 00:16:49.640
+What about for the
+adjacency list?
+
+00:16:49.640 --> 00:16:51.710
+So actually, this
+depends on whether we're
+
+00:16:51.710 --> 00:16:55.580
+using linked lists or
+arrays for the neighbor
+
+00:16:55.580 --> 00:16:57.490
+lists of the vertices.
+
+00:16:57.490 --> 00:16:59.630
+If we're using a linked
+list, adding an edge just
+
+00:16:59.630 --> 00:17:01.670
+takes constant time
+because we can just
+
+00:17:01.670 --> 00:17:04.940
+put it at the beginning
+of the linked list.
+
+00:17:04.940 --> 00:17:06.950
+If we're using an
+array, then we actually
+
+00:17:06.950 --> 00:17:10.280
+need to create a new array
+to make space for this edge
+
+00:17:10.280 --> 00:17:11.510
+that we add.
+
+00:17:11.510 --> 00:17:14.869
+And that's going to cost
+us a degree of v work
+
+00:17:14.869 --> 00:17:18.020
+to do that because we have to
+copy all the existing edges
+
+00:17:18.020 --> 00:17:20.300
+over to this new array
+and then add this new edge
+
+00:17:20.300 --> 00:17:23.119
+to the end of that array.
+
+00:17:23.119 --> 00:17:25.099
+Of course, you could
+amortize this cost
+
+00:17:25.099 --> 00:17:26.359
+across multiple updates.
+
+00:17:26.359 --> 00:17:27.859
+So if you run out
+of memory, you can
+
+00:17:27.859 --> 00:17:29.359
+double the size of
+your array so you
+
+00:17:29.359 --> 00:17:32.450
+don't have to create these
+new arrays too often.
+
+00:17:32.450 --> 00:17:34.880
+But the cost for any
+individual addition
+
+00:17:34.880 --> 00:17:38.720
+is still relatively expensive
+compared to, say, an edge list
+
+00:17:38.720 --> 00:17:41.700
+or adjacency matrix.
+
+00:17:41.700 --> 00:17:44.840
+And then finally, for the
+compressed sparse row format,
+
+00:17:44.840 --> 00:17:46.980
+if you add an edge,
+in the worst case,
+
+00:17:46.980 --> 00:17:50.270
+it's going to cost us
+order m plus n work.
+
+00:17:50.270 --> 00:17:53.210
+Because we're going to have to
+reconstruct the entire Offsets
+
+00:17:53.210 --> 00:17:56.120
+array and the entire Edges
+array in the worst case.
+
+00:17:56.120 --> 00:17:58.100
+Because we have to put
+something in and then
+
+00:17:58.100 --> 00:17:59.600
+shift-- in the Edges
+array, you have
+
+00:17:59.600 --> 00:18:01.810
+to put something in and
+shift all of the values
+
+00:18:01.810 --> 00:18:04.003
+to the right of that
+over by one location.
+
+00:18:04.003 --> 00:18:05.420
+And then for the
+Offsets array, we
+
+00:18:05.420 --> 00:18:08.393
+have to modify the offset for
+the particular vertex we're
+
+00:18:08.393 --> 00:18:10.310
+adding an edge to and
+then the offsets for all
+
+00:18:10.310 --> 00:18:12.440
+of the vertices after that.
+
+00:18:12.440 --> 00:18:14.570
+So the compressed sparse
+row representation
+
+00:18:14.570 --> 00:18:19.700
+is not particularly
+friendly to edge updates.
+
+00:18:19.700 --> 00:18:24.380
+What about for deleting an
+edge from some vertex v?
+
+00:18:24.380 --> 00:18:26.600
+So for adjacency
+matrix, again, it's
+
+00:18:26.600 --> 00:18:28.610
+going to be constant
+time because you just
+
+00:18:28.610 --> 00:18:30.980
+randomly access
+the correct entry
+
+00:18:30.980 --> 00:18:34.520
+and flip the bit from 1 to 0.
+
+00:18:34.520 --> 00:18:35.810
+What about for an edge list?
+
+00:18:42.037 --> 00:18:45.113
+AUDIENCE: [INAUDIBLE]
+
+00:18:45.113 --> 00:18:47.530
+JULIAN SHUN: Yeah, so for an
+edge list, in the worst case,
+
+00:18:47.530 --> 00:18:51.450
+it's going to cost us order m
+work because the edges are not
+
+00:18:51.450 --> 00:18:52.530
+in any sorted order.
+
+00:18:52.530 --> 00:18:55.030
+So we have to scan through the
+whole thing in the worst case
+
+00:18:55.030 --> 00:18:58.410
+to find the edge that
+we're trying to delete.
+
+00:18:58.410 --> 00:19:03.420
+For adjacency list, it's going
+to take order degree of v work
+
+00:19:03.420 --> 00:19:05.600
+because the neighbors
+are not sorted.
+
+00:19:05.600 --> 00:19:07.350
+So we have to scan
+through the whole thing
+
+00:19:07.350 --> 00:19:09.693
+to find this edge that
+we're trying to delete.
+
+00:19:09.693 --> 00:19:11.610
+And then finally, for a
+compressed sparse row,
+
+00:19:11.610 --> 00:19:13.740
+it's going to be order
+m plus n because we're
+
+00:19:13.740 --> 00:19:16.365
+going to have to reconstruct the
+whole thing in the worst case.
+
+00:19:20.290 --> 00:19:22.240
+What about finding
+all of the neighbors
+
+00:19:22.240 --> 00:19:25.060
+of a particular vertex v?
+
+00:19:25.060 --> 00:19:27.895
+What's the cost of doing
+this in the adjacency matrix?
+
+00:19:31.150 --> 00:19:34.090
+AUDIENCE: [INAUDIBLE]
+
+00:19:34.090 --> 00:19:36.460
+JULIAN SHUN: Yes, so
+it's going to cost us
+
+00:19:36.460 --> 00:19:38.800
+order n work to find
+all the neighbors
+
+00:19:38.800 --> 00:19:40.420
+of a particular
+vertex because we just
+
+00:19:40.420 --> 00:19:43.840
+scan the correct row
+in this matrix, the row
+
+00:19:43.840 --> 00:19:48.270
+corresponding to vertex
+v. For the edge list,
+
+00:19:48.270 --> 00:19:50.402
+we're going to have to
+scan the entire edge
+
+00:19:50.402 --> 00:19:51.610
+list because it's not sorted.
+
+00:19:51.610 --> 00:19:54.430
+So in the worst case,
+that's going to be order m.
+
+00:19:54.430 --> 00:19:59.140
+For adjacency list, that's
+going to take order degree of v
+
+00:19:59.140 --> 00:20:03.640
+because we can just find
+a pointer to the linked
+
+00:20:03.640 --> 00:20:05.720
+list for that vertex
+in constant time.
+
+00:20:05.720 --> 00:20:08.090
+And then we just traverse
+over the linked list.
+
+00:20:08.090 --> 00:20:11.175
+And that takes order
+degree of v time.
+
+00:20:11.175 --> 00:20:13.300
+And then finally, for
+compressed sparse row format,
+
+00:20:13.300 --> 00:20:15.970
+it's also order degree of v
+because we have constant time
+
+00:20:15.970 --> 00:20:19.120
+access into the appropriate
+location in the Edges array.
+
+00:20:19.120 --> 00:20:21.220
+And then we can just
+read off the edges, which
+
+00:20:21.220 --> 00:20:22.540
+are consecutive in memory.
+
+00:20:26.070 --> 00:20:31.400
+So what about finding if a
+vertex w is a neighbor of v?
+
+00:20:31.400 --> 00:20:33.350
+So I'll just give
+you the answer.
+
+00:20:33.350 --> 00:20:35.390
+So for the adjacency
+matrix, it's
+
+00:20:35.390 --> 00:20:38.060
+going to take constant
+time because again,
+
+00:20:38.060 --> 00:20:41.630
+we just have to check the
+v-th row in the w-th column
+
+00:20:41.630 --> 00:20:44.270
+and check if the
+bit is set there.
+
+00:20:44.270 --> 00:20:46.520
+For edge list, we have to
+traverse the entire list
+
+00:20:46.520 --> 00:20:49.380
+to see if the edge is there.
+
+00:20:49.380 --> 00:20:52.020
+And then for adjacency list
+and compressed sparse row,
+
+00:20:52.020 --> 00:20:53.570
+it's going to be
+order degree of v
+
+00:20:53.570 --> 00:20:58.280
+because we just have to scan the
+neighbor list for that vertex.
+
+00:20:58.280 --> 00:21:01.640
+So these are some
+graph representations.
+
+00:21:01.640 --> 00:21:04.250
+But there are actually many
+other graph representations,
+
+00:21:04.250 --> 00:21:07.400
+including variance of the ones
+that I've talked about here.
+
+00:21:07.400 --> 00:21:09.260
+So, for example,
+for the adjacency,
+
+00:21:09.260 --> 00:21:11.705
+I said you can either use
+a linked list or an array
+
+00:21:11.705 --> 00:21:12.830
+to store the neighbor list.
+
+00:21:12.830 --> 00:21:15.170
+But you can actually use
+a hybrid approach, where
+
+00:21:15.170 --> 00:21:17.870
+you store the linked list, but
+each linked list node actually
+
+00:21:17.870 --> 00:21:19.410
+stores more than one vertex.
+
+00:21:19.410 --> 00:21:22.310
+So you can store
+maybe 16 vertices
+
+00:21:22.310 --> 00:21:23.450
+in each linked list node.
+
+00:21:23.450 --> 00:21:25.989
+And that gives us
+better cache locality.
+
+00:21:30.680 --> 00:21:32.350
+So for the rest of
+this lecture, I'm
+
+00:21:32.350 --> 00:21:34.120
+going to talk about
+algorithms that
+
+00:21:34.120 --> 00:21:38.458
+are best implemented using the
+compressed sparse row format.
+
+00:21:38.458 --> 00:21:40.000
+And this is because
+we're going to be
+
+00:21:40.000 --> 00:21:42.400
+dealing with sparse graphs.
+
+00:21:42.400 --> 00:21:44.978
+We're going to be looking at
+static algorithms, where we
+
+00:21:44.978 --> 00:21:46.270
+don't have to update the graph.
+
+00:21:46.270 --> 00:21:47.687
+If we do have to
+update the graph,
+
+00:21:47.687 --> 00:21:49.600
+then CSR isn't a good choice.
+
+00:21:49.600 --> 00:21:52.240
+But we're just going to be
+looking at static algorithms
+
+00:21:52.240 --> 00:21:53.870
+today.
+
+00:21:53.870 --> 00:21:56.540
+And then for all the algorithms
+that we'll be looking at,
+
+00:21:56.540 --> 00:22:00.280
+we're going to need to scan over
+all the neighbors of a vertex
+
+00:22:00.280 --> 00:22:02.470
+that we visit.
+
+00:22:02.470 --> 00:22:04.405
+And CSR is very good
+for that because all
+
+00:22:04.405 --> 00:22:06.130
+of the neighbors for
+a particular vertex
+
+00:22:06.130 --> 00:22:07.900
+are stored
+contiguously in memory.
+
+00:22:10.750 --> 00:22:12.040
+So any questions so far?
+
+00:22:21.568 --> 00:22:23.360
+OK, I do want to talk
+about some properties
+
+00:22:23.360 --> 00:22:24.235
+of real-world graphs.
+
+00:22:27.470 --> 00:22:31.640
+So first, we're seeing graphs
+that are quite large today.
+
+00:22:31.640 --> 00:22:34.260
+But actually, they're
+not too large.
+
+00:22:34.260 --> 00:22:37.110
+So here are the sizes of
+some of the real-world graphs
+
+00:22:37.110 --> 00:22:37.610
+out there.
+
+00:22:37.610 --> 00:22:40.158
+So there is a Twitter network.
+
+00:22:40.158 --> 00:22:42.200
+That's actually a snapshot
+of the Twitter network
+
+00:22:42.200 --> 00:22:43.400
+from a couple of years ago.
+
+00:22:43.400 --> 00:22:47.220
+It has 41 million vertices
+and 1.5 billion edges.
+
+00:22:47.220 --> 00:22:50.690
+And you can store this graph in
+about 6.3 gigabytes of memory.
+
+00:22:50.690 --> 00:22:55.140
+So you can probably store it in
+the main memory of your laptop.
+
+00:22:55.140 --> 00:22:57.290
+The largest publicly
+available graph out
+
+00:22:57.290 --> 00:22:59.910
+there now is this
+Common Crawl web graph.
+
+00:22:59.910 --> 00:23:05.470
+It has 3.5 billion vertices
+and 128 billion edges.
+
+00:23:05.470 --> 00:23:07.550
+So storing this graph
+requires a little
+
+00:23:07.550 --> 00:23:10.700
+over 1/2 terabyte of memory.
+
+00:23:10.700 --> 00:23:11.930
+It is quite a bit of memory.
+
+00:23:11.930 --> 00:23:15.050
+But it's actually not too big
+because there are machines out
+
+00:23:15.050 --> 00:23:18.560
+there with main memory sizes
+in the order of terabytes
+
+00:23:18.560 --> 00:23:20.270
+of memory nowadays.
+
+00:23:20.270 --> 00:23:23.780
+So, for example, you can rent
+2-terabyte or 4-terabyte memory
+
+00:23:23.780 --> 00:23:27.050
+instance on AWS, which you're
+using for your homework
+
+00:23:27.050 --> 00:23:28.130
+assignments.
+
+00:23:28.130 --> 00:23:29.750
+See if you have any
+leftover credits
+
+00:23:29.750 --> 00:23:31.333
+at the end of the
+semester, and you
+
+00:23:31.333 --> 00:23:32.750
+want to play around
+on this graph,
+
+00:23:32.750 --> 00:23:36.055
+you can rent one of
+these terabyte machines.
+
+00:23:36.055 --> 00:23:37.430
+Just remember to
+turn it off when
+
+00:23:37.430 --> 00:23:39.410
+you're done because
+it's kind of expensive.
+
+00:23:41.930 --> 00:23:43.670
+Another property of
+real-world graphs
+
+00:23:43.670 --> 00:23:44.930
+is that they're quite sparse.
+
+00:23:44.930 --> 00:23:47.570
+So m tends to be much
+less than n squared.
+
+00:23:47.570 --> 00:23:53.420
+So most of the possible
+edges are not actually there.
+
+00:23:53.420 --> 00:23:56.390
+And finally, the degree
+distributions of the vertices
+
+00:23:56.390 --> 00:23:59.360
+can be highly skewed in
+many real-world graphs.
+
+00:23:59.360 --> 00:24:03.710
+So here I'm plotting
+the degree on the x-axis
+
+00:24:03.710 --> 00:24:06.080
+and the number of vertices
+with that particular degree
+
+00:24:06.080 --> 00:24:07.020
+on the y-axis.
+
+00:24:07.020 --> 00:24:09.230
+And we can see that
+it's highly skewed.
+
+00:24:09.230 --> 00:24:11.750
+And, for example, in a social
+network, most of the people
+
+00:24:11.750 --> 00:24:15.710
+would be on the left-hand
+side, so their degree is not
+
+00:24:15.710 --> 00:24:17.330
+that high.
+
+00:24:17.330 --> 00:24:19.460
+And then we have some
+very popular people
+
+00:24:19.460 --> 00:24:23.230
+on the right-hand side, where
+their degree is very high,
+
+00:24:23.230 --> 00:24:24.730
+but we don't have
+too many of those.
+
+00:24:27.500 --> 00:24:31.937
+So this is what's known as a
+power law degree distribution.
+
+00:24:31.937 --> 00:24:33.395
+And there have been
+various studies
+
+00:24:33.395 --> 00:24:35.870
+that have shown that many
+real-world graphs have
+
+00:24:35.870 --> 00:24:38.630
+approximately a power
+law degree distribution.
+
+00:24:38.630 --> 00:24:41.330
+And mathematically, this
+means that the number
+
+00:24:41.330 --> 00:24:45.860
+of vertices with degree
+d is proportional to d
+
+00:24:45.860 --> 00:24:47.330
+to the negative p.
+
+00:24:47.330 --> 00:24:49.610
+So negative p is the exponent.
+
+00:24:49.610 --> 00:24:55.190
+And for many graphs, the value
+of p lies between 2 and 3.
+
+00:24:55.190 --> 00:24:56.870
+And this power law
+degree distribution
+
+00:24:56.870 --> 00:24:58.940
+does have implications
+when we're
+
+00:24:58.940 --> 00:25:01.120
+trying to implement parallel
+algorithms to process
+
+00:25:01.120 --> 00:25:02.090
+these graphs.
+
+00:25:02.090 --> 00:25:05.600
+Because with graphs that have
+a skewed degree distribution,
+
+00:25:05.600 --> 00:25:07.970
+you could run into load
+and balance issues.
+
+00:25:07.970 --> 00:25:10.820
+If you just parallelize
+across the vertices,
+
+00:25:10.820 --> 00:25:17.370
+the number of edges they
+have can vary significantly.
+
+00:25:17.370 --> 00:25:18.590
+Any questions?
+
+00:25:22.730 --> 00:25:25.990
+OK, so now let's talk about
+how we can implement a graph
+
+00:25:25.990 --> 00:25:27.100
+algorithm.
+
+00:25:27.100 --> 00:25:30.335
+And I'm going to talk about the
+breadth-first search algorithm.
+
+00:25:30.335 --> 00:25:32.710
+So how many of you have seen
+breadth-first search before?
+
+00:25:35.910 --> 00:25:39.320
+OK, so about half of you.
+
+00:25:39.320 --> 00:25:41.940
+I did talk about breadth-first
+search in a previous lecture,
+
+00:25:41.940 --> 00:25:46.140
+so I was hoping everybody
+would raise their hands.
+
+00:25:46.140 --> 00:25:49.340
+OK, so as a reminder,
+in the BFS algorithm,
+
+00:25:49.340 --> 00:25:51.290
+we're given a source
+vertex s, and we
+
+00:25:51.290 --> 00:25:53.780
+want to visit the vertices
+in order of their distance
+
+00:25:53.780 --> 00:25:55.880
+from the source s.
+
+00:25:55.880 --> 00:25:57.358
+And there are many
+possible outputs
+
+00:25:57.358 --> 00:25:58.400
+that we might care about.
+
+00:25:58.400 --> 00:26:00.020
+One possible output
+is, we just want
+
+00:26:00.020 --> 00:26:01.580
+to report the
+vertices in the order
+
+00:26:01.580 --> 00:26:05.330
+that they were visited by the
+breadth-first search traversal.
+
+00:26:05.330 --> 00:26:07.580
+So let's say we have
+this graph here.
+
+00:26:07.580 --> 00:26:10.820
+And our source vertex
+is D. So what's
+
+00:26:10.820 --> 00:26:13.775
+one possible order in which we
+can traverse these vertices?
+
+00:26:23.054 --> 00:26:24.790
+Now, I should specify
+that we should
+
+00:26:24.790 --> 00:26:28.810
+traverse this graph in a
+breadth-first search manner.
+
+00:26:28.810 --> 00:26:30.910
+So what's the first vertex
+we're going to explore?
+
+00:26:33.814 --> 00:26:35.510
+AUDIENCE: D.
+
+00:26:35.510 --> 00:26:37.010
+JULIAN SHUN: D. So
+we're first going
+
+00:26:37.010 --> 00:26:41.180
+to look at D because
+that's our source vertex.
+
+00:26:41.180 --> 00:26:43.250
+The second vertex,
+we can actually
+
+00:26:43.250 --> 00:26:47.390
+choose between B, C, and E
+because all we care about
+
+00:26:47.390 --> 00:26:49.422
+is that we're visiting
+these vertices
+
+00:26:49.422 --> 00:26:51.380
+in the order of their
+distance from the source.
+
+00:26:51.380 --> 00:26:53.630
+But these three vertices are
+all of the same distance.
+
+00:26:53.630 --> 00:26:56.330
+So let's just pick
+B, C, and then E.
+
+00:26:56.330 --> 00:26:57.830
+And then finally,
+I'm going to visit
+
+00:26:57.830 --> 00:27:02.280
+vertex A, which has a
+distance of 2 from the source.
+
+00:27:02.280 --> 00:27:04.603
+So this is one
+possible solution.
+
+00:27:04.603 --> 00:27:06.020
+There are other
+possible solutions
+
+00:27:06.020 --> 00:27:12.150
+because we could have visited E
+before we visited B and so on.
+
+00:27:12.150 --> 00:27:14.150
+Another possible output
+that we might care about
+
+00:27:14.150 --> 00:27:18.140
+is we might want to report
+the distance from each vertex
+
+00:27:18.140 --> 00:27:20.720
+to the source vertex s.
+
+00:27:20.720 --> 00:27:23.400
+So in this example
+here are the distances.
+
+00:27:23.400 --> 00:27:26.630
+So D has a distance of 0; B,C,
+and E all have a distance of 1;
+
+00:27:26.630 --> 00:27:30.110
+and A has a distance of 2.
+
+00:27:30.110 --> 00:27:33.560
+We might also want to generate a
+breadth-first search tree where
+
+00:27:33.560 --> 00:27:38.030
+each vertex in the
+tree has a parent which
+
+00:27:38.030 --> 00:27:39.770
+is a neighbor in
+the previous level
+
+00:27:39.770 --> 00:27:41.090
+of the breadth-first search.
+
+00:27:41.090 --> 00:27:43.760
+Or in other words,
+the parent should
+
+00:27:43.760 --> 00:27:47.480
+have a distance of 1 less
+than that vertex itself.
+
+00:27:47.480 --> 00:27:51.020
+So here's an example of a
+breadth-first search tree.
+
+00:27:51.020 --> 00:27:54.290
+And we can see that
+each of the vertices
+
+00:27:54.290 --> 00:27:57.950
+has a parent whose breadth-first
+search distance is 1 less
+
+00:27:57.950 --> 00:27:58.610
+than itself.
+
+00:28:01.220 --> 00:28:04.530
+So the algorithms that I'm
+going to be talking about today
+
+00:28:04.530 --> 00:28:09.920
+will generate the distances
+as well as the BFS tree.
+
+00:28:09.920 --> 00:28:12.860
+And BFS actually has
+many applications.
+
+00:28:12.860 --> 00:28:15.650
+So it's used as a
+subroutine in betweenness
+
+00:28:15.650 --> 00:28:19.130
+centrality, which is a
+very popular graph mining
+
+00:28:19.130 --> 00:28:21.770
+algorithm used to rank
+the importance of nodes
+
+00:28:21.770 --> 00:28:23.030
+in a network.
+
+00:28:23.030 --> 00:28:25.460
+And the importance of
+nodes here corresponds
+
+00:28:25.460 --> 00:28:30.380
+to how many shortest paths
+go through that node.
+
+00:28:30.380 --> 00:28:33.800
+Other applications include
+eccentricity estimation,
+
+00:28:33.800 --> 00:28:34.660
+maximum flows.
+
+00:28:34.660 --> 00:28:37.940
+Some max flow algorithms
+use BFS as a subroutine.
+
+00:28:37.940 --> 00:28:39.710
+You can use BFS
+to crawl the web,
+
+00:28:39.710 --> 00:28:43.910
+do cycle detection, garbage
+collection, and so on.
+
+00:28:43.910 --> 00:28:46.670
+So let's now look at a
+serial BFS algorithm.
+
+00:28:46.670 --> 00:28:49.710
+And here, I'm just going
+to show the pseudocode.
+
+00:28:49.710 --> 00:28:53.000
+So first, we're going to
+initialize the distances
+
+00:28:53.000 --> 00:28:54.420
+to all INFINITY.
+
+00:28:54.420 --> 00:28:57.140
+And we're going to initialize
+the parents to be NIL.
+
+00:28:59.780 --> 00:29:03.898
+And then we're going to
+create queue data structure.
+
+00:29:03.898 --> 00:29:05.690
+We're going to set the
+distance of the root
+
+00:29:05.690 --> 00:29:10.160
+to be 0 because the root has
+a distance of 0 to itself.
+
+00:29:10.160 --> 00:29:13.055
+And then we're going to place
+the root onto this queue.
+
+00:29:15.800 --> 00:29:17.430
+And then, while the
+queue is not empty,
+
+00:29:17.430 --> 00:29:20.207
+we're going to dequeue the
+first thing in the queue.
+
+00:29:20.207 --> 00:29:22.790
+We're going to look at all the
+neighbors of the current vertex
+
+00:29:22.790 --> 00:29:23.950
+that we dequeued.
+
+00:29:23.950 --> 00:29:25.550
+And for each
+neighbor, we're going
+
+00:29:25.550 --> 00:29:28.495
+to check if its
+distance is INFINITY.
+
+00:29:28.495 --> 00:29:29.870
+If the distance
+is INFINITY, that
+
+00:29:29.870 --> 00:29:31.703
+means we haven't explored
+that neighbor yet.
+
+00:29:31.703 --> 00:29:33.590
+So we're going to go
+ahead and explore it.
+
+00:29:33.590 --> 00:29:36.230
+And we do so by setting
+its distance value
+
+00:29:36.230 --> 00:29:39.323
+to be the current
+vertex's distance plus 1.
+
+00:29:39.323 --> 00:29:41.240
+We're going to set the
+parent of that neighbor
+
+00:29:41.240 --> 00:29:42.500
+to be the current vertex.
+
+00:29:42.500 --> 00:29:46.910
+And then we'll place the
+neighbor onto the queue.
+
+00:29:46.910 --> 00:29:48.950
+So it's some pretty
+simple algorithm.
+
+00:29:48.950 --> 00:29:51.530
+And we're just going to keep
+iterating in this while loop
+
+00:29:51.530 --> 00:29:56.090
+until there are no more
+vertices left in the queue.
+
+00:29:56.090 --> 00:30:01.000
+So what's the work of this
+algorithm in terms of n and m?
+
+00:30:01.000 --> 00:30:04.550
+So how much work are
+we doing per edge?
+
+00:30:12.330 --> 00:30:12.870
+Yes.
+
+00:30:12.870 --> 00:30:18.590
+AUDIENCE: [INAUDIBLE]
+
+00:30:18.590 --> 00:30:22.210
+JULIAN SHUN: Yeah, so assuming
+that the enqueue and dequeue
+
+00:30:22.210 --> 00:30:24.120
+operators are
+constant time, then
+
+00:30:24.120 --> 00:30:26.790
+we're doing constant
+amount of work per edge.
+
+00:30:26.790 --> 00:30:29.408
+So summed across all edges,
+that's going to be order m.
+
+00:30:29.408 --> 00:30:31.200
+And then we're also
+doing a constant amount
+
+00:30:31.200 --> 00:30:35.313
+of work per vertex because
+we have to basically place it
+
+00:30:35.313 --> 00:30:37.230
+onto the queue and then
+take it off the queue,
+
+00:30:37.230 --> 00:30:38.772
+and then also
+initialize their value.
+
+00:30:38.772 --> 00:30:41.160
+So the overall work is
+going to be order m plus n.
+
+00:30:44.130 --> 00:30:46.100
+OK, so let's now look
+at some actual code
+
+00:30:46.100 --> 00:30:48.985
+to implement the serial
+BFS algorithm using
+
+00:30:48.985 --> 00:30:50.360
+the compressed
+sparse row format.
+
+00:30:53.430 --> 00:30:55.850
+So first, I'm going to
+initialize two arrays--
+
+00:30:55.850 --> 00:30:57.710
+parent and queue.
+
+00:30:57.710 --> 00:31:01.518
+And these are going to be
+integer arrays of size n.
+
+00:31:01.518 --> 00:31:03.560
+I'm going to initialize
+all of the parent entries
+
+00:31:03.560 --> 00:31:04.540
+to be negative 1.
+
+00:31:04.540 --> 00:31:08.060
+I'm going to place a source
+vertex onto the queue.
+
+00:31:08.060 --> 00:31:10.540
+So it's going to appear
+at queue of 0, that's
+
+00:31:10.540 --> 00:31:11.958
+the beginning of the queue.
+
+00:31:11.958 --> 00:31:14.000
+And then I'll set the
+parent of the source vertex
+
+00:31:14.000 --> 00:31:15.980
+to be the source itself.
+
+00:31:15.980 --> 00:31:18.830
+And then I also
+have two integers
+
+00:31:18.830 --> 00:31:21.185
+that point to the front
+and the back of the queue.
+
+00:31:21.185 --> 00:31:23.600
+So initially, the front of
+the queue is at position 0,
+
+00:31:23.600 --> 00:31:26.980
+and the back is at position 1.
+
+00:31:26.980 --> 00:31:29.320
+And then while the
+queue is not empty--
+
+00:31:29.320 --> 00:31:32.180
+and I can check that by
+checking if q_front is not
+
+00:31:32.180 --> 00:31:33.470
+equal to q_back--
+
+00:31:33.470 --> 00:31:36.890
+then I'm going to dequeue
+the first vertex in my queue.
+
+00:31:36.890 --> 00:31:38.930
+I'm going to set current
+to be that vertex.
+
+00:31:38.930 --> 00:31:42.350
+And then I'll increment q_front.
+
+00:31:42.350 --> 00:31:44.600
+And then I'll compute the
+degree of that vertex, which
+
+00:31:44.600 --> 00:31:46.142
+I can do by looking
+at the difference
+
+00:31:46.142 --> 00:31:48.350
+between consecutive offsets.
+
+00:31:48.350 --> 00:31:51.200
+And I also assume
+that Offsets of n
+
+00:31:51.200 --> 00:31:56.778
+is equal to m, just to
+deal with the last vertex
+
+00:31:56.778 --> 00:31:59.070
+And then I'm going to loop
+through all of the neighbors
+
+00:31:59.070 --> 00:32:01.200
+for the current vertex.
+
+00:32:01.200 --> 00:32:03.900
+And to access each
+neighbor, what I do
+
+00:32:03.900 --> 00:32:05.580
+is I go into the Edges array.
+
+00:32:05.580 --> 00:32:09.570
+And I know that my neighbors
+start at Offsets of current.
+
+00:32:09.570 --> 00:32:11.490
+And therefore, to get
+the i-th neighbor,
+
+00:32:11.490 --> 00:32:13.770
+I just do Offsets
+of current plus i.
+
+00:32:13.770 --> 00:32:17.400
+That's my index into
+the Edges array.
+
+00:32:17.400 --> 00:32:20.640
+Now I'm going to check if my
+neighbor has been explored yet.
+
+00:32:20.640 --> 00:32:23.430
+And I can check that by
+checking if parent of neighbor
+
+00:32:23.430 --> 00:32:24.780
+is equal to negative 1.
+
+00:32:24.780 --> 00:32:27.560
+If it is, that means I
+haven't explored it yet.
+
+00:32:27.560 --> 00:32:30.930
+And then I'll set a parent
+of neighbor to be current.
+
+00:32:30.930 --> 00:32:34.380
+And then I'll place the neighbor
+onto the back of the queue
+
+00:32:34.380 --> 00:32:37.523
+and increment q_back.
+
+00:32:37.523 --> 00:32:39.690
+And I'm just going to keep
+repeating this while loop
+
+00:32:39.690 --> 00:32:42.450
+until it becomes empty.
+
+00:32:42.450 --> 00:32:44.580
+And here, I'm only generating
+the parent pointers.
+
+00:32:44.580 --> 00:32:46.470
+But I could also
+generate the distances
+
+00:32:46.470 --> 00:32:49.290
+if I wanted to with just
+a slight modification
+
+00:32:49.290 --> 00:32:51.060
+of this code.
+
+00:32:51.060 --> 00:32:53.010
+So any questions on
+how this code works?
+
+00:32:56.906 --> 00:32:58.180
+OK, so here's a question.
+
+00:32:58.180 --> 00:33:00.570
+What's the most expensive
+part of the code?
+
+00:33:00.570 --> 00:33:02.560
+Can you point to one
+particular line here
+
+00:33:02.560 --> 00:33:04.485
+that is the most expensive?
+
+00:33:16.950 --> 00:33:17.450
+Yes.
+
+00:33:17.450 --> 00:33:22.482
+AUDIENCE: I'm going to guess the
+[INAUDIBLE] that's gonna be all
+
+00:33:22.482 --> 00:33:26.060
+over the place in terms
+of memory locations--
+
+00:33:26.060 --> 00:33:28.080
+ngh equals Edges.
+
+00:33:28.080 --> 00:33:30.060
+JULIAN SHUN: OK, so
+actually, it turns out
+
+00:33:30.060 --> 00:33:33.330
+that that's not the most
+expensive part of this code.
+
+00:33:33.330 --> 00:33:35.430
+But you're close.
+
+00:33:35.430 --> 00:33:38.135
+So anyone have any other ideas?
+
+00:33:49.890 --> 00:33:50.390
+Yes.
+
+00:33:50.390 --> 00:33:53.410
+AUDIENCE: Is it looking
+up the parent array?
+
+00:33:53.410 --> 00:33:57.440
+JULIAN SHUN: Yes, so it turns
+out that this line here,
+
+00:33:57.440 --> 00:33:59.690
+where we're accessing
+parent of neighbor,
+
+00:33:59.690 --> 00:34:02.930
+that turns out to be
+the most expensive.
+
+00:34:02.930 --> 00:34:05.773
+Because whenever we
+access this parent array,
+
+00:34:05.773 --> 00:34:07.565
+the neighbor can appear
+anywhere in memory.
+
+00:34:07.565 --> 00:34:10.400
+So that's going to
+be a random access.
+
+00:34:10.400 --> 00:34:12.690
+And if the parent array
+doesn't fit in our cache,
+
+00:34:12.690 --> 00:34:15.679
+then that's going to cost us a
+cache miss almost every time.
+
+00:34:18.409 --> 00:34:22.429
+This Edges array is actually
+mostly accessed sequentially.
+
+00:34:22.429 --> 00:34:25.190
+Because for each
+vertex, all of its edges
+
+00:34:25.190 --> 00:34:27.260
+are stored
+contiguously in memory,
+
+00:34:27.260 --> 00:34:30.530
+we do have one random access
+into the Edges array per vertex
+
+00:34:30.530 --> 00:34:32.630
+because we have to look
+up the starting location
+
+00:34:32.630 --> 00:34:33.590
+for that vertex.
+
+00:34:33.590 --> 00:34:37.639
+But it's not 1 per edge, unlike
+this check of the parent array.
+
+00:34:37.639 --> 00:34:40.659
+That occurs for every edge.
+
+00:34:40.659 --> 00:34:41.659
+So does that make sense?
+
+00:34:44.590 --> 00:34:46.480
+So let's do a
+back-of-the-envelope
+
+00:34:46.480 --> 00:34:49.570
+calculation to figure out how
+many cache misses we would
+
+00:34:49.570 --> 00:34:53.620
+incur, assuming that we
+started with a cold cache.
+
+00:34:53.620 --> 00:34:55.780
+And we also assume
+that n is much larger
+
+00:34:55.780 --> 00:34:57.940
+than the size of the
+cache, so we can't fit
+
+00:34:57.940 --> 00:35:00.190
+any of these arrays into cache.
+
+00:35:00.190 --> 00:35:03.520
+We'll assume that a
+cache line has 64 bytes,
+
+00:35:03.520 --> 00:35:08.120
+and integers are 4 bytes each.
+
+00:35:08.120 --> 00:35:09.430
+So let's try to analyze this.
+
+00:35:09.430 --> 00:35:16.960
+So the initialization will
+cost us n/16 cache misses.
+
+00:35:16.960 --> 00:35:20.710
+And the reason here is that
+we're initializing this array
+
+00:35:20.710 --> 00:35:21.410
+sequentially.
+
+00:35:21.410 --> 00:35:23.260
+So we're accessing
+contiguous locations.
+
+00:35:23.260 --> 00:35:26.920
+And this can take advantage
+of spatial locality.
+
+00:35:26.920 --> 00:35:30.010
+On each cache line, we can
+fit 16 of the integers.
+
+00:35:30.010 --> 00:35:34.150
+So overall, we're going to
+need n/16 cache misses just
+
+00:35:34.150 --> 00:35:35.590
+to initialize this array.
+
+00:35:39.400 --> 00:35:43.270
+We also need n/16 cache misses
+across the entire algorithm
+
+00:35:43.270 --> 00:35:46.900
+to dequeue the vertex from
+the front of the queue.
+
+00:35:46.900 --> 00:35:49.660
+Because again, this is going
+to be a sequential access
+
+00:35:49.660 --> 00:35:51.190
+into this queue array.
+
+00:35:51.190 --> 00:35:53.980
+And across all vertices,
+that's going to be n/16
+
+00:35:53.980 --> 00:35:58.870
+cache misses because we can fit
+16 integers on a cache line.
+
+00:36:01.930 --> 00:36:05.110
+To compute the
+degree here, that's
+
+00:36:05.110 --> 00:36:08.080
+going to take n
+cache misses overall.
+
+00:36:08.080 --> 00:36:11.578
+Because each of these
+accesses to Offsets
+
+00:36:11.578 --> 00:36:13.120
+array is going to
+be a random access.
+
+00:36:13.120 --> 00:36:16.420
+Because we have no idea what
+the value of current here is.
+
+00:36:16.420 --> 00:36:17.900
+It could be anything.
+
+00:36:17.900 --> 00:36:20.200
+So across the entire
+algorithm, we're
+
+00:36:20.200 --> 00:36:23.260
+going to need n cache misses
+to access this Offsets array.
+
+00:36:27.080 --> 00:36:29.770
+And then to access
+this Edges array,
+
+00:36:29.770 --> 00:36:34.450
+I claim that we're going to
+need at most 2n plus m/16 cache
+
+00:36:34.450 --> 00:36:35.170
+misses.
+
+00:36:35.170 --> 00:36:38.050
+So does anyone see where
+that bound comes from?
+
+00:36:54.690 --> 00:36:56.730
+So where does the
+m/16 come from?
+
+00:37:07.490 --> 00:37:07.990
+Yeah.
+
+00:37:07.990 --> 00:37:11.950
+AUDIENCE: You have to access
+that at least once for an edge.
+
+00:37:11.950 --> 00:37:14.810
+JULIAN SHUN: Right, so you
+have to pay m/16 because you're
+
+00:37:14.810 --> 00:37:17.120
+accessing every edge once.
+
+00:37:17.120 --> 00:37:20.060
+And you're accessing
+the Edges contiguously.
+
+00:37:20.060 --> 00:37:21.770
+So therefore, across
+all Edges, that's
+
+00:37:21.770 --> 00:37:24.620
+going to take m/16 cache misses.
+
+00:37:24.620 --> 00:37:27.290
+But we also have to add 2n.
+
+00:37:27.290 --> 00:37:30.740
+Because whenever we access the
+Edges for a particular vertex,
+
+00:37:30.740 --> 00:37:34.340
+the first cache
+line might not only
+
+00:37:34.340 --> 00:37:36.380
+contain that vertex's edges.
+
+00:37:36.380 --> 00:37:37.940
+And similarly, the
+last cache line
+
+00:37:37.940 --> 00:37:40.460
+that we access might
+also not just contain
+
+00:37:40.460 --> 00:37:42.800
+that vertex's edges.
+
+00:37:42.800 --> 00:37:45.320
+So therefore, we're going
+to waste the first cache
+
+00:37:45.320 --> 00:37:48.920
+line and the last cache line in
+the worst case for each vertex.
+
+00:37:48.920 --> 00:37:51.200
+And summed cross all vertices,
+that's going to be 2n.
+
+00:37:51.200 --> 00:37:53.570
+So this is the upper
+bound, 2n plus m/16.
+
+00:37:56.420 --> 00:37:58.130
+Accessing this
+parent array, that's
+
+00:37:58.130 --> 00:38:00.200
+going to be a random
+access every time.
+
+00:38:00.200 --> 00:38:01.700
+So we're going to
+incur a cache miss
+
+00:38:01.700 --> 00:38:03.410
+in the worst case every time.
+
+00:38:03.410 --> 00:38:05.960
+So summed across
+all edge accesses,
+
+00:38:05.960 --> 00:38:08.590
+that's going to
+be m cache misses.
+
+00:38:08.590 --> 00:38:10.090
+And then finally,
+we're going to pay
+
+00:38:10.090 --> 00:38:14.420
+n/16 cache misses to enqueue
+the neighbor onto the queue
+
+00:38:14.420 --> 00:38:18.020
+because these are
+sequential accesses.
+
+00:38:18.020 --> 00:38:22.550
+So in total, we're going
+to incur at most 51/16 n
+
+00:38:22.550 --> 00:38:26.180
+plus 17/16 16 m cache misses.
+
+00:38:26.180 --> 00:38:30.230
+And if m is greater than
+3n, then the second term
+
+00:38:30.230 --> 00:38:31.490
+here is going to dominate.
+
+00:38:31.490 --> 00:38:36.080
+And m is usually greater than
+3n in most real-world graphs.
+
+00:38:36.080 --> 00:38:39.290
+And the second term here is
+dominated by this random access
+
+00:38:39.290 --> 00:38:42.920
+into the parent array.
+
+00:38:42.920 --> 00:38:46.010
+So let's see if we can
+optimize this code so that we
+
+00:38:46.010 --> 00:38:49.190
+get better cache performance.
+
+00:38:49.190 --> 00:38:52.730
+So let's say we could fit a bit
+vector of size n into cache.
+
+00:38:52.730 --> 00:38:55.610
+But we couldn't fit the entire
+parent array into cache.
+
+00:38:55.610 --> 00:38:59.590
+What can we do to reduce
+the number of cache misses?
+
+00:38:59.590 --> 00:39:02.170
+So does anyone have any ideas?
+
+00:39:02.170 --> 00:39:02.852
+Yeah.
+
+00:39:02.852 --> 00:39:07.190
+AUDIENCE: Is bitvector
+to keep track of which
+
+00:39:07.190 --> 00:39:10.082
+vertices of other
+parents then [INAUDIBLE]??
+
+00:39:14.440 --> 00:39:16.760
+JULIAN SHUN: Yeah, so
+that's exactly correct.
+
+00:39:16.760 --> 00:39:19.820
+So we're going to
+use a bit vector
+
+00:39:19.820 --> 00:39:23.120
+to store whether the vertex
+has been explored yet or not.
+
+00:39:23.120 --> 00:39:24.440
+So we only need 1 bit for that.
+
+00:39:24.440 --> 00:39:26.960
+We're not storing the parent
+ID in this bit vector.
+
+00:39:26.960 --> 00:39:29.480
+We're just storing a bit to
+say whether that vertex has
+
+00:39:29.480 --> 00:39:31.640
+been explored yet or not.
+
+00:39:31.640 --> 00:39:34.552
+And then, before we
+check this parent array,
+
+00:39:34.552 --> 00:39:36.260
+we're going to first
+check the bit vector
+
+00:39:36.260 --> 00:39:39.200
+to see if that vertex
+has been explored yet.
+
+00:39:39.200 --> 00:39:41.150
+And if it has been
+explored yet, we
+
+00:39:41.150 --> 00:39:44.270
+don't even need to
+access this parent array.
+
+00:39:44.270 --> 00:39:45.950
+If it hasn't been
+explored, then we
+
+00:39:45.950 --> 00:39:50.270
+won't go ahead and access the
+parent entry of the neighbor.
+
+00:39:50.270 --> 00:39:51.920
+But we only have
+to do this one time
+
+00:39:51.920 --> 00:39:55.880
+for each vertex in the
+graph because we can only
+
+00:39:55.880 --> 00:39:57.360
+visit each vertex once.
+
+00:39:57.360 --> 00:39:59.360
+And therefore, we can
+reduce the number of cache
+
+00:39:59.360 --> 00:40:01.065
+misses from m down to n.
+
+00:40:03.890 --> 00:40:07.130
+So overall, this might improve
+the number of cache misses.
+
+00:40:07.130 --> 00:40:11.720
+In fact, it does if
+the number of edges
+
+00:40:11.720 --> 00:40:15.690
+is large enough relative
+to the number of vertices.
+
+00:40:15.690 --> 00:40:18.140
+However, you do have to do a
+little bit more computation
+
+00:40:18.140 --> 00:40:22.040
+because you have to do bit
+vector manipulation to check
+
+00:40:22.040 --> 00:40:25.250
+this bit vector and then also
+to set the bit vector when
+
+00:40:25.250 --> 00:40:27.680
+you explore a neighbor.
+
+00:40:27.680 --> 00:40:33.320
+So here's the code using
+the bit vector optimization.
+
+00:40:33.320 --> 00:40:36.580
+So here, I'm initializing this
+bit vector called visited.
+
+00:40:36.580 --> 00:40:38.140
+It's of size,
+approximately, n/32.
+
+00:40:40.640 --> 00:40:42.140
+And then I'm setting
+all of the bits
+
+00:40:42.140 --> 00:40:45.560
+to 0, except for the
+source vertex, where
+
+00:40:45.560 --> 00:40:47.120
+I'm going to set its bit to 1.
+
+00:40:47.120 --> 00:40:50.570
+And I'm doing this
+bit calculation here
+
+00:40:50.570 --> 00:40:54.230
+to figure out the bit
+for the source vertex.
+
+00:40:54.230 --> 00:40:57.680
+And then now, when I'm
+trying to visit a neighbor,
+
+00:40:57.680 --> 00:41:00.230
+I'm first going to check
+if the neighbor is visited
+
+00:41:00.230 --> 00:41:02.540
+by checking this bit array.
+
+00:41:02.540 --> 00:41:05.900
+And I can do this using
+this computation here--
+
+00:41:05.900 --> 00:41:09.590
+AND visited of neighbor
+over 32, by this mask--
+
+00:41:09.590 --> 00:41:14.300
+1 left shifted by
+neighbor mod 32.
+
+00:41:14.300 --> 00:41:16.790
+And if that's false,
+that means the neighbor
+
+00:41:16.790 --> 00:41:17.960
+hasn't been visited yet.
+
+00:41:17.960 --> 00:41:20.420
+So I'll go inside
+this IF clause.
+
+00:41:20.420 --> 00:41:22.250
+And then I'll set
+the visited bit
+
+00:41:22.250 --> 00:41:24.380
+to be true using
+this statement here.
+
+00:41:24.380 --> 00:41:27.260
+And then I do the same
+operations as I did before.
+
+00:41:31.220 --> 00:41:32.850
+It turns out that
+this version is
+
+00:41:32.850 --> 00:41:35.370
+faster for large
+enough values of m
+
+00:41:35.370 --> 00:41:38.370
+relative to n because you
+reduce the number of cache
+
+00:41:38.370 --> 00:41:40.350
+misses overall.
+
+00:41:40.350 --> 00:41:44.240
+You still have to do this
+extra computation here,
+
+00:41:44.240 --> 00:41:45.690
+this bit manipulation.
+
+00:41:45.690 --> 00:41:49.050
+But if m is large enough,
+then the reduction
+
+00:41:49.050 --> 00:41:51.180
+in number of cache
+misses outweighs
+
+00:41:51.180 --> 00:41:55.050
+the additional computation
+that you have to do.
+
+00:41:55.050 --> 00:41:55.870
+Any questions?
+
+00:42:04.190 --> 00:42:06.400
+OK, so that was a
+serial implementation
+
+00:42:06.400 --> 00:42:07.600
+of breadth-first search.
+
+00:42:07.600 --> 00:42:10.950
+Now let's look at a
+parallel implementation.
+
+00:42:10.950 --> 00:42:12.670
+So I'm first going
+to do an animation
+
+00:42:12.670 --> 00:42:17.645
+of how a parallel breadth-first
+search algorithm would work.
+
+00:42:17.645 --> 00:42:19.270
+The parallel reference
+search algorithm
+
+00:42:19.270 --> 00:42:22.050
+is going to operate
+on frontiers,
+
+00:42:22.050 --> 00:42:25.540
+where the initial frontier
+contains just a source vertex.
+
+00:42:25.540 --> 00:42:27.010
+And on every
+iteration, I'm going
+
+00:42:27.010 --> 00:42:29.920
+to explore all of the
+vertices on the frontier
+
+00:42:29.920 --> 00:42:31.840
+and then place any
+unexplored neighbors
+
+00:42:31.840 --> 00:42:32.980
+onto the next frontier.
+
+00:42:32.980 --> 00:42:35.400
+And then I move on
+to the next frontier.
+
+00:42:35.400 --> 00:42:36.900
+So in the first
+iteration, I'm going
+
+00:42:36.900 --> 00:42:38.920
+to mark the source
+vertex as explored,
+
+00:42:38.920 --> 00:42:41.050
+set its distance to
+be 0, and then place
+
+00:42:41.050 --> 00:42:45.100
+the neighbors of that source
+vertex onto the next frontier.
+
+00:42:45.100 --> 00:42:48.190
+In the next iteration, I'm
+going to do the same thing, set
+
+00:42:48.190 --> 00:42:49.520
+these distances to 1.
+
+00:42:49.520 --> 00:42:51.820
+I also am going to
+generate a parent pointer
+
+00:42:51.820 --> 00:42:53.590
+for each of these vertices.
+
+00:42:53.590 --> 00:42:56.330
+And this parent should come
+from the previous frontier,
+
+00:42:56.330 --> 00:42:58.833
+and it should be a
+neighbor of the vertex.
+
+00:42:58.833 --> 00:43:00.250
+And here, there's
+only one option,
+
+00:43:00.250 --> 00:43:02.480
+which is the source vertex.
+
+00:43:02.480 --> 00:43:04.692
+So I'll just pick
+that as the parent.
+
+00:43:04.692 --> 00:43:06.400
+And then I'm going to
+place the neighbors
+
+00:43:06.400 --> 00:43:10.000
+onto the next frontier again,
+mark those as explored,
+
+00:43:10.000 --> 00:43:12.520
+set their distances,
+and generate a parent
+
+00:43:12.520 --> 00:43:14.678
+pointer again.
+
+00:43:14.678 --> 00:43:16.720
+And notice here, when I'm
+generating these parent
+
+00:43:16.720 --> 00:43:18.580
+pointers, there's actually
+more than one choice
+
+00:43:18.580 --> 00:43:19.750
+for some of these vertices.
+
+00:43:19.750 --> 00:43:21.708
+And this is because there
+are multiple vertices
+
+00:43:21.708 --> 00:43:23.630
+on the previous frontier.
+
+00:43:23.630 --> 00:43:26.170
+And some of them explored
+the same neighbor
+
+00:43:26.170 --> 00:43:28.160
+on the current frontier.
+
+00:43:28.160 --> 00:43:30.310
+So a parallel
+implementation has to be
+
+00:43:30.310 --> 00:43:32.440
+aware of this potential race.
+
+00:43:32.440 --> 00:43:36.890
+Here, I'm just picking
+an arbitrary parent.
+
+00:43:36.890 --> 00:43:38.950
+So as we see here,
+you can process each
+
+00:43:38.950 --> 00:43:40.345
+of these frontiers in parallel.
+
+00:43:40.345 --> 00:43:42.970
+So you can parallelize over all
+of the vertices on the frontier
+
+00:43:42.970 --> 00:43:45.070
+as well as all of
+their outgoing edges.
+
+00:43:45.070 --> 00:43:47.530
+However, you do need to
+process one frontier before you
+
+00:43:47.530 --> 00:43:52.530
+move on to the next one
+in this BFS algorithm.
+
+00:43:52.530 --> 00:43:54.130
+And a parallel
+implementation has
+
+00:43:54.130 --> 00:43:56.920
+to be aware of potential races.
+
+00:43:56.920 --> 00:43:59.895
+So as I said earlier, we
+could have multiple vertices
+
+00:43:59.895 --> 00:44:02.020
+on the frontier trying to
+visit the same neighbors.
+
+00:44:02.020 --> 00:44:04.660
+So somehow, that
+has to be resolved.
+
+00:44:04.660 --> 00:44:07.060
+And also, the amount of
+work on each frontier
+
+00:44:07.060 --> 00:44:11.380
+is changing throughout the
+course of the algorithm.
+
+00:44:11.380 --> 00:44:13.420
+So you have to be careful
+with load balancing.
+
+00:44:13.420 --> 00:44:15.790
+Because you have to make
+sure that the amount of work
+
+00:44:15.790 --> 00:44:20.133
+each processor has to
+do is about the same.
+
+00:44:20.133 --> 00:44:21.550
+If you use Cilk
+to implement this,
+
+00:44:21.550 --> 00:44:24.190
+then load balancing doesn't
+really become a problem.
+
+00:44:28.140 --> 00:44:30.440
+So any questions on
+the BFS algorithm
+
+00:44:30.440 --> 00:44:31.940
+before I go over the code?
+
+00:44:36.010 --> 00:44:39.210
+OK, so here's the actual code.
+
+00:44:39.210 --> 00:44:43.160
+And here I'm going to
+initialize these four arrays, so
+
+00:44:43.160 --> 00:44:45.990
+the parent array, which
+is the same as before.
+
+00:44:45.990 --> 00:44:48.230
+I'm going to have an array
+called frontier, which
+
+00:44:48.230 --> 00:44:50.462
+stores the current frontier.
+
+00:44:50.462 --> 00:44:51.920
+And then I'm going
+to have an array
+
+00:44:51.920 --> 00:44:54.320
+called frontierNext,
+which is a temporary array
+
+00:44:54.320 --> 00:44:57.650
+that I use to store the
+next frontier of the BFS.
+
+00:44:57.650 --> 00:44:59.525
+And then also I have an
+array called degrees.
+
+00:45:02.128 --> 00:45:04.170
+I'm going to initialize
+all of the parent entries
+
+00:45:04.170 --> 00:45:05.045
+to be negative 1.
+
+00:45:05.045 --> 00:45:08.370
+I do that using a cilk_for loop.
+
+00:45:08.370 --> 00:45:12.870
+I'm going to place the source
+vertex at the 0-th index
+
+00:45:12.870 --> 00:45:14.210
+of the frontier.
+
+00:45:14.210 --> 00:45:15.960
+I'll set the
+frontierSize to be 1.
+
+00:45:15.960 --> 00:45:19.530
+And then I set the parent of the
+source to be the source itself.
+
+00:45:19.530 --> 00:45:21.490
+While the frontierSize
+is greater than 0,
+
+00:45:21.490 --> 00:45:24.310
+that means I still
+have more work to do.
+
+00:45:24.310 --> 00:45:26.530
+I'm going to first
+iterate over all
+
+00:45:26.530 --> 00:45:29.700
+of the vertices on my frontier
+in parallel using a cilk_for
+
+00:45:29.700 --> 00:45:30.420
+loop.
+
+00:45:30.420 --> 00:45:34.680
+And then I'll set the i-th
+entry of the degrees array
+
+00:45:34.680 --> 00:45:38.220
+to be the degree of the
+i-th vertex on the frontier.
+
+00:45:38.220 --> 00:45:40.620
+And I can do this just
+using the difference
+
+00:45:40.620 --> 00:45:43.950
+between consecutive offsets.
+
+00:45:43.950 --> 00:45:46.950
+And then I'm going to perform
+a prefix sum on this degrees
+
+00:45:46.950 --> 00:45:47.850
+array.
+
+00:45:47.850 --> 00:45:51.420
+And we'll see in a minute why
+I'm doing this prefix sum.
+
+00:45:51.420 --> 00:45:54.510
+But first of all, does anybody
+recall what prefix sum is?
+
+00:46:03.140 --> 00:46:04.730
+So who knows what prefix sum is?
+
+00:46:08.750 --> 00:46:10.230
+Do you want to
+tell us what it is?
+
+00:46:10.230 --> 00:46:13.610
+AUDIENCE: That's the sum array
+where index i is the sum of
+
+00:46:13.610 --> 00:46:15.910
+[INAUDIBLE].
+
+00:46:15.910 --> 00:46:17.680
+JULIAN SHUN: Yeah,
+so prefix sum--
+
+00:46:20.680 --> 00:46:24.530
+so here I'm going to demonstrate
+this with an example.
+
+00:46:24.530 --> 00:46:27.430
+So let's say this
+is our input array.
+
+00:46:27.430 --> 00:46:31.360
+The output of this array
+would store for each location
+
+00:46:31.360 --> 00:46:34.730
+the sum of everything before
+that location in the input
+
+00:46:34.730 --> 00:46:35.230
+array.
+
+00:46:35.230 --> 00:46:38.860
+So here we see that the first
+position has a value of 0
+
+00:46:38.860 --> 00:46:40.700
+because a sum of
+everything before it is 0.
+
+00:46:40.700 --> 00:46:43.210
+There's nothing before
+it in the input.
+
+00:46:43.210 --> 00:46:45.250
+The second position
+has a value of 2
+
+00:46:45.250 --> 00:46:48.280
+because the sum of
+everything before it is just
+
+00:46:48.280 --> 00:46:49.840
+the first location.
+
+00:46:49.840 --> 00:46:51.850
+The third location
+has a value of 6
+
+00:46:51.850 --> 00:46:54.430
+because the sum of
+everything before it is 2
+
+00:46:54.430 --> 00:46:57.590
+plus 4, which is 6, and so on.
+
+00:46:57.590 --> 00:47:00.730
+So I believe this was on one
+of your homework assignments.
+
+00:47:00.730 --> 00:47:04.270
+So hopefully, everyone
+knows what prefix sum is.
+
+00:47:04.270 --> 00:47:06.550
+And later on, we'll
+see how we use
+
+00:47:06.550 --> 00:47:10.110
+this to do the parallel
+breadth-first search.
+
+00:47:10.110 --> 00:47:14.080
+OK, so I'm going to do a prefix
+sum on this degrees array.
+
+00:47:14.080 --> 00:47:19.550
+And then I'm going to loop over
+my frontier again in parallel.
+
+00:47:19.550 --> 00:47:22.810
+I'm going to let v be the
+i-th vertex on the frontier.
+
+00:47:22.810 --> 00:47:25.630
+Index is going to be
+equal to degrees of i.
+
+00:47:25.630 --> 00:47:29.200
+And then my degree is
+going to be Offsets of v
+
+00:47:29.200 --> 00:47:33.270
+plus 1 minus Offsets of v.
+
+00:47:33.270 --> 00:47:36.910
+Now I'm going to loop
+through all v's neighbors.
+
+00:47:36.910 --> 00:47:38.650
+And here I just have
+a serial for loop.
+
+00:47:38.650 --> 00:47:40.870
+But you could actually
+parallelize this for loop.
+
+00:47:40.870 --> 00:47:44.470
+It turns out that if the number
+of iterations in the for loop
+
+00:47:44.470 --> 00:47:46.720
+is small enough, there's
+additional overhead
+
+00:47:46.720 --> 00:47:49.630
+to making this parallel, so I
+just made it serial for now.
+
+00:47:49.630 --> 00:47:52.450
+But you could make it parallel.
+
+00:47:52.450 --> 00:47:55.860
+To get the neighbor, I just
+index into this Edges array.
+
+00:47:55.860 --> 00:47:57.850
+I look at Offsets of v plus j.
+
+00:48:00.812 --> 00:48:02.770
+Then now I'm going to
+check if the neighbor has
+
+00:48:02.770 --> 00:48:04.030
+been explored yet.
+
+00:48:04.030 --> 00:48:05.630
+And I can check if
+parent of neighbor
+
+00:48:05.630 --> 00:48:07.928
+is equal to negative 1.
+
+00:48:07.928 --> 00:48:09.970
+So that means it hasn't
+been explored yet, so I'm
+
+00:48:09.970 --> 00:48:11.320
+going to try to explore it.
+
+00:48:11.320 --> 00:48:13.780
+And I do so using
+a compare-and-swap.
+
+00:48:13.780 --> 00:48:16.240
+I'm going to try to
+swap in the value of v
+
+00:48:16.240 --> 00:48:18.790
+with the original
+value of negative 1
+
+00:48:18.790 --> 00:48:21.180
+in parent of neighbor.
+
+00:48:21.180 --> 00:48:22.570
+And the compare-and-swap
+is going
+
+00:48:22.570 --> 00:48:26.540
+to return true if it was
+successful and false otherwise.
+
+00:48:26.540 --> 00:48:28.360
+And if it returns
+true, that means
+
+00:48:28.360 --> 00:48:31.522
+this vertex becomes the
+parent of this neighbor.
+
+00:48:31.522 --> 00:48:32.980
+And then I'll place
+the neighbor on
+
+00:48:32.980 --> 00:48:35.695
+to frontierNext at
+this particular index--
+
+00:48:35.695 --> 00:48:36.980
+index plus j.
+
+00:48:36.980 --> 00:48:41.870
+And otherwise, I'll set a
+negative 1 at that location.
+
+00:48:41.870 --> 00:48:45.710
+OK, so let's see why I'm
+using index plus j here.
+
+00:48:45.710 --> 00:48:48.850
+So here's how
+frontierNext is organized.
+
+00:48:48.850 --> 00:48:51.190
+So each vertex on
+the frontier owns
+
+00:48:51.190 --> 00:48:55.060
+a subset of these locations
+in the frontierNext array.
+
+00:48:55.060 --> 00:48:58.320
+And these are all
+contiguous memory locations.
+
+00:48:58.320 --> 00:49:00.220
+And it turns out that
+the starting location
+
+00:49:00.220 --> 00:49:03.160
+for each of these vertices
+in this frontierNext array
+
+00:49:03.160 --> 00:49:07.150
+is exactly the value in this
+prefix sum array up here.
+
+00:49:07.150 --> 00:49:10.780
+So vertex 1 has its first
+location at index 0.
+
+00:49:10.780 --> 00:49:13.750
+Vertex 2 has its first
+location at index 2.
+
+00:49:13.750 --> 00:49:18.260
+Vertex 3 has its first
+location at index 6, and so on.
+
+00:49:18.260 --> 00:49:21.070
+So by using a prefix
+sum, I can guarantee
+
+00:49:21.070 --> 00:49:24.910
+that all of these vertices
+have a disjoint subarray
+
+00:49:24.910 --> 00:49:26.200
+in this frontierNext array.
+
+00:49:26.200 --> 00:49:29.140
+And then they can all write
+to this frontierNext array
+
+00:49:29.140 --> 00:49:32.560
+in parallel without any races.
+
+00:49:32.560 --> 00:49:35.880
+And index plus j just
+gives us the right location
+
+00:49:35.880 --> 00:49:37.490
+to write to in this array.
+
+00:49:37.490 --> 00:49:40.300
+So index is the
+starting location,
+
+00:49:40.300 --> 00:49:42.290
+and then j is for
+the j-th neighbor.
+
+00:49:45.160 --> 00:49:48.310
+So here is one potential
+output after we write
+
+00:49:48.310 --> 00:49:50.260
+to this frontierNext array.
+
+00:49:50.260 --> 00:49:52.970
+So we have some
+non-negative values.
+
+00:49:52.970 --> 00:49:55.840
+And these are vertices that
+we explored in this iteration.
+
+00:49:55.840 --> 00:49:58.180
+We also have some
+negative 1 values.
+
+00:49:58.180 --> 00:50:01.300
+And the negative 1 here means
+that either the vertex has
+
+00:50:01.300 --> 00:50:03.760
+already been explored
+in a previous iteration,
+
+00:50:03.760 --> 00:50:06.190
+or we tried to explore it
+in the current iteration,
+
+00:50:06.190 --> 00:50:08.020
+but somebody else
+got there before us.
+
+00:50:08.020 --> 00:50:10.623
+Because somebody else is
+doing the compare-and-swap
+
+00:50:10.623 --> 00:50:13.165
+at the same time, and they could
+have finished before we did,
+
+00:50:13.165 --> 00:50:15.960
+so we failed on the
+compare-and-swap.
+
+00:50:15.960 --> 00:50:18.820
+So we don't actually want these
+negative 1 values, so we're
+
+00:50:18.820 --> 00:50:20.530
+going to filter them out.
+
+00:50:20.530 --> 00:50:24.160
+And we can filter them out
+using a prefix sum again.
+
+00:50:24.160 --> 00:50:27.070
+And this is going to
+give us a new frontier.
+
+00:50:27.070 --> 00:50:29.680
+And we'll set the
+frontierSize equal to the size
+
+00:50:29.680 --> 00:50:30.940
+of this new frontier.
+
+00:50:30.940 --> 00:50:32.530
+And then we repeat
+this while loop
+
+00:50:32.530 --> 00:50:34.960
+until there are no more
+vertices on the frontier.
+
+00:50:38.060 --> 00:50:41.590
+So any questions on this
+parallel BFS algorithm?
+
+00:50:50.420 --> 00:50:51.470
+Yeah.
+
+00:50:51.470 --> 00:50:54.410
+AUDIENCE: Can you go over
+like the last [INAUDIBLE]??
+
+00:50:57.243 --> 00:50:58.910
+JULIAN SHUN: Do you
+mean the filter out?
+
+00:50:58.910 --> 00:50:59.780
+AUDIENCE: Yeah.
+
+00:50:59.780 --> 00:51:02.240
+JULIAN SHUN: Yeah,
+so what you can do
+
+00:51:02.240 --> 00:51:06.500
+is, you can create another
+array, which stores a 1
+
+00:51:06.500 --> 00:51:11.480
+in location i if that location
+is not a negative 1 and 0
+
+00:51:11.480 --> 00:51:12.710
+if it is a negative 1.
+
+00:51:12.710 --> 00:51:14.430
+Then you do a prefix
+sum on that array,
+
+00:51:14.430 --> 00:51:17.070
+which gives us unique
+offsets into an output array.
+
+00:51:17.070 --> 00:51:21.170
+So then everybody just looks
+at the prefix sum array there.
+
+00:51:21.170 --> 00:51:23.320
+And then it writes
+to the output array.
+
+00:51:23.320 --> 00:51:26.540
+So it might be easier if I
+tried to draw this on the board.
+
+00:51:40.950 --> 00:51:44.730
+OK, so let's say we have
+an array of size 5 here.
+
+00:51:44.730 --> 00:51:46.230
+So what I'm going
+to do is I'm going
+
+00:51:46.230 --> 00:51:49.440
+to generate another
+array which stores
+
+00:51:49.440 --> 00:51:54.300
+a 1 if the value in the
+corresponding location
+
+00:51:54.300 --> 00:51:56.778
+is not a negative
+1 and 0 otherwise.
+
+00:52:00.770 --> 00:52:04.170
+And then I do a prefix
+sum on this array here.
+
+00:52:04.170 --> 00:52:15.300
+And this gives me
+0, 1, 1, 2, and 2.
+
+00:52:15.300 --> 00:52:20.100
+And now each of these values
+that are not negative 1,
+
+00:52:20.100 --> 00:52:22.710
+they can just look up
+the corresponding index
+
+00:52:22.710 --> 00:52:24.060
+in this output array.
+
+00:52:24.060 --> 00:52:28.620
+And this gives us a unique
+index into an output array.
+
+00:52:28.620 --> 00:52:31.530
+So this element will
+write to position 0,
+
+00:52:31.530 --> 00:52:33.210
+this element would
+write to position 1,
+
+00:52:33.210 --> 00:52:38.320
+and this element would write to
+position 2 in my final output.
+
+00:52:38.320 --> 00:52:39.960
+So this would be
+my final frontier.
+
+00:52:51.155 --> 00:52:52.030
+Does that make sense?
+
+00:52:58.440 --> 00:53:02.570
+OK, so let's now
+analyze the working span
+
+00:53:02.570 --> 00:53:06.410
+of this parallel BFS algorithm.
+
+00:53:06.410 --> 00:53:09.830
+So a number of iterations
+required by the BFS algorithm
+
+00:53:09.830 --> 00:53:12.880
+is upper-bounded by the
+diameter D of the graph.
+
+00:53:12.880 --> 00:53:17.120
+And the diameter of a graph
+is just the maximum shortest
+
+00:53:17.120 --> 00:53:19.682
+path between any pair of
+vertices in the graph.
+
+00:53:19.682 --> 00:53:21.890
+And that's an upper bound
+on the number of iterations
+
+00:53:21.890 --> 00:53:23.720
+we need to do.
+
+00:53:23.720 --> 00:53:26.330
+Each iteration is
+going to take a log m
+
+00:53:26.330 --> 00:53:30.275
+span for the clik_for loops,
+the prefix sum, and the filter.
+
+00:53:30.275 --> 00:53:32.150
+And this is also assuming
+that the inner loop
+
+00:53:32.150 --> 00:53:36.690
+is parallelized, the inner loop
+over the neighbors of a vertex.
+
+00:53:36.690 --> 00:53:39.420
+So to get the span, we just
+multiply these two terms.
+
+00:53:39.420 --> 00:53:43.820
+So we get theta of
+D times log m span.
+
+00:53:43.820 --> 00:53:45.870
+What about the work?
+
+00:53:45.870 --> 00:53:47.750
+So to compute the work,
+we have to figure out
+
+00:53:47.750 --> 00:53:50.960
+how much work we're doing
+per vertex and per edge.
+
+00:53:50.960 --> 00:53:53.300
+So first, notice that
+the sum of the frontier
+
+00:53:53.300 --> 00:53:55.370
+sizes across entire
+algorithm is going
+
+00:53:55.370 --> 00:53:58.365
+to be n because each vertex
+can be on the frontier at most
+
+00:53:58.365 --> 00:53:58.865
+once.
+
+00:54:01.490 --> 00:54:04.340
+Also, each edge is going to
+be traversed exactly once.
+
+00:54:04.340 --> 00:54:06.560
+So that leads to m
+total edge visits.
+
+00:54:09.662 --> 00:54:11.120
+On each iteration
+of the algorithm,
+
+00:54:11.120 --> 00:54:12.980
+we're doing a prefix sum.
+
+00:54:12.980 --> 00:54:15.020
+And the cost of
+this prefix sum is
+
+00:54:15.020 --> 00:54:17.600
+going to be proportional
+to the frontier size.
+
+00:54:17.600 --> 00:54:20.660
+So summed across all iterations,
+the cost of the prefix
+
+00:54:20.660 --> 00:54:23.540
+sum is going to be theta of n.
+
+00:54:23.540 --> 00:54:25.340
+We also have to do this filter.
+
+00:54:25.340 --> 00:54:27.860
+But the work of the filter
+is proportional to the number
+
+00:54:27.860 --> 00:54:30.400
+of edges traversed
+in that iteration.
+
+00:54:30.400 --> 00:54:32.120
+And summed across all
+iterations, that's
+
+00:54:32.120 --> 00:54:34.610
+going to give theta of m total.
+
+00:54:34.610 --> 00:54:36.200
+So overall, the
+work is going to be
+
+00:54:36.200 --> 00:54:39.770
+theta of n plus m for this
+parallel BFS algorithm.
+
+00:54:39.770 --> 00:54:41.450
+So this is a
+work-efficient algorithm.
+
+00:54:41.450 --> 00:54:45.810
+The work matches out
+the serial algorithm.
+
+00:54:45.810 --> 00:54:47.360
+Any questions on the analysis?
+
+00:54:53.780 --> 00:54:56.850
+OK, so let's look at
+how this parallel BFS
+
+00:54:56.850 --> 00:54:59.880
+algorithm runs in practice.
+
+00:54:59.880 --> 00:55:03.000
+So here, I ran some
+experiments on a random graph
+
+00:55:03.000 --> 00:55:06.660
+with 10 million vertices
+and 100 million edges.
+
+00:55:06.660 --> 00:55:08.670
+And the edges were
+randomly generated.
+
+00:55:08.670 --> 00:55:12.050
+And I made sure that
+each vertex had 10 edges.
+
+00:55:12.050 --> 00:55:14.160
+I ran experiments
+on a 40-core machine
+
+00:55:14.160 --> 00:55:16.063
+with 2-way hyperthreading.
+
+00:55:16.063 --> 00:55:17.730
+Does anyone know what
+hyperthreading is?
+
+00:55:21.510 --> 00:55:22.700
+Yeah, what is it?
+
+00:55:22.700 --> 00:55:24.850
+AUDIENCE: It's when you
+have like one CPU core that
+
+00:55:24.850 --> 00:55:28.670
+can execute two instruction
+screens at the same time
+
+00:55:28.670 --> 00:55:30.787
+so it can [INAUDIBLE]
+high number latency.
+
+00:55:30.787 --> 00:55:32.620
+JULIAN SHUN: Yeah, so
+that's a great answer.
+
+00:55:32.620 --> 00:55:35.100
+So hyperthreading is
+an Intel technology
+
+00:55:35.100 --> 00:55:38.320
+where for each physical core,
+the operating system actually
+
+00:55:38.320 --> 00:55:40.450
+sees it as two logical cores.
+
+00:55:40.450 --> 00:55:42.100
+They share many of
+the same resources,
+
+00:55:42.100 --> 00:55:43.517
+but they have their
+own registers.
+
+00:55:43.517 --> 00:55:46.360
+So if one of the logical
+cores stalls on a long latency
+
+00:55:46.360 --> 00:55:48.610
+operation, the
+other logical core
+
+00:55:48.610 --> 00:55:53.870
+can use the shared resources
+and hide some of the latency.
+
+00:55:53.870 --> 00:55:56.800
+OK, so here I am
+plotting the speedup
+
+00:55:56.800 --> 00:56:00.670
+over the single-threaded time
+of the parallel algorithm
+
+00:56:00.670 --> 00:56:02.660
+versus the number of threads.
+
+00:56:02.660 --> 00:56:04.900
+So we see that on
+40 threads, we get
+
+00:56:04.900 --> 00:56:08.380
+a speedup of about 22 or 23X.
+
+00:56:08.380 --> 00:56:09.970
+And when we turn
+on hyperthreading
+
+00:56:09.970 --> 00:56:13.750
+and use all 80 threads, the
+speedup is about 32 times
+
+00:56:13.750 --> 00:56:14.650
+on 40 cores.
+
+00:56:14.650 --> 00:56:18.280
+And this is actually pretty good
+for a parallel graph algorithm.
+
+00:56:18.280 --> 00:56:20.530
+It's very hard to get
+very good speedups
+
+00:56:20.530 --> 00:56:23.350
+on these irregular
+graph algorithms.
+
+00:56:23.350 --> 00:56:26.590
+So 32X on 40 cores
+is pretty good.
+
+00:56:26.590 --> 00:56:29.200
+I also compared this to
+the serial BFS algorithm
+
+00:56:29.200 --> 00:56:30.700
+because that's
+what we ultimately
+
+00:56:30.700 --> 00:56:32.440
+want to compare against.
+
+00:56:32.440 --> 00:56:38.610
+So we see that on 80 threads,
+the speedup over the serial BFS
+
+00:56:38.610 --> 00:56:42.250
+is about 21, 22X.
+
+00:56:42.250 --> 00:56:47.650
+And the serial BFS is 54%
+faster than the parallel BFS
+
+00:56:47.650 --> 00:56:49.870
+on one thread.
+
+00:56:49.870 --> 00:56:52.960
+This is because it's doing less
+work than the parallel version.
+
+00:56:52.960 --> 00:56:55.570
+The parallel version has to
+do actual work with the prefix
+
+00:56:55.570 --> 00:56:57.910
+sum in the filter, whereas
+the serial version doesn't
+
+00:56:57.910 --> 00:57:00.550
+have to do that.
+
+00:57:00.550 --> 00:57:02.830
+But overall, the
+parallel implementation
+
+00:57:02.830 --> 00:57:05.050
+is still pretty good.
+
+00:57:05.050 --> 00:57:05.850
+OK, questions?
+
+00:57:16.990 --> 00:57:22.110
+So a couple of lectures
+ago, we saw this slide here.
+
+00:57:22.110 --> 00:57:23.790
+So Charles told
+us never to write
+
+00:57:23.790 --> 00:57:27.060
+nondeterministic parallel
+programs because it's
+
+00:57:27.060 --> 00:57:29.340
+very hard to debug these
+programs and hard to reason
+
+00:57:29.340 --> 00:57:31.080
+about them.
+
+00:57:31.080 --> 00:57:34.230
+So is there nondeterminism
+in this BFS code
+
+00:57:34.230 --> 00:57:35.050
+that we looked at?
+
+00:57:37.896 --> 00:57:39.271
+AUDIENCE: You have
+nondeterminism
+
+00:57:39.271 --> 00:57:40.210
+in the compare-and-swap.
+
+00:57:40.210 --> 00:57:42.043
+JULIAN SHUN: Yeah, so
+there's nondeterminism
+
+00:57:42.043 --> 00:57:44.740
+in the compare-and-swap.
+
+00:57:44.740 --> 00:57:46.015
+So let's go back to the code.
+
+00:57:48.880 --> 00:57:50.560
+So this compare-and-swap
+here, there's
+
+00:57:50.560 --> 00:57:54.820
+a race there because we get
+multiple vertices trying
+
+00:57:54.820 --> 00:57:58.270
+to write to the parent entry of
+the neighbor at the same time.
+
+00:57:58.270 --> 00:58:00.800
+And the one that wins
+is nondeterministic.
+
+00:58:00.800 --> 00:58:04.107
+So the BFS tree that you get
+at the end is nondeterministic.
+
+00:58:08.580 --> 00:58:15.510
+OK, so let's see how we can
+try to fix this nondeterminism.
+
+00:58:15.510 --> 00:58:17.640
+OK so, as we said,
+this is a line
+
+00:58:17.640 --> 00:58:22.800
+that causes the nondeterminism.
+
+00:58:22.800 --> 00:58:27.360
+It turns out that we can
+actually make the output BFS
+
+00:58:27.360 --> 00:58:30.540
+tree, be deterministic
+by going over
+
+00:58:30.540 --> 00:58:33.990
+the outgoing edges in each
+iteration in two phases.
+
+00:58:33.990 --> 00:58:37.830
+So how this works is
+that in the first phase,
+
+00:58:37.830 --> 00:58:40.200
+the vertices on the
+frontier are not actually
+
+00:58:40.200 --> 00:58:42.210
+going to write to
+the parent array.
+
+00:58:42.210 --> 00:58:43.960
+Or they are going to
+write, but they're
+
+00:58:43.960 --> 00:58:48.210
+going to be using this
+writeMin operator.
+
+00:58:48.210 --> 00:58:51.120
+And the writeMin operator
+is an atomic operation
+
+00:58:51.120 --> 00:58:53.250
+that guarantees that we
+have concurrent writes
+
+00:58:53.250 --> 00:58:54.370
+to the same location.
+
+00:58:54.370 --> 00:58:57.090
+The smallest value
+gets written there.
+
+00:58:57.090 --> 00:58:58.590
+So the value that
+gets written there
+
+00:58:58.590 --> 00:58:59.760
+is going to be deterministic.
+
+00:58:59.760 --> 00:59:01.260
+It's always going
+to be the smallest
+
+00:59:01.260 --> 00:59:03.990
+one that tries to write there.
+
+00:59:03.990 --> 00:59:06.942
+Then in the second
+phase, each vertex
+
+00:59:06.942 --> 00:59:08.400
+is going to check
+for each neighbor
+
+00:59:08.400 --> 00:59:12.390
+whether a parent of neighbor
+is equal to v. If it is,
+
+00:59:12.390 --> 00:59:14.940
+that means it was the vertex
+that successfully wrote
+
+00:59:14.940 --> 00:59:17.550
+to parent of neighbor
+in the first phase.
+
+00:59:17.550 --> 00:59:20.490
+And therefore, it's going to
+be responsible for placing
+
+00:59:20.490 --> 00:59:24.030
+this neighbor onto
+the next frontier.
+
+00:59:24.030 --> 00:59:26.100
+And we're also going to
+set parent of neighbor
+
+00:59:26.100 --> 00:59:29.950
+to be negative v. This
+is just a minor detail.
+
+00:59:29.950 --> 00:59:34.110
+And this is because when we're
+doing this writeMin operator,
+
+00:59:34.110 --> 00:59:36.870
+we could have a future iteration
+where a lower vertex tries
+
+00:59:36.870 --> 00:59:39.270
+to visit the same vertex
+that we already explored.
+
+00:59:39.270 --> 00:59:41.297
+But if we set this
+to a negative value,
+
+00:59:41.297 --> 00:59:43.380
+we're only going to be
+writing non-negative values
+
+00:59:43.380 --> 00:59:44.560
+to this location.
+
+00:59:44.560 --> 00:59:48.232
+So the writeMin on a neighbor
+that has already been explored
+
+00:59:48.232 --> 00:59:49.065
+would never succeed.
+
+00:59:52.420 --> 00:59:58.120
+OK, so the final BFS tree
+that's generated by this code
+
+00:59:58.120 --> 01:00:00.800
+is always going to be the
+same every time you run it.
+
+01:00:00.800 --> 01:00:03.070
+I want to point out
+that this code is still
+
+01:00:03.070 --> 01:00:05.140
+notdeterministic with
+respect to the order
+
+01:00:05.140 --> 01:00:07.610
+in which individual memory
+locations get updated.
+
+01:00:07.610 --> 01:00:10.210
+So you still have a
+deterministic race here
+
+01:00:10.210 --> 01:00:11.380
+in the writeMin operator.
+
+01:00:11.380 --> 01:00:14.240
+But it's still better than
+a nondeterministic code
+
+01:00:14.240 --> 01:00:17.770
+in that you always
+get the same BFS tree.
+
+01:00:17.770 --> 01:00:21.037
+So how do you actually implement
+the writeMin operation?
+
+01:00:21.037 --> 01:00:22.870
+So it turns out you can
+implement this using
+
+01:00:22.870 --> 01:00:25.900
+a loop with a compare-and-swap.
+
+01:00:25.900 --> 01:00:28.840
+So writeMin takes as
+input two arguments--
+
+01:00:28.840 --> 01:00:31.060
+the memory address that
+we're trying to update
+
+01:00:31.060 --> 01:00:34.150
+and the new value that we
+want to write to that address.
+
+01:00:34.150 --> 01:00:36.670
+We're first going to set
+oldval equal to the value
+
+01:00:36.670 --> 01:00:38.560
+at that memory address.
+
+01:00:38.560 --> 01:00:40.990
+And we're going to check if
+newval is less than oldval.
+
+01:00:40.990 --> 01:00:42.640
+If it is, then we're
+going to attempt
+
+01:00:42.640 --> 01:00:45.580
+to do a compare-and-swap
+at that location,
+
+01:00:45.580 --> 01:00:49.210
+writing newval into that
+address if its initial value
+
+01:00:49.210 --> 01:00:50.350
+was oldval.
+
+01:00:50.350 --> 01:00:52.540
+And if that succeeds,
+then we return.
+
+01:00:52.540 --> 01:00:54.130
+Otherwise, we failed.
+
+01:00:54.130 --> 01:00:56.380
+And that means that somebody
+else came in the meantime
+
+01:00:56.380 --> 01:00:58.060
+and changed the value there.
+
+01:00:58.060 --> 01:01:00.770
+And therefore, we have
+to reread the old value
+
+01:01:00.770 --> 01:01:01.750
+at the memory address.
+
+01:01:01.750 --> 01:01:04.090
+And then we repeat.
+
+01:01:04.090 --> 01:01:07.840
+And there are two ways that this
+writeMin operator could finish.
+
+01:01:07.840 --> 01:01:10.840
+One is if the compare-and-swap
+was successful.
+
+01:01:10.840 --> 01:01:15.100
+The other one is if
+newval is greater than
+
+01:01:15.100 --> 01:01:16.180
+or equal to oldval.
+
+01:01:16.180 --> 01:01:18.700
+In that case, we no longer
+have to try to write anymore
+
+01:01:18.700 --> 01:01:22.013
+because the value that's there
+is already smaller than what
+
+01:01:22.013 --> 01:01:22.930
+we're trying to write.
+
+01:01:25.690 --> 01:01:29.440
+So I implemented an
+optimized version
+
+01:01:29.440 --> 01:01:32.440
+of this deterministic
+parallel BFS code
+
+01:01:32.440 --> 01:01:35.470
+and compared it to the
+nondeterministic version.
+
+01:01:35.470 --> 01:01:37.450
+And it turns out
+on 32 cores, it's
+
+01:01:37.450 --> 01:01:40.090
+only a little bit slower than
+the nondeterministic version.
+
+01:01:40.090 --> 01:01:44.060
+So it's about 5% to 20% slower
+on a range of different input
+
+01:01:44.060 --> 01:01:44.560
+graphs.
+
+01:01:44.560 --> 01:01:47.770
+So this is a pretty small
+price to pay for determinism.
+
+01:01:47.770 --> 01:01:51.160
+And you get many nice
+benefits, such as ease
+
+01:01:51.160 --> 01:01:54.310
+of debugging and ease of
+reasoning about the performance
+
+01:01:54.310 --> 01:01:57.070
+of your code.
+
+01:01:57.070 --> 01:01:58.030
+Any questions?
+
+01:02:05.690 --> 01:02:09.940
+OK, so let me talk about
+another optimization
+
+01:02:09.940 --> 01:02:12.040
+for breadth-first search.
+
+01:02:12.040 --> 01:02:15.550
+And this is called the
+direction optimization.
+
+01:02:15.550 --> 01:02:19.570
+And the idea is motivated by
+how the sizes of the frontiers
+
+01:02:19.570 --> 01:02:23.680
+change in a typical BFS
+algorithm over time.
+
+01:02:23.680 --> 01:02:25.510
+So here I'm plotting
+the frontier size
+
+01:02:25.510 --> 01:02:27.920
+on the y-axis in log scale.
+
+01:02:27.920 --> 01:02:30.790
+And the x-axis is
+the iteration number.
+
+01:02:30.790 --> 01:02:33.430
+And on the left, we have a
+random graph, on the right,
+
+01:02:33.430 --> 01:02:34.870
+we have a parallel graph.
+
+01:02:34.870 --> 01:02:37.390
+And we see that the
+frontier size actually
+
+01:02:37.390 --> 01:02:40.240
+grows pretty rapidly, especially
+for the power law graph.
+
+01:02:40.240 --> 01:02:41.710
+And then it drops
+pretty rapidly.
+
+01:02:44.240 --> 01:02:46.690
+So this is true for many
+of the real-world graphs
+
+01:02:46.690 --> 01:02:50.440
+that we see because many of
+them look like power law graphs.
+
+01:02:50.440 --> 01:02:52.540
+And in the BFS algorithm,
+most of the work
+
+01:02:52.540 --> 01:02:55.653
+is done when the frontier
+is relatively large.
+
+01:02:55.653 --> 01:02:57.070
+So most of the
+work is going to be
+
+01:02:57.070 --> 01:02:59.170
+done in these middle
+iterations where
+
+01:02:59.170 --> 01:03:01.510
+the frontier is very large.
+
+01:03:04.900 --> 01:03:06.610
+And it turns out that
+there are two ways
+
+01:03:06.610 --> 01:03:08.860
+to do breadth-first search.
+
+01:03:08.860 --> 01:03:10.630
+One way is the
+traditional way, which
+
+01:03:10.630 --> 01:03:13.660
+I'm going to refer to
+as the top-down method.
+
+01:03:13.660 --> 01:03:15.160
+And this is just
+what we did before.
+
+01:03:15.160 --> 01:03:17.707
+We look at the
+frontier vertices,
+
+01:03:17.707 --> 01:03:19.540
+and explore all of their
+outgoing neighbors,
+
+01:03:19.540 --> 01:03:22.420
+and mark any of the
+unexplored ones as explored,
+
+01:03:22.420 --> 01:03:25.270
+and place them on to
+the next frontier.
+
+01:03:25.270 --> 01:03:27.820
+But there's actually another
+way to do breadth-first search.
+
+01:03:27.820 --> 01:03:29.887
+And this is known as
+the bottom-up method.
+
+01:03:29.887 --> 01:03:31.470
+And in the bottom-up
+method, I'm going
+
+01:03:31.470 --> 01:03:33.340
+to look at all of the
+vertices in the graph that
+
+01:03:33.340 --> 01:03:34.840
+haven't been
+explored yet, and I'm
+
+01:03:34.840 --> 01:03:37.310
+going to look at
+their incoming edges.
+
+01:03:37.310 --> 01:03:40.870
+And if I find an incoming edge
+that's on the current frontier,
+
+01:03:40.870 --> 01:03:43.542
+I can just say that that
+incoming neighbor is my parent.
+
+01:03:43.542 --> 01:03:45.250
+And I don't even need
+to look at the rest
+
+01:03:45.250 --> 01:03:47.170
+of my incoming neighbors.
+
+01:03:47.170 --> 01:03:49.867
+So in this example here,
+vertices 9 through 12,
+
+01:03:49.867 --> 01:03:51.700
+when they loop through
+their incoming edges,
+
+01:03:51.700 --> 01:03:54.490
+they found incoming
+neighbor on the frontier,
+
+01:03:54.490 --> 01:03:57.070
+and they chose that
+neighbor as their parent.
+
+01:03:57.070 --> 01:03:59.140
+And they get marked as explored.
+
+01:03:59.140 --> 01:04:02.020
+And we can actually save some
+edge traversals here because,
+
+01:04:02.020 --> 01:04:04.090
+for example, if you
+look at vertex 9,
+
+01:04:04.090 --> 01:04:07.180
+and you imagine the
+edges being traversed
+
+01:04:07.180 --> 01:04:10.450
+in a top-to-bottom manner,
+then vertex 9 is only
+
+01:04:10.450 --> 01:04:12.490
+going to look at its
+first incoming edge
+
+01:04:12.490 --> 01:04:14.943
+and find the incoming
+neighbors on the frontier.
+
+01:04:14.943 --> 01:04:16.360
+So it doesn't even
+need to inspect
+
+01:04:16.360 --> 01:04:18.130
+the rest of the incoming
+edges because all
+
+01:04:18.130 --> 01:04:21.430
+we care about finding is just
+one parent in the BFS tree.
+
+01:04:21.430 --> 01:04:25.730
+We don't need to find all
+of the possible parents.
+
+01:04:25.730 --> 01:04:29.020
+In this example here, vertices
+13 through 15 actually ended up
+
+01:04:29.020 --> 01:04:31.718
+wasting work because they looked
+at all of their incoming edges.
+
+01:04:31.718 --> 01:04:34.010
+And none of the incoming
+neighbors are on the frontier.
+
+01:04:34.010 --> 01:04:36.690
+So they don't actually
+find a neighbor.
+
+01:04:36.690 --> 01:04:38.200
+So the bottom-up
+approach turns out
+
+01:04:38.200 --> 01:04:40.420
+to work pretty well when
+the frontier is large
+
+01:04:40.420 --> 01:04:42.310
+and many vertices have
+been already explored.
+
+01:04:42.310 --> 01:04:45.170
+Because in this case, you don't
+have to look at many vertices.
+
+01:04:45.170 --> 01:04:46.810
+And for the ones
+that you do look at,
+
+01:04:46.810 --> 01:04:49.060
+when you scan over
+their incoming edges,
+
+01:04:49.060 --> 01:04:50.830
+it's very likely
+that early on, you'll
+
+01:04:50.830 --> 01:04:53.440
+find a neighbor that is
+on the current frontier,
+
+01:04:53.440 --> 01:04:57.520
+and you can skip a bunch
+of edge traversals.
+
+01:04:57.520 --> 01:04:59.080
+And the top-down
+approach is better
+
+01:04:59.080 --> 01:05:03.130
+when the frontier
+is relatively small.
+
+01:05:03.130 --> 01:05:06.070
+And in a paper by
+Scott Beamer in 2012,
+
+01:05:06.070 --> 01:05:07.780
+he actually studied
+the performance
+
+01:05:07.780 --> 01:05:10.180
+of these two approaches in BFS.
+
+01:05:10.180 --> 01:05:13.960
+And this plot here
+plots the running time
+
+01:05:13.960 --> 01:05:17.483
+versus the iteration number
+for a power law graph
+
+01:05:17.483 --> 01:05:19.900
+and compares the performance
+of the top-down and bottom-up
+
+01:05:19.900 --> 01:05:20.840
+approach.
+
+01:05:20.840 --> 01:05:22.570
+So we see that for
+the first two steps,
+
+01:05:22.570 --> 01:05:25.787
+the top-down approach is faster
+than the bottom-up approach.
+
+01:05:25.787 --> 01:05:27.370
+But then for the
+next couple of steps,
+
+01:05:27.370 --> 01:05:31.150
+the bottom-up approach is
+faster than a top-down approach.
+
+01:05:31.150 --> 01:05:33.400
+And then when we get to the
+end, the top-down approach
+
+01:05:33.400 --> 01:05:36.730
+becomes faster again.
+
+01:05:36.730 --> 01:05:38.620
+So the top-down
+approach, as I said,
+
+01:05:38.620 --> 01:05:41.440
+is more efficient
+for small frontiers,
+
+01:05:41.440 --> 01:05:42.940
+whereas a bottom-up
+approach is more
+
+01:05:42.940 --> 01:05:46.000
+efficient for large frontiers.
+
+01:05:46.000 --> 01:05:48.850
+Also, I want to point out that
+in the top-down approach, when
+
+01:05:48.850 --> 01:05:51.430
+we update the parent array,
+that actually has to be atomic.
+
+01:05:51.430 --> 01:05:53.263
+Because we can have
+multiple vertices trying
+
+01:05:53.263 --> 01:05:54.640
+to update the same neighbor.
+
+01:05:54.640 --> 01:05:57.190
+But in a bottom-up approach,
+the update to the parent array
+
+01:05:57.190 --> 01:05:58.780
+doesn't have to be atomic.
+
+01:05:58.780 --> 01:06:01.390
+Because we're scanning
+over the incoming neighbors
+
+01:06:01.390 --> 01:06:04.420
+of any particular
+vertex v serially.
+
+01:06:04.420 --> 01:06:06.550
+And therefore, there can
+only be one processor
+
+01:06:06.550 --> 01:06:10.030
+that's writing to parent of v.
+
+01:06:10.030 --> 01:06:12.160
+So we choose between
+these two approaches based
+
+01:06:12.160 --> 01:06:14.140
+on the size of the frontier.
+
+01:06:14.140 --> 01:06:18.870
+We found that a threshold of
+a frontier size of about n/20
+
+01:06:18.870 --> 01:06:20.120
+works pretty well in practice.
+
+01:06:20.120 --> 01:06:23.170
+So if the frontier has
+more than n/20 vertices,
+
+01:06:23.170 --> 01:06:24.460
+we used a bottom up approach.
+
+01:06:24.460 --> 01:06:27.160
+And otherwise, we used
+a top-down approach.
+
+01:06:27.160 --> 01:06:30.250
+You can also use more
+sophisticated thresholds,
+
+01:06:30.250 --> 01:06:33.430
+such as also considering
+the sum of out-degrees,
+
+01:06:33.430 --> 01:06:35.830
+since the actual work
+is dependent on the sum
+
+01:06:35.830 --> 01:06:38.830
+of out-degrees of the
+vertices on the frontier.
+
+01:06:38.830 --> 01:06:40.990
+You can also use
+different thresholds
+
+01:06:40.990 --> 01:06:45.370
+for going from top-down
+to bottom-up and then
+
+01:06:45.370 --> 01:06:48.960
+another threshold for going
+from bottom-up back to top-down.
+
+01:06:48.960 --> 01:06:51.220
+And in fact, that's what
+the original paper did.
+
+01:06:51.220 --> 01:06:54.460
+They had two
+different thresholds.
+
+01:06:54.460 --> 01:06:56.830
+We also need to generate
+the inverse graph
+
+01:06:56.830 --> 01:06:59.830
+or the transposed graph
+if we're using this method
+
+01:06:59.830 --> 01:07:01.810
+if the graph is directed.
+
+01:07:01.810 --> 01:07:04.407
+Because if the
+graph is directed,
+
+01:07:04.407 --> 01:07:05.990
+in the bottom-up
+approach, we actually
+
+01:07:05.990 --> 01:07:07.610
+need to look at the
+incoming neighbors, not
+
+01:07:07.610 --> 01:07:08.580
+the outgoing neighbors.
+
+01:07:08.580 --> 01:07:11.383
+So if the graph wasn't
+already symmetrized,
+
+01:07:11.383 --> 01:07:13.550
+then we have to generate
+both the incoming neighbors
+
+01:07:13.550 --> 01:07:15.510
+and outgoing neighbors
+for each vertex.
+
+01:07:15.510 --> 01:07:18.980
+So we can do that as
+a pre-processing step.
+
+01:07:18.980 --> 01:07:19.940
+Any questions?
+
+01:07:26.900 --> 01:07:30.230
+OK, so how do we actually
+represent the frontier?
+
+01:07:30.230 --> 01:07:31.730
+So one way to
+represent the frontier
+
+01:07:31.730 --> 01:07:33.380
+is just use a sparse
+integer array,
+
+01:07:33.380 --> 01:07:36.980
+which is what we did before.
+
+01:07:36.980 --> 01:07:39.530
+Another way to do this
+is to use a dense array.
+
+01:07:39.530 --> 01:07:42.560
+So, for example, here I
+have an array of bytes.
+
+01:07:42.560 --> 01:07:45.360
+The array is of size n, where
+n is the number of vertices.
+
+01:07:45.360 --> 01:07:48.470
+And I have a 1 in
+position i if vertex i
+
+01:07:48.470 --> 01:07:51.440
+is on the frontier
+and 0 otherwise.
+
+01:07:51.440 --> 01:07:55.190
+I can also use a bit vector
+to further compress this
+
+01:07:55.190 --> 01:07:59.870
+and then use additional bit
+level operations to access it.
+
+01:07:59.870 --> 01:08:02.870
+So for the top-down approach,
+a sparse representation
+
+01:08:02.870 --> 01:08:05.240
+is better because the
+top-down approach usually
+
+01:08:05.240 --> 01:08:06.950
+deals with small frontiers.
+
+01:08:06.950 --> 01:08:08.660
+And if we use a
+sparse array, we only
+
+01:08:08.660 --> 01:08:11.300
+have to do work proportional
+to the number of vertices
+
+01:08:11.300 --> 01:08:12.740
+on the frontier.
+
+01:08:12.740 --> 01:08:14.330
+And then in the
+bottom-up approach,
+
+01:08:14.330 --> 01:08:16.370
+it turns out that dense
+representation is better
+
+01:08:16.370 --> 01:08:19.670
+because we're looking at
+most of the vertices anyways.
+
+01:08:19.670 --> 01:08:23.240
+And then we need to switch
+between these two methods based
+
+01:08:23.240 --> 01:08:26.090
+on the approach
+that we're using.
+
+01:08:29.790 --> 01:08:33.050
+So here's some performance
+numbers comparing the three
+
+01:08:33.050 --> 01:08:34.310
+different modes of traversal.
+
+01:08:34.310 --> 01:08:36.740
+So we have bottom-up,
+top-down, and then
+
+01:08:36.740 --> 01:08:38.330
+the direction
+optimizing approach
+
+01:08:38.330 --> 01:08:40.975
+using a threshold of n/20.
+
+01:08:40.975 --> 01:08:43.069
+First of all, we see that
+the bottom-up approach
+
+01:08:43.069 --> 01:08:45.899
+is the slowest for
+both of these graphs.
+
+01:08:45.899 --> 01:08:48.859
+And this is because it's
+doing a lot of wasted work
+
+01:08:48.859 --> 01:08:52.010
+in the early iterations.
+
+01:08:52.010 --> 01:08:55.040
+We also see that the direction
+optimizing approach is always
+
+01:08:55.040 --> 01:08:58.910
+faster than both the top-down
+and the bottom-up approach.
+
+01:08:58.910 --> 01:09:01.670
+This is because if we switch
+to the bottom-up approach
+
+01:09:01.670 --> 01:09:03.140
+at an appropriate
+time, then we can
+
+01:09:03.140 --> 01:09:05.390
+save a lot of edge traversals.
+
+01:09:05.390 --> 01:09:07.729
+And, for example, you can
+see for the power law graph,
+
+01:09:07.729 --> 01:09:09.184
+the direction
+optimizing approach
+
+01:09:09.184 --> 01:09:12.380
+is almost three times faster
+than the top-down approach.
+
+01:09:15.380 --> 01:09:17.300
+The benefits of this
+approach are highly
+
+01:09:17.300 --> 01:09:20.140
+dependent on the input graph.
+
+01:09:20.140 --> 01:09:24.170
+So it works very well for
+power law and random graphs.
+
+01:09:24.170 --> 01:09:27.649
+But if you have graphs where the
+frontier size is always small,
+
+01:09:27.649 --> 01:09:29.870
+such as a grid graph
+or a road network,
+
+01:09:29.870 --> 01:09:32.490
+then you would never use
+a bottom-up approach.
+
+01:09:32.490 --> 01:09:37.130
+So this wouldn't actually give
+you any performance gains.
+
+01:09:37.130 --> 01:09:38.253
+Any questions?
+
+01:09:43.810 --> 01:09:46.040
+So it turns out that
+this direction optimizing
+
+01:09:46.040 --> 01:09:49.220
+idea is more general than
+just breadth-first search.
+
+01:09:49.220 --> 01:09:51.800
+So a couple years
+ago, I developed
+
+01:09:51.800 --> 01:09:54.710
+this framework called
+Ligra, where I generalized
+
+01:09:54.710 --> 01:09:58.760
+the direction optimizing idea
+to other graph algorithms,
+
+01:09:58.760 --> 01:10:01.730
+such as betweenness centrality,
+connected components, sparse
+
+01:10:01.730 --> 01:10:04.180
+PageRank, shortest
+paths, and so on.
+
+01:10:04.180 --> 01:10:07.280
+And in the Ligra framework,
+we have an EDGEMAP operator
+
+01:10:07.280 --> 01:10:09.950
+that chooses between a
+sparse implementation
+
+01:10:09.950 --> 01:10:13.310
+and a dense implementation based
+on the size of the frontier.
+
+01:10:13.310 --> 01:10:15.920
+So the sparse here corresponds
+to the top-down approach.
+
+01:10:15.920 --> 01:10:19.340
+And dense corresponds to
+the bottom-up approach.
+
+01:10:19.340 --> 01:10:22.070
+And it turns out that using
+this direction optimizing
+
+01:10:22.070 --> 01:10:23.570
+idea for these
+other applications
+
+01:10:23.570 --> 01:10:26.390
+also gives you performance
+gains in practice.
+
+01:10:31.660 --> 01:10:35.760
+OK, so let me now talk about
+another optimization, which
+
+01:10:35.760 --> 01:10:37.680
+is graph compression.
+
+01:10:37.680 --> 01:10:41.340
+And the goal here is to reduce
+the amount of memory usage
+
+01:10:41.340 --> 01:10:43.560
+in the graph algorithm.
+
+01:10:43.560 --> 01:10:46.800
+So recall, this was
+our CSR representation.
+
+01:10:46.800 --> 01:10:48.690
+And in the Edges
+array, we just stored
+
+01:10:48.690 --> 01:10:52.680
+the values of the target edges.
+
+01:10:52.680 --> 01:10:55.080
+Instead of storing
+the actual targets,
+
+01:10:55.080 --> 01:10:59.160
+we can actually do better by
+first sorting the edges so
+
+01:10:59.160 --> 01:11:01.680
+that they appear in
+non-decreasing order
+
+01:11:01.680 --> 01:11:03.900
+and then just storing
+the differences
+
+01:11:03.900 --> 01:11:05.750
+between consecutive edges.
+
+01:11:05.750 --> 01:11:08.040
+And then for the first edge
+for any particular vertex,
+
+01:11:08.040 --> 01:11:10.110
+we'll store the difference
+between the target
+
+01:11:10.110 --> 01:11:11.520
+and the source of that edge.
+
+01:11:14.330 --> 01:11:17.810
+So, for example,
+here, for vertex 0,
+
+01:11:17.810 --> 01:11:20.568
+the first edge is going
+to have a value of 2
+
+01:11:20.568 --> 01:11:23.110
+because we're going to take the
+difference between the target
+
+01:11:23.110 --> 01:11:23.735
+and the source.
+
+01:11:23.735 --> 01:11:26.180
+So 2 minus 0 is 2.
+
+01:11:26.180 --> 01:11:28.190
+Then for the next
+edge, we're going
+
+01:11:28.190 --> 01:11:30.420
+to take the difference
+between the second edge
+
+01:11:30.420 --> 01:11:35.270
+and the first edge, so
+7 minus 2, which is 5.
+
+01:11:35.270 --> 01:11:39.290
+And then similarly we do that
+for all of the remaining edges.
+
+01:11:39.290 --> 01:11:41.400
+Notice that there are
+some negative values here.
+
+01:11:41.400 --> 01:11:45.870
+And this is because the target
+is smaller than the source.
+
+01:11:45.870 --> 01:11:48.810
+So in this example,
+1 is smaller than 2.
+
+01:11:48.810 --> 01:11:51.560
+So if you do 1 minus
+2, you get a negative--
+
+01:11:51.560 --> 01:11:52.880
+negative 1.
+
+01:11:52.880 --> 01:11:55.100
+And this can only happen
+for the first edge
+
+01:11:55.100 --> 01:11:57.410
+for any particular
+vertex because for all
+
+01:11:57.410 --> 01:12:00.470
+the other edges, we're
+encoding the difference
+
+01:12:00.470 --> 01:12:02.150
+between that edge and
+the previous edge.
+
+01:12:02.150 --> 01:12:03.710
+And we already
+sorted these edges
+
+01:12:03.710 --> 01:12:06.260
+so that they appear in
+non-decreasing order.
+
+01:12:08.870 --> 01:12:12.770
+OK, so this
+compressed edges array
+
+01:12:12.770 --> 01:12:15.140
+will typically
+contain smaller values
+
+01:12:15.140 --> 01:12:17.610
+than this original edges array.
+
+01:12:17.610 --> 01:12:21.050
+So now we want to be
+able to use fewer bits
+
+01:12:21.050 --> 01:12:22.350
+to represent these values.
+
+01:12:22.350 --> 01:12:26.490
+We don't want to use 32 or
+64 bits like we did before.
+
+01:12:26.490 --> 01:12:28.680
+Otherwise, we wouldn't
+be saving any space.
+
+01:12:28.680 --> 01:12:31.190
+So one way to reduce
+the space usage
+
+01:12:31.190 --> 01:12:34.400
+is to store these values using
+what's called a variable length
+
+01:12:34.400 --> 01:12:36.560
+code or a k-bit code.
+
+01:12:36.560 --> 01:12:40.400
+And the idea is to encode each
+value in chunks of k bits,
+
+01:12:40.400 --> 01:12:44.630
+where for each chunk, we use k
+minus 1 bits for the data and 1
+
+01:12:44.630 --> 01:12:47.190
+bit as the continue bit.
+
+01:12:47.190 --> 01:12:49.820
+So for example, let's
+encode the integer 401
+
+01:12:49.820 --> 01:12:52.490
+using 8-bit or byte codes.
+
+01:12:52.490 --> 01:12:55.340
+So first, we're going to write
+this value out in binary.
+
+01:12:55.340 --> 01:12:57.650
+And then we're going to
+take the bottom 7 bits,
+
+01:12:57.650 --> 01:12:59.660
+and we're going to
+place that into the data
+
+01:12:59.660 --> 01:13:01.820
+field of the first chunk.
+
+01:13:01.820 --> 01:13:04.133
+And then in the last
+bit of this chunk,
+
+01:13:04.133 --> 01:13:06.050
+we're going to check if
+we still have any more
+
+01:13:06.050 --> 01:13:07.400
+bits that we need to encode.
+
+01:13:07.400 --> 01:13:10.280
+And if we do, then we're going
+to set a 1 in the continue bit
+
+01:13:10.280 --> 01:13:11.510
+position.
+
+01:13:11.510 --> 01:13:13.000
+And then we create
+another chunk.
+
+01:13:13.000 --> 01:13:16.160
+We'll replace the next
+7 bits into the data
+
+01:13:16.160 --> 01:13:17.278
+field of that chunk.
+
+01:13:17.278 --> 01:13:19.820
+And then now we're actually done
+encoding this integer value.
+
+01:13:19.820 --> 01:13:23.660
+So we can place a 0
+in the continue bit.
+
+01:13:23.660 --> 01:13:25.520
+So that's how the
+encoding works.
+
+01:13:25.520 --> 01:13:29.090
+And decoding is just doing
+this process backwards.
+
+01:13:29.090 --> 01:13:31.970
+So you read chunks until
+you find a chunk with a 0
+
+01:13:31.970 --> 01:13:33.590
+continue bit.
+
+01:13:33.590 --> 01:13:35.420
+And then you shift
+all of the data values
+
+01:13:35.420 --> 01:13:37.220
+left accordingly and
+sum them together
+
+01:13:37.220 --> 01:13:42.210
+to reconstruct the integer
+value that you encoded.
+
+01:13:42.210 --> 01:13:45.410
+One performance issue
+that might occur here
+
+01:13:45.410 --> 01:13:47.030
+is that when you're
+decoding, you
+
+01:13:47.030 --> 01:13:49.670
+have to check this continue
+bit for every chunk
+
+01:13:49.670 --> 01:13:52.550
+and decide what to do
+based on that continue bit.
+
+01:13:52.550 --> 01:13:56.140
+And this is actually
+unpredictable branch.
+
+01:13:56.140 --> 01:13:59.360
+So you can suffer from
+branch mispredictions
+
+01:13:59.360 --> 01:14:03.420
+from checking this continue bit.
+
+01:14:03.420 --> 01:14:06.230
+So one way you can optimize
+this is to get rid of these
+
+01:14:06.230 --> 01:14:08.050
+continue bits.
+
+01:14:08.050 --> 01:14:10.220
+And the idea here is
+to first figure out
+
+01:14:10.220 --> 01:14:11.840
+how many bytes
+you need to encode
+
+01:14:11.840 --> 01:14:14.640
+each integer in the sequence.
+
+01:14:14.640 --> 01:14:18.020
+And then you group
+together integers
+
+01:14:18.020 --> 01:14:21.500
+that require the same
+number of bytes to encode.
+
+01:14:21.500 --> 01:14:25.190
+Use a run-length encoding idea
+to encode all of these integers
+
+01:14:25.190 --> 01:14:28.445
+together by using a header
+byte, where in the header byte,
+
+01:14:28.445 --> 01:14:31.940
+you use the lower 6 bits to
+store the size of the group
+
+01:14:31.940 --> 01:14:35.780
+and the highest 2 bits to
+store the number of bytes each
+
+01:14:35.780 --> 01:14:38.690
+of these integers
+needs to decode.
+
+01:14:38.690 --> 01:14:42.650
+And now all of the
+integers in this group
+
+01:14:42.650 --> 01:14:44.450
+will just be stored
+after this header byte.
+
+01:14:44.450 --> 01:14:47.690
+And we'd know exactly how many
+bytes they need to decode.
+
+01:14:47.690 --> 01:14:50.975
+So we don't need to store a
+continue bit in these chunks.
+
+01:14:53.870 --> 01:14:56.000
+This does slightly
+increase the space usage.
+
+01:14:56.000 --> 01:14:58.790
+But it makes decoding cheaper
+because we no longer have
+
+01:14:58.790 --> 01:15:02.030
+to suffer from
+branch mispredictions
+
+01:15:02.030 --> 01:15:06.020
+from checking this continue bit.
+
+01:15:06.020 --> 01:15:09.800
+OK, so now we have to decode
+these edge lists on the fly
+
+01:15:09.800 --> 01:15:11.330
+as we're running our algorithm.
+
+01:15:11.330 --> 01:15:13.080
+If we decoded everything
+at the beginning,
+
+01:15:13.080 --> 01:15:14.788
+we wouldn't actually
+be saving any space.
+
+01:15:14.788 --> 01:15:16.820
+We need to decode these
+edges as we access them
+
+01:15:16.820 --> 01:15:18.770
+in our algorithm.
+
+01:15:18.770 --> 01:15:20.720
+Since we encoded
+all of these edge
+
+01:15:20.720 --> 01:15:22.460
+lists separately
+for each vertex,
+
+01:15:22.460 --> 01:15:24.230
+we can decode all
+of them in parallel.
+
+01:15:26.750 --> 01:15:29.660
+And each vertex just decodes
+its edge list sequentially.
+
+01:15:29.660 --> 01:15:32.240
+But what about
+high-degree vertices?
+
+01:15:32.240 --> 01:15:33.620
+If you have a
+high-degree vertex,
+
+01:15:33.620 --> 01:15:35.830
+you stop to decode its
+edge list sequentially.
+
+01:15:35.830 --> 01:15:37.550
+And if you're running
+this in parallel,
+
+01:15:37.550 --> 01:15:41.400
+this could lead
+to load imbalance.
+
+01:15:41.400 --> 01:15:44.810
+So one way to fix this is,
+instead of just encoding
+
+01:15:44.810 --> 01:15:46.970
+the whole thing sequentially,
+you can chunk it up
+
+01:15:46.970 --> 01:15:50.360
+into chunks of size T.
+And then for each chunk,
+
+01:15:50.360 --> 01:15:52.280
+you encode it like
+you did before,
+
+01:15:52.280 --> 01:15:56.120
+where you store the first value
+relative to the source vertex
+
+01:15:56.120 --> 01:15:59.130
+and then all of the other values
+relative to the previous edge.
+
+01:15:59.130 --> 01:16:01.550
+And now you can actually
+decode the first value
+
+01:16:01.550 --> 01:16:04.460
+here for each of these
+chunks all in parallel
+
+01:16:04.460 --> 01:16:09.280
+without having to wait for the
+previous edge to be decoded.
+
+01:16:09.280 --> 01:16:11.730
+And then this gives us
+much more parallelism
+
+01:16:11.730 --> 01:16:15.860
+because all of these chunks
+can be decoded in parallel.
+
+01:16:15.860 --> 01:16:20.690
+And we found that a value of
+T-- where T is the chunk size--
+
+01:16:20.690 --> 01:16:23.360
+between 100 and 10,000 works
+pretty well in practice.
+
+01:16:26.940 --> 01:16:29.600
+OK, so I'm not
+going to have time
+
+01:16:29.600 --> 01:16:30.830
+to go over the experiments.
+
+01:16:30.830 --> 01:16:33.080
+But at a high level,
+the experiments
+
+01:16:33.080 --> 01:16:37.430
+show that compression
+schemes do save space.
+
+01:16:37.430 --> 01:16:40.250
+And serially, it's
+only slightly slower
+
+01:16:40.250 --> 01:16:41.870
+than the uncompressed version.
+
+01:16:41.870 --> 01:16:43.880
+But surprisingly, when
+you run it in parallel,
+
+01:16:43.880 --> 01:16:47.000
+it actually becomes faster
+than the uncompressed version.
+
+01:16:47.000 --> 01:16:49.790
+And this is because these graph
+algorithms are memory bound.
+
+01:16:49.790 --> 01:16:51.500
+And we're using less memory.
+
+01:16:51.500 --> 01:16:54.350
+You can alleviate this
+memory subsystem bottleneck
+
+01:16:54.350 --> 01:16:57.590
+and get better scalability.
+
+01:16:57.590 --> 01:17:00.200
+And the decoding part of
+these compressed algorithms
+
+01:17:00.200 --> 01:17:02.240
+actually gets very
+good parallel speedup
+
+01:17:02.240 --> 01:17:04.220
+because they're just
+doing local operations.
+
+01:17:09.050 --> 01:17:11.510
+OK, so let me summarize now.
+
+01:17:11.510 --> 01:17:14.750
+So we saw some properties
+of real-world graphs.
+
+01:17:14.750 --> 01:17:17.270
+We saw that they're quite
+large, but they can still
+
+01:17:17.270 --> 01:17:19.250
+fit on a multi-core server.
+
+01:17:19.250 --> 01:17:20.900
+And they're relatively sparse.
+
+01:17:20.900 --> 01:17:23.990
+They also have a power
+law degree distribution.
+
+01:17:23.990 --> 01:17:26.990
+Many graph algorithms are
+irregular in that they involve
+
+01:17:26.990 --> 01:17:28.700
+many random memory accesses.
+
+01:17:28.700 --> 01:17:30.950
+So that becomes a bottleneck
+of the performance
+
+01:17:30.950 --> 01:17:32.210
+of these algorithms.
+
+01:17:32.210 --> 01:17:35.810
+And you can improve performance
+with algorithmic optimization,
+
+01:17:35.810 --> 01:17:39.170
+such as using this
+direction optimization
+
+01:17:39.170 --> 01:17:40.820
+and also by creating
+and exploiting
+
+01:17:40.820 --> 01:17:44.930
+locality, for example, by using
+this bit vector optimization.
+
+01:17:44.930 --> 01:17:46.910
+And finally,
+optimizations for graphs
+
+01:17:46.910 --> 01:17:48.440
+might work well
+for certain graphs,
+
+01:17:48.440 --> 01:17:50.480
+but they might not work
+well for other graphs.
+
+01:17:50.480 --> 01:17:52.490
+For example, the direction
+optimization idea
+
+01:17:52.490 --> 01:17:55.268
+works well for power law
+graphs but not for road graphs.
+
+01:17:55.268 --> 01:17:57.560
+So when you're trying to
+optimize your graph algorithm,
+
+01:17:57.560 --> 01:18:00.440
+we should definitely test it
+on different types of graphs
+
+01:18:00.440 --> 01:18:03.842
+and see where it works well
+and where it doesn't work.
+
+01:18:03.842 --> 01:18:05.628
+So that's all I have.
+
+01:18:05.628 --> 01:18:07.170
+If you have any
+additional questions,
+
+01:18:07.170 --> 01:18:09.020
+please feel free to
+ask me after class.
+
+01:18:09.020 --> 01:18:12.200
+And as a reminder, we have
+a guest lecture on Thursday
+
+01:18:12.200 --> 01:18:15.770
+by Professor Johnson of
+the MIT Math Department.
+
+01:18:15.770 --> 01:18:17.770
+And he'll be talking about
+high-level languages,
+
+01:18:17.770 --> 01:18:20.380
+so please be sure to attend.

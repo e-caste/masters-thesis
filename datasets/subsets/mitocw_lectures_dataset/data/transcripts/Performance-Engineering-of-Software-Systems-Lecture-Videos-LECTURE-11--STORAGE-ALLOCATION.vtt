@@ -1,0 +1,4874 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT OpenCourseWare
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high-quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:18.140
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:18.140 --> 00:00:19.026
+at ocw.mit.edu.
+
+00:00:22.307 --> 00:00:23.890
+JULIAN SHUN: Good
+afternoon, everyone.
+
+00:00:23.890 --> 00:00:24.640
+Let's get started.
+
+00:00:27.080 --> 00:00:31.951
+So welcome to the
+11th lecture of 6.172.
+
+00:00:31.951 --> 00:00:34.330
+It seems that there
+are many fewer people
+
+00:00:34.330 --> 00:00:36.846
+here today than on Tuesday.
+
+00:00:36.846 --> 00:00:40.160
+[LAUGHTER]
+
+00:00:40.160 --> 00:00:40.660
+All right.
+
+00:00:40.660 --> 00:00:44.540
+So today we're going to talk
+about storage allocation.
+
+00:00:44.540 --> 00:00:47.170
+And it turns out that
+storage allocation
+
+00:00:47.170 --> 00:00:51.520
+is about both allocating
+memory and also freeing it.
+
+00:00:51.520 --> 00:00:53.980
+But in the literature, it's
+just called storage allocation,
+
+00:00:53.980 --> 00:00:55.870
+so that's the term
+we're going to use.
+
+00:00:55.870 --> 00:00:57.870
+And whenever you do
+a malloc or a free,
+
+00:00:57.870 --> 00:00:59.860
+then you're doing
+storage allocation.
+
+00:00:59.860 --> 00:01:02.500
+So how many of you have
+used malloc or free before?
+
+00:01:05.500 --> 00:01:10.510
+So hopefully all of
+you, since you needed it
+
+00:01:10.510 --> 00:01:14.120
+for the projects and homeworks.
+
+00:01:14.120 --> 00:01:16.990
+So the simplest form
+of storage is a stack.
+
+00:01:20.010 --> 00:01:24.000
+And in a stack, you just
+have an array and a pointer.
+
+00:01:24.000 --> 00:01:26.790
+So here we have an
+array, which we call A,
+
+00:01:26.790 --> 00:01:29.910
+and then there's some
+portion of this array that's
+
+00:01:29.910 --> 00:01:34.030
+used for memory, and the rest
+of it is free-- it's not used.
+
+00:01:34.030 --> 00:01:36.660
+And then there's a
+pointer, sp, that
+
+00:01:36.660 --> 00:01:42.170
+points to the end of the
+used region in this stack.
+
+00:01:42.170 --> 00:01:47.330
+And if you want to allocate x
+bytes on the stack, all you do
+
+00:01:47.330 --> 00:01:52.070
+is, you just increment
+this sp pointer by x.
+
+00:01:52.070 --> 00:01:56.450
+And then, of course, you
+should also check for overflow
+
+00:01:56.450 --> 00:01:57.950
+to make sure that
+you don't actually
+
+00:01:57.950 --> 00:02:00.110
+go off the end of this
+array, because if you
+
+00:02:00.110 --> 00:02:03.380
+do that then you'll get
+a segmentation fault.
+
+00:02:03.380 --> 00:02:05.630
+But actually,
+nowadays, compilers
+
+00:02:05.630 --> 00:02:07.700
+don't really check
+for stack overflow
+
+00:02:07.700 --> 00:02:11.860
+because your stack is
+usually big enough for most
+
+00:02:11.860 --> 00:02:14.210
+of your program, and when
+you do get a stack overflow,
+
+00:02:14.210 --> 00:02:17.390
+you'll just get a segfault and
+then you go debug your program.
+
+00:02:17.390 --> 00:02:19.940
+So for efficiency reasons,
+the stack overflow
+
+00:02:19.940 --> 00:02:22.620
+isn't actually checked.
+
+00:02:22.620 --> 00:02:23.120
+OK?
+
+00:02:23.120 --> 00:02:27.140
+And then it returns a pointer
+to the beginning of the memory
+
+00:02:27.140 --> 00:02:31.970
+that you just allocated, so
+that's just as sp minus x.
+
+00:02:31.970 --> 00:02:34.400
+So that's pretty simple.
+
+00:02:34.400 --> 00:02:37.580
+And in fact, this is how
+the C call stack works.
+
+00:02:37.580 --> 00:02:40.820
+It also uses a stack discipline.
+
+00:02:40.820 --> 00:02:44.960
+So when you call a function,
+you save local variables
+
+00:02:44.960 --> 00:02:47.240
+and registers on the
+stack, and you also
+
+00:02:47.240 --> 00:02:51.110
+save the return address
+of the function that's
+
+00:02:51.110 --> 00:02:53.000
+calling another function.
+
+00:02:53.000 --> 00:02:56.510
+And then, when you return,
+you pop things off the stack.
+
+00:02:56.510 --> 00:02:59.580
+So you can also free
+things from the stack.
+
+00:02:59.580 --> 00:03:04.070
+So what you do is,
+you just decrement sp
+
+00:03:04.070 --> 00:03:08.300
+by x if you want
+to free x bytes.
+
+00:03:08.300 --> 00:03:12.800
+So here we just decremented
+sp by x, and everything
+
+00:03:12.800 --> 00:03:16.735
+after sp is now
+considered to be free.
+
+00:03:16.735 --> 00:03:18.110
+And again, if
+you're careful, you
+
+00:03:18.110 --> 00:03:21.380
+would check for a
+stack underflow.
+
+00:03:21.380 --> 00:03:23.690
+But again, the compiler
+usually doesn't do this
+
+00:03:23.690 --> 00:03:26.000
+because if you do
+have a stack overflow,
+
+00:03:26.000 --> 00:03:28.720
+there's a bug in your program,
+and you'll get a segfault,
+
+00:03:28.720 --> 00:03:29.840
+and you should go fix it.
+
+00:03:33.670 --> 00:03:36.340
+So allocating and
+freeing in a stack
+
+00:03:36.340 --> 00:03:41.050
+takes constant time
+because all you have to do
+
+00:03:41.050 --> 00:03:45.170
+is manipulate the stack pointer,
+so it's pretty efficient.
+
+00:03:45.170 --> 00:03:47.080
+However, you have
+to free consistently
+
+00:03:47.080 --> 00:03:49.700
+with the stack discipline.
+
+00:03:49.700 --> 00:03:53.710
+So the stack has
+limited applicability.
+
+00:03:53.710 --> 00:03:56.470
+Does anybody see why
+you can't do everything
+
+00:03:56.470 --> 00:03:58.690
+with just a stack?
+
+00:03:58.690 --> 00:04:00.640
+So what's one
+limitation of the stack?
+
+00:04:05.920 --> 00:04:06.885
+Yes?
+
+00:04:06.885 --> 00:04:10.180
+AUDIENCE: [INAUDIBLE]
+
+00:04:10.180 --> 00:04:12.850
+JULIAN SHUN: So it turns
+out that you can actually
+
+00:04:12.850 --> 00:04:15.460
+pass a compile time constant
+to make the stack bigger
+
+00:04:15.460 --> 00:04:16.519
+if you wanted to.
+
+00:04:16.519 --> 00:04:18.730
+There's actually a more
+fundamental limitation
+
+00:04:18.730 --> 00:04:19.690
+of the stack.
+
+00:04:19.690 --> 00:04:20.882
+Yes.
+
+00:04:20.882 --> 00:04:22.299
+AUDIENCE: You can
+only read things
+
+00:04:22.299 --> 00:04:25.192
+in the reverse order in
+which you allocate them.
+
+00:04:25.192 --> 00:04:27.400
+JULIAN SHUN: Yeah, so the
+answer is that you can only
+
+00:04:27.400 --> 00:04:29.470
+free the last thing
+that you allocated,
+
+00:04:29.470 --> 00:04:31.870
+so there's no way
+to free anything
+
+00:04:31.870 --> 00:04:33.730
+in the middle of this
+used region here.
+
+00:04:33.730 --> 00:04:36.130
+You have to free
+the last thing here
+
+00:04:36.130 --> 00:04:39.070
+because the stack doesn't
+keep track of the objects
+
+00:04:39.070 --> 00:04:41.410
+in the middle of
+this used region.
+
+00:04:41.410 --> 00:04:44.110
+So there's limited
+applicability,
+
+00:04:44.110 --> 00:04:47.260
+but it's great when it works
+because it's very efficient,
+
+00:04:47.260 --> 00:04:49.660
+and all of this code can
+essentially be inline.
+
+00:04:49.660 --> 00:04:51.620
+You don't have to have
+any function calls,
+
+00:04:51.620 --> 00:04:54.230
+so it's very fast.
+
+00:04:54.230 --> 00:04:56.110
+And it also turns
+out that you can
+
+00:04:56.110 --> 00:05:00.640
+allocate on the call stack using
+this function called alloca.
+
+00:05:00.640 --> 00:05:02.080
+It's actually not a function.
+
+00:05:02.080 --> 00:05:04.690
+It's just a keyword that
+the compiler recognizes,
+
+00:05:04.690 --> 00:05:07.600
+and it will transform
+it to instructions
+
+00:05:07.600 --> 00:05:09.820
+that manipulate the stack.
+
+00:05:09.820 --> 00:05:13.707
+However, this function
+is now deprecated
+
+00:05:13.707 --> 00:05:15.790
+because it turns out that
+the compiler is actually
+
+00:05:15.790 --> 00:05:17.680
+more efficient
+when you're dealing
+
+00:05:17.680 --> 00:05:19.930
+with these fixed-size
+frames if you just allocate
+
+00:05:19.930 --> 00:05:22.870
+a pointer on the stack that
+points to some piece of memory
+
+00:05:22.870 --> 00:05:24.280
+on the heap.
+
+00:05:24.280 --> 00:05:28.143
+But nevertheless, if you want
+to allocate on the call stack,
+
+00:05:28.143 --> 00:05:29.560
+you can call this
+alloca function,
+
+00:05:29.560 --> 00:05:31.643
+but you should check that
+is doing the right thing
+
+00:05:31.643 --> 00:05:35.230
+since it's now deprecated and
+the implementation is compiler
+
+00:05:35.230 --> 00:05:37.930
+dependent.
+
+00:05:37.930 --> 00:05:42.060
+So what's another type of
+storage besides the stack?
+
+00:05:42.060 --> 00:05:44.260
+So you can't do
+everything with a stack.
+
+00:05:44.260 --> 00:05:45.610
+So what else can we use?
+
+00:05:54.050 --> 00:05:54.550
+Yes?
+
+00:05:54.550 --> 00:05:55.720
+AUDIENCE: Heap.
+
+00:05:55.720 --> 00:05:56.590
+JULIAN SHUN: Yes.
+
+00:05:56.590 --> 00:06:01.180
+So we also have the heap, which
+is more general than the stack.
+
+00:06:01.180 --> 00:06:04.480
+So a stack looks
+very nice and tidy,
+
+00:06:04.480 --> 00:06:06.742
+and it's very efficient
+to use the stack,
+
+00:06:06.742 --> 00:06:08.200
+but it doesn't work
+for everything.
+
+00:06:08.200 --> 00:06:10.150
+So that's why we have the heap.
+
+00:06:10.150 --> 00:06:13.640
+And a heap is much more
+general, but it's very messy.
+
+00:06:13.640 --> 00:06:17.650
+It's very hard to organize this
+and work with it efficiently.
+
+00:06:17.650 --> 00:06:19.290
+And for the rest
+of this lecture,
+
+00:06:19.290 --> 00:06:21.190
+I am going to be
+talking about how
+
+00:06:21.190 --> 00:06:23.700
+to manage memory in the heap.
+
+00:06:23.700 --> 00:06:26.320
+And I found these pictures
+on Stack Overflow,
+
+00:06:26.320 --> 00:06:29.221
+so maybe they're
+biased towards stacks.
+
+00:06:29.221 --> 00:06:34.540
+[CHUCKLES] OK, so how do
+we do heap allocation?
+
+00:06:34.540 --> 00:06:37.060
+So let's first start with
+fixed-size heap allocation,
+
+00:06:37.060 --> 00:06:40.060
+where we assume that all of the
+objects that we're dealing with
+
+00:06:40.060 --> 00:06:41.700
+are of the same size.
+
+00:06:41.700 --> 00:06:43.450
+In general this isn't
+true, but let's just
+
+00:06:43.450 --> 00:06:45.550
+start with this
+simpler case first.
+
+00:06:49.270 --> 00:06:53.950
+OK, so as I said earlier, if
+you use malloc and free in C,
+
+00:06:53.950 --> 00:06:56.650
+then you're doing
+heap allocation.
+
+00:06:56.650 --> 00:06:59.450
+C++ has the new and
+delete operators,
+
+00:06:59.450 --> 00:07:03.130
+which work similarly
+to malloc and free.
+
+00:07:03.130 --> 00:07:06.670
+They also call the object
+constructor and destructor,
+
+00:07:06.670 --> 00:07:09.760
+and the C functions
+don't do that.
+
+00:07:09.760 --> 00:07:15.310
+And unlike Java and Python, C
+and C++ don't provide a garbage
+
+00:07:15.310 --> 00:07:18.910
+collector, so the programmer
+has to manage memory him
+
+00:07:18.910 --> 00:07:21.850
+or herself, and this is one of
+the reasons for the efficiency
+
+00:07:21.850 --> 00:07:25.900
+of C and C++, because there's
+no garbage collector running
+
+00:07:25.900 --> 00:07:27.250
+in the background.
+
+00:07:27.250 --> 00:07:28.900
+However, this makes
+it much harder
+
+00:07:28.900 --> 00:07:32.290
+to write correct
+programs in C because you
+
+00:07:32.290 --> 00:07:36.520
+have to be careful of memory
+leaks, dangling pointers,
+
+00:07:36.520 --> 00:07:37.660
+and double freeing.
+
+00:07:37.660 --> 00:07:41.320
+So a memory leak is if
+you allocate something
+
+00:07:41.320 --> 00:07:43.620
+and you forget to free
+it and your program keeps
+
+00:07:43.620 --> 00:07:45.370
+running and allocating
+more and more stuff
+
+00:07:45.370 --> 00:07:46.328
+but without freeing it.
+
+00:07:46.328 --> 00:07:48.370
+Eventually, you're going
+to run out of memory,
+
+00:07:48.370 --> 00:07:51.040
+and your program
+is going to crash.
+
+00:07:51.040 --> 00:07:54.880
+So you need to be
+careful of memory leaks.
+
+00:07:54.880 --> 00:07:57.790
+Dangling pointers are
+pointers to pieces of memory
+
+00:07:57.790 --> 00:08:00.250
+that you have already
+freed, and if you
+
+00:08:00.250 --> 00:08:02.580
+try to dereference
+a dangling pointer,
+
+00:08:02.580 --> 00:08:04.550
+the behavior is going
+to be undefined.
+
+00:08:04.550 --> 00:08:06.610
+So maybe you'll get
+a segmentation fault.
+
+00:08:06.610 --> 00:08:09.160
+Maybe you won't see anything
+until later on in your program
+
+00:08:09.160 --> 00:08:11.980
+because that memory might have
+been reallocated for something
+
+00:08:11.980 --> 00:08:15.970
+else, and it's actually legal
+to dereference that memory.
+
+00:08:15.970 --> 00:08:18.580
+So dangling pointers
+are very annoying when
+
+00:08:18.580 --> 00:08:21.340
+you're using C. If you're lucky,
+you'll get a segfault right
+
+00:08:21.340 --> 00:08:22.810
+away, and you can
+go fix your bug,
+
+00:08:22.810 --> 00:08:27.100
+but sometimes these
+are very hard to find.
+
+00:08:27.100 --> 00:08:28.310
+There's also double freeing.
+
+00:08:28.310 --> 00:08:31.810
+So this is when you free
+something more than once.
+
+00:08:31.810 --> 00:08:34.240
+And again, this will lead
+to undefined behavior.
+
+00:08:34.240 --> 00:08:38.230
+Maybe you'll get a segfault,
+or maybe that piece of memory
+
+00:08:38.230 --> 00:08:40.179
+was allocated for
+something else,
+
+00:08:40.179 --> 00:08:43.419
+and then when you free it
+again, it's actually legal.
+
+00:08:43.419 --> 00:08:45.850
+But your program is
+going to be incorrect,
+
+00:08:45.850 --> 00:08:48.310
+so you need to be careful
+that you don't free something
+
+00:08:48.310 --> 00:08:48.955
+more than once.
+
+00:08:51.650 --> 00:08:53.800
+And this is why
+some people prefer
+
+00:08:53.800 --> 00:08:56.770
+to use a language
+like Java and Python
+
+00:08:56.770 --> 00:09:00.520
+that provide these built-in
+garbage collectors.
+
+00:09:00.520 --> 00:09:02.680
+However, these languages
+are less efficient
+
+00:09:02.680 --> 00:09:04.690
+because they have a
+general-purpose garbage
+
+00:09:04.690 --> 00:09:07.650
+collector running
+in the background.
+
+00:09:07.650 --> 00:09:10.210
+So in this class,
+we're going to use C
+
+00:09:10.210 --> 00:09:13.390
+because we want to be able to
+write the fastest programs as
+
+00:09:13.390 --> 00:09:18.370
+possible, so we need to
+study how to manage memory.
+
+00:09:18.370 --> 00:09:19.900
+And there are some
+tools you can use
+
+00:09:19.900 --> 00:09:23.950
+to reduce the number of memory
+bugs you have in your program.
+
+00:09:23.950 --> 00:09:28.510
+So there's memory checkers like
+AddressSanitizer and Valgrind,
+
+00:09:28.510 --> 00:09:31.270
+which can assist you in
+finding these pernicious bugs.
+
+00:09:31.270 --> 00:09:35.740
+So AddressSanitizer is a
+compiler instrumentation tool.
+
+00:09:35.740 --> 00:09:39.160
+When you compile your
+program, you pass a flag,
+
+00:09:39.160 --> 00:09:41.950
+and then, when you
+run your program,
+
+00:09:41.950 --> 00:09:45.580
+it's going to report
+possible memory
+
+00:09:45.580 --> 00:09:47.380
+bugs you have in your program.
+
+00:09:47.380 --> 00:09:50.300
+And then Valgrind-- it works
+directly off the binaries.
+
+00:09:50.300 --> 00:09:54.280
+You don't need to do anything
+special when you compile it.
+
+00:09:54.280 --> 00:09:57.220
+You can just pass your
+binary to Valgrind,
+
+00:09:57.220 --> 00:10:01.120
+and if there is a memory
+bug, it might find it.
+
+00:10:01.120 --> 00:10:04.720
+But Valgrind tends to be
+slower than AddressSanitizer,
+
+00:10:04.720 --> 00:10:07.870
+and it tends to catch
+fewer bugs because it
+
+00:10:07.870 --> 00:10:10.540
+knows less about the program
+than AddressSanitizer.
+
+00:10:10.540 --> 00:10:13.840
+And AddressSanitizer sees the
+source code of the program
+
+00:10:13.840 --> 00:10:16.540
+and has more information,
+whereas Valgrind just
+
+00:10:16.540 --> 00:10:17.995
+works directly off the binary.
+
+00:10:21.560 --> 00:10:26.450
+Also, don't confuse the heap
+with the heap data structure
+
+00:10:26.450 --> 00:10:29.750
+that you might have seen before
+in your algorithms or data
+
+00:10:29.750 --> 00:10:30.710
+structures courses.
+
+00:10:30.710 --> 00:10:34.400
+So these are two
+different concepts.
+
+00:10:34.400 --> 00:10:37.910
+The heap data structure
+in your algorithms course
+
+00:10:37.910 --> 00:10:40.580
+was a data structure used to
+represent a priority queue,
+
+00:10:40.580 --> 00:10:43.880
+where you can efficiently
+extract the highest priority
+
+00:10:43.880 --> 00:10:46.100
+element, and you can also
+update the priorities
+
+00:10:46.100 --> 00:10:47.820
+of elements in the set.
+
+00:10:47.820 --> 00:10:49.610
+And this could be
+used for algorithms
+
+00:10:49.610 --> 00:10:52.280
+like sorting or graph search.
+
+00:10:52.280 --> 00:10:53.750
+But today we're
+going to be talking
+
+00:10:53.750 --> 00:10:56.900
+about another heap,
+which is the heap that's
+
+00:10:56.900 --> 00:10:58.430
+used for storage allocation.
+
+00:10:58.430 --> 00:10:59.825
+So don't get confused.
+
+00:11:02.430 --> 00:11:03.650
+So any questions so far?
+
+00:11:06.930 --> 00:11:08.940
+OK.
+
+00:11:08.940 --> 00:11:09.440
+All right.
+
+00:11:09.440 --> 00:11:12.500
+So we're going to first start
+with fixed-size allocations,
+
+00:11:12.500 --> 00:11:14.653
+since that's the easier case.
+
+00:11:14.653 --> 00:11:16.820
+So we're going to assume
+that every piece of storage
+
+00:11:16.820 --> 00:11:18.710
+has the same size.
+
+00:11:18.710 --> 00:11:23.960
+Some of these blocks are used,
+and some of them are unused.
+
+00:11:23.960 --> 00:11:26.240
+And among the
+unused blocks, we're
+
+00:11:26.240 --> 00:11:29.540
+going to keep a list that
+we call the free list,
+
+00:11:29.540 --> 00:11:32.060
+and each block in this
+free list has a pointer
+
+00:11:32.060 --> 00:11:34.010
+to the next block
+in the free list.
+
+00:11:34.010 --> 00:11:35.990
+And since this
+memory is unused, we
+
+00:11:35.990 --> 00:11:38.270
+can actually use
+the memory to store
+
+00:11:38.270 --> 00:11:42.028
+a pointer as part of our storage
+allocator implementation.
+
+00:11:45.700 --> 00:11:48.670
+There's actually another way
+to do fixed-size allocations.
+
+00:11:48.670 --> 00:11:50.860
+Instead of using
+a free list, you
+
+00:11:50.860 --> 00:11:54.340
+could actually a place a
+bit for each block saying
+
+00:11:54.340 --> 00:11:57.070
+whether or not it's free, and
+then when you do allocation,
+
+00:11:57.070 --> 00:11:59.110
+you can use bit tricks.
+
+00:11:59.110 --> 00:12:01.870
+But today I'm going to
+talk about the free list
+
+00:12:01.870 --> 00:12:03.194
+implementation.
+
+00:12:05.920 --> 00:12:10.960
+So to allocate one object
+from the free list,
+
+00:12:10.960 --> 00:12:14.680
+you set the pointer
+x to be free.
+
+00:12:14.680 --> 00:12:18.070
+So free is pointing to the
+first object in this free list.
+
+00:12:18.070 --> 00:12:20.050
+Then you set the
+free pointer to point
+
+00:12:20.050 --> 00:12:22.240
+to the next thing
+in the free list,
+
+00:12:22.240 --> 00:12:27.250
+so this is doing free equal
+to the next pointer of free.
+
+00:12:27.250 --> 00:12:29.230
+And then, finally,
+you return x, which
+
+00:12:29.230 --> 00:12:35.140
+is a pointer to the first
+object in the free list.
+
+00:12:35.140 --> 00:12:36.640
+So here's an animation.
+
+00:12:36.640 --> 00:12:40.630
+So x is going to point
+to what free points to.
+
+00:12:40.630 --> 00:12:42.760
+You also need to check
+if free is equal to null,
+
+00:12:42.760 --> 00:12:45.295
+because if free
+is equal to null,
+
+00:12:45.295 --> 00:12:48.670
+that means there are no more
+free blocks in the free list,
+
+00:12:48.670 --> 00:12:50.410
+and the programmer
+should know this.
+
+00:12:50.410 --> 00:12:51.910
+You should return
+a special value.
+
+00:12:54.700 --> 00:12:57.910
+Otherwise, we're going
+to set the free pointer
+
+00:12:57.910 --> 00:13:00.490
+to point to the next
+thing in the free list,
+
+00:13:00.490 --> 00:13:03.700
+and then, finally, we
+return x to the program,
+
+00:13:03.700 --> 00:13:06.640
+and now the program has a
+block of memory that I can use.
+
+00:13:10.420 --> 00:13:12.940
+There is still a garbage
+pointer in this block
+
+00:13:12.940 --> 00:13:15.910
+that we pass back to the program
+because we didn't clear it.
+
+00:13:15.910 --> 00:13:18.910
+So the implementation
+of the storage allocator
+
+00:13:18.910 --> 00:13:21.768
+could decide to zero
+this out, or it can just
+
+00:13:21.768 --> 00:13:23.560
+pass it back to the
+program and leave it up
+
+00:13:23.560 --> 00:13:25.643
+to the programmer to do
+whatever it wants with it.
+
+00:13:25.643 --> 00:13:27.790
+So in the latter
+case, the programmer
+
+00:13:27.790 --> 00:13:31.270
+should be careful not to try
+to dereference this pointer.
+
+00:13:36.510 --> 00:13:40.530
+OK, so how about deallocation?
+
+00:13:40.530 --> 00:13:43.860
+So let's say we want
+to free some object x.
+
+00:13:43.860 --> 00:13:47.100
+What we do is, we just
+set the next pointer
+
+00:13:47.100 --> 00:13:51.420
+of x to be equal
+to free, so it's
+
+00:13:51.420 --> 00:13:56.040
+going to point to the first
+thing in the free list.
+
+00:13:56.040 --> 00:13:58.380
+And then we set free equal to x.
+
+00:13:58.380 --> 00:14:01.850
+So right.
+
+00:14:01.850 --> 00:14:05.390
+So now free is pointing
+to x, and this x object
+
+00:14:05.390 --> 00:14:09.230
+that we wanted to free now is
+a pointer to the first object
+
+00:14:09.230 --> 00:14:10.460
+in the original free list.
+
+00:14:13.490 --> 00:14:14.370
+So pretty simple.
+
+00:14:14.370 --> 00:14:16.040
+Any questions on this?
+
+00:14:25.350 --> 00:14:27.210
+So this sort of
+acts like a stack
+
+00:14:27.210 --> 00:14:30.630
+in that the last thing
+that you've freed
+
+00:14:30.630 --> 00:14:32.750
+is going to be the first
+thing that you allocate,
+
+00:14:32.750 --> 00:14:36.960
+so you get temporal
+locality in that way.
+
+00:14:36.960 --> 00:14:38.700
+But unlike a stack,
+you can actually
+
+00:14:38.700 --> 00:14:41.580
+free any of the blocks and
+not just the last block
+
+00:14:41.580 --> 00:14:43.590
+that you allocated.
+
+00:14:46.410 --> 00:14:49.590
+So with a free list,
+allocating and freeing
+
+00:14:49.590 --> 00:14:51.690
+take constant time
+because you're just
+
+00:14:51.690 --> 00:14:54.630
+adjusting some pointers.
+
+00:14:54.630 --> 00:14:57.030
+It has good temporal
+locality, because as I said,
+
+00:14:57.030 --> 00:15:00.060
+the things that you
+freed most recently
+
+00:15:00.060 --> 00:15:04.670
+are going to be the things
+that are going to be allocated.
+
+00:15:04.670 --> 00:15:10.050
+It has poor spatial locality
+due to external fragmentation,
+
+00:15:10.050 --> 00:15:14.280
+and external fragmentation means
+that your box of used memory
+
+00:15:14.280 --> 00:15:16.680
+are spread out
+all over the place
+
+00:15:16.680 --> 00:15:20.220
+in the space of all memory.
+
+00:15:20.220 --> 00:15:22.140
+And this can be
+bad for performance
+
+00:15:22.140 --> 00:15:25.740
+because it can increase
+the size of the page table,
+
+00:15:25.740 --> 00:15:28.300
+and it can also
+cause disk thrashing.
+
+00:15:28.300 --> 00:15:31.470
+So if you recall,
+whenever you access
+
+00:15:31.470 --> 00:15:37.110
+a page in virtual memory, it
+has to do address translation
+
+00:15:37.110 --> 00:15:39.390
+to the physical memory address.
+
+00:15:39.390 --> 00:15:42.990
+And if your memory is
+spread out across many pages
+
+00:15:42.990 --> 00:15:47.183
+in virtual memory, then you're
+going to have a lot of entries
+
+00:15:47.183 --> 00:15:49.350
+in the page table, because
+the page table is storing
+
+00:15:49.350 --> 00:15:53.040
+this mapping between the virtual
+memory address of the page
+
+00:15:53.040 --> 00:15:55.650
+and the physical memory
+address of the page.
+
+00:15:55.650 --> 00:15:57.360
+So this can complicate
+the page table,
+
+00:15:57.360 --> 00:16:01.020
+make it less efficient
+to do lookups in it.
+
+00:16:01.020 --> 00:16:03.300
+And then if you have
+more pages than you
+
+00:16:03.300 --> 00:16:06.090
+can fit in your main
+memory, then this
+
+00:16:06.090 --> 00:16:09.630
+can cause disk thrashing
+because you have to move pages
+
+00:16:09.630 --> 00:16:10.515
+in and out of disk.
+
+00:16:13.170 --> 00:16:17.160
+The Translation Lookaside Buffer
+or TLB can also be a problem.
+
+00:16:17.160 --> 00:16:19.320
+Does anybody know what a TLB is?
+
+00:16:28.530 --> 00:16:29.456
+Yes?
+
+00:16:29.456 --> 00:16:31.400
+AUDIENCE: A cache of the
+result of translating
+
+00:16:31.400 --> 00:16:33.025
+from virtual memory
+to physical memory.
+
+00:16:33.025 --> 00:16:35.380
+JULIAN SHUN: Yeah, so
+the TLB is essentially
+
+00:16:35.380 --> 00:16:38.170
+a cache for the
+page table, so it
+
+00:16:38.170 --> 00:16:41.050
+will cache the results
+of the translation
+
+00:16:41.050 --> 00:16:43.180
+from virtual memory
+addresses to physical memory
+
+00:16:43.180 --> 00:16:46.750
+addresses for the most
+recent translations.
+
+00:16:46.750 --> 00:16:49.840
+And looking up a
+translation in the TLB
+
+00:16:49.840 --> 00:16:53.770
+is much more efficient than
+going through the page table.
+
+00:16:53.770 --> 00:16:56.470
+And if you have a lot of
+external fragmentation,
+
+00:16:56.470 --> 00:16:59.830
+then you have a lot of
+pages that you might access,
+
+00:16:59.830 --> 00:17:01.990
+and this means that
+when you go to the TLB,
+
+00:17:01.990 --> 00:17:03.880
+it's more likely
+you'll get a TLB miss,
+
+00:17:03.880 --> 00:17:05.380
+and you have to go
+to the page table
+
+00:17:05.380 --> 00:17:06.849
+to look up the
+appropriate address.
+
+00:17:06.849 --> 00:17:09.670
+So that's why external
+fragmentation is bad.
+
+00:17:12.790 --> 00:17:15.250
+So let's look at
+some ways to mitigate
+
+00:17:15.250 --> 00:17:18.619
+external fragmentation.
+
+00:17:18.619 --> 00:17:23.890
+So one way to do this is to
+keep a free list or a bitmap
+
+00:17:23.890 --> 00:17:27.460
+per disk page, and then when
+you want to allocate something,
+
+00:17:27.460 --> 00:17:30.730
+you allocate from the free
+list of the fullest page.
+
+00:17:30.730 --> 00:17:33.340
+So you sort of skew
+the memory that's
+
+00:17:33.340 --> 00:17:37.420
+being used to as few
+pages as possible.
+
+00:17:37.420 --> 00:17:40.330
+And when you free
+a block of storage,
+
+00:17:40.330 --> 00:17:45.490
+you just return it to the page
+on which that block resides.
+
+00:17:45.490 --> 00:17:47.680
+And if a page becomes
+completely empty--
+
+00:17:47.680 --> 00:17:50.860
+there are no more items
+that are used on that page--
+
+00:17:50.860 --> 00:17:52.950
+then the virtual memory
+system can page it out
+
+00:17:52.950 --> 00:17:55.450
+without affecting the program
+performance because you're not
+
+00:17:55.450 --> 00:17:58.750
+going to access
+that page anyways.
+
+00:17:58.750 --> 00:18:00.250
+So this might seem
+counterintuitive.
+
+00:18:00.250 --> 00:18:04.030
+Why do we want to skew the items
+to as few pages as possible?
+
+00:18:04.030 --> 00:18:05.920
+So let's look at
+a simple example
+
+00:18:05.920 --> 00:18:09.220
+to convince ourselves why this
+is actually good for dealing
+
+00:18:09.220 --> 00:18:10.730
+with external fragmentation.
+
+00:18:10.730 --> 00:18:12.830
+So here I have two cases.
+
+00:18:12.830 --> 00:18:16.930
+In the first case, I have
+90% of my blocks on one page
+
+00:18:16.930 --> 00:18:20.080
+and 10% of the blocks
+on the other page.
+
+00:18:20.080 --> 00:18:23.050
+In the second case, I have
+half of my blocks on one page
+
+00:18:23.050 --> 00:18:25.660
+and half on the other page.
+
+00:18:25.660 --> 00:18:27.160
+So now let's look
+at the probability
+
+00:18:27.160 --> 00:18:29.980
+that two random accesses
+will hit the same page.
+
+00:18:29.980 --> 00:18:31.990
+So let's assume that all
+of the random accesses
+
+00:18:31.990 --> 00:18:34.630
+are going to go to
+one of the two pages.
+
+00:18:34.630 --> 00:18:36.730
+So in the first
+case, the probability
+
+00:18:36.730 --> 00:18:39.340
+that both of the accesses
+hit the first page is going
+
+00:18:39.340 --> 00:18:43.780
+to be 0.9 times 0.9, and then
+the probability that they
+
+00:18:43.780 --> 00:18:46.700
+both hit the second
+page is 0.1 times 0.1,
+
+00:18:46.700 --> 00:18:49.430
+and if you sum this
+up, you get 0.82.
+
+00:18:49.430 --> 00:18:53.080
+That's the probability that
+both of the random accesses
+
+00:18:53.080 --> 00:18:55.230
+are going to hit the same page.
+
+00:18:55.230 --> 00:18:57.280
+In the other case,
+the probability
+
+00:18:57.280 --> 00:19:00.820
+that both of the accesses
+hit the first page
+
+00:19:00.820 --> 00:19:03.250
+is going to be 0.5 times 0.5.
+
+00:19:03.250 --> 00:19:06.190
+The second page is also
+going to be 0.5 times 0.5,
+
+00:19:06.190 --> 00:19:09.010
+so that sums to
+0.5, and that means
+
+00:19:09.010 --> 00:19:11.835
+that there's only a 50% chance
+that two random accesses are
+
+00:19:11.835 --> 00:19:12.960
+going to hit the same page.
+
+00:19:12.960 --> 00:19:14.377
+So in the first
+case, you actually
+
+00:19:14.377 --> 00:19:17.590
+have a higher chance that
+the two random accesses hit
+
+00:19:17.590 --> 00:19:20.890
+the same page, and that's why we
+want to skew the items as much
+
+00:19:20.890 --> 00:19:23.800
+as possible so
+that we can reduce
+
+00:19:23.800 --> 00:19:27.510
+the external fragmentation.
+
+00:19:27.510 --> 00:19:28.350
+Any questions?
+
+00:19:33.800 --> 00:19:39.870
+OK, so that was fixed-size
+heap allocation,
+
+00:19:39.870 --> 00:19:43.730
+and obviously you can't
+use that for many programs
+
+00:19:43.730 --> 00:19:46.590
+if you're allocating
+memory of different sizes.
+
+00:19:46.590 --> 00:19:49.230
+So now let's look at
+variable-size heap allocation.
+
+00:19:52.360 --> 00:19:55.110
+So we're going to look at
+one allocation scheme called
+
+00:19:55.110 --> 00:19:56.942
+binned free lists.
+
+00:19:56.942 --> 00:20:03.410
+And the idea is to leverage
+the efficiency of free list
+
+00:20:03.410 --> 00:20:05.010
+and also accept
+the bounded amount
+
+00:20:05.010 --> 00:20:06.520
+of internal fragmentation.
+
+00:20:06.520 --> 00:20:10.500
+So internal fragmentation is
+wasted space within a block,
+
+00:20:10.500 --> 00:20:12.300
+so that means when
+you allocate possibly
+
+00:20:12.300 --> 00:20:14.130
+more space than
+you're using, then
+
+00:20:14.130 --> 00:20:16.530
+there's some wasted
+space in there.
+
+00:20:16.530 --> 00:20:19.320
+So in binned free lists,
+what we're going to do is,
+
+00:20:19.320 --> 00:20:21.510
+we're going to have a
+whole bunch of bins,
+
+00:20:21.510 --> 00:20:25.260
+and each bin is going to store
+blocks of a particular size.
+
+00:20:30.090 --> 00:20:33.720
+So here I'm going to
+say that bin k holds
+
+00:20:33.720 --> 00:20:36.480
+memory blocks of
+size 2 to the k,
+
+00:20:36.480 --> 00:20:40.440
+so I'm going to store
+blocks of sizes powers of 2.
+
+00:20:42.990 --> 00:20:46.050
+So why don't I just store a
+bin for every possible size?
+
+00:20:46.050 --> 00:20:47.700
+Does anybody know why?
+
+00:20:50.760 --> 00:20:56.490
+Why am I rounding up
+to powers of 2 here?
+
+00:20:56.490 --> 00:20:58.410
+AUDIENCE: You'd
+have too many bins.
+
+00:20:58.410 --> 00:21:01.200
+JULIAN SHUN: Yes, if I wanted
+a bin for every possible size,
+
+00:21:01.200 --> 00:21:06.240
+I would have way too many
+bins, and just the pointers
+
+00:21:06.240 --> 00:21:08.890
+to these bins are not
+going to fit in memory.
+
+00:21:08.890 --> 00:21:12.300
+So that's why I'm only
+using bins that store
+
+00:21:12.300 --> 00:21:14.415
+blocks of size 2 to the k.
+
+00:21:17.190 --> 00:21:21.090
+And now let's look
+at how I'm going
+
+00:21:21.090 --> 00:21:23.748
+to allocate x bytes
+from a binned free list.
+
+00:21:23.748 --> 00:21:25.290
+So what I'm going
+to do is, I'm going
+
+00:21:25.290 --> 00:21:29.370
+to look up the bin for which
+I should take a block from,
+
+00:21:29.370 --> 00:21:35.670
+and to get that, I'm going to
+take the ceiling of log base x.
+
+00:21:35.670 --> 00:21:40.560
+This is log base 2, so
+recall that lg is log base 2.
+
+00:21:40.560 --> 00:21:42.600
+If that bin is nonempty,
+then I can just
+
+00:21:42.600 --> 00:21:45.420
+return a block from that bin.
+
+00:21:45.420 --> 00:21:47.280
+However, if that
+bin is empty, then I
+
+00:21:47.280 --> 00:21:52.590
+need to go to the next
+highest bin that's nonempty,
+
+00:21:52.590 --> 00:21:54.960
+and then I'm going to
+take a block from that bin
+
+00:21:54.960 --> 00:21:57.360
+and then split it up
+into smaller chunks
+
+00:21:57.360 --> 00:21:59.580
+and place them
+into smaller bins.
+
+00:21:59.580 --> 00:22:02.880
+And then I'll also get a chunk
+that is of the right size.
+
+00:22:02.880 --> 00:22:07.920
+So for this example, let's say
+I wanted to allocate 3 bytes.
+
+00:22:07.920 --> 00:22:12.060
+The ceiling of log base 2
+of x is 2, so I go to bin 2.
+
+00:22:12.060 --> 00:22:15.330
+But bin 2 is empty, so I need
+to look for the next bin that's
+
+00:22:15.330 --> 00:22:16.800
+not empty.
+
+00:22:16.800 --> 00:22:19.330
+And that's going to be bin 4.
+
+00:22:19.330 --> 00:22:24.230
+And I'm going to split up this
+block into smaller powers of 2.
+
+00:22:24.230 --> 00:22:26.130
+So in particular,
+I'm going to find
+
+00:22:26.130 --> 00:22:29.250
+a nonempty bin k
+prime greater than k
+
+00:22:29.250 --> 00:22:33.900
+and split up a block into sizes
+of 2 to the k prime minus 1,
+
+00:22:33.900 --> 00:22:37.530
+2 to the k prime minus 2, all
+the way down to 2 to the k.
+
+00:22:37.530 --> 00:22:41.340
+So I'm going to split it into
+sizes of all the powers of 2
+
+00:22:41.340 --> 00:22:46.260
+less than 2 to the k prime
+and greater than or equal to 2
+
+00:22:46.260 --> 00:22:47.070
+to the k.
+
+00:22:47.070 --> 00:22:50.790
+And I'm going to actually have
+two blocks of size 2 to the k,
+
+00:22:50.790 --> 00:22:54.090
+and one of those will be
+returned to the program.
+
+00:22:54.090 --> 00:22:57.480
+So here I'm going to
+split up this block.
+
+00:22:57.480 --> 00:23:01.140
+I'm going to place one of the
+smaller blocks in bin 3, one
+
+00:23:01.140 --> 00:23:05.370
+of them into bin 2, and then
+I also have another block here
+
+00:23:05.370 --> 00:23:07.245
+that I'm just going to
+return to the program.
+
+00:23:10.310 --> 00:23:12.200
+So any questions on
+how this scheme works?
+
+00:23:17.780 --> 00:23:21.460
+OK, and if there are no
+larger blocks that exist--
+
+00:23:21.460 --> 00:23:23.310
+so that means all
+of the bins higher
+
+00:23:23.310 --> 00:23:25.840
+than the bin I'm
+looking at are empty--
+
+00:23:25.840 --> 00:23:30.250
+then I need to go to the OS
+to request for more memory.
+
+00:23:30.250 --> 00:23:31.740
+And then after I
+get that memory,
+
+00:23:31.740 --> 00:23:35.250
+I'll split it up so I can
+satisfy my allocation request.
+
+00:23:39.260 --> 00:23:43.630
+In practice, this exact
+scheme isn't used,
+
+00:23:43.630 --> 00:23:45.380
+so there are many
+variants of this scheme.
+
+00:23:45.380 --> 00:23:47.000
+So it turns out
+that efficiency is
+
+00:23:47.000 --> 00:23:49.070
+very important for
+small allocations
+
+00:23:49.070 --> 00:23:52.460
+because there's not
+that much work performed
+
+00:23:52.460 --> 00:23:55.940
+on these small pieces of
+memory, and the overheads
+
+00:23:55.940 --> 00:23:59.630
+of the storage allocation
+scheme could cause a performance
+
+00:23:59.630 --> 00:24:00.170
+bottleneck.
+
+00:24:00.170 --> 00:24:03.140
+So in practice, you usually
+don't go all the way down
+
+00:24:03.140 --> 00:24:04.760
+to blocks of size 1.
+
+00:24:04.760 --> 00:24:08.330
+You might stop at blocks
+of size 8 bytes so
+
+00:24:08.330 --> 00:24:10.460
+that you don't have
+that much overhead,
+
+00:24:10.460 --> 00:24:13.130
+but this does increase
+the internal fragmentation
+
+00:24:13.130 --> 00:24:19.460
+by a little bit, because now
+you have some wasted space.
+
+00:24:19.460 --> 00:24:21.350
+And then-- one
+second-- and then you
+
+00:24:21.350 --> 00:24:23.300
+can also group
+blocks into pages,
+
+00:24:23.300 --> 00:24:26.787
+as I said before, so that all
+of the blocks in the same page
+
+00:24:26.787 --> 00:24:28.370
+have the same size,
+and then you don't
+
+00:24:28.370 --> 00:24:33.800
+have to store the information
+of the size of the blocks.
+
+00:24:33.800 --> 00:24:36.635
+Yes.
+
+00:24:36.635 --> 00:24:39.080
+AUDIENCE: How do you--
+
+00:24:39.080 --> 00:24:41.710
+JULIAN SHUN: Yeah, so there
+are two commands you can use.
+
+00:24:41.710 --> 00:24:45.150
+One is called mmap and the
+other one is called sbrk.
+
+00:24:45.150 --> 00:24:48.577
+So those are system calls.
+
+00:24:48.577 --> 00:24:51.160
+You just call that, and then the
+OS will give you more memory,
+
+00:24:51.160 --> 00:24:52.952
+and then your storage
+allocator can use it.
+
+00:24:58.720 --> 00:25:01.285
+Yes?
+
+00:25:01.285 --> 00:25:04.762
+AUDIENCE: They don't have to
+use something like this in order
+
+00:25:04.762 --> 00:25:05.860
+to implement those?
+
+00:25:05.860 --> 00:25:10.390
+JULIAN SHUN: No, the standard
+implementation of malloc--
+
+00:25:10.390 --> 00:25:13.960
+internally, it uses these
+commands, mmap and sbrk,
+
+00:25:13.960 --> 00:25:17.920
+to get memory from the OS,
+so the OS just gives you
+
+00:25:17.920 --> 00:25:19.030
+a huge chunk of memory.
+
+00:25:19.030 --> 00:25:21.940
+It doesn't split it up into
+smaller blocks or anything.
+
+00:25:21.940 --> 00:25:23.650
+That's up to the
+storage allocator to do.
+
+00:25:23.650 --> 00:25:26.140
+It just gives you a
+big chunk of memory,
+
+00:25:26.140 --> 00:25:28.840
+and then the storage
+allocator will break it up
+
+00:25:28.840 --> 00:25:31.800
+into smaller blocks.
+
+00:25:31.800 --> 00:25:34.300
+There are similar
+commands where you
+
+00:25:34.300 --> 00:25:36.100
+can free memory
+back to the OS when
+
+00:25:36.100 --> 00:25:39.131
+you're not using them anymore.
+
+00:25:39.131 --> 00:25:41.464
+AUDIENCE: Can you explain
+the paging thing [INAUDIBLE]??
+
+00:25:44.135 --> 00:25:45.510
+JULIAN SHUN: Yeah,
+so what I said
+
+00:25:45.510 --> 00:25:48.330
+was that you can actually
+keep blocks of different sizes
+
+00:25:48.330 --> 00:25:52.230
+on different pages, so
+then you don't actually
+
+00:25:52.230 --> 00:25:53.920
+have to store the
+size of each block.
+
+00:25:53.920 --> 00:25:56.970
+You can just look up what page
+that block resides in when
+
+00:25:56.970 --> 00:25:58.150
+you get the memory address.
+
+00:25:58.150 --> 00:26:01.020
+And then for each page,
+you have one field
+
+00:26:01.020 --> 00:26:04.020
+that stores the size of
+those blocks on that page.
+
+00:26:04.020 --> 00:26:05.700
+So this saves you the
+overhead of having
+
+00:26:05.700 --> 00:26:09.820
+to store information per
+block to figure out its size.
+
+00:26:09.820 --> 00:26:10.320
+Yeah.
+
+00:26:10.320 --> 00:26:12.740
+AUDIENCE: --changing
+the size of the blocks.
+
+00:26:12.740 --> 00:26:14.280
+JULIAN SHUN: Yeah,
+so I mean, if you
+
+00:26:14.280 --> 00:26:16.790
+do change the size
+of the blocks,
+
+00:26:16.790 --> 00:26:19.140
+then you can't actually
+use this scheme,
+
+00:26:19.140 --> 00:26:21.600
+so this is actually a
+variant where you don't
+
+00:26:21.600 --> 00:26:22.962
+change the size of the blocks.
+
+00:26:22.962 --> 00:26:24.420
+If you do change
+the size, then you
+
+00:26:24.420 --> 00:26:26.003
+have to change it
+for the entire page.
+
+00:26:28.470 --> 00:26:32.740
+Yeah, so there are many variants
+of memory allocators out there.
+
+00:26:32.740 --> 00:26:35.470
+This is just the simplest
+one that I described.
+
+00:26:35.470 --> 00:26:40.510
+But it turns out that this exact
+scheme isn't the one that's
+
+00:26:40.510 --> 00:26:41.340
+used in practice.
+
+00:26:41.340 --> 00:26:42.340
+There are many variants.
+
+00:26:42.340 --> 00:26:45.880
+Like some allocators,
+instead of using powers of 2,
+
+00:26:45.880 --> 00:26:49.750
+they use Fibonacci numbers to
+determine the different bins.
+
+00:26:52.648 --> 00:26:53.620
+Yeah.
+
+00:26:53.620 --> 00:26:56.830
+Any other questions?
+
+00:26:56.830 --> 00:26:58.930
+So you'll actually get
+a chance to play around
+
+00:26:58.930 --> 00:27:02.440
+with implementing some
+allocators in project
+
+00:27:02.440 --> 00:27:03.715
+3 and homework 6.
+
+00:27:11.680 --> 00:27:16.420
+So let's briefly look at the
+storage layout of a program.
+
+00:27:16.420 --> 00:27:20.040
+So this is how our
+virtual memory address
+
+00:27:20.040 --> 00:27:22.390
+space is laid out.
+
+00:27:22.390 --> 00:27:25.940
+So we have the stack
+all the way at the top,
+
+00:27:25.940 --> 00:27:29.050
+and the stack grows downwards,
+so we have the high addresses
+
+00:27:29.050 --> 00:27:31.930
+up top and the low
+addresses below.
+
+00:27:31.930 --> 00:27:34.420
+Then we have the heap,
+which grows upward,
+
+00:27:34.420 --> 00:27:36.460
+and the heap and
+the stack basically
+
+00:27:36.460 --> 00:27:39.490
+grow towards each other, and
+this space is dynamically
+
+00:27:39.490 --> 00:27:42.610
+allocated as the program runs.
+
+00:27:42.610 --> 00:27:46.330
+Then there's the bss
+segment, the data segment,
+
+00:27:46.330 --> 00:27:51.440
+and the text segment, which
+all reside below the heap.
+
+00:27:51.440 --> 00:27:55.820
+So the code segment just stores
+the code for your program.
+
+00:27:55.820 --> 00:27:57.790
+So when you load
+up your program,
+
+00:27:57.790 --> 00:28:02.650
+this code is going to put your
+program into this text segment.
+
+00:28:02.650 --> 00:28:05.770
+Then there's this
+data segment, which
+
+00:28:05.770 --> 00:28:10.060
+stores all of the global
+variables and static variables,
+
+00:28:10.060 --> 00:28:12.460
+these constants that you
+defined in your program.
+
+00:28:12.460 --> 00:28:15.095
+These are all stored
+in the data segment,
+
+00:28:15.095 --> 00:28:16.720
+and when you load
+your program you also
+
+00:28:16.720 --> 00:28:20.230
+have to read this data
+from disk and store it
+
+00:28:20.230 --> 00:28:22.390
+into the data segment.
+
+00:28:22.390 --> 00:28:25.810
+Then there's the bss
+segment this segment is
+
+00:28:25.810 --> 00:28:28.240
+used to store all the
+on initialize variables
+
+00:28:28.240 --> 00:28:31.390
+in your program,
+and this is just
+
+00:28:31.390 --> 00:28:33.580
+initialized to 0 at the
+start of your program,
+
+00:28:33.580 --> 00:28:35.540
+since your program
+hasn't initialized it,
+
+00:28:35.540 --> 00:28:39.790
+so it doesn't matter
+what we set it to.
+
+00:28:39.790 --> 00:28:42.580
+And then the heap--
+this is the memory
+
+00:28:42.580 --> 00:28:47.110
+that we're using when we're
+calling malloc and free.
+
+00:28:47.110 --> 00:28:50.380
+And then we have the stack,
+which we talked about.
+
+00:28:55.610 --> 00:28:57.947
+So in practice, the
+stack and the heap
+
+00:28:57.947 --> 00:29:00.280
+are never actually going to
+hit each other because we're
+
+00:29:00.280 --> 00:29:02.647
+working with 64-bit addresses.
+
+00:29:02.647 --> 00:29:04.730
+So even though they're
+growing towards each other,
+
+00:29:04.730 --> 00:29:06.370
+you don't have to worry
+about them actually
+
+00:29:06.370 --> 00:29:07.180
+hitting each other.
+
+00:29:10.040 --> 00:29:13.600
+And another point to
+note is that if you're
+
+00:29:13.600 --> 00:29:17.080
+doing a lot of precomputation
+in your program,
+
+00:29:17.080 --> 00:29:21.430
+for example generating these
+huge tables of constants,
+
+00:29:21.430 --> 00:29:23.560
+those all have to be
+read from disk when
+
+00:29:23.560 --> 00:29:26.363
+you start your program and
+stored in this data segment.
+
+00:29:26.363 --> 00:29:28.030
+So if you have a lot
+of these constants,
+
+00:29:28.030 --> 00:29:30.670
+it's actually going to
+make your program loading
+
+00:29:30.670 --> 00:29:33.590
+time much higher.
+
+00:29:33.590 --> 00:29:36.460
+However, it's usually OK to do
+a little bit of precomputation,
+
+00:29:36.460 --> 00:29:39.940
+especially if you can save a
+lot of computation at runtime,
+
+00:29:39.940 --> 00:29:41.530
+but in some cases
+it might actually
+
+00:29:41.530 --> 00:29:45.185
+be faster overall to just
+compute the things in memory
+
+00:29:45.185 --> 00:29:47.060
+when you start your
+program, because then you
+
+00:29:47.060 --> 00:29:48.370
+have to read stuff from disk.
+
+00:29:54.725 --> 00:29:55.600
+So here's a question.
+
+00:29:55.600 --> 00:29:59.560
+So since a 64-bit address
+space takes over a century
+
+00:29:59.560 --> 00:30:03.580
+to write at a rate of 4
+billion bytes per second,
+
+00:30:03.580 --> 00:30:07.820
+we're never effectively going
+to run out of virtual memory.
+
+00:30:07.820 --> 00:30:10.840
+So why don't we just allocate
+out of virtual memory and never
+
+00:30:10.840 --> 00:30:11.650
+free anything?
+
+00:30:20.730 --> 00:30:23.600
+Yes?
+
+00:30:23.600 --> 00:30:25.064
+AUDIENCE: If you
+allocate a bunch
+
+00:30:25.064 --> 00:30:27.992
+of small things
+in random places,
+
+00:30:27.992 --> 00:30:31.783
+then it's harder to update
+than a large segment?
+
+00:30:31.783 --> 00:30:33.200
+JULIAN SHUN: Yeah,
+so one thing is
+
+00:30:33.200 --> 00:30:37.077
+that you have this
+issue of fragmentation.
+
+00:30:37.077 --> 00:30:38.660
+The blocks of memory
+that you're using
+
+00:30:38.660 --> 00:30:40.368
+are not going to be
+contiguous in memory,
+
+00:30:40.368 --> 00:30:42.905
+and then it makes it harder
+for you to find large blocks.
+
+00:30:45.560 --> 00:30:48.020
+So this is called
+external fragmentation,
+
+00:30:48.020 --> 00:30:49.550
+which I mentioned earlier.
+
+00:30:49.550 --> 00:30:52.040
+So if you do this,
+external fragmentation
+
+00:30:52.040 --> 00:30:54.140
+is going to be very bad.
+
+00:30:54.140 --> 00:30:55.670
+The performance
+of the page table
+
+00:30:55.670 --> 00:30:59.180
+is going to degrade tremendously
+because the memory that you're
+
+00:30:59.180 --> 00:31:01.720
+using is going to be spread
+all over virtual memory,
+
+00:31:01.720 --> 00:31:03.620
+and you're going
+to use many pages,
+
+00:31:03.620 --> 00:31:06.230
+and this leads to
+disk thrashing.
+
+00:31:06.230 --> 00:31:10.660
+So you have to do a lot of swaps
+of pages in and out of disk.
+
+00:31:10.660 --> 00:31:14.120
+Your TLB hit rate is
+going to be very low.
+
+00:31:18.350 --> 00:31:21.272
+And another reason
+is that you're also
+
+00:31:21.272 --> 00:31:22.730
+going to run out
+of physical memory
+
+00:31:22.730 --> 00:31:26.000
+if you never free anything.
+
+00:31:26.000 --> 00:31:28.160
+So one of the goals
+of storage allocation
+
+00:31:28.160 --> 00:31:31.310
+is to try to use as little
+virtual memory as possible
+
+00:31:31.310 --> 00:31:33.860
+and to try to keep the
+used portions of the memory
+
+00:31:33.860 --> 00:31:34.775
+relatively compact.
+
+00:31:38.400 --> 00:31:39.620
+Any questions so far?
+
+00:31:48.530 --> 00:31:53.020
+OK, so let's do an analysis of
+the binned free list storage
+
+00:31:53.020 --> 00:31:54.790
+allocation scheme.
+
+00:31:54.790 --> 00:31:55.850
+So here's a theorem.
+
+00:31:55.850 --> 00:31:59.110
+Suppose that the maximum
+amount of heap memory in use
+
+00:31:59.110 --> 00:32:03.400
+at any time by a program is
+M. If the heap is managed
+
+00:32:03.400 --> 00:32:06.700
+by a binned free list
+allocator, then the amount
+
+00:32:06.700 --> 00:32:09.010
+of virtual memory consumed
+by the heap storage
+
+00:32:09.010 --> 00:32:13.030
+is upper bounded by
+M log M. Does anybody
+
+00:32:13.030 --> 00:32:17.020
+have an intuition about why
+this theorem could be true?
+
+00:32:17.020 --> 00:32:19.270
+So how many bins do
+we have, at most?
+
+00:32:23.166 --> 00:32:24.153
+AUDIENCE: [INAUDIBLE]
+
+00:32:24.153 --> 00:32:24.945
+JULIAN SHUN: Right.
+
+00:32:24.945 --> 00:32:30.420
+So the number of bins we have
+is upper bounded by log M,
+
+00:32:30.420 --> 00:32:33.270
+and each bin is going
+to use order M memory.
+
+00:32:33.270 --> 00:32:35.130
+So let's look at
+this more formally.
+
+00:32:35.130 --> 00:32:38.490
+So an allocation request
+for a block of size x
+
+00:32:38.490 --> 00:32:42.360
+is going to consume 2 to
+the ceiling of log base 2
+
+00:32:42.360 --> 00:32:45.690
+of x storage, which is
+upper bounded by 2x,
+
+00:32:45.690 --> 00:32:51.270
+so we're only wasting a
+factor of 2 storage here.
+
+00:32:51.270 --> 00:32:53.370
+So therefore, the
+amount of virtual memory
+
+00:32:53.370 --> 00:32:59.370
+devoted to blocks of size
+2 to the k is at most 2M.
+
+00:32:59.370 --> 00:33:04.230
+And since there are at most
+log base 2 of M free lists,
+
+00:33:04.230 --> 00:33:07.350
+the theorem holds just by
+multiplying the two terms.
+
+00:33:07.350 --> 00:33:09.600
+So you can only have log
+base 2 of M free lists
+
+00:33:09.600 --> 00:33:14.100
+because that's the maximum
+amount of memory you're using,
+
+00:33:14.100 --> 00:33:16.020
+and therefore your
+largest bin is only
+
+00:33:16.020 --> 00:33:22.150
+going to hold blocks of
+size M. And it turns out
+
+00:33:22.150 --> 00:33:26.410
+that the bin free list
+allocation scheme is theta
+
+00:33:26.410 --> 00:33:29.310
+of 1 competitive with
+the optimal allocator,
+
+00:33:29.310 --> 00:33:33.280
+and here an optimal locator
+knows all of the memory
+
+00:33:33.280 --> 00:33:34.790
+requests in the future.
+
+00:33:34.790 --> 00:33:37.900
+So it can basically do
+a lot of clever things
+
+00:33:37.900 --> 00:33:41.140
+to optimize the memory
+allocation process.
+
+00:33:41.140 --> 00:33:43.510
+But it turns out that the
+binned free list is only
+
+00:33:43.510 --> 00:33:45.310
+going to be a
+constant factor worse
+
+00:33:45.310 --> 00:33:47.530
+than the optimal allocator.
+
+00:33:47.530 --> 00:33:50.050
+This is assuming that we don't
+coalesce blocks together,
+
+00:33:50.050 --> 00:33:53.510
+which I'll talk about
+on the next slide.
+
+00:33:53.510 --> 00:33:56.110
+It turns out that
+this constant is 6,
+
+00:33:56.110 --> 00:34:00.550
+so Charles Leiserson has a
+paper describing this result.
+
+00:34:00.550 --> 00:34:03.520
+And there's also a lower
+bound of 6, so this is tight.
+
+00:34:07.950 --> 00:34:09.900
+So coalescing.
+
+00:34:09.900 --> 00:34:14.639
+So coalescing is when you
+splice together smaller blocks
+
+00:34:14.639 --> 00:34:15.584
+into a larger block.
+
+00:34:15.584 --> 00:34:18.000
+So you can do this if you
+have two free blocks that
+
+00:34:18.000 --> 00:34:19.139
+are contiguous in memory.
+
+00:34:19.139 --> 00:34:24.420
+This will allow you to put them
+together into a larger block.
+
+00:34:24.420 --> 00:34:26.370
+So binned free
+lists can sometimes
+
+00:34:26.370 --> 00:34:29.699
+be heuristically improved
+by doing coalescing,
+
+00:34:29.699 --> 00:34:31.290
+and there are many
+clever schemes
+
+00:34:31.290 --> 00:34:33.617
+for trying to find adjacent
+blocks efficiently.
+
+00:34:33.617 --> 00:34:35.159
+So there's something
+called the buddy
+
+00:34:35.159 --> 00:34:37.949
+system, where each
+block has a buddy that's
+
+00:34:37.949 --> 00:34:40.020
+contiguous and memory.
+
+00:34:40.020 --> 00:34:43.620
+However, it turns out that this
+scheme especially, the buddy
+
+00:34:43.620 --> 00:34:46.030
+system scheme, has
+pretty high overhead.
+
+00:34:46.030 --> 00:34:48.179
+So it's usually
+going to be slower
+
+00:34:48.179 --> 00:34:53.699
+than just the standard
+binned free list algorithm.
+
+00:34:53.699 --> 00:34:55.830
+There are no good
+theoretical bounds
+
+00:34:55.830 --> 00:34:59.430
+that exist that prove the
+effectiveness of coalescing,
+
+00:34:59.430 --> 00:35:01.890
+but it does seem to work
+pretty well in practice
+
+00:35:01.890 --> 00:35:06.270
+at reducing fragmentation
+because heap storage tends
+
+00:35:06.270 --> 00:35:09.640
+to be deallocated as
+a stack or in batches.
+
+00:35:09.640 --> 00:35:16.140
+So what I mean by this is
+that the objects that you free
+
+00:35:16.140 --> 00:35:19.138
+tend to be pretty close
+together in memory.
+
+00:35:19.138 --> 00:35:21.180
+So if you deallocate as
+a stack, then all of them
+
+00:35:21.180 --> 00:35:23.490
+are going to be near
+the top of the stack.
+
+00:35:23.490 --> 00:35:25.530
+And when you
+deallocate in batches--
+
+00:35:25.530 --> 00:35:28.950
+this is when you do allocate
+a whole bunch of things
+
+00:35:28.950 --> 00:35:31.380
+that you allocated
+together in your program.
+
+00:35:31.380 --> 00:35:33.720
+For example, if you have
+a graph data structure
+
+00:35:33.720 --> 00:35:39.270
+and you allocated data for the
+vertices all at the same time,
+
+00:35:39.270 --> 00:35:41.460
+then when you deallocate
+them all together,
+
+00:35:41.460 --> 00:35:44.550
+this is going to give you a
+chunk of contiguous memory
+
+00:35:44.550 --> 00:35:46.880
+that you can splice together.
+
+00:35:46.880 --> 00:35:51.635
+OK, so now let's look
+at garbage collection.
+
+00:35:51.635 --> 00:35:53.760
+This is going to be slightly
+different from storage
+
+00:35:53.760 --> 00:35:55.060
+allocation.
+
+00:35:55.060 --> 00:35:58.320
+So the idea of
+garbage collection
+
+00:35:58.320 --> 00:36:01.650
+is to free the programmer
+from having to free objects.
+
+00:36:01.650 --> 00:36:04.110
+So languages like
+Java and Python,
+
+00:36:04.110 --> 00:36:05.710
+they have built-in
+garbage collectors,
+
+00:36:05.710 --> 00:36:09.210
+so the programmer doesn't
+have to free stuff themselves,
+
+00:36:09.210 --> 00:36:11.280
+and this makes it
+easier to write programs
+
+00:36:11.280 --> 00:36:13.770
+because you don't have
+to worry about double
+
+00:36:13.770 --> 00:36:16.270
+freeing and dangling
+pointers and so forth.
+
+00:36:19.410 --> 00:36:22.100
+So a garbage collector is
+going to identify and recycle
+
+00:36:22.100 --> 00:36:24.900
+the objects that the
+programmer can no longer access
+
+00:36:24.900 --> 00:36:29.490
+so that these memory objects can
+be used for future allocations.
+
+00:36:29.490 --> 00:36:32.640
+And in addition to having a
+built-in garbage collector,
+
+00:36:32.640 --> 00:36:35.880
+you can also create your
+own garbage collector
+
+00:36:35.880 --> 00:36:37.830
+in C, which doesn't have
+a garbage collector.
+
+00:36:37.830 --> 00:36:39.345
+So if you have an
+application, you
+
+00:36:39.345 --> 00:36:41.220
+can actually create a
+special-purpose garbage
+
+00:36:41.220 --> 00:36:43.335
+collector that might
+be more efficient than
+
+00:36:43.335 --> 00:36:44.940
+a general garbage collector.
+
+00:36:44.940 --> 00:36:45.812
+Yes?
+
+00:36:45.812 --> 00:36:50.330
+AUDIENCE: This is the previous
+topic, but why [? INAUDIBLE ?]
+
+00:36:50.330 --> 00:36:53.550
+order of M memory?
+
+00:36:53.550 --> 00:36:55.560
+JULIAN SHUN: Why
+is it not order M?
+
+00:36:55.560 --> 00:36:57.770
+AUDIENCE: Yeah.
+
+00:36:57.770 --> 00:36:59.520
+JULIAN SHUN: Because
+for each of the bins,
+
+00:36:59.520 --> 00:37:02.770
+you could use up
+to order M memory.
+
+00:37:02.770 --> 00:37:08.010
+So if you don't do
+coalescing, basically, I
+
+00:37:08.010 --> 00:37:10.140
+could have a bunch
+of small allocations,
+
+00:37:10.140 --> 00:37:13.080
+and then I chop up
+all of my blocks,
+
+00:37:13.080 --> 00:37:14.820
+and then they all go
+into smaller bins.
+
+00:37:14.820 --> 00:37:16.695
+And then I want to
+allocate something larger.
+
+00:37:16.695 --> 00:37:18.310
+I can't just splice
+those together.
+
+00:37:18.310 --> 00:37:21.130
+I have to make another
+memory allocation.
+
+00:37:21.130 --> 00:37:23.430
+So if you order your memory
+requests in a certain way,
+
+00:37:23.430 --> 00:37:27.120
+you can make it so that each
+of the bins has order M memory.
+
+00:37:35.770 --> 00:37:40.410
+OK, so for garbage collection,
+let's go over some terminology.
+
+00:37:40.410 --> 00:37:44.280
+So there are three types
+of memory objects, roots,
+
+00:37:44.280 --> 00:37:46.440
+live objects, and dead objects.
+
+00:37:46.440 --> 00:37:48.090
+Roots are objects
+that are directly
+
+00:37:48.090 --> 00:37:51.400
+accessible by the program, so
+these are global variables,
+
+00:37:51.400 --> 00:37:54.060
+things on the stack, and so on.
+
+00:37:54.060 --> 00:37:55.590
+Then there are
+live objects, which
+
+00:37:55.590 --> 00:38:00.120
+are reachable by following
+the roots via pointers,
+
+00:38:00.120 --> 00:38:01.830
+and then finally,
+there are dead objects,
+
+00:38:01.830 --> 00:38:05.070
+and these objects are
+inaccessible via sequences
+
+00:38:05.070 --> 00:38:05.580
+of pointers.
+
+00:38:05.580 --> 00:38:07.860
+And these can be recycled
+because the programmer can
+
+00:38:07.860 --> 00:38:09.735
+no longer reach
+these dead objects.
+
+00:38:14.380 --> 00:38:19.260
+So in order for garbage
+collection to work in general,
+
+00:38:19.260 --> 00:38:22.800
+you need to be able to have
+the garbage collector identify
+
+00:38:22.800 --> 00:38:25.680
+pointers, and this
+requires strong typing.
+
+00:38:25.680 --> 00:38:30.690
+So languages like Python
+and Java have strong typing,
+
+00:38:30.690 --> 00:38:33.840
+but in C, it doesn't
+have strong typing.
+
+00:38:33.840 --> 00:38:36.232
+This means that when
+you have a pointer
+
+00:38:36.232 --> 00:38:38.190
+you don't actually know
+whether it's a pointer.
+
+00:38:38.190 --> 00:38:41.100
+Because a pointer just
+looks like an integer.
+
+00:38:41.100 --> 00:38:43.060
+It could be either a
+point or an integer.
+
+00:38:43.060 --> 00:38:45.570
+You can cast things
+in C. You can also
+
+00:38:45.570 --> 00:38:50.220
+do pointer arithmetic
+in C. So in contrast,
+
+00:38:50.220 --> 00:38:52.170
+in other languages, once
+you declare something
+
+00:38:52.170 --> 00:38:55.170
+to be a pointer, it's always
+going to be a pointer.
+
+00:38:55.170 --> 00:38:57.630
+And for those languages
+that have strong typing,
+
+00:38:57.630 --> 00:39:01.380
+this makes it much easier
+to do garbage collection.
+
+00:39:01.380 --> 00:39:03.900
+You also need to prohibit
+doing pointer arithmetic
+
+00:39:03.900 --> 00:39:05.670
+on these pointers.
+
+00:39:05.670 --> 00:39:08.850
+Because if you do
+pointer arithmetic
+
+00:39:08.850 --> 00:39:12.210
+and you change the
+location of the pointer,
+
+00:39:12.210 --> 00:39:13.830
+then the garbage
+collector no longer
+
+00:39:13.830 --> 00:39:17.310
+knows where the memory
+region starts anymore.
+
+00:39:17.310 --> 00:39:20.910
+In C, sometimes you do
+do pointer arithmetic,
+
+00:39:20.910 --> 00:39:23.100
+and that's why
+you can't actually
+
+00:39:23.100 --> 00:39:26.280
+have a general-purpose garbage
+collector in C that works well.
+
+00:39:29.940 --> 00:39:36.380
+So let's look at one simple
+form of garbage collection.
+
+00:39:36.380 --> 00:39:39.020
+And this is called
+reference counting.
+
+00:39:39.020 --> 00:39:41.390
+The idea is that,
+for each object,
+
+00:39:41.390 --> 00:39:44.240
+I'm going to keep a count of the
+number of pointers referencing
+
+00:39:44.240 --> 00:39:46.160
+that object.
+
+00:39:46.160 --> 00:39:48.670
+And if the count ever
+goes to 0, then that
+
+00:39:48.670 --> 00:39:50.420
+means I can free that
+object because there
+
+00:39:50.420 --> 00:39:54.420
+are no more pointers that
+can reach that object.
+
+00:39:54.420 --> 00:39:57.440
+So here, I have
+a bunch of roots.
+
+00:39:57.440 --> 00:40:00.200
+So these are directly
+accessible by my program.
+
+00:40:00.200 --> 00:40:01.640
+And then I have a
+bunch of objects
+
+00:40:01.640 --> 00:40:05.750
+that can be reached
+via following pointers
+
+00:40:05.750 --> 00:40:07.100
+starting from the root.
+
+00:40:07.100 --> 00:40:09.440
+And then each of them
+have a reference count
+
+00:40:09.440 --> 00:40:12.290
+that indicates how many
+incoming pointers they have.
+
+00:40:16.430 --> 00:40:19.120
+So let's say now I change
+one of these pointers.
+
+00:40:19.120 --> 00:40:21.400
+So initially, I had a
+pointer going to here,
+
+00:40:21.400 --> 00:40:24.550
+but now I changed it so
+that it goes down here.
+
+00:40:24.550 --> 00:40:27.700
+So what happens now is I have
+to adjust a reference counts
+
+00:40:27.700 --> 00:40:29.780
+of both of these objects.
+
+00:40:29.780 --> 00:40:32.500
+So this object
+here, now it doesn't
+
+00:40:32.500 --> 00:40:35.260
+have any incoming pointers, so I
+have to decrement its reference
+
+00:40:35.260 --> 00:40:36.350
+count.
+
+00:40:36.350 --> 00:40:37.750
+So that goes to 0.
+
+00:40:37.750 --> 00:40:40.400
+And then for this one, I have to
+increment its reference count,
+
+00:40:40.400 --> 00:40:42.470
+so now it's 3.
+
+00:40:42.470 --> 00:40:45.790
+And now I have an object that
+has a reference count of 0,
+
+00:40:45.790 --> 00:40:47.740
+and with this reference
+counting algorithm,
+
+00:40:47.740 --> 00:40:50.062
+I can free this object.
+
+00:40:50.062 --> 00:40:52.450
+So let's go ahead
+and free this object.
+
+00:40:52.450 --> 00:40:54.310
+But when I free this
+object, it actually
+
+00:40:54.310 --> 00:40:56.350
+has pointers to other
+objects, so I also
+
+00:40:56.350 --> 00:41:00.520
+have to decrement the reference
+counts of these other objects
+
+00:41:00.520 --> 00:41:02.420
+when I free this object.
+
+00:41:02.420 --> 00:41:05.010
+So I'm going to
+decrement the counts.
+
+00:41:05.010 --> 00:41:07.630
+And now it turns out
+that this object also
+
+00:41:07.630 --> 00:41:10.750
+has a reference count of 0,
+so I can free that, as well.
+
+00:41:10.750 --> 00:41:13.300
+And in general, I just
+keep doing this process
+
+00:41:13.300 --> 00:41:15.070
+until the reference
+counts of the objects
+
+00:41:15.070 --> 00:41:18.340
+don't change anymore, and
+whenever I encounter an object
+
+00:41:18.340 --> 00:41:23.110
+with a reference count of 0,
+I can free it immediately.
+
+00:41:23.110 --> 00:41:26.260
+And the memory that I
+freed can be recycled.
+
+00:41:26.260 --> 00:41:30.420
+It can be used for future
+memory allocations.
+
+00:41:30.420 --> 00:41:32.273
+So questions on how
+the reference counting
+
+00:41:32.273 --> 00:41:32.940
+procedure works?
+
+00:41:40.760 --> 00:41:43.670
+So there's one issue
+with reference counting.
+
+00:41:43.670 --> 00:41:47.150
+Does anybody see
+what the issue is?
+
+00:41:47.150 --> 00:41:47.780
+Yes?
+
+00:41:47.780 --> 00:41:50.852
+AUDIENCE: What if it has
+a reference to itself?
+
+00:41:50.852 --> 00:41:51.560
+JULIAN SHUN: Yes.
+
+00:41:51.560 --> 00:41:55.970
+So what if it has a
+reference to itself?
+
+00:41:55.970 --> 00:41:59.930
+More generally, what
+if it has a cycle?
+
+00:41:59.930 --> 00:42:03.200
+You can't ever collect
+garbage collect a cycle when
+
+00:42:03.200 --> 00:42:06.440
+you're using reference counts.
+
+00:42:06.440 --> 00:42:10.100
+So here we have a
+cycle of length 3.
+
+00:42:10.100 --> 00:42:12.020
+They all have a
+reference count of 1,
+
+00:42:12.020 --> 00:42:16.100
+but you can never reach the
+cycle by following pointers
+
+00:42:16.100 --> 00:42:18.440
+from the root,
+and therefore, you
+
+00:42:18.440 --> 00:42:21.215
+can never delete any
+object in the cycle,
+
+00:42:21.215 --> 00:42:23.590
+and the reference counts are
+always going to be non-zero.
+
+00:42:27.410 --> 00:42:29.660
+So let's just
+illustrate the cycle.
+
+00:42:29.660 --> 00:42:37.200
+And furthermore, any object
+that's pointed to by objects
+
+00:42:37.200 --> 00:42:42.450
+in the cycle cannot be
+garbage collected, as well,
+
+00:42:42.450 --> 00:42:44.580
+because you can't garbage
+collect the cycle,
+
+00:42:44.580 --> 00:42:48.600
+so all the pointer is going out
+of the objects in the cycle are
+
+00:42:48.600 --> 00:42:50.680
+always going to be there.
+
+00:42:50.680 --> 00:42:52.770
+So there could be a lot
+of objects downstream
+
+00:42:52.770 --> 00:42:55.800
+from this object here that
+can't be garbage collected,
+
+00:42:55.800 --> 00:42:57.320
+so this makes it very bad.
+
+00:42:59.980 --> 00:43:03.220
+And as we all know,
+uncollected garbage stinks,
+
+00:43:03.220 --> 00:43:05.420
+so we don't want that.
+
+00:43:05.420 --> 00:43:09.530
+So let's see if we can come up
+with another garbage collection
+
+00:43:09.530 --> 00:43:10.030
+scheme.
+
+00:43:13.195 --> 00:43:15.320
+So it turns out that
+reference counting is actually
+
+00:43:15.320 --> 00:43:18.200
+pretty good when it
+does work because it's
+
+00:43:18.200 --> 00:43:20.420
+very efficient and
+simple to implement.
+
+00:43:20.420 --> 00:43:22.730
+So if you know that
+your program doesn't
+
+00:43:22.730 --> 00:43:25.760
+have these cycles in
+them among pointers,
+
+00:43:25.760 --> 00:43:29.840
+then you can use a
+reference counting scheme.
+
+00:43:29.840 --> 00:43:32.000
+There are some languages,
+like Objective-C,
+
+00:43:32.000 --> 00:43:35.000
+that have two different types
+of pointers, strong pointers
+
+00:43:35.000 --> 00:43:37.040
+and weak pointers.
+
+00:43:37.040 --> 00:43:39.560
+And if you're doing
+reference counting
+
+00:43:39.560 --> 00:43:42.260
+with a language with these
+two types of pointers,
+
+00:43:42.260 --> 00:43:45.020
+the reference count
+only stores the number
+
+00:43:45.020 --> 00:43:48.050
+of incoming strong pointers.
+
+00:43:48.050 --> 00:43:51.590
+And therefore, if you define
+these pointers inside a cycle
+
+00:43:51.590 --> 00:43:53.510
+to be weak pointers,
+they're not going
+
+00:43:53.510 --> 00:43:55.220
+to contribute to
+the reference count,
+
+00:43:55.220 --> 00:43:58.330
+and therefore you can
+still garbage collect.
+
+00:43:58.330 --> 00:44:01.520
+However, programming with
+strong or weak pointers
+
+00:44:01.520 --> 00:44:03.230
+can be kind of
+tricky because you
+
+00:44:03.230 --> 00:44:06.710
+need to make sure that you're
+not dereferencing something
+
+00:44:06.710 --> 00:44:08.960
+that a weak pointer points
+to because that thing might
+
+00:44:08.960 --> 00:44:10.670
+have been garbage
+collected already,
+
+00:44:10.670 --> 00:44:12.380
+so you need to be careful.
+
+00:44:12.380 --> 00:44:16.580
+And C doesn't have these
+two types of pointers,
+
+00:44:16.580 --> 00:44:19.520
+so we need to use another
+method of garbage collection
+
+00:44:19.520 --> 00:44:22.880
+to make sure we can garbage
+collect these cycles.
+
+00:44:22.880 --> 00:44:25.230
+So we're going to look at
+two more garbage collection
+
+00:44:25.230 --> 00:44:25.730
+schemes.
+
+00:44:25.730 --> 00:44:27.650
+The first one is
+called mark-and-sweep,
+
+00:44:27.650 --> 00:44:32.510
+and the second one is
+called stop-and-copy.
+
+00:44:32.510 --> 00:44:37.520
+So first we need to define
+a graph abstraction.
+
+00:44:37.520 --> 00:44:42.620
+So let's say we have a graph
+with vertices V and edges E.
+
+00:44:42.620 --> 00:44:45.260
+And the vertex at V
+contains all of the memory
+
+00:44:45.260 --> 00:44:48.860
+objects in memory,
+and the edges E are
+
+00:44:48.860 --> 00:44:53.510
+directed edges between objects.
+
+00:44:53.510 --> 00:44:55.640
+So there's a directed
+edge from object A
+
+00:44:55.640 --> 00:45:02.190
+to object B if object A
+has a pointer to object B.
+
+00:45:02.190 --> 00:45:05.980
+And then, as we said earlier,
+the live objects are the ones
+
+00:45:05.980 --> 00:45:07.750
+that are reachable
+from the roots,
+
+00:45:07.750 --> 00:45:09.730
+so we can use a
+breadth-first-search-like
+
+00:45:09.730 --> 00:45:11.922
+procedure to find all
+of the live objects.
+
+00:45:11.922 --> 00:45:13.630
+So we just start our
+breadth-first search
+
+00:45:13.630 --> 00:45:16.465
+from the roots,
+and we'll mark all
+
+00:45:16.465 --> 00:45:18.850
+of the objects that can be
+reachable from the roots.
+
+00:45:18.850 --> 00:45:22.330
+And then everything
+else that isn't reached,
+
+00:45:22.330 --> 00:45:27.430
+those are available
+to be reclaimed.
+
+00:45:27.430 --> 00:45:30.130
+So we're going to
+have a FIFO queue,
+
+00:45:30.130 --> 00:45:33.550
+First-In, First-Out queue,
+for our breadth-first search.
+
+00:45:33.550 --> 00:45:35.390
+This is represented as an array.
+
+00:45:35.390 --> 00:45:38.740
+And we have two pointers,
+one to the head of the queue
+
+00:45:38.740 --> 00:45:41.440
+and one to the
+tail of the queue.
+
+00:45:41.440 --> 00:45:44.650
+And here let's look at this
+code, which essentially
+
+00:45:44.650 --> 00:45:46.600
+is like a breadth-first search.
+
+00:45:46.600 --> 00:45:51.030
+So we're first going to go over
+all the vertices in our graph,
+
+00:45:51.030 --> 00:45:53.770
+and we're going to check
+if each vertex v is a root.
+
+00:45:53.770 --> 00:45:58.150
+If it is a root, we're going
+to set its mark to be 1,
+
+00:45:58.150 --> 00:46:02.100
+and we're going to place
+the vertex onto the queue.
+
+00:46:02.100 --> 00:46:06.490
+And otherwise, we're going
+to set the mark of v to be 0.
+
+00:46:06.490 --> 00:46:08.390
+And then while the
+queue is not empty,
+
+00:46:08.390 --> 00:46:10.840
+we're going to dequeue the
+first thing from the queue.
+
+00:46:10.840 --> 00:46:12.350
+Let that be u.
+
+00:46:12.350 --> 00:46:15.250
+Then we're going to look at all
+the outgoing neighbors of u.
+
+00:46:15.250 --> 00:46:17.730
+So these are vertices
+v such that there
+
+00:46:17.730 --> 00:46:21.730
+is a directed edge from u
+to v. We're going to check
+
+00:46:21.730 --> 00:46:24.550
+if v's mark is equal to 0.
+
+00:46:24.550 --> 00:46:26.680
+If it is, that means we
+haven't explored it yet,
+
+00:46:26.680 --> 00:46:30.520
+so we'll set its mark to be 1,
+and we place it onto the queue.
+
+00:46:30.520 --> 00:46:32.530
+And if the neighbor has
+already been explored,
+
+00:46:32.530 --> 00:46:33.947
+then we don't have
+to do anything.
+
+00:46:36.560 --> 00:46:39.320
+So let's illustrate how
+this algorithm works
+
+00:46:39.320 --> 00:46:41.600
+on this simple graph here.
+
+00:46:41.600 --> 00:46:43.220
+And for this example,
+I'm just going
+
+00:46:43.220 --> 00:46:45.710
+to assume that I have
+one root, vertex r.
+
+00:46:45.710 --> 00:46:47.360
+In general, I can
+have multiple routes,
+
+00:46:47.360 --> 00:46:49.310
+and I just place all
+of them onto the queue
+
+00:46:49.310 --> 00:46:51.090
+at the beginning,
+but for this example,
+
+00:46:51.090 --> 00:46:53.810
+I'm just going to
+have a single root.
+
+00:46:53.810 --> 00:46:57.650
+So I'm going to place it onto
+the queue, and the location
+
+00:46:57.650 --> 00:47:00.890
+that I place it is going to be
+where the tail pointer points
+
+00:47:00.890 --> 00:47:01.610
+to.
+
+00:47:01.610 --> 00:47:03.068
+And after I placed
+it on the queue,
+
+00:47:03.068 --> 00:47:05.780
+I increment the tail pointer.
+
+00:47:05.780 --> 00:47:07.730
+Now I'm going to take
+the first thing off
+
+00:47:07.730 --> 00:47:11.780
+of my queue, which is r, and
+I'll explore my neighbors.
+
+00:47:11.780 --> 00:47:14.360
+So the neighbors
+are b and c here.
+
+00:47:14.360 --> 00:47:18.065
+Both of them haven't been marked
+yet, so I'm going to mark them,
+
+00:47:18.065 --> 00:47:19.940
+and I'm going to indicate
+the marked vertices
+
+00:47:19.940 --> 00:47:23.150
+with shaded blue.
+
+00:47:23.150 --> 00:47:26.840
+And I'll place them
+onto the queue.
+
+00:47:26.840 --> 00:47:28.750
+Now I'm going to take
+the next thing, b.
+
+00:47:28.750 --> 00:47:30.950
+I'm going to check
+its neighbors.
+
+00:47:30.950 --> 00:47:34.190
+It only has a neighbor to c,
+but c is already on the queue.
+
+00:47:34.190 --> 00:47:37.460
+It's already marked, so I
+don't have to do anything.
+
+00:47:37.460 --> 00:47:41.450
+Now I dequeue c, and c
+has neighbors d and e,
+
+00:47:41.450 --> 00:47:43.796
+so I place them onto the queue.
+
+00:47:43.796 --> 00:47:46.310
+d doesn't have any
+outgoing neighbors,
+
+00:47:46.310 --> 00:47:48.560
+so I don't to do anything.
+
+00:47:48.560 --> 00:47:51.950
+Now when I dequeue e,
+it has neighbors f.
+
+00:47:51.950 --> 00:47:54.103
+When I dequeue f,
+it has a neighbor g,
+
+00:47:54.103 --> 00:47:56.270
+and when I dequeue g, it
+doesn't have any neighbors.
+
+00:47:56.270 --> 00:47:59.115
+So now my queue is empty, and my
+breadth-first search procedure
+
+00:47:59.115 --> 00:47:59.615
+finishes.
+
+00:48:02.780 --> 00:48:04.870
+So at this point,
+I've marked all
+
+00:48:04.870 --> 00:48:08.800
+of the objects that are
+accessible from the root,
+
+00:48:08.800 --> 00:48:12.043
+and all of the unmarked
+objects can now
+
+00:48:12.043 --> 00:48:13.960
+be garbage collected
+because there is no way I
+
+00:48:13.960 --> 00:48:16.840
+can access them in the program.
+
+00:48:16.840 --> 00:48:20.892
+So the mark-and-sweep
+procedure has two stages.
+
+00:48:20.892 --> 00:48:22.600
+The first stage is
+called the mark stage,
+
+00:48:22.600 --> 00:48:24.550
+where I use a
+breadth-first search
+
+00:48:24.550 --> 00:48:27.670
+to mark all of the live objects.
+
+00:48:27.670 --> 00:48:30.160
+And the sweep stage
+will scan over memory
+
+00:48:30.160 --> 00:48:33.700
+to free the unmarked objects.
+
+00:48:33.700 --> 00:48:37.150
+So this a pretty simple scheme.
+
+00:48:37.150 --> 00:48:39.730
+There is one issue
+with this scheme.
+
+00:48:39.730 --> 00:48:43.030
+Does anybody see what
+the possible issue is?
+
+00:48:47.130 --> 00:48:47.640
+Yes?
+
+00:48:47.640 --> 00:48:49.540
+AUDIENCE: You have to scan
+over all the [INAUDIBLE]..
+
+00:48:49.540 --> 00:48:51.990
+JULIAN SHUN: Yeah, so that's
+one issue, where you have
+
+00:48:51.990 --> 00:48:54.640
+to scan over all of memory.
+
+00:48:54.640 --> 00:48:56.790
+There are some variants
+of mark-and-sweep
+
+00:48:56.790 --> 00:49:00.650
+where it keeps track of
+just the allocated objects,
+
+00:49:00.650 --> 00:49:02.490
+so you only have to
+scan over those instead
+
+00:49:02.490 --> 00:49:05.160
+of the entire memory space.
+
+00:49:05.160 --> 00:49:08.010
+Besides that, are there
+any other possible issues
+
+00:49:08.010 --> 00:49:10.990
+with this?
+
+00:49:10.990 --> 00:49:11.530
+Yes?
+
+00:49:11.530 --> 00:49:16.190
+AUDIENCE: This also requires
+that you [INAUDIBLE]
+
+00:49:16.190 --> 00:49:17.622
+strong typing.
+
+00:49:17.622 --> 00:49:19.080
+JULIAN SHUN: Right,
+so let's assume
+
+00:49:19.080 --> 00:49:21.900
+that we do have strong typing.
+
+00:49:21.900 --> 00:49:25.840
+Any other possible limitations?
+
+00:49:25.840 --> 00:49:27.210
+Anybody else?
+
+00:49:27.210 --> 00:49:28.210
+Think I called on--
+
+00:49:28.210 --> 00:49:29.247
+yeah.
+
+00:49:29.247 --> 00:49:30.955
+AUDIENCE: [INAUDIBLE]
+reference counting,
+
+00:49:30.955 --> 00:49:34.190
+you can see the object
+that has a reference to it,
+
+00:49:34.190 --> 00:49:36.982
+whereas for here you can find
+everything that would not be
+
+00:49:36.982 --> 00:49:38.550
+garbage collected [INAUDIBLE].
+
+00:49:42.780 --> 00:49:45.280
+JULIAN SHUN: Yeah, so for
+the scheme that I described,
+
+00:49:45.280 --> 00:49:49.210
+you have to look over
+all of the things that
+
+00:49:49.210 --> 00:49:51.100
+don't have references to it.
+
+00:49:51.100 --> 00:49:55.040
+So that is another overhead.
+
+00:49:55.040 --> 00:49:57.880
+So those are all issues.
+
+00:49:57.880 --> 00:49:58.380
+Good.
+
+00:49:58.380 --> 00:50:00.070
+The issue I want
+to get at is that
+
+00:50:00.070 --> 00:50:02.260
+the mark-and-sweep algorithm
+that I presented here
+
+00:50:02.260 --> 00:50:04.460
+doesn't deal with fragmentation.
+
+00:50:04.460 --> 00:50:07.210
+So it doesn't compact
+the live objects
+
+00:50:07.210 --> 00:50:09.450
+to be contiguous in memory.
+
+00:50:09.450 --> 00:50:11.310
+It just frees the ones
+that are unreachable,
+
+00:50:11.310 --> 00:50:16.000
+but it doesn't do anything with
+the ones that are reachable.
+
+00:50:16.000 --> 00:50:18.070
+So let's look at
+another procedure that
+
+00:50:18.070 --> 00:50:23.020
+does deal with fragmentation.
+
+00:50:23.020 --> 00:50:26.260
+This is called the stop-and-copy
+garbage collection procedure.
+
+00:50:30.730 --> 00:50:34.030
+At a high level, it's
+pretty similar to
+
+00:50:34.030 --> 00:50:36.632
+the mark-and-sweep algorithm.
+
+00:50:36.632 --> 00:50:38.590
+We're still going to use
+a breadth-first search
+
+00:50:38.590 --> 00:50:40.915
+to identify all of
+the live objects.
+
+00:50:43.690 --> 00:50:46.180
+But if you look at how this
+breadth-first search is
+
+00:50:46.180 --> 00:50:48.340
+implemented, is
+there any information
+
+00:50:48.340 --> 00:50:51.580
+you can use here to try to
+get the live objects to be
+
+00:50:51.580 --> 00:50:54.980
+contiguous in memory?
+
+00:50:54.980 --> 00:50:57.740
+Does anybody see anything
+here that we can use
+
+00:50:57.740 --> 00:50:59.450
+to try to reduce fragmentation?
+
+00:50:59.450 --> 00:51:00.202
+Yes?
+
+00:51:00.202 --> 00:51:01.380
+AUDIENCE: [INAUDIBLE]
+
+00:51:01.380 --> 00:51:03.630
+JULIAN SHUN: Yes,
+so the answer is
+
+00:51:03.630 --> 00:51:07.230
+that the objects that we visited
+are contiguous on the queue.
+
+00:51:07.230 --> 00:51:11.820
+So in the mark-and-sweep
+algorithm,
+
+00:51:11.820 --> 00:51:14.190
+I just place the IDs of
+the vertices on the queue,
+
+00:51:14.190 --> 00:51:17.880
+but if I just place the actual
+objects onto the queue instead,
+
+00:51:17.880 --> 00:51:21.810
+then I can just use my
+queue as my new memory.
+
+00:51:21.810 --> 00:51:25.200
+And then all of the objects
+that are unreachable
+
+00:51:25.200 --> 00:51:27.660
+will be implicitly deleted.
+
+00:51:27.660 --> 00:51:31.450
+So this procedure here will deal
+with external fragmentation.
+
+00:51:31.450 --> 00:51:33.880
+So let's see how this works.
+
+00:51:33.880 --> 00:51:36.510
+So we're going to have
+two separate memory
+
+00:51:36.510 --> 00:51:40.770
+spaces, the FROM space
+and the TO space.
+
+00:51:40.770 --> 00:51:44.550
+So in the FROM space, I'm
+just going to do allocation
+
+00:51:44.550 --> 00:51:46.795
+and freeing on it
+until it becomes full.
+
+00:51:46.795 --> 00:51:48.420
+So when I allocate
+something I place it
+
+00:51:48.420 --> 00:51:50.340
+at the end of this space.
+
+00:51:50.340 --> 00:51:53.490
+When I free something,
+I just market as free,
+
+00:51:53.490 --> 00:51:55.740
+but I don't compact it out yet.
+
+00:51:55.740 --> 00:51:59.760
+And when this FROM
+space becomes full,
+
+00:51:59.760 --> 00:52:03.960
+then I'm going to run my
+garbage collection algorithm,
+
+00:52:03.960 --> 00:52:06.938
+and I'm going to use
+the TO space as my queue
+
+00:52:06.938 --> 00:52:08.355
+when I do my
+breadth-first search.
+
+00:52:10.930 --> 00:52:15.910
+So after I run my breadth-first
+search, all of the live objects
+
+00:52:15.910 --> 00:52:19.900
+are going to appear in the
+TO space in contiguous memory
+
+00:52:19.900 --> 00:52:22.210
+since I used the TO
+space as my queue.
+
+00:52:26.060 --> 00:52:28.780
+Right, and then I just
+keep allocating stuff
+
+00:52:28.780 --> 00:52:31.600
+from the TO space and
+also marking things
+
+00:52:31.600 --> 00:52:34.300
+as deleted when I free
+them until the TO space
+
+00:52:34.300 --> 00:52:35.290
+becomes full.
+
+00:52:35.290 --> 00:52:37.300
+Then I do the same thing,
+but I swap the roles
+
+00:52:37.300 --> 00:52:40.340
+of the TO and the FROM spaces.
+
+00:52:40.340 --> 00:52:43.420
+So this is called the
+stop-and-copy algorithm.
+
+00:52:43.420 --> 00:52:46.690
+There is one problem
+with this algorithm
+
+00:52:46.690 --> 00:52:48.160
+which we haven't addressed yet.
+
+00:52:48.160 --> 00:52:51.515
+Does anybody see what
+the potential problem is?
+
+00:52:51.515 --> 00:52:52.015
+Yes?
+
+00:52:52.015 --> 00:52:53.752
+AUDIENCE: If nothing
+is dead, then you're
+
+00:52:53.752 --> 00:52:56.727
+copying over your entire
+storage every single time.
+
+00:52:56.727 --> 00:52:58.810
+JULIAN SHUN: Yeah, so
+that's one good observation.
+
+00:52:58.810 --> 00:53:01.780
+If nothing is dead, then
+you're wasting a lot of work
+
+00:53:01.780 --> 00:53:04.848
+because you have to copy this.
+
+00:53:04.848 --> 00:53:06.640
+Although with the
+mark-and-sweep algorithm,
+
+00:53:06.640 --> 00:53:08.050
+you still have to
+do some copying,
+
+00:53:08.050 --> 00:53:10.008
+although you're not
+copying the entire objects.
+
+00:53:10.008 --> 00:53:11.830
+You're just copying the IDs.
+
+00:53:11.830 --> 00:53:15.460
+There's actually a
+correctness issue here.
+
+00:53:15.460 --> 00:53:17.620
+So does anybody see what
+the correct this issue is?
+
+00:53:28.450 --> 00:53:29.050
+Yes?
+
+00:53:29.050 --> 00:53:31.966
+AUDIENCE: So maybe the
+pointers in the TO space
+
+00:53:31.966 --> 00:53:36.340
+have to be changed in order to
+point to the new [INAUDIBLE]..
+
+00:53:36.340 --> 00:53:38.060
+JULIAN SHUN: Yeah,
+so the answer is
+
+00:53:38.060 --> 00:53:43.480
+that if you had pointers that
+pointed to objects in the FROM
+
+00:53:43.480 --> 00:53:47.020
+space, if you move your
+objects to the TO space,
+
+00:53:47.020 --> 00:53:49.280
+those pointers aren't going
+to be correct anymore.
+
+00:53:49.280 --> 00:53:52.100
+So if I had a pointer
+to a live object before
+
+00:53:52.100 --> 00:53:55.030
+and I moved my live object to
+a different memory address,
+
+00:53:55.030 --> 00:53:58.230
+I need to also
+update that pointer.
+
+00:53:58.230 --> 00:54:02.220
+So let's see how we
+can deal with this.
+
+00:54:02.220 --> 00:54:05.160
+So the idea is that,
+when an object is copied
+
+00:54:05.160 --> 00:54:07.860
+to the TO space, we're
+going to store a forwarding
+
+00:54:07.860 --> 00:54:11.250
+pointer in the
+corresponding object
+
+00:54:11.250 --> 00:54:14.880
+in the from space, and
+this implicitly marks
+
+00:54:14.880 --> 00:54:16.950
+that object as moved.
+
+00:54:16.950 --> 00:54:19.650
+And then when I remove
+an object from the FIFO
+
+00:54:19.650 --> 00:54:23.430
+queue in my breadth-first
+search, in the TO space
+
+00:54:23.430 --> 00:54:25.110
+I'm going to update
+all of the pointers
+
+00:54:25.110 --> 00:54:28.340
+by following these
+forwarding pointers.
+
+00:54:28.340 --> 00:54:32.640
+So let's look at an
+example of how this works.
+
+00:54:32.640 --> 00:54:35.640
+So let's say I'm executing
+the breadth-first search,
+
+00:54:35.640 --> 00:54:39.070
+and this is my current
+queue right now.
+
+00:54:42.540 --> 00:54:45.180
+What I'm going to do is,
+when I dequeue an element
+
+00:54:45.180 --> 00:54:51.000
+from my queue, first I'm
+going to place the neighboring
+
+00:54:51.000 --> 00:54:54.120
+objects that haven't been
+explored yet onto the queue.
+
+00:54:54.120 --> 00:54:55.710
+So here it actually
+has two neighbors,
+
+00:54:55.710 --> 00:54:57.877
+but the first one has already
+been placed the queue,
+
+00:54:57.877 --> 00:54:59.130
+so I can ignore it.
+
+00:54:59.130 --> 00:55:01.470
+And the second one hasn't
+been placed on the queue yet,
+
+00:55:01.470 --> 00:55:02.960
+so I place it onto the queue.
+
+00:55:06.350 --> 00:55:09.240
+And then I'm also going to--
+
+00:55:09.240 --> 00:55:12.695
+oh, so this object
+also has a pointer
+
+00:55:12.695 --> 00:55:14.570
+to something in the FROM
+space, which I'm not
+
+00:55:14.570 --> 00:55:16.250
+going to change at this time.
+
+00:55:16.250 --> 00:55:18.890
+But I am going to store
+a forwarding pointer
+
+00:55:18.890 --> 00:55:21.980
+from the object that I
+moved from the FROM space
+
+00:55:21.980 --> 00:55:25.700
+to the TO space, so
+now it has a pointer
+
+00:55:25.700 --> 00:55:28.080
+that tells me the new address.
+
+00:55:28.080 --> 00:55:32.270
+And then, for the object
+that I just dequeued,
+
+00:55:32.270 --> 00:55:33.740
+I'm going to follow
+the forwarding
+
+00:55:33.740 --> 00:55:36.800
+pointers of its neighbors,
+and that will give me
+
+00:55:36.800 --> 00:55:39.970
+the correct addresses now.
+
+00:55:39.970 --> 00:55:42.982
+So I'm going to update the
+pointers by just following
+
+00:55:42.982 --> 00:55:43.940
+the forwarding pointer.
+
+00:55:43.940 --> 00:55:47.360
+So the first pointer
+pointed to this object,
+
+00:55:47.360 --> 00:55:51.770
+which has a forwarding pointer
+to this, so I just make a point
+
+00:55:51.770 --> 00:55:53.830
+to this object in the TO space.
+
+00:55:53.830 --> 00:55:56.870
+And then similarly
+for the other pointer,
+
+00:55:56.870 --> 00:55:58.700
+I'm going to make it
+point to this object.
+
+00:56:02.500 --> 00:56:05.560
+So that's the
+that's the idea how
+
+00:56:05.560 --> 00:56:08.530
+of how to adjust the pointers.
+
+00:56:08.530 --> 00:56:11.460
+One question is, why can't
+we just adjust the pointer
+
+00:56:11.460 --> 00:56:13.385
+is when we enqueue the object?
+
+00:56:13.385 --> 00:56:15.010
+So why do I have to
+adjust the pointers
+
+00:56:15.010 --> 00:56:16.052
+when I dequeue an object?
+
+00:56:19.630 --> 00:56:20.581
+Yes?
+
+00:56:20.581 --> 00:56:23.410
+AUDIENCE: Because we haven't
+processed its neighbors yet.
+
+00:56:23.410 --> 00:56:25.510
+JULIAN SHUN: Yeah,
+so the answer is
+
+00:56:25.510 --> 00:56:28.752
+that, when you enqueue
+object, you don't actually
+
+00:56:28.752 --> 00:56:30.210
+know where your
+neighbors are going
+
+00:56:30.210 --> 00:56:32.080
+to reside in the TO space.
+
+00:56:32.080 --> 00:56:35.380
+And you only know that when
+you dequeue the object,
+
+00:56:35.380 --> 00:56:38.170
+because when you
+dequeue the object,
+
+00:56:38.170 --> 00:56:39.820
+you must have explored
+your neighbors,
+
+00:56:39.820 --> 00:56:42.070
+and therefore you can generate
+these forward pointers.
+
+00:56:44.860 --> 00:56:46.720
+So any questions on this scheme?
+
+00:56:54.690 --> 00:56:59.460
+So how much time does it take to
+do the stop-and-copy procedure?
+
+00:56:59.460 --> 00:57:03.960
+So let's say n is
+the number of objects
+
+00:57:03.960 --> 00:57:05.430
+and the number of
+pointers I have,
+
+00:57:05.430 --> 00:57:09.600
+so it's the sum of the number of
+objects and number of pointers.
+
+00:57:09.600 --> 00:57:12.479
+How much time would it
+take to run this algorithm?
+
+00:57:20.143 --> 00:57:22.828
+AUDIENCE: [INAUDIBLE]
+
+00:57:22.828 --> 00:57:24.370
+JULIAN SHUN: Yeah,
+so it's just going
+
+00:57:24.370 --> 00:57:26.995
+to be linear time because we're
+running a breadth-first search,
+
+00:57:26.995 --> 00:57:28.680
+and that takes linear time.
+
+00:57:32.400 --> 00:57:34.410
+You also have to
+do work in order
+
+00:57:34.410 --> 00:57:38.730
+to copy these objects
+to the TO space,
+
+00:57:38.730 --> 00:57:40.410
+so you also have to
+do work proportional
+
+00:57:40.410 --> 00:57:44.200
+to the number of bytes
+that you're copying over.
+
+00:57:44.200 --> 00:57:46.660
+So it's linear in the
+number of objects,
+
+00:57:46.660 --> 00:57:50.220
+the number of pointers, and
+the total amount of space
+
+00:57:50.220 --> 00:57:53.180
+or copying over.
+
+00:57:53.180 --> 00:57:56.900
+And the advantage
+of this scheme is
+
+00:57:56.900 --> 00:58:00.560
+that you don't actually need
+to go over the objects that
+
+00:58:00.560 --> 00:58:03.230
+aren't reachable because those
+are going to be implicitly
+
+00:58:03.230 --> 00:58:06.470
+deleted because they're not
+copied over to the TO space,
+
+00:58:06.470 --> 00:58:08.420
+whereas in the
+mark-and-sweep procedure,
+
+00:58:08.420 --> 00:58:12.050
+you had to actually go
+through your entire memory
+
+00:58:12.050 --> 00:58:14.840
+and then free all the objects
+that aren't reachable.
+
+00:58:14.840 --> 00:58:20.000
+So this makes the stop-and-copy
+procedure more efficient,
+
+00:58:20.000 --> 00:58:22.480
+and it also deals with the
+external fragmentation issue.
+
+00:58:28.630 --> 00:58:34.400
+So what happens when the
+FROM space becomes full?
+
+00:58:34.400 --> 00:58:37.630
+So what you do is, you're
+going to request a new heap
+
+00:58:37.630 --> 00:58:40.660
+space equal to the used
+space, so you're just
+
+00:58:40.660 --> 00:58:42.910
+going to double the
+size of your FROM space.
+
+00:58:44.980 --> 00:58:47.230
+And then you're going to
+consider the FROM space to be
+
+00:58:47.230 --> 00:58:49.997
+full when the newly
+allocated space becomes full,
+
+00:58:49.997 --> 00:58:51.580
+so essentially what
+you're going to do
+
+00:58:51.580 --> 00:58:53.260
+is, you're going to
+double the space,
+
+00:58:53.260 --> 00:58:54.927
+and when that becomes
+full, you're going
+
+00:58:54.927 --> 00:58:56.690
+to double it again, and so on.
+
+00:58:56.690 --> 00:58:58.750
+And with this method,
+you can amortize
+
+00:58:58.750 --> 00:59:02.290
+the cost of garbage collection
+to the size of the new heap
+
+00:59:02.290 --> 00:59:05.770
+space, so it's going to be
+amortized constant overhead
+
+00:59:05.770 --> 00:59:08.900
+per byte of memory.
+
+00:59:08.900 --> 00:59:10.510
+And this is assuming
+that the user
+
+00:59:10.510 --> 00:59:13.630
+program is going to touch all
+of the memory that it allocates.
+
+00:59:17.300 --> 00:59:19.340
+And furthermore, the
+virtual memory space
+
+00:59:19.340 --> 00:59:22.460
+required by this scheme
+is just a constant times
+
+00:59:22.460 --> 00:59:25.910
+the optimal if you locate
+the FROM and the TO spaces
+
+00:59:25.910 --> 00:59:27.620
+in different regions
+of virtual memory
+
+00:59:27.620 --> 00:59:30.420
+so that they can't
+interfere with each other.
+
+00:59:30.420 --> 00:59:32.820
+And the reason why it's a
+constant times the optimal
+
+00:59:32.820 --> 00:59:36.350
+is because you only
+lose a factor of 2
+
+00:59:36.350 --> 00:59:39.080
+because you're maintaining
+two separate spaces.
+
+00:59:39.080 --> 00:59:41.330
+And then another factor
+of 2 comes from the fact
+
+00:59:41.330 --> 00:59:46.370
+that you're doubling the size of
+your array when it becomes full
+
+00:59:46.370 --> 00:59:50.390
+and up to half of
+it will be unused.
+
+00:59:50.390 --> 00:59:52.580
+But it's constant times
+optimal since we're just
+
+00:59:52.580 --> 00:59:55.100
+multiplying constants together.
+
+00:59:55.100 --> 00:59:57.980
+And similarly, when
+you're FROM space
+
+00:59:57.980 --> 01:00:00.260
+becomes relatively empty--
+
+01:00:00.260 --> 01:00:02.030
+for example, if it's
+less than half full--
+
+01:00:02.030 --> 01:00:05.990
+you can also release
+memory back to the OS,
+
+01:00:05.990 --> 01:00:10.350
+and then the analysis of the
+amortized constant overhead
+
+01:00:10.350 --> 01:00:10.988
+is similar.
+
+01:00:15.970 --> 01:00:17.626
+OK, any other questions?
+
+01:00:25.840 --> 01:00:30.230
+OK, so there's a lot more
+that's known and also unknown
+
+01:00:30.230 --> 01:00:31.940
+about dynamic
+storage allocation,
+
+01:00:31.940 --> 01:00:34.370
+so I've only scratched the
+surface of dynamic storage
+
+01:00:34.370 --> 01:00:35.990
+allocation today.
+
+01:00:35.990 --> 01:00:37.190
+There are many other topics.
+
+01:00:37.190 --> 01:00:42.960
+For example, there's the buddy
+system for doing coalescing.
+
+01:00:42.960 --> 01:00:46.370
+There are many variants of
+the mark-and-sweep procedure.
+
+01:00:46.370 --> 01:00:51.560
+So there are optimizations to
+improve the performance of it.
+
+01:00:51.560 --> 01:00:53.420
+There's generational
+garbage collection,
+
+01:00:53.420 --> 01:00:56.510
+and this is based on the
+idea that many objects are
+
+01:00:56.510 --> 01:00:59.600
+short-lived, so a
+lot of the objects
+
+01:00:59.600 --> 01:01:01.550
+are going to be freed
+pretty close to the time
+
+01:01:01.550 --> 01:01:02.770
+when you allocate it.
+
+01:01:02.770 --> 01:01:05.060
+And for the ones that
+aren't going to be freed,
+
+01:01:05.060 --> 01:01:07.662
+they tend to be
+pretty long-lived.
+
+01:01:07.662 --> 01:01:09.620
+And the idea of generational
+garbage collection
+
+01:01:09.620 --> 01:01:12.500
+is, instead of scanning your
+whole memory every time,
+
+01:01:12.500 --> 01:01:16.285
+you just do work on the younger
+objects most of the time.
+
+01:01:16.285 --> 01:01:17.660
+And then once in
+a while, you try
+
+01:01:17.660 --> 01:01:20.480
+to collect the garbage
+from the older objects
+
+01:01:20.480 --> 01:01:22.880
+because those tend to
+not change that often.
+
+01:01:25.620 --> 01:01:27.520
+There's also real-time
+garbage collection.
+
+01:01:27.520 --> 01:01:30.450
+So the methods I
+talked about today
+
+01:01:30.450 --> 01:01:34.320
+assume that the program isn't
+running when the garbage
+
+01:01:34.320 --> 01:01:37.710
+collection procedure is
+running, but in practice, you
+
+01:01:37.710 --> 01:01:41.300
+might want to actually have
+your garbage collector running
+
+01:01:41.300 --> 01:01:43.260
+in the background when
+your program is running,
+
+01:01:43.260 --> 01:01:45.300
+but this can lead to
+correctness issues
+
+01:01:45.300 --> 01:01:48.660
+because the static
+algorithms I just described
+
+01:01:48.660 --> 01:01:51.990
+assume that the graph of
+the objects and pointers
+
+01:01:51.990 --> 01:01:55.413
+isn't changing, and when
+the objects and pointers are
+
+01:01:55.413 --> 01:01:57.330
+changing, you need to
+make sure that you still
+
+01:01:57.330 --> 01:01:59.400
+get a correct answer.
+
+01:01:59.400 --> 01:02:03.620
+Real-time garbage collection
+tends to be conservative,
+
+01:02:03.620 --> 01:02:08.580
+so it doesn't always free
+everything that's garbage.
+
+01:02:08.580 --> 01:02:10.740
+But for the things that
+it does decide to free,
+
+01:02:10.740 --> 01:02:13.280
+those can be actually reclaimed.
+
+01:02:13.280 --> 01:02:16.500
+And there are various techniques
+to make real-time garbage
+
+01:02:16.500 --> 01:02:19.110
+collection efficient.
+
+01:02:19.110 --> 01:02:21.540
+One possible way is, instead
+of just having one FROM
+
+01:02:21.540 --> 01:02:24.570
+and TO space, you can have
+multiple FROM and TO spaces,
+
+01:02:24.570 --> 01:02:27.660
+and then you just work on
+one of the spaces at a time
+
+01:02:27.660 --> 01:02:29.730
+so that it doesn't
+actually take that long
+
+01:02:29.730 --> 01:02:31.100
+to do garbage collection.
+
+01:02:31.100 --> 01:02:35.130
+You can do it incrementally
+throughout your program.
+
+01:02:35.130 --> 01:02:37.710
+There's also multithreaded
+storage allocation
+
+01:02:37.710 --> 01:02:39.900
+and parallel garbage collection.
+
+01:02:39.900 --> 01:02:42.060
+So this is when you have
+multiple threads running,
+
+01:02:42.060 --> 01:02:47.100
+how do you allocate memory, and
+also how do you collect garbage
+
+01:02:47.100 --> 01:02:47.850
+in the background.
+
+01:02:47.850 --> 01:02:52.940
+So the algorithms become
+much trickier because there
+
+01:02:52.940 --> 01:02:55.320
+are multiple threads
+running, and you
+
+01:02:55.320 --> 01:02:57.390
+have to deal with races
+and correctness issues
+
+01:02:57.390 --> 01:02:58.380
+and so forth.
+
+01:02:58.380 --> 01:03:01.560
+And that's actually a
+topic of the next lecture.
+
+01:03:04.860 --> 01:03:06.920
+So in summary,
+these are the things
+
+01:03:06.920 --> 01:03:08.280
+that we talked about today.
+
+01:03:08.280 --> 01:03:12.860
+So we have the most basic form
+of storage, which is a stack.
+
+01:03:12.860 --> 01:03:16.400
+The limitation of a stack is
+that you can only free things
+
+01:03:16.400 --> 01:03:17.960
+at the top of the stack.
+
+01:03:17.960 --> 01:03:20.570
+You can't free arbitrary
+things in the stack,
+
+01:03:20.570 --> 01:03:24.140
+but it's very efficient when
+it works because the code is
+
+01:03:24.140 --> 01:03:24.735
+very simple.
+
+01:03:24.735 --> 01:03:26.360
+And it can be inlined,
+and in fact this
+
+01:03:26.360 --> 01:03:30.530
+is what the C calling
+procedure uses.
+
+01:03:30.530 --> 01:03:33.440
+It places local variables
+in the return address
+
+01:03:33.440 --> 01:03:35.380
+of the function on the stack.
+
+01:03:35.380 --> 01:03:37.790
+The heap is the more
+general form of storage,
+
+01:03:37.790 --> 01:03:41.020
+but it's much more
+complicated to manage.
+
+01:03:41.020 --> 01:03:43.850
+And we talked about various
+ways to do allocation
+
+01:03:43.850 --> 01:03:45.480
+and deallocation for the heap.
+
+01:03:45.480 --> 01:03:47.570
+We have fixed-size
+allocation using
+
+01:03:47.570 --> 01:03:50.330
+free lists, variable-size
+allocation using
+
+01:03:50.330 --> 01:03:54.500
+binned free lists, and then
+many variants of these ideas
+
+01:03:54.500 --> 01:03:57.170
+are used in practice.
+
+01:03:57.170 --> 01:03:59.480
+For garbage collection,
+this is where
+
+01:03:59.480 --> 01:04:04.070
+you want to free the programmer
+from having to free objects.
+
+01:04:04.070 --> 01:04:06.470
+And garbage
+collection algorithms
+
+01:04:06.470 --> 01:04:10.100
+are supported in languages
+like Java and Python.
+
+01:04:10.100 --> 01:04:12.690
+We talked about various ways
+to do this reference counting,
+
+01:04:12.690 --> 01:04:14.120
+which suffers from
+the limitation
+
+01:04:14.120 --> 01:04:16.580
+that it can't free cycles.
+
+01:04:16.580 --> 01:04:18.500
+Mark-and-sweep and
+stop-and-copy-- these
+
+01:04:18.500 --> 01:04:20.110
+can free cycles.
+
+01:04:20.110 --> 01:04:21.620
+The mark-and-sweep
+procedure doesn't
+
+01:04:21.620 --> 01:04:23.300
+deal with external
+fragmentation,
+
+01:04:23.300 --> 01:04:26.840
+but the stop-and-copy
+procedure does.
+
+01:04:26.840 --> 01:04:29.730
+We also talked about internal
+and external fragmentation.
+
+01:04:29.730 --> 01:04:33.950
+So external fragmentation is
+when your memory blocks are all
+
+01:04:33.950 --> 01:04:35.480
+over the place in
+virtual memory.
+
+01:04:35.480 --> 01:04:38.570
+This can cause performance
+issues like disk thrashing
+
+01:04:38.570 --> 01:04:40.040
+and TLB misses.
+
+01:04:40.040 --> 01:04:42.440
+Then there's internal
+fragmentation,
+
+01:04:42.440 --> 01:04:44.795
+where you're actually
+not using all
+
+01:04:44.795 --> 01:04:47.060
+of the space in the
+block that you allocate.
+
+01:04:47.060 --> 01:04:49.700
+So for example, in the
+binned free list algorithm,
+
+01:04:49.700 --> 01:04:51.950
+you do have a little bit
+of internal fragmentation
+
+01:04:51.950 --> 01:04:55.063
+because you're always rounding
+up to the nearest power of 2
+
+01:04:55.063 --> 01:04:57.230
+greater than the size you
+want, so you're wasting up
+
+01:04:57.230 --> 01:04:59.450
+to a factor of 2 in space.
+
+01:04:59.450 --> 01:05:01.310
+And in project 3,
+you're going to look
+
+01:05:01.310 --> 01:05:05.030
+much more at these storage
+allocation schemes,
+
+01:05:05.030 --> 01:05:09.770
+and then you'll also get to try
+some of these in homework 6.
+
+01:05:09.770 --> 01:05:13.030
+So any other questions?
+
+01:05:13.030 --> 01:05:16.060
+So that's all I have
+for today's lecture.

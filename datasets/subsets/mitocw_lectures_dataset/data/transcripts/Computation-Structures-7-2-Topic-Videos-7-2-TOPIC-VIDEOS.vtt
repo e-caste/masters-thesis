@@ -1,0 +1,369 @@
+WEBVTT
+
+00:00:00.729 --> 00:00:06.310
+6.004 students work around the dryer bottleneck
+by finding a laundromat that has two dryers
+
+00:00:06.310 --> 00:00:07.950
+for every washer.
+
+00:00:07.950 --> 00:00:13.339
+Looking at the timeline you can see the plan,
+which is divided into 30-minute steps.
+
+00:00:13.339 --> 00:00:18.800
+The washer is in use every step, producing
+a newly-washed load every 30 minutes.
+
+00:00:18.800 --> 00:00:24.140
+Dryer usage is interleaved, where Dryer #1
+is used to dry the odd-numbered loads and
+
+00:00:24.140 --> 00:00:28.410
+Dryer #2 is used to dry the even-numbered
+loads.
+
+00:00:28.410 --> 00:00:34.050
+Once started, a dryer runs for a duration
+of two steps, a total of 60 minutes.
+
+00:00:34.050 --> 00:00:38.920
+Since the dryers run on a staggered schedule,
+the system as a whole produces a load of clean,
+
+00:00:38.920 --> 00:00:41.980
+dry laundry every 30 minutes.
+
+00:00:41.980 --> 00:00:47.039
+The steady-state throughput is 1 load of laundry
+every 30 minutes and the latency for a particular
+
+00:00:47.039 --> 00:00:50.280
+load of laundry is 90 minutes.
+
+00:00:50.280 --> 00:00:53.590
+And now here's the take-home message from
+this example.
+
+00:00:53.590 --> 00:00:56.970
+Consider the operation of the two-dryer system.
+
+00:00:56.970 --> 00:01:01.929
+Even though the component dryers themselves
+aren't pipelined, the two-dryer interleaving
+
+00:01:01.929 --> 00:01:07.190
+system is acting like a 2-stage pipeline with
+a clock period of 30 minutes and a latency
+
+00:01:07.190 --> 00:01:08.750
+of 60 minutes.
+
+00:01:08.750 --> 00:01:14.250
+In other words, by interleaving the operation
+of 2 unpipelined components we can achieve
+
+00:01:14.250 --> 00:01:18.120
+the effect of a 2-stage pipeline.
+
+00:01:18.120 --> 00:01:23.010
+Returning to the example of the previous section,
+we couldn't improve the throughput of our
+
+00:01:23.010 --> 00:01:29.789
+pipelined system past 1/8 ns because the minimum
+clock period was set by the 8 ns latency of
+
+00:01:29.789 --> 00:01:31.580
+the C module.
+
+00:01:31.580 --> 00:01:36.180
+To improve the throughput further we either
+need to find a pipelined version of the C
+
+00:01:36.180 --> 00:01:41.340
+component or use an interleaving strategy
+to achieve the effect of a 2-stage pipeline
+
+00:01:41.340 --> 00:01:44.610
+using two instances of the unpipelined C component.
+
+00:01:44.610 --> 00:01:47.330
+Let's try that…
+
+00:01:47.330 --> 00:01:52.270
+Here's a circuit for a general-purpose two-way
+interleaver, using, in this case, two copies
+
+00:01:52.270 --> 00:01:57.160
+of the unpipelined C component, C_0 and C_1.
+
+00:01:57.160 --> 00:02:01.580
+The input for each C component comes from
+a D-latch, which has the job of capturing
+
+00:02:01.580 --> 00:02:03.990
+and holding the input value.
+
+00:02:03.990 --> 00:02:08.239
+There's also a multiplexer to select which
+C-component output will be captured by the
+
+00:02:08.239 --> 00:02:10.380
+output register.
+
+00:02:10.380 --> 00:02:15.390
+In the lower left-hand corner of the circuit
+is a very simple 2-state FSM with one state
+
+00:02:15.390 --> 00:02:16.690
+bit.
+
+00:02:16.690 --> 00:02:21.360
+The next-state logic is a single inverter,
+which causes the state to alternate between
+
+00:02:21.360 --> 00:02:25.239
+0 and 1 on successive clock cycles.
+
+00:02:25.239 --> 00:02:31.299
+This timing diagram shows how the state bit
+changes right after each rising clock edge.
+
+00:02:31.299 --> 00:02:35.379
+To help us understand the circuit, we'll look
+at some signal waveforms to illustrate its
+
+00:02:35.379 --> 00:02:36.400
+operation.
+
+00:02:36.400 --> 00:02:42.930
+To start, here are the waveforms for the CLK
+signal and our FSM state bit from the previous
+
+00:02:42.930 --> 00:02:43.930
+slide.
+
+00:02:43.930 --> 00:02:49.920
+A new X input arrives from the previous stage
+just after the rising edge of the clock.
+
+00:02:49.920 --> 00:02:54.340
+Next, let's follow the operation of the C_0
+component.
+
+00:02:54.340 --> 00:03:00.500
+Its input latch is open when FSM Q is low,
+so the newly arriving X_1 input passes through
+
+00:03:00.500 --> 00:03:06.670
+the latch and C_0 can begin its computation,
+producing its result at the end of clock cycle
+
+00:03:06.670 --> 00:03:08.420
+#2.
+
+00:03:08.420 --> 00:03:13.209
+Note that the C_0 input latch closes at the
+beginning of the second clock cycle, holding
+
+00:03:13.209 --> 00:03:19.400
+the X_1 input value stable even though the
+X input is starting to change.
+
+00:03:19.400 --> 00:03:25.030
+The effect is that C_0 has a valid and stable
+input for the better part of 2 clock cycles
+
+00:03:25.030 --> 00:03:29.670
+giving it enough time to compute its result.
+
+00:03:29.670 --> 00:03:33.819
+The C_1 waveforms are similar, just shifted
+by one clock cycle.
+
+00:03:33.819 --> 00:03:40.200
+C_1's input latch is open when FSM Q is high,
+so the newly arriving X_2 input passes through
+
+00:03:40.200 --> 00:03:46.239
+the latch and C_1 can begin its computation,
+producing its result at the end of clock cycle
+
+00:03:46.239 --> 00:03:48.400
+#3.
+
+00:03:48.400 --> 00:03:50.480
+Now let's check the output of the multiplexer.
+
+00:03:50.480 --> 00:03:57.659
+When FSM Q is high, it selects the value from
+C_0 and when FSM Q is low, it selects the
+
+00:03:57.659 --> 00:03:59.560
+value from C_1.
+
+00:03:59.560 --> 00:04:02.590
+We can see that happening in the waveform
+shown.
+
+00:04:02.590 --> 00:04:07.430
+Finally, at the rising edge of the clock,
+the output register captures the value on
+
+00:04:07.430 --> 00:04:12.319
+its input and holds it stable for the remainder
+of the clock cycle.
+
+00:04:12.319 --> 00:04:17.820
+The behavior of the interleaving circuit is
+like a 2-stage pipeline: the input value arriving
+
+00:04:17.820 --> 00:04:22.810
+in cycle i is processed over two clock cycles
+and the result output becomes available on
+
+00:04:22.810 --> 00:04:25.720
+cycle i+2.
+
+00:04:25.720 --> 00:04:28.980
+What about the clock period for the interleaving
+system?
+
+00:04:28.980 --> 00:04:34.240
+Well, there is some time lost to the propagation
+delays of the upstream pipeline register that
+
+00:04:34.240 --> 00:04:39.600
+supplies the X input, the internal latches
+and multiplexer, and the setup time of the
+
+00:04:39.600 --> 00:04:40.670
+output register.
+
+00:04:40.670 --> 00:04:46.090
+So the clock cycle has to be just a little
+bit longer than half the propagation delay
+
+00:04:46.090 --> 00:04:47.810
+of the C module.
+
+00:04:47.810 --> 00:04:51.680
+We can treat the interleaving circuit as a
+2-stage pipeline, consuming an input value
+
+00:04:51.680 --> 00:04:56.070
+every clock cycle and producing a result two
+cycles later.
+
+00:04:56.070 --> 00:05:01.070
+When incorporating an N-way interleaved component
+in our pipeline diagrams, we treat it just
+
+00:05:01.070 --> 00:05:03.550
+like a N-stage pipeline.
+
+00:05:03.550 --> 00:05:07.970
+So N of our pipelining contours have to pass
+through the component.
+
+00:05:07.970 --> 00:05:13.790
+Here we've replaced the slow unpipelined C
+component with a 2-way interleaved C-prime
+
+00:05:13.790 --> 00:05:14.850
+component.
+
+00:05:14.850 --> 00:05:18.810
+We can follow our process for drawing pipeline
+contours.
+
+00:05:18.810 --> 00:05:22.180
+First we draw a contour across all the outputs.
+
+00:05:22.180 --> 00:05:27.730
+Then we add contours, ensuring that two of
+them pass through the C-prime component.
+
+00:05:27.730 --> 00:05:33.470
+Then we add pipeline registers at the intersections
+of the contours with the signal connections.
+
+00:05:33.470 --> 00:05:38.280
+We see that the contours passing through C-prime
+have caused extra pipeline registers to be
+
+00:05:38.280 --> 00:05:45.430
+added on the other inputs to the F module,
+accommodating the 2-cycle delay through C-prime.
+
+00:05:45.430 --> 00:05:50.940
+Somewhat optimistically we've specified the
+C-prime minimum t_CLK to be 4 ns, so that
+
+00:05:50.940 --> 00:05:55.830
+means that the slow component which determines
+the system's clock period is now the F module,
+
+00:05:55.830 --> 00:05:59.810
+with a propagation delay of 5 ns.
+
+00:05:59.810 --> 00:06:06.090
+So the throughput of our new pipelined circuit
+is 1 output every 5 ns, and with 5 contours,
+
+00:06:06.090 --> 00:06:11.930
+it's a 5-pipeline so the latency is 5 times
+the clock period or 25 ns.
+
+00:06:11.930 --> 00:06:17.150
+By running pipelined systems in parallel we
+can continue to increase the throughput.
+
+00:06:17.150 --> 00:06:22.220
+Here we show a laundry with 2 washers and
+4 dryers, essentially just two copies of the
+
+00:06:22.220 --> 00:06:25.210
+1-washer, 2-dryer system shown earlier.
+
+00:06:25.210 --> 00:06:30.010
+The operation is as described before, except
+that at each step the system produces and
+
+00:06:30.010 --> 00:06:33.030
+consumes two loads of laundry.
+
+00:06:33.030 --> 00:06:39.240
+So the throughput is 2 loads every 30 minutes
+for an effective rate of 1 load every 15 minutes.
+
+00:06:39.240 --> 00:06:44.000
+The latency for a load hasn't changed; it's
+still 90 minutes per load.
+
+00:06:44.000 --> 00:06:47.909
+We've seen that even with slow components
+we can use interleaving and parallelism to
+
+00:06:47.909 --> 00:06:50.340
+continue to increase throughput.
+
+00:06:50.340 --> 00:06:53.370
+Is there an upper bound on the throughput
+we can achieve?
+
+00:06:53.370 --> 00:06:54.520
+Yes!
+
+00:06:54.520 --> 00:06:58.440
+The timing overhead of the pipeline registers
+and interleaving components will set a lower
+
+00:06:58.440 --> 00:07:04.160
+bound on the achievable clock period, thus
+setting an upper bound on the achievable throughput.
+
+00:07:04.160 --> 00:07:07.690
+Sorry, no infinite speed-up is possible in
+the real world.

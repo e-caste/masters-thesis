@@ -1,0 +1,5675 @@
+WEBVTT
+
+00:00:01.378 --> 00:00:03.920
+VOICEOVER: The following content
+is provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT Open Courseware
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high-quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:18.140
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:18.140 --> 00:00:19.026
+at ocw.mit.edu.
+
+00:00:22.180 --> 00:00:24.500
+JULIAN SHUN: Good
+afternoon, everyone.
+
+00:00:24.500 --> 00:00:29.780
+So today we're going to talk
+about storage allocation.
+
+00:00:29.780 --> 00:00:32.890
+This is a continuation
+from last lecture
+
+00:00:32.890 --> 00:00:35.345
+where we talked about
+serial storage allocation.
+
+00:00:35.345 --> 00:00:36.970
+Today we'll also talk
+a little bit more
+
+00:00:36.970 --> 00:00:39.430
+about serial allocation.
+
+00:00:39.430 --> 00:00:44.020
+But then I'll talk more about
+parallel allocation and also
+
+00:00:44.020 --> 00:00:45.190
+garbage collection.
+
+00:00:45.190 --> 00:00:49.870
+So I want to just do a review
+of some memory allocation
+
+00:00:49.870 --> 00:00:52.540
+primitives.
+
+00:00:52.540 --> 00:00:56.890
+So recall that you can use
+malloc to allocate memory
+
+00:00:56.890 --> 00:00:58.500
+from the heap.
+
+00:00:58.500 --> 00:01:02.140
+And if you call malloc
+with the size of s,
+
+00:01:02.140 --> 00:01:03.610
+it's going to
+allocate and return
+
+00:01:03.610 --> 00:01:08.630
+a pointer to a block of memory
+containing at least s bytes.
+
+00:01:08.630 --> 00:01:11.530
+So you might actually
+get more than s bytes,
+
+00:01:11.530 --> 00:01:13.120
+even though you
+asked for s bytes.
+
+00:01:13.120 --> 00:01:16.990
+But it's guaranteed to
+give you at least s bytes.
+
+00:01:16.990 --> 00:01:20.370
+The return values avoid star,
+but good programming practice
+
+00:01:20.370 --> 00:01:23.620
+is to typecast this
+pointer to whatever type
+
+00:01:23.620 --> 00:01:26.650
+you're using this memory
+for when you receive
+
+00:01:26.650 --> 00:01:27.970
+this from the malloc call.
+
+00:01:30.550 --> 00:01:33.850
+There's also aligned allocation.
+
+00:01:33.850 --> 00:01:36.790
+So you can do aligned
+allocation with memalign,
+
+00:01:36.790 --> 00:01:41.880
+which takes two arguments, a
+size a as well as a size s.
+
+00:01:41.880 --> 00:01:44.200
+And a has to be an
+exact power of 2,
+
+00:01:44.200 --> 00:01:46.090
+and it's going to
+allocate and return
+
+00:01:46.090 --> 00:01:48.490
+a pointer to a block of
+memory again containing
+
+00:01:48.490 --> 00:01:49.900
+at least s bytes.
+
+00:01:49.900 --> 00:01:51.490
+But this time this
+memory is going
+
+00:01:51.490 --> 00:01:54.310
+to be aligned to
+a multiple of a,
+
+00:01:54.310 --> 00:01:56.350
+so the address is going
+to be a multiple of a,
+
+00:01:56.350 --> 00:01:57.690
+where this memory block starts.
+
+00:02:00.400 --> 00:02:04.930
+So does anyone know why we might
+want to do an aligned memory
+
+00:02:04.930 --> 00:02:05.590
+allocation?
+
+00:02:08.360 --> 00:02:10.175
+Yeah?
+
+00:02:10.175 --> 00:02:15.630
+STUDENT: [INAUDIBLE]
+
+00:02:15.630 --> 00:02:17.240
+JULIAN SHUN: Yeah,
+so one reason is
+
+00:02:17.240 --> 00:02:20.060
+that you can align
+memories so that they're
+
+00:02:20.060 --> 00:02:24.920
+aligned to cache lines, so that
+when you access an object that
+
+00:02:24.920 --> 00:02:26.990
+fits within the
+cache line, it's not
+
+00:02:26.990 --> 00:02:29.270
+going to cross two cache lines.
+
+00:02:29.270 --> 00:02:32.490
+And you'll only get one
+cache axis instead of two.
+
+00:02:32.490 --> 00:02:36.260
+So one reason is that
+you want to align
+
+00:02:36.260 --> 00:02:38.330
+the memory to cache
+lines to reduce
+
+00:02:38.330 --> 00:02:39.860
+the number of cache misses.
+
+00:02:39.860 --> 00:02:45.530
+You get another reason is that
+the vectorization operators
+
+00:02:45.530 --> 00:02:48.050
+also require you to have
+memory addresses that
+
+00:02:48.050 --> 00:02:50.280
+are aligned to some power of 2.
+
+00:02:50.280 --> 00:02:53.480
+So if you align your memory
+allocation with memalign,
+
+00:02:53.480 --> 00:02:57.380
+then that's also good
+for the vector units.
+
+00:02:57.380 --> 00:02:59.180
+We also talked
+about deallocations.
+
+00:02:59.180 --> 00:03:04.890
+You can free memory back to the
+heap with the free function.
+
+00:03:04.890 --> 00:03:07.610
+So if you pass at a point of
+p to some block of memory,
+
+00:03:07.610 --> 00:03:11.510
+it's going to
+deallocate this block
+
+00:03:11.510 --> 00:03:14.490
+and return it to the
+storage allocator.
+
+00:03:14.490 --> 00:03:20.150
+And we also talked about
+some anomalies of freeing.
+
+00:03:20.150 --> 00:03:22.670
+So what is it called
+when you fail to free
+
+00:03:22.670 --> 00:03:24.200
+some memory that you allocated?
+
+00:03:29.381 --> 00:03:31.265
+Yes?
+
+00:03:31.265 --> 00:03:34.110
+Yeah, so If you fail to freeze
+something that you allocated,
+
+00:03:34.110 --> 00:03:35.960
+that's called a memory leak.
+
+00:03:35.960 --> 00:03:40.460
+And this can cause your program
+to use more and more memory.
+
+00:03:40.460 --> 00:03:43.102
+And eventually your
+program is going
+
+00:03:43.102 --> 00:03:44.810
+to use up all the
+memory on your machine,
+
+00:03:44.810 --> 00:03:47.420
+and it's going to crash.
+
+00:03:47.420 --> 00:03:50.600
+We also talked about freeing
+something more than once.
+
+00:03:50.600 --> 00:03:53.870
+Does anyone remember
+what that's called?
+
+00:03:53.870 --> 00:03:55.010
+Yeah?
+
+00:03:55.010 --> 00:03:56.660
+Yeah, so that's
+called double freeing.
+
+00:03:56.660 --> 00:03:59.480
+Double freeing is when you
+free something more than once.
+
+00:03:59.480 --> 00:04:02.050
+And the behavior is
+going to be undefined.
+
+00:04:02.050 --> 00:04:05.420
+You might get a seg
+fault immediately,
+
+00:04:05.420 --> 00:04:07.760
+or you'll free something
+that was allocated
+
+00:04:07.760 --> 00:04:09.412
+for some other purpose.
+
+00:04:09.412 --> 00:04:11.120
+And then later down
+the road your program
+
+00:04:11.120 --> 00:04:13.320
+is going to have some
+unexpected behavior.
+
+00:04:16.750 --> 00:04:18.370
+OK.
+
+00:04:18.370 --> 00:04:20.709
+I also want to talk about m map.
+
+00:04:20.709 --> 00:04:24.520
+So m map is a system call.
+
+00:04:24.520 --> 00:04:28.690
+And usually m map is used
+to treat some file on disk
+
+00:04:28.690 --> 00:04:31.420
+as part of memory,
+so that when you
+
+00:04:31.420 --> 00:04:36.490
+write to that memory region,
+it also backs it up on disk.
+
+00:04:36.490 --> 00:04:37.990
+In this context
+here, I'm actually
+
+00:04:37.990 --> 00:04:42.190
+using m map to allocate
+virtual memory without having
+
+00:04:42.190 --> 00:04:43.320
+any backing file.
+
+00:04:43.320 --> 00:04:43.820
+So
+
+00:04:43.820 --> 00:04:47.020
+So our map has a whole
+bunch of parameters here.
+
+00:04:47.020 --> 00:04:49.330
+The second to the last
+parameter indicates
+
+00:04:49.330 --> 00:04:51.832
+the file I want to map,
+and if I pass a negative 1,
+
+00:04:51.832 --> 00:04:53.290
+that means there's
+no backing file.
+
+00:04:53.290 --> 00:04:57.130
+So I'm just using this to
+allocate some virtual memory.
+
+00:04:57.130 --> 00:05:00.020
+The first argument is where
+I want to allocate it.
+
+00:05:00.020 --> 00:05:02.160
+And 0 means that I don't care.
+
+00:05:02.160 --> 00:05:04.370
+The size in terms
+of number of bytes
+
+00:05:04.370 --> 00:05:07.720
+has how much memory
+I want to allocate.
+
+00:05:07.720 --> 00:05:10.120
+Then there's also permissions.
+
+00:05:10.120 --> 00:05:15.280
+So here it says I can read
+and write this memory region.
+
+00:05:15.280 --> 00:05:17.560
+s private means that
+this memory region
+
+00:05:17.560 --> 00:05:20.860
+is private to the process
+that's allocating it.
+
+00:05:20.860 --> 00:05:23.980
+And then map anon means that
+there is no name associated
+
+00:05:23.980 --> 00:05:26.470
+with this memory region.
+
+00:05:26.470 --> 00:05:28.300
+And then as I said,
+negative 1 means
+
+00:05:28.300 --> 00:05:29.620
+that there's no backing file.
+
+00:05:29.620 --> 00:05:33.880
+And the last parameter is just
+0 if there's no backing file.
+
+00:05:33.880 --> 00:05:36.467
+Normally it would be
+an offset into the file
+
+00:05:36.467 --> 00:05:37.550
+that you're trying to map.
+
+00:05:37.550 --> 00:05:39.430
+But here there's
+no backing file.
+
+00:05:39.430 --> 00:05:43.390
+And what m map does is it finds
+a contiguous unused region
+
+00:05:43.390 --> 00:05:46.000
+in the address space of the
+application that's large enough
+
+00:05:46.000 --> 00:05:48.280
+to hold size bytes.
+
+00:05:48.280 --> 00:05:50.890
+And then it updates
+the page table
+
+00:05:50.890 --> 00:05:54.430
+so that it now contains
+an entry for the pages
+
+00:05:54.430 --> 00:05:56.230
+that you allocated.
+
+00:05:56.230 --> 00:05:59.290
+And then it creates a necessary
+virtual memory management
+
+00:05:59.290 --> 00:06:01.630
+structures within
+the operating system
+
+00:06:01.630 --> 00:06:05.230
+to make it so that users
+accesses to this area
+
+00:06:05.230 --> 00:06:11.650
+are legal, and accesses
+won't result in a seg fault.
+
+00:06:11.650 --> 00:06:16.660
+If you try to access some
+region of memory without using--
+
+00:06:16.660 --> 00:06:21.610
+without having OS
+set these parameters,
+
+00:06:21.610 --> 00:06:24.310
+then you might get a set fault
+because the program might not
+
+00:06:24.310 --> 00:06:26.120
+have permission to
+access that area.
+
+00:06:26.120 --> 00:06:29.380
+But m map is going to make
+sure that the user can access
+
+00:06:29.380 --> 00:06:31.630
+this area of virtual memory.
+
+00:06:31.630 --> 00:06:35.080
+And m map is a system
+call, whereas malloc,
+
+00:06:35.080 --> 00:06:37.540
+which we talked about last
+time, is a library call.
+
+00:06:37.540 --> 00:06:39.400
+So these are two
+different things.
+
+00:06:39.400 --> 00:06:42.520
+And malloc actually uses
+m map under the hood
+
+00:06:42.520 --> 00:06:47.810
+to get more memory from
+the operating system.
+
+00:06:47.810 --> 00:06:52.210
+So let's look at some
+properties of m map.
+
+00:06:52.210 --> 00:06:54.190
+So m map is lazy.
+
+00:06:54.190 --> 00:06:57.340
+So when you request a
+certain amount of memory,
+
+00:06:57.340 --> 00:07:00.370
+it doesn't immediately
+allocate physical memory
+
+00:07:00.370 --> 00:07:02.950
+for the requested allocation.
+
+00:07:02.950 --> 00:07:06.070
+Instead it just
+populates the page table
+
+00:07:06.070 --> 00:07:08.710
+with entries pointing
+to a special 0 page.
+
+00:07:08.710 --> 00:07:12.500
+And then it marks these
+pages as read only.
+
+00:07:12.500 --> 00:07:14.920
+And then the first time
+you write to such a page,
+
+00:07:14.920 --> 00:07:18.340
+it will cause a page
+fault. And at that point,
+
+00:07:18.340 --> 00:07:22.630
+the OS is going to
+modify the page table,
+
+00:07:22.630 --> 00:07:25.400
+get the appropriate
+physical memory,
+
+00:07:25.400 --> 00:07:29.290
+and store the mapping from
+the virtual address space
+
+00:07:29.290 --> 00:07:32.055
+to physical address space
+for the particular page
+
+00:07:32.055 --> 00:07:32.680
+that you touch.
+
+00:07:32.680 --> 00:07:34.388
+And then it will
+restart the instructions
+
+00:07:34.388 --> 00:07:37.120
+so that it can
+continue to execute.
+
+00:07:40.210 --> 00:07:41.965
+You can-- turns out
+that you can actually
+
+00:07:41.965 --> 00:07:44.470
+m map a terabyte
+of virtual memory,
+
+00:07:44.470 --> 00:07:48.220
+even on a machine with
+just a gigabyte of d ram.
+
+00:07:48.220 --> 00:07:51.340
+Because when you call m
+map, it doesn't actually
+
+00:07:51.340 --> 00:07:54.250
+allocate the physical memory.
+
+00:07:54.250 --> 00:07:57.310
+But then you should be careful,
+because a process might
+
+00:07:57.310 --> 00:07:59.170
+die from running out
+of physical memory
+
+00:07:59.170 --> 00:08:01.840
+well after you call m map.
+
+00:08:01.840 --> 00:08:04.930
+Because m map is going to
+allocate this physical memory
+
+00:08:04.930 --> 00:08:06.140
+whenever you first touch it.
+
+00:08:06.140 --> 00:08:09.130
+And this could be much
+later than when you actually
+
+00:08:09.130 --> 00:08:12.250
+made the call to m map.
+
+00:08:12.250 --> 00:08:13.990
+So any questions so far?
+
+00:08:19.320 --> 00:08:19.820
+OK.
+
+00:08:22.510 --> 00:08:26.050
+So what's the difference
+between malloc and m map?
+
+00:08:26.050 --> 00:08:30.610
+So as I said, malloc
+is a library call.
+
+00:08:30.610 --> 00:08:33.610
+And it's part of--malloc and
+free are part of the memory
+
+00:08:33.610 --> 00:08:37.179
+allocation interface of the
+heat-management code in the c
+
+00:08:37.179 --> 00:08:38.950
+library.
+
+00:08:38.950 --> 00:08:41.950
+And the heat-management code
+uses the available system
+
+00:08:41.950 --> 00:08:44.860
+facilities, including
+the m map function
+
+00:08:44.860 --> 00:08:51.250
+to get a virtual address space
+from the operating system.
+
+00:08:51.250 --> 00:08:52.780
+And then the
+heat-management code
+
+00:08:52.780 --> 00:08:54.640
+is going-- within
+malloc-- is going
+
+00:08:54.640 --> 00:08:57.910
+to attempt to satisfy user
+requests for heat storage
+
+00:08:57.910 --> 00:09:01.090
+by reusing the memory
+that it got from the OS
+
+00:09:01.090 --> 00:09:04.210
+as much as possible until
+it can't do that anymore.
+
+00:09:04.210 --> 00:09:06.850
+And then it will
+go and call m map
+
+00:09:06.850 --> 00:09:10.990
+to get more memory from
+the operating system.
+
+00:09:10.990 --> 00:09:14.170
+So the malloc implementation
+invokes m map and other system
+
+00:09:14.170 --> 00:09:18.430
+calls to expand the size
+of the users heap storage.
+
+00:09:18.430 --> 00:09:21.340
+And the responsibility
+of malloc is
+
+00:09:21.340 --> 00:09:25.510
+to reuse the memory, such that
+your fragmentation is reduced,
+
+00:09:25.510 --> 00:09:28.900
+and you have good
+temporal locality,
+
+00:09:28.900 --> 00:09:31.000
+whereas the
+responsibility of m map
+
+00:09:31.000 --> 00:09:36.190
+is actually getting this memory
+from the operating system.
+
+00:09:36.190 --> 00:09:38.890
+So any questions
+on the differences
+
+00:09:38.890 --> 00:09:41.020
+between malloc and m map?
+
+00:09:44.560 --> 00:09:46.390
+So one question is,
+why don't we just call
+
+00:09:46.390 --> 00:09:50.800
+m map up all the time,
+instead of just using malloc?
+
+00:09:50.800 --> 00:09:52.510
+Why don't we just
+directly call m map?
+
+00:10:02.800 --> 00:10:03.370
+Yes.
+
+00:10:03.370 --> 00:10:07.560
+STUDENT: [INAUDIBLE]
+
+00:10:07.560 --> 00:10:09.850
+JULIAN SHUN: Yes,
+so one answer is
+
+00:10:09.850 --> 00:10:12.910
+that you might have
+free storage from before
+
+00:10:12.910 --> 00:10:18.010
+that you would want to reuse.
+
+00:10:18.010 --> 00:10:21.970
+And it turns out that m map
+is relatively heavy weight.
+
+00:10:21.970 --> 00:10:25.600
+So it works on a
+page granularity.
+
+00:10:25.600 --> 00:10:28.120
+So if you want to do
+a small allocation,
+
+00:10:28.120 --> 00:10:30.730
+it's quite wasteful to
+allocate an entire page
+
+00:10:30.730 --> 00:10:34.210
+for that allocation
+and not reuse it.
+
+00:10:34.210 --> 00:10:36.940
+You'll get very bad
+external fragmentation.
+
+00:10:36.940 --> 00:10:38.530
+And when you call
+m map, it has to go
+
+00:10:38.530 --> 00:10:41.200
+through all of the overhead
+of the security of the OS
+
+00:10:41.200 --> 00:10:44.900
+and updating the
+page table and so on.
+
+00:10:44.900 --> 00:10:47.110
+Whereas, if you use
+malloc, it's actually
+
+00:10:47.110 --> 00:10:50.350
+pretty fast for
+most allocations,
+
+00:10:50.350 --> 00:10:52.840
+and especially if you have
+temporal locality where
+
+00:10:52.840 --> 00:10:56.470
+you allocate something that
+you just recently freed.
+
+00:10:56.470 --> 00:10:58.570
+So your program
+would be pretty slow
+
+00:10:58.570 --> 00:11:02.230
+if you used m map all the time,
+even for small allocations.
+
+00:11:02.230 --> 00:11:04.300
+For big allocations, it's fine.
+
+00:11:04.300 --> 00:11:09.730
+But for small allocations,
+you should use malloc.
+
+00:11:09.730 --> 00:11:13.070
+Any questions on m
+map versus malloc?
+
+00:11:17.850 --> 00:11:21.610
+OK, so I just want to do
+a little bit of review
+
+00:11:21.610 --> 00:11:24.102
+on how address
+translation works.
+
+00:11:24.102 --> 00:11:26.560
+So some of you might have seen
+this before in your computer
+
+00:11:26.560 --> 00:11:28.810
+architecture course.
+
+00:11:28.810 --> 00:11:34.870
+So how it works is, when
+you access memory location,
+
+00:11:34.870 --> 00:11:37.600
+you access it via
+the virtual address.
+
+00:11:37.600 --> 00:11:40.570
+And the virtual address can be
+divided into two parts, where
+
+00:11:40.570 --> 00:11:42.880
+the lower order bits
+store the offset,
+
+00:11:42.880 --> 00:11:46.970
+and the higher order bits
+store the virtual page number.
+
+00:11:46.970 --> 00:11:49.720
+And in order to get the
+physical address associated
+
+00:11:49.720 --> 00:11:53.020
+with this virtual
+address, the hardware
+
+00:11:53.020 --> 00:11:56.590
+is going to look up this
+virtual page number in what's
+
+00:11:56.590 --> 00:11:59.870
+called the page table.
+
+00:11:59.870 --> 00:12:02.953
+And then if it finds
+a corresponding entry
+
+00:12:02.953 --> 00:12:04.870
+for the virtual page
+number in the page table,
+
+00:12:04.870 --> 00:12:08.320
+that will tell us the
+physical frame number.
+
+00:12:08.320 --> 00:12:10.300
+And then the
+physical frame number
+
+00:12:10.300 --> 00:12:16.060
+corresponds to where this
+fiscal memory is in d ram.
+
+00:12:16.060 --> 00:12:19.690
+So you can just take
+the frame number,
+
+00:12:19.690 --> 00:12:22.240
+and then use the
+same offset as before
+
+00:12:22.240 --> 00:12:25.870
+to get the appropriate offset
+into the physical memory frame.
+
+00:12:30.590 --> 00:12:32.770
+So if the virtual page
+that you're looking for
+
+00:12:32.770 --> 00:12:35.060
+doesn't reside in
+physical memory,
+
+00:12:35.060 --> 00:12:37.910
+then a page fault
+is going to occur.
+
+00:12:37.910 --> 00:12:41.770
+And when a page fault occurs,
+either the operating system
+
+00:12:41.770 --> 00:12:43.330
+will see that the
+process actually
+
+00:12:43.330 --> 00:12:46.600
+has permissions to look
+at that memory region,
+
+00:12:46.600 --> 00:12:49.420
+and it will set the
+permissions and place the entry
+
+00:12:49.420 --> 00:12:52.330
+into the page table
+so that you can
+
+00:12:52.330 --> 00:12:55.510
+get the appropriate
+physical address.
+
+00:12:55.510 --> 00:12:57.340
+But otherwise, the
+operating system
+
+00:12:57.340 --> 00:12:58.870
+might see that this
+process actually
+
+00:12:58.870 --> 00:13:00.870
+can't access that region
+memory, and then you'll
+
+00:13:00.870 --> 00:13:04.070
+get a segmentation fault.
+
+00:13:04.070 --> 00:13:07.300
+It turns out that the page
+table search, also called a page
+
+00:13:07.300 --> 00:13:11.110
+walk, is pretty expensive.
+
+00:13:11.110 --> 00:13:14.080
+And that's why we have the
+translation look, a side
+
+00:13:14.080 --> 00:13:17.110
+buffer or TLB,
+which is essentially
+
+00:13:17.110 --> 00:13:19.390
+a cache for the page table.
+
+00:13:19.390 --> 00:13:22.720
+So the hardware uses a TLB
+to cache the recent page
+
+00:13:22.720 --> 00:13:27.670
+table look ups into this
+TLB so that later on when
+
+00:13:27.670 --> 00:13:30.250
+you access the same
+page, it doesn't
+
+00:13:30.250 --> 00:13:32.050
+have to go all the
+way to the page table
+
+00:13:32.050 --> 00:13:33.330
+to find the physical address.
+
+00:13:33.330 --> 00:13:35.920
+It can first look
+in the TLB to see
+
+00:13:35.920 --> 00:13:38.810
+if it's been recently accessed.
+
+00:13:38.810 --> 00:13:41.530
+So why would you
+expect to see something
+
+00:13:41.530 --> 00:13:44.075
+that it recently has accessed?
+
+00:13:47.490 --> 00:13:49.110
+So what's one
+property of a program
+
+00:13:49.110 --> 00:13:53.100
+that will make it so that
+you get a lot of TLB hits?
+
+00:13:53.100 --> 00:13:53.946
+Yes?
+
+00:13:53.946 --> 00:13:59.083
+STUDENT: Well, usually
+[INAUDIBLE] nearby one another,
+
+00:13:59.083 --> 00:14:04.570
+which means they're probably in
+the same page or [INAUDIBLE]..
+
+00:14:04.570 --> 00:14:07.650
+JULIAN SHUN: Yeah,
+so that's correct.
+
+00:14:07.650 --> 00:14:09.810
+So the page table
+stores pages, which
+
+00:14:09.810 --> 00:14:12.060
+are typically four kilobytes.
+
+00:14:12.060 --> 00:14:13.860
+Nowadays there are
+also huge pages, which
+
+00:14:13.860 --> 00:14:15.640
+can be a couple of megabytes.
+
+00:14:15.640 --> 00:14:18.510
+And most of the
+accesses in your program
+
+00:14:18.510 --> 00:14:19.950
+are going to be near each other.
+
+00:14:19.950 --> 00:14:22.710
+So they're likely
+going to reside
+
+00:14:22.710 --> 00:14:26.130
+on the same page for
+accesses that have been
+
+00:14:26.130 --> 00:14:29.620
+done close together in time.
+
+00:14:29.620 --> 00:14:34.650
+So therefore you'll expect that
+many of your recent accesses
+
+00:14:34.650 --> 00:14:37.260
+are going to be
+stored in the TLB
+
+00:14:37.260 --> 00:14:40.500
+if your program has locality,
+either spatial or temporal
+
+00:14:40.500 --> 00:14:41.670
+locality or both.
+
+00:14:44.370 --> 00:14:47.608
+So how this architecture works
+is that the processor is first
+
+00:14:47.608 --> 00:14:49.650
+going to check whether
+the virtual address you're
+
+00:14:49.650 --> 00:14:51.780
+looking for is in TLB.
+
+00:14:51.780 --> 00:14:55.470
+If it's not, it's going to go to
+the page table and look it up.
+
+00:14:55.470 --> 00:14:57.540
+And then if it finds
+that there, then it's
+
+00:14:57.540 --> 00:14:59.790
+going to store that
+entry into the TLB.
+
+00:14:59.790 --> 00:15:02.720
+And then next it's going to
+go get this physical address
+
+00:15:02.720 --> 00:15:08.028
+that it found from the TLB and
+look it up into the CPU cache.
+
+00:15:08.028 --> 00:15:09.570
+And if it finds it
+there, it gets it.
+
+00:15:09.570 --> 00:15:13.410
+If it doesn't, then it goes to
+d ram to satisfy the request.
+
+00:15:13.410 --> 00:15:15.540
+Most modern machines
+actually have an optimization
+
+00:15:15.540 --> 00:15:20.250
+that allow you to do TLB access
+in parallel with the L1 cache
+
+00:15:20.250 --> 00:15:21.330
+access.
+
+00:15:21.330 --> 00:15:24.570
+So the L1 cache actually uses
+virtual addresses instead
+
+00:15:24.570 --> 00:15:26.850
+of fiscal addresses,
+and this reduces
+
+00:15:26.850 --> 00:15:32.070
+the latency of a memory access.
+
+00:15:32.070 --> 00:15:35.960
+So that's a brief review
+of address translation.
+
+00:15:35.960 --> 00:15:38.055
+All right, so let's
+talk about stacks.
+
+00:15:41.650 --> 00:15:48.430
+So when you execute a
+serial c and c++ program,
+
+00:15:48.430 --> 00:15:52.720
+you're using a stack to keep
+track of the function calls
+
+00:15:52.720 --> 00:15:56.740
+and local variables
+that you have to save.
+
+00:15:56.740 --> 00:15:59.500
+So here, let's say we
+have this invocation tree,
+
+00:15:59.500 --> 00:16:03.460
+where function a calls
+Function b, which then returns.
+
+00:16:03.460 --> 00:16:05.800
+And then a calls
+function c, which
+
+00:16:05.800 --> 00:16:09.490
+calls d, returns, calls e,
+returns, and then returns
+
+00:16:09.490 --> 00:16:11.430
+again.
+
+00:16:11.430 --> 00:16:14.530
+Here are the different views of
+the stack at different points
+
+00:16:14.530 --> 00:16:15.610
+of the execution.
+
+00:16:15.610 --> 00:16:21.030
+So initially when we call a,
+we have a stack frame for a.
+
+00:16:21.030 --> 00:16:23.590
+And then when a
+calls b, we're going
+
+00:16:23.590 --> 00:16:26.050
+to place a stack
+frame for b right
+
+00:16:26.050 --> 00:16:27.640
+below the stack frame of a.
+
+00:16:27.640 --> 00:16:30.940
+So these are going to
+be linearly ordered.
+
+00:16:30.940 --> 00:16:34.420
+When we're done with b,
+then this part of the stack
+
+00:16:34.420 --> 00:16:37.660
+is no longer going to
+be used, the part for b.
+
+00:16:37.660 --> 00:16:41.080
+And then when it calls c, It's
+going to allocate a stack frame
+
+00:16:41.080 --> 00:16:42.730
+below a on the stack.
+
+00:16:42.730 --> 00:16:47.230
+And this space is actually going
+to be the same space as what
+
+00:16:47.230 --> 00:16:48.610
+b was using before.
+
+00:16:48.610 --> 00:16:51.640
+But this is fine, because we're
+already done with the call
+
+00:16:51.640 --> 00:16:52.720
+to b.
+
+00:16:52.720 --> 00:16:56.080
+Then when c calls d, we're going
+to create a stack frame for d
+
+00:16:56.080 --> 00:16:57.520
+right below c.
+
+00:16:57.520 --> 00:17:00.340
+When it returns, we're not going
+to use that space any more,
+
+00:17:00.340 --> 00:17:04.980
+so then we can reuse it for
+the stack frame when we call e.
+
+00:17:04.980 --> 00:17:09.290
+And then eventually all
+of these will pop back up.
+
+00:17:09.290 --> 00:17:13.480
+And all of these views
+here share the same view
+
+00:17:13.480 --> 00:17:16.300
+of the stack frame for a.
+
+00:17:16.300 --> 00:17:21.130
+And then for c, d, and e, they
+all stare share the same view
+
+00:17:21.130 --> 00:17:24.369
+of this stack for c.
+
+00:17:24.369 --> 00:17:27.849
+So this is how a traditional
+linear stack works when you
+
+00:17:27.849 --> 00:17:30.520
+call a serial c or c++ program.
+
+00:17:30.520 --> 00:17:34.130
+And you can view this as a
+serial walk over the invocation
+
+00:17:34.130 --> 00:17:34.630
+tree.
+
+00:17:39.540 --> 00:17:41.830
+There's one rule for pointers.
+
+00:17:41.830 --> 00:17:43.860
+With traditional
+linear stacks is
+
+00:17:43.860 --> 00:17:47.610
+that a parent can pass
+pointers to its stack variables
+
+00:17:47.610 --> 00:17:49.710
+down to its children.
+
+00:17:49.710 --> 00:17:51.510
+But not the other way around.
+
+00:17:51.510 --> 00:17:54.750
+A child can't pass a pointer
+to some local variable
+
+00:17:54.750 --> 00:17:56.080
+back to its parent.
+
+00:17:56.080 --> 00:17:58.900
+So if you do that, you'll
+get a bug in your program.
+
+00:17:58.900 --> 00:18:01.820
+How many of you have
+tried doing that before?
+
+00:18:01.820 --> 00:18:05.140
+Yeah, so a lot of you.
+
+00:18:05.140 --> 00:18:09.240
+So let's see why that
+causes a problem.
+
+00:18:09.240 --> 00:18:12.780
+So if I'm calling--
+
+00:18:12.780 --> 00:18:16.260
+if I call b, and I pass a
+pointer to some local variable
+
+00:18:16.260 --> 00:18:21.360
+in b stack to a, and
+then now when a calls c,
+
+00:18:21.360 --> 00:18:24.150
+It's going to overwrite
+the space that b was using.
+
+00:18:24.150 --> 00:18:26.760
+And if b's local variable
+was stored in the space
+
+00:18:26.760 --> 00:18:29.040
+that c has now
+overwritten, then you're
+
+00:18:29.040 --> 00:18:30.960
+just going to see garbage.
+
+00:18:30.960 --> 00:18:33.480
+And when you try to
+access that, you're
+
+00:18:33.480 --> 00:18:35.820
+not going to get
+the correct value.
+
+00:18:35.820 --> 00:18:39.090
+So you can pass a pointer
+to a's local variable
+
+00:18:39.090 --> 00:18:42.510
+down to any of these
+descendant function
+
+00:18:42.510 --> 00:18:45.480
+calls, because they all see
+the same view of a stack.
+
+00:18:45.480 --> 00:18:48.120
+And that's not going
+to be overwritten
+
+00:18:48.120 --> 00:18:51.360
+while these descendant
+function calls are proceeding.
+
+00:18:51.360 --> 00:18:54.690
+But if you pass it the
+other way, then potentially
+
+00:18:54.690 --> 00:18:56.370
+the variable that
+you had a pointer to
+
+00:18:56.370 --> 00:19:00.490
+is going to be overwritten.
+
+00:19:00.490 --> 00:19:02.640
+So here's one question.
+
+00:19:02.640 --> 00:19:06.360
+If you want to pass memory from
+a child back to the parent,
+
+00:19:06.360 --> 00:19:07.530
+where would you allocate it?
+
+00:19:11.380 --> 00:19:14.140
+So you can allocate
+it on the parent.
+
+00:19:14.140 --> 00:19:16.510
+What's another option?
+
+00:19:16.510 --> 00:19:17.490
+Yes?
+
+00:19:17.490 --> 00:19:21.643
+Yes, so another way to do this
+is to allocate it on the heap.
+
+00:19:21.643 --> 00:19:23.560
+If you allocate it on
+the heap, even after you
+
+00:19:23.560 --> 00:19:25.450
+return from the function
+call, that memory
+
+00:19:25.450 --> 00:19:27.550
+is going to persist.
+
+00:19:27.550 --> 00:19:32.140
+You can also allocate it in the
+parent's stack, if you want.
+
+00:19:32.140 --> 00:19:34.720
+In fact, some programs
+are written that way.
+
+00:19:34.720 --> 00:19:39.850
+And one of the reasons why
+many c functions require
+
+00:19:39.850 --> 00:19:44.050
+you to pass in memory to
+the function where it's
+
+00:19:44.050 --> 00:19:46.630
+going to store the
+return value is
+
+00:19:46.630 --> 00:19:50.920
+to try to avoid an expensive
+heap allocation in the child.
+
+00:19:50.920 --> 00:19:54.260
+Because if the parent allocates
+this space to store the result,
+
+00:19:54.260 --> 00:19:56.560
+the child can just
+put whatever it
+
+00:19:56.560 --> 00:19:58.310
+wants to compute in that space.
+
+00:19:58.310 --> 00:20:00.560
+And the parent will see it.
+
+00:20:00.560 --> 00:20:04.540
+So then the responsibility
+is up to the parent
+
+00:20:04.540 --> 00:20:07.270
+to figure out whether it
+wants to allocate the memory
+
+00:20:07.270 --> 00:20:09.110
+on the stack or on the heap.
+
+00:20:09.110 --> 00:20:11.410
+So this is one of
+the reasons why
+
+00:20:11.410 --> 00:20:14.200
+you'll see many c functions,
+where one of the arguments
+
+00:20:14.200 --> 00:20:18.190
+is a memory location where
+the result should be stored.
+
+00:20:23.710 --> 00:20:26.650
+OK, so that was the serial case.
+
+00:20:26.650 --> 00:20:29.310
+What happens in parallel?
+
+00:20:29.310 --> 00:20:31.030
+So in parallel, we
+have what's called
+
+00:20:31.030 --> 00:20:34.570
+a cactus stack where we
+can support multiple views
+
+00:20:34.570 --> 00:20:36.430
+of the stack in parallel.
+
+00:20:36.430 --> 00:20:40.720
+So let's say we have a program
+where it calls function
+
+00:20:40.720 --> 00:20:43.390
+a, and then a spawns b and c.
+
+00:20:43.390 --> 00:20:45.730
+So b and c are going to
+be running potentially
+
+00:20:45.730 --> 00:20:46.330
+in parallel.
+
+00:20:46.330 --> 00:20:48.700
+And then c spawns d and
+e, which can potentially
+
+00:20:48.700 --> 00:20:50.660
+be running in parallel.
+
+00:20:50.660 --> 00:20:54.820
+So for this program, we could
+have functions b, d and e all
+
+00:20:54.820 --> 00:20:56.860
+executing in parallel.
+
+00:20:56.860 --> 00:20:58.660
+And a cactus stack
+is going to allow
+
+00:20:58.660 --> 00:21:01.840
+us to have all of
+these functions
+
+00:21:01.840 --> 00:21:04.270
+see the same view of
+this stack as they
+
+00:21:04.270 --> 00:21:11.040
+would have if this program
+were executed serially.
+
+00:21:11.040 --> 00:21:14.110
+And the silk runtime
+system supports
+
+00:21:14.110 --> 00:21:18.940
+the cactus stack to make it easy
+for writing parallel programs.
+
+00:21:18.940 --> 00:21:21.470
+Because now when you're
+writing programs,
+
+00:21:21.470 --> 00:21:25.480
+you just have to obey the same
+rules for programming in serial
+
+00:21:25.480 --> 00:21:29.200
+c and c++ with
+regards to the stack,
+
+00:21:29.200 --> 00:21:31.830
+and then you'll still get
+the intended behavior.
+
+00:21:35.860 --> 00:21:40.060
+And it turns out that there's
+no copying of the stacks here.
+
+00:21:40.060 --> 00:21:42.190
+So all of these
+different views are
+
+00:21:42.190 --> 00:21:48.580
+seeing the same virtual
+memory addresses for a.
+
+00:21:48.580 --> 00:21:51.400
+But now there is
+an issue of how do
+
+00:21:51.400 --> 00:21:54.250
+we implement this cactus stack?
+
+00:21:54.250 --> 00:21:58.420
+Because in the serial case, we
+could have these later stacks
+
+00:21:58.420 --> 00:22:00.400
+overwriting the earlier stacks.
+
+00:22:00.400 --> 00:22:04.570
+But in parallel,
+how can we do this?
+
+00:22:04.570 --> 00:22:07.240
+So does anyone have
+any simple ideas
+
+00:22:07.240 --> 00:22:11.600
+on how we can implement
+a cactus stack?
+
+00:22:11.600 --> 00:22:12.100
+Yes?
+
+00:22:15.370 --> 00:22:22.367
+STUDENT: You could just have
+each child's stack start
+
+00:22:22.367 --> 00:22:26.059
+in like a separate stack,
+or just have references
+
+00:22:26.059 --> 00:22:28.470
+to the [INAUDIBLE].
+
+00:22:28.470 --> 00:22:30.600
+JULIAN SHUN: Yeah,
+so one way to do this
+
+00:22:30.600 --> 00:22:35.940
+is to have each thread
+use a different stack.
+
+00:22:35.940 --> 00:22:40.710
+And then store pointers to
+the different stack frames
+
+00:22:40.710 --> 00:22:42.480
+across the different stacks.
+
+00:22:42.480 --> 00:22:45.150
+There's actually another way
+to do this, which is easier.
+
+00:22:49.830 --> 00:22:51.250
+OK, yes?
+
+00:22:51.250 --> 00:22:55.158
+STUDENT: If the stack
+frames have a maximum--
+
+00:22:55.158 --> 00:22:58.086
+fixed maximum size--
+then you could put them
+
+00:22:58.086 --> 00:23:04.430
+all in the same stack
+separated by that fixed size.
+
+00:23:04.430 --> 00:23:06.170
+JULIAN SHUN: Yeah,
+so if the stacks all
+
+00:23:06.170 --> 00:23:08.630
+have a maximum depth,
+then you could just
+
+00:23:08.630 --> 00:23:12.500
+allocate a whole bunch of
+stacks, which are separated
+
+00:23:12.500 --> 00:23:14.600
+by this maximum depth.
+
+00:23:17.180 --> 00:23:20.510
+There's actually
+another way to do this,
+
+00:23:20.510 --> 00:23:22.750
+which is to not use the stack.
+
+00:23:22.750 --> 00:23:24.468
+So yes?
+
+00:23:24.468 --> 00:23:26.510
+STUDENT: Could you memory
+map it somewhere else--
+
+00:23:26.510 --> 00:23:27.760
+each of the different threads?
+
+00:23:27.760 --> 00:23:30.380
+JULIAN SHUN: Yes, that's
+actually one way to do it.
+
+00:23:30.380 --> 00:23:35.000
+The easiest way to do it is just
+to allocate it off the heap.
+
+00:23:35.000 --> 00:23:39.490
+So instead of allocating
+the frames on the stack,
+
+00:23:39.490 --> 00:23:42.690
+you just do a heap allocation
+for each of these stack frames.
+
+00:23:42.690 --> 00:23:44.350
+And then each of
+these stack frames
+
+00:23:44.350 --> 00:23:49.840
+has a pointer to the
+parent stack frame.
+
+00:23:49.840 --> 00:23:53.560
+So whenever you do
+a function call,
+
+00:23:53.560 --> 00:23:55.780
+you're going to do a memory
+allocation from the heap
+
+00:23:55.780 --> 00:23:56.920
+to get a new stack frame.
+
+00:23:56.920 --> 00:23:58.960
+And then when you
+finish a function,
+
+00:23:58.960 --> 00:24:01.480
+you're going to pop
+something off of this stack,
+
+00:24:01.480 --> 00:24:05.050
+and free it back to the heap.
+
+00:24:05.050 --> 00:24:09.040
+In fact, a lot of early systems
+for parallel programming
+
+00:24:09.040 --> 00:24:15.160
+use this strategy of
+heap-based cactus stacks.
+
+00:24:15.160 --> 00:24:17.680
+Turns out that you can actually
+minimize the performance
+
+00:24:17.680 --> 00:24:21.970
+impact using this strategy if
+you optimize the code enough.
+
+00:24:21.970 --> 00:24:23.770
+But there is actually
+a bigger problem
+
+00:24:23.770 --> 00:24:27.610
+with using a heap-based
+cactus stack, which doesn't
+
+00:24:27.610 --> 00:24:29.830
+have to do with performance.
+
+00:24:29.830 --> 00:24:34.390
+Does anybody have any guesses
+of what this potential issue is?
+
+00:24:38.620 --> 00:24:39.583
+Yeah?
+
+00:24:39.583 --> 00:24:42.000
+STUDENT: It requires you to
+allocate the heap in parallel.
+
+00:24:42.000 --> 00:24:44.160
+JULIAN SHUN: Yeah, so
+let's assume that we can
+
+00:24:44.160 --> 00:24:45.487
+do parallel heap allocation.
+
+00:24:45.487 --> 00:24:46.570
+And we'll talk about that.
+
+00:24:46.570 --> 00:24:50.050
+So assuming that we
+can do that correctly,
+
+00:24:50.050 --> 00:24:51.600
+what's the issue
+with this approach?
+
+00:24:54.883 --> 00:24:55.821
+Yeah?
+
+00:24:55.821 --> 00:24:58.071
+STUDENT: It's that you don't
+know how big the stack is
+
+00:24:58.071 --> 00:24:59.288
+going to be?
+
+00:24:59.288 --> 00:25:00.830
+JULIAN SHUN: So
+let's assume that you
+
+00:25:00.830 --> 00:25:03.840
+can get whatever stack frames
+you need from the heap,
+
+00:25:03.840 --> 00:25:06.920
+so you don't actually need to
+put an upper bound on this.
+
+00:25:12.550 --> 00:25:13.640
+Yeah?
+
+00:25:13.640 --> 00:25:15.348
+STUDENT: We don't know
+the maximum depth.
+
+00:25:17.390 --> 00:25:18.140
+JULIAN SHUN: Yeah.
+
+00:25:18.140 --> 00:25:19.990
+So we don't know
+the maximum depth,
+
+00:25:19.990 --> 00:25:23.283
+but let's say we
+can make that work.
+
+00:25:23.283 --> 00:25:25.450
+So you don't actually need
+to know the maximum depth
+
+00:25:25.450 --> 00:25:27.100
+if you're allocating
+off the heap.
+
+00:25:32.270 --> 00:25:33.875
+Any other guesses?
+
+00:25:45.590 --> 00:25:46.125
+Yeah?
+
+00:25:46.125 --> 00:25:47.750
+STUDENT: Something
+to do with returning
+
+00:25:47.750 --> 00:25:50.200
+from the stack that is
+allocated on the heap
+
+00:25:50.200 --> 00:25:52.570
+to one of the original stacks.
+
+00:25:52.570 --> 00:25:55.070
+JULIAN SHUN: So let's say we
+could get that to work as well.
+
+00:25:58.050 --> 00:26:00.560
+So what happens if I try
+to run some program using
+
+00:26:00.560 --> 00:26:03.380
+this heap-based cactus
+stack with something
+
+00:26:03.380 --> 00:26:06.320
+that's using the regular stack?
+
+00:26:06.320 --> 00:26:07.880
+So let's say I have
+some old legacy
+
+00:26:07.880 --> 00:26:10.490
+code that was already
+compiled using
+
+00:26:10.490 --> 00:26:14.170
+the traditional linear stack.
+
+00:26:14.170 --> 00:26:16.660
+So there's a problem with
+interoperability here.
+
+00:26:16.660 --> 00:26:18.670
+Because the traditional
+code is assuming
+
+00:26:18.670 --> 00:26:21.718
+that, when you make
+a function call,
+
+00:26:21.718 --> 00:26:23.260
+the stack frame for
+the function call
+
+00:26:23.260 --> 00:26:25.510
+is going to appear right
+after the stack frame
+
+00:26:25.510 --> 00:26:29.380
+for the particular
+call e function.
+
+00:26:29.380 --> 00:26:33.100
+So if you try to mix code that
+uses the traditional stack as
+
+00:26:33.100 --> 00:26:37.060
+well as this heap-based
+cactus stack approach,
+
+00:26:37.060 --> 00:26:39.760
+then it's not going
+to work well together.
+
+00:26:39.760 --> 00:26:42.010
+One approach is
+that you can just
+
+00:26:42.010 --> 00:26:48.310
+recompile all your code to use
+this heap-based cactus stack.
+
+00:26:48.310 --> 00:26:51.340
+Even if you could do that,
+even if all of the source codes
+
+00:26:51.340 --> 00:26:54.390
+were available, there
+are some legacy programs
+
+00:26:54.390 --> 00:26:56.090
+that actually in
+the source code,
+
+00:26:56.090 --> 00:26:59.470
+they do some manipulations
+with the stack,
+
+00:26:59.470 --> 00:27:02.170
+because they assume that you're
+using the traditional stack,
+
+00:27:02.170 --> 00:27:04.030
+and those programs
+would no longer
+
+00:27:04.030 --> 00:27:06.700
+work if you're using a
+heap-based cactus stack.
+
+00:27:06.700 --> 00:27:09.340
+So the problem is
+interoperability
+
+00:27:09.340 --> 00:27:12.070
+with legacy code.
+
+00:27:12.070 --> 00:27:14.380
+Turns out that you can
+fix this using an approach
+
+00:27:14.380 --> 00:27:16.680
+called thread local
+memory mapping.
+
+00:27:16.680 --> 00:27:20.200
+So one of the students
+mentioned memory mapping.
+
+00:27:20.200 --> 00:27:22.640
+But that requires changes
+to the operating system.
+
+00:27:22.640 --> 00:27:25.810
+So it's not general purpose.
+
+00:27:25.810 --> 00:27:30.460
+But the heap-based cactus stack
+turns out to be very simple.
+
+00:27:30.460 --> 00:27:33.110
+And we can prove
+nice bounds about it.
+
+00:27:33.110 --> 00:27:36.580
+So besides the
+interoperability issue,
+
+00:27:36.580 --> 00:27:40.120
+heap-based cactus stacks
+are pretty good in practice,
+
+00:27:40.120 --> 00:27:42.490
+as well as in theory.
+
+00:27:42.490 --> 00:27:44.770
+So we can actually
+prove a space bound
+
+00:27:44.770 --> 00:27:49.750
+of a cilk program that uses
+the heap-based cactus stack.
+
+00:27:49.750 --> 00:27:52.450
+So let's say s 1 is the
+stack space required
+
+00:27:52.450 --> 00:27:56.620
+by a serial execution
+of a cilk program.
+
+00:27:56.620 --> 00:27:59.200
+Then the stack space
+of p worker execution
+
+00:27:59.200 --> 00:28:01.810
+using a heap-based cactus
+stack is going to be
+
+00:28:01.810 --> 00:28:04.000
+upper bounded by p times s 1.
+
+00:28:04.000 --> 00:28:07.300
+So s p is the space for
+a p worker execution,
+
+00:28:07.300 --> 00:28:11.920
+and that's less than or
+equal to p times s 1.
+
+00:28:11.920 --> 00:28:14.560
+To understand how
+this works, we need
+
+00:28:14.560 --> 00:28:17.880
+to understand a little bit
+about how the cilks works
+
+00:28:17.880 --> 00:28:19.820
+stealing algorithm works.
+
+00:28:19.820 --> 00:28:22.690
+So in the cilk
+work-stealing algorithm,
+
+00:28:22.690 --> 00:28:24.630
+whenever you spawn
+something of work,
+
+00:28:24.630 --> 00:28:28.310
+or that spawns a new task,
+is going to work on the task
+
+00:28:28.310 --> 00:28:31.160
+that it spawned.
+
+00:28:31.160 --> 00:28:35.110
+So therefore, for any leaf
+in the invocation tree that
+
+00:28:35.110 --> 00:28:36.850
+currently exists,
+there's always going
+
+00:28:36.850 --> 00:28:38.170
+to be a worker working on it.
+
+00:28:38.170 --> 00:28:40.330
+There's not going to be
+any leaves in the tree
+
+00:28:40.330 --> 00:28:42.010
+where there's no
+worker working on it.
+
+00:28:42.010 --> 00:28:45.610
+Because when a worker spawns
+a task, it creates a new leaf.
+
+00:28:45.610 --> 00:28:49.480
+But then it works
+immediately on that leaf.
+
+00:28:49.480 --> 00:28:51.970
+So here we have a--
+
+00:28:51.970 --> 00:28:54.280
+we have a invocation tree.
+
+00:28:54.280 --> 00:28:58.570
+And for all of the leaves, we
+have a processor working on it.
+
+00:28:58.570 --> 00:29:00.820
+And with this busy
+leaves property,
+
+00:29:00.820 --> 00:29:05.090
+we can easily show
+this space bound.
+
+00:29:05.090 --> 00:29:07.240
+So for each one of
+these processors,
+
+00:29:07.240 --> 00:29:09.850
+the maximum stack
+space it's using
+
+00:29:09.850 --> 00:29:11.830
+is going to be upper
+bounded by s 1,
+
+00:29:11.830 --> 00:29:15.430
+because that's maximum stock
+space across a serial execution
+
+00:29:15.430 --> 00:29:17.980
+that executes the whole program.
+
+00:29:17.980 --> 00:29:20.500
+And then since we have
+p of these leaves,
+
+00:29:20.500 --> 00:29:23.050
+we just multiply s 1
+by p, and that gives us
+
+00:29:23.050 --> 00:29:26.800
+an upper bound on the overall
+space used by a p worker
+
+00:29:26.800 --> 00:29:28.690
+execution.
+
+00:29:28.690 --> 00:29:31.060
+This can be a loose upper
+bound, because we're double
+
+00:29:31.060 --> 00:29:31.760
+counting here.
+
+00:29:31.760 --> 00:29:34.780
+There's some part of
+this memory that we're
+
+00:29:34.780 --> 00:29:36.970
+counting more than once,
+because they're shared
+
+00:29:36.970 --> 00:29:39.850
+among the different processors.
+
+00:29:39.850 --> 00:29:42.850
+But that's why we have the
+less than or equal to here.
+
+00:29:42.850 --> 00:29:47.035
+So it's upper bounded
+by p times s 1.
+
+00:29:47.035 --> 00:29:48.410
+So this is one of
+the nice things
+
+00:29:48.410 --> 00:29:50.690
+about using a heap-based
+cactus stack is that you
+
+00:29:50.690 --> 00:29:54.170
+get this good space bound.
+
+00:29:54.170 --> 00:29:57.920
+Any questions on the
+space bound here?
+
+00:30:03.640 --> 00:30:08.070
+So let's try to apply this
+theorem to a real example.
+
+00:30:08.070 --> 00:30:10.680
+So this is the divide and
+conquer matrix multiplication
+
+00:30:10.680 --> 00:30:12.945
+code that we saw in
+a previous lecture.
+
+00:30:15.760 --> 00:30:21.780
+So this is-- in this code, we're
+making eight recursive calls
+
+00:30:21.780 --> 00:30:24.210
+to a divide and
+conquer function.
+
+00:30:24.210 --> 00:30:26.520
+Each of size n over 2.
+
+00:30:26.520 --> 00:30:28.950
+And before we make
+any of these calls,
+
+00:30:28.950 --> 00:30:32.160
+we're doing a malloc to
+get some temporary space.
+
+00:30:32.160 --> 00:30:35.140
+And this is of size
+order and squared.
+
+00:30:35.140 --> 00:30:37.920
+And then we free this
+temporary space at the end.
+
+00:30:37.920 --> 00:30:39.540
+And notice here
+that the allocations
+
+00:30:39.540 --> 00:30:43.290
+of the temporary matrix
+obey a stack discipline.
+
+00:30:43.290 --> 00:30:46.830
+So we're allocating stuff
+before we make recursive calls.
+
+00:30:46.830 --> 00:30:49.980
+And we're freeing it
+after, or right before we
+
+00:30:49.980 --> 00:30:51.210
+return from the function.
+
+00:30:51.210 --> 00:30:52.710
+So all this stack--
+
+00:30:52.710 --> 00:30:54.900
+all the allocations
+are nested, and they
+
+00:30:54.900 --> 00:30:56.430
+follow a stack discipline.
+
+00:30:56.430 --> 00:30:59.010
+And it turns out that even
+if you're allocating off
+
+00:30:59.010 --> 00:31:00.840
+the heap, if you follow
+a stack discipline,
+
+00:31:00.840 --> 00:31:04.140
+you can still use the space
+bound from the previous slide
+
+00:31:04.140 --> 00:31:06.585
+to upper bound the
+p worker space.
+
+00:31:09.590 --> 00:31:14.390
+OK, so let's try to analyze
+the space of this code here.
+
+00:31:14.390 --> 00:31:17.300
+So first let's look at
+what the work and span are.
+
+00:31:17.300 --> 00:31:18.830
+So this is just
+going to be review.
+
+00:31:18.830 --> 00:31:21.770
+What's the work of this divide
+and conquer matrix multiply?
+
+00:31:21.770 --> 00:31:22.740
+So it's n cubed.
+
+00:31:22.740 --> 00:31:29.260
+So it's n cubed because we
+have eight solve problems
+
+00:31:29.260 --> 00:31:31.480
+of size n over 2.
+
+00:31:31.480 --> 00:31:33.100
+And then we have
+to do linear work
+
+00:31:33.100 --> 00:31:35.320
+to add together the matrices.
+
+00:31:38.490 --> 00:31:44.190
+So our recurrence is
+going to be t 1 of n
+
+00:31:44.190 --> 00:31:48.480
+is equal to eight times t 1 of
+n over 2 plus order n squared.
+
+00:31:48.480 --> 00:31:51.990
+And that solves to order n
+cubed if you just pull out
+
+00:31:51.990 --> 00:31:53.220
+your master theorem card.
+
+00:31:57.150 --> 00:31:58.260
+What about the span?
+
+00:32:00.810 --> 00:32:02.950
+So what's the recurrence here?
+
+00:32:02.950 --> 00:32:06.960
+Yeah, so the span
+t infinity of n
+
+00:32:06.960 --> 00:32:09.960
+is equal to t
+infinitive of n over 2
+
+00:32:09.960 --> 00:32:11.850
+plus a span of the addition.
+
+00:32:11.850 --> 00:32:15.570
+And what's the span
+of the addition?
+
+00:32:15.570 --> 00:32:17.758
+STUDENT: [INAUDIBLE]
+
+00:32:17.758 --> 00:32:19.300
+JULIAN SHUN: No,
+let's assume that we
+
+00:32:19.300 --> 00:32:20.870
+have a parallel addition.
+
+00:32:20.870 --> 00:32:25.390
+We have nested silk four loops.
+
+00:32:25.390 --> 00:32:29.260
+Right, so then the span of
+that is just going of be log n.
+
+00:32:29.260 --> 00:32:32.230
+Since the span of 1
+silk four loop is log n
+
+00:32:32.230 --> 00:32:35.440
+and when you nest them, you
+just add together the span.
+
+00:32:35.440 --> 00:32:37.810
+So it's going to
+be t infinity of n
+
+00:32:37.810 --> 00:32:41.330
+is equal to t infinity of
+n over 2 plus order log n.
+
+00:32:41.330 --> 00:32:42.730
+And what does that solve to?
+
+00:32:45.710 --> 00:32:48.530
+Yeah, so it's going to solve
+to order log squared n.
+
+00:32:48.530 --> 00:32:51.020
+Again you can pull out
+your master theorem card,
+
+00:32:51.020 --> 00:32:54.910
+and look at one of
+the three cases.
+
+00:32:54.910 --> 00:32:57.560
+OK, so now let's
+look at the space.
+
+00:32:57.560 --> 00:33:00.140
+What's going to be the
+recurrence for the space?
+
+00:33:05.680 --> 00:33:06.180
+Yes.
+
+00:33:06.180 --> 00:33:14.980
+STUDENT: [INAUDIBLE]
+
+00:33:14.980 --> 00:33:17.795
+JULIAN SHUN: The only place
+we're generating new space
+
+00:33:17.795 --> 00:33:21.500
+is when we call
+this malloc here.
+
+00:33:21.500 --> 00:33:24.470
+So they're all seeing
+the same original matrix.
+
+00:33:27.990 --> 00:33:29.370
+So what would the recurrence be?
+
+00:33:36.270 --> 00:33:37.030
+Yeah?
+
+00:33:37.030 --> 00:33:38.230
+STUDENT: [INAUDIBLE]
+
+00:33:38.230 --> 00:33:38.980
+JULIAN SHUN: Yeah.
+
+00:33:45.292 --> 00:33:52.080
+STUDENT: [INAUDIBLE]
+
+00:33:52.080 --> 00:33:54.600
+JULIAN SHUN: So the n
+square term is right.
+
+00:33:54.600 --> 00:33:59.100
+Do we actually need eight
+subproblems of size n over 2?
+
+00:33:59.100 --> 00:34:02.960
+What happens after we finish
+one of these sub problems?
+
+00:34:02.960 --> 00:34:06.280
+Are we still going to
+use the space for it?
+
+00:34:06.280 --> 00:34:09.358
+STUDENT: Yeah, you free the
+memory after the [INAUDIBLE]..
+
+00:34:09.358 --> 00:34:10.150
+JULIAN SHUN: Right.
+
+00:34:10.150 --> 00:34:11.850
+So you can actually
+reuse the memory.
+
+00:34:11.850 --> 00:34:14.130
+Because you free the
+memory you allocated
+
+00:34:14.130 --> 00:34:17.639
+after each one of
+these recursive calls.
+
+00:34:17.639 --> 00:34:23.429
+So therefore the recurrence is
+just going to be s of n over 2
+
+00:34:23.429 --> 00:34:27.070
+plus theta n squared.
+
+00:34:27.070 --> 00:34:30.744
+And what does that solve to?
+
+00:34:30.744 --> 00:34:35.050
+STUDENT: [INAUDIBLE]
+
+00:34:35.050 --> 00:34:37.360
+JULIAN SHUN: N squared.
+
+00:34:37.360 --> 00:34:38.389
+Right.
+
+00:34:38.389 --> 00:34:42.590
+So here the n squared
+term actually dominates.
+
+00:34:42.590 --> 00:34:44.790
+You have a decreasing
+geometric series.
+
+00:34:44.790 --> 00:34:50.090
+So it's dominated at the root,
+and you get theta of n squared.
+
+00:34:50.090 --> 00:34:53.870
+And therefore by using the busy
+leaves property and the theorem
+
+00:34:53.870 --> 00:34:57.530
+for the space bound, this
+tells us that on p processors,
+
+00:34:57.530 --> 00:35:01.260
+the space is going to be
+bounded by p times n squared.
+
+00:35:01.260 --> 00:35:07.200
+And this is actually pretty good
+since we have a bound on this.
+
+00:35:07.200 --> 00:35:09.860
+It turns out that we can
+actually prove a stronger bound
+
+00:35:09.860 --> 00:35:12.770
+for this particular example.
+
+00:35:12.770 --> 00:35:16.400
+And I'll walk you through how we
+can prove this stronger bound.
+
+00:35:16.400 --> 00:35:18.980
+Here's the order p times n
+squared is already pretty good.
+
+00:35:18.980 --> 00:35:22.820
+But we can actually do better
+if we look internally at how
+
+00:35:22.820 --> 00:35:24.761
+this algorithm is structured.
+
+00:35:27.410 --> 00:35:32.150
+So on each level of recursion,
+we're branching eight ways.
+
+00:35:32.150 --> 00:35:35.150
+And most of the
+space is going to be
+
+00:35:35.150 --> 00:35:38.600
+used near the top of
+this recursion tree.
+
+00:35:38.600 --> 00:35:40.520
+So if I branch as
+much as possible
+
+00:35:40.520 --> 00:35:42.320
+near the top of
+my recursion tree,
+
+00:35:42.320 --> 00:35:45.560
+then that's going to give me
+my worst case space bound.
+
+00:35:45.560 --> 00:35:48.380
+Because the space is
+decreasing geometrically as I
+
+00:35:48.380 --> 00:35:50.690
+go down the tree.
+
+00:35:50.690 --> 00:35:52.520
+So I'm going to
+branch eight ways
+
+00:35:52.520 --> 00:35:55.880
+until I get to some level
+k in the recursion tree
+
+00:35:55.880 --> 00:35:57.450
+where I have p nodes.
+
+00:35:57.450 --> 00:36:00.410
+And at that point, I'm not going
+to branch anymore because I've
+
+00:36:00.410 --> 00:36:02.120
+already used up all p nodes.
+
+00:36:02.120 --> 00:36:07.350
+And that's the number
+of workers I have.
+
+00:36:07.350 --> 00:36:15.580
+So let's say I have this level
+k here, where I have p nodes.
+
+00:36:15.580 --> 00:36:19.490
+So what would be
+the value of k here?
+
+00:36:19.490 --> 00:36:21.380
+If I branch eight ways
+how many levels do
+
+00:36:21.380 --> 00:36:23.150
+I have to go until
+I get to p nodes?
+
+00:36:28.420 --> 00:36:29.408
+Yes.
+
+00:36:29.408 --> 00:36:32.550
+STUDENT: It's log base 8 of p.
+
+00:36:32.550 --> 00:36:33.400
+JULIAN SHUN: Yes.
+
+00:36:33.400 --> 00:36:36.380
+It's log base 8 of p.
+
+00:36:36.380 --> 00:36:38.620
+So we have eight,
+the k, equal p,
+
+00:36:38.620 --> 00:36:42.310
+because we're branching k ways.
+
+00:36:42.310 --> 00:36:45.330
+And then using some
+algebra, you can get it
+
+00:36:45.330 --> 00:36:48.850
+so that k is equal to log base
+8 of p, which is equal to log
+
+00:36:48.850 --> 00:36:52.780
+base 2 of p divided by 3.
+
+00:36:52.780 --> 00:36:57.430
+And then at this
+level k downwards,
+
+00:36:57.430 --> 00:37:00.590
+it's going to decrease
+geometrically.
+
+00:37:00.590 --> 00:37:03.550
+So the space is going to be
+dominant at this level k.
+
+00:37:03.550 --> 00:37:06.310
+So the space decreases
+geometrically
+
+00:37:06.310 --> 00:37:11.410
+as you go down from level k, and
+also as you go up from level k.
+
+00:37:11.410 --> 00:37:16.300
+So therefore we can just look at
+what the space is at this level
+
+00:37:16.300 --> 00:37:17.950
+k here.
+
+00:37:17.950 --> 00:37:23.200
+So the space is going to be
+p times the size of each one
+
+00:37:23.200 --> 00:37:25.420
+of these nodes squared.
+
+00:37:25.420 --> 00:37:27.580
+And the size of each
+one of these nodes
+
+00:37:27.580 --> 00:37:31.840
+is going to be n over 2 to
+the log base 2 of p over 3.
+
+00:37:31.840 --> 00:37:33.940
+And then we square that
+because we're using
+
+00:37:33.940 --> 00:37:36.170
+n squared temporary space.
+
+00:37:36.170 --> 00:37:40.840
+So if you solve that, that gives
+you p to the one-third times n
+
+00:37:40.840 --> 00:37:44.320
+squared, which is better
+than the upper bound
+
+00:37:44.320 --> 00:37:48.430
+we saw earlier of order
+p times n squared.
+
+00:37:48.430 --> 00:37:51.710
+So you can work out the
+details for this example.
+
+00:37:51.710 --> 00:37:54.970
+Not all the details are
+shown on this slide.
+
+00:37:54.970 --> 00:38:01.290
+You need to show that the
+level k here actually dominates
+
+00:38:01.290 --> 00:38:03.890
+all the other levels
+in the recursion tree.
+
+00:38:03.890 --> 00:38:07.150
+But in general, if you know what
+the structure of the algorithm,
+
+00:38:07.150 --> 00:38:09.880
+is you can potentially prove a
+stronger space bound than just
+
+00:38:09.880 --> 00:38:13.420
+applying the general theorem we
+showed on the previous slide.
+
+00:38:16.420 --> 00:38:18.310
+So any questions on this?
+
+00:38:30.630 --> 00:38:34.035
+OK, so as I said before, the
+problem with heap-based linkage
+
+00:38:34.035 --> 00:38:37.440
+is that parallel functions
+fail to interoperate
+
+00:38:37.440 --> 00:38:41.127
+with legacy and third-party
+serial binaries.
+
+00:38:41.127 --> 00:38:42.210
+Yes, was there a question?
+
+00:38:42.210 --> 00:38:43.835
+STUDENT: I actually
+do have a question.
+
+00:38:43.835 --> 00:38:44.750
+JULIAN SHUN: Yes.
+
+00:38:44.750 --> 00:38:51.130
+STUDENT: [INAUDIBLE]
+
+00:38:51.130 --> 00:38:51.910
+JULIAN SHUN: Yes.
+
+00:38:51.910 --> 00:38:57.160
+STUDENT: How do we know
+that the workers don't split
+
+00:38:57.160 --> 00:39:03.400
+along the path of the
+[INAUDIBLE] instead of across
+
+00:39:03.400 --> 00:39:04.390
+or horizontal.
+
+00:39:04.390 --> 00:39:04.570
+JULIAN SHUN: Yes.
+
+00:39:04.570 --> 00:39:06.010
+So you don't actually know that.
+
+00:39:06.010 --> 00:39:08.030
+But this turns out
+to be the worst case.
+
+00:39:08.030 --> 00:39:10.450
+So if it branches any
+other way, the space
+
+00:39:10.450 --> 00:39:13.280
+is just going to be lower.
+
+00:39:13.280 --> 00:39:16.480
+So you have to argue that this
+is going to be the worst case,
+
+00:39:16.480 --> 00:39:17.582
+and it's going to be--
+
+00:39:17.582 --> 00:39:19.540
+intuitively it's the
+worst case, because you're
+
+00:39:19.540 --> 00:39:23.920
+using most of the memory near
+the root of the recursion tree.
+
+00:39:23.920 --> 00:39:28.540
+So if you can get all p nodes as
+close as possible to the root,
+
+00:39:28.540 --> 00:39:31.820
+that's going to make your
+space as high as possible.
+
+00:39:31.820 --> 00:39:32.695
+It's a good question.
+
+00:39:36.490 --> 00:39:38.970
+So parallel functions
+fail to interoperate
+
+00:39:38.970 --> 00:39:42.150
+with legacy and third-party
+serial binaries.
+
+00:39:42.150 --> 00:39:44.520
+Even if you can recompile
+all of this code, which
+
+00:39:44.520 --> 00:39:46.870
+isn't always
+necessarily the case,
+
+00:39:46.870 --> 00:39:49.560
+you can still have
+issues if the legacy code
+
+00:39:49.560 --> 00:39:52.980
+is taking advantage of the
+traditional linear stack
+
+00:39:52.980 --> 00:39:55.230
+inside the source code.
+
+00:39:55.230 --> 00:39:59.340
+So our implementation of
+cilk uses a less space
+
+00:39:59.340 --> 00:40:04.370
+efficient strategy that is
+interoperable with legacy code.
+
+00:40:04.370 --> 00:40:07.500
+And it uses a pool of
+linear stacks instead
+
+00:40:07.500 --> 00:40:09.880
+of a heap-based strategy.
+
+00:40:09.880 --> 00:40:13.290
+So we're going to maintain a
+pool of linear stacks lying
+
+00:40:13.290 --> 00:40:14.310
+around.
+
+00:40:14.310 --> 00:40:17.340
+There's going to be more
+than p stacks lying around.
+
+00:40:17.340 --> 00:40:20.850
+And whenever a worker
+tries to steal something,
+
+00:40:20.850 --> 00:40:23.130
+it's going to try to
+acquire one of these tasks
+
+00:40:23.130 --> 00:40:25.750
+from this pool of linear tasks.
+
+00:40:25.750 --> 00:40:28.380
+And when it's done, it
+will return it back.
+
+00:40:28.380 --> 00:40:30.060
+But when it finds
+that there's no more
+
+00:40:30.060 --> 00:40:32.400
+linear stacks in
+this pool, then it's
+
+00:40:32.400 --> 00:40:33.600
+not going to steal anymore.
+
+00:40:33.600 --> 00:40:36.930
+So this is still going to
+preserve the space bound,
+
+00:40:36.930 --> 00:40:40.050
+as long as the number of stocks
+is a constant times the number
+
+00:40:40.050 --> 00:40:40.770
+of processors.
+
+00:40:40.770 --> 00:40:42.540
+But it will affect
+the time bounds
+
+00:40:42.540 --> 00:40:44.550
+of the work-stealing algorithm.
+
+00:40:44.550 --> 00:40:46.620
+Because now when
+a worker is idle,
+
+00:40:46.620 --> 00:40:48.450
+it might not necessarily
+have the chance
+
+00:40:48.450 --> 00:40:52.770
+to steal if there are no
+more stacks lying around.
+
+00:40:52.770 --> 00:40:54.780
+This strategy doesn't
+require any changes
+
+00:40:54.780 --> 00:40:56.850
+to the operating system.
+
+00:40:56.850 --> 00:40:59.370
+There is a way where you
+can preserve the space
+
+00:40:59.370 --> 00:41:03.420
+and the time bounds using
+thread local memory mapping.
+
+00:41:03.420 --> 00:41:07.470
+But this does require changes
+to the operating system.
+
+00:41:07.470 --> 00:41:12.090
+So our implementation of cilk
+uses a pool of linear stacks,
+
+00:41:12.090 --> 00:41:14.845
+and it's based on the
+Intel implementation.
+
+00:41:17.510 --> 00:41:18.010
+OK.
+
+00:41:21.520 --> 00:41:24.590
+All right, so we
+talked about stacks,
+
+00:41:24.590 --> 00:41:27.170
+and that we just reduce the
+problem to heap allocation.
+
+00:41:27.170 --> 00:41:29.540
+So now we have to
+talk about heaps.
+
+00:41:29.540 --> 00:41:31.820
+So let's review some
+basic properties
+
+00:41:31.820 --> 00:41:36.250
+of heap-storage allocators.
+
+00:41:36.250 --> 00:41:37.330
+So here's a definition.
+
+00:41:37.330 --> 00:41:39.460
+The allocator
+speed is the number
+
+00:41:39.460 --> 00:41:42.400
+of allocations and d
+allocations per second
+
+00:41:42.400 --> 00:41:43.945
+that the allocator can sustain.
+
+00:41:47.813 --> 00:41:48.730
+And here's a question.
+
+00:41:48.730 --> 00:41:51.400
+Is it more important to
+maximize the allocator speed
+
+00:41:51.400 --> 00:41:53.440
+for large blocks
+or small blocks?
+
+00:42:01.360 --> 00:42:02.120
+Yeah?
+
+00:42:02.120 --> 00:42:03.530
+STUDENT: Small blocks?
+
+00:42:03.530 --> 00:42:06.020
+JULIAN SHUN: So small blocks.
+
+00:42:06.020 --> 00:42:07.440
+Here's another question.
+
+00:42:07.440 --> 00:42:07.940
+Why?
+
+00:42:11.430 --> 00:42:12.526
+Yes?
+
+00:42:12.526 --> 00:42:16.650
+STUDENT: So you're going to
+be doing a lot of [INAUDIBLE]..
+
+00:42:16.650 --> 00:42:18.300
+JULIAN SHUN: Yes,
+so one answer is
+
+00:42:18.300 --> 00:42:22.110
+that you're going to be
+doing a lot more allocations
+
+00:42:22.110 --> 00:42:26.730
+and deallocations of small
+blocks than large blocks.
+
+00:42:26.730 --> 00:42:28.500
+There's actually a
+more fundamental reason
+
+00:42:28.500 --> 00:42:32.760
+why it's more important to
+optimize for small blocks.
+
+00:42:32.760 --> 00:42:33.730
+So anybody?
+
+00:42:33.730 --> 00:42:35.092
+Yeah?
+
+00:42:35.092 --> 00:42:40.970
+STUDENT: [INAUDIBLE]
+basically not being
+
+00:42:40.970 --> 00:42:43.318
+able to make use of pages.
+
+00:42:43.318 --> 00:42:45.110
+JULIAN SHUN: Yeah, so
+that's another reason
+
+00:42:45.110 --> 00:42:46.490
+for small blocks.
+
+00:42:46.490 --> 00:42:49.400
+It's more likely that it
+will lead to fragmentation
+
+00:42:49.400 --> 00:42:52.580
+if you don't optimize
+for small blocks.
+
+00:42:52.580 --> 00:42:53.540
+What's another reason?
+
+00:42:53.540 --> 00:42:54.628
+Yes.
+
+00:42:54.628 --> 00:42:56.170
+STUDENT: Wouldn't
+it just take longer
+
+00:42:56.170 --> 00:42:57.620
+to allocate larger
+blocks anyway?
+
+00:42:57.620 --> 00:43:02.480
+So the overhead is going to
+be more noticeable if you have
+
+00:43:02.480 --> 00:43:04.790
+a big overhead when you
+allocate small blocks
+
+00:43:04.790 --> 00:43:05.640
+versus large blocks?
+
+00:43:05.640 --> 00:43:06.390
+JULIAN SHUN: Yeah.
+
+00:43:06.390 --> 00:43:12.320
+So the reason-- the main reason
+is that when you're allocating
+
+00:43:12.320 --> 00:43:12.980
+a large--
+
+00:43:12.980 --> 00:43:15.500
+when you're allocating
+a block, a user program
+
+00:43:15.500 --> 00:43:18.805
+is typically going to write
+to all the bytes in the block.
+
+00:43:18.805 --> 00:43:20.180
+And therefore,
+for a large block,
+
+00:43:20.180 --> 00:43:23.060
+it takes so much time to
+write that the allocator
+
+00:43:23.060 --> 00:43:26.600
+time has little effect on
+the overall running time.
+
+00:43:26.600 --> 00:43:30.310
+Whereas if a program
+allocates many small blocks,
+
+00:43:30.310 --> 00:43:31.970
+the amount of
+work-- useful work--
+
+00:43:31.970 --> 00:43:36.590
+it's actually doing on
+the block is going to be--
+
+00:43:36.590 --> 00:43:40.400
+it can be comparable to the
+overhead for the allocation.
+
+00:43:40.400 --> 00:43:42.680
+And therefore, all of
+the allocation overhead
+
+00:43:42.680 --> 00:43:47.630
+can add up to a significant
+amount for small blocks.
+
+00:43:47.630 --> 00:43:49.130
+So essentially for
+large blocks, you
+
+00:43:49.130 --> 00:43:52.557
+can amortize away the overheads
+for storage allocation,
+
+00:43:52.557 --> 00:43:54.890
+whereas for small, small
+blocks, it's harder to do that.
+
+00:43:54.890 --> 00:43:57.890
+Therefore, it's important to
+optimize for small blocks.
+
+00:44:01.540 --> 00:44:02.930
+Here's another definition.
+
+00:44:02.930 --> 00:44:05.980
+So the user footprint
+is the maximum
+
+00:44:05.980 --> 00:44:08.770
+over time of the
+number u of bytes
+
+00:44:08.770 --> 00:44:11.980
+in use by the user program.
+
+00:44:11.980 --> 00:44:14.710
+And these are the bytes that
+are allocated and not freed.
+
+00:44:14.710 --> 00:44:16.930
+And this is measuring
+the peak memory usage.
+
+00:44:16.930 --> 00:44:20.350
+It's not necessarily equal
+to the sum of the sizes
+
+00:44:20.350 --> 00:44:22.750
+that you have allocated
+so far, because you
+
+00:44:22.750 --> 00:44:25.150
+might have reused some of that.
+
+00:44:25.150 --> 00:44:28.480
+So the user footprint is the
+peak memory usage and number
+
+00:44:28.480 --> 00:44:29.770
+of bytes.
+
+00:44:29.770 --> 00:44:31.540
+And the allocator
+footprint is the maximum
+
+00:44:31.540 --> 00:44:33.610
+over time of the
+number of a bytes
+
+00:44:33.610 --> 00:44:35.680
+that the memory
+provided to the locator
+
+00:44:35.680 --> 00:44:37.850
+by the operating system.
+
+00:44:37.850 --> 00:44:40.738
+And the reason why the allocator
+footprint could be larger
+
+00:44:40.738 --> 00:44:42.280
+than the user
+footprint, is that when
+
+00:44:42.280 --> 00:44:44.680
+you ask the OS for some
+memory, it could give you
+
+00:44:44.680 --> 00:44:46.000
+more than what you asked for.
+
+00:44:48.670 --> 00:44:51.580
+And similarly, if you ask malloc
+for some amount of memory,
+
+00:44:51.580 --> 00:44:53.790
+it can also give you more
+than what you asked for.
+
+00:44:53.790 --> 00:44:59.200
+And the fragmentation is
+defined to be a divided by u.
+
+00:44:59.200 --> 00:45:01.720
+And a program with
+low fragmentation
+
+00:45:01.720 --> 00:45:04.090
+will keep this ratio
+as low as possible,
+
+00:45:04.090 --> 00:45:06.910
+so keep the allocator
+footprint as close as
+
+00:45:06.910 --> 00:45:08.780
+possible to the user footprint.
+
+00:45:08.780 --> 00:45:11.035
+And in the best case, this
+ratio is going to be one.
+
+00:45:11.035 --> 00:45:12.490
+So you're using
+all of the memory
+
+00:45:12.490 --> 00:45:14.200
+that the operating
+system allocated.
+
+00:45:18.050 --> 00:45:20.330
+One remark is that the
+allocator footprint
+
+00:45:20.330 --> 00:45:25.590
+a usually gross monotonically
+for many allocators.
+
+00:45:25.590 --> 00:45:28.190
+So it turns out
+that many allocators
+
+00:45:28.190 --> 00:45:30.950
+do m maps to get more memory.
+
+00:45:30.950 --> 00:45:34.130
+But they don't always free
+this memory back to the OS.
+
+00:45:34.130 --> 00:45:37.640
+And you can actually free
+memory using something called
+
+00:45:37.640 --> 00:45:40.280
+m unmap, which is the
+opposite of m map,
+
+00:45:40.280 --> 00:45:42.320
+to give memory back to the OS.
+
+00:45:42.320 --> 00:45:45.380
+But this turns out to
+be pretty expensive.
+
+00:45:45.380 --> 00:45:49.010
+In modern operating systems,
+their implementation
+
+00:45:49.010 --> 00:45:50.250
+is not very efficient.
+
+00:45:50.250 --> 00:45:54.020
+So many allocators
+don't use m unmap.
+
+00:45:54.020 --> 00:45:56.210
+You can also use
+something called m advise.
+
+00:45:56.210 --> 00:46:00.440
+And what m advise does is it
+tells the operating system
+
+00:46:00.440 --> 00:46:03.110
+that you're not going to
+be using this page anymore
+
+00:46:03.110 --> 00:46:05.940
+but to keep it around
+in virtual memory.
+
+00:46:05.940 --> 00:46:07.580
+So this has less
+overhead, because it
+
+00:46:07.580 --> 00:46:10.790
+doesn't have to clear this
+entry from the page table.
+
+00:46:10.790 --> 00:46:13.280
+It just has to mark
+that the program isn't
+
+00:46:13.280 --> 00:46:14.900
+using this page anymore.
+
+00:46:14.900 --> 00:46:18.290
+So some allocators use m
+advise with the option,
+
+00:46:18.290 --> 00:46:22.460
+don't need, to free memory.
+
+00:46:22.460 --> 00:46:26.900
+But a is usually still growing
+monotonically over time,
+
+00:46:26.900 --> 00:46:28.850
+because allocators
+don't necessarily
+
+00:46:28.850 --> 00:46:32.139
+free all of the things back
+to the OS that they allocated.
+
+00:46:37.130 --> 00:46:40.520
+Here's a theorem that we proved
+in last week's lecture, which
+
+00:46:40.520 --> 00:46:44.060
+says that the fragmentation
+for binned free list
+
+00:46:44.060 --> 00:46:49.340
+is order log base 2 of
+u, or just order log u.
+
+00:46:49.340 --> 00:46:52.380
+And the reason for
+this is that you're
+
+00:46:52.380 --> 00:46:55.040
+can have log-based 2 of u bins.
+
+00:46:55.040 --> 00:46:59.120
+And for each bin
+it can basically
+
+00:46:59.120 --> 00:47:02.420
+contain u bytes of storage.
+
+00:47:02.420 --> 00:47:05.260
+So overall you can use--
+
+00:47:05.260 --> 00:47:06.980
+overall, you could
+have allocated
+
+00:47:06.980 --> 00:47:11.510
+u times log u storage, and
+only be using u of those bytes.
+
+00:47:11.510 --> 00:47:14.880
+So therefore the
+fragmentation is order log u.
+
+00:47:19.440 --> 00:47:24.480
+Another thing to note is that
+modern 64-bit processors only
+
+00:47:24.480 --> 00:47:28.960
+provide about 2 to 48 bytes
+of virtual address space.
+
+00:47:28.960 --> 00:47:32.070
+So this is sort of news
+because you would probably
+
+00:47:32.070 --> 00:47:34.890
+expect that, for a
+64-bit processor,
+
+00:47:34.890 --> 00:47:39.160
+you have to the 64 bytes
+of virtual address space.
+
+00:47:39.160 --> 00:47:41.850
+But that turns out
+not to be the case.
+
+00:47:41.850 --> 00:47:43.860
+So they only support
+to the 48 bytes.
+
+00:47:43.860 --> 00:47:46.470
+And that turns out to be
+enough for all of the programs
+
+00:47:46.470 --> 00:47:48.780
+that you would want to write.
+
+00:47:48.780 --> 00:47:52.860
+And that's also going to be much
+more than the physical memory
+
+00:47:52.860 --> 00:47:54.150
+you would have on a machine.
+
+00:47:54.150 --> 00:47:56.580
+So nowadays, you
+can get a big server
+
+00:47:56.580 --> 00:47:59.910
+with a terabyte of memory,
+or to the 40th bytes
+
+00:47:59.910 --> 00:48:01.590
+of physical memory,
+which is still
+
+00:48:01.590 --> 00:48:05.440
+much lower than the number of
+bytes in the virtual address
+
+00:48:05.440 --> 00:48:05.940
+space.
+
+00:48:09.760 --> 00:48:11.004
+Any questions?
+
+00:48:18.920 --> 00:48:21.620
+OK, so here's some
+more definitions.
+
+00:48:21.620 --> 00:48:24.530
+So the space overhead
+of an allocator
+
+00:48:24.530 --> 00:48:27.470
+is a space used for bookkeeping.
+
+00:48:27.470 --> 00:48:29.750
+So you could store--
+
+00:48:29.750 --> 00:48:31.940
+perhaps you could store
+headers with the blocks
+
+00:48:31.940 --> 00:48:33.770
+that you allocate to
+keep track of the size
+
+00:48:33.770 --> 00:48:35.630
+and other information.
+
+00:48:35.630 --> 00:48:40.870
+And that would contribute
+to the space overhead
+
+00:48:40.870 --> 00:48:42.880
+Internal fragmentation
+is a waste
+
+00:48:42.880 --> 00:48:47.720
+due to allocating larger
+blocks in the user request.
+
+00:48:47.720 --> 00:48:49.450
+So you can get
+internal fragmentation
+
+00:48:49.450 --> 00:48:51.750
+if, when you call
+malloc, you get back
+
+00:48:51.750 --> 00:48:55.180
+a block that's actually larger
+than what the user requested.
+
+00:48:55.180 --> 00:48:56.950
+We saw on the bin
+free list algorithm,
+
+00:48:56.950 --> 00:48:58.930
+we're rounding up to the
+nearest power of 2's.
+
+00:48:58.930 --> 00:49:01.360
+If you allocate
+nine bytes, you'll
+
+00:49:01.360 --> 00:49:05.110
+actually get back 16 bytes in
+our binned-free list algorithm
+
+00:49:05.110 --> 00:49:06.000
+from last lecture.
+
+00:49:06.000 --> 00:49:10.690
+So that contributes to
+internal fragmentation.
+
+00:49:10.690 --> 00:49:12.955
+It turns out that not
+all binned-free list
+
+00:49:12.955 --> 00:49:14.840
+implementations use powers of 2.
+
+00:49:14.840 --> 00:49:18.220
+So some of them use other
+powers that are smaller than 2
+
+00:49:18.220 --> 00:49:23.525
+in order to reduce the
+internal fragmentation.
+
+00:49:23.525 --> 00:49:25.150
+Then there's an
+external fragmentation,
+
+00:49:25.150 --> 00:49:28.150
+which is the waste due to
+the inability to use storage
+
+00:49:28.150 --> 00:49:30.950
+because it's not contiguous.
+
+00:49:30.950 --> 00:49:35.200
+So for example, if I allocated
+a whole bunch of one byte things
+
+00:49:35.200 --> 00:49:38.710
+consecutively in memory, then
+I freed every other byte.
+
+00:49:38.710 --> 00:49:41.800
+And now I want to
+allocate a 2-byte thing,
+
+00:49:41.800 --> 00:49:45.460
+I don't actually have contiguous
+mammary to satisfy that
+
+00:49:45.460 --> 00:49:48.500
+request, because all
+of my free memory--
+
+00:49:48.500 --> 00:49:50.860
+all of my free bytes
+are in one-bite chunks,
+
+00:49:50.860 --> 00:49:52.610
+and they're not
+next to each other.
+
+00:49:52.610 --> 00:49:56.320
+So this is one example of how
+external fragmentation can
+
+00:49:56.320 --> 00:50:01.210
+happen after you allocate
+stuff and free stuff.
+
+00:50:01.210 --> 00:50:03.480
+Then there's blow up.
+
+00:50:03.480 --> 00:50:06.120
+And this is for a
+parallel locator.
+
+00:50:06.120 --> 00:50:11.470
+The additional space beyond what
+a serial locator would require.
+
+00:50:11.470 --> 00:50:16.120
+So if a serial locator
+requires s space,
+
+00:50:16.120 --> 00:50:19.690
+and a parallel allocator
+requires t space,
+
+00:50:19.690 --> 00:50:21.220
+then it's just going
+to be t over s.
+
+00:50:21.220 --> 00:50:22.012
+That's the blow up.
+
+00:50:26.200 --> 00:50:29.110
+OK, so now let's look at
+some parallel heap allocation
+
+00:50:29.110 --> 00:50:29.920
+strategies.
+
+00:50:32.860 --> 00:50:36.390
+So the first strategy
+is to use a global heap.
+
+00:50:36.390 --> 00:50:40.820
+And this is how the
+default c allocator works.
+
+00:50:40.820 --> 00:50:43.380
+So if you just use a default
+c allocator out of the box,
+
+00:50:43.380 --> 00:50:46.380
+this is how it's implemented.
+
+00:50:46.380 --> 00:50:50.070
+It uses a global heap
+where all the accesses
+
+00:50:50.070 --> 00:50:53.940
+to this global heap
+are protected by mutex.
+
+00:50:53.940 --> 00:50:56.760
+You can also use lock-free
+synchronization primitives
+
+00:50:56.760 --> 00:50:57.900
+to implement this.
+
+00:50:57.900 --> 00:51:00.600
+We'll actually talk about
+some of these synchronization
+
+00:51:00.600 --> 00:51:02.920
+primitives later
+on in the semester.
+
+00:51:02.920 --> 00:51:04.770
+And this is done to
+preserve atomicity
+
+00:51:04.770 --> 00:51:06.660
+because you can have
+multiple threads trying
+
+00:51:06.660 --> 00:51:08.670
+to access the global
+heap at the same time.
+
+00:51:08.670 --> 00:51:13.260
+And you need to ensure that
+races are handled correctly.
+
+00:51:16.450 --> 00:51:20.715
+So what's the blow
+up for this strategy?
+
+00:51:23.500 --> 00:51:30.250
+How much more space am I using
+than just a serial allocator?
+
+00:51:30.250 --> 00:51:31.372
+Yeah.
+
+00:51:31.372 --> 00:51:32.982
+STUDENT: [INAUDIBLE]
+
+00:51:32.982 --> 00:51:34.690
+JULIAN SHUN: Yeah, so
+the blow up is one.
+
+00:51:34.690 --> 00:51:37.627
+Because I'm not actually
+using any more space
+
+00:51:37.627 --> 00:51:38.710
+than the serial allocator.
+
+00:51:38.710 --> 00:51:41.530
+Since I'm just maintaining
+one global heap, and everybody
+
+00:51:41.530 --> 00:51:44.710
+is going to that heap to do
+allocations and deallocations.
+
+00:51:47.600 --> 00:51:49.900
+But what's the potential
+issue with this approach?
+
+00:51:56.870 --> 00:51:58.520
+Yeah?
+
+00:51:58.520 --> 00:52:01.480
+STUDENT: Performance hit
+for that block coordination.
+
+00:52:01.480 --> 00:52:03.110
+JULIAN SHUN: Yeah,
+so you're going
+
+00:52:03.110 --> 00:52:08.450
+to take a performance hit for
+trying to acquire this lock.
+
+00:52:08.450 --> 00:52:12.290
+So basically every time you do
+a allocation or deallocation,
+
+00:52:12.290 --> 00:52:13.970
+you have to acquire this lock.
+
+00:52:13.970 --> 00:52:16.370
+And this is pretty
+slow, and it gets
+
+00:52:16.370 --> 00:52:20.360
+slower as you increase
+the number of processors.
+
+00:52:20.360 --> 00:52:23.450
+Roughly speaking,
+acquiring a lock to perform
+
+00:52:23.450 --> 00:52:26.750
+is similar to an
+L2 cache access.
+
+00:52:26.750 --> 00:52:29.840
+And if you just run
+a serial allocator,
+
+00:52:29.840 --> 00:52:32.270
+many of your requests are
+going to be satisfied just
+
+00:52:32.270 --> 00:52:33.920
+by going into the L1 cache.
+
+00:52:33.920 --> 00:52:36.290
+Because you're going
+to be allocating
+
+00:52:36.290 --> 00:52:38.300
+things that you recently
+freed, and those things
+
+00:52:38.300 --> 00:52:40.580
+are going to be
+residing in L1 cache.
+
+00:52:40.580 --> 00:52:42.350
+But here, before you
+even get started,
+
+00:52:42.350 --> 00:52:44.300
+you have to grab a lock.
+
+00:52:44.300 --> 00:52:46.970
+And you have to pay
+a performance hit
+
+00:52:46.970 --> 00:52:48.870
+similar to an L2 cache access.
+
+00:52:48.870 --> 00:52:50.600
+So that's bad.
+
+00:52:50.600 --> 00:52:52.420
+And it gets worse
+as you increase
+
+00:52:52.420 --> 00:52:55.790
+the number of processors.
+
+00:52:55.790 --> 00:52:57.890
+So the contention
+increases as you
+
+00:52:57.890 --> 00:53:00.080
+increase the number of threads.
+
+00:53:00.080 --> 00:53:01.280
+And then you can't--
+
+00:53:01.280 --> 00:53:03.590
+you're not going to be able
+to get good scalability.
+
+00:53:06.450 --> 00:53:10.950
+So ideally, as the number of
+threads or processors grows,
+
+00:53:10.950 --> 00:53:13.320
+the time to perform an
+allocation or deallocation
+
+00:53:13.320 --> 00:53:15.730
+shouldn't increase.
+
+00:53:15.730 --> 00:53:17.130
+But in fact, it does.
+
+00:53:17.130 --> 00:53:19.590
+And the most common reason
+for loss of scalability
+
+00:53:19.590 --> 00:53:23.040
+is lock contention.
+
+00:53:23.040 --> 00:53:25.020
+So here all of the
+processes are trying
+
+00:53:25.020 --> 00:53:29.490
+to acquire the same lock, which
+is the same memory address.
+
+00:53:29.490 --> 00:53:33.518
+And if you recall from
+the caching lecture,
+
+00:53:33.518 --> 00:53:35.060
+or the multicore
+programming lecture,
+
+00:53:35.060 --> 00:53:37.570
+every time you acquire
+a memory location,
+
+00:53:37.570 --> 00:53:40.560
+you have to bring that cache
+line into your own cache,
+
+00:53:40.560 --> 00:53:42.940
+and then invalidate
+the same cache line
+
+00:53:42.940 --> 00:53:44.593
+in other processors' caches.
+
+00:53:44.593 --> 00:53:46.260
+So if all the processors
+are doing this,
+
+00:53:46.260 --> 00:53:49.080
+then this cache line is
+going to be bouncing around
+
+00:53:49.080 --> 00:53:50.670
+among all of the
+processors' caches,
+
+00:53:50.670 --> 00:53:54.475
+and this could lead to
+very bad performance.
+
+00:53:54.475 --> 00:53:55.350
+So here's a question.
+
+00:53:55.350 --> 00:53:57.870
+Is lock contention more of
+a problem for large blocks
+
+00:53:57.870 --> 00:53:58.869
+or small blocks?
+
+00:54:06.700 --> 00:54:08.390
+Yes.
+
+00:54:08.390 --> 00:54:11.780
+STUDENT: So small blocks.
+
+00:54:11.780 --> 00:54:13.790
+JULIAN SHUN: Here's
+another question.
+
+00:54:13.790 --> 00:54:16.070
+Why?
+
+00:54:16.070 --> 00:54:16.598
+Yes.
+
+00:54:16.598 --> 00:54:18.140
+STUDENT: Because by
+the time it takes
+
+00:54:18.140 --> 00:54:21.350
+to finish using the
+small block, then
+
+00:54:21.350 --> 00:54:23.330
+the allocator is usually small.
+
+00:54:23.330 --> 00:54:25.460
+So you do many allocations
+and deallocations,
+
+00:54:25.460 --> 00:54:27.627
+which means you have to go
+through the lock multiple
+
+00:54:27.627 --> 00:54:28.270
+times.
+
+00:54:28.270 --> 00:54:29.020
+JULIAN SHUN: Yeah.
+
+00:54:29.020 --> 00:54:33.730
+So one of the
+reasons is that when
+
+00:54:33.730 --> 00:54:35.950
+you're doing small
+allocations, that
+
+00:54:35.950 --> 00:54:38.740
+means that your request rate
+is going to be pretty high.
+
+00:54:38.740 --> 00:54:41.950
+And your processors are going
+to be spending a lot of time
+
+00:54:41.950 --> 00:54:43.830
+acquiring this lock.
+
+00:54:43.830 --> 00:54:49.210
+And this can exacerbate
+the lock contention.
+
+00:54:49.210 --> 00:54:52.750
+And another reason is that when
+you allocate a large block,
+
+00:54:52.750 --> 00:54:55.540
+you're doing a lot of work,
+because you have to write--
+
+00:54:55.540 --> 00:54:57.610
+most of the time you're
+going to write to all
+
+00:54:57.610 --> 00:55:00.010
+the bytes in that large block.
+
+00:55:00.010 --> 00:55:02.290
+And therefore you can
+amortize the overheads
+
+00:55:02.290 --> 00:55:06.370
+of the storage allocator
+across all of the work
+
+00:55:06.370 --> 00:55:07.120
+that you're doing.
+
+00:55:07.120 --> 00:55:08.950
+Whereas for small
+blocks, in addition to
+
+00:55:08.950 --> 00:55:14.260
+increasing this rate of
+memory requests, it's also--
+
+00:55:14.260 --> 00:55:16.945
+there's much less work to
+amortized to overheads across.
+
+00:55:20.010 --> 00:55:21.000
+So any questions?
+
+00:55:26.960 --> 00:55:29.300
+OK, good.
+
+00:55:29.300 --> 00:55:29.800
+All right.
+
+00:55:29.800 --> 00:55:33.460
+So here's another strategy,
+which is to use local heaps.
+
+00:55:33.460 --> 00:55:37.600
+So each thread is going
+to maintain its own heap.
+
+00:55:37.600 --> 00:55:41.800
+And it's going to allocate
+out of its own heap.
+
+00:55:41.800 --> 00:55:43.507
+And there's no locking
+that's necessary.
+
+00:55:43.507 --> 00:55:46.090
+So when you allocate something,
+you get it from your own heap.
+
+00:55:46.090 --> 00:55:48.770
+And when you free something, you
+put it back into your own heap.
+
+00:55:48.770 --> 00:55:51.350
+So there's no
+synchronization required.
+
+00:55:51.350 --> 00:55:52.880
+So that's a good thing.
+
+00:55:52.880 --> 00:55:54.580
+It's very fast.
+
+00:55:54.580 --> 00:55:56.695
+What's a potential issue
+with this approach?
+
+00:56:04.900 --> 00:56:05.440
+Yes.
+
+00:56:05.440 --> 00:56:07.510
+STUDENT: It's using
+a lot of extra space.
+
+00:56:07.510 --> 00:56:09.770
+JULIAN SHUN: Yes,
+so this approach,
+
+00:56:09.770 --> 00:56:13.380
+you're going to be using
+a lot of extra space.
+
+00:56:13.380 --> 00:56:14.890
+So first of all,
+because you have
+
+00:56:14.890 --> 00:56:16.630
+to maintain multiple heaps.
+
+00:56:16.630 --> 00:56:18.610
+And what's one
+phenomenon that you
+
+00:56:18.610 --> 00:56:21.640
+might see if you're
+executing a program
+
+00:56:21.640 --> 00:56:25.250
+with this local-heap approach?
+
+00:56:25.250 --> 00:56:26.860
+So it's a space--
+
+00:56:26.860 --> 00:56:30.276
+could the space potentially
+keep growing over time?
+
+00:56:36.970 --> 00:56:37.645
+Yes.
+
+00:56:37.645 --> 00:56:39.720
+STUDENT: You could
+maybe like allocate
+
+00:56:39.720 --> 00:56:42.720
+every one process [INAUDIBLE].
+
+00:56:42.720 --> 00:56:43.470
+JULIAN SHUN: Yeah.
+
+00:56:43.470 --> 00:56:46.520
+Yeah, so you could actually
+have an unbounded blow up.
+
+00:56:46.520 --> 00:56:49.820
+Because if you do all of
+the allocations in one heap,
+
+00:56:49.820 --> 00:56:53.160
+and you free everything
+in another heap,
+
+00:56:53.160 --> 00:56:55.160
+then whenever the first
+heap does an allocation,
+
+00:56:55.160 --> 00:56:57.620
+there's actually free space
+sitting around in another heap.
+
+00:56:57.620 --> 00:56:59.810
+But it's just going to grab
+more memory from the operating
+
+00:56:59.810 --> 00:57:00.310
+system.
+
+00:57:00.310 --> 00:57:02.540
+So you're blow up
+can be unbounded.
+
+00:57:02.540 --> 00:57:05.840
+And this phenomenon, it's
+what's called memory drift.
+
+00:57:05.840 --> 00:57:08.120
+So blocks allocated
+by one thread
+
+00:57:08.120 --> 00:57:10.620
+are freed by another thread.
+
+00:57:10.620 --> 00:57:13.350
+And if you run your
+program for long enough,
+
+00:57:13.350 --> 00:57:15.975
+your memory consumption
+can keep increasing.
+
+00:57:15.975 --> 00:57:17.600
+And this is sort of
+like a memory leak.
+
+00:57:17.600 --> 00:57:20.540
+So you might see that if you
+have a memory drift problem,
+
+00:57:20.540 --> 00:57:22.850
+your program running
+on multiple processors
+
+00:57:22.850 --> 00:57:24.590
+could run out of
+memory eventually.
+
+00:57:24.590 --> 00:57:29.000
+Whereas if you just run
+it on a single core,
+
+00:57:29.000 --> 00:57:31.030
+it won't run out of memory.
+
+00:57:31.030 --> 00:57:33.320
+And here it's because the
+allocator isn't smart enough
+
+00:57:33.320 --> 00:57:35.990
+to reuse things in other heaps.
+
+00:57:38.600 --> 00:57:42.380
+So what's another strategy you
+can use to try to fix this?
+
+00:57:45.210 --> 00:57:46.190
+Yes?
+
+00:57:46.190 --> 00:57:49.868
+STUDENT: [INAUDIBLE]
+
+00:57:49.868 --> 00:57:51.910
+JULIAN SHUN: Sorry, can
+you repeat your question?
+
+00:57:51.910 --> 00:57:57.018
+STUDENT: [INAUDIBLE]
+
+00:57:57.018 --> 00:57:58.810
+JULIAN SHUN: Because
+if you keep allocating
+
+00:57:58.810 --> 00:58:02.230
+from one thread, if you
+do all of your allocations
+
+00:58:02.230 --> 00:58:04.690
+in one thread, and do
+all of your deallocations
+
+00:58:04.690 --> 00:58:06.430
+on another thread,
+every time you
+
+00:58:06.430 --> 00:58:08.320
+allocate from the
+first thread, there's
+
+00:58:08.320 --> 00:58:11.052
+actually memory sitting
+around in the system.
+
+00:58:11.052 --> 00:58:13.510
+But the first thread isn't
+going to see it, because it only
+
+00:58:13.510 --> 00:58:14.500
+sees its own heap.
+
+00:58:14.500 --> 00:58:16.000
+And it's just going
+to keep grabbing
+
+00:58:16.000 --> 00:58:17.920
+more memory from the OS.
+
+00:58:17.920 --> 00:58:19.748
+And then the second
+thread actually
+
+00:58:19.748 --> 00:58:21.290
+has this extra memory
+sitting around.
+
+00:58:21.290 --> 00:58:22.207
+But it's not using it.
+
+00:58:22.207 --> 00:58:23.710
+Because it's only
+doing the freeze.
+
+00:58:23.710 --> 00:58:25.180
+It's not doing allocate.
+
+00:58:25.180 --> 00:58:27.160
+And if we recall the
+definition of blow up
+
+00:58:27.160 --> 00:58:29.560
+is, how much more
+space you're using
+
+00:58:29.560 --> 00:58:31.810
+compared to a serial
+execution of a program.
+
+00:58:31.810 --> 00:58:36.280
+If you executed this
+program on a single core,
+
+00:58:36.280 --> 00:58:39.400
+you would only have a single
+heap that does the allocations
+
+00:58:39.400 --> 00:58:40.570
+and frees.
+
+00:58:40.570 --> 00:58:41.830
+So you're not going to--
+
+00:58:41.830 --> 00:58:43.540
+your memory isn't
+going to blow up.
+
+00:58:43.540 --> 00:58:45.250
+It's just going to be
+constant over time.
+
+00:58:45.250 --> 00:58:47.560
+Whereas if you use two
+threads to execute this,
+
+00:58:47.560 --> 00:58:52.030
+the memory could just
+keep growing over time.
+
+00:58:52.030 --> 00:58:54.314
+Yes?
+
+00:58:54.314 --> 00:59:00.090
+STUDENT: [INAUDIBLE]
+
+00:59:00.090 --> 00:59:02.680
+JULIAN SHUN: So, it just--
+
+00:59:02.680 --> 00:59:07.540
+so if you remember the
+binned-free list approach,
+
+00:59:07.540 --> 00:59:09.340
+let's say we're using that.
+
+00:59:09.340 --> 00:59:12.370
+Then all you have to
+do is set some pointers
+
+00:59:12.370 --> 00:59:14.292
+in your binned-free
+lists data structure,
+
+00:59:14.292 --> 00:59:16.000
+as well as the block
+that you're freeing,
+
+00:59:16.000 --> 00:59:18.760
+so that it appears in
+one of the linked lists.
+
+00:59:18.760 --> 00:59:21.740
+So you can do that even if
+some other processor allocated
+
+00:59:21.740 --> 00:59:22.240
+that block.
+
+00:59:26.580 --> 00:59:29.550
+OK, so what what's another
+strategy that can avoid
+
+00:59:29.550 --> 00:59:32.100
+this issue of memory drift?
+
+00:59:32.100 --> 00:59:32.633
+Yes?
+
+00:59:32.633 --> 00:59:34.800
+STUDENT: Periodically shuffle
+the free memory that's
+
+00:59:34.800 --> 00:59:36.690
+being used on different heaps.
+
+00:59:36.690 --> 00:59:37.440
+JULIAN SHUN: Yeah.
+
+00:59:37.440 --> 00:59:38.357
+So that's a good idea.
+
+00:59:38.357 --> 00:59:41.580
+You could periodically
+rebalance the memory.
+
+00:59:41.580 --> 00:59:44.458
+What's a simpler approach
+to solve this problem?
+
+00:59:48.760 --> 00:59:50.680
+Yes?
+
+00:59:50.680 --> 00:59:53.390
+STUDENT: Make it all know
+all of the free memory?
+
+00:59:53.390 --> 00:59:55.140
+JULIAN SHUN: Sorry,
+could you repeat that?
+
+00:59:55.140 --> 01:00:01.312
+STUDENT: Make them all know
+all of the free memory?
+
+01:00:01.312 --> 01:00:02.020
+JULIAN SHUN: Yes.
+
+01:00:02.020 --> 01:00:04.070
+So you could have
+all of the processors
+
+01:00:04.070 --> 01:00:05.930
+know all the free memory.
+
+01:00:05.930 --> 01:00:08.060
+And then every time
+it grabs something,
+
+01:00:08.060 --> 01:00:09.740
+it looks in all the other heaps.
+
+01:00:09.740 --> 01:00:12.440
+That does require a lot of
+synchronization overhead.
+
+01:00:12.440 --> 01:00:14.780
+Might not perform that well.
+
+01:00:14.780 --> 01:00:18.790
+What's an easier way
+to solve this problem?
+
+01:00:18.790 --> 01:00:20.639
+Yes.
+
+01:00:20.639 --> 01:00:24.837
+STUDENT: [INAUDIBLE]
+
+01:00:24.837 --> 01:00:26.920
+JULIAN SHUN: So you could
+restructure your program
+
+01:00:26.920 --> 01:00:30.032
+so that the same thread
+does the allocation
+
+01:00:30.032 --> 01:00:32.060
+and frees for the
+same memory block.
+
+01:00:32.060 --> 01:00:35.500
+But what if you didn't want
+to restructure your program?
+
+01:00:35.500 --> 01:00:38.890
+How can you change
+the allocator?
+
+01:00:38.890 --> 01:00:41.360
+So we want the
+behavior that you said,
+
+01:00:41.360 --> 01:00:43.430
+but we don't want to
+change our program.
+
+01:00:43.430 --> 01:00:43.930
+Yes.
+
+01:00:43.930 --> 01:00:45.972
+STUDENT: You could have
+a single free list that's
+
+01:00:45.972 --> 01:00:47.280
+protected by synchronization.
+
+01:00:47.280 --> 01:00:49.790
+JULIAN SHUN: Yeah, so you
+could have a single free list.
+
+01:00:49.790 --> 01:00:51.950
+But that gets back
+to the first strategy
+
+01:00:51.950 --> 01:00:53.220
+of having a global heap.
+
+01:00:53.220 --> 01:00:58.030
+And then you have high
+synchronization overheads.
+
+01:00:58.030 --> 01:00:59.352
+Yes.
+
+01:00:59.352 --> 01:01:03.320
+STUDENT: You could have
+the free map to the thread
+
+01:01:03.320 --> 01:01:11.752
+that it came from or for the
+pointer that corresponds to--
+
+01:01:11.752 --> 01:01:13.510
+that allocated it.
+
+01:01:13.510 --> 01:01:15.360
+JULIAN SHUN: So you're
+saying free back
+
+01:01:15.360 --> 01:01:19.580
+to the thread that allocated it?
+
+01:01:19.580 --> 01:01:22.830
+Yes, so that that's
+exactly right.
+
+01:01:22.830 --> 01:01:25.080
+So here each object,
+when you allocate it,
+
+01:01:25.080 --> 01:01:27.473
+it's labeled with an owner.
+
+01:01:27.473 --> 01:01:28.890
+And then whenever
+you free it, you
+
+01:01:28.890 --> 01:01:30.240
+return it back to the owner.
+
+01:01:30.240 --> 01:01:33.660
+So the objects
+that are allocated
+
+01:01:33.660 --> 01:01:35.880
+will eventually go back
+to the owner's heap
+
+01:01:35.880 --> 01:01:37.050
+if they're not in use.
+
+01:01:37.050 --> 01:01:39.420
+And they're not going
+to be free lying around
+
+01:01:39.420 --> 01:01:42.810
+in somebody else's heap.
+
+01:01:42.810 --> 01:01:44.340
+The advantage of
+this approach is
+
+01:01:44.340 --> 01:01:47.940
+that you get fast allocation
+and freeing of local objects.
+
+01:01:47.940 --> 01:01:52.530
+Local objects are objects
+that you allocated.
+
+01:01:52.530 --> 01:01:56.400
+However, free remote objects
+require some synchronization.
+
+01:01:56.400 --> 01:02:00.900
+Because you have to coordinate
+with the other threads' heap
+
+01:02:00.900 --> 01:02:04.620
+that you're sending the
+memory object back to.
+
+01:02:04.620 --> 01:02:09.090
+But this synchronization isn't
+as bad as having a global heap,
+
+01:02:09.090 --> 01:02:13.860
+since you only have to talk to
+one other thread in this case.
+
+01:02:13.860 --> 01:02:18.240
+You can also bound
+the blow up by p.
+
+01:02:18.240 --> 01:02:22.470
+So the reason why the blow
+up is upper bounded by p
+
+01:02:22.470 --> 01:02:25.850
+is that, let's say the
+serial allocator uses
+
+01:02:25.850 --> 01:02:28.350
+at most x memory.
+
+01:02:28.350 --> 01:02:32.170
+In this case, each of the
+heaps can use at most x memory,
+
+01:02:32.170 --> 01:02:35.730
+because that's how much the
+serial program would have used.
+
+01:02:35.730 --> 01:02:38.100
+And you have p of these
+heaps, so overall you're
+
+01:02:38.100 --> 01:02:39.540
+using p times x memory.
+
+01:02:39.540 --> 01:02:43.650
+And therefore the ratio
+is upper bounded by p.
+
+01:02:43.650 --> 01:02:44.470
+Yes?
+
+01:02:44.470 --> 01:02:51.830
+STUDENT: [INAUDIBLE]
+
+01:02:51.830 --> 01:02:56.060
+JULIAN SHUN: So when you
+free an object, it goes--
+
+01:02:56.060 --> 01:02:59.120
+if you allocated that object,
+it goes back to your own heap.
+
+01:02:59.120 --> 01:03:01.105
+If your heap is
+empty, it's actually
+
+01:03:01.105 --> 01:03:03.230
+going to get more memory
+from the operating system.
+
+01:03:03.230 --> 01:03:07.220
+It's not going to take something
+from another thread's heap.
+
+01:03:07.220 --> 01:03:10.370
+But the maximum amount of memory
+that you're going to allocate
+
+01:03:10.370 --> 01:03:12.260
+is going to be
+upper bounded by x.
+
+01:03:12.260 --> 01:03:16.077
+Because the sequential serial
+program took that much.
+
+01:03:16.077 --> 01:03:17.450
+STUDENT: [INAUDIBLE]
+
+01:03:17.450 --> 01:03:19.880
+JULIAN SHUN: Yeah.
+
+01:03:19.880 --> 01:03:23.960
+So the upper bound
+for the blow up is p.
+
+01:03:23.960 --> 01:03:25.490
+Another advantage
+of this approach
+
+01:03:25.490 --> 01:03:27.060
+is that it's resilience--
+
+01:03:27.060 --> 01:03:29.030
+it has resilience
+to false sharing.
+
+01:03:31.730 --> 01:03:35.210
+So let me just talk a little
+bit about false sharing.
+
+01:03:35.210 --> 01:03:37.640
+So true sharing is
+when two processors
+
+01:03:37.640 --> 01:03:42.380
+are trying to access the
+same memory location.
+
+01:03:42.380 --> 01:03:45.050
+And false sharing is when
+multiple processors are
+
+01:03:45.050 --> 01:03:46.760
+accessing different
+memory locations,
+
+01:03:46.760 --> 01:03:51.000
+but those locations happen
+to be on the same cache line.
+
+01:03:51.000 --> 01:03:51.900
+So here's an example.
+
+01:03:51.900 --> 01:03:55.460
+Let's say we have two
+variables, x and y.
+
+01:03:55.460 --> 01:03:59.180
+And the compiler happens to
+place x and y on the same cache
+
+01:03:59.180 --> 01:04:00.990
+line.
+
+01:04:00.990 --> 01:04:03.680
+Now, when the first
+processor writes to x,
+
+01:04:03.680 --> 01:04:08.870
+it's going to bring this
+cache line into its cache.
+
+01:04:08.870 --> 01:04:10.980
+When the other
+processor writes to y,
+
+01:04:10.980 --> 01:04:12.840
+since it's on the
+same cache line,
+
+01:04:12.840 --> 01:04:17.120
+it's going to bring this
+cache line to y's cache.
+
+01:04:17.120 --> 01:04:19.143
+And then now, the first
+processor writes x,
+
+01:04:19.143 --> 01:04:20.810
+it's going to bring
+this cache line back
+
+01:04:20.810 --> 01:04:24.080
+to the first processor's cache.
+
+01:04:24.080 --> 01:04:25.850
+And then you can keep--
+
+01:04:25.850 --> 01:04:28.770
+you can see this
+phenomenon keep happening.
+
+01:04:28.770 --> 01:04:30.320
+So here, even though
+the processors
+
+01:04:30.320 --> 01:04:33.380
+are writing to different
+memory locations,
+
+01:04:33.380 --> 01:04:36.470
+because they happen to be
+on the same cache line,
+
+01:04:36.470 --> 01:04:40.040
+the cache line is going to
+be bouncing back and forth
+
+01:04:40.040 --> 01:04:44.270
+on the machine between the
+different processors' caches.
+
+01:04:44.270 --> 01:04:47.600
+And this problem gets
+worse if more processors
+
+01:04:47.600 --> 01:04:49.070
+are accessing this cache line.
+
+01:04:53.040 --> 01:04:56.120
+So in this-- this can
+be quite hard to debug.
+
+01:04:56.120 --> 01:05:00.260
+Because if you're using
+just variables on the stack,
+
+01:05:00.260 --> 01:05:02.030
+you don't actually
+know necessarily
+
+01:05:02.030 --> 01:05:06.120
+where the compiler is going to
+place these memory locations.
+
+01:05:06.120 --> 01:05:07.520
+So the compiler
+could just happen
+
+01:05:07.520 --> 01:05:11.420
+to place x and y in
+the same cache block.
+
+01:05:11.420 --> 01:05:13.942
+And then you'll get
+this performance hit,
+
+01:05:13.942 --> 01:05:16.400
+even though it seems like you're
+accessing different memory
+
+01:05:16.400 --> 01:05:18.920
+locations.
+
+01:05:18.920 --> 01:05:21.620
+If you're using the heap
+for memory allocation,
+
+01:05:21.620 --> 01:05:22.940
+you have more knowledge.
+
+01:05:22.940 --> 01:05:25.340
+Because if you
+allocate a huge block,
+
+01:05:25.340 --> 01:05:27.170
+you know that all of
+the memory locations
+
+01:05:27.170 --> 01:05:29.310
+are contiguous in
+physical memory.
+
+01:05:29.310 --> 01:05:31.700
+So you can just space your--
+
+01:05:31.700 --> 01:05:35.078
+you can space the accesses
+far enough apart so
+
+01:05:35.078 --> 01:05:36.620
+that different
+processes aren't going
+
+01:05:36.620 --> 01:05:37.910
+to touch the same cache line.
+
+01:05:44.140 --> 01:05:46.510
+A more general approach
+is that you can actually
+
+01:05:46.510 --> 01:05:48.230
+pad the object.
+
+01:05:48.230 --> 01:05:50.110
+So first, you can
+align the object
+
+01:05:50.110 --> 01:05:51.850
+on a cache line boundary.
+
+01:05:51.850 --> 01:05:54.460
+And then you pad out the
+remaining memory locations
+
+01:05:54.460 --> 01:05:58.450
+of the objects so that it
+fills up the entire cache line.
+
+01:05:58.450 --> 01:06:03.220
+And now there's only one
+thing on that cache line.
+
+01:06:03.220 --> 01:06:05.620
+But this does lead
+to a waste of space
+
+01:06:05.620 --> 01:06:09.580
+because you have this
+wasted padding here.
+
+01:06:09.580 --> 01:06:11.470
+So program can
+induce false sharing
+
+01:06:11.470 --> 01:06:13.570
+by having different
+threads process
+
+01:06:13.570 --> 01:06:18.100
+nearby objects, both on
+the stack and on the heap.
+
+01:06:18.100 --> 01:06:22.090
+And then an allocator can
+also induce false sharing
+
+01:06:22.090 --> 01:06:22.850
+in two ways.
+
+01:06:22.850 --> 01:06:25.330
+So it can actively
+induce false sharing.
+
+01:06:25.330 --> 01:06:28.000
+And this is when the allocator
+satisfies memory requests
+
+01:06:28.000 --> 01:06:32.110
+from different threads
+using the same cache block.
+
+01:06:32.110 --> 01:06:33.880
+And it can also
+do this passively.
+
+01:06:33.880 --> 01:06:36.910
+And this is when the program
+passes objects lying around
+
+01:06:36.910 --> 01:06:38.010
+in the same cache line.
+
+01:06:38.010 --> 01:06:40.290
+So different threads,
+and then the allocator
+
+01:06:40.290 --> 01:06:43.330
+reuses the object
+storage after the objects
+
+01:06:43.330 --> 01:06:47.620
+are free to satisfy requests
+from those different threads.
+
+01:06:47.620 --> 01:06:51.280
+And the local ownership
+approach tends
+
+01:06:51.280 --> 01:06:54.850
+to reduce false sharing
+because the thread that
+
+01:06:54.850 --> 01:06:57.130
+allocates an object
+is eventually
+
+01:06:57.130 --> 01:06:58.030
+going to get it back.
+
+01:06:58.030 --> 01:07:01.300
+You're not going to have it so
+that an object is permanently
+
+01:07:01.300 --> 01:07:05.320
+split among multiple
+processors' heaps.
+
+01:07:05.320 --> 01:07:09.040
+So even if you see false
+sharing in local ownership,
+
+01:07:09.040 --> 01:07:10.990
+it's usually temporary.
+
+01:07:10.990 --> 01:07:13.240
+Eventually it's
+going-- the object is
+
+01:07:13.240 --> 01:07:16.510
+going to go back to the heap
+that it was allocated from,
+
+01:07:16.510 --> 01:07:19.600
+and the false sharing
+is going to go away.
+
+01:07:19.600 --> 01:07:20.996
+Yes?
+
+01:07:20.996 --> 01:07:26.852
+STUDENT: Are the local heaps
+just three to five regions in
+
+01:07:26.852 --> 01:07:28.330
+[INAUDIBLE]?
+
+01:07:28.330 --> 01:07:31.220
+JULIAN SHUN: I mean, you can
+implement it in various ways.
+
+01:07:31.220 --> 01:07:34.360
+I mean can have each one of
+them have a binned-free list
+
+01:07:34.360 --> 01:07:36.730
+allocator, so there's
+no restriction
+
+01:07:36.730 --> 01:07:39.860
+on where they have to
+appear in physical memory.
+
+01:07:39.860 --> 01:07:41.770
+There are many different
+ways where you can--
+
+01:07:41.770 --> 01:07:44.890
+you can basically plug-in
+any serial locator
+
+01:07:44.890 --> 01:07:46.288
+for the local heap.
+
+01:07:50.280 --> 01:07:53.690
+So let's go back to
+parallel heap allocation.
+
+01:07:53.690 --> 01:07:56.900
+So I talked about three
+approaches already.
+
+01:07:56.900 --> 01:07:58.910
+Here's a fourth approach.
+
+01:07:58.910 --> 01:08:02.600
+This is called the
+hoard allocator.
+
+01:08:02.600 --> 01:08:04.790
+And this was actually
+a pretty good allocator
+
+01:08:04.790 --> 01:08:08.900
+when it was introduced
+almost two decades ago.
+
+01:08:08.900 --> 01:08:11.690
+And it's inspired a
+lot of further research
+
+01:08:11.690 --> 01:08:13.970
+on how to improve
+parallel-memory allocation.
+
+01:08:13.970 --> 01:08:16.120
+So let me talk about
+how this works.
+
+01:08:16.120 --> 01:08:21.020
+So in the hoard allocator, we're
+going to have p local heaps.
+
+01:08:21.020 --> 01:08:25.029
+But we're also going
+to have a global heap.
+
+01:08:25.029 --> 01:08:26.960
+The memory is going
+to be organized
+
+01:08:26.960 --> 01:08:30.140
+into large super
+blocks of size s.
+
+01:08:30.140 --> 01:08:34.520
+And s is usually a
+multiple of the page size.
+
+01:08:34.520 --> 01:08:36.170
+So this is the
+granularity at which
+
+01:08:36.170 --> 01:08:40.250
+objects are going to be moved
+around in the allocator.
+
+01:08:40.250 --> 01:08:44.600
+And then you can move super
+blocks between the local heaps
+
+01:08:44.600 --> 01:08:46.130
+and the global heaps.
+
+01:08:46.130 --> 01:08:48.950
+So when a local heap becomes--
+
+01:08:48.950 --> 01:08:52.770
+has a lot of super blocks
+that are not being fully used
+
+01:08:52.770 --> 01:08:54.740
+and you can move it
+to the global heap,
+
+01:08:54.740 --> 01:08:57.260
+and then when a local heap
+doesn't have enough memory,
+
+01:08:57.260 --> 01:08:59.722
+it can go to the global
+heap to get more memory.
+
+01:08:59.722 --> 01:09:02.180
+And then when the global heap
+doesn't have any more memory,
+
+01:09:02.180 --> 01:09:06.779
+then it gets more memory
+from the operating system.
+
+01:09:06.779 --> 01:09:10.010
+So this is sort of a
+combination of the approaches
+
+01:09:10.010 --> 01:09:12.140
+that we saw before.
+
+01:09:12.140 --> 01:09:15.979
+The advantages are that this
+is a pretty fast allocator.
+
+01:09:15.979 --> 01:09:16.910
+It's also scalable.
+
+01:09:16.910 --> 01:09:20.450
+As you add more processors,
+the performance improves.
+
+01:09:20.450 --> 01:09:23.930
+You can also bound the blow up.
+
+01:09:23.930 --> 01:09:26.390
+And it also has resilience
+to false sharing,
+
+01:09:26.390 --> 01:09:29.540
+because it's using local heaps.
+
+01:09:29.540 --> 01:09:33.080
+So let's look at how an
+allocation using the hoard
+
+01:09:33.080 --> 01:09:34.500
+allocator works.
+
+01:09:34.500 --> 01:09:36.800
+So let's just assume
+without loss of generality
+
+01:09:36.800 --> 01:09:38.760
+that all the blocks
+are the same size.
+
+01:09:38.760 --> 01:09:42.350
+So we have fixed-size
+allocation.
+
+01:09:42.350 --> 01:09:46.160
+So let's say we call
+malloc in our program.
+
+01:09:46.160 --> 01:09:49.130
+And let's say thread
+i calls the malloc.
+
+01:09:49.130 --> 01:09:50.660
+So what we're going
+to do is we're
+
+01:09:50.660 --> 01:09:56.030
+going to check if there
+is a free object in heap i
+
+01:09:56.030 --> 01:09:58.910
+that can satisfy this request.
+
+01:09:58.910 --> 01:10:01.010
+And if so, we're
+going to get an object
+
+01:10:01.010 --> 01:10:05.360
+from the fullest non-full
+super block in i's heap.
+
+01:10:05.360 --> 01:10:09.350
+Does anyone know why we want to
+get the object from the fullest
+
+01:10:09.350 --> 01:10:10.580
+non-full super block?
+
+01:10:13.430 --> 01:10:14.724
+Yes.
+
+01:10:14.724 --> 01:10:17.478
+STUDENT: [INAUDIBLE]
+
+01:10:17.478 --> 01:10:18.270
+JULIAN SHUN: Right.
+
+01:10:18.270 --> 01:10:20.440
+So when a super block
+needs to be moved,
+
+01:10:20.440 --> 01:10:21.570
+it's as dense as possible.
+
+01:10:21.570 --> 01:10:25.500
+And more importantly, this is to
+reduce external fragmentation.
+
+01:10:25.500 --> 01:10:28.620
+Because as we saw
+in the last lecture,
+
+01:10:28.620 --> 01:10:32.430
+if you skew the distribution
+of allocated memory objects
+
+01:10:32.430 --> 01:10:35.290
+to as few pages,
+or in this case,
+
+01:10:35.290 --> 01:10:37.050
+as few super blocks
+as possible, that
+
+01:10:37.050 --> 01:10:40.840
+reduces your external
+fragmentation.
+
+01:10:40.840 --> 01:10:43.170
+OK, so if it finds
+it in its own heap,
+
+01:10:43.170 --> 01:10:46.690
+then it's going to allocate
+an object from there.
+
+01:10:46.690 --> 01:10:49.800
+Otherwise, it's going to
+check the global heap.
+
+01:10:49.800 --> 01:10:53.320
+And if there's something
+in the global heap--
+
+01:10:53.320 --> 01:10:56.140
+so here it says, if the
+global heap is empty,
+
+01:10:56.140 --> 01:10:59.130
+then it's going to get a
+new super block from the OS.
+
+01:10:59.130 --> 01:11:03.240
+Otherwise, we can get a super
+block from the global heap,
+
+01:11:03.240 --> 01:11:05.860
+and then use that one.
+
+01:11:05.860 --> 01:11:09.000
+And then finally
+we set the owner
+
+01:11:09.000 --> 01:11:12.000
+of the block we got either from
+the OS or from the global heap
+
+01:11:12.000 --> 01:11:18.210
+to i, and then we return that
+free object to the program.
+
+01:11:18.210 --> 01:11:22.920
+So this is how a malloc works
+using the hoard allocator.
+
+01:11:22.920 --> 01:11:26.770
+And now let's look at
+hoard deallocation.
+
+01:11:26.770 --> 01:11:31.590
+Let use of i be the in
+use storage in heap i.
+
+01:11:31.590 --> 01:11:33.565
+This is the heap for thread i.
+
+01:11:33.565 --> 01:11:39.162
+And let a sub i be the
+storage owned by heap i.
+
+01:11:39.162 --> 01:11:41.370
+The hoard allocator maintains
+the following invariant
+
+01:11:41.370 --> 01:11:43.110
+for all heaps i.
+
+01:11:43.110 --> 01:11:44.650
+And the invariant is as follows.
+
+01:11:44.650 --> 01:11:47.160
+So u sub i is always
+going to be greater
+
+01:11:47.160 --> 01:11:50.940
+than or equal to the min
+of a sub i minus 2 times s.
+
+01:11:50.940 --> 01:11:54.300
+Recall s is the
+super block size.
+
+01:11:54.300 --> 01:11:58.110
+And a sub i over 2.
+
+01:11:58.110 --> 01:12:01.750
+So how it implements
+this is as follows.
+
+01:12:01.750 --> 01:12:06.500
+When we call free of x, let's
+say x is owned by thread i,
+
+01:12:06.500 --> 01:12:09.240
+then we're going to
+put x back into heap i,
+
+01:12:09.240 --> 01:12:13.230
+and then we're going to check
+if the n u storage in heap i,
+
+01:12:13.230 --> 01:12:17.070
+u sub i is less than the
+min of a sub i minus 2 s
+
+01:12:17.070 --> 01:12:20.510
+and a sub i over 2.
+
+01:12:20.510 --> 01:12:23.610
+And what this condition
+says, if it's true,
+
+01:12:23.610 --> 01:12:30.570
+it means that your heap
+is, at most, half utilized.
+
+01:12:30.570 --> 01:12:32.970
+Because if it's
+smaller than this,
+
+01:12:32.970 --> 01:12:35.300
+it has to be smaller
+than a sub i over 2.
+
+01:12:35.300 --> 01:12:37.050
+That means there's
+twice as much allocated
+
+01:12:37.050 --> 01:12:39.430
+than used in the local heap i.
+
+01:12:39.430 --> 01:12:41.760
+And therefore there
+must be some super block
+
+01:12:41.760 --> 01:12:43.140
+that's at least half empty.
+
+01:12:43.140 --> 01:12:47.010
+And you move that super block,
+or one of those super blocks,
+
+01:12:47.010 --> 01:12:48.090
+to the global heap.
+
+01:12:51.060 --> 01:12:54.760
+So any questions on how the
+allocation and deallocation
+
+01:12:54.760 --> 01:12:55.760
+works?
+
+01:12:55.760 --> 01:12:58.960
+So since we're maintaining
+this invariant,
+
+01:12:58.960 --> 01:13:01.722
+it's going to allow us to
+approve a bound on the blow up.
+
+01:13:01.722 --> 01:13:03.430
+And I'll show you that
+on the next slide.
+
+01:13:03.430 --> 01:13:05.718
+But before I go on, are
+there any questions?
+
+01:13:08.530 --> 01:13:11.000
+OK, so let's look at how
+we can bound the blow up
+
+01:13:11.000 --> 01:13:12.585
+of the hoard allocator.
+
+01:13:12.585 --> 01:13:14.210
+So there is actually
+a lemma that we're
+
+01:13:14.210 --> 01:13:15.440
+going to use and not prove.
+
+01:13:15.440 --> 01:13:18.110
+The lemma is that the
+maximum storage allocated
+
+01:13:18.110 --> 01:13:21.080
+in the global heap is at most
+a maximum storage allocated
+
+01:13:21.080 --> 01:13:22.430
+in the local heaps.
+
+01:13:22.430 --> 01:13:25.070
+So we just need to analyze
+how much storage is
+
+01:13:25.070 --> 01:13:26.330
+allocated in the local heaps.
+
+01:13:26.330 --> 01:13:29.030
+Because the total
+amount of storage
+
+01:13:29.030 --> 01:13:30.890
+is going to be, at
+most, twice as much,
+
+01:13:30.890 --> 01:13:35.240
+since the global heap storage
+is dominated by the local heap
+
+01:13:35.240 --> 01:13:36.170
+storage.
+
+01:13:36.170 --> 01:13:38.370
+So you can prove this
+lemma by case analysis.
+
+01:13:38.370 --> 01:13:41.520
+And there's the
+hoard paper that's
+
+01:13:41.520 --> 01:13:42.770
+available on learning modules.
+
+01:13:42.770 --> 01:13:44.562
+And you're free to look
+at that if you want
+
+01:13:44.562 --> 01:13:45.892
+to look at how this is proved.
+
+01:13:45.892 --> 01:13:47.600
+But here I'm just
+going to use this lemma
+
+01:13:47.600 --> 01:13:52.100
+to prove this theorem, which
+says that, let u be the user
+
+01:13:52.100 --> 01:13:53.840
+footprint for a program.
+
+01:13:53.840 --> 01:13:58.940
+And let a be the hoard's
+allocator footprint.
+
+01:13:58.940 --> 01:14:04.340
+We have that a as upper
+bounded by order u plus s p.
+
+01:14:04.340 --> 01:14:07.190
+And therefore, a divided
+by u, which is a blowup,
+
+01:14:07.190 --> 01:14:11.510
+is going to be 1 plus
+order s p divided by u.
+
+01:14:15.550 --> 01:14:18.810
+OK, so let's see how
+this proof works.
+
+01:14:18.810 --> 01:14:22.530
+So we're just going to analyze
+the storage in the local heaps.
+
+01:14:22.530 --> 01:14:26.940
+Now recall that we're always
+satisfying this invariant here,
+
+01:14:26.940 --> 01:14:29.860
+where u sub i is greater than
+the min of a sub i minus 2 s
+
+01:14:29.860 --> 01:14:32.420
+and a sub i over 2.
+
+01:14:32.420 --> 01:14:34.580
+So the first term
+says that we can
+
+01:14:34.580 --> 01:14:39.410
+have 2 s on utilized
+storage per heap.
+
+01:14:39.410 --> 01:14:41.900
+So it's basically giving
+two super blocks for free
+
+01:14:41.900 --> 01:14:42.980
+to each heap.
+
+01:14:42.980 --> 01:14:45.980
+And they don't have to use it.
+
+01:14:45.980 --> 01:14:49.670
+They can basically use
+it as much as they want.
+
+01:14:49.670 --> 01:14:53.270
+And therefore, the total
+amount of storage contributed
+
+01:14:53.270 --> 01:14:54.920
+by the first term
+is going to be order
+
+01:14:54.920 --> 01:15:01.250
+s p, because each processor has
+up to 2 s unutilized storage.
+
+01:15:01.250 --> 01:15:03.830
+So that's where the second
+term comes from here.
+
+01:15:03.830 --> 01:15:11.180
+And the second term,
+a sub i over 2--
+
+01:15:11.180 --> 01:15:14.810
+this will give us the
+first-term order u.
+
+01:15:14.810 --> 01:15:16.970
+So this says that
+the allocated storage
+
+01:15:16.970 --> 01:15:19.910
+is at most twice the
+use storage for--
+
+01:15:19.910 --> 01:15:24.110
+and then if you sum up
+across all the processors,
+
+01:15:24.110 --> 01:15:28.610
+then there's a total of order
+use storage that's allocated.
+
+01:15:28.610 --> 01:15:30.530
+Because the allocated
+storage can be at most
+
+01:15:30.530 --> 01:15:31.835
+twice the used storage.
+
+01:15:34.990 --> 01:15:39.410
+OK, so that's the proof
+of the blow up for hoard.
+
+01:15:39.410 --> 01:15:40.410
+And this is pretty good.
+
+01:15:40.410 --> 01:15:43.650
+It's 1 plus some
+lower order term.
+
+01:15:46.620 --> 01:15:51.590
+OK, so-- now these are
+some other allocators
+
+01:15:51.590 --> 01:15:52.430
+that people use.
+
+01:15:52.430 --> 01:15:54.860
+So jemalloc is a
+pretty popular one.
+
+01:15:54.860 --> 01:15:57.410
+Has a few differences
+with hoard.
+
+01:15:57.410 --> 01:15:59.870
+It has a separate global lock
+for each different allocation
+
+01:15:59.870 --> 01:16:00.710
+size.
+
+01:16:00.710 --> 01:16:03.350
+It allocates the object
+with the smallest address
+
+01:16:03.350 --> 01:16:05.630
+among all the objects
+of the requested size.
+
+01:16:05.630 --> 01:16:08.000
+And it releases empty
+pages using m advise,
+
+01:16:08.000 --> 01:16:10.190
+which we talked about--
+
+01:16:10.190 --> 01:16:12.650
+I talked about earlier.
+
+01:16:12.650 --> 01:16:16.130
+And it's pretty popular because
+it has good performance,
+
+01:16:16.130 --> 01:16:20.827
+and it's pretty robust to
+different allocation traces.
+
+01:16:20.827 --> 01:16:22.910
+There's also another one
+called SuperMalloc, which
+
+01:16:22.910 --> 01:16:24.620
+is an up and coming contender.
+
+01:16:24.620 --> 01:16:27.240
+And it was developed
+by Bradley Kuszmaul.
+
+01:16:30.280 --> 01:16:33.130
+Here are some allocator
+speeds for the allocators
+
+01:16:33.130 --> 01:16:36.430
+that we looked at for
+our particular benchmark.
+
+01:16:36.430 --> 01:16:39.730
+And for this
+particular benchmark,
+
+01:16:39.730 --> 01:16:41.980
+we can see that SuperMalloc
+actually does really well.
+
+01:16:41.980 --> 01:16:44.500
+It's more than three times
+faster than jemalloc,
+
+01:16:44.500 --> 01:16:48.160
+and jemalloc is more than
+twice as fast as hoard.
+
+01:16:48.160 --> 01:16:51.460
+And then the default
+allocator, which
+
+01:16:51.460 --> 01:16:53.620
+uses a global heap is
+pretty slow, because it
+
+01:16:53.620 --> 01:16:55.450
+can't get good speed up.
+
+01:16:55.450 --> 01:17:00.180
+And all these experiments
+are in 32 threads.
+
+01:17:00.180 --> 01:17:01.780
+I also have the lines of code.
+
+01:17:01.780 --> 01:17:04.630
+So we see that
+SuperMalloc actually
+
+01:17:04.630 --> 01:17:06.325
+has very few lines
+of code compared
+
+01:17:06.325 --> 01:17:07.325
+to the other allocators.
+
+01:17:07.325 --> 01:17:10.710
+So it's relatively simple.
+
+01:17:10.710 --> 01:17:13.970
+OK so, I also have some
+slides in Garbage Collection.
+
+01:17:13.970 --> 01:17:16.210
+But since we're out
+of time, I'll just
+
+01:17:16.210 --> 01:17:19.530
+put these slides online
+and you can read them.

@@ -1,0 +1,3977 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.520
+The following content is
+provided under a Creative
+
+00:00:02.520 --> 00:00:03.970
+Commons license.
+
+00:00:03.970 --> 00:00:06.330
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.330 --> 00:00:10.660
+continue to offer high-quality
+educational resources for free.
+
+00:00:10.660 --> 00:00:13.320
+To make a donation or
+view additional materials
+
+00:00:13.320 --> 00:00:17.190
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.190 --> 00:00:18.370
+at ocw.mit.edu.
+
+00:00:21.828 --> 00:00:23.120
+RUSS TEDRAKE: OK, welcome back.
+
+00:00:27.810 --> 00:00:34.790
+So last time, I tried to ease
+us into a switch in thinking.
+
+00:00:34.790 --> 00:00:38.150
+From instead of trying
+to explicitly solve
+
+00:00:38.150 --> 00:00:40.310
+the Hamilton-Jacobi
+equation, I wanted
+
+00:00:40.310 --> 00:00:42.590
+to try thinking about a
+different class of algorithms
+
+00:00:42.590 --> 00:00:44.030
+which we called policy search.
+
+00:00:44.030 --> 00:00:47.450
+Where you explicitly
+parameterize your control
+
+00:00:47.450 --> 00:00:50.210
+system with some
+parameters and then just
+
+00:00:50.210 --> 00:00:54.560
+search in the space of
+parameters for a good solution.
+
+00:00:54.560 --> 00:01:05.430
+So the idea was, let's
+go ahead and define
+
+00:01:05.430 --> 00:01:10.650
+some class of control systems
+by some parameter vector.
+
+00:01:20.520 --> 00:01:23.400
+And then, our optimal
+control problem,
+
+00:01:23.400 --> 00:01:34.590
+which we called sort of
+minimizing J pi of x0 t.
+
+00:01:34.590 --> 00:01:41.070
+We could think of as
+explicitly minimizing over
+
+00:01:41.070 --> 00:01:43.290
+that vector alpha.
+
+00:01:43.290 --> 00:01:48.060
+Something that if I shorthand
+pi of alpha with just alpha
+
+00:01:48.060 --> 00:01:50.100
+of x0 t.
+
+00:01:52.650 --> 00:01:58.950
+And if you're willing to
+restrict your thinking
+
+00:01:58.950 --> 00:02:02.340
+to a single initial
+condition, then you
+
+00:02:02.340 --> 00:02:06.930
+can really just think of it
+as, I've got some old function
+
+00:02:06.930 --> 00:02:09.630
+J of alpha, and I
+want to minimize it
+
+00:02:09.630 --> 00:02:12.120
+with respect to alpha.
+
+00:02:12.120 --> 00:02:17.100
+That puts you squarely in the
+land of you can call fmin.
+
+00:02:17.100 --> 00:02:21.790
+In MATLAB, you can do sort of
+any old optimization on it.
+
+00:02:26.040 --> 00:02:32.820
+So today, I said the lecture is
+called Trajectory Optimization.
+
+00:02:32.820 --> 00:02:35.467
+I tried to point out that
+thinking about this policy
+
+00:02:35.467 --> 00:02:37.050
+search, that could
+be a general thing.
+
+00:02:37.050 --> 00:02:40.245
+That could encompass
+feedback policies.
+
+00:02:45.120 --> 00:02:48.180
+For instance, this
+could be parameterized
+
+00:02:48.180 --> 00:02:52.290
+by if K is filled out
+with alphas, that's OK.
+
+00:02:52.290 --> 00:02:58.200
+And I also said it could be
+open-loop trajectories, right?
+
+00:02:58.200 --> 00:03:03.021
+In general, I could just ignore
+x, and it could just be--
+
+00:03:03.021 --> 00:03:06.130
+let me see how I
+wrote it last time.
+
+00:03:06.130 --> 00:03:11.520
+It could just be, let's
+say, that u at time t
+
+00:03:11.520 --> 00:03:15.970
+is just alpha of
+n where n equals
+
+00:03:15.970 --> 00:03:24.045
+some floor of to over dt.
+
+00:03:24.045 --> 00:03:25.920
+I'm not sure that's the
+best way to write it,
+
+00:03:25.920 --> 00:03:28.690
+but that's, I think, a
+clean way to write it.
+
+00:03:35.002 --> 00:03:35.960
+So what does that mean?
+
+00:03:35.960 --> 00:03:41.820
+That means that my
+control policy over time
+
+00:03:41.820 --> 00:03:45.390
+is just a set of--
+
+00:03:45.390 --> 00:03:49.230
+it's a zero-order
+hold trajectory.
+
+00:03:52.780 --> 00:03:56.470
+Where each of these are dt long.
+
+00:03:56.470 --> 00:04:01.900
+And this one is alpha 1, this
+one is alpha 2, and so on.
+
+00:04:05.392 --> 00:04:06.850
+So if I'm willing
+to make some sort
+
+00:04:06.850 --> 00:04:13.450
+of simple tape of trajectories
+that are parameterized
+
+00:04:13.450 --> 00:04:14.800
+by these alphas--
+
+00:04:14.800 --> 00:04:17.500
+and naturally, you can do
+a cleaner job of doing this
+
+00:04:17.500 --> 00:04:19.370
+with splines or whatever.
+
+00:04:19.370 --> 00:04:22.780
+But let's think about the
+simple representation.
+
+00:04:22.780 --> 00:04:27.160
+Then solving this
+min alpha J alpha
+
+00:04:27.160 --> 00:04:30.550
+is equivalent to trying to
+find the open-loop trajectory
+
+00:04:30.550 --> 00:04:36.010
+that I'd like to follow which
+minimizes J, for instance,
+
+00:04:36.010 --> 00:04:39.550
+for some initial, for a
+particular initial condition.
+
+00:04:39.550 --> 00:04:51.610
+So that class, this sort
+of the open-loop family
+
+00:04:51.610 --> 00:04:54.400
+of control policies
+is special enough
+
+00:04:54.400 --> 00:04:56.620
+that there's a lot
+of methods that
+
+00:04:56.620 --> 00:04:59.770
+are highly tuned for
+that open-loop trajectory
+
+00:04:59.770 --> 00:05:02.287
+optimization.
+
+00:05:02.287 --> 00:05:04.120
+So I want to talk about
+a few of them today.
+
+00:05:04.120 --> 00:05:05.170
+They're very powerful.
+
+00:05:05.170 --> 00:05:09.610
+They tend to scale to fairly
+high-dimensional systems.
+
+00:05:09.610 --> 00:05:13.420
+And I actually think they can
+be used as a part of a process
+
+00:05:13.420 --> 00:05:15.700
+to design good
+feedback controllers.
+
+00:05:15.700 --> 00:05:17.110
+But that's a longer story.
+
+00:05:17.110 --> 00:05:19.060
+Let me just tell you
+today how to solve
+
+00:05:19.060 --> 00:05:20.398
+open-loop trajectories.
+
+00:05:26.710 --> 00:05:31.270
+In the trajectory optimization
+world, there is roughly--
+
+00:05:31.270 --> 00:05:33.160
+well, there's lots of ideas.
+
+00:05:33.160 --> 00:05:35.230
+And so many ideas,
+actually, that it's going
+
+00:05:35.230 --> 00:05:37.600
+to slip into Tuesday I decided.
+
+00:05:37.600 --> 00:05:40.860
+But let me tell you about
+the first two of them today.
+
+00:05:43.670 --> 00:05:57.170
+I want to talk about
+first shooting methods
+
+00:05:57.170 --> 00:06:01.070
+and then direct
+collocation methods.
+
+00:06:09.920 --> 00:06:12.458
+And we have lots of
+half-baked examples
+
+00:06:12.458 --> 00:06:14.250
+that were coded in the
+middle of the night,
+
+00:06:14.250 --> 00:06:18.120
+so to hopefully bring
+the message through.
+
+00:06:22.890 --> 00:06:26.250
+OK, so what's a shooting method?
+
+00:06:26.250 --> 00:06:27.687
+You might be able to guess.
+
+00:06:27.687 --> 00:06:29.520
+Shooting methods are--
+how many people know?
+
+00:06:29.520 --> 00:06:32.340
+How many people know what
+shooting methods are?
+
+00:06:32.340 --> 00:06:33.150
+Excellent, OK.
+
+00:06:48.110 --> 00:06:50.233
+How would you characterize
+a shooting method?
+
+00:06:50.233 --> 00:06:50.900
+What would you--
+
+00:06:54.078 --> 00:06:56.370
+AUDIENCE: Can we
+integrate the states
+
+00:06:56.370 --> 00:06:58.560
+from the book from
+the beginning time
+
+00:06:58.560 --> 00:07:00.860
+and the [? co ?] states
+from the end time
+
+00:07:00.860 --> 00:07:04.860
+and hope they match up in
+the middle or something?
+
+00:07:04.860 --> 00:07:06.690
+RUSS TEDRAKE:
+Perfect, well, yeah, I
+
+00:07:06.690 --> 00:07:12.150
+mean, in general, actually so
+it's even simpler than that.
+
+00:07:12.150 --> 00:07:14.460
+In general, so shooting
+methods are often
+
+00:07:14.460 --> 00:07:16.890
+the title for solving
+boundary value problems, which
+
+00:07:16.890 --> 00:07:19.560
+is what you just said.
+
+00:07:19.560 --> 00:07:22.230
+The name comes from
+boundary value problems.
+
+00:07:22.230 --> 00:07:25.800
+We can use them more
+generally, even if it's just
+
+00:07:25.800 --> 00:07:29.670
+an initial value problem.
+
+00:07:29.670 --> 00:07:31.590
+But the basic idea is
+exactly what you said.
+
+00:07:31.590 --> 00:07:34.170
+Let's just simulate the
+system with the parameters
+
+00:07:34.170 --> 00:07:38.557
+we have and then work to
+change our parameters,
+
+00:07:38.557 --> 00:07:40.140
+shoot at a little
+bit different place.
+
+00:07:43.380 --> 00:07:49.560
+So let's say we have t over x
+for some very simple system.
+
+00:07:52.350 --> 00:07:56.820
+And I run my controller from
+initial conditions here,
+
+00:07:56.820 --> 00:08:03.030
+and I get some trajectory with
+alpha equals 1, let's say,
+
+00:08:03.030 --> 00:08:06.620
+or even alpha equals
+some long vector.
+
+00:08:06.620 --> 00:08:10.470
+Maybe it's 1, 2, 43, 6.
+
+00:08:10.470 --> 00:08:13.110
+I get that.
+
+00:08:13.110 --> 00:08:18.713
+And let's say my goal is to get
+my final conditions to be here.
+
+00:08:18.713 --> 00:08:20.130
+Then, what I'm
+going to do is, I'm
+
+00:08:20.130 --> 00:08:24.360
+going to change alpha
+and run it again,
+
+00:08:24.360 --> 00:08:29.605
+shooting successively until I
+get to my desired final value.
+
+00:08:29.605 --> 00:08:31.980
+If I change alpha, then maybe
+my controller gets me here.
+
+00:08:31.980 --> 00:08:34.530
+And if I change it
+again, maybe it'll
+
+00:08:34.530 --> 00:08:36.780
+get me all the way
+up to the goal.
+
+00:08:42.179 --> 00:08:44.169
+I see you.
+
+00:08:44.169 --> 00:08:45.590
+AUDIENCE: What's the update?
+
+00:08:45.590 --> 00:08:49.320
+RUSS TEDRAKE: Yeah, OK,
+I'll tell you the update.
+
+00:08:49.320 --> 00:08:51.920
+But the big idea
+is, I'm going to I'm
+
+00:08:51.920 --> 00:08:54.830
+going to try to solve a problem,
+for instance, a boundary value
+
+00:08:54.830 --> 00:08:57.410
+problem, by starting with some
+initial conditions simulating
+
+00:08:57.410 --> 00:09:00.380
+and just changing
+the parameters.
+
+00:09:00.380 --> 00:09:03.170
+So you can imagine, if the thing
+you're trying to solve is not--
+
+00:09:03.170 --> 00:09:05.630
+I mean, a boundary value
+problem is obviously
+
+00:09:05.630 --> 00:09:06.530
+one thing we can do.
+
+00:09:06.530 --> 00:09:08.470
+But maybe you also
+have a cost that you're
+
+00:09:08.470 --> 00:09:10.700
+trying to optimize over that.
+
+00:09:10.700 --> 00:09:13.670
+Then the basic idea still holds.
+
+00:09:16.190 --> 00:09:21.320
+So I told you the first
+way to start thinking
+
+00:09:21.320 --> 00:09:23.960
+about how to do that last time.
+
+00:09:27.740 --> 00:09:32.480
+We can evaluate J of
+alpha pretty easily.
+
+00:09:32.480 --> 00:09:35.910
+Let me stick with my
+superscript alpha notation.
+
+00:09:35.910 --> 00:09:38.380
+We can evaluate that with just
+forward simulation, right?
+
+00:09:53.190 --> 00:09:55.470
+And if you want to know
+how to change alpha,
+
+00:09:55.470 --> 00:10:02.160
+then it helps to know the
+gradients-- partial J,
+
+00:10:02.160 --> 00:10:06.000
+partial alpha, evaluated
+at the current alpha.
+
+00:10:11.420 --> 00:10:13.460
+I told you one way
+to do that last time,
+
+00:10:13.460 --> 00:10:14.570
+with an adjoint method.
+
+00:10:21.740 --> 00:10:25.820
+Which I still can't resist
+calling back prop through time,
+
+00:10:25.820 --> 00:10:27.320
+because that's--
+
+00:10:27.320 --> 00:10:30.620
+I learned it first as
+a neural networks guy.
+
+00:10:43.200 --> 00:10:48.180
+And there's a second way to
+do it, which in some cases,
+
+00:10:48.180 --> 00:10:49.770
+is not less efficient.
+
+00:10:49.770 --> 00:10:52.860
+But it's certainly easier to
+derive and easier to code.
+
+00:10:52.860 --> 00:10:55.050
+So I want to do that
+to make sure we have
+
+00:10:55.050 --> 00:10:56.250
+the intuition about it too.
+
+00:10:56.250 --> 00:10:58.993
+It's also useful.
+
+00:10:58.993 --> 00:11:00.910
+Again, this is the neural
+network name for it.
+
+00:11:00.910 --> 00:11:03.510
+There's probably a good name
+from more standard optimization
+
+00:11:03.510 --> 00:11:04.010
+theory.
+
+00:11:04.010 --> 00:11:08.400
+But in neural networks, people
+call it real-time recurrent
+
+00:11:08.400 --> 00:11:18.510
+learning, which is RTRL.
+
+00:11:18.510 --> 00:11:19.245
+And this is BPTT.
+
+00:11:26.100 --> 00:11:29.580
+So how do we compute J of alpha?
+
+00:11:32.400 --> 00:11:36.000
+The adjoint method, I told
+you that if you simulate
+
+00:11:36.000 --> 00:11:38.640
+the system forward
+in time, you get
+
+00:11:38.640 --> 00:11:41.280
+the sort of forward equation.
+
+00:11:41.280 --> 00:11:44.400
+You figure out J. If you then
+simulate the adjoint equation
+
+00:11:44.400 --> 00:11:47.430
+backwards in time,
+I called it y.
+
+00:11:47.430 --> 00:11:49.660
+y dot is some function
+going backwards.
+
+00:11:49.660 --> 00:11:55.200
+You can interpret y as being
+the sensitivity of changing--
+
+00:11:55.200 --> 00:11:58.500
+so let me just write down
+the form of it quickly.
+
+00:11:58.500 --> 00:12:04.830
+So the adjoint,
+remember, was x dot
+
+00:12:04.830 --> 00:12:06.480
+equals f of x going forward.
+
+00:12:23.038 --> 00:12:26.000
+Did I actually right
+down the right equation
+
+00:12:26.000 --> 00:12:27.110
+for you going backwards?
+
+00:12:30.300 --> 00:12:41.280
+And then, negative y
+dot is f of x y minus G
+
+00:12:41.280 --> 00:12:45.060
+of x T. Where those are the big
+gradient matrices I wrote down
+
+00:12:45.060 --> 00:12:46.920
+last time, going backwards.
+
+00:12:55.250 --> 00:13:01.460
+And then, the update gives you,
+that partial J partial alpha
+
+00:13:01.460 --> 00:13:03.290
+is just a simple integral now.
+
+00:13:16.360 --> 00:13:18.598
+So this backwards
+equation, which
+
+00:13:18.598 --> 00:13:20.140
+happens to be the
+adjoint equation we
+
+00:13:20.140 --> 00:13:22.750
+saw in Pontryagin's
+minimum principle. y has
+
+00:13:22.750 --> 00:13:25.390
+an interpretation
+as the sensitivity
+
+00:13:25.390 --> 00:13:32.140
+of the cost on changing x-- y
+at some time T, y at time 3.
+
+00:13:32.140 --> 00:13:34.960
+It's the same size, the
+same dimension as x--
+
+00:13:34.960 --> 00:13:36.970
+this y variable.
+
+00:13:36.970 --> 00:13:39.280
+It's a column
+vector just like x.
+
+00:13:39.280 --> 00:13:41.650
+It has the interpretation,
+it's the sensitivity
+
+00:13:41.650 --> 00:13:45.500
+of J on changing x at that time.
+
+00:13:45.500 --> 00:13:48.640
+So you compute forward, then you
+compute back the gradient of J
+
+00:13:48.640 --> 00:13:50.080
+with respect to x of t.
+
+00:13:50.080 --> 00:13:51.970
+And then knowing
+that, you can simply
+
+00:13:51.970 --> 00:13:58.283
+compute the full gradient
+with respect to the alpha.
+
+00:13:58.283 --> 00:13:59.950
+And that took a little
+bit of derivation
+
+00:13:59.950 --> 00:14:02.860
+through the Lagrange
+multipliers.
+
+00:14:02.860 --> 00:14:04.900
+RTRL is actually even simpler.
+
+00:14:08.940 --> 00:14:11.950
+Is it OK if that wall
+disappears for a minute?
+
+00:14:11.950 --> 00:14:13.536
+We wrote that last time, right?
+
+00:14:13.536 --> 00:14:16.420
+I'm just going to go
+to my third wall here.
+
+00:14:23.845 --> 00:14:25.720
+This time, I'm only
+going to simulate forward
+
+00:14:25.720 --> 00:14:27.820
+in time, which is
+why it's called
+
+00:14:27.820 --> 00:14:29.080
+real-time recurrent learning.
+
+00:14:29.080 --> 00:14:33.220
+Because some people don't like
+having to simulate forward
+
+00:14:33.220 --> 00:14:35.260
+to capital T and then
+simulate all the way
+
+00:14:35.260 --> 00:14:36.440
+back to make an update.
+
+00:14:36.440 --> 00:14:40.750
+That's sort of, we have to go
+all the way to the end of time
+
+00:14:40.750 --> 00:14:42.460
+in order to make your
+update at time 2.
+
+00:14:42.460 --> 00:14:44.920
+It's more appealing if you
+can make your update at time 2
+
+00:14:44.920 --> 00:14:47.320
+by just thinking
+about time 0 to 2.
+
+00:14:47.320 --> 00:14:50.410
+So you can do it in
+a forward pass only.
+
+00:14:50.410 --> 00:14:56.010
+The name came from maybe that,
+I think, at one point in time,
+
+00:14:56.010 --> 00:14:58.510
+someone maybe thought maybe
+this is what the brain is doing.
+
+00:14:58.510 --> 00:15:00.093
+Because people thought
+the brain can't
+
+00:15:00.093 --> 00:15:02.878
+be doing these backward
+passes efficiently.
+
+00:15:02.878 --> 00:15:04.420
+So maybe real-time
+recurring learning
+
+00:15:04.420 --> 00:15:05.830
+is what the brain is doing.
+
+00:15:05.830 --> 00:15:08.590
+But I don't think people
+really think that anymore.
+
+00:15:08.590 --> 00:15:10.270
+There was one paper
+that thought that,
+
+00:15:10.270 --> 00:15:12.580
+which is a nice paper, but--
+
+00:15:12.580 --> 00:15:14.290
+So let's do, let me
+just show you RTRL,
+
+00:15:14.290 --> 00:15:18.760
+because it turns out to be maybe
+even the more simple thing.
+
+00:15:18.760 --> 00:15:26.330
+So I have J of alpha
+starting from x0,
+
+00:15:26.330 --> 00:15:39.410
+0 is the integral from T.
+Oops, I did that again.
+
+00:15:42.660 --> 00:15:47.010
+Let me come up with a
+new working variable.
+
+00:15:47.010 --> 00:15:50.220
+The previous one y was
+useful coming backwards.
+
+00:15:50.220 --> 00:15:55.140
+If we're going to go forward,
+let me define a matrix, P,
+
+00:15:55.140 --> 00:16:01.260
+where the ij-th element is a
+partial xi, partial alpha i.
+
+00:16:08.820 --> 00:16:11.357
+If I have that and I
+want to take gradients
+
+00:16:11.357 --> 00:16:13.940
+with respect to this, then I can
+do it pretty easily actually.
+
+00:16:13.940 --> 00:16:19.410
+If I want to do partial
+J partial alpha,
+
+00:16:19.410 --> 00:16:21.780
+I can go inside the integral.
+
+00:16:21.780 --> 00:16:22.920
+It's just dt.
+
+00:16:22.920 --> 00:16:24.960
+I'm just using my
+chain rule here.
+
+00:16:24.960 --> 00:16:31.940
+I get partial G, partial x,
+partial x, partial alpha.
+
+00:16:31.940 --> 00:16:37.590
+These are x at some time
+T, plus partial G partial
+
+00:16:37.590 --> 00:16:45.510
+U at time T, partial
+pi, partial alpha.
+
+00:16:49.450 --> 00:16:52.900
+And in general, if I have a
+feedback term in my policy,
+
+00:16:52.900 --> 00:16:55.390
+I also got to worry
+about partial G,
+
+00:16:55.390 --> 00:17:02.770
+partial U, partial pi, partial
+x, partial x, partial alpha.
+
+00:17:06.339 --> 00:17:08.198
+It's just a chain rule
+derivative of this.
+
+00:17:08.198 --> 00:17:08.740
+Do you agree?
+
+00:17:12.898 --> 00:17:16.540
+It turns out, using
+the matrices we
+
+00:17:16.540 --> 00:17:20.500
+had used before, I can write
+that very simply as integral
+
+00:17:20.500 --> 00:17:27.460
+from 0 to T of Gx, the big
+derivative of x times P,
+
+00:17:27.460 --> 00:17:33.310
+this matrix here, plus the
+big derivative of G on alpha.
+
+00:17:39.660 --> 00:17:47.910
+If we know partial x of t
+partial alpha, then it's easy.
+
+00:17:47.910 --> 00:17:53.700
+So how do we get partial
+x T partial alpha?
+
+00:17:53.700 --> 00:17:54.690
+Well, that's easy too.
+
+00:18:07.920 --> 00:18:09.990
+Let's look at the
+forward equation
+
+00:18:09.990 --> 00:18:18.790
+here, xu which is, in this
+case, pi alpha x of T.
+
+00:18:18.790 --> 00:18:22.370
+So let's look at how
+this changes with alpha.
+
+00:18:22.370 --> 00:18:24.370
+Let's take the derivative
+with respect to alpha.
+
+00:18:24.370 --> 00:18:26.230
+I'll write it even
+more cleanly--
+
+00:18:37.180 --> 00:18:43.750
+partial f, partial
+x plus partial f,
+
+00:18:43.750 --> 00:18:51.970
+partial U, partial pi, partial
+x times P, which is partial
+
+00:18:51.970 --> 00:18:54.636
+x, partial alpha.
+
+00:18:54.636 --> 00:18:55.540
+Let me write it as--
+
+00:19:13.810 --> 00:19:17.630
+Everybody agree with
+that chain rule?
+
+00:19:17.630 --> 00:19:18.330
+No?
+
+00:19:18.330 --> 00:19:19.150
+OK, ask me.
+
+00:19:19.150 --> 00:19:19.930
+Yeah.
+
+00:19:19.930 --> 00:19:22.892
+AUDIENCE: So there you
+have G with respect
+
+00:19:22.892 --> 00:19:25.663
+to x and then P
+[INAUDIBLE] And then
+
+00:19:25.663 --> 00:19:27.980
+we have G of alpha which
+would be the second variable.
+
+00:19:27.980 --> 00:19:31.820
+What happened in the third one?
+
+00:19:31.820 --> 00:19:35.540
+RUSS TEDRAKE: G of x is
+actually partial G partial x
+
+00:19:35.540 --> 00:19:36.590
+plus partial U--
+
+00:19:36.590 --> 00:19:39.476
+G partial U, partial
+pi, partial x.
+
+00:19:39.476 --> 00:19:41.220
+AUDIENCE: Oh, I see.
+
+00:19:41.220 --> 00:19:43.905
+RUSS TEDRAKE: That's the big
+gradient with respect to x.
+
+00:19:43.905 --> 00:19:47.421
+AUDIENCE: And that I on the
+bottom is J. Is that correct?
+
+00:19:47.421 --> 00:19:49.410
+[INAUDIBLE]
+
+00:19:49.410 --> 00:19:52.365
+RUSS TEDRAKE: This
+is now the matrix P.
+
+00:19:52.365 --> 00:19:53.373
+AUDIENCE: [INAUDIBLE]
+
+00:19:53.373 --> 00:19:54.540
+RUSS TEDRAKE: Oh, thank you.
+
+00:19:54.540 --> 00:19:56.950
+That should be a
+J on the bottom.
+
+00:19:56.950 --> 00:19:58.482
+Good, thank you.
+
+00:19:58.482 --> 00:19:59.940
+Please do catch me
+on those things.
+
+00:20:05.150 --> 00:20:07.130
+Yeah, thank you.
+
+00:20:07.130 --> 00:20:08.700
+So then, are we happy with this?
+
+00:20:14.190 --> 00:20:16.380
+So this is pretty simple too.
+
+00:20:16.380 --> 00:20:18.720
+Just now, I get an
+equation forward
+
+00:20:18.720 --> 00:20:22.720
+in the gradients P
+dot is my big f of x.
+
+00:20:22.720 --> 00:20:26.550
+Which I get is the direct
+and the indirect gradient
+
+00:20:26.550 --> 00:20:31.840
+with respect to x times P plus
+the gradient of F with respect
+
+00:20:31.840 --> 00:20:32.540
+to alpha.
+
+00:20:45.610 --> 00:20:46.280
+And that's it.
+
+00:20:49.450 --> 00:20:51.920
+I'm almost waiting
+for more to do, right?
+
+00:20:51.920 --> 00:20:54.260
+So if you're willing to go--
+
+00:20:54.260 --> 00:20:58.670
+if you want to go
+forward in time, then
+
+00:20:58.670 --> 00:21:06.020
+if you're willing to keep around
+this extra term, partial x
+
+00:21:06.020 --> 00:21:08.930
+partial alpha, then as
+you move forward in time,
+
+00:21:08.930 --> 00:21:16.640
+you can build up your gradient
+of partial J partial alpha.
+
+00:21:16.640 --> 00:21:18.590
+And by the time you
+get to the end of time,
+
+00:21:18.590 --> 00:21:20.307
+you don't have to
+go backwards again.
+
+00:21:20.307 --> 00:21:21.890
+You know what the
+total derivative is.
+
+00:21:27.360 --> 00:21:31.000
+So why would you use this
+versus the other method?
+
+00:21:31.000 --> 00:21:33.330
+Does everybody agree with that?
+
+00:21:33.330 --> 00:21:38.440
+I don't see big smiles, but
+this is satisfying and simple--
+
+00:21:38.440 --> 00:21:38.940
+smile.
+
+00:21:41.790 --> 00:21:45.505
+The cost of this is
+carrying around this matrix.
+
+00:21:49.470 --> 00:21:51.090
+So potentially,
+that could be big.
+
+00:21:51.090 --> 00:21:52.890
+If you have a lot of
+parameters, let's say
+
+00:21:52.890 --> 00:21:55.740
+I have 100 parameters
+in my control system,
+
+00:21:55.740 --> 00:21:57.913
+or 10,000 parameters
+in my control system,
+
+00:21:57.913 --> 00:22:00.330
+then you're actually integrating
+forward a matrix equation
+
+00:22:00.330 --> 00:22:01.650
+that could be pretty big.
+
+00:22:01.650 --> 00:22:03.060
+It's something that's x--
+
+00:22:03.060 --> 00:22:07.820
+the dimension of x by
+the number of parameters.
+
+00:22:07.820 --> 00:22:13.240
+So that's one-- that's really
+the only problem with it.
+
+00:22:13.240 --> 00:22:19.620
+The back prop
+through time is only
+
+00:22:19.620 --> 00:22:24.120
+carrying around this y,
+which is the size of x.
+
+00:22:24.120 --> 00:22:27.120
+But to do this sort of nice
+forward-backward update,
+
+00:22:27.120 --> 00:22:30.300
+you'd better be able to
+remember the trajectory
+
+00:22:30.300 --> 00:22:34.510
+that x has taken over time.
+
+00:22:34.510 --> 00:22:36.780
+So for very long
+trajectories, it
+
+00:22:36.780 --> 00:22:40.213
+might not be much more
+efficient to do this.
+
+00:22:40.213 --> 00:22:41.130
+It's just a trade-off.
+
+00:22:41.130 --> 00:22:44.400
+Some problems are actually
+quite nicely done in RTRL.
+
+00:22:44.400 --> 00:22:47.180
+Some are nicely done with
+back prop through time.
+
+00:22:47.180 --> 00:22:49.200
+The back prop through
+time is, the reason
+
+00:22:49.200 --> 00:22:50.820
+it's so beautiful
+and clean is that--
+
+00:22:53.700 --> 00:23:00.040
+so remembering your goal here is
+to compute a vector, partial J,
+
+00:23:00.040 --> 00:23:05.340
+which J is a scalar with respect
+to a vector of parameters.
+
+00:23:05.340 --> 00:23:08.580
+Here you have to carry around
+a matrix to do that, partial x
+
+00:23:08.580 --> 00:23:10.230
+forward.
+
+00:23:10.230 --> 00:23:12.570
+The back prop through time
+takes advantage of the fact
+
+00:23:12.570 --> 00:23:14.640
+that at the end of
+time, everything
+
+00:23:14.640 --> 00:23:16.530
+collapses to a scalar again.
+
+00:23:16.530 --> 00:23:19.253
+And that's why it only has
+to sort of carry backwards.
+
+00:23:19.253 --> 00:23:21.420
+If you willing to go all
+the way to the end of time,
+
+00:23:21.420 --> 00:23:26.130
+you can remember only the
+effect of that scalar value, j,
+
+00:23:26.130 --> 00:23:28.650
+with respect to the x's.
+
+00:23:28.650 --> 00:23:33.372
+So that's why you're allowed
+to carry around less of this.
+
+00:23:33.372 --> 00:23:35.205
+But it involves going
+forward and backwards.
+
+00:23:39.260 --> 00:23:40.320
+Is that intuitive?
+
+00:23:40.320 --> 00:23:40.820
+Yeah?
+
+00:23:44.640 --> 00:23:45.900
+What can I say more?
+
+00:23:54.708 --> 00:23:56.250
+There's various
+other reasons why you
+
+00:23:56.250 --> 00:23:57.550
+might prefer one or the other.
+
+00:23:57.550 --> 00:24:01.230
+So for instance, let's
+say you have a final--
+
+00:24:01.230 --> 00:24:02.190
+a boundary condition.
+
+00:24:02.190 --> 00:24:08.620
+Let's say you want to
+solve this constraint,
+
+00:24:08.620 --> 00:24:10.620
+minimize this function
+subject to the constraint
+
+00:24:10.620 --> 00:24:13.740
+that x of capital T is my goal.
+
+00:24:16.980 --> 00:24:19.920
+You can write that constraint
+into either of them.
+
+00:24:19.920 --> 00:24:24.900
+I find it more natural to
+write it into this RTRL form.
+
+00:24:24.900 --> 00:24:30.120
+Just because you know explicitly
+partial x, partial alpha.
+
+00:24:30.120 --> 00:24:31.620
+So if you want to
+compute at the end
+
+00:24:31.620 --> 00:24:34.170
+your constraint derivatives,
+saying what should I have done?
+
+00:24:34.170 --> 00:24:35.340
+How should I have
+changed alpha in order
+
+00:24:35.340 --> 00:24:36.750
+to enforce that constraint?
+
+00:24:36.750 --> 00:24:41.220
+Then it's actually a
+simple function of P.
+
+00:24:41.220 --> 00:24:43.650
+So maybe I'm not giving
+you a silver bullet
+
+00:24:43.650 --> 00:24:45.150
+by telling you one
+way or the other.
+
+00:24:45.150 --> 00:24:47.700
+But depending on exactly the
+way you want to use them,
+
+00:24:47.700 --> 00:24:50.067
+sometimes one is more
+useful than the other.
+
+00:24:50.067 --> 00:24:51.900
+So in the simulations
+I'm about to show you,
+
+00:24:51.900 --> 00:24:54.120
+I'm going to actually RTRL,
+just because it's also,
+
+00:24:54.120 --> 00:24:55.370
+this is trivial to code.
+
+00:25:01.810 --> 00:25:06.820
+But the big idea here
+is really just that I'm
+
+00:25:06.820 --> 00:25:07.870
+doing a shooting method.
+
+00:25:07.870 --> 00:25:09.760
+I'm simulating
+this thing forward.
+
+00:25:09.760 --> 00:25:11.920
+And I'm trying to compute
+what's the change.
+
+00:25:11.920 --> 00:25:14.620
+And that's my scalar
+cost with respect
+
+00:25:14.620 --> 00:25:16.600
+to a change in my parameters.
+
+00:25:16.600 --> 00:25:18.970
+So that I can then
+update my parameters.
+
+00:25:18.970 --> 00:25:21.830
+And last time, we talked about
+multiple ways to do that.
+
+00:25:21.830 --> 00:25:24.310
+You might do that with a simple
+gradient descent algorithm.
+
+00:25:30.010 --> 00:25:31.260
+You could do gradient descent.
+
+00:25:38.740 --> 00:25:42.820
+You could say that
+alpha at the n plus 1
+
+00:25:42.820 --> 00:25:48.310
+step is just alpha n minus
+some learning rate, eta,
+
+00:25:48.310 --> 00:25:50.890
+times partial J partial alpha.
+
+00:25:59.020 --> 00:26:02.890
+And I argued last time
+that you can do better
+
+00:26:02.890 --> 00:26:08.890
+than that by sequential
+quadratic programming.
+
+00:26:08.890 --> 00:26:11.890
+To the point where SQP methods
+are so robust that you just
+
+00:26:11.890 --> 00:26:18.790
+find something like SNOPT, you
+download it, and you use it.
+
+00:26:18.790 --> 00:26:22.300
+And I'll try to convince you
+as we run some of these things
+
+00:26:22.300 --> 00:26:25.420
+that apart from installing
+a package, which
+
+00:26:25.420 --> 00:26:28.220
+takes a few minutes,
+once you do it,
+
+00:26:28.220 --> 00:26:30.460
+you'll never go back to this.
+
+00:26:30.460 --> 00:26:32.440
+I'll tell you one reason
+right off the bat.
+
+00:26:32.440 --> 00:26:36.280
+Choosing the learning rate
+is a pain in the butt.
+
+00:26:36.280 --> 00:26:39.170
+You never have to do it again.
+
+00:26:39.170 --> 00:26:39.670
+So?
+
+00:26:44.590 --> 00:26:47.560
+Let's see some examples.
+
+00:26:47.560 --> 00:26:51.070
+Let me do the
+pendulum with SNOPT.
+
+00:26:51.070 --> 00:26:57.730
+So using SNOPT is just,
+all you do is you tell it--
+
+00:26:57.730 --> 00:27:01.060
+you give it a function
+which can compute J and J,
+
+00:27:01.060 --> 00:27:07.030
+the derivatives of J. It's
+SNOPT stood for sparse nonlinear
+
+00:27:07.030 --> 00:27:07.540
+optimal--
+
+00:27:07.540 --> 00:27:09.760
+or optimization.
+
+00:27:09.760 --> 00:27:15.820
+And in a lot of
+problems, many elements
+
+00:27:15.820 --> 00:27:20.440
+of this vector, partial
+J partial alpha, are 0.
+
+00:27:20.440 --> 00:27:23.980
+We're going to see that in our
+direct collocation methods.
+
+00:27:23.980 --> 00:27:25.540
+A lot of those gradients are 0.
+
+00:27:25.540 --> 00:27:28.060
+It happens in the
+one I just told you.
+
+00:27:28.060 --> 00:27:30.070
+This is typically not--
+
+00:27:30.070 --> 00:27:32.350
+typically all of those
+elements of that vector
+
+00:27:32.350 --> 00:27:36.190
+are non-zero, which
+means I'm not actually
+
+00:27:36.190 --> 00:27:37.960
+getting an advantage
+by using the sparse.
+
+00:27:37.960 --> 00:27:40.540
+NPSOL is the non-sparse version.
+
+00:27:40.540 --> 00:27:44.038
+But I don't think it's
+much worse, if any worse.
+
+00:27:44.038 --> 00:27:45.580
+Just for those of
+you that are trying
+
+00:27:45.580 --> 00:27:47.080
+to figure out which
+package you want
+
+00:27:47.080 --> 00:27:49.270
+to convince your PI to buy.
+
+00:27:49.270 --> 00:27:51.130
+I think SNOPT is
+normally pretty good.
+
+00:27:54.760 --> 00:27:57.370
+And there's a student
+version that we
+
+00:27:57.370 --> 00:27:59.650
+can have you download
+that'll do small problems.
+
+00:28:02.530 --> 00:28:04.570
+So let's do the pendulum.
+
+00:28:04.570 --> 00:28:26.170
+My cost function here,
+is just an LQR cost.
+
+00:28:26.170 --> 00:28:29.620
+I have Q as a--
+
+00:28:29.620 --> 00:28:34.120
+I have J as the integral
+from 0 to capital T
+
+00:28:34.120 --> 00:28:39.580
+of x minus the x goal.
+
+00:28:39.580 --> 00:28:41.080
+I had to be careful
+about wrapping.
+
+00:28:41.080 --> 00:28:50.170
+But transpose Q x minus x
+goal plus u transpose Ru.
+
+00:28:50.170 --> 00:28:51.790
+The whole thing, dt, right?
+
+00:28:55.480 --> 00:29:20.200
+And I actually also have a final
+value cost where Q is 10, 1.
+
+00:29:20.200 --> 00:29:25.346
+Qf is 100 times
+that or something.
+
+00:29:25.346 --> 00:29:38.465
+Q and R is 100.
+
+00:29:38.465 --> 00:29:40.840
+So it's going to reward the
+thing for getting to the top.
+
+00:29:43.092 --> 00:29:44.050
+Let's see what it does.
+
+00:29:44.050 --> 00:29:48.730
+I'm going to plot the
+trajectory for every step
+
+00:29:48.730 --> 00:29:50.290
+of the optimization.
+
+00:29:50.290 --> 00:29:52.840
+So it's not quite doing
+simple gradient descent.
+
+00:29:52.840 --> 00:29:55.180
+It's now going to do
+a sequential quadratic
+
+00:29:55.180 --> 00:29:57.910
+programming update where it
+estimates the quadratic bowl
+
+00:29:57.910 --> 00:30:00.410
+and tries to jump right to
+the minimum of the bowl.
+
+00:30:00.410 --> 00:30:03.020
+So it's going to be a little
+bit more jumpy, as you see it,
+
+00:30:03.020 --> 00:30:03.640
+but it's fast.
+
+00:30:09.400 --> 00:30:12.562
+It's finding the last
+optimization and then
+
+00:30:12.562 --> 00:30:13.836
+boop, right to the top.
+
+00:30:17.323 --> 00:30:18.490
+AUDIENCE: I have a question.
+
+00:30:18.490 --> 00:30:20.157
+So how is this
+trajectory parameterized?
+
+00:30:20.157 --> 00:30:21.160
+Is it just openly.
+
+00:30:21.160 --> 00:30:27.340
+RUSS TEDRAKE: It's exactly
+this, the floor of T over dt.
+
+00:30:27.340 --> 00:30:31.930
+My sloppy notation was
+because it's MATLAB notation.
+
+00:30:31.930 --> 00:30:36.160
+AUDIENCE: So when
+they say [INAUDIBLE]..
+
+00:30:36.160 --> 00:30:39.100
+RUSS TEDRAKE: That's
+the open-loop policy,
+
+00:30:39.100 --> 00:30:45.820
+which had U at time T,
+was just, I do a floor,
+
+00:30:45.820 --> 00:30:50.450
+and I go to the
+n-th index in alpha.
+
+00:30:50.450 --> 00:30:55.783
+So alpha 1 is my control
+action from 0 to dt.
+
+00:30:55.783 --> 00:30:57.700
+AUDIENCE: So how many
+parameters is this case?
+
+00:30:57.700 --> 00:30:58.528
+[INAUDIBLE]
+
+00:30:58.528 --> 00:30:59.320
+RUSS TEDRAKE: Good.
+
+00:30:59.320 --> 00:31:10.250
+So I did two seconds
+covered by 40 bins.
+
+00:31:12.970 --> 00:31:14.725
+I bet if I do 20 bins, it's OK.
+
+00:31:14.725 --> 00:31:18.920
+It may be a little
+less faithful to the--
+
+00:31:18.920 --> 00:31:20.320
+less smooth.
+
+00:31:20.320 --> 00:31:24.100
+But it works out.
+
+00:31:30.340 --> 00:31:34.450
+So please realize that
+like 60% of that time
+
+00:31:34.450 --> 00:31:37.870
+was just drawing those plots
+to the screen, easily, right?
+
+00:31:40.517 --> 00:31:43.100
+Especially when it's reshaping
+the screen and stuff like that.
+
+00:31:43.100 --> 00:31:45.460
+That's wasted time.
+
+00:31:45.460 --> 00:31:49.508
+So hey, we could do the same
+thing on the [? karpal. ?]
+
+00:31:49.508 --> 00:31:53.113
+AUDIENCE: Can we do this
+without [INAUDIBLE]??
+
+00:31:53.113 --> 00:31:54.280
+RUSS TEDRAKE: Good question.
+
+00:31:54.280 --> 00:31:55.150
+Yes.
+
+00:31:55.150 --> 00:31:58.870
+So yes, it's quite simple.
+
+00:31:58.870 --> 00:32:00.970
+In direct collocation,
+it's really simple.
+
+00:32:00.970 --> 00:32:04.510
+So actually, my code does
+it for direct collocation
+
+00:32:04.510 --> 00:32:06.462
+and doesn't do it
+for the gradient.
+
+00:32:06.462 --> 00:32:07.670
+But it's actually quite fine.
+
+00:32:07.670 --> 00:32:10.630
+You just have to have T as
+one of your parameters tucked
+
+00:32:10.630 --> 00:32:12.130
+into alpha and be
+able to compute
+
+00:32:12.130 --> 00:32:19.690
+partial J, partial T, which
+is not very hard actually.
+
+00:32:19.690 --> 00:32:24.070
+You just have to figure out
+how this function changes when
+
+00:32:24.070 --> 00:32:26.530
+you take a derivative with
+respect to T. And it's just,
+
+00:32:26.530 --> 00:32:29.153
+it's like an x dot
+times the quantity J
+
+00:32:29.153 --> 00:32:32.420
+at T. It's not too bad.
+
+00:32:32.420 --> 00:32:35.170
+If you can take that gradient,
+you can optimize with respect
+
+00:32:35.170 --> 00:32:36.850
+to it.
+
+00:32:36.850 --> 00:32:45.728
+So what about for the
+[? card pull? ?] Well, oh I
+
+00:32:45.728 --> 00:32:47.020
+forgot, I took off the zooming.
+
+00:32:47.020 --> 00:32:50.200
+So I gave it a fixed axis.
+
+00:32:58.850 --> 00:33:00.350
+It's going to make
+a liar out of me.
+
+00:33:00.350 --> 00:33:01.760
+This is the slowest I've seen.
+
+00:33:13.770 --> 00:33:14.270
+There it is.
+
+00:33:35.060 --> 00:33:37.302
+Let me do that again.
+
+00:33:37.302 --> 00:33:39.010
+It's certainly more
+impressive than that.
+
+00:33:46.320 --> 00:33:48.850
+It's starting from random
+initial tapes, by the way.
+
+00:33:48.850 --> 00:33:51.645
+And every time I've run it
+for the [? card pull, ?]
+
+00:33:51.645 --> 00:33:53.120
+it comes up with
+the same solution.
+
+00:34:00.020 --> 00:34:00.770
+Come on.
+
+00:34:06.290 --> 00:34:06.850
+There we go.
+
+00:34:09.514 --> 00:34:13.320
+All right, not quite
+as impressive as it
+
+00:34:13.320 --> 00:34:16.679
+was in the lab, but
+that's still pretty good.
+
+00:34:16.679 --> 00:34:19.850
+If I turn off drawing,
+it bet it's a lot faster.
+
+00:34:37.440 --> 00:34:49.155
+So I turned off
+drawing, there you go.
+
+00:34:49.155 --> 00:34:51.280
+I think my computer is
+slower on battery power too.
+
+00:34:51.280 --> 00:34:55.329
+That's probably--
+I'm disappointed.
+
+00:34:55.329 --> 00:34:57.010
+Oh well, it's still pretty fast.
+
+00:35:02.890 --> 00:35:04.510
+AUDIENCE: So I was
+just wondering,
+
+00:35:04.510 --> 00:35:07.480
+if you simulated longer,
+would it stay at the top,
+
+00:35:07.480 --> 00:35:09.187
+or would it fall in?
+
+00:35:12.940 --> 00:35:15.940
+RUSS TEDRAKE: So I actually
+put a final value constraint in
+
+00:35:15.940 --> 00:35:17.050
+on that.
+
+00:35:17.050 --> 00:35:18.220
+So it actually gets to 0, 0.
+
+00:35:21.010 --> 00:35:26.872
+So because I'm simulating, it
+probably would stay up, right?
+
+00:35:26.872 --> 00:35:28.330
+But I think the
+natural thing to do
+
+00:35:28.330 --> 00:35:30.580
+would be to draw
+an LQR controller
+
+00:35:30.580 --> 00:35:32.958
+in at the top for instance.
+
+00:35:32.958 --> 00:35:34.750
+And in fact, we're
+going to talk on Tuesday
+
+00:35:34.750 --> 00:35:36.873
+about how to LQR stabilize
+that whole trajectory.
+
+00:35:36.873 --> 00:35:39.040
+Because for the most part,
+I think open-loop is just
+
+00:35:39.040 --> 00:35:40.750
+the first piece of the--
+
+00:35:40.750 --> 00:35:41.980
+just is one of the tools.
+
+00:35:48.260 --> 00:35:49.045
+Good.
+
+00:35:49.045 --> 00:35:50.170
+So what happens if we did--
+
+00:35:54.395 --> 00:35:55.520
+you can do the acrobot too.
+
+00:35:55.520 --> 00:35:57.062
+I'll do the acrobot
+in a second here.
+
+00:35:57.062 --> 00:36:02.470
+But I also have the sort of
+simple gradient [? descent ?]
+
+00:36:02.470 --> 00:36:05.620
+version in here.
+
+00:36:05.620 --> 00:36:09.730
+That if I just did
+my alpha equals
+
+00:36:09.730 --> 00:36:13.720
+negative eta times dJ d alpha in
+there, let's see how that does.
+
+00:36:25.740 --> 00:36:27.660
+Was that faster?
+
+00:36:27.660 --> 00:36:28.622
+Let's do it.
+
+00:36:28.622 --> 00:36:30.550
+Let me try that again.
+
+00:36:34.410 --> 00:36:35.372
+That's not running.
+
+00:36:35.372 --> 00:36:36.080
+I didn't save it.
+
+00:36:38.930 --> 00:36:40.430
+I knew that was too
+good to be true.
+
+00:36:44.300 --> 00:36:45.538
+OK, my ears are too big.
+
+00:36:45.538 --> 00:36:47.330
+I probably have to
+change my learning rate.
+
+00:36:47.330 --> 00:36:51.080
+Thereby confirming
+my complaint that--
+
+00:36:57.390 --> 00:37:02.700
+OK, so it works.
+
+00:37:02.700 --> 00:37:04.770
+But never do it again,
+you don't need to.
+
+00:37:04.770 --> 00:37:08.020
+Just download SNOPT.
+
+00:37:08.020 --> 00:37:09.270
+It'll get there eventually.
+
+00:37:09.270 --> 00:37:11.100
+You can see the
+errors going down.
+
+00:37:11.100 --> 00:37:16.350
+And if I set my
+learning rate properly,
+
+00:37:16.350 --> 00:37:18.870
+it'll go down pretty fast.
+
+00:37:18.870 --> 00:37:20.970
+But not fast enough
+for me to be patient.
+
+00:37:23.490 --> 00:37:29.930
+And then, here's the
+SNOPT version again.
+
+00:37:33.800 --> 00:37:36.510
+Now the pendulum is very fast.
+
+00:37:36.510 --> 00:37:37.010
+Good.
+
+00:37:41.060 --> 00:37:46.760
+Let me do direct collocation
+before we get too mystified
+
+00:37:46.760 --> 00:37:47.750
+by the simulations.
+
+00:37:50.670 --> 00:37:51.590
+There's another idea.
+
+00:37:55.790 --> 00:37:59.440
+So shooting methods
+are certainly
+
+00:37:59.440 --> 00:38:00.850
+subject to local minima.
+
+00:38:00.850 --> 00:38:04.990
+And I've got an example that
+I'll show you in a few minutes
+
+00:38:04.990 --> 00:38:09.580
+that I hope will make
+that clear why they
+
+00:38:09.580 --> 00:38:10.930
+can be subject to local minima.
+
+00:38:13.630 --> 00:38:16.480
+Something that people
+do, they do sometimes
+
+00:38:16.480 --> 00:38:17.830
+multiple shooting methods.
+
+00:38:17.830 --> 00:38:20.830
+Sometimes it's sort of, there's
+even numerical sensitivity
+
+00:38:20.830 --> 00:38:23.200
+sometimes, sort of integrating
+this thing for such
+
+00:38:23.200 --> 00:38:24.830
+a long time.
+
+00:38:24.830 --> 00:38:27.927
+So a lot of times, people
+will define some breakpoint
+
+00:38:27.927 --> 00:38:30.010
+in the middle of there,
+some artificial breakpoint
+
+00:38:30.010 --> 00:38:32.740
+in the middle of
+their trajectory.
+
+00:38:32.740 --> 00:38:35.170
+And say, I'm going
+to optimize, first
+
+00:38:35.170 --> 00:38:36.980
+try to get me to this point.
+
+00:38:36.980 --> 00:38:42.250
+And then I'll say if I simulated
+from some other point to here
+
+00:38:42.250 --> 00:38:44.500
+and then use as a constraint
+in their optimization
+
+00:38:44.500 --> 00:38:49.815
+to try to make that residual
+go to 0, if that makes sense.
+
+00:38:49.815 --> 00:38:51.940
+I'm just not going to talk
+about multiple shooting.
+
+00:38:51.940 --> 00:38:57.443
+But just know that there's a
+version that people use often,
+
+00:38:57.443 --> 00:38:59.110
+which are the multiple
+shooting methods.
+
+00:39:05.133 --> 00:39:06.550
+To some extent,
+direct collocation
+
+00:39:06.550 --> 00:39:08.680
+is maybe the extreme of that.
+
+00:39:12.563 --> 00:39:14.230
+I told you there's a
+lot of good reasons
+
+00:39:14.230 --> 00:39:17.620
+to use SNOPT, or some SQP.
+
+00:39:17.620 --> 00:39:25.610
+So first of all, why use SNOPT?
+
+00:39:28.990 --> 00:39:32.800
+No learning rate tweaking,
+that's a big one for me.
+
+00:39:37.060 --> 00:39:38.950
+It's often faster convergence.
+
+00:39:46.510 --> 00:39:50.020
+Because you are doing big steps.
+
+00:39:50.020 --> 00:39:55.930
+You can sometimes jump
+over small local minima.
+
+00:40:02.710 --> 00:40:06.910
+But there's a big one in there
+that's not on the list yet.
+
+00:40:06.910 --> 00:40:10.240
+What's the big one
+I'm going to say?
+
+00:40:13.550 --> 00:40:17.943
+What's perhaps the best
+reason, I think, to use SNOPT?
+
+00:40:17.943 --> 00:40:19.110
+AUDIENCE: Fewer constraints?
+
+00:40:19.110 --> 00:40:19.940
+RUSS TEDRAKE: Good.
+
+00:40:19.940 --> 00:40:21.650
+It's easy to add constraints.
+
+00:40:29.022 --> 00:40:31.230
+Because the way these
+sequential programs are solved,
+
+00:40:31.230 --> 00:40:33.772
+there with these interior point
+methods and things like this.
+
+00:40:33.772 --> 00:40:37.790
+And they're very efficient
+at handling constraints.
+
+00:40:37.790 --> 00:40:42.500
+So in my pendulum swing up on
+the simple gradient descent,
+
+00:40:42.500 --> 00:40:44.510
+I didn't actually have
+a final constraint
+
+00:40:44.510 --> 00:40:46.860
+on getting to the top
+in the SNOPT version.
+
+00:40:46.860 --> 00:40:50.390
+It's just trivial to add that.
+
+00:40:50.390 --> 00:40:52.880
+I can put bounds on my
+actions very easily.
+
+00:40:52.880 --> 00:40:54.350
+I could say, do
+gradient descent,
+
+00:40:54.350 --> 00:41:00.230
+but never let U at time
+T be bigger than 5.
+
+00:41:00.230 --> 00:41:03.470
+I can even put constraints on
+the trajectory if I wanted to.
+
+00:41:07.370 --> 00:41:10.130
+So because of the power
+of nonlinear optimization
+
+00:41:10.130 --> 00:41:15.500
+to handle constraints, people
+came up with a different way
+
+00:41:15.500 --> 00:41:23.930
+to hand the optimal control
+problem to an SQP method
+
+00:41:23.930 --> 00:41:27.260
+that exploits those
+constraint-solving abilities
+
+00:41:27.260 --> 00:41:29.240
+a little bit more explicitly.
+
+00:41:29.240 --> 00:41:31.953
+And that's the direct
+collocation methods.
+
+00:41:31.953 --> 00:41:34.850
+AUDIENCE: Can I ask a
+couple of questions?
+
+00:41:34.850 --> 00:41:37.075
+When we were talking
+about this previous case
+
+00:41:37.075 --> 00:41:39.540
+that you showed, isn't
+it just providing
+
+00:41:39.540 --> 00:41:43.940
+the [INAUDIBLE] function,
+providing the Q's and R's is
+
+00:41:43.940 --> 00:41:46.323
+sufficient to actually
+get [INAUDIBLE]..
+
+00:41:46.323 --> 00:41:49.250
+So if we add an R
+constraint on top of it,
+
+00:41:49.250 --> 00:41:51.390
+it would be [INAUDIBLE]
+on top and sort
+
+00:41:51.390 --> 00:41:56.120
+of like a 2 with
+respect to our method?
+
+00:41:56.120 --> 00:41:57.740
+Because the goal
+we have essentially
+
+00:41:57.740 --> 00:42:02.690
+is to maximize or
+minimize the [INAUDIBLE]
+
+00:42:02.690 --> 00:42:04.340
+over the trajectory.
+
+00:42:04.340 --> 00:42:07.970
+We can put some content, like
+it would be more information.
+
+00:42:07.970 --> 00:42:10.970
+Like for example, I wanted to
+reach this state or that state
+
+00:42:10.970 --> 00:42:12.170
+for sure.
+
+00:42:12.170 --> 00:42:13.290
+We [INAUDIBLE].
+
+00:42:16.070 --> 00:42:18.350
+RUSS TEDRAKE: So I think
+that's a very RL way
+
+00:42:18.350 --> 00:42:20.360
+to think about it--
+
+00:42:20.360 --> 00:42:20.990
+not cheating.
+
+00:42:20.990 --> 00:42:22.670
+I mean, cheat, cheating is good.
+
+00:42:22.670 --> 00:42:25.160
+If you can hand more information
+to your algorithm, do it.
+
+00:42:25.160 --> 00:42:26.285
+Don't worry about cheating.
+
+00:42:26.285 --> 00:42:27.590
+But no, I agree.
+
+00:42:27.590 --> 00:42:30.033
+So the question was, is it
+fair to give it a final value
+
+00:42:30.033 --> 00:42:32.450
+constraint, or am I comparing
+apples and oranges, roughly,
+
+00:42:32.450 --> 00:42:32.950
+right?
+
+00:42:32.950 --> 00:42:36.140
+Like if I say one is not using
+the final value constraint
+
+00:42:36.140 --> 00:42:37.250
+and the other one is.
+
+00:42:37.250 --> 00:42:41.540
+So in my opinion, the goal is
+actually to get there at time
+
+00:42:41.540 --> 00:42:44.480
+T. The optimal control
+program I'd like to solve
+
+00:42:44.480 --> 00:42:54.440
+is minimize some, even
+minimizing just u transpose Ru
+
+00:42:54.440 --> 00:43:00.260
+dt subject to x of t is my goal.
+
+00:43:00.260 --> 00:43:03.737
+That might be my favorite
+way to write it down.
+
+00:43:03.737 --> 00:43:05.570
+And then, just the
+question is, what methods
+
+00:43:05.570 --> 00:43:08.640
+can I use to solve that?
+
+00:43:08.640 --> 00:43:11.150
+So the opposite
+view of the world
+
+00:43:11.150 --> 00:43:13.970
+here maybe is that because
+a lot of the methods
+
+00:43:13.970 --> 00:43:16.010
+don't handle these
+constraints explicitly,
+
+00:43:16.010 --> 00:43:18.230
+I'm stuck writing down
+a cost function, which
+
+00:43:18.230 --> 00:43:22.060
+is x transpose Qx
+plus u transpose Ru,
+
+00:43:22.060 --> 00:43:23.810
+even if that's not
+explicitly what I want.
+
+00:43:23.810 --> 00:43:28.010
+Or maybe I should say,
+especially the closest analogy
+
+00:43:28.010 --> 00:43:30.790
+is if I have a final
+value cost, straight
+
+00:43:30.790 --> 00:43:33.180
+and maybe I make Qf really big.
+
+00:43:33.180 --> 00:43:35.180
+The only question is what
+you really want to do.
+
+00:43:35.180 --> 00:43:38.180
+In most cases, I
+really want to do that.
+
+00:43:38.180 --> 00:43:42.200
+So I'm quite happy
+to use solvers
+
+00:43:42.200 --> 00:43:44.198
+which could do either case.
+
+00:43:44.198 --> 00:43:45.740
+I think a more
+powerful solver is one
+
+00:43:45.740 --> 00:43:47.408
+that can handle either case.
+
+00:43:47.408 --> 00:43:49.100
+AUDIENCE: The other
+question is, if we
+
+00:43:49.100 --> 00:43:52.150
+want to solve something
+which takes a lot of time,
+
+00:43:52.150 --> 00:43:54.600
+like T is relatively
+big, it seems
+
+00:43:54.600 --> 00:43:58.970
+that if this open-loop policy
+thing that you're following
+
+00:43:58.970 --> 00:44:01.280
+has one parameter per time step.
+
+00:44:01.280 --> 00:44:03.680
+RUSS TEDRAKE: It could
+have a lot of parameters.
+
+00:44:03.680 --> 00:44:04.700
+Good.
+
+00:44:04.700 --> 00:44:08.540
+AUDIENCE: But is it
+possible to just describe
+
+00:44:08.540 --> 00:44:10.730
+the whole policy with
+a very limited space
+
+00:44:10.730 --> 00:44:14.750
+with very few parameters
+and solve for that?
+
+00:44:14.750 --> 00:44:17.060
+RUSS TEDRAKE: So I tried
+to be careful to write down
+
+00:44:17.060 --> 00:44:18.000
+the equations.
+
+00:44:18.000 --> 00:44:19.010
+So the question was--
+
+00:44:19.010 --> 00:44:20.510
+can people hear the
+question or not?
+
+00:44:20.510 --> 00:44:24.800
+The question was
+roughly that if we're
+
+00:44:24.800 --> 00:44:27.500
+worried about a problem with
+a very long horizon time,
+
+00:44:27.500 --> 00:44:29.210
+it seems that I
+might have to have
+
+00:44:29.210 --> 00:44:32.150
+a very large list of
+parameters to cover-- to make
+
+00:44:32.150 --> 00:44:34.520
+a tape that's that long.
+
+00:44:34.520 --> 00:44:37.190
+And so, aren't the algorithms
+rather inefficient there?
+
+00:44:37.190 --> 00:44:40.220
+Couldn't I do better by writing
+down maybe a feedback policy?
+
+00:44:40.220 --> 00:44:42.440
+That's often the case is
+that feedback policies can
+
+00:44:42.440 --> 00:44:44.420
+be more compact.
+
+00:44:44.420 --> 00:44:48.800
+So I tried to write
+down all these equations
+
+00:44:48.800 --> 00:44:52.700
+as if there was some dependence
+on x in your policy too.
+
+00:44:52.700 --> 00:44:56.450
+So the equations will be the
+same if you do that version.
+
+00:44:56.450 --> 00:44:58.340
+The only thing that
+I don't handle nicely
+
+00:44:58.340 --> 00:45:00.260
+in the things I'm
+throwing up on the board
+
+00:45:00.260 --> 00:45:03.320
+is that I'm always
+simulating from the same x0.
+
+00:45:03.320 --> 00:45:05.300
+So I'm really
+explicitly optimizing,
+
+00:45:05.300 --> 00:45:07.280
+even if I optimize a
+feedback controller
+
+00:45:07.280 --> 00:45:09.280
+from a single initial
+condition, its performance
+
+00:45:09.280 --> 00:45:10.710
+from a single initial condition.
+
+00:45:10.710 --> 00:45:16.080
+So you can quite easily
+say make a different cost
+
+00:45:16.080 --> 00:45:17.850
+function, which is,
+let's say I want
+
+00:45:17.850 --> 00:45:19.530
+J to be the sum
+of my performance
+
+00:45:19.530 --> 00:45:25.290
+from initial conditions
+K through 100.
+
+00:45:25.290 --> 00:45:29.942
+And this would be,
+let's say, J of xk, 0,
+
+00:45:29.942 --> 00:45:30.900
+or something like this.
+
+00:45:30.900 --> 00:45:33.180
+Maybe I could start
+it from 100 of
+
+00:45:33.180 --> 00:45:34.560
+my favorite initial conditions.
+
+00:45:34.560 --> 00:45:39.510
+And that would try to optimize a
+feedback policy perhaps better.
+
+00:45:39.510 --> 00:45:42.510
+But the only thing that's not
+nicely addressed, I think,
+
+00:45:42.510 --> 00:45:45.870
+is choosing your initial
+conditions in a nice way.
+
+00:45:45.870 --> 00:45:48.285
+DP-- [INAUDIBLE] program
+handles that beautifully.
+
+00:45:48.285 --> 00:45:50.160
+And these things are
+much more local methods.
+
+00:45:50.160 --> 00:45:52.230
+So they have to be in there.
+
+00:45:52.230 --> 00:45:53.220
+But I absolutely agree.
+
+00:45:53.220 --> 00:45:59.670
+Oftentimes, the open-loop tapes
+are not a particularly sparse
+
+00:45:59.670 --> 00:46:00.990
+way to parameterize a policy.
+
+00:46:06.360 --> 00:46:09.090
+Good.
+
+00:46:09.090 --> 00:46:13.050
+So the direct collocation
+methods, like I said,
+
+00:46:13.050 --> 00:46:14.730
+more explicitly--
+they're even more
+
+00:46:14.730 --> 00:46:17.760
+in the sense of open-loop
+policies versus feedback
+
+00:46:17.760 --> 00:46:19.440
+policies, actually.
+
+00:46:19.440 --> 00:46:23.610
+But they also more explicitly
+add these constraints.
+
+00:46:23.610 --> 00:46:35.900
+So here's the idea.
+
+00:46:35.900 --> 00:46:38.710
+Let's make my alpha
+my vector that I'm
+
+00:46:38.710 --> 00:46:40.630
+trying to optimize over.
+
+00:46:40.630 --> 00:46:47.010
+A list of, can I
+call it u0, u1, u2--
+
+00:46:47.010 --> 00:46:49.510
+is that another reasonable way
+to describe what I've already
+
+00:46:49.510 --> 00:46:51.580
+done--
+
+00:46:51.580 --> 00:46:56.320
+to u capital N. I've got
+a list of control actions.
+
+00:46:56.320 --> 00:46:58.750
+But now I'm going
+to actually also,
+
+00:46:58.750 --> 00:47:05.045
+I'm going to augment my
+parameter vector with the state
+
+00:47:05.045 --> 00:47:05.545
+vector.
+
+00:47:13.190 --> 00:47:16.040
+So I'm just going to make an
+even bigger parameter vector.
+
+00:47:19.020 --> 00:47:20.870
+One of the reasons
+to do that is,
+
+00:47:20.870 --> 00:47:30.140
+I can now evaluate J of alpha,
+which is this 0 to T, G of x.
+
+00:47:30.140 --> 00:47:33.020
+Maybe I even approximated
+this discretization, right?
+
+00:47:33.020 --> 00:47:47.870
+So it could have a
+dt in there or not,
+
+00:47:47.870 --> 00:47:48.870
+it doesn't matter to me.
+
+00:47:54.310 --> 00:47:58.690
+If I have u and x
+and all these things
+
+00:47:58.690 --> 00:48:00.670
+directly in my
+parameter vector, I
+
+00:48:00.670 --> 00:48:04.990
+don't actually need to simulate
+in order to evaluate that.
+
+00:48:04.990 --> 00:48:07.940
+I can just evaluate
+it immediately.
+
+00:48:07.940 --> 00:48:10.420
+I have x and I have u.
+
+00:48:10.420 --> 00:48:14.780
+The only problem is
+that how do I pick alpha
+
+00:48:14.780 --> 00:48:17.170
+so that x and u are consistent?
+
+00:48:17.170 --> 00:48:19.870
+It better be the
+case that x1 looks
+
+00:48:19.870 --> 00:48:24.040
+like the integration
+of x0 with u0
+
+00:48:24.040 --> 00:48:26.320
+applied had better get me to x1.
+
+00:48:26.320 --> 00:48:30.640
+So instead of having that sort
+of implicit in my equations,
+
+00:48:30.640 --> 00:48:33.140
+let's make it an
+explicit constraint.
+
+00:48:33.140 --> 00:48:40.030
+So let's do this subject to the
+constraint that x of N plus 1--
+
+00:48:40.030 --> 00:48:44.860
+actually, lots of constraints,
+so it's a list of constraints.
+
+00:48:44.860 --> 00:48:52.348
+x1 had better be f of x0
+u0 times dt, let's say.
+
+00:48:54.976 --> 00:49:00.960
+It had better be equal to
+0, and so on, then x2--
+
+00:49:11.760 --> 00:49:12.260
+right?
+
+00:49:15.500 --> 00:49:18.500
+So if I'm willing to
+add representation here,
+
+00:49:18.500 --> 00:49:20.960
+I can actually evaluate
+my cost function
+
+00:49:20.960 --> 00:49:22.810
+without explicitly simulating.
+
+00:49:22.810 --> 00:49:24.290
+That's cool.
+
+00:49:24.290 --> 00:49:26.660
+I can take gradients
+very quickly,
+
+00:49:26.660 --> 00:49:29.190
+because now it's just
+explicitly the gradients,
+
+00:49:29.190 --> 00:49:30.170
+partial G, partial x.
+
+00:49:30.170 --> 00:49:34.970
+Well, I know x, right?
+
+00:49:34.970 --> 00:49:36.610
+AUDIENCE: Wouldn't
+you also want x1
+
+00:49:36.610 --> 00:49:42.000
+minus f of x0 u0 dt minus x0?
+
+00:49:42.000 --> 00:49:43.970
+[INAUDIBLE]
+
+00:49:43.970 --> 00:49:45.260
+RUSS TEDRAKE: Yes, thank you.
+
+00:49:45.260 --> 00:49:47.960
+Thank you.
+
+00:49:47.960 --> 00:49:50.720
+So plus-- thank you.
+
+00:50:04.020 --> 00:50:04.830
+Good, thank you.
+
+00:50:04.830 --> 00:50:07.060
+I had some weird
+mix of discrete time
+
+00:50:07.060 --> 00:50:08.810
+and continuous time
+floating around there.
+
+00:50:15.900 --> 00:50:19.228
+So if you parameterize
+it like this,
+
+00:50:19.228 --> 00:50:21.270
+you can very efficiently
+calculate the gradients.
+
+00:50:21.270 --> 00:50:23.370
+For instance, whereas
+you can easily
+
+00:50:23.370 --> 00:50:24.990
+calculate the
+gradient with respect
+
+00:50:24.990 --> 00:50:28.080
+to time, in this
+parameterization,
+
+00:50:28.080 --> 00:50:31.110
+and you just add a lot of
+constraints to your solver.
+
+00:50:31.110 --> 00:50:34.080
+And you're asking your solver
+to solve for a lot more points.
+
+00:50:38.030 --> 00:50:42.070
+It turns out that these
+solvers handle constraints
+
+00:50:42.070 --> 00:50:42.820
+very efficiently.
+
+00:50:42.820 --> 00:50:44.290
+In fact, it's often
+times more efficient
+
+00:50:44.290 --> 00:50:45.665
+to add constraints
+to the system,
+
+00:50:45.665 --> 00:50:50.710
+because it reduces
+the search space.
+
+00:50:50.710 --> 00:50:54.700
+So this is actually quite fast.
+
+00:50:54.700 --> 00:50:57.670
+The only criticism of it--
+then there's another thing nice
+
+00:50:57.670 --> 00:51:01.270
+thing about it is that you can--
+
+00:51:01.270 --> 00:51:03.280
+I'll show you what
+I mean by this.
+
+00:51:03.280 --> 00:51:07.150
+But you can sort
+of initialize this
+
+00:51:07.150 --> 00:51:10.460
+in ways that hop out
+of other local minima.
+
+00:51:10.460 --> 00:51:12.640
+So let's say I just choose
+my initial conditions
+
+00:51:12.640 --> 00:51:14.710
+in the previous simulations.
+
+00:51:14.710 --> 00:51:16.840
+I just always just
+chose u0 to [? uN ?]
+
+00:51:16.840 --> 00:51:18.500
+to be some small random number.
+
+00:51:18.500 --> 00:51:20.350
+So the pendulum
+in the first thing
+
+00:51:20.350 --> 00:51:22.150
+would just shake
+here a little bit.
+
+00:51:22.150 --> 00:51:26.050
+And then it quickly changed
+until it swung up to the top.
+
+00:51:26.050 --> 00:51:29.800
+I can pick x perhaps
+more intelligently.
+
+00:51:29.800 --> 00:51:31.450
+It won't have satisfied
+the constraints
+
+00:51:31.450 --> 00:51:33.010
+in the initial case.
+
+00:51:33.010 --> 00:51:34.537
+But I can choose an x.
+
+00:51:34.537 --> 00:51:36.370
+For the pendulum, let's
+say my initial guess
+
+00:51:36.370 --> 00:51:38.200
+at x would be a direct
+trajectory that goes straight
+
+00:51:38.200 --> 00:51:38.783
+up to the top.
+
+00:51:41.500 --> 00:51:47.380
+If I start searching now for
+alphas that minimize this cost
+
+00:51:47.380 --> 00:51:49.150
+and satisfy those
+constraints, it just
+
+00:51:49.150 --> 00:51:51.610
+puts me in a different sort
+of area of the search space.
+
+00:51:51.610 --> 00:51:54.880
+And it might actually help me
+find the swing of policies.
+
+00:51:54.880 --> 00:51:57.148
+It's a very sort of
+heuristic thing to say.
+
+00:51:57.148 --> 00:51:59.190
+But it makes a big difference
+in practice I find.
+
+00:52:02.990 --> 00:52:05.180
+So I think most people
+today actually use
+
+00:52:05.180 --> 00:52:09.860
+these direct collocation methods
+for trajectory optimization.
+
+00:52:09.860 --> 00:52:11.816
+Yeah, Rick?
+
+00:52:11.816 --> 00:52:18.701
+AUDIENCE: [INAUDIBLE]
+change those parameters
+
+00:52:18.701 --> 00:52:20.114
+the vector would change.
+
+00:52:25.368 --> 00:52:27.660
+RUSS TEDRAKE: So you're
+worried that this will change--
+
+00:52:27.660 --> 00:52:29.652
+the constraint
+matrix would change?
+
+00:52:29.652 --> 00:52:36.360
+AUDIENCE: Well, aside
+of the alpha [INAUDIBLE]
+
+00:52:36.360 --> 00:52:39.600
+RUSS TEDRAKE: So I don't
+do it that way in my code.
+
+00:52:39.600 --> 00:52:48.540
+I do it, I say that this is
+valid from 0 to T over N,
+
+00:52:48.540 --> 00:52:50.640
+let's say.
+
+00:52:50.640 --> 00:52:58.620
+And this one is used from T
+over N to 2T over N and so on.
+
+00:52:58.620 --> 00:53:00.900
+So it just stretches out.
+
+00:53:00.900 --> 00:53:03.540
+So the dt is not constant.
+
+00:53:03.540 --> 00:53:05.945
+I use that same action for
+longer if my T stretches out.
+
+00:53:05.945 --> 00:53:07.820
+And that keeps the
+parameter vector constant.
+
+00:53:10.680 --> 00:53:15.510
+But I think if you were
+to purchase a DIRCOL--
+
+00:53:15.510 --> 00:53:19.180
+this is often shorthand as
+DIRCOL, direct collocation,
+
+00:53:19.180 --> 00:53:20.130
+DIRCOL.
+
+00:53:20.130 --> 00:53:22.230
+And there was a DIRCOL
+package that you
+
+00:53:22.230 --> 00:53:23.722
+could get in
+FORTRAN 10 years ago
+
+00:53:23.722 --> 00:53:25.680
+or something that I think
+a lot of people used.
+
+00:53:25.680 --> 00:53:29.070
+And I think those do things
+like it stretches out time.
+
+00:53:29.070 --> 00:53:31.530
+And then if dt gets ridiculous,
+it adds some more points.
+
+00:53:31.530 --> 00:53:34.710
+And then a more polished
+software package
+
+00:53:34.710 --> 00:53:36.570
+would do these things
+like adding parameters
+
+00:53:36.570 --> 00:53:39.960
+and then reinitialize--
+reseeding the optimization.
+
+00:53:39.960 --> 00:53:40.590
+Mine doesn't.
+
+00:53:46.588 --> 00:53:47.880
+Should I show you how it works?
+
+00:53:47.880 --> 00:53:50.410
+Is that the best
+thing to do here?
+
+00:53:50.410 --> 00:53:52.050
+It's a pretty simple idea.
+
+00:53:52.050 --> 00:53:57.480
+The part that I can't
+really express to you
+
+00:53:57.480 --> 00:54:02.610
+efficiently here is why
+that this is something
+
+00:54:02.610 --> 00:54:04.320
+that the solvers
+can do very well.
+
+00:54:04.320 --> 00:54:08.340
+I can tell you that it's about
+how SQPs do interior point
+
+00:54:08.340 --> 00:54:10.650
+methods, but I don't
+want to get into that.
+
+00:54:10.650 --> 00:54:13.230
+So I think if you just sort of
+take it on faith that they're
+
+00:54:13.230 --> 00:54:14.838
+good at handling
+constraints, I think
+
+00:54:14.838 --> 00:54:16.630
+it's reasonable to
+think that maybe sending
+
+00:54:16.630 --> 00:54:21.270
+in an over-defined trajectory
+and allowing it to sort out
+
+00:54:21.270 --> 00:54:24.510
+the constraints is a
+reasonable thing to try.
+
+00:54:24.510 --> 00:54:29.370
+And in practice, let me tell
+you that it's pretty fast.
+
+00:54:29.370 --> 00:54:33.780
+So can I do the
+pendulum DIRCOL now?
+
+00:54:39.243 --> 00:54:40.410
+So that one was fast before.
+
+00:54:40.410 --> 00:54:42.500
+Now you notice the
+time horizon here--
+
+00:54:42.500 --> 00:54:44.040
+3.06?
+
+00:54:44.040 --> 00:54:46.640
+Yeah, so that's what
+it wanted to be doing.
+
+00:54:46.640 --> 00:54:48.775
+It liked 3.06 better than two.
+
+00:54:48.775 --> 00:54:50.150
+So maybe my other
+ones would work
+
+00:54:50.150 --> 00:54:54.170
+better if I put 3 in there.
+
+00:54:54.170 --> 00:54:55.550
+Can we do the--
+
+00:54:55.550 --> 00:54:59.898
+someone called for the acrobot
+before, DIRCOL on the acrobot.
+
+00:54:59.898 --> 00:55:01.190
+Oh, I should turn off plotting.
+
+00:55:01.190 --> 00:55:01.690
+Sorry.
+
+00:55:05.782 --> 00:55:06.740
+Let's see what happens.
+
+00:55:19.570 --> 00:55:21.320
+It's also got this
+final value constraint.
+
+00:55:21.320 --> 00:55:22.862
+That's why it quickly
+got to the goal
+
+00:55:22.862 --> 00:55:24.350
+to satisfy that constraint.
+
+00:55:24.350 --> 00:55:26.390
+And now it's making sure
+that all the dynamics
+
+00:55:26.390 --> 00:55:29.810
+that these trajectories
+are satisfied.
+
+00:55:29.810 --> 00:55:32.295
+And then, it's just optimizing
+within that constraint
+
+00:55:32.295 --> 00:55:32.795
+manifold.
+
+00:55:38.130 --> 00:55:39.330
+I didn't really mean to--
+
+00:55:39.330 --> 00:55:41.598
+I'm afraid to hit
+Control-C. It might crash.
+
+00:55:41.598 --> 00:55:43.890
+That's the one thing about
+[? SNAP ?] being a [? MEX ?]
+
+00:55:43.890 --> 00:55:45.925
+package calling FORTRAN--
+
+00:55:45.925 --> 00:55:46.425
+stop.
+
+00:55:50.965 --> 00:55:52.590
+now my GUI is gone
+and my code is gone.
+
+00:55:52.590 --> 00:55:53.090
+Great.
+
+00:56:00.150 --> 00:56:00.650
+OK, good.
+
+00:56:03.370 --> 00:56:04.450
+And it got to the top.
+
+00:56:04.450 --> 00:56:06.150
+No, that's the pendulum, sorry.
+
+00:56:06.150 --> 00:56:06.890
+That's cheating.
+
+00:56:27.060 --> 00:56:29.940
+So turning off printing, just
+run DIRCOL for a second here.
+
+00:56:32.648 --> 00:56:34.440
+AUDIENCE: How would
+using these methods can
+
+00:56:34.440 --> 00:56:36.048
+be extended to stochastic case?
+
+00:56:39.758 --> 00:56:41.550
+RUSS TEDRAKE: I think
+they're heavily tuned
+
+00:56:41.550 --> 00:56:43.110
+to the deterministic case.
+
+00:56:43.110 --> 00:56:47.310
+I won't make a blanket statement
+saying they can't be extended.
+
+00:56:47.310 --> 00:56:50.350
+But even the feedback--
+
+00:56:50.350 --> 00:56:53.430
+I really think the direct
+collocation in particular
+
+00:56:53.430 --> 00:56:55.630
+feels very specialized
+for opening
+
+00:56:55.630 --> 00:56:59.408
+the trajectory optimization.
+
+00:56:59.408 --> 00:57:00.700
+This is slower than I remember.
+
+00:57:09.870 --> 00:57:10.710
+It gets there.
+
+00:57:10.710 --> 00:57:11.520
+Yeah, John.
+
+00:57:11.520 --> 00:57:12.978
+AUDIENCE: Is there
+a reason why you
+
+00:57:12.978 --> 00:57:16.050
+need to use [INAUDIBLE] vector
+and not feedback [INAUDIBLE]..
+
+00:57:16.050 --> 00:57:20.090
+You could evaluate the u given
+the x and the [INAUDIBLE]..
+
+00:57:27.743 --> 00:57:29.410
+RUSS TEDRAKE: I think
+you could do that.
+
+00:57:29.410 --> 00:57:33.220
+I think the key thing
+is parameterizing
+
+00:57:33.220 --> 00:57:34.878
+the policy as well as x.
+
+00:57:34.878 --> 00:57:35.920
+But I think you're right.
+
+00:57:35.920 --> 00:57:41.140
+If you did some handful of
+w's or alphas there-- sorry--
+
+00:57:41.140 --> 00:57:44.890
+then I think you could
+probably do that too, yeah.
+
+00:57:44.890 --> 00:57:47.908
+I mean, implementing this
+constraint is the only
+
+00:57:47.908 --> 00:57:50.200
+real criticism that people
+have of collocation methods.
+
+00:57:50.200 --> 00:57:52.482
+Almost everybody
+uses them, it seems.
+
+00:57:52.482 --> 00:57:54.190
+The only criticism
+they have is that they
+
+00:57:54.190 --> 00:57:57.460
+have sort of this fixed-step
+integration in here.
+
+00:57:57.460 --> 00:58:00.020
+The constraint being satisfied--
+
+00:58:00.020 --> 00:58:03.412
+it's hard to do sort of an
+ODE solver in that step,
+
+00:58:03.412 --> 00:58:04.870
+because you need
+to be able to take
+
+00:58:04.870 --> 00:58:09.530
+the gradients of
+your constraint.
+
+00:58:09.530 --> 00:58:13.780
+So they tend to be fixed-step
+integration routines, roughly.
+
+00:58:13.780 --> 00:58:15.430
+And so, the accuracy--
+
+00:58:15.430 --> 00:58:17.770
+if people point to a problem
+with collocation methods,
+
+00:58:17.770 --> 00:58:20.110
+they uniformly say that
+they're not as accurate
+
+00:58:20.110 --> 00:58:23.110
+as the shooting methods, because
+you don't actually numerically
+
+00:58:23.110 --> 00:58:25.330
+simulate your system carefully.
+
+00:58:25.330 --> 00:58:28.300
+You've picked some time
+discretization of the system,
+
+00:58:28.300 --> 00:58:31.510
+and you get it right for that.
+
+00:58:31.510 --> 00:58:35.020
+But I don't think that's
+a big deal actually.
+
+00:58:35.020 --> 00:58:38.740
+And if they're fast and they
+get out of local minima,
+
+00:58:38.740 --> 00:58:41.827
+then worst case, solve
+it this way and then
+
+00:58:41.827 --> 00:58:43.410
+do a little shooting
+method at the end
+
+00:58:43.410 --> 00:58:46.000
+to finish the
+optimization, if you like.
+
+00:58:53.460 --> 00:58:54.730
+Run it one more time.
+
+00:59:00.440 --> 00:59:01.940
+John and I were
+talking before class
+
+00:59:01.940 --> 00:59:03.320
+that there's really
+no reason why
+
+00:59:03.320 --> 00:59:06.710
+you couldn't compute
+the gradients of an ODE,
+
+00:59:06.710 --> 00:59:08.783
+update inside here.
+
+00:59:08.783 --> 00:59:09.950
+Well, how would you do that?
+
+00:59:09.950 --> 00:59:12.650
+You do it exactly like we did
+the shooting method, right?
+
+00:59:12.650 --> 00:59:15.137
+You could sort of run a little--
+
+00:59:15.137 --> 00:59:16.970
+to compute the gradients
+of your constraint,
+
+00:59:16.970 --> 00:59:19.160
+you could actually
+do the adjoint method
+
+00:59:19.160 --> 00:59:22.345
+or the RTRL method to
+compute those gradients.
+
+00:59:22.345 --> 00:59:23.720
+And then, that
+puts you somewhere
+
+00:59:23.720 --> 00:59:25.370
+in the land between
+direct collocation
+
+00:59:25.370 --> 00:59:26.287
+and multiple shooting.
+
+00:59:31.690 --> 00:59:34.142
+I swear that my laptop must
+be operating on half a brain
+
+00:59:34.142 --> 00:59:36.100
+right now, because this
+was much faster in lab.
+
+00:59:46.858 --> 00:59:48.820
+AUDIENCE: Do you
+have a power cord?
+
+00:59:48.820 --> 00:59:50.680
+RUSS TEDRAKE: I'm not
+connected into power.
+
+00:59:50.680 --> 00:59:52.138
+AUDIENCE: If you
+go to the battery,
+
+00:59:52.138 --> 00:59:56.075
+I guess it switches
+to energy saver.
+
+00:59:56.075 --> 00:59:57.450
+RUSS TEDRAKE:
+Yeah, you're right.
+
+00:59:57.450 --> 00:59:59.075
+I could probably turn
+it off right now.
+
+01:00:02.380 --> 01:00:04.386
+So that was a slightly
+different trajectory.
+
+01:00:17.983 --> 01:00:19.150
+That's just graphics though.
+
+01:00:25.670 --> 01:00:27.620
+I'd be exceptionally
+embarrassed if I
+
+01:00:27.620 --> 01:00:28.810
+plugged it in or changed
+the power settings
+
+01:00:28.810 --> 01:00:29.450
+and it was still slow.
+
+01:00:29.450 --> 01:00:31.460
+So let me just say that
+it was faster in live
+
+01:00:31.460 --> 01:00:34.850
+and we'll leave it like that.
+
+01:00:34.850 --> 01:00:39.740
+So let me just
+make the point of,
+
+01:00:39.740 --> 01:00:42.300
+do people understand how
+a problem like this--
+
+01:00:42.300 --> 01:00:44.780
+we sort of saw a demonstration
+that, if you could remember
+
+01:00:44.780 --> 01:00:46.580
+in your head what
+the acrobot did
+
+01:00:46.580 --> 01:00:48.140
+the first time and the
+acrobot did the second time.
+
+01:00:48.140 --> 01:00:49.790
+They both got to the
+goal pretty well.
+
+01:00:49.790 --> 01:00:51.260
+They took slightly different
+trajectories, at least
+
+01:00:51.260 --> 01:00:51.760
+to my eye.
+
+01:00:54.380 --> 01:00:55.983
+So one of the
+complaints about any
+
+01:00:55.983 --> 01:00:57.650
+of these trajectory
+optimization methods
+
+01:00:57.650 --> 01:00:59.150
+is, they're only local methods.
+
+01:00:59.150 --> 01:01:04.970
+We're only going to find a
+local optima in my optimization.
+
+01:01:04.970 --> 01:01:07.130
+For me, I think about
+these problems a lot.
+
+01:01:07.130 --> 01:01:09.630
+It's still not
+completely intuitive
+
+01:01:09.630 --> 01:01:13.495
+what you think of a local minima
+in these settings might be.
+
+01:01:13.495 --> 01:01:15.870
+There are some places where
+it could be pretty intuitive.
+
+01:01:15.870 --> 01:01:18.860
+So the pendulum, you can imagine
+if I found one policy that
+
+01:01:18.860 --> 01:01:21.800
+pumped up with one
+pump, you could
+
+01:01:21.800 --> 01:01:25.160
+imagine it might be hard to sort
+of get over a cost landscape,
+
+01:01:25.160 --> 01:01:26.990
+so you did two pumps to get up.
+
+01:01:26.990 --> 01:01:31.310
+That could be a case where
+a local minima makes sense.
+
+01:01:31.310 --> 01:01:36.620
+I tried to come up with a little
+bit more obvious of an example
+
+01:01:36.620 --> 01:01:45.750
+here relating to the original
+grid world stuff we did.
+
+01:01:45.750 --> 01:01:49.288
+So now, this isn't so
+much a dynamics problem.
+
+01:01:49.288 --> 01:01:51.080
+But I thought maybe a
+path-planning problem
+
+01:01:51.080 --> 01:01:51.955
+would make the point.
+
+01:01:51.955 --> 01:01:58.400
+So here's a random geometric
+landscape with Gaussian bumps
+
+01:01:58.400 --> 01:02:00.560
+that you try to avoid
+or you incur cost.
+
+01:02:00.560 --> 01:02:03.740
+I'm actually plotting the cost
+landscape as a function of x.
+
+01:02:03.740 --> 01:02:07.040
+So you see there's a small hill,
+which is trying to take me down
+
+01:02:07.040 --> 01:02:08.661
+to the goal in red.
+
+01:02:08.661 --> 01:02:11.036
+Can I turn the lights all the
+way down for a minute here?
+
+01:02:17.390 --> 01:02:19.770
+It'll be dramatic this way.
+
+01:02:19.770 --> 01:02:21.020
+So there's a goal here in red.
+
+01:02:21.020 --> 01:02:22.520
+And let's say the
+initial conditions
+
+01:02:22.520 --> 01:02:23.750
+are over there in green.
+
+01:02:23.750 --> 01:02:26.120
+And your task is to
+take the system, which
+
+01:02:26.120 --> 01:02:32.420
+is x dot equals u, where x
+is the xy position of this,
+
+01:02:32.420 --> 01:02:35.930
+and u is the velocity
+in x, the velocity in y.
+
+01:02:35.930 --> 01:02:38.843
+So just a trivial
+dynamical system,
+
+01:02:38.843 --> 01:02:40.760
+but you're trying to
+find a path that gets you
+
+01:02:40.760 --> 01:02:44.330
+to the goal with minimal cost.
+
+01:02:44.330 --> 01:02:46.730
+So I did this example just
+because some people care
+
+01:02:46.730 --> 01:02:47.855
+about this kind of example.
+
+01:02:47.855 --> 01:02:53.270
+But also because I think it's
+sort of critically obvious
+
+01:02:53.270 --> 01:02:54.980
+how you can have local minima.
+
+01:02:54.980 --> 01:02:57.650
+If I get a trajectory that's
+on one side of the mountain
+
+01:02:57.650 --> 01:02:59.948
+and maybe the globally
+optimal trajectory
+
+01:02:59.948 --> 01:03:01.490
+is on the other side
+of the mountain,
+
+01:03:01.490 --> 01:03:03.680
+it might be hard for me
+to get across the mountain
+
+01:03:03.680 --> 01:03:04.472
+to that trajectory.
+
+01:03:04.472 --> 01:03:06.680
+So let's just see that happen.
+
+01:03:06.680 --> 01:03:11.696
+So do direct collocation
+here, so what did I implement?
+
+01:03:22.400 --> 01:03:26.450
+OK, so I forgot to type--
+
+01:03:36.010 --> 01:03:38.110
+so I just did
+direct collocation.
+
+01:03:38.110 --> 01:03:42.880
+And really quickly,
+it found this.
+
+01:03:42.880 --> 01:03:47.780
+So this is not the
+optimization software's fault.
+
+01:03:47.780 --> 01:03:49.990
+What if I do this?
+
+01:03:59.230 --> 01:04:03.550
+So it found some nice
+path through the foothills
+
+01:04:03.550 --> 01:04:08.220
+here to the goal.
+
+01:04:08.220 --> 01:04:09.317
+Yeah, please.
+
+01:04:09.317 --> 01:04:14.080
+AUDIENCE: Can you try to
+specify some of those--
+
+01:04:14.080 --> 01:04:18.670
+since you have x
+parameterized, can you
+
+01:04:18.670 --> 01:04:23.530
+try to make it go through
+a particular set of bumps
+
+01:04:23.530 --> 01:04:25.173
+by specifying that?
+
+01:04:25.173 --> 01:04:26.090
+RUSS TEDRAKE: Exactly.
+
+01:04:26.090 --> 01:04:28.120
+So the reason I chose
+to do direct collocation
+
+01:04:28.120 --> 01:04:31.690
+for this is, my initial guess,
+u was just some random vector.
+
+01:04:31.690 --> 01:04:35.515
+But my x was actually a direct
+line from start to the goal.
+
+01:04:35.515 --> 01:04:37.600
+AUDIENCE: So if you
+had drawn it as a line
+
+01:04:37.600 --> 01:04:41.845
+between those first two and
+then going around to [INAUDIBLE]
+
+01:04:41.845 --> 01:04:43.720
+RUSS TEDRAKE: So the
+one I thought to do was,
+
+01:04:43.720 --> 01:04:45.803
+let's just do-- just because
+it was easy to type--
+
+01:04:45.803 --> 01:04:48.370
+let's do an initial x which
+just goes directly this way
+
+01:04:48.370 --> 01:04:50.208
+and then see what happens.
+
+01:04:50.208 --> 01:04:51.500
+I think that's what I had here.
+
+01:04:51.500 --> 01:04:56.380
+So if I change my x tape
+here is now linspace.
+
+01:04:56.380 --> 01:04:59.680
+So it interpolates in
+x0 straight to the goal.
+
+01:04:59.680 --> 01:05:02.470
+But then the other one is
+just x1 straight across,
+
+01:05:02.470 --> 01:05:05.110
+reading that code is not what
+you want to do in class here.
+
+01:05:05.110 --> 01:05:35.830
+But if I set the initial x tape
+to be that and I run it again,
+
+01:05:35.830 --> 01:05:36.788
+It's doing its solving.
+
+01:05:36.788 --> 01:05:38.372
+It's properly doing
+it in some window.
+
+01:05:38.372 --> 01:05:39.989
+Oh, I turned off
+animation, didn't I?
+
+01:05:50.260 --> 01:05:54.100
+Oops, that was a failure.
+
+01:05:54.100 --> 01:05:56.450
+But it found a different path.
+
+01:05:56.450 --> 01:05:59.590
+But it actually told
+me, Warning, exited.
+
+01:05:59.590 --> 01:06:02.830
+So I have this check
+page 19 of [INAUDIBLE] 6
+
+01:06:02.830 --> 01:06:05.620
+the paper to figure out
+what the heck exit 41 means.
+
+01:06:05.620 --> 01:06:08.908
+But it basically couldn't
+satisfy the constraints.
+
+01:06:08.908 --> 01:06:11.200
+So I bet if I just run it
+again with the random initial
+
+01:06:11.200 --> 01:06:12.200
+conditions, it'll be OK.
+
+01:06:29.640 --> 01:06:31.080
+But the point is exactly this.
+
+01:06:31.080 --> 01:06:32.970
+I still found one
+that just probably
+
+01:06:32.970 --> 01:06:35.970
+didn't satisfy some of the
+constraints at some small part
+
+01:06:35.970 --> 01:06:38.100
+of that trajectory here.
+
+01:06:38.100 --> 01:06:41.130
+It went the other way
+around the mountain.
+
+01:06:41.130 --> 01:06:43.770
+So there are local
+minima in these problems.
+
+01:06:43.770 --> 01:06:46.560
+In problems like this,
+it's completely obvious
+
+01:06:46.560 --> 01:06:48.900
+why there are local minima.
+
+01:06:48.900 --> 01:06:51.230
+In the acrobot and
+things like that,
+
+01:06:51.230 --> 01:06:52.980
+you will find that
+there are local minima.
+
+01:06:52.980 --> 01:06:55.830
+If you start with different
+random parameterizations,
+
+01:06:55.830 --> 01:06:58.110
+you'll find slightly different
+swing-up trajectories.
+
+01:07:01.440 --> 01:07:02.920
+So our local minima--
+
+01:07:02.920 --> 01:07:05.380
+a killer-- a lot of
+people say, well,
+
+01:07:05.380 --> 01:07:08.850
+that means these methods stink.
+
+01:07:08.850 --> 01:07:10.800
+They're subject to local minima.
+
+01:07:10.800 --> 01:07:13.740
+I don't care if I'm in a local
+minima for the most part.
+
+01:07:13.740 --> 01:07:16.463
+I mean, if I was really
+going to have to walk around
+
+01:07:16.463 --> 01:07:18.630
+a mountain instead of walking
+through the mountains,
+
+01:07:18.630 --> 01:07:19.463
+then maybe I'd care.
+
+01:07:19.463 --> 01:07:23.610
+But if I'm doing an
+acrobot and it swings up
+
+01:07:23.610 --> 01:07:27.180
+like this instead of swings up
+like this, for the most part,
+
+01:07:27.180 --> 01:07:27.930
+I don't care.
+
+01:07:27.930 --> 01:07:32.800
+So although people
+talk about it a lot,
+
+01:07:32.800 --> 01:07:34.830
+I find in most of the
+problems I care about,
+
+01:07:34.830 --> 01:07:37.170
+local minima aren't
+that big of a deal.
+
+01:07:37.170 --> 01:07:38.460
+They exist.
+
+01:07:38.460 --> 01:07:40.110
+Sometimes they can
+upset your numerics.
+
+01:07:40.110 --> 01:07:42.930
+But as long as you get
+to the goal, I'm happy.
+
+01:07:46.410 --> 01:07:52.380
+Now, there are a
+couple other ideas
+
+01:07:52.380 --> 01:07:56.640
+in these trajectory
+optimizations.
+
+01:07:56.640 --> 01:07:59.640
+And on Tuesday, I guess, I'm
+going to wait till Tuesday now,
+
+01:07:59.640 --> 01:08:00.510
+first of all, I'm
+going to tell you
+
+01:08:00.510 --> 01:08:02.040
+how to stabilize
+these trajectories.
+
+01:08:02.040 --> 01:08:04.770
+Because that's useless
+as it is right now.
+
+01:08:04.770 --> 01:08:06.960
+If I just even simulated
+it with a different dt,
+
+01:08:06.960 --> 01:08:11.370
+it would probably fall or
+not get to the mountain.
+
+01:08:14.160 --> 01:08:16.740
+But it turns out, even
+with a pretty coarse time
+
+01:08:16.740 --> 01:08:19.140
+step, if you stabilize
+the thing with feedback,
+
+01:08:19.140 --> 01:08:20.850
+then it works great.
+
+01:08:20.850 --> 01:08:23.850
+So I'll show you how to do
+the trajectory stabilization
+
+01:08:23.850 --> 01:08:26.225
+with an LQR method on Tuesday.
+
+01:08:26.225 --> 01:08:27.600
+And that's actually
+going to lead
+
+01:08:27.600 --> 01:08:30.090
+to another class of the
+trajectory optimizers, which
+
+01:08:30.090 --> 01:08:33.180
+would be an
+iterative LQR method.
+
+01:08:33.180 --> 01:08:40.258
+And then, depending on how
+much I sleep this weekend,
+
+01:08:40.258 --> 01:08:42.300
+I was thinking about doing
+the discrete mechanics
+
+01:08:42.300 --> 01:08:45.060
+version of the trajectory
+optimizers on Tuesday too.
+
+01:08:45.060 --> 01:08:45.750
+We'll see.
+
+01:08:45.750 --> 01:08:49.500
+So we'll push the walking
+back until Thursday
+
+01:08:49.500 --> 01:08:53.740
+just to complete the story about
+these trajectories solvers.
+
+01:08:53.740 --> 01:08:57.106
+Any Questions?
+
+01:08:57.106 --> 01:08:57.939
+They're pretty good.
+
+01:08:57.939 --> 01:08:59.522
+They're pretty fast,
+especially if you
+
+01:08:59.522 --> 01:09:02.220
+are plugged into the wall.
+
+01:09:02.220 --> 01:09:05.180
+OK, see you see you next week.

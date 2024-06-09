@@ -1,0 +1,256 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.300 
+Welcome to the
+next lecture,
+
+2
+00:00:03.300 --> 00:00:06.600 
+this lecture is going to
+be about query processing.
+
+3
+00:00:06.600 --> 00:00:09.900 
+What is the motivation
+for this lecture and
+
+4
+00:00:09.900 --> 00:00:12.120 
+why do we talk about that
+and the trends and concepts
+
+5
+00:00:13.130 --> 00:00:16.160 
+lecture? There is a
+question that, or better
+
+6
+00:00:16.160 --> 00:00:19.190 
+the fact that we have
+increasingly large machines with
+
+7
+00:00:19.190 --> 00:00:23.230 
+large NUMA architectures
+and we process really
+
+8
+00:00:23.230 --> 00:00:27.270 
+highly complex queries
+on growing data sets.
+
+9
+00:00:27.270 --> 00:00:29.290 
+The question now for modern
+databases is, how do we
+
+10
+00:00:30.000 --> 00:00:33.330 
+actually do that? So how do we
+process these queries efficiently
+
+11
+00:00:33.330 --> 00:00:37.370 
+and how do we
+leverage the hardware
+
+12
+00:00:37.370 --> 00:00:39.390 
+development of
+the recent years?
+
+13
+00:00:42.420 --> 00:00:45.450 
+Just a short overview, we're going
+to talk about query optimization,
+
+14
+00:00:45.450 --> 00:00:48.480 
+we're going to talk about query
+scheduling and execution and
+
+15
+00:00:48.480 --> 00:00:52.520 
+for the execution part we talk about
+one example here and this is joining.
+
+16
+00:00:54.540 --> 00:00:58.580 
+This is the starting question:
+how does a database actually
+
+17
+00:00:58.580 --> 00:01:02.620 
+process a query? A database
+usually receives queries via
+
+18
+00:01:02.620 --> 00:01:05.650 
+SQL, so the database gets the SQL
+(-query) and now we will talk about
+
+19
+00:01:05.650 --> 00:01:08.680 
+how does a database, what
+does a database do with
+
+20
+00:01:08.680 --> 00:01:12.720 
+the SQL until the
+user receives his
+
+21
+00:01:12.720 --> 00:01:17.770 
+answer? This is done
+here in five processes
+
+22
+00:01:17.770 --> 00:01:20.800 
+for example, so in the beginning
+obviously you have your
+
+23
+00:01:20.800 --> 00:01:24.840 
+SQL query that you
+receive on your network,
+
+24
+00:01:24.840 --> 00:01:28.880 
+network interface and what
+you usually do is that
+
+25
+00:01:28.880 --> 00:01:32.920 
+you build a plan. You
+take your query and just
+
+26
+00:01:33.930 --> 00:01:37.970 
+build a relatively simple tree
+containing your relational
+
+27
+00:01:37.970 --> 00:01:40.100 
+operators so you
+probably all know
+
+28
+00:01:40.100 --> 00:01:42.102 
+the operators here that
+you learned in DBS,
+
+29
+00:01:42.102 --> 00:01:44.104 
+we have selections,
+we have joins,
+
+30
+00:01:44.104 --> 00:01:47.107 
+we have projections. This
+is the first part that
+
+31
+00:01:47.107 --> 00:01:51.111 
+the database does. This is
+basically just translating
+
+32
+00:01:51.111 --> 00:01:54.114 
+the SQL statement to
+a tree of relational
+
+33
+00:01:55.115 --> 00:01:58.118 
+operators. The
+last, the next step
+
+34
+00:01:59.119 --> 00:02:02.122 
+is the optimization step, so
+on the left side you see again
+
+35
+00:02:02.122 --> 00:02:07.127 
+our first relational tree here
+and what the database now does
+
+36
+00:02:08.128 --> 00:02:11.131 
+is to optimise that plan. This
+one of the most crucial parts
+
+37
+00:02:11.131 --> 00:02:13.133 
+of the database because there
+is a lot of performance in there
+
+38
+00:02:14.134 --> 00:02:18.138 
+or a large potential for
+performance improvements.
+
+39
+00:02:18.138 --> 00:02:22.142 
+What we try to do here is
+to reformulate this query
+
+40
+00:02:22.142 --> 00:02:26.146 
+in order to have a more efficient
+plan, to lower the costs,
+
+41
+00:02:26.146 --> 00:02:31.151 
+the estimated costs of that plan.
+As soon as we have a plan that
+
+42
+00:02:31.151 --> 00:02:35.155 
+we consider as efficient
+or as maybe even optimal
+
+43
+00:02:36.156 --> 00:02:39.159 
+we are going to schedule it. There
+is a component that is called
+
+44
+00:02:39.159 --> 00:02:42.162 
+the database scheduler and what
+this component does is that
+
+45
+00:02:42.162 --> 00:02:46.166 
+it takes operators here
+and translate these
+
+46
+00:02:46.166 --> 00:02:50.170 
+to actual threads or tasks or
+processes. What we do then, we
+
+47
+00:02:50.170 --> 00:02:54.174 
+use, for example, we have
+one CPU with a first task
+
+48
+00:02:54.174 --> 00:02:57.177 
+and second task which might
+be the two selections you see
+
+49
+00:02:57.177 --> 00:03:00.180 
+here. We say as soon as we
+have these tasks completed
+
+50
+00:03:01.181 --> 00:03:03.183 
+please do the next task
+which might be a join.
+
+51
+00:03:05.185 --> 00:03:07.187 
+The final step
+is the execution.

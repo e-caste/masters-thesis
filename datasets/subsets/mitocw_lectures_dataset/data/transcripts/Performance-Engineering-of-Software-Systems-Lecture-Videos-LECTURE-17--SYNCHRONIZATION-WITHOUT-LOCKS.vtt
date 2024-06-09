@@ -1,0 +1,5275 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT OpenCourseWare
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:19.026
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:19.026 --> 00:00:21.800
+at ocw.mit.edu.
+
+00:00:21.800 --> 00:00:24.410
+CHARLES LEISERSON:
+Hey, everybody.
+
+00:00:24.410 --> 00:00:25.520
+Let's get started here.
+
+00:00:31.000 --> 00:00:33.960
+So last time we had the
+skull and crossbones,
+
+00:00:33.960 --> 00:00:38.280
+this time we're going to have
+double skull and crossbones.
+
+00:00:38.280 --> 00:00:42.180
+This stuff is really
+hard and really fun.
+
+00:00:42.180 --> 00:00:44.700
+And we're going to talk about
+synchronization without locks.
+
+00:00:48.900 --> 00:00:52.080
+And to start out, I want to
+talk about memory models.
+
+00:00:52.080 --> 00:00:56.070
+And in particular, the
+most important memory model
+
+00:00:56.070 --> 00:00:58.410
+from a theoretical point of
+view, which is sequential
+
+00:00:58.410 --> 00:00:59.250
+consistency.
+
+00:01:01.950 --> 00:01:07.470
+And to introduce it, I
+want to use an example
+
+00:01:07.470 --> 00:01:09.420
+to introduce the notion
+of a memory model.
+
+00:01:09.420 --> 00:01:13.080
+So suppose you have
+two variables, a
+
+00:01:13.080 --> 00:01:17.310
+and b, which are initially
+0, and those variables
+
+00:01:17.310 --> 00:01:19.510
+are stored in memory.
+
+00:01:19.510 --> 00:01:24.360
+And processor 0 moves
+a 1 into a, then
+
+00:01:24.360 --> 00:01:29.622
+it moves the contents
+of ebx into b.
+
+00:01:29.622 --> 00:01:34.590
+And meanwhile processor
+1 moves a 1 into b,
+
+00:01:34.590 --> 00:01:42.840
+and moves the contents
+of a into eax.
+
+00:01:42.840 --> 00:01:44.790
+I just chose different
+registers just so we
+
+00:01:44.790 --> 00:01:47.910
+can distinguish the two things.
+
+00:01:47.910 --> 00:01:51.150
+Now let's think about this code.
+
+00:01:51.150 --> 00:01:52.830
+We have these two
+things going on.
+
+00:01:52.830 --> 00:01:59.280
+Is it possible that processor
+0's ebx and processor
+
+00:01:59.280 --> 00:02:07.170
+1's eax both contain the value
+0 after the processors have both
+
+00:02:07.170 --> 00:02:09.440
+executed their code?
+
+00:02:09.440 --> 00:02:11.583
+They're executing in parallel.
+
+00:02:11.583 --> 00:02:12.750
+So think about a little bit.
+
+00:02:12.750 --> 00:02:22.650
+This is a good lecture to think
+about because, well, you'll
+
+00:02:22.650 --> 00:02:24.240
+see in a minute.
+
+00:02:24.240 --> 00:02:29.490
+So can they both
+have the value of 0?
+
+00:02:40.116 --> 00:02:41.450
+So you're shaking your head.
+
+00:02:41.450 --> 00:02:43.134
+Explain why?
+
+00:02:43.134 --> 00:02:53.361
+STUDENT: So if ebx is
+greater than [INAUDIBLE]
+
+00:02:53.361 --> 00:02:56.770
+then it's [INAUDIBLE].
+
+00:02:56.770 --> 00:02:58.990
+CHARLES LEISERSON: OK, good.
+
+00:02:58.990 --> 00:03:02.950
+And that's a correct
+argument, but you're
+
+00:03:02.950 --> 00:03:05.090
+making a huge assumption.
+
+00:03:07.870 --> 00:03:12.310
+Yeah, so the idea is that, well,
+if you're moving a 1 into it,
+
+00:03:12.310 --> 00:03:13.550
+you're not looking at it.
+
+00:03:13.550 --> 00:03:17.620
+It may be that one of them
+gets 0, and the other gets 1,
+
+00:03:17.620 --> 00:03:21.520
+but it actually turns
+out to depend on what's
+
+00:03:21.520 --> 00:03:23.500
+called the memory model.
+
+00:03:23.500 --> 00:03:27.250
+And it took a long time before
+people realized that there
+
+00:03:27.250 --> 00:03:30.190
+was actually an issue here.
+
+00:03:30.190 --> 00:03:33.370
+So this depends upon
+the memory model.
+
+00:03:33.370 --> 00:03:34.960
+And what you were
+reasoning about
+
+00:03:34.960 --> 00:03:37.930
+was what's called
+sequential consistency.
+
+00:03:37.930 --> 00:03:42.160
+You were doing happens
+before types of relationships
+
+00:03:42.160 --> 00:03:45.580
+and saying, if this
+happened before that, then.
+
+00:03:45.580 --> 00:03:49.270
+And so you had some
+global notion of time
+
+00:03:49.270 --> 00:03:54.850
+that you were using to say what
+order these things happened in.
+
+00:03:54.850 --> 00:03:58.810
+So let's take a look at the
+model that you were assuming.
+
+00:03:58.810 --> 00:04:01.810
+It's interesting, because
+whenever I do this,
+
+00:04:01.810 --> 00:04:04.030
+somebody always has
+the right answer,
+
+00:04:04.030 --> 00:04:06.970
+and they always assume that
+it's sequentially consistent.
+
+00:04:06.970 --> 00:04:08.510
+It's the most standard one.
+
+00:04:08.510 --> 00:04:11.080
+So sequential
+consistency was defined
+
+00:04:11.080 --> 00:04:15.170
+by Leslie Lamport who won the
+Turing Award, a few years ago.
+
+00:04:15.170 --> 00:04:17.130
+And this is part of
+the reason he won it.
+
+00:04:17.130 --> 00:04:20.800
+So what he said is, the
+result of any execution
+
+00:04:20.800 --> 00:04:24.550
+is the same as if the
+operations of all the processors
+
+00:04:24.550 --> 00:04:28.480
+were executed in some
+sequential order.
+
+00:04:28.480 --> 00:04:31.300
+And the operations of
+each individual processor
+
+00:04:31.300 --> 00:04:34.555
+appear in this sequence in the
+order specified by the program.
+
+00:04:37.930 --> 00:04:41.710
+So let's just break
+that apart, because it's
+
+00:04:41.710 --> 00:04:45.280
+a mouthful to understand.
+
+00:04:45.280 --> 00:04:48.820
+So the sequence of instructions
+as defined by a processor's
+
+00:04:48.820 --> 00:04:53.560
+program are interleaved with the
+corresponding sequences defined
+
+00:04:53.560 --> 00:04:55.720
+by the other
+processors' programs
+
+00:04:55.720 --> 00:04:59.050
+to produce a global linear
+order of all instructions.
+
+00:04:59.050 --> 00:05:01.270
+So you take this
+processor, this processor,
+
+00:05:01.270 --> 00:05:03.730
+and there's some way of
+interleaving them for us
+
+00:05:03.730 --> 00:05:05.050
+to understand what happened.
+
+00:05:05.050 --> 00:05:06.850
+That's the first part
+of what he's saying.
+
+00:05:09.910 --> 00:05:13.400
+Then after you've done
+this interleaving,
+
+00:05:13.400 --> 00:05:19.100
+a load instruction is going
+to get the value stored
+
+00:05:19.100 --> 00:05:20.615
+to the address of the load.
+
+00:05:23.600 --> 00:05:25.760
+That is, the value
+of the most recent
+
+00:05:25.760 --> 00:05:29.850
+stored to that same location
+in that linear order.
+
+00:05:29.850 --> 00:05:32.810
+So by most recent, I mean most
+recent in that linear order.
+
+00:05:32.810 --> 00:05:36.560
+I'm going to give an
+example in just a second.
+
+00:05:36.560 --> 00:05:38.660
+So it doesn't fetch
+one from way back,
+
+00:05:38.660 --> 00:05:41.540
+it fetches the most
+recent one, the last write
+
+00:05:41.540 --> 00:05:44.900
+that occurred to that location
+in that interleaved order
+
+00:05:44.900 --> 00:05:47.480
+that you have picked.
+
+00:05:47.480 --> 00:05:50.210
+Now there could be many
+different interleaved orders,
+
+00:05:50.210 --> 00:05:52.530
+you can get many
+different behaviors.
+
+00:05:52.530 --> 00:05:55.380
+After all, here we're talking
+about programs with races,
+
+00:05:55.380 --> 00:05:55.880
+right?
+
+00:05:58.910 --> 00:06:03.080
+We're reading stuff that
+other things are writing.
+
+00:06:03.080 --> 00:06:07.310
+And so basically, the hardware
+can do whatever it wants.
+
+00:06:07.310 --> 00:06:11.480
+But for the execution to be
+sequentially as consistent,
+
+00:06:11.480 --> 00:06:14.900
+it must appear as if the
+loads and stores obeyed
+
+00:06:14.900 --> 00:06:19.460
+some global linear order.
+
+00:06:19.460 --> 00:06:24.260
+So there could be many different
+possible execution paths,
+
+00:06:24.260 --> 00:06:26.900
+depending upon how
+things get interleaved.
+
+00:06:26.900 --> 00:06:29.990
+But if you say, here's the
+result of the computation,
+
+00:06:29.990 --> 00:06:32.810
+it better be that
+there exists one
+
+00:06:32.810 --> 00:06:40.550
+of those in which
+every read occurred
+
+00:06:40.550 --> 00:06:45.083
+to the most recent write
+according to some linear order.
+
+00:06:45.083 --> 00:06:46.000
+Does that makes sense?
+
+00:06:46.000 --> 00:06:49.190
+So let's do it for this example.
+
+00:06:49.190 --> 00:06:55.550
+So here we have our setup again.
+
+00:06:55.550 --> 00:06:59.810
+How many interleavings
+of four things are there?
+
+00:06:59.810 --> 00:07:01.640
+Turns out there's
+six interleavings.
+
+00:07:01.640 --> 00:07:05.150
+So those who've taken 6.042
+will know that, right?
+
+00:07:05.150 --> 00:07:05.990
+4 choose 2.
+
+00:07:10.270 --> 00:07:13.810
+So the interleavings,
+you can do them
+
+00:07:13.810 --> 00:07:19.330
+in the order 1, 2, 3, 4,
+1, 3, 2, 4, 1, 3, 4, 2,
+
+00:07:19.330 --> 00:07:21.730
+et cetera, et cetera.
+
+00:07:21.730 --> 00:07:23.710
+But notice that in every
+one of these orders,
+
+00:07:23.710 --> 00:07:30.670
+1 always comes before 2,
+and 3 always comes before 4.
+
+00:07:30.670 --> 00:07:34.220
+So you have to respect
+the processor order.
+
+00:07:34.220 --> 00:07:38.980
+The processor order,
+you have to respect it.
+
+00:07:38.980 --> 00:07:44.210
+So if I execute in the first
+column, if that's the order,
+
+00:07:44.210 --> 00:07:47.650
+what's the value that I end
+up with for eax and ebx?
+
+00:08:05.914 --> 00:08:07.930
+STUDENT: 1 and 0.
+
+00:08:07.930 --> 00:08:09.080
+CHARLES LEISERSON: 1 and 0.
+
+00:08:09.080 --> 00:08:11.350
+Yep.
+
+00:08:11.350 --> 00:08:15.580
+So it basically moves a 1 into
+a, then it moves b into ebx.
+
+00:08:15.580 --> 00:08:19.720
+b is currently 0, so
+it's got a 0 in ebx.
+
+00:08:19.720 --> 00:08:22.560
+Then processor 1 moves 1 into b.
+
+00:08:22.560 --> 00:08:26.200
+And then it moves a into eax.
+
+00:08:26.200 --> 00:08:29.500
+And a at that point
+has the value 1.
+
+00:08:32.167 --> 00:08:33.250
+What about the second one?
+
+00:08:42.830 --> 00:08:43.870
+STUDENT: 1, 1.
+
+00:08:43.870 --> 00:08:44.870
+CHARLES LEISERSON: 1, 1.
+
+00:08:44.870 --> 00:08:46.860
+Good.
+
+00:08:46.860 --> 00:08:50.720
+Because they basically are both
+moving 1 into their registers,
+
+00:08:50.720 --> 00:08:52.798
+then they're both storing.
+
+00:08:52.798 --> 00:08:53.840
+What about the third one?
+
+00:08:57.840 --> 00:08:58.463
+Yeah?
+
+00:08:58.463 --> 00:08:59.250
+STUDENT: Same.
+
+00:08:59.250 --> 00:09:00.250
+CHARLES LEISERSON: Same.
+
+00:09:00.250 --> 00:09:01.240
+OK, fourth one?
+
+00:09:06.850 --> 00:09:10.217
+We'll try to get
+everybody [INAUDIBLE]..
+
+00:09:10.217 --> 00:09:10.800
+STUDENT: Same.
+
+00:09:10.800 --> 00:09:12.670
+CHARLES LEISERSON: Same?
+
+00:09:12.670 --> 00:09:14.390
+Yep.
+
+00:09:14.390 --> 00:09:15.020
+Fifth one?
+
+00:09:19.640 --> 00:09:21.140
+Same.
+
+00:09:21.140 --> 00:09:24.180
+Last one?
+
+00:09:24.180 --> 00:09:25.674
+STUDENT: 0, 1.
+
+00:09:25.674 --> 00:09:26.930
+CHARLES LEISERSON: Yeah, 0, 1.
+
+00:09:26.930 --> 00:09:27.430
+Good.
+
+00:09:29.870 --> 00:09:31.520
+So this is the
+total number of ways
+
+00:09:31.520 --> 00:09:32.750
+we could interleave things.
+
+00:09:32.750 --> 00:09:34.333
+We don't know which
+one of these might
+
+00:09:34.333 --> 00:09:36.470
+occur because, after
+all, the output is
+
+00:09:36.470 --> 00:09:39.020
+going to be non-deterministic
+upon, which it is.
+
+00:09:39.020 --> 00:09:40.940
+But one thing that we
+can say for certain
+
+00:09:40.940 --> 00:09:43.400
+is that if you have
+sequential consistency,
+
+00:09:43.400 --> 00:09:46.910
+there's no execution
+that ends with them both
+
+00:09:46.910 --> 00:09:51.290
+being 0, which is exactly
+your intuition and correct
+
+00:09:51.290 --> 00:09:52.330
+rationalization.
+
+00:09:55.250 --> 00:10:02.540
+But it turns out interestingly
+that of modern computers, none
+
+00:10:02.540 --> 00:10:06.050
+implement sequential
+consistency.
+
+00:10:06.050 --> 00:10:06.560
+Why?
+
+00:10:06.560 --> 00:10:11.390
+Because life would
+be too easy then.
+
+00:10:11.390 --> 00:10:13.370
+None of them do that.
+
+00:10:13.370 --> 00:10:17.450
+So we'll get there, we'll talk
+about what modern machines do.
+
+00:10:17.450 --> 00:10:22.760
+So let's reason about
+sequential consistency.
+
+00:10:22.760 --> 00:10:27.590
+So the way that you can
+formally reason about this,
+
+00:10:27.590 --> 00:10:31.190
+to make an argument as
+you might have for example
+
+00:10:31.190 --> 00:10:36.440
+on a quiz, if we had
+a quiz coming up,
+
+00:10:36.440 --> 00:10:42.290
+would be to understand
+that an execution induces
+
+00:10:42.290 --> 00:10:45.290
+a happens before a
+relationship that we
+
+00:10:45.290 --> 00:10:49.940
+will denote as a right arrow.
+
+00:10:49.940 --> 00:10:52.190
+And the right arrow
+relation is linear,
+
+00:10:52.190 --> 00:10:54.710
+meaning that for
+any two instructions
+
+00:10:54.710 --> 00:10:57.080
+either one happens before
+the other or the other
+
+00:10:57.080 --> 00:11:00.410
+happens before the one for any
+two different instructions.
+
+00:11:00.410 --> 00:11:02.070
+This is the notion
+of a linear order.
+
+00:11:05.340 --> 00:11:08.630
+The arrow relation
+has to respect.
+
+00:11:08.630 --> 00:11:13.140
+The happens before relation
+has to respect processor order.
+
+00:11:13.140 --> 00:11:17.210
+In other words, that within
+the instructions executed
+
+00:11:17.210 --> 00:11:20.660
+by a processor the
+global order has
+
+00:11:20.660 --> 00:11:23.180
+to have those same
+sequence of instructions
+
+00:11:23.180 --> 00:11:26.630
+of whatever that processor
+thought that it was doing.
+
+00:11:26.630 --> 00:11:28.790
+And then a load from
+a location in memory
+
+00:11:28.790 --> 00:11:30.530
+reads the value
+written by the most
+
+00:11:30.530 --> 00:11:35.730
+recent store to that location
+according to happens before.
+
+00:11:35.730 --> 00:11:38.420
+And for the memory
+resulting from an execution
+
+00:11:38.420 --> 00:11:40.670
+to be sequentially
+consistent, there
+
+00:11:40.670 --> 00:11:44.000
+must be a linear order that
+yields that memory state.
+
+00:11:52.870 --> 00:11:55.930
+If you're going to write
+code without locks,
+
+00:11:55.930 --> 00:11:59.560
+it's really important to be
+able to reason about what
+
+00:11:59.560 --> 00:12:01.015
+happened before what.
+
+00:12:01.015 --> 00:12:03.730
+And with sequential
+consistency, you just
+
+00:12:03.730 --> 00:12:08.020
+have to understand what are
+all the possible interleavings.
+
+00:12:08.020 --> 00:12:11.920
+So if you have n instructions
+here and m instructions there,
+
+00:12:11.920 --> 00:12:16.232
+you only have to worry about n
+times m possible interleavings.
+
+00:12:19.650 --> 00:12:21.030
+Actually, is it n times m?
+
+00:12:21.030 --> 00:12:23.560
+No, you've got more than that.
+
+00:12:23.560 --> 00:12:26.038
+Sorry.
+
+00:12:26.038 --> 00:12:27.080
+I used to have good math.
+
+00:12:29.980 --> 00:12:36.040
+So one of the celebrated results
+early in concurrency theory
+
+00:12:36.040 --> 00:12:43.120
+was that fact that you could do
+mutual exclusion without locks,
+
+00:12:43.120 --> 00:12:45.520
+or test and set, or
+compare and swap,
+
+00:12:45.520 --> 00:12:48.760
+or any of these
+special instructions.
+
+00:12:48.760 --> 00:12:51.160
+Really remarkable
+result. And so I'd
+
+00:12:51.160 --> 00:12:57.340
+like to show you that
+because it involves thinking
+
+00:12:57.340 --> 00:13:00.290
+about sequential consistency.
+
+00:13:00.290 --> 00:13:03.550
+So let's recall, we talked
+about mutual exclusion last time
+
+00:13:03.550 --> 00:13:06.310
+and how locks could
+solve that problem.
+
+00:13:06.310 --> 00:13:08.110
+But of course locks
+introduced a lot
+
+00:13:08.110 --> 00:13:11.920
+of other things like
+deadlock, convoying,
+
+00:13:11.920 --> 00:13:13.910
+and a variety of
+things, some of which
+
+00:13:13.910 --> 00:13:15.890
+I didn't even get a
+chance to talk about,
+
+00:13:15.890 --> 00:13:17.800
+but they're in
+the lecture notes.
+
+00:13:17.800 --> 00:13:21.580
+So let's recall that a critical
+section is a piece of code that
+
+00:13:21.580 --> 00:13:24.700
+accesses a shared data
+structure that you
+
+00:13:24.700 --> 00:13:27.760
+don't want two separate
+threads to be executing
+
+00:13:27.760 --> 00:13:28.570
+at the same time.
+
+00:13:28.570 --> 00:13:31.420
+You want it to be
+mutually exclusive.
+
+00:13:31.420 --> 00:13:35.540
+Most implementations use one
+of these special instructions,
+
+00:13:35.540 --> 00:13:39.850
+such as the xchg, the exchange
+instructions we talked about
+
+00:13:39.850 --> 00:13:42.070
+to implement locks last time.
+
+00:13:42.070 --> 00:13:45.190
+Or they may use test and
+set, compare and swap,
+
+00:13:45.190 --> 00:13:48.160
+load linked store conditional.
+
+00:13:48.160 --> 00:13:51.090
+Are any of these
+familiar to people?
+
+00:13:51.090 --> 00:13:52.760
+Or is this new stuff?
+
+00:13:52.760 --> 00:13:54.220
+Who's this new for?
+
+00:13:54.220 --> 00:13:55.370
+Just want to make sure.
+
+00:13:55.370 --> 00:13:56.890
+OK, great.
+
+00:13:56.890 --> 00:13:59.530
+So there are these
+special instructions
+
+00:13:59.530 --> 00:14:06.730
+in the machine that do things
+like an atomic exchange,
+
+00:14:06.730 --> 00:14:08.800
+or a test and set.
+
+00:14:08.800 --> 00:14:12.220
+I can set a bit and test
+what the prior value was
+
+00:14:12.220 --> 00:14:15.350
+of that bit as an
+atomic operation.
+
+00:14:15.350 --> 00:14:19.300
+It's not two sections
+where I set it,
+
+00:14:19.300 --> 00:14:22.870
+and then the value
+changed in between.
+
+00:14:22.870 --> 00:14:25.930
+Or compare and swap, we'll talk
+more about compare and swap.
+
+00:14:25.930 --> 00:14:29.110
+And load linked store
+conditional, which is even
+
+00:14:29.110 --> 00:14:31.300
+a more sophisticated one.
+
+00:14:31.300 --> 00:14:36.250
+So in the early days of
+computing back in the 1960s,
+
+00:14:36.250 --> 00:14:40.750
+this problem of mutual
+exclusion came up.
+
+00:14:40.750 --> 00:14:43.060
+And the question was,
+can mutual exclusion
+
+00:14:43.060 --> 00:14:47.470
+be implemented with only
+the loads and stores
+
+00:14:47.470 --> 00:14:49.090
+as the only memory operations.
+
+00:14:49.090 --> 00:14:52.210
+Or do you need one
+of these heavy duty
+
+00:14:52.210 --> 00:14:55.405
+instructions that does two
+things and calls it atomic?
+
+00:14:58.060 --> 00:15:00.640
+Oops, yep, so I
+forgot to animate
+
+00:15:00.640 --> 00:15:04.750
+the appearance of Edsgar.
+
+00:15:04.750 --> 00:15:09.970
+So two fellows, Dekker and
+Dijkstra, showed that it can,
+
+00:15:09.970 --> 00:15:14.710
+as long as the computer system
+is sequentially consistent.
+
+00:15:14.710 --> 00:15:17.410
+And so I'm not going to
+give their algorithm, which
+
+00:15:17.410 --> 00:15:18.620
+is a little bit complicated.
+
+00:15:18.620 --> 00:15:21.370
+I'm going to give I what
+I think is boiled down
+
+00:15:21.370 --> 00:15:25.480
+to the most simple and
+elegant version of that
+
+00:15:25.480 --> 00:15:28.243
+uses their idea, and
+it's due to Peterson.
+
+00:15:28.243 --> 00:15:29.660
+And for the life
+of me, I have not
+
+00:15:29.660 --> 00:15:32.378
+been able to find a
+picture of Peterson.
+
+00:15:32.378 --> 00:15:34.420
+Otherwise, I'd show you
+what Peterson looks like.
+
+00:15:37.390 --> 00:15:38.920
+So here's Peterson's algorithm.
+
+00:15:38.920 --> 00:15:42.790
+And I'm going to model
+it with Alice and Bob.
+
+00:15:42.790 --> 00:15:45.340
+They have a shared widget.
+
+00:15:45.340 --> 00:15:50.800
+And what Alice wants to do
+to the widget is to frob it.
+
+00:15:50.800 --> 00:15:54.220
+And Bob wants to borf it.
+
+00:15:54.220 --> 00:15:55.780
+So they're going to
+frob and borf it.
+
+00:15:55.780 --> 00:15:59.320
+But we don't want them to
+be frobbing and borfing
+
+00:15:59.320 --> 00:16:02.530
+at the same time, naturally.
+
+00:16:02.530 --> 00:16:04.960
+You don't frob and borf
+widgets at the same time.
+
+00:16:07.900 --> 00:16:10.850
+So they're mutually exclusive.
+
+00:16:10.850 --> 00:16:16.810
+So here's Peterson's algorithm.
+
+00:16:16.810 --> 00:16:18.450
+So we have widget x.
+
+00:16:18.450 --> 00:16:22.540
+So I'm just going to read
+through the code here.
+
+00:16:22.540 --> 00:16:26.263
+And I have a Boolean
+variable called wants.
+
+00:16:29.180 --> 00:16:30.790
+I have an A_wants and a B_wants.
+
+00:16:30.790 --> 00:16:36.900
+A means Alice wants
+to frob the widget.
+
+00:16:36.900 --> 00:16:42.700
+B_wants means that Bob
+wants to borf the widget.
+
+00:16:42.700 --> 00:16:46.960
+And we're also going to have a
+variable that has two values, A
+
+00:16:46.960 --> 00:16:50.980
+or B, for whose turn it is.
+
+00:16:50.980 --> 00:16:53.530
+And so we start
+out with that code,
+
+00:16:53.530 --> 00:16:59.020
+and then we fork the two
+Alice and Bob branches
+
+00:16:59.020 --> 00:17:02.200
+of our program to
+execute concurrently.
+
+00:17:02.200 --> 00:17:06.195
+And what Alice does is
+she says, I want it.
+
+00:17:06.195 --> 00:17:08.890
+She sets A_wants to true.
+
+00:17:08.890 --> 00:17:11.920
+And I set the turn
+to be Bob's turn.
+
+00:17:19.010 --> 00:17:22.200
+And then the next loop
+has an empty body, notice.
+
+00:17:22.200 --> 00:17:23.990
+It's just a while
+with a semicolon.
+
+00:17:23.990 --> 00:17:24.986
+That's an empty body.
+
+00:17:24.986 --> 00:17:26.569
+It's just going to
+sit there spinning.
+
+00:17:26.569 --> 00:17:32.120
+It's going to say, while
+B wants it, Bob wants it,
+
+00:17:32.120 --> 00:17:34.700
+and it's Bob's turn,
+I'm going to just wait.
+
+00:17:37.790 --> 00:17:44.410
+And if it turns out that
+either Bob does not want it
+
+00:17:44.410 --> 00:17:47.920
+or it's not Bob's
+turn, then that's
+
+00:17:47.920 --> 00:17:53.650
+going to free Alice to go into
+the critical section and frob
+
+00:17:53.650 --> 00:17:55.150
+x.
+
+00:17:55.150 --> 00:18:01.490
+And then when she's done she
+says, I don't want it anymore.
+
+00:18:01.490 --> 00:18:06.000
+And if you look at Bob's code,
+it's exactly the same thing.
+
+00:18:06.000 --> 00:18:09.950
+And when we're done
+with this code,
+
+00:18:09.950 --> 00:18:13.130
+we're going to then loop to
+do it again, because they just
+
+00:18:13.130 --> 00:18:15.590
+want to keep
+frobbing and borfing
+
+00:18:15.590 --> 00:18:19.190
+until their eyes turn blue or
+red, whatever color eyes they
+
+00:18:19.190 --> 00:18:19.690
+have there.
+
+00:18:22.645 --> 00:18:23.270
+Yeah, question?
+
+00:18:25.820 --> 00:18:27.763
+I didn't explain
+why this works yet.
+
+00:18:27.763 --> 00:18:29.180
+I'm going to explain
+why it works.
+
+00:18:29.180 --> 00:18:30.356
+STUDENT: OK.
+
+00:18:30.356 --> 00:18:32.523
+CHARLES LEISERSON: You're
+going to ask why it works?
+
+00:18:32.523 --> 00:18:35.962
+STUDENT: I was going to
+ask why those aren't locks.
+
+00:18:35.962 --> 00:18:37.750
+CHARLES LEISERSON: Why
+are they not locks?
+
+00:18:37.750 --> 00:18:40.750
+STUDENT: [INAUDIBLE]
+
+00:18:40.750 --> 00:18:42.390
+CHARLES LEISERSON:
+Well, a lock says
+
+00:18:42.390 --> 00:18:46.140
+that if you can acquire it,
+then you stop the other person
+
+00:18:46.140 --> 00:18:47.682
+from acquiring it.
+
+00:18:47.682 --> 00:18:49.515
+There's no locking here,
+there's no waiting.
+
+00:18:53.250 --> 00:18:56.963
+We're implementing a
+mutual exclusion region.
+
+00:18:56.963 --> 00:18:58.380
+But a lock has a
+particular span--
+
+00:18:58.380 --> 00:19:01.080
+it's got an acquire
+and a release.
+
+00:19:01.080 --> 00:19:04.170
+So when you say A
+wants to be true,
+
+00:19:04.170 --> 00:19:08.370
+I haven't acquired the
+lock at that point, have I?
+
+00:19:08.370 --> 00:19:10.890
+Or if I set the turn to
+be the other character,
+
+00:19:10.890 --> 00:19:14.330
+I haven't acquired a lock.
+
+00:19:14.330 --> 00:19:18.650
+Indeed, I then do some testing
+and so forth and hopefully
+
+00:19:18.650 --> 00:19:21.830
+end up with mutual exclusion,
+which is effectively
+
+00:19:21.830 --> 00:19:22.760
+what locking does.
+
+00:19:22.760 --> 00:19:25.820
+But this is a different
+way of getting you there.
+
+00:19:25.820 --> 00:19:28.430
+It's only using
+loads and stores.
+
+00:19:28.430 --> 00:19:29.810
+With a lock, there's an atomic--
+
+00:19:29.810 --> 00:19:31.970
+I got the lock.
+
+00:19:31.970 --> 00:19:36.140
+And if it wasn't available,
+I didn't get the lock.
+
+00:19:36.140 --> 00:19:36.680
+Then I wait.
+
+00:19:41.240 --> 00:19:44.537
+So let's discuss, let's
+figure out what's going on.
+
+00:19:44.537 --> 00:19:45.870
+And I'm going to do it two ways.
+
+00:19:45.870 --> 00:19:47.420
+First, I'm going to
+do the intuition,
+
+00:19:47.420 --> 00:19:49.753
+and then I'm going to show
+you how you reason through it
+
+00:19:49.753 --> 00:19:52.360
+with a happens before relation.
+
+00:19:52.360 --> 00:19:53.660
+Question?
+
+00:19:53.660 --> 00:19:54.590
+STUDENT: No.
+
+00:19:54.590 --> 00:19:56.540
+CHARLES LEISERSON: No, OK.
+
+00:19:56.540 --> 00:19:57.992
+Good.
+
+00:19:57.992 --> 00:19:59.450
+Not good that
+there's no questions.
+
+00:19:59.450 --> 00:20:01.040
+It's good if there
+are questions.
+
+00:20:01.040 --> 00:20:04.420
+But good we'll move on.
+
+00:20:04.420 --> 00:20:07.260
+So here's the idea.
+
+00:20:07.260 --> 00:20:09.510
+Suppose Alice and Bob
+dropped both tried
+
+00:20:09.510 --> 00:20:10.760
+to enter the critical section.
+
+00:20:14.270 --> 00:20:16.140
+And we have sequential
+consistency.
+
+00:20:16.140 --> 00:20:19.520
+So we can talk about who
+did things in what order.
+
+00:20:19.520 --> 00:20:32.450
+So whoever is the last one to
+write to the variable turn,
+
+00:20:32.450 --> 00:20:36.000
+that one's not going to enter.
+
+00:20:36.000 --> 00:20:37.560
+And the other one will enter.
+
+00:20:40.090 --> 00:20:43.490
+And then if Alice tries
+to enter the section,
+
+00:20:43.490 --> 00:20:45.520
+then she progresses
+because at that point
+
+00:20:45.520 --> 00:20:49.530
+she knows that B_wants is false.
+
+00:20:49.530 --> 00:20:51.800
+And if only Bob
+tries to enter it,
+
+00:20:51.800 --> 00:20:53.470
+then he's going to
+go because he's going
+
+00:20:53.470 --> 00:20:54.965
+to see that A_wants is false.
+
+00:20:58.120 --> 00:20:59.360
+Does that makes sense?
+
+00:20:59.360 --> 00:21:02.120
+So only one of them is going
+to be in there at a time.
+
+00:21:02.120 --> 00:21:07.070
+It's also the case that you
+want to verify that if you
+
+00:21:07.070 --> 00:21:09.950
+want to enter, you can enter.
+
+00:21:09.950 --> 00:21:12.140
+Because otherwise, a
+very simple protocol
+
+00:21:12.140 --> 00:21:14.880
+would be not to bother looking
+at things but just take turns.
+
+00:21:14.880 --> 00:21:17.130
+It's Alice's turn, it's Bob's
+turn, it's Alice's turn,
+
+00:21:17.130 --> 00:21:18.440
+it's Bob turn.
+
+00:21:18.440 --> 00:21:20.360
+And we don't want a
+solution like that
+
+00:21:20.360 --> 00:21:24.240
+because if Bob doesn't want
+a turn, Alice can't go.
+
+00:21:24.240 --> 00:21:26.170
+She can go once, and
+then she's stuck.
+
+00:21:29.120 --> 00:21:31.345
+Whereas we want to be
+able to have somebody,
+
+00:21:31.345 --> 00:21:32.720
+if they're the
+only one who wants
+
+00:21:32.720 --> 00:21:34.820
+to go to execute the
+critical section,
+
+00:21:34.820 --> 00:21:37.850
+Alice can frob, frob,
+frob, frob, frob.
+
+00:21:37.850 --> 00:21:41.330
+Or Bob can borf, borf,
+borf, borf, borf.
+
+00:21:41.330 --> 00:21:44.210
+We don't want to force them to
+go if they don't need to go.
+
+00:21:47.170 --> 00:21:50.630
+So the intuition is
+that only one of them
+
+00:21:50.630 --> 00:21:54.290
+is going to get in
+there because you
+
+00:21:54.290 --> 00:21:57.650
+need the other one either
+to say you want to go in,
+
+00:21:57.650 --> 00:22:00.470
+or else their value for
+wants is going to be 0.
+
+00:22:00.470 --> 00:22:03.740
+And it's going to
+be false and you're
+
+00:22:03.740 --> 00:22:06.170
+going to go through anyway.
+
+00:22:06.170 --> 00:22:13.700
+But this is not a good argument,
+because this is handwaving.
+
+00:22:13.700 --> 00:22:16.820
+We're at MIT, right,
+so we can do proofs.
+
+00:22:19.490 --> 00:22:21.975
+And this proof isn't so hard.
+
+00:22:21.975 --> 00:22:23.600
+But I want to show
+it to you because it
+
+00:22:23.600 --> 00:22:25.880
+may be different from other
+proofs that you've seen.
+
+00:22:29.180 --> 00:22:30.350
+So here's the theorem.
+
+00:22:30.350 --> 00:22:32.570
+Peterson's algorithm
+achieves mutual exclusion
+
+00:22:32.570 --> 00:22:35.310
+on the critical section.
+
+00:22:35.310 --> 00:22:37.760
+The setup for the
+proof is, assume
+
+00:22:37.760 --> 00:22:39.320
+for the purposes
+of contradiction
+
+00:22:39.320 --> 00:22:41.390
+that both Alice and
+Bob find themselves
+
+00:22:41.390 --> 00:22:43.640
+in the critical
+section together.
+
+00:22:43.640 --> 00:22:46.250
+And now we're going to look
+at the series of instructions
+
+00:22:46.250 --> 00:22:48.500
+that got us there,
+and then argue
+
+00:22:48.500 --> 00:22:51.230
+there must be a contradiction.
+
+00:22:51.230 --> 00:22:53.270
+That's the idea.
+
+00:22:53.270 --> 00:22:57.440
+And so let's consider the most
+recent time that each of them
+
+00:22:57.440 --> 00:22:59.767
+executed the code before
+entering the critical section.
+
+00:22:59.767 --> 00:23:01.850
+So we're not interested
+in what happened long ago.
+
+00:23:01.850 --> 00:23:04.190
+What's the very,
+very last pieces
+
+00:23:04.190 --> 00:23:06.600
+of code as they entered
+the critical section?
+
+00:23:06.600 --> 00:23:08.440
+And we'll derive
+a contradiction.
+
+00:23:11.360 --> 00:23:12.060
+So here we go.
+
+00:23:12.060 --> 00:23:16.090
+So without loss of generality,
+let's assume that Bob--
+
+00:23:16.090 --> 00:23:18.770
+we have some linear order.
+
+00:23:18.770 --> 00:23:22.380
+And to execute, noticed a B
+in the critical section, Alice
+
+00:23:22.380 --> 00:23:25.580
+and Bob both had to
+set the variable turn.
+
+00:23:25.580 --> 00:23:27.778
+So one of them had
+to do it first.
+
+00:23:27.778 --> 00:23:29.570
+I'm going assume without
+loss of generality
+
+00:23:29.570 --> 00:23:32.240
+that it was Bob because I
+can otherwise make exactly
+
+00:23:32.240 --> 00:23:34.280
+the same argument for Alice.
+
+00:23:34.280 --> 00:23:37.790
+So let's assume that Bob is
+the last one to write to turn.
+
+00:23:37.790 --> 00:23:42.200
+So therefore, if Bob
+was the last one,
+
+00:23:42.200 --> 00:23:44.600
+that means that Alice
+writing to turn,
+
+00:23:44.600 --> 00:23:47.660
+so she got in there
+so she wrote to turn.
+
+00:23:47.660 --> 00:23:53.530
+So her writing B to turn
+preceded Bob writing A to turn.
+
+00:23:56.090 --> 00:23:59.660
+So we have that happens
+before relationship.
+
+00:23:59.660 --> 00:24:01.183
+Everybody with me?
+
+00:24:01.183 --> 00:24:02.850
+Do you understand the
+notation I'm using
+
+00:24:02.850 --> 00:24:06.290
+and the happens
+before relationship?
+
+00:24:08.870 --> 00:24:19.250
+Now Alice's program order
+says that true to A_wants
+
+00:24:19.250 --> 00:24:24.860
+comes before her
+writing turn equals
+
+00:24:24.860 --> 00:24:29.480
+B. That's just program order.
+
+00:24:29.480 --> 00:24:30.450
+So we have that.
+
+00:24:30.450 --> 00:24:33.980
+And similarly, we have
+Bob's program order.
+
+00:24:33.980 --> 00:24:42.080
+And Bob's program order says,
+well, I wrote turn to A.
+
+00:24:42.080 --> 00:24:46.370
+So Bob wrote, turn
+equals A. And then Bob,
+
+00:24:46.370 --> 00:24:50.570
+in this case I'm going
+to do Bob read A_wants.
+
+00:24:50.570 --> 00:24:57.080
+And then he reads turn.
+
+00:24:57.080 --> 00:25:03.920
+So the second instruction
+here, up here,
+
+00:25:03.920 --> 00:25:06.320
+so this is a conditional and.
+
+00:25:06.320 --> 00:25:09.170
+So we basically are doing this.
+
+00:25:09.170 --> 00:25:13.070
+And then if that's
+true, then we do this.
+
+00:25:13.070 --> 00:25:16.130
+So this turn equals
+equals A. That's
+
+00:25:16.130 --> 00:25:20.900
+reading turn and checking if
+it's A happens after A_wants.
+
+00:25:20.900 --> 00:25:23.960
+So that's why I get these
+three things in order.
+
+00:25:23.960 --> 00:25:27.100
+Does that makes sense?
+
+00:25:27.100 --> 00:25:28.100
+Any question about that?
+
+00:25:34.570 --> 00:25:35.280
+Is that good?
+
+00:25:35.280 --> 00:25:37.245
+So I've established
+these two chains.
+
+00:25:40.080 --> 00:25:41.580
+So I actually have
+three chains here
+
+00:25:41.580 --> 00:25:42.830
+that I'm now going to combine.
+
+00:25:50.710 --> 00:25:52.690
+Let's see.
+
+00:25:52.690 --> 00:25:55.660
+So what's happening
+is let me look
+
+00:25:55.660 --> 00:25:57.850
+to see what's the order of
+everything that happens.
+
+00:25:57.850 --> 00:26:00.160
+So the earliest
+thing that happens
+
+00:26:00.160 --> 00:26:05.140
+is that Alice wants
+to be true because--
+
+00:26:05.140 --> 00:26:07.930
+where's that?
+
+00:26:07.930 --> 00:26:15.420
+So Alice wants is true
+is, yes, is coming before.
+
+00:26:15.420 --> 00:26:17.730
+That's the earliest thing
+that's happening here.
+
+00:26:17.730 --> 00:26:20.940
+So that instruction
+is basically this--
+
+00:26:20.940 --> 00:26:24.300
+Alice wants is true, it comes
+before the A turn equals
+
+00:26:24.300 --> 00:26:27.343
+B. That comes before
+the A turn equals B.
+
+00:26:27.343 --> 00:26:29.010
+So it comes before
+the write turn equals
+
+00:26:29.010 --> 00:26:32.580
+A, write B turn equals A.
+And then B turn equals A.
+
+00:26:32.580 --> 00:26:34.815
+So do you see the chain
+we've established?
+
+00:26:37.940 --> 00:26:38.690
+You see the chain?
+
+00:26:38.690 --> 00:26:39.490
+Yeah, yeah.
+
+00:26:43.460 --> 00:26:46.040
+OK, good.
+
+00:26:46.040 --> 00:26:46.790
+|
+
+00:26:46.790 --> 00:26:49.760
+So it says A_wants is first.
+
+00:26:49.760 --> 00:26:51.770
+A_wants equals true is first.
+
+00:26:51.770 --> 00:26:57.890
+Then we have the turn equals B.
+That's all from the second line
+
+00:26:57.890 --> 00:26:59.870
+here.
+
+00:26:59.870 --> 00:27:01.130
+That's from this line here.
+
+00:27:06.710 --> 00:27:07.430
+What's next?
+
+00:27:10.700 --> 00:27:13.870
+Which instruction is next?
+
+00:27:13.870 --> 00:27:19.750
+So turn equals A. That comes
+from the top line there.
+
+00:27:19.750 --> 00:27:20.470
+What's next?
+
+00:27:24.682 --> 00:27:28.545
+STUDENT: B [INAUDIBLE].
+
+00:27:28.545 --> 00:27:36.100
+CHARLES LEISERSON: So I
+read B. Bob reads A_wants.
+
+00:27:36.100 --> 00:27:45.800
+And then finally,
+Bob reads turn at A.
+
+00:27:45.800 --> 00:27:48.270
+So this is all based on just
+the interleaving and the fact
+
+00:27:48.270 --> 00:27:52.560
+that if you saw that we
+have the program order
+
+00:27:52.560 --> 00:27:55.080
+and that Bob was
+the last to write.
+
+00:27:55.080 --> 00:27:57.950
+That's all we're using.
+
+00:27:57.950 --> 00:28:00.026
+And so why is that
+a contradiction?
+
+00:28:03.600 --> 00:28:08.450
+Well, we know what
+the linear order is.
+
+00:28:08.450 --> 00:28:15.720
+We know that when Bob
+read, what did Bob read?
+
+00:28:15.720 --> 00:28:24.550
+What did Bob read when he
+read A_wants in step 4?
+
+00:28:24.550 --> 00:28:27.490
+He read the last
+value in that chain,
+
+00:28:27.490 --> 00:28:33.320
+the most recent value In that
+chain where it was stored to.
+
+00:28:33.320 --> 00:28:35.680
+And what was stored there?
+
+00:28:35.680 --> 00:28:38.290
+True.
+
+00:28:38.290 --> 00:28:39.460
+Good.
+
+00:28:39.460 --> 00:28:45.680
+And then Bob read turn.
+
+00:28:45.680 --> 00:28:47.300
+And what was the
+most recent value
+
+00:28:47.300 --> 00:28:49.130
+stored to turn in that chain?
+
+00:28:49.130 --> 00:28:54.454
+STUDENT: [INAUDIBLE] A.
+
+00:28:54.454 --> 00:28:57.528
+CHARLES LEISERSON: So then what?
+
+00:28:57.528 --> 00:29:00.360
+STUDENT: Bob gets stuck.
+
+00:29:00.360 --> 00:29:03.000
+CHARLES LEISERSON: Bob,
+if that were in fact
+
+00:29:03.000 --> 00:29:08.180
+what he read in the
+while loop line, what
+
+00:29:08.180 --> 00:29:09.230
+should be happening now?
+
+00:29:14.100 --> 00:29:16.440
+He should be spinning there.
+
+00:29:16.440 --> 00:29:20.110
+He shouldn't be in the loop.
+
+00:29:20.110 --> 00:29:21.970
+Bob didn't obey.
+
+00:29:21.970 --> 00:29:26.470
+His code did not obey
+the logic of the code.
+
+00:29:26.470 --> 00:29:28.030
+Bob should be spinning.
+
+00:29:28.030 --> 00:29:29.670
+That's the contradiction.
+
+00:29:29.670 --> 00:29:32.840
+Because we said Bob
+was in the loop.
+
+00:29:32.840 --> 00:29:33.910
+Does that makes sense?
+
+00:29:41.550 --> 00:29:44.090
+Is that good?
+
+00:29:44.090 --> 00:29:49.130
+So when you're confronted with
+synchronizing through memory,
+
+00:29:49.130 --> 00:29:52.865
+as this is called,
+you really got
+
+00:29:52.865 --> 00:29:55.190
+to write down the
+happens before things
+
+00:29:55.190 --> 00:29:58.430
+in order to be careful
+about reviewing things.
+
+00:29:58.430 --> 00:30:01.670
+I have seen in many,
+many cases engineers
+
+00:30:01.670 --> 00:30:04.920
+think they got it right
+by an informal argument.
+
+00:30:04.920 --> 00:30:10.430
+And in fact, for those
+people who have studied
+
+00:30:10.430 --> 00:30:13.190
+model checking-- anybody
+have any interaction
+
+00:30:13.190 --> 00:30:14.120
+with model checking?
+
+00:30:17.210 --> 00:30:19.026
+What was the context?
+
+00:30:19.026 --> 00:30:20.800
+STUDENT: 6.822.
+
+00:30:20.800 --> 00:30:22.790
+CHARLES LEISERSON:
+Well, and were you
+
+00:30:22.790 --> 00:30:24.770
+studying protocols and so forth?
+
+00:30:24.770 --> 00:30:25.760
+STUDENT: Yeah.
+
+00:30:25.760 --> 00:30:29.015
+CHARLES LEISERSON: So in
+6.822, what class is that?
+
+00:30:29.015 --> 00:30:30.260
+STUDENT: Formal programming.
+
+00:30:30.260 --> 00:30:31.802
+CHARLES LEISERSON:
+Formal programing.
+
+00:30:31.802 --> 00:30:33.500
+Good.
+
+00:30:33.500 --> 00:30:37.130
+So for things like network
+protocols and security
+
+00:30:37.130 --> 00:30:42.950
+protocols and for cache
+protocols in order
+
+00:30:42.950 --> 00:30:48.260
+to implement things like MSI
+and MESI protocols and so forth,
+
+00:30:48.260 --> 00:30:51.230
+these days they can't
+do it in their heads.
+
+00:30:51.230 --> 00:30:54.860
+They have programs that look
+at all the possible ways
+
+00:30:54.860 --> 00:30:58.070
+of executing what's
+called model checking.
+
+00:30:58.070 --> 00:31:03.140
+And it's a great
+technology because it
+
+00:31:03.140 --> 00:31:08.358
+helps you figure out where the
+bugs are and essentially reason
+
+00:31:08.358 --> 00:31:08.900
+through this.
+
+00:31:08.900 --> 00:31:10.775
+For simple things, you
+can reason it through.
+
+00:31:10.775 --> 00:31:13.190
+For larger things, you
+use the same kind of
+
+00:31:13.190 --> 00:31:17.090
+happens before analysis
+in those contexts in order
+
+00:31:17.090 --> 00:31:20.360
+to try to prove that
+your program is correct,
+
+00:31:20.360 --> 00:31:22.910
+that those protocols
+are correct.
+
+00:31:22.910 --> 00:31:25.040
+So for example, in
+all the computers
+
+00:31:25.040 --> 00:31:27.583
+you have in this room,
+every one of them,
+
+00:31:27.583 --> 00:31:29.000
+there was a model
+checker checking
+
+00:31:29.000 --> 00:31:32.340
+to make sure the cache
+analysis was done.
+
+00:31:32.340 --> 00:31:34.730
+And many of the
+security protocols
+
+00:31:34.730 --> 00:31:37.118
+that you're using as
+you access the web
+
+00:31:37.118 --> 00:31:38.660
+have all been through
+model checking.
+
+00:31:43.670 --> 00:31:44.790
+Good.
+
+00:31:44.790 --> 00:31:50.390
+The other thing is it turns
+out that Peterson's algorithm
+
+00:31:50.390 --> 00:31:52.970
+guarantees starvation freedom.
+
+00:31:52.970 --> 00:31:56.570
+So while Bob wants to
+execute her critical session,
+
+00:31:56.570 --> 00:32:00.530
+Bob cannot execute his critical
+section twice in a row,
+
+00:32:00.530 --> 00:32:03.110
+and vise versa.
+
+00:32:03.110 --> 00:32:07.790
+So it's got the property that
+one of the things that you
+
+00:32:07.790 --> 00:32:11.750
+might worry about
+is Alice wants to go
+
+00:32:11.750 --> 00:32:14.630
+and then Bob goes
+a gazillion times,
+
+00:32:14.630 --> 00:32:17.090
+and Alice never gets to go.
+
+00:32:17.090 --> 00:32:18.800
+Now that doesn't
+happen, as you can see,
+
+00:32:18.800 --> 00:32:22.700
+from the code because
+every time you
+
+00:32:22.700 --> 00:32:26.960
+go you set the turn
+to the other person.
+
+00:32:26.960 --> 00:32:29.480
+So if they do want to go,
+they get to go through.
+
+00:32:29.480 --> 00:32:34.280
+But proving that
+is a nice exercise.
+
+00:32:34.280 --> 00:32:38.060
+And it will warm you up
+to this kind of analysis,
+
+00:32:38.060 --> 00:32:39.070
+how you go about it.
+
+00:32:39.070 --> 00:32:39.740
+Yeah?
+
+00:32:39.740 --> 00:32:43.100
+STUDENT: Does it work
+with another [INAUDIBLE]??
+
+00:32:43.100 --> 00:32:45.730
+CHARLES LEISERSON:
+This one does not.
+
+00:32:45.730 --> 00:32:47.870
+And there has been
+wonderful studies
+
+00:32:47.870 --> 00:32:53.060
+of what does it take to get
+n things to work together.
+
+00:32:53.060 --> 00:32:57.350
+And this is one place where
+the locks have a big advantage
+
+00:32:57.350 --> 00:33:01.310
+because you can
+use a single lock
+
+00:33:01.310 --> 00:33:04.250
+to get the mutual
+exclusion among n things,
+
+00:33:04.250 --> 00:33:05.780
+so constant storage.
+
+00:33:05.780 --> 00:33:09.440
+Whereas if you just use
+atomic read and atomic write,
+
+00:33:09.440 --> 00:33:12.500
+it turns out the storage grows.
+
+00:33:12.500 --> 00:33:14.600
+And there's been
+wonderful studies.
+
+00:33:14.600 --> 00:33:17.570
+Also, wonderful studies
+of these other operations,
+
+00:33:17.570 --> 00:33:20.580
+like compare and
+swap and so forth.
+
+00:33:20.580 --> 00:33:22.980
+And we'll do a
+little bit of that.
+
+00:33:22.980 --> 00:33:24.230
+We'll do a little bit of that.
+
+00:33:24.230 --> 00:33:27.380
+So often, in order
+to get performance,
+
+00:33:27.380 --> 00:33:29.600
+you want to synchronize
+through memory.
+
+00:33:29.600 --> 00:33:32.150
+Not often, but
+occasionally you want
+
+00:33:32.150 --> 00:33:36.860
+to synchronize through
+memory to get performance.
+
+00:33:36.860 --> 00:33:41.860
+But then you have to be
+able to reason about it.
+
+00:33:41.860 --> 00:33:44.690
+And so the happens before
+sequential consistency,
+
+00:33:44.690 --> 00:33:46.070
+great tools for doing it.
+
+00:33:46.070 --> 00:33:48.560
+The only problem with
+sequential consistency is what?
+
+00:33:54.160 --> 00:33:56.000
+Who is listening?
+
+00:33:56.000 --> 00:33:56.500
+Yeah?
+
+00:33:56.500 --> 00:33:58.030
+STUDENT: It's not real.
+
+00:33:58.030 --> 00:34:00.220
+CHARLES LEISERSON:
+It's not real.
+
+00:34:00.220 --> 00:34:03.220
+No, we have had
+machines historically
+
+00:34:03.220 --> 00:34:05.110
+that implemented
+sequential consistency.
+
+00:34:05.110 --> 00:34:08.860
+Today, no machines support
+sequential consistency,
+
+00:34:08.860 --> 00:34:11.590
+at least that I'm aware of.
+
+00:34:11.590 --> 00:34:14.530
+Instead they report what's
+called relaxed memory
+
+00:34:14.530 --> 00:34:15.949
+consistency.
+
+00:34:15.949 --> 00:34:18.040
+And let's take a look at
+what the motivation is
+
+00:34:18.040 --> 00:34:22.750
+for why you would want to make
+it a nightmare for programmers
+
+00:34:22.750 --> 00:34:24.820
+to synchronize through memory.
+
+00:34:24.820 --> 00:34:27.250
+This has also led
+software people
+
+00:34:27.250 --> 00:34:30.469
+to say, never synchronize
+through memory.
+
+00:34:30.469 --> 00:34:30.969
+Why?
+
+00:34:30.969 --> 00:34:34.360
+Because it is so hard
+to get it correct.
+
+00:34:34.360 --> 00:34:36.580
+Because you don't even
+have sequential consistency
+
+00:34:36.580 --> 00:34:39.040
+at your back.
+
+00:34:39.040 --> 00:34:41.260
+So today, no modern
+day processor
+
+00:34:41.260 --> 00:34:44.020
+implements sequential
+consistency.
+
+00:34:44.020 --> 00:34:48.690
+They all implement some
+form of relaxed consistency.
+
+00:34:48.690 --> 00:34:53.469
+And in this context, hardware
+actively reorders instructions,
+
+00:34:53.469 --> 00:34:57.250
+and compilers may
+reorder instructions too.
+
+00:34:57.250 --> 00:35:00.970
+And that leads you not
+to have the property
+
+00:35:00.970 --> 00:35:05.110
+that the order of instructions
+that you specify in a processor
+
+00:35:05.110 --> 00:35:09.490
+is the same as the order
+that they get executed in.
+
+00:35:09.490 --> 00:35:15.790
+So you say do A and then B.
+The computer does B and then A.
+
+00:35:15.790 --> 00:35:21.200
+So let's see
+instruction reordering.
+
+00:35:21.200 --> 00:35:27.340
+So I have on the left the order
+that the programmer specified,
+
+00:35:27.340 --> 00:35:29.860
+and the order on the right
+what the hardware did.
+
+00:35:29.860 --> 00:35:33.640
+Or it may have been that
+the compiler reordered them.
+
+00:35:33.640 --> 00:35:38.500
+Now if you look, why might
+the hardware or compiler
+
+00:35:38.500 --> 00:35:40.990
+decide to reorder
+these instructions?
+
+00:35:43.247 --> 00:35:44.830
+What's going on in
+these instructions?
+
+00:35:44.830 --> 00:35:48.210
+You have to understand what
+these instructions are doing.
+
+00:35:48.210 --> 00:35:57.030
+So in the first case, I'm
+doing a store and then a load.
+
+00:35:57.030 --> 00:36:00.270
+And in the second case,
+I have reversed the order
+
+00:36:00.270 --> 00:36:01.500
+to do the load first.
+
+00:36:01.500 --> 00:36:04.020
+Now if you think
+about it, if you only
+
+00:36:04.020 --> 00:36:07.500
+had one thing going
+on, what's the impact
+
+00:36:07.500 --> 00:36:09.990
+here of this reordering?
+
+00:36:09.990 --> 00:36:14.790
+Is there any reason the
+compiler or somebody
+
+00:36:14.790 --> 00:36:17.268
+couldn't reorder these?
+
+00:36:17.268 --> 00:36:20.670
+STUDENT: I think we reorder
+them is the reason that it
+
+00:36:20.670 --> 00:36:22.128
+affects the pipeline.
+
+00:36:22.128 --> 00:36:25.520
+If you have to store first,
+the write [INAUDIBLE]
+
+00:36:25.520 --> 00:36:26.520
+you have to [INAUDIBLE].
+
+00:36:26.520 --> 00:36:28.020
+CHARLES LEISERSON:
+Yeah, in what way
+
+00:36:28.020 --> 00:36:30.274
+does it affect the pipeline?
+
+00:36:30.274 --> 00:36:32.920
+STUDENT: That basically the
+load doesn't do anything
+
+00:36:32.920 --> 00:36:36.231
+in the [INAUDIBLE],,
+whereas the store does.
+
+00:36:39.930 --> 00:36:42.690
+CHARLES LEISERSON: I think
+you're on the right track.
+
+00:36:42.690 --> 00:36:46.470
+There's a higher level
+reason why you might want
+
+00:36:46.470 --> 00:36:48.627
+to put loads before stores.
+
+00:36:48.627 --> 00:36:49.960
+Why might you want to put loads?
+
+00:36:49.960 --> 00:36:52.680
+These are two instructions
+that normally if I only
+
+00:36:52.680 --> 00:36:57.315
+had one thread, reordering
+them would be perfectly fine.
+
+00:37:00.690 --> 00:37:02.630
+Well, it's not necessarily
+perfectly fine.
+
+00:37:06.240 --> 00:37:07.470
+When might there be an issue?
+
+00:37:10.100 --> 00:37:11.725
+It's almost perfectly fine.
+
+00:37:11.725 --> 00:37:14.780
+STUDENT: [INAUDIBLE]
+
+00:37:14.780 --> 00:37:18.340
+CHARLES LEISERSON:
+If A was equal to B.
+
+00:37:18.340 --> 00:37:21.310
+But if A and B are
+different, than reordering
+
+00:37:21.310 --> 00:37:22.595
+them is just fine.
+
+00:37:22.595 --> 00:37:25.930
+If A and B are the same, if
+that's the same location,
+
+00:37:25.930 --> 00:37:30.310
+uh-oh, I can't reorder them
+because one is using the other.
+
+00:37:34.160 --> 00:37:40.530
+So why might the hardware
+prefer to put the load earlier?
+
+00:37:40.530 --> 00:37:41.030
+Yeah?
+
+00:37:41.030 --> 00:37:44.480
+STUDENT: There might be a later
+instruction which depends on B.
+
+00:37:44.480 --> 00:37:45.770
+CHARLES LEISERSON: There might
+be a later instruction that
+
+00:37:45.770 --> 00:37:48.062
+depends on B. And so why
+would it put the load earlier?
+
+00:37:48.062 --> 00:37:50.030
+STUDENT: So by doing
+the load earlier,
+
+00:37:50.030 --> 00:37:53.000
+the pipeline
+[INAUDIBLE] happens.
+
+00:37:53.000 --> 00:37:54.725
+Earlier on, [INAUDIBLE].
+
+00:37:54.725 --> 00:37:57.350
+CHARLES LEISERSON: Yeah, you're
+basically covering over latency
+
+00:37:57.350 --> 00:37:58.010
+in a load.
+
+00:37:58.010 --> 00:38:00.260
+When I do a load, I have
+to wait for the result
+
+00:38:00.260 --> 00:38:02.930
+before I can use it.
+
+00:38:02.930 --> 00:38:07.640
+When I do a store, I don't
+have to wait for the result
+
+00:38:07.640 --> 00:38:10.490
+because it's not being
+used, I'm storing it.
+
+00:38:10.490 --> 00:38:14.750
+And so therefore if
+I do loads earlier,
+
+00:38:14.750 --> 00:38:19.580
+If I have other work to do
+such as doing the store,
+
+00:38:19.580 --> 00:38:28.852
+then the instruction
+that needs the value of B
+
+00:38:28.852 --> 00:38:30.560
+doesn't have to
+necessarily wait as long.
+
+00:38:30.560 --> 00:38:32.250
+I've covered over
+some of the latency.
+
+00:38:32.250 --> 00:38:35.960
+And so the hardware
+will execute faster.
+
+00:38:35.960 --> 00:38:40.550
+So we've got higher performance
+by covering load latency.
+
+00:38:40.550 --> 00:38:42.793
+Does that makes sense?
+
+00:38:42.793 --> 00:38:44.960
+It's helpful to know what's
+going on in the hardware
+
+00:38:44.960 --> 00:38:47.530
+here to reason
+about the software.
+
+00:38:47.530 --> 00:38:49.910
+This is a really great
+example of that lesson
+
+00:38:49.910 --> 00:38:53.300
+is what the compiler
+is doing there
+
+00:38:53.300 --> 00:38:54.980
+that it chooses to reorder.
+
+00:38:54.980 --> 00:38:59.150
+And frankly, in
+the era before 2004
+
+00:38:59.150 --> 00:39:03.410
+when we were in the
+era of what's called
+
+00:39:03.410 --> 00:39:07.040
+Dennard scaling,
+and we didn't worry.
+
+00:39:07.040 --> 00:39:12.680
+All our computers just had one
+processor, it didn't matter.
+
+00:39:12.680 --> 00:39:14.930
+Didn't have to worry
+about these issues.
+
+00:39:14.930 --> 00:39:17.840
+These issues only come
+up for when you have
+
+00:39:17.840 --> 00:39:20.360
+more than one thing going on.
+
+00:39:20.360 --> 00:39:23.690
+Because if you're sharing
+these values, oops,
+
+00:39:23.690 --> 00:39:24.750
+I changed the order.
+
+00:39:24.750 --> 00:39:31.820
+So let's see, so when is
+it safe in this context
+
+00:39:31.820 --> 00:39:33.770
+for the hardware
+compiler to perform
+
+00:39:33.770 --> 00:39:37.340
+this particular reordering?
+
+00:39:37.340 --> 00:39:38.240
+When can I do that?
+
+00:39:41.388 --> 00:39:42.930
+So there's actually
+two answers here.
+
+00:39:46.390 --> 00:39:47.850
+Or there's a combined answer.
+
+00:39:47.850 --> 00:39:50.840
+So we've already talked
+about one of them.
+
+00:39:50.840 --> 00:39:51.340
+Yeah?
+
+00:39:51.340 --> 00:39:53.150
+STUDENT: When A is not B.
+
+00:39:53.150 --> 00:39:57.840
+CHARLES LEISERSON: Yeah, when A
+is not B. If A and B are equal,
+
+00:39:57.840 --> 00:39:59.810
+it's not safe to do.
+
+00:39:59.810 --> 00:40:01.640
+And what's the second
+constraint where
+
+00:40:01.640 --> 00:40:03.800
+it's safe to this reordering?
+
+00:40:03.800 --> 00:40:04.780
+Yeah, go ahead.
+
+00:40:04.780 --> 00:40:08.210
+STUDENT: If A
+equals B, but if you
+
+00:40:08.210 --> 00:40:10.170
+have already one [INAUDIBLE].
+
+00:40:10.170 --> 00:40:12.610
+CHARLES LEISERSON: Ooh,
+that's a nasty one.
+
+00:40:12.610 --> 00:40:15.280
+Yeah, I guess that's true.
+
+00:40:15.280 --> 00:40:18.310
+I guess that's true.
+
+00:40:18.310 --> 00:40:21.220
+But more generally
+when is it safe?
+
+00:40:21.220 --> 00:40:24.130
+That's a benign race
+in some sense, right?
+
+00:40:24.130 --> 00:40:24.630
+Yeah?
+
+00:40:27.550 --> 00:40:30.100
+Good.
+
+00:40:30.100 --> 00:40:32.980
+Good, that's a good one.
+
+00:40:32.980 --> 00:40:34.900
+What's the other case
+that this is safe to do?
+
+00:40:38.350 --> 00:40:42.815
+Or what's the case
+where it's not safe?
+
+00:40:42.815 --> 00:40:43.797
+Same question.
+
+00:40:48.710 --> 00:40:49.380
+I just told you.
+
+00:41:01.660 --> 00:41:02.755
+When might this be safe?
+
+00:41:05.520 --> 00:41:07.230
+When is it safe to
+this reordering?
+
+00:41:07.230 --> 00:41:10.670
+I can't do it if
+A is equal to B.
+
+00:41:10.670 --> 00:41:14.200
+And also shouldn't do it when?
+
+00:41:14.200 --> 00:41:14.700
+Yeah?
+
+00:41:14.700 --> 00:41:17.406
+STUDENT: [INAUDIBLE] value of A.
+
+00:41:17.406 --> 00:41:22.890
+CHARLES LEISERSON: Yeah, but.
+
+00:41:22.890 --> 00:41:23.533
+Yeah?
+
+00:41:23.533 --> 00:41:25.305
+STUDENT: [INAUDIBLE]
+if you have like
+
+00:41:25.305 --> 00:41:26.930
+when a processor is operating.
+
+00:41:26.930 --> 00:41:30.680
+CHARLES LEISERSON: Yeah,
+if there's no concurrency.
+
+00:41:30.680 --> 00:41:34.150
+If there's no
+concurrency, it's fine.
+
+00:41:34.150 --> 00:41:36.190
+The problem is when
+there's concurrency.
+
+00:41:39.120 --> 00:41:43.520
+So let's take a look at how
+the hardware does reordering
+
+00:41:43.520 --> 00:41:46.350
+so that we can understand
+what's going on.
+
+00:41:46.350 --> 00:41:47.970
+Because in a modern
+processor, there's
+
+00:41:47.970 --> 00:41:50.430
+concurrency all the time.
+
+00:41:50.430 --> 00:41:52.500
+And yet the compiler
+still wants to be
+
+00:41:52.500 --> 00:41:54.900
+able to cover overload
+latency, because usually it
+
+00:41:54.900 --> 00:41:55.620
+doesn't matter.
+
+00:41:58.260 --> 00:42:01.950
+So you can view
+hardware as follows.
+
+00:42:01.950 --> 00:42:05.520
+So you have a processor
+on the left edge here,
+
+00:42:05.520 --> 00:42:07.860
+and you have a network
+that connects it
+
+00:42:07.860 --> 00:42:12.900
+to the memory system, a
+memory bus of some kind.
+
+00:42:12.900 --> 00:42:16.170
+Now it turns out
+that the processor
+
+00:42:16.170 --> 00:42:21.120
+can issue stores faster than
+the network can handle them.
+
+00:42:21.120 --> 00:42:24.810
+So the processor can go store,
+store, store, store, store.
+
+00:42:24.810 --> 00:42:26.730
+But getting things
+into the memory system,
+
+00:42:26.730 --> 00:42:29.100
+that can take a while.
+
+00:42:29.100 --> 00:42:33.690
+Memory system is
+big and it's slow.
+
+00:42:33.690 --> 00:42:37.937
+But the hardware is usually
+not doing store on every cycle.
+
+00:42:37.937 --> 00:42:40.020
+It's doing some other
+things, so there are bubbles
+
+00:42:40.020 --> 00:42:43.562
+in that instruction stream.
+
+00:42:43.562 --> 00:42:45.270
+And so what it does
+is it says, well, I'm
+
+00:42:45.270 --> 00:42:46.728
+going to let you
+issue it because I
+
+00:42:46.728 --> 00:42:49.170
+don't want to hold you up.
+
+00:42:49.170 --> 00:42:51.690
+So rather than
+being held up, let's
+
+00:42:51.690 --> 00:42:54.000
+just put them into a buffer.
+
+00:42:54.000 --> 00:42:56.670
+And as long as there's
+room in the buffer,
+
+00:42:56.670 --> 00:42:59.200
+I can issue them as
+fast as I need to.
+
+00:42:59.200 --> 00:43:02.760
+And then the memory system can
+suck them out of the buffer
+
+00:43:02.760 --> 00:43:06.180
+as it's going along.
+
+00:43:06.180 --> 00:43:10.290
+And so in critical places where
+there's a bunch of stores,
+
+00:43:10.290 --> 00:43:13.710
+it stores them in the buffer if
+the memory system can't handle.
+
+00:43:13.710 --> 00:43:15.120
+On average, of
+course, it's going
+
+00:43:15.120 --> 00:43:18.900
+to go at whatever the bottleneck
+is on the left or the right.
+
+00:43:18.900 --> 00:43:20.430
+You can't go faster
+than whichever
+
+00:43:20.430 --> 00:43:24.990
+is the bottleneck--
+usually the memory system.
+
+00:43:24.990 --> 00:43:26.640
+But we'd like to
+achieve that, and we
+
+00:43:26.640 --> 00:43:30.900
+don't want to have to stall
+every time we try to do two
+
+00:43:30.900 --> 00:43:33.300
+stores in a row, for example.
+
+00:43:33.300 --> 00:43:35.070
+By putting a little
+bit of a buffer,
+
+00:43:35.070 --> 00:43:38.220
+we can make it go faster.
+
+00:43:38.220 --> 00:43:48.230
+Now if I try to do a load,
+that can stall the processor
+
+00:43:48.230 --> 00:43:49.310
+until it's satisfied.
+
+00:43:49.310 --> 00:43:53.000
+So whenever you do a load, if
+there's no more instructions
+
+00:43:53.000 --> 00:43:55.400
+to execute it, if the next
+instruction to execute
+
+00:43:55.400 --> 00:43:58.550
+requires the value
+that's being loaded,
+
+00:43:58.550 --> 00:44:02.280
+the processor has to stall
+until it gets that value.
+
+00:44:02.280 --> 00:44:07.128
+So they don't want the loads
+to go through the store buffer.
+
+00:44:07.128 --> 00:44:09.170
+I mean, one solution would
+be just put everything
+
+00:44:09.170 --> 00:44:10.440
+into the store buffer.
+
+00:44:10.440 --> 00:44:14.030
+In some sense you'd
+be OK, but now I
+
+00:44:14.030 --> 00:44:15.920
+haven't covered over
+my load latency.
+
+00:44:15.920 --> 00:44:19.790
+So instead what they do is they
+do what's called a load bypass.
+
+00:44:19.790 --> 00:44:22.760
+They go directly to the
+memory system for the load,
+
+00:44:22.760 --> 00:44:26.300
+bypassing all the writes that
+you've done up to that point
+
+00:44:26.300 --> 00:44:28.760
+and fetch it so that you
+get it to the memory system
+
+00:44:28.760 --> 00:44:32.720
+and the load bypass takes
+priority over the store buffer.
+
+00:44:35.330 --> 00:44:39.943
+But there's one problem
+with that hack, if you will.
+
+00:44:39.943 --> 00:44:41.360
+What's the problem
+with that hack?
+
+00:44:41.360 --> 00:44:46.040
+If I bypass the load, where
+could I run into trouble
+
+00:44:46.040 --> 00:44:47.810
+in terms of correctness?
+
+00:44:47.810 --> 00:44:48.310
+Yeah?
+
+00:44:48.310 --> 00:44:50.074
+STUDENT: If one your
+stores is the thing
+
+00:44:50.074 --> 00:44:50.515
+you're trying to load.
+
+00:44:50.515 --> 00:44:52.723
+CHARLES LEISERSON: If one
+of your stores is the thing
+
+00:44:52.723 --> 00:44:53.870
+you're trying to load.
+
+00:44:53.870 --> 00:44:55.370
+Exactly.
+
+00:44:55.370 --> 00:45:00.470
+And so what happens is, as
+the load bypass is going by,
+
+00:45:00.470 --> 00:45:03.500
+it does an associative
+check in the hardware.
+
+00:45:03.500 --> 00:45:06.110
+Is the value that I'm fetching
+one of the values that
+
+00:45:06.110 --> 00:45:08.010
+is in the store buffer?
+
+00:45:08.010 --> 00:45:10.430
+And if so, it responds
+out of the store buffer
+
+00:45:10.430 --> 00:45:14.210
+directly rather than going
+into the memory system.
+
+00:45:14.210 --> 00:45:16.070
+Makes sense?
+
+00:45:16.070 --> 00:45:24.380
+So that's how the reordering
+happens within the machine.
+
+00:45:24.380 --> 00:45:28.880
+But by this token, a
+load can bypass a store
+
+00:45:28.880 --> 00:45:29.905
+to a different address.
+
+00:45:32.480 --> 00:45:34.910
+So this is how the hardware
+ends up reordering it,
+
+00:45:34.910 --> 00:45:38.660
+because the appearance
+is that the load occurred
+
+00:45:38.660 --> 00:45:41.480
+before the store occurred
+if you are looking
+
+00:45:41.480 --> 00:45:44.990
+at the memory from the
+point of view of the memory,
+
+00:45:44.990 --> 00:45:46.460
+and in particular
+the point of view
+
+00:45:46.460 --> 00:45:50.260
+of another processor that's
+accessing that memory.
+
+00:45:50.260 --> 00:45:54.110
+So over here I said, store load.
+
+00:45:54.110 --> 00:45:56.555
+Over here it looks like
+he did, load store.
+
+00:46:00.550 --> 00:46:04.900
+And so that's why it doesn't
+satisfy sequential consistency.
+
+00:46:08.295 --> 00:46:08.920
+Yeah, question?
+
+00:46:08.920 --> 00:46:11.746
+STUDENT: So that
+store bumper would
+
+00:46:11.746 --> 00:46:14.233
+be one for each processor?
+
+00:46:14.233 --> 00:46:18.910
+CHARLES LEISERSON: Yeah,
+there's one for each processor.
+
+00:46:18.910 --> 00:46:21.100
+It's the way it gets things
+into the memory, right?
+
+00:46:21.100 --> 00:46:23.758
+So I'll tell you,
+computing would be so easy
+
+00:46:23.758 --> 00:46:25.300
+if we didn't worry
+about performance.
+
+00:46:25.300 --> 00:46:27.830
+Because if those guys didn't
+worry about performance,
+
+00:46:27.830 --> 00:46:31.150
+they'd do the correct thing.
+
+00:46:31.150 --> 00:46:34.720
+They'd just put them
+in in the right order.
+
+00:46:34.720 --> 00:46:37.750
+It's because we care about
+performance that we make
+
+00:46:37.750 --> 00:46:39.880
+our lives hard for ourselves.
+
+00:46:39.880 --> 00:46:41.860
+And then we have these
+kludges to fix them up.
+
+00:46:45.370 --> 00:46:48.340
+So that's what's going on
+in the hardware, that's
+
+00:46:48.340 --> 00:46:50.570
+why things get reordered.
+
+00:46:50.570 --> 00:46:51.190
+Makes sense?
+
+00:46:55.170 --> 00:46:58.410
+But it's not as if
+all bets are off.
+
+00:46:58.410 --> 00:47:02.970
+And in fact, x86 has a
+memory consistency model
+
+00:47:02.970 --> 00:47:07.590
+they call total store order.
+
+00:47:07.590 --> 00:47:08.580
+And here's the rules.
+
+00:47:12.110 --> 00:47:15.030
+So it's a weaker model.
+
+00:47:15.030 --> 00:47:18.010
+And some of it is kind of
+sequentially consistent type
+
+00:47:18.010 --> 00:47:18.510
+of thing.
+
+00:47:18.510 --> 00:47:20.710
+You're talking about
+what can be ordered.
+
+00:47:20.710 --> 00:47:24.630
+So first of all, loads are
+never reordered with loads.
+
+00:47:27.720 --> 00:47:28.890
+Let me see here.
+
+00:47:28.890 --> 00:47:33.360
+Yeah, so you never
+reorder loads with loads.
+
+00:47:33.360 --> 00:47:34.350
+That's not OK.
+
+00:47:38.070 --> 00:47:41.400
+Always, you can
+count on loads being
+
+00:47:41.400 --> 00:47:45.330
+seen by any external
+processor in the same order
+
+00:47:45.330 --> 00:47:49.090
+that you issued the loads
+within a given processor.
+
+00:47:49.090 --> 00:47:53.790
+So there is some rationale here.
+
+00:47:53.790 --> 00:47:59.403
+Likewise, stores are not
+reordered with stores.
+
+00:47:59.403 --> 00:48:00.195
+That never happens.
+
+00:48:04.410 --> 00:48:10.650
+And then stores are not
+reordered with prior loads.
+
+00:48:10.650 --> 00:48:17.310
+So you never move a store
+earlier past a load.
+
+00:48:17.310 --> 00:48:20.848
+You wouldn't want to do
+that because generally it's
+
+00:48:20.848 --> 00:48:22.890
+the other direction you're
+covering over latency.
+
+00:48:22.890 --> 00:48:25.950
+But in fact, they guarantee
+it doesn't happen.
+
+00:48:25.950 --> 00:48:30.390
+So you never move a
+store before a load.
+
+00:48:30.390 --> 00:48:32.280
+It's always move a
+load before a store.
+
+00:48:37.620 --> 00:48:47.550
+And then in general, a load may
+be reordered with a prior store
+
+00:48:47.550 --> 00:48:50.850
+to a different location,
+but not with a prior load
+
+00:48:50.850 --> 00:48:52.390
+to the same location.
+
+00:48:52.390 --> 00:48:54.330
+So this is what were
+just talking about,
+
+00:48:54.330 --> 00:48:56.910
+that A has to be not
+equal to B in order
+
+00:48:56.910 --> 00:48:58.887
+for it to be reordered.
+
+00:48:58.887 --> 00:49:00.720
+And at the point that
+you're executing this,
+
+00:49:00.720 --> 00:49:03.600
+the hardware knows
+what the addresses
+
+00:49:03.600 --> 00:49:12.510
+are that are being loaded
+and stored and can tell,
+
+00:49:12.510 --> 00:49:14.550
+are they the same
+location or not.
+
+00:49:14.550 --> 00:49:17.640
+And so it knows whether or
+not it's able to do that.
+
+00:49:17.640 --> 00:49:25.170
+So the loads basically,
+you can move loads upwards.
+
+00:49:25.170 --> 00:49:28.890
+But you don't reorder them.
+
+00:49:28.890 --> 00:49:31.890
+And you only move
+it past a store
+
+00:49:31.890 --> 00:49:33.540
+if it's a store to
+a different address.
+
+00:49:36.060 --> 00:49:39.990
+And so here we have
+a bunch of things.
+
+00:49:39.990 --> 00:49:43.860
+So this is basically weaker
+than sequential consistency.
+
+00:49:43.860 --> 00:49:45.680
+There are a bunch
+of other things.
+
+00:49:45.680 --> 00:49:48.420
+So for example, if I just
+go back here for a second.
+
+00:49:51.940 --> 00:49:57.605
+The lock instructions
+respect a total order.
+
+00:49:57.605 --> 00:49:58.980
+The stores respect
+a total order.
+
+00:49:58.980 --> 00:50:02.730
+The lock instructions
+and memory ordering
+
+00:50:02.730 --> 00:50:05.530
+preserves what they call
+transitive visibility.
+
+00:50:05.530 --> 00:50:08.340
+In other words, causality,
+which is basically the happens--
+
+00:50:08.340 --> 00:50:10.350
+says that the happens
+before a relation,
+
+00:50:10.350 --> 00:50:15.000
+you can treat as if
+it's a linear order.
+
+00:50:15.000 --> 00:50:19.920
+It's transitive as
+a binary relation.
+
+00:50:19.920 --> 00:50:23.920
+So the main important ones
+are the ones at the beginning.
+
+00:50:23.920 --> 00:50:28.560
+But it's helpful to
+know that locks are not
+
+00:50:28.560 --> 00:50:30.990
+going to get reordered.
+
+00:50:30.990 --> 00:50:33.210
+If you have a lock
+instruction, they're never
+
+00:50:33.210 --> 00:50:36.330
+going to move it before things.
+
+00:50:36.330 --> 00:50:37.950
+So here's the
+impact of reordering
+
+00:50:37.950 --> 00:50:40.380
+on Peterson's algorithm.
+
+00:50:40.380 --> 00:50:43.630
+Sorry, no, this is not
+Peterson's algorithm yet.
+
+00:50:43.630 --> 00:50:46.590
+This impact of
+reordering on this
+
+00:50:46.590 --> 00:50:56.810
+is that I may have written
+things in this order,
+
+00:50:56.810 --> 00:51:01.910
+but in fact they execute in
+something like this order.
+
+00:51:01.910 --> 00:51:05.780
+And therefore, the
+ordering, in this case,
+
+00:51:05.780 --> 00:51:11.120
+2, 4, 1, 3 is going to
+produce the value 0,
+
+00:51:11.120 --> 00:51:14.720
+0, which was exactly
+the value that you said
+
+00:51:14.720 --> 00:51:16.310
+couldn't possibly appear.
+
+00:51:16.310 --> 00:51:18.740
+Well, on these
+machines it can appear.
+
+00:51:26.330 --> 00:51:31.010
+And also let me say, so
+instruction reordering violates
+
+00:51:31.010 --> 00:51:34.250
+this sequential consistency.
+
+00:51:34.250 --> 00:51:35.955
+And by the way, this can happen.
+
+00:51:35.955 --> 00:51:38.330
+Not just in the hardware, this
+can happen in the compiler
+
+00:51:38.330 --> 00:51:39.500
+as well.
+
+00:51:39.500 --> 00:51:43.820
+The compiler can decide
+to reorder instructions.
+
+00:51:43.820 --> 00:51:47.930
+It's like, oh my god,
+how can we be writing
+
+00:51:47.930 --> 00:51:49.910
+correct code at all right.
+
+00:51:49.910 --> 00:51:51.853
+But you've written some
+correct parallel code,
+
+00:51:51.853 --> 00:51:53.520
+and you didn't have
+to worry about this.
+
+00:51:53.520 --> 00:51:55.260
+So we'll talk about
+how we get there.
+
+00:51:55.260 --> 00:51:55.760
+Yeah?
+
+00:51:55.760 --> 00:52:00.110
+STUDENT: Is the hardware geared
+to even reorder [INAUDIBLE]??
+
+00:52:00.110 --> 00:52:01.722
+Or [INAUDIBLE] it might happen?
+
+00:52:01.722 --> 00:52:03.180
+CHARLES LEISERSON:
+It might happen.
+
+00:52:03.180 --> 00:52:06.060
+No, there's no requirement
+that it move things earlier.
+
+00:52:06.060 --> 00:52:10.845
+STUDENT: Why is it not
+always [INAUDIBLE]??
+
+00:52:10.845 --> 00:52:12.470
+CHARLES LEISERSON:
+It may be that there
+
+00:52:12.470 --> 00:52:14.870
+isn't enough register space.
+
+00:52:14.870 --> 00:52:18.680
+Because as you move
+things earlier,
+
+00:52:18.680 --> 00:52:21.088
+you're going to have to
+hold the values longer
+
+00:52:21.088 --> 00:52:22.130
+before you're using them.
+
+00:52:24.790 --> 00:52:25.430
+Yeah?
+
+00:52:25.430 --> 00:52:29.272
+STUDENT: In the previous slide,
+[INAUDIBLE] load 3 [INAUDIBLE]
+
+00:52:29.272 --> 00:52:30.084
+also.
+
+00:52:30.084 --> 00:52:36.832
+CHARLES LEISERSON: That
+load 3 in the previous--
+
+00:52:36.832 --> 00:52:38.040
+I'm sorry, I'm not following.
+
+00:52:38.040 --> 00:52:39.560
+STUDENT: In the previous slide.
+
+00:52:39.560 --> 00:52:43.760
+CHARLES LEISERSON: Oh, the
+previous slide, not this slide.
+
+00:52:43.760 --> 00:52:44.260
+This one?
+
+00:52:44.260 --> 00:52:45.423
+STUDENT: Yeah.
+
+00:52:45.423 --> 00:52:46.340
+CHARLES LEISERSON: OK.
+
+00:52:46.340 --> 00:52:51.352
+STUDENT: So [INAUDIBLE]
+load 3 [INAUDIBLE]..
+
+00:52:51.352 --> 00:52:52.810
+CHARLES LEISERSON:
+Well, I had said
+
+00:52:52.810 --> 00:52:56.680
+there's some things that I
+said we're no good, right?
+
+00:52:56.680 --> 00:52:59.080
+So here it was, what did I do?
+
+00:52:59.080 --> 00:53:03.105
+I moved the loads
+earlier in that example.
+
+00:53:03.105 --> 00:53:04.480
+But there were
+some earlier ones.
+
+00:53:04.480 --> 00:53:06.070
+Are you talking about
+even earlier than that?
+
+00:53:06.070 --> 00:53:07.330
+STUDENT: Yeah, this one.
+
+00:53:07.330 --> 00:53:08.830
+CHARLES LEISERSON:
+Oh, this one, OK.
+
+00:53:11.304 --> 00:53:15.792
+STUDENT: So, load 3 can come
+before store [INAUDIBLE]..
+
+00:53:21.680 --> 00:53:23.490
+CHARLES LEISERSON: So let's see.
+
+00:53:23.490 --> 00:53:24.740
+So this is the original thing.
+
+00:53:24.740 --> 00:53:29.000
+Store 3 is before store
+4, and load 3 and load 4
+
+00:53:29.000 --> 00:53:30.920
+are afterwards, right?
+
+00:53:30.920 --> 00:53:33.770
+So the stores have to
+be in the same order
+
+00:53:33.770 --> 00:53:36.260
+and the loads have to
+be in the same order.
+
+00:53:36.260 --> 00:53:38.278
+But the loads can
+go before the stores
+
+00:53:38.278 --> 00:53:39.695
+if they're to a
+different address.
+
+00:53:42.740 --> 00:53:46.280
+So in this case, we
+moved load 3 up two,
+
+00:53:46.280 --> 00:53:48.110
+and we moved load 4 up one.
+
+00:53:48.110 --> 00:53:52.160
+We could have maybe move
+load 4 up before store 3,
+
+00:53:52.160 --> 00:53:54.154
+but maybe they were
+to the same address.
+
+00:53:54.154 --> 00:53:57.634
+STUDENT: OK, so load 3's store
+doesn't mean that they're
+
+00:53:57.634 --> 00:53:58.680
+from the same address?
+
+00:53:58.680 --> 00:54:03.320
+CHARLES LEISERSON: No,
+no, this is abstract.
+
+00:54:06.685 --> 00:54:08.030
+You got it?
+
+00:54:08.030 --> 00:54:08.530
+OK.
+
+00:54:11.100 --> 00:54:13.830
+So this is why things
+can get reordering.
+
+00:54:13.830 --> 00:54:18.032
+And in that case, we can end up
+with a reordering that gives us
+
+00:54:18.032 --> 00:54:19.740
+something that we
+don't expect when we're
+
+00:54:19.740 --> 00:54:22.020
+synchronizing through memory.
+
+00:54:22.020 --> 00:54:27.310
+Never write
+non-deterministic code,
+
+00:54:27.310 --> 00:54:30.630
+because you deal
+with this stuff--
+
+00:54:30.630 --> 00:54:31.500
+unless you have to.
+
+00:54:34.770 --> 00:54:40.470
+Unfortunately, sometimes, it's
+not fast enough otherwise.
+
+00:54:40.470 --> 00:54:43.590
+Now let's go back and look
+at Peterson's algorithm
+
+00:54:43.590 --> 00:54:47.400
+and what can go wrong
+with Peterson's algorithm.
+
+00:54:47.400 --> 00:54:52.410
+So what reordering might happen
+here that would completely
+
+00:54:52.410 --> 00:54:54.509
+screw up Peterson's algorithm?
+
+00:55:03.550 --> 00:55:05.530
+A hint, we're looking
+for a load that
+
+00:55:05.530 --> 00:55:07.670
+might happen before a store.
+
+00:55:07.670 --> 00:55:10.470
+What load would be really
+bad to happen before a store?
+
+00:55:17.940 --> 00:55:18.645
+Yeah?
+
+00:55:18.645 --> 00:55:23.280
+STUDENT: If you load turn to
+[INAUDIBLE] before the store
+
+00:55:23.280 --> 00:55:25.630
+turn [INAUDIBLE].
+
+00:55:25.630 --> 00:55:30.600
+CHARLES LEISERSON:
+You load turn earlier.
+
+00:55:30.600 --> 00:55:33.140
+Maybe.
+
+00:55:33.140 --> 00:55:35.340
+Let me think, that's
+not the one I chose,
+
+00:55:35.340 --> 00:55:38.420
+but maybe that could be right.
+
+00:55:38.420 --> 00:55:43.746
+Well, you can't move it
+before the store to turn.
+
+00:55:43.746 --> 00:55:45.210
+STUDENT: All right.
+
+00:55:45.210 --> 00:55:46.947
+CHARLES LEISERSON: OK, yeah?
+
+00:55:46.947 --> 00:55:50.763
+STUDENT: Maybe Alice
+loads B_wants to early?
+
+00:55:50.763 --> 00:55:54.070
+CHARLES LEISERSON: Yeah, if
+Alice loads B_wants to early,
+
+00:55:54.070 --> 00:56:00.460
+and if they both do, then
+they could be reordered
+
+00:56:00.460 --> 00:56:07.840
+before the store of
+A_wants and B_wants,
+
+00:56:07.840 --> 00:56:13.180
+because that's a load
+and B_wants-- well,
+
+00:56:13.180 --> 00:56:15.640
+Alice isn't touching
+B_wants so why can't it just
+
+00:56:15.640 --> 00:56:16.720
+move it earlier.
+
+00:56:16.720 --> 00:56:19.550
+Those are not the
+same locations.
+
+00:56:19.550 --> 00:56:22.355
+So suppose it reorders
+those, now what happens?
+
+00:56:25.602 --> 00:56:34.422
+STUDENT: So [INAUDIBLE]
+B_wants [INAUDIBLE] too early?
+
+00:56:34.422 --> 00:56:36.630
+CHARLES LEISERSON: Yeah, it
+would be false too early,
+
+00:56:36.630 --> 00:56:36.900
+right?
+
+00:56:36.900 --> 00:56:38.240
+STUDENT: And the
+same with A_wants.
+
+00:56:38.240 --> 00:56:39.865
+CHARLES LEISERSON:
+And the same with A.
+
+00:56:39.865 --> 00:56:45.140
+And now they discover they're in
+this critical section together.
+
+00:56:45.140 --> 00:56:48.020
+And if there's one thing,
+we don't want Alice and Bob
+
+00:56:48.020 --> 00:56:49.430
+in the same critical section.
+
+00:56:52.839 --> 00:56:56.070
+Does that makes sense?
+
+00:56:56.070 --> 00:56:58.660
+So you've got this problem.
+
+00:56:58.660 --> 00:57:02.020
+There's reordering going on.
+
+00:57:02.020 --> 00:57:06.150
+And, yikes, how
+could you possibly
+
+00:57:06.150 --> 00:57:10.260
+write any parallel code
+and any concurrent code?
+
+00:57:10.260 --> 00:57:14.538
+Well, they say, well,
+we'll put in a kludge.
+
+00:57:14.538 --> 00:57:16.080
+They introduce some
+new instructions.
+
+00:57:16.080 --> 00:57:17.997
+And this instruction is
+called a memory fence.
+
+00:57:21.360 --> 00:57:23.140
+So don't get me wrong.
+
+00:57:23.140 --> 00:57:26.820
+They need to do stuff like this.
+
+00:57:26.820 --> 00:57:30.090
+There is an argument to say
+they should still build machines
+
+00:57:30.090 --> 00:57:32.400
+with sequential
+consistency because it's
+
+00:57:32.400 --> 00:57:33.660
+been done in the past.
+
+00:57:33.660 --> 00:57:38.020
+It is hard work for the
+hardware designers to do that.
+
+00:57:38.020 --> 00:57:39.690
+And so as long as
+the software people
+
+00:57:39.690 --> 00:57:44.010
+say, well, we can handle
+weak consistency models,
+
+00:57:44.010 --> 00:57:45.960
+[INAUDIBLE] says,
+OK, your problem.
+
+00:57:49.710 --> 00:57:54.420
+So Mark Hill, who's a professor
+at University of Wisconsin,
+
+00:57:54.420 --> 00:57:59.790
+has some wonderful
+essays saying why
+
+00:57:59.790 --> 00:58:02.730
+he thinks that parallel
+machines should support
+
+00:58:02.730 --> 00:58:08.730
+sequential consistency, and that
+the complaints of people not
+
+00:58:08.730 --> 00:58:13.300
+having it supported, that those
+people they could support it
+
+00:58:13.300 --> 00:58:14.640
+if they really wanted to.
+
+00:58:14.640 --> 00:58:17.940
+And I tend to be
+persuaded by him.
+
+00:58:17.940 --> 00:58:21.017
+He's a very good
+thinker, in my opinion.
+
+00:58:21.017 --> 00:58:23.100
+But in any case, so what
+we have-- yeah, question?
+
+00:58:23.100 --> 00:58:25.505
+STUDENT: How much
+of a difference
+
+00:58:25.505 --> 00:58:30.830
+does it make to sacrifice?
+
+00:58:30.830 --> 00:58:32.540
+CHARLES LEISERSON: So
+he talks about this
+
+00:58:32.540 --> 00:58:33.830
+and what he thinks
+the differences is,
+
+00:58:33.830 --> 00:58:35.090
+but it's apples and oranges.
+
+00:58:35.090 --> 00:58:37.700
+Because sometimes
+part of it is what's
+
+00:58:37.700 --> 00:58:39.380
+the price of having
+bugs in your code.
+
+00:58:43.010 --> 00:58:44.810
+Because that's what
+happens is programmers
+
+00:58:44.810 --> 00:58:46.880
+can't deal with this.
+
+00:58:46.880 --> 00:58:50.030
+And so we end up with
+bugs in our code.
+
+00:58:50.030 --> 00:58:52.280
+But they can reason about
+sequential consistency.
+
+00:58:52.280 --> 00:58:54.740
+It's hard, but they
+can reason about it.
+
+00:58:54.740 --> 00:58:57.590
+When you start having relaxed
+memory consistency, very
+
+00:58:57.590 --> 00:58:59.210
+tricky.
+
+00:58:59.210 --> 00:59:02.450
+So let's talk about
+what the solutions are.
+
+00:59:02.450 --> 00:59:04.340
+And his argument is
+that the performance
+
+00:59:04.340 --> 00:59:06.180
+doesn't have to be that bad.
+
+00:59:06.180 --> 00:59:07.850
+There was a series
+of machines made
+
+00:59:07.850 --> 00:59:14.710
+by a company called Silicon
+Graphics, which were all
+
+00:59:14.710 --> 00:59:15.710
+sequentially consistent.
+
+00:59:15.710 --> 00:59:18.650
+Parallel machines, all
+sequentially consistent.
+
+00:59:18.650 --> 00:59:20.150
+And they were fine.
+
+00:59:20.150 --> 00:59:23.090
+But they got killed
+in the market
+
+00:59:23.090 --> 00:59:25.790
+because they couldn't implement
+processors as well as Intel
+
+00:59:25.790 --> 00:59:27.770
+does.
+
+00:59:27.770 --> 00:59:30.410
+And so they ended up
+getting killed in the market
+
+00:59:30.410 --> 00:59:33.583
+and getting bought
+out, and so forth.
+
+00:59:33.583 --> 00:59:35.000
+And now their
+people are all over,
+
+00:59:35.000 --> 00:59:38.210
+and the people who were at
+Silicon Graphics, many of them
+
+00:59:38.210 --> 00:59:40.520
+really understand
+parallel computing well,
+
+00:59:40.520 --> 00:59:43.520
+the hardware aspects of it.
+
+00:59:43.520 --> 00:59:46.160
+So a memory fence
+is a hardware action
+
+00:59:46.160 --> 00:59:47.810
+that forces an
+ordering constraint
+
+00:59:47.810 --> 00:59:51.110
+between the instructions
+before and after the fence.
+
+00:59:51.110 --> 00:59:55.760
+So the idea is, you can put a
+memory fence in there and now
+
+00:59:55.760 --> 00:59:58.220
+that memory fence
+can't be reordered
+
+00:59:58.220 --> 00:59:59.840
+with things around it.
+
+00:59:59.840 --> 01:00:03.110
+It maintains its relative
+ordering site to other things.
+
+01:00:03.110 --> 01:00:04.970
+And that way you can prevent.
+
+01:00:04.970 --> 01:00:10.490
+So one way you could make any
+code be sequentially consistent
+
+01:00:10.490 --> 01:00:15.560
+is to put a memory fence
+between every instruction.
+
+01:00:15.560 --> 01:00:18.440
+Not very practical, but
+there's a subset of those
+
+01:00:18.440 --> 01:00:20.360
+that actually would matter.
+
+01:00:20.360 --> 01:00:22.490
+So the idea is to put
+in just the run one.
+
+01:00:22.490 --> 01:00:25.940
+You can issue them
+explicitly as an instruction.
+
+01:00:25.940 --> 01:00:28.850
+In the x86, it's called
+the mfence instruction.
+
+01:00:31.760 --> 01:00:33.450
+Or it can be
+performed implicitly,
+
+01:00:33.450 --> 01:00:36.860
+so there are other things like
+locking, exchanging, and other
+
+01:00:36.860 --> 01:00:38.090
+synchronizing instructions.
+
+01:00:38.090 --> 01:00:41.510
+They implicitly
+have a memory fence.
+
+01:00:41.510 --> 01:00:43.640
+Now the compiler
+that we're using
+
+01:00:43.640 --> 01:00:46.040
+implements a memory
+fence via the function
+
+01:00:46.040 --> 01:00:51.710
+atomic_thread_fence, which is
+defined in the C header file
+
+01:00:51.710 --> 01:00:53.930
+stdatomic.h.
+
+01:00:53.930 --> 01:00:57.230
+And you can take a look
+at the reference material
+
+01:00:57.230 --> 01:00:59.960
+on that to understand a
+little bit more about that.
+
+01:00:59.960 --> 01:01:02.270
+The typical cost
+on most machines
+
+01:01:02.270 --> 01:01:06.620
+is comparable to that
+of an L2 cache access.
+
+01:01:06.620 --> 01:01:10.910
+Now one of the things that
+is nice to see is happening
+
+01:01:10.910 --> 01:01:13.130
+is they are bringing that down.
+
+01:01:13.130 --> 01:01:14.690
+They're making that cheaper.
+
+01:01:14.690 --> 01:01:22.730
+But it's interesting that
+Intel had one processor where
+
+01:01:22.730 --> 01:01:25.280
+the memory fence
+was actually slower
+
+01:01:25.280 --> 01:01:26.948
+than the lock instruction.
+
+01:01:29.940 --> 01:01:33.290
+And you say, wait a minute,
+the lock instruction
+
+01:01:33.290 --> 01:01:35.150
+has an implicit
+memory fence in it.
+
+01:01:37.913 --> 01:01:40.330
+I mean, you've got a memory
+fence in the lock instruction.
+
+01:01:40.330 --> 01:01:44.000
+How could the memory
+fence be slower?
+
+01:01:44.000 --> 01:01:48.830
+So I don't know exactly how this
+happens, but here's my theory.
+
+01:01:48.830 --> 01:01:54.020
+So you've got these
+engineering teams
+
+01:01:54.020 --> 01:01:57.560
+that are designing
+the next processor.
+
+01:02:00.950 --> 01:02:03.217
+And they of course
+want it to go fast.
+
+01:02:03.217 --> 01:02:05.300
+So how do they know whether
+it's going to go fast?
+
+01:02:05.300 --> 01:02:08.240
+They have a bunch
+of benchmark codes
+
+01:02:08.240 --> 01:02:11.150
+and that they discover,
+well, now that we're
+
+01:02:11.150 --> 01:02:13.970
+getting the age of parallelism,
+all these parallel codes,
+
+01:02:13.970 --> 01:02:17.120
+they're using locking.
+
+01:02:17.120 --> 01:02:19.160
+So they look and
+they say, OK, we're
+
+01:02:19.160 --> 01:02:23.678
+going to put our best engineer
+on making locks go fast.
+
+01:02:23.678 --> 01:02:25.220
+And then they see
+that, well, there's
+
+01:02:25.220 --> 01:02:27.345
+some other codes that maybe
+go slow because they've
+
+01:02:27.345 --> 01:02:28.220
+got fences.
+
+01:02:28.220 --> 01:02:29.990
+But there aren't too
+many codes that just
+
+01:02:29.990 --> 01:02:33.225
+need fences, explicit fences.
+
+01:02:33.225 --> 01:02:34.850
+In fact, most of
+them use [INAUDIBLE]..
+
+01:02:34.850 --> 01:02:39.620
+So they put their junior
+engineer on the fence code,
+
+01:02:39.620 --> 01:02:45.410
+not recognizing that, hey, the
+left hand and the right hand
+
+01:02:45.410 --> 01:02:47.480
+should know what
+each other is doing.
+
+01:02:47.480 --> 01:02:49.010
+And so anyway,
+you get an anomaly
+
+01:02:49.010 --> 01:02:54.920
+like that where it turned out
+that it was actually fastest--
+
+01:02:54.920 --> 01:02:58.040
+we discovered as we're
+implementing the silk runtime--
+
+01:02:58.040 --> 01:03:02.492
+to do a fence by just
+doing a lock on a location
+
+01:03:02.492 --> 01:03:03.950
+that we didn't care
+about the lock.
+
+01:03:03.950 --> 01:03:05.670
+We just did a lock instruction.
+
+01:03:05.670 --> 01:03:08.510
+And that actually went faster
+than the fence instruction.
+
+01:03:08.510 --> 01:03:10.010
+Weird.
+
+01:03:10.010 --> 01:03:15.560
+But these systems are
+all built by humans.
+
+01:03:15.560 --> 01:03:20.750
+So if we have this code and we
+want to restore consistency,
+
+01:03:20.750 --> 01:03:24.680
+where might we put
+a memory fence?
+
+01:03:29.880 --> 01:03:30.380
+Yeah?
+
+01:03:30.380 --> 01:03:32.167
+STUDENT: After setting the turn?
+
+01:03:32.167 --> 01:03:33.750
+CHARLES LEISERSON:
+After setting turn.
+
+01:03:33.750 --> 01:03:34.440
+You mean like that?
+
+01:03:34.440 --> 01:03:35.023
+STUDENT: Yeah.
+
+01:03:35.023 --> 01:03:36.720
+CHARLES LEISERSON: Yeah.
+
+01:03:36.720 --> 01:03:41.400
+OK, so that you can't
+end up loading it
+
+01:03:41.400 --> 01:03:44.640
+before it's stored too.
+
+01:03:44.640 --> 01:03:50.487
+And that kind of works, sort of.
+
+01:03:50.487 --> 01:03:53.070
+You also have to make sure that
+the compiler doesn't screw you
+
+01:03:53.070 --> 01:03:53.570
+over.
+
+01:03:56.220 --> 01:03:58.770
+And the reason
+the compiler might
+
+01:03:58.770 --> 01:04:03.450
+screw you over is that it
+looks at B_wants and turn B,
+
+01:04:03.450 --> 01:04:05.760
+it says, oh, I'm in a loop here.
+
+01:04:05.760 --> 01:04:08.342
+So let me load the value and
+keep using the value over.
+
+01:04:08.342 --> 01:04:10.050
+And I don't see anybody
+using this value.
+
+01:04:12.630 --> 01:04:14.950
+Right, so it loads the value.
+
+01:04:14.950 --> 01:04:19.350
+And now it just keeps
+checking the value.
+
+01:04:19.350 --> 01:04:22.020
+The value has changed
+on the outside,
+
+01:04:22.020 --> 01:04:23.800
+but it's stored
+that in a register
+
+01:04:23.800 --> 01:04:26.730
+so that that loop
+will go really fast.
+
+01:04:26.730 --> 01:04:28.800
+And so it goes really
+fast, and you're spinning
+
+01:04:28.800 --> 01:04:31.050
+and you're dead in the water.
+
+01:04:31.050 --> 01:04:33.960
+So in addition to
+the memory fence,
+
+01:04:33.960 --> 01:04:36.900
+you must declare
+variables as volatile
+
+01:04:36.900 --> 01:04:39.870
+to prevent the compiler
+from optimizing them away.
+
+01:04:39.870 --> 01:04:41.880
+When you declare
+something as volatile,
+
+01:04:41.880 --> 01:04:45.540
+you say, even if you read
+it, if the compiler reads it.
+
+01:04:45.540 --> 01:04:47.040
+When it reads it a
+second time, it's
+
+01:04:47.040 --> 01:04:51.390
+still got to read it a
+second time from memory.
+
+01:04:51.390 --> 01:04:54.450
+It cannot assume that the
+value is going to be stable.
+
+01:04:54.450 --> 01:04:57.870
+You're saying it
+may change outside.
+
+01:04:57.870 --> 01:05:02.010
+And then you also, it turns
+out, may need compiler fences
+
+01:05:02.010 --> 01:05:07.380
+around frob and borf to
+prevent them reordering
+
+01:05:07.380 --> 01:05:11.010
+some of frob and borf because
+that stuff can also sometimes
+
+01:05:11.010 --> 01:05:15.690
+get moved outside the loop, the
+actual code in frob and borf,
+
+01:05:15.690 --> 01:05:18.660
+because it wants
+to, it says, oh.
+
+01:05:18.660 --> 01:05:25.630
+It doesn't realize always that
+there's no what's going on.
+
+01:05:25.630 --> 01:05:30.060
+So the C11 language standard
+defines its own weak memory
+
+01:05:30.060 --> 01:05:31.170
+model.
+
+01:05:31.170 --> 01:05:33.287
+And you can declare
+things as atomic,
+
+01:05:33.287 --> 01:05:34.870
+and there are a bunch
+of things there.
+
+01:05:34.870 --> 01:05:36.510
+And here's a reference
+where you can
+
+01:05:36.510 --> 01:05:38.610
+take a look at the
+atomic stuff that's
+
+01:05:38.610 --> 01:05:43.800
+available if you want to do
+this dangerous programming.
+
+01:05:47.550 --> 01:05:53.850
+In general for implementing
+general mutexes,
+
+01:05:53.850 --> 01:05:56.010
+if you're going to use
+only load and store,
+
+01:05:56.010 --> 01:06:01.200
+there's a very nice theorem
+by Burns and Lynch--
+
+01:06:01.200 --> 01:06:04.350
+this is Nancy Lynch who's
+on the faculty here--
+
+01:06:04.350 --> 01:06:07.560
+that says any n-thread
+deadlock-free mutual exclusion
+
+01:06:07.560 --> 01:06:12.840
+algorithm using only load and
+store requires order n space--
+
+01:06:12.840 --> 01:06:14.250
+the space is linear.
+
+01:06:14.250 --> 01:06:17.100
+So this answers the question
+that I had answered orally
+
+01:06:17.100 --> 01:06:18.330
+before.
+
+01:06:18.330 --> 01:06:22.020
+And then it turns
+out that if you
+
+01:06:22.020 --> 01:06:28.710
+want an n-thread deadlock-free
+mutual exclusion algorithm,
+
+01:06:28.710 --> 01:06:31.350
+you actually have to use some
+kind of expensive operation,
+
+01:06:31.350 --> 01:06:34.350
+such as a memory fence or
+an atomic compare-and-swap.
+
+01:06:34.350 --> 01:06:36.570
+So in some sense,
+hardware designers
+
+01:06:36.570 --> 01:06:39.990
+are justified when they
+implement special operations
+
+01:06:39.990 --> 01:06:43.140
+to support animosity,
+as opposed to just doing
+
+01:06:43.140 --> 01:06:45.030
+using these clever algorithms.
+
+01:06:45.030 --> 01:06:49.440
+Those algorithms are
+really at some level
+
+01:06:49.440 --> 01:06:50.940
+of theoretical interest.
+
+01:06:54.540 --> 01:06:57.000
+So let's take a look at one
+of these special instructions.
+
+01:06:57.000 --> 01:06:59.370
+And the one I picked
+is compare-and-swap
+
+01:06:59.370 --> 01:07:02.130
+because it's the one that's
+probably most available.
+
+01:07:02.130 --> 01:07:06.530
+There are others like
+test-and-set, and so forth.
+
+01:07:06.530 --> 01:07:12.162
+And so when you do
+lock-free algorithms,
+
+01:07:12.162 --> 01:07:14.370
+when you want to build
+algorithms that are lock free,
+
+01:07:14.370 --> 01:07:15.960
+and we'll talk
+about why you might
+
+01:07:15.960 --> 01:07:19.920
+want to do lock-free algorithms,
+there's loads and store,
+
+01:07:19.920 --> 01:07:23.250
+and then there's this CAS
+instruction, Compare-and-Swap.
+
+01:07:26.790 --> 01:07:33.670
+In stdatomic.h, it is called
+atomic_compare_exchange_strong.
+
+01:07:33.670 --> 01:07:35.820
+And it can operate on
+various integer types.
+
+01:07:35.820 --> 01:07:40.570
+It cannot compare and swap
+floating point numbers.
+
+01:07:40.570 --> 01:07:42.570
+It can only compare
+and swap integers,
+
+01:07:42.570 --> 01:07:46.320
+and sometimes that's a pain.
+
+01:07:46.320 --> 01:07:50.640
+And so here's the definition
+of the CAS instruction.
+
+01:07:50.640 --> 01:07:55.500
+Basically, what it does
+is it has an address.
+
+01:07:55.500 --> 01:08:00.720
+And then it has two values, the
+old value and the new value.
+
+01:08:00.720 --> 01:08:02.520
+And what it does is
+it checks to see,
+
+01:08:02.520 --> 01:08:06.810
+is the value that is
+in that memory location
+
+01:08:06.810 --> 01:08:09.070
+the same as the old value.
+
+01:08:09.070 --> 01:08:12.240
+And if it is, it sets it
+to the new value and says,
+
+01:08:12.240 --> 01:08:13.070
+I succeeded.
+
+01:08:13.070 --> 01:08:15.810
+And otherwise, it says I failed.
+
+01:08:15.810 --> 01:08:20.819
+So it swaps it if the value
+that I'm holding, the old value,
+
+01:08:20.819 --> 01:08:23.220
+is the same as what's in there.
+
+01:08:23.220 --> 01:08:27.899
+So I can read the
+value, if I want,
+
+01:08:27.899 --> 01:08:30.260
+then do whatever I want to do.
+
+01:08:30.260 --> 01:08:33.640
+And then before I
+update it, I can say,
+
+01:08:33.640 --> 01:08:38.350
+update it only if the
+value hasn't changed.
+
+01:08:38.350 --> 01:08:40.100
+And that's what the
+compare and swap does.
+
+01:08:40.100 --> 01:08:42.010
+Does that makes sense?
+
+01:08:42.010 --> 01:08:44.479
+And it does that
+all atomically,.
+
+01:08:44.479 --> 01:08:46.830
+And there's an
+implicit fence in there
+
+01:08:46.830 --> 01:08:49.910
+so things don't get
+reordered around it.
+
+01:08:49.910 --> 01:08:52.850
+It's all done as one.
+
+01:08:52.850 --> 01:08:56.450
+The hardware ensures that
+nothing can interfere
+
+01:08:56.450 --> 01:08:58.819
+in the middle of this.
+
+01:08:58.819 --> 01:09:05.029
+It's actually comparing the
+old value to what's in there,
+
+01:09:05.029 --> 01:09:07.580
+and swapping in the new,
+all as one operation.
+
+01:09:07.580 --> 01:09:11.450
+Or it says, nope, the
+value changed, therefore
+
+01:09:11.450 --> 01:09:14.810
+it just returned false, and
+the value didn't get updated.
+
+01:09:17.569 --> 01:09:22.930
+So it turns out that you can
+do an n-thread deadlock-free
+
+01:09:22.930 --> 01:09:26.300
+mutual exclusion algorithm
+with compare-and-swap
+
+01:09:26.300 --> 01:09:28.880
+using only constant space.
+
+01:09:28.880 --> 01:09:32.359
+And here's the way you do it.
+
+01:09:32.359 --> 01:09:36.410
+And this is basically just the
+space for the new text itself.
+
+01:09:36.410 --> 01:09:39.470
+So you take a look at the
+lock instruction, and what
+
+01:09:39.470 --> 01:09:49.590
+you do is you spin, which is
+to say you block, until you
+
+01:09:49.590 --> 01:09:51.029
+finally get the value true.
+
+01:09:51.029 --> 01:09:53.930
+So you're trying
+to swap in true.
+
+01:09:53.930 --> 01:09:57.960
+So true says that
+somebody holds the lock.
+
+01:09:57.960 --> 01:10:02.070
+I say the old value was false.
+
+01:10:02.070 --> 01:10:06.270
+If it's true, then the
+swap doesn't succeed
+
+01:10:06.270 --> 01:10:08.670
+and you just keep spinning.
+
+01:10:08.670 --> 01:10:11.920
+And then otherwise,
+you swap in the value
+
+01:10:11.920 --> 01:10:16.380
+and now you're ready to go.
+
+01:10:16.380 --> 01:10:19.120
+And to unlock it, you just
+have to set it to false.
+
+01:10:19.120 --> 01:10:19.620
+Question?
+
+01:10:19.620 --> 01:10:21.000
+STUDENT: Why does
+it de-reference
+
+01:10:21.000 --> 01:10:23.257
+the pointer in the lock?
+
+01:10:23.257 --> 01:10:25.590
+CHARLES LEISERSON: Why does
+it de-reference the pointer?
+
+01:10:25.590 --> 01:10:28.980
+Because you're saying,
+what memory location
+
+01:10:28.980 --> 01:10:30.960
+are you pointing to.
+
+01:10:30.960 --> 01:10:35.820
+You're interested in
+comparing with the value
+
+01:10:35.820 --> 01:10:37.090
+in that location.
+
+01:10:37.090 --> 01:10:41.310
+So it is a memory operation.
+
+01:10:41.310 --> 01:10:43.080
+So I'm naming the
+memory location.
+
+01:10:43.080 --> 01:10:48.810
+I'm saying, if the value
+is false, swap in the value
+
+01:10:48.810 --> 01:10:53.620
+true and return true.
+
+01:10:53.620 --> 01:11:00.520
+And if it's true, then don't
+do anything and tell me
+
+01:11:00.520 --> 01:11:03.938
+that you didn't succeed,
+in which case in this loop
+
+01:11:03.938 --> 01:11:05.980
+it'll just keep trying
+again and again and again.
+
+01:11:05.980 --> 01:11:08.460
+It's a spinning lock.
+
+01:11:08.460 --> 01:11:09.782
+Question?
+
+01:11:09.782 --> 01:11:11.700
+STUDENT: [INAUDIBLE]
+when you saying
+
+01:11:11.700 --> 01:11:16.350
+that you're [INAUDIBLE]
+the value at that address
+
+01:11:16.350 --> 01:11:19.000
+before passing it into CAS.
+
+01:11:19.000 --> 01:11:22.190
+Yeah, there shouldn't be a
+pointer de-reference after
+
+01:11:22.190 --> 01:11:22.690
+[INAUDIBLE].
+
+01:11:22.690 --> 01:11:24.190
+CHARLES LEISERSON:
+Oh, you're right.
+
+01:11:27.390 --> 01:11:30.230
+A bug.
+
+01:11:30.230 --> 01:11:35.200
+Gotcha, yep,
+gotcha, I'll fix it.
+
+01:11:40.870 --> 01:11:46.570
+So let's take a look at a way
+that you might want to use CAS.
+
+01:11:46.570 --> 01:11:48.730
+So here's a summing problem.
+
+01:11:48.730 --> 01:12:00.610
+So suppose I want to compute
+on some variable of type x.
+
+01:12:00.610 --> 01:12:03.130
+And I've got an array that's--
+
+01:12:03.130 --> 01:12:07.280
+what is that-- that's a
+million elements long.
+
+01:12:07.280 --> 01:12:10.060
+And what I'm going
+to do is basically
+
+01:12:10.060 --> 01:12:13.810
+run through my array in
+parallel and accumulate things
+
+01:12:13.810 --> 01:12:16.900
+into the result.
+
+01:12:16.900 --> 01:12:21.190
+And so this is actually
+incorrect code.
+
+01:12:21.190 --> 01:12:22.324
+Why is this incorrect code?
+
+01:12:30.722 --> 01:12:31.710
+Yeah?
+
+01:12:31.710 --> 01:12:36.480
+STUDENT: Extra like a floating
+point taken [INAUDIBLE]
+
+01:12:36.480 --> 01:12:38.475
+and so forth?
+
+01:12:38.475 --> 01:12:40.850
+CHARLES LEISERSON: Maybe,
+let's assume we have fast math.
+
+01:12:46.720 --> 01:12:47.220
+Yeah?
+
+01:12:47.220 --> 01:12:49.882
+STUDENT: You have multiple
+transfer and updated results
+
+01:12:49.882 --> 01:12:50.590
+at the same time?
+
+01:12:50.590 --> 01:12:51.310
+CHARLES LEISERSON:
+Which means what?
+
+01:12:51.310 --> 01:12:52.870
+STUDENT: Which means
+you have a race.
+
+01:12:52.870 --> 01:12:54.783
+CHARLES LEISERSON:
+You have a race.
+
+01:12:54.783 --> 01:12:55.450
+You have a race.
+
+01:12:55.450 --> 01:12:57.100
+Everybody is trying
+to update result.
+
+01:12:57.100 --> 01:13:01.120
+You've got a gazillion
+strands in parallel all trying
+
+01:13:01.120 --> 01:13:06.460
+to pound on updating result.
+
+01:13:06.460 --> 01:13:12.730
+So one way you could solve
+this is with mutual exclusion.
+
+01:13:12.730 --> 01:13:19.600
+So I introduce a mutex L.
+And I lock before I update
+
+01:13:19.600 --> 01:13:21.010
+the result, and then I unlock.
+
+01:13:21.010 --> 01:13:27.400
+Why did I put the
+computation on my array of i?
+
+01:13:27.400 --> 01:13:29.447
+Why did I put that
+outside the lock?
+
+01:13:32.856 --> 01:13:35.778
+STUDENT: It's [INAUDIBLE]
+function is very expensive.
+
+01:13:35.778 --> 01:13:37.928
+That way, you're
+only locking the--
+
+01:13:37.928 --> 01:13:39.720
+CHARLES LEISERSON:
+Yeah, whenever you lock,
+
+01:13:39.720 --> 01:13:42.750
+you want to lock for the
+minimum time possible.
+
+01:13:42.750 --> 01:13:44.730
+Because otherwise you're
+locking everybody else
+
+01:13:44.730 --> 01:13:45.780
+out from doing anything.
+
+01:13:49.740 --> 01:13:52.530
+So that was a smart thing
+in that particular code.
+
+01:13:55.140 --> 01:13:56.940
+So that's the typical
+locking solution.
+
+01:13:56.940 --> 01:13:58.830
+But look at what might happen.
+
+01:13:58.830 --> 01:14:01.200
+What if the operating
+system decides
+
+01:14:01.200 --> 01:14:04.840
+to swap out a loop iteration
+just after it acquires mutext?
+
+01:14:04.840 --> 01:14:07.290
+As you go down, it says lock.
+
+01:14:07.290 --> 01:14:09.960
+You get the lock, and now
+the operating says, oops,
+
+01:14:09.960 --> 01:14:12.120
+your time quantum is up.
+
+01:14:12.120 --> 01:14:14.580
+Somebody else comes in
+and starts to compute.
+
+01:14:14.580 --> 01:14:16.434
+What's going to happen now?
+
+01:14:23.690 --> 01:14:26.982
+What's the problem
+that you might observe?
+
+01:14:26.982 --> 01:14:27.482
+Yeah?
+
+01:14:27.482 --> 01:14:32.718
+STUDENT: [INAUDIBLE] if
+they're [INAUDIBLE] computation
+
+01:14:32.718 --> 01:14:34.870
+[INAUDIBLE] have to [INAUDIBLE].
+
+01:14:34.870 --> 01:14:36.370
+CHARLES LEISERSON:
+Yeah, everybody's
+
+01:14:36.370 --> 01:14:38.590
+going to basically
+just sit there waiting
+
+01:14:38.590 --> 01:14:44.890
+to acquire the lock because
+the strand that has the lock
+
+01:14:44.890 --> 01:14:47.820
+is not making progress, because
+it's sitting on the side.
+
+01:14:47.820 --> 01:14:49.810
+It's been these scheduled.
+
+01:14:49.810 --> 01:14:52.270
+That's bad, generally.
+
+01:14:52.270 --> 01:14:55.840
+You'd like to think that
+everybody who's running
+
+01:14:55.840 --> 01:14:56.920
+could continue to run.
+
+01:14:56.920 --> 01:14:57.420
+Yeah?
+
+01:15:00.590 --> 01:15:04.020
+STUDENT: Well, I guess
+under what circumstances
+
+01:15:04.020 --> 01:15:08.920
+might be useful for
+a processor to have
+
+01:15:08.920 --> 01:15:15.290
+this running on multi-threads
+instead of multiple processors
+
+01:15:15.290 --> 01:15:16.270
+simultaneously?
+
+01:15:16.270 --> 01:15:19.130
+CHARLES LEISERSON: No, so
+this the multiple threads
+
+01:15:19.130 --> 01:15:22.217
+are running on multiple
+processors, right?
+
+01:15:22.217 --> 01:15:25.500
+STUDENT: What do you
+mean by the time quantum?
+
+01:15:25.500 --> 01:15:27.180
+CHARLES LEISERSON:
+So one of these guys
+
+01:15:27.180 --> 01:15:31.615
+says, so I'm running a thread,
+and that thread's time quantum
+
+01:15:31.615 --> 01:15:32.115
+expires.
+
+01:15:32.115 --> 01:15:34.978
+STUDENT: Oh, that
+processor's multiple threads.
+
+01:15:34.978 --> 01:15:36.020
+CHARLES LEISERSON: Right.
+
+01:15:36.020 --> 01:15:36.520
+STUDENT: OK.
+
+01:15:36.520 --> 01:15:39.840
+CHARLES LEISERSON: So I've got
+a whole bunch of processors
+
+01:15:39.840 --> 01:15:41.910
+with a thread on
+each, let's say.
+
+01:15:41.910 --> 01:15:43.333
+And I've got a bunch of threads.
+
+01:15:43.333 --> 01:15:45.000
+The operating system
+has several threads
+
+01:15:45.000 --> 01:15:47.970
+that are standing by
+waiting for their turn.
+
+01:15:47.970 --> 01:15:52.085
+And one of them grabs the
+lock and then the scheduler
+
+01:15:52.085 --> 01:15:54.210
+comes in and says, oops,
+I'm going to take you off,
+
+01:15:54.210 --> 01:15:55.860
+put somebody else in.
+
+01:15:55.860 --> 01:15:59.340
+But meanwhile, everybody else is
+there trying to make progress.
+
+01:15:59.340 --> 01:16:01.950
+And this guy is holding
+the key to going forward.
+
+01:16:01.950 --> 01:16:04.470
+You thought you were
+only grabbing the lock
+
+01:16:04.470 --> 01:16:06.600
+for a short period of time.
+
+01:16:06.600 --> 01:16:09.360
+But instead, the
+operating system
+
+01:16:09.360 --> 01:16:13.080
+came in and made you
+take a long time.
+
+01:16:13.080 --> 01:16:14.670
+So this is the kind
+of system issue
+
+01:16:14.670 --> 01:16:19.440
+that you get into when you
+start using things like locks.
+
+01:16:19.440 --> 01:16:23.310
+So all the other loop
+iterations have to wait.
+
+01:16:23.310 --> 01:16:25.220
+So it doesn't matter if--
+
+01:16:25.220 --> 01:16:26.450
+yeah, question?
+
+01:16:26.450 --> 01:16:29.450
+STUDENT: How does the
+[INAUDIBLE] reducer
+
+01:16:29.450 --> 01:16:31.450
+have [INAUDIBLE]?
+
+01:16:31.450 --> 01:16:34.040
+CHARLES LEISERSON: So that's
+one solution to this, yep.
+
+01:16:34.040 --> 01:16:35.540
+STUDENT: How does it do it?
+
+01:16:35.540 --> 01:16:38.000
+CHARLES LEISERSON:
+How does it do it?
+
+01:16:38.000 --> 01:16:41.390
+We have the paper online.
+
+01:16:41.390 --> 01:16:45.500
+I had the things for
+explaining how reducers work.
+
+01:16:45.500 --> 01:16:49.310
+And there's too much stuff.
+
+01:16:49.310 --> 01:16:52.310
+I always have way more stuff
+to talk about than I ever
+
+01:16:52.310 --> 01:16:55.340
+get a chance to talk about.
+
+01:16:55.340 --> 01:16:59.350
+So that was one where
+I said, OK, yeah.
+
+01:16:59.350 --> 01:17:00.090
+STUDENT: OK.
+
+01:17:00.090 --> 01:17:01.007
+CHARLES LEISERSON: OK.
+
+01:17:03.450 --> 01:17:06.230
+So all we want to
+do is atomically
+
+01:17:06.230 --> 01:17:09.960
+execute a load of x
+followed by a store of x.
+
+01:17:09.960 --> 01:17:11.940
+So instead of doing
+it with locks,
+
+01:17:11.940 --> 01:17:14.440
+I can use CAS to
+do the same thing,
+
+01:17:14.440 --> 01:17:15.940
+and I'll get much
+better properties.
+
+01:17:15.940 --> 01:17:18.720
+So here's the CAS solution.
+
+01:17:18.720 --> 01:17:21.420
+So what I do is I
+also compute a temp,
+
+01:17:21.420 --> 01:17:24.180
+and then I have these
+variables old and new.
+
+01:17:24.180 --> 01:17:31.370
+I store the old result. And
+then I add the temporary result
+
+01:17:31.370 --> 01:17:34.670
+that I've computed to the
+old to get the new value.
+
+01:17:34.670 --> 01:17:44.570
+And if it turns out that the old
+value is exactly the same as it
+
+01:17:44.570 --> 01:17:51.000
+used to be, then I can
+swap in the new value,
+
+01:17:51.000 --> 01:17:52.815
+which includes that increment.
+
+01:17:57.060 --> 01:17:59.970
+And if not, then I go
+back and I do it again.
+
+01:17:59.970 --> 01:18:03.390
+I once again load, add,
+and try to swap in again.
+
+01:18:06.960 --> 01:18:10.650
+And so now what happens if
+the operating system swaps out
+
+01:18:10.650 --> 01:18:11.864
+a loop iteration?
+
+01:18:16.220 --> 01:18:16.720
+Yeah?
+
+01:18:16.720 --> 01:18:21.698
+STUDENT: It's OK because
+whenever this is put back on,
+
+01:18:21.698 --> 01:18:23.357
+then you know
+it'll be different.
+
+01:18:23.357 --> 01:18:25.690
+CHARLES LEISERSON: It'll be
+new values, it'll ignore it,
+
+01:18:25.690 --> 01:18:28.510
+and all the other guys
+can just keep going.
+
+01:18:28.510 --> 01:18:30.340
+So that's one of
+the great advantages
+
+01:18:30.340 --> 01:18:32.050
+of lock-free algorithms.
+
+01:18:32.050 --> 01:18:37.780
+And I have in here several
+other lock-free algorithms.
+
+01:18:37.780 --> 01:18:39.910
+The thing you should
+pay attention in here
+
+01:18:39.910 --> 01:18:44.440
+is to what's called
+the ABA problem, which
+
+01:18:44.440 --> 01:18:47.680
+is an anomaly with
+compare-and-swap
+
+01:18:47.680 --> 01:18:48.850
+that you can get into.
+
+01:18:48.850 --> 01:18:51.940
+This is a situation
+where you think
+
+01:18:51.940 --> 01:18:55.060
+you're using compare-and-swap,
+you say is it the old value.
+
+01:18:55.060 --> 01:18:57.100
+It turns out that the
+value is the same,
+
+01:18:57.100 --> 01:19:00.340
+but other people have come in
+and done stuff but happened
+
+01:19:00.340 --> 01:19:01.930
+to restore the same value.
+
+01:19:01.930 --> 01:19:04.330
+But you assume it's
+the same situation,
+
+01:19:04.330 --> 01:19:06.280
+even though the
+situation has changed
+
+01:19:06.280 --> 01:19:08.500
+but the value is the same.
+
+01:19:08.500 --> 01:19:10.090
+That's called the ABA problem.
+
+01:19:10.090 --> 01:19:13.930
+So you can take a
+look at it in here.
+
+01:19:13.930 --> 01:19:15.730
+So the main thing
+for all this stuff
+
+01:19:15.730 --> 01:19:18.880
+is, this is really
+interesting stuff.
+
+01:19:18.880 --> 01:19:21.940
+Professor Nir Shavit
+teaches a class where
+
+01:19:21.940 --> 01:19:25.780
+this is the content of
+the class for the semester
+
+01:19:25.780 --> 01:19:32.190
+is all these really
+dangerous algorithms.
+
+01:19:32.190 --> 01:19:34.930
+And so I encourage you, if
+you're interested in that.
+
+01:19:34.930 --> 01:19:36.790
+The world needs more
+people who understand
+
+01:19:36.790 --> 01:19:38.410
+these kinds of algorithms.
+
+01:19:38.410 --> 01:19:41.980
+And it needs to find ways
+to help people program fast
+
+01:19:41.980 --> 01:19:45.200
+where people don't have
+to know this stuff,
+
+01:19:45.200 --> 01:19:48.580
+because this is
+really tricky stuff.
+
+01:19:48.580 --> 01:19:49.810
+So we need both--
+
+01:19:49.810 --> 01:19:52.930
+both to make it so
+that we have people
+
+01:19:52.930 --> 01:19:54.580
+who are talented in
+this way, and also
+
+01:19:54.580 --> 01:19:58.200
+that we don't need
+their talents.
+
+01:19:58.200 --> 01:20:01.110
+OK, thanks, everybody.

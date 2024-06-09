@@ -1,0 +1,4313 @@
+WEBVTT
+
+00:00:12.797 --> 00:00:14.880
+MICHALE FEE: Today we're
+going to continue talking
+
+00:00:14.880 --> 00:00:19.830
+about the topic of neural--
+
+00:00:19.830 --> 00:00:21.480
+recurrent neural networks.
+
+00:00:21.480 --> 00:00:27.420
+And last time, we talked about
+recurrent neural networks
+
+00:00:27.420 --> 00:00:34.080
+that give gain and suppression
+in different directions
+
+00:00:34.080 --> 00:00:36.900
+of the neural network space.
+
+00:00:36.900 --> 00:00:39.480
+Today we're going to
+talk about the topic
+
+00:00:39.480 --> 00:00:42.000
+of neural integrators.
+
+00:00:42.000 --> 00:00:47.760
+And neural integrators are
+currently an important topic
+
+00:00:47.760 --> 00:00:50.700
+in neuroscience because
+they are basically
+
+00:00:50.700 --> 00:00:55.470
+one of the most important
+models of short-term memory.
+
+00:00:55.470 --> 00:00:57.660
+So let me just say a
+few words about what
+
+00:00:57.660 --> 00:00:58.710
+short-term memory is.
+
+00:00:58.710 --> 00:01:01.560
+So and to do that,
+I'll just contrast it
+
+00:01:01.560 --> 00:01:03.660
+with long-term memory.
+
+00:01:03.660 --> 00:01:06.660
+So short-term memory
+is memory that
+
+00:01:06.660 --> 00:01:10.440
+just lasts a short period of
+time on the order of seconds
+
+00:01:10.440 --> 00:01:13.530
+to maybe a few tens
+of seconds at most,
+
+00:01:13.530 --> 00:01:18.930
+whereas long-term memories are
+on the order of hours, or days,
+
+00:01:18.930 --> 00:01:24.710
+or even up to an entire
+lifetime of the animal.
+
+00:01:24.710 --> 00:01:28.540
+A short-term memory
+has a small capacity,
+
+00:01:28.540 --> 00:01:31.320
+so just a few
+items at a time you
+
+00:01:31.320 --> 00:01:33.720
+can keep in short-term memory.
+
+00:01:33.720 --> 00:01:35.850
+The typical number
+would be something
+
+00:01:35.850 --> 00:01:41.500
+like seven, the classic number,
+sort of seven plus or minus
+
+00:01:41.500 --> 00:01:42.000
+two.
+
+00:01:42.000 --> 00:01:43.680
+You might have
+heard this, so just
+
+00:01:43.680 --> 00:01:45.360
+about the length
+of a phone number
+
+00:01:45.360 --> 00:01:47.040
+that you can remember
+between the time
+
+00:01:47.040 --> 00:01:50.320
+you look it up in the--
+
+00:01:50.320 --> 00:01:53.250
+well, you know, we all have
+phone numbers on speed dial
+
+00:01:53.250 --> 00:01:56.970
+now, so we don't even remember
+phone numbers anymore.
+
+00:01:56.970 --> 00:01:58.702
+But in the old
+days, you would have
+
+00:01:58.702 --> 00:02:00.660
+to look it up in the
+phone book and remember it
+
+00:02:00.660 --> 00:02:02.760
+long enough to type it in.
+
+00:02:02.760 --> 00:02:07.050
+OK, whereas long-term memories
+have very large capacity,
+
+00:02:07.050 --> 00:02:13.215
+basically everything that you
+remember about all the work
+
+00:02:13.215 --> 00:02:16.240
+in your classes that
+you remember, of course,
+
+00:02:16.240 --> 00:02:20.910
+for your entire life, not
+just until the final exam.
+
+00:02:20.910 --> 00:02:24.600
+Short-term memories are
+thought to have an underlying
+
+00:02:24.600 --> 00:02:28.440
+biophysical mechanism that
+is the persistent firing
+
+00:02:28.440 --> 00:02:32.460
+of neurons in a particular
+population of neurons that's
+
+00:02:32.460 --> 00:02:35.090
+responsible for
+holding that memory,
+
+00:02:35.090 --> 00:02:39.500
+whereas the biophysical
+mechanism of long-term memories
+
+00:02:39.500 --> 00:02:43.940
+is thought to be physical
+changes in the neurons
+
+00:02:43.940 --> 00:02:49.020
+and primarily in the
+synapses that connect
+
+00:02:49.020 --> 00:02:51.150
+neurons in a population.
+
+00:02:53.790 --> 00:02:56.570
+So let me just show you a
+typical short-term memory
+
+00:02:56.570 --> 00:02:59.570
+task that's been used
+to study neural activity
+
+00:02:59.570 --> 00:03:02.610
+in the brain that's involved
+in short-term memory.
+
+00:03:02.610 --> 00:03:07.530
+So this is a task that has been
+studied in nonhuman primates.
+
+00:03:07.530 --> 00:03:11.600
+So the monkey sits in a
+chair, stares at the screen.
+
+00:03:11.600 --> 00:03:14.990
+There is a set of
+spots on the screen
+
+00:03:14.990 --> 00:03:16.580
+and a fixation
+point in the middle,
+
+00:03:16.580 --> 00:03:19.190
+so the monkey stares
+at the fixation point.
+
+00:03:19.190 --> 00:03:23.930
+One of those cues turns
+on, so one of those spots
+
+00:03:23.930 --> 00:03:25.220
+will change color.
+
+00:03:25.220 --> 00:03:28.700
+The monkey has to maintain
+fixation at that spot.
+
+00:03:28.700 --> 00:03:31.610
+The cue turns off then.
+
+00:03:31.610 --> 00:03:35.870
+So now the animal
+has to remember
+
+00:03:35.870 --> 00:03:38.150
+which cue was turned on.
+
+00:03:38.150 --> 00:03:41.550
+And then some delayed
+period later, which can be--
+
+00:03:41.550 --> 00:03:44.390
+it's typically
+between three to six
+
+00:03:44.390 --> 00:03:46.970
+or maybe 10 seconds,
+the animal--
+
+00:03:46.970 --> 00:03:51.140
+the fixation cue goes away,
+and that tells the animal
+
+00:03:51.140 --> 00:03:57.740
+that it's time to then
+look at the cued location.
+
+00:03:57.740 --> 00:04:02.690
+And so in this interval between
+the time when the cue turns off
+
+00:04:02.690 --> 00:04:06.950
+and the animal has to look
+at the location of that cue,
+
+00:04:06.950 --> 00:04:11.660
+the animal has to remember the
+direction in which that cue was
+
+00:04:11.660 --> 00:04:15.110
+activated, or it has to remember
+the location of that cue.
+
+00:04:15.110 --> 00:04:17.209
+Now, if you record
+from neurons in parts
+
+00:04:17.209 --> 00:04:20.360
+of the prefrontal cortex
+during this task, what you find
+
+00:04:20.360 --> 00:04:23.930
+is that the neural
+activity is fairly
+
+00:04:23.930 --> 00:04:29.720
+quiet during the precue and the
+cue period and then ramps up.
+
+00:04:29.720 --> 00:04:32.810
+The firing rate
+ramps up very quickly
+
+00:04:32.810 --> 00:04:35.270
+and maintains a
+persistent activity
+
+00:04:35.270 --> 00:04:38.540
+during this delay period.
+
+00:04:38.540 --> 00:04:40.970
+And then as soon as the
+animal makes a saccade
+
+00:04:40.970 --> 00:04:44.690
+to the remembered location,
+then that neural activity
+
+00:04:44.690 --> 00:04:47.150
+goes away because
+the task is over
+
+00:04:47.150 --> 00:04:50.570
+and the animal doesn't have to
+remember that location anymore.
+
+00:04:50.570 --> 00:04:53.000
+So that persistent
+activity right there
+
+00:04:53.000 --> 00:04:59.210
+is thought to be the neural
+basis of the maintenance
+
+00:04:59.210 --> 00:05:01.230
+of that short-term memory.
+
+00:05:01.230 --> 00:05:04.160
+And you can see that the
+activity of this neuron
+
+00:05:04.160 --> 00:05:09.350
+carries information about which
+of those cues was actually on.
+
+00:05:09.350 --> 00:05:12.740
+So this particular
+neuron is most active
+
+00:05:12.740 --> 00:05:16.410
+when it was the cue in the
+upper-left corner of the screen
+
+00:05:16.410 --> 00:05:22.250
+that was active, and that neuron
+shows no changes in activity
+
+00:05:22.250 --> 00:05:25.460
+when the cued location
+shows no change in activity
+
+00:05:25.460 --> 00:05:28.550
+during the memory period,
+during the delay period
+
+00:05:28.550 --> 00:05:31.700
+when the cued location
+was down and to the right.
+
+00:05:31.700 --> 00:05:37.010
+So this neuron carries
+information about which cue
+
+00:05:37.010 --> 00:05:38.660
+is actually being remembered.
+
+00:05:38.660 --> 00:05:41.120
+And of course, there
+are different neurons
+
+00:05:41.120 --> 00:05:44.120
+in this population of--
+
+00:05:44.120 --> 00:05:46.470
+in this part of
+prefrontal cortex.
+
+00:05:46.470 --> 00:05:48.260
+And each one of
+those neurons will
+
+00:05:48.260 --> 00:05:52.090
+have a different
+preferred direction.
+
+00:05:52.090 --> 00:05:54.310
+And so by looking at a
+population of neurons
+
+00:05:54.310 --> 00:05:57.420
+then during the delay
+period, you could figure out
+
+00:05:57.420 --> 00:06:02.410
+and the monkey's brain can
+remember which of those cues
+
+00:06:02.410 --> 00:06:05.405
+was illuminated.
+
+00:06:05.405 --> 00:06:09.350
+OK, so the idea of
+short-term memory
+
+00:06:09.350 --> 00:06:15.510
+is that you can have a stimulus
+that is active briefly.
+
+00:06:15.510 --> 00:06:21.440
+And then for some period of time
+after that stimulus turns on,
+
+00:06:21.440 --> 00:06:23.610
+there is neural
+activity that turns on
+
+00:06:23.610 --> 00:06:26.790
+during the presentation of that
+stimulus and then stays on.
+
+00:06:26.790 --> 00:06:30.990
+It persists for tens of seconds
+after the stimulus actually
+
+00:06:30.990 --> 00:06:33.660
+turns off.
+
+00:06:33.660 --> 00:06:37.410
+So that's one notion
+of short-term memory
+
+00:06:37.410 --> 00:06:39.690
+and how neural
+activity is involved
+
+00:06:39.690 --> 00:06:41.370
+in producing that memory.
+
+00:06:44.970 --> 00:06:49.800
+And the basic idea here
+is that that stimulus
+
+00:06:49.800 --> 00:06:55.890
+is in some way integrated
+by the circuit,
+
+00:06:55.890 --> 00:06:59.040
+and that produces a
+step in the response.
+
+00:06:59.040 --> 00:07:00.790
+And once that
+stimulus goes away,
+
+00:07:00.790 --> 00:07:03.900
+then that-- the integral
+of that stimulus
+
+00:07:03.900 --> 00:07:05.310
+persists for a long time.
+
+00:07:08.550 --> 00:07:12.190
+All right, now, short-term
+memory and neural integrators
+
+00:07:12.190 --> 00:07:15.010
+are also thought to be
+involved in a different kind
+
+00:07:15.010 --> 00:07:16.960
+of behavior.
+
+00:07:16.960 --> 00:07:21.370
+And that is the kind of
+behavior where you actually
+
+00:07:21.370 --> 00:07:24.960
+need to accumulate
+information over time.
+
+00:07:24.960 --> 00:07:27.980
+OK, so sometimes when
+you look at a stimulus,
+
+00:07:27.980 --> 00:07:30.520
+the stimulus can be very noisy.
+
+00:07:30.520 --> 00:07:34.240
+And if you just look at it for
+a very brief period of time,
+
+00:07:34.240 --> 00:07:35.890
+it can be hard to
+figure out what's
+
+00:07:35.890 --> 00:07:37.940
+going on in that stimulus.
+
+00:07:37.940 --> 00:07:41.560
+But if you stare
+at it for a while,
+
+00:07:41.560 --> 00:07:44.080
+you gradually get a
+better and better sense
+
+00:07:44.080 --> 00:07:47.440
+of what's going on
+in that stimulus.
+
+00:07:47.440 --> 00:07:49.870
+And so during that
+period of time
+
+00:07:49.870 --> 00:07:51.730
+when you're looking
+at the stimulus,
+
+00:07:51.730 --> 00:07:54.760
+you're accumulating
+information about what's
+
+00:07:54.760 --> 00:07:57.110
+going on in that stimulus.
+
+00:07:57.110 --> 00:08:02.320
+And so there's a whole
+field of neuroscience
+
+00:08:02.320 --> 00:08:07.390
+that relates to this issue
+of accumulating evidence
+
+00:08:07.390 --> 00:08:09.040
+during decision-making.
+
+00:08:09.040 --> 00:08:10.420
+OK, so let me show
+you an example
+
+00:08:10.420 --> 00:08:12.170
+of what that looks like.
+
+00:08:12.170 --> 00:08:14.710
+So here's a different
+kind of task.
+
+00:08:14.710 --> 00:08:18.250
+Here's what it looks like
+for a monkey doing this task.
+
+00:08:18.250 --> 00:08:21.390
+The monkey fixates at a point.
+
+00:08:21.390 --> 00:08:24.130
+Two targets come
+up on the screen.
+
+00:08:24.130 --> 00:08:25.600
+The monkey at the
+end of the task
+
+00:08:25.600 --> 00:08:28.540
+will have to saccade to one
+or the other of those targets
+
+00:08:28.540 --> 00:08:31.750
+depending on a
+particular stimulus.
+
+00:08:31.750 --> 00:08:36.490
+And a kind of stimulus that's
+often used in tasks like this
+
+00:08:36.490 --> 00:08:40.440
+is what's called a "random
+dot motion stimulus."
+
+00:08:40.440 --> 00:08:45.570
+So you have dots that
+appear on the screen.
+
+00:08:45.570 --> 00:08:48.210
+Most of them are
+just moving randomly,
+
+00:08:48.210 --> 00:08:54.060
+but a small number of them move
+consistently in one direction.
+
+00:08:54.060 --> 00:08:56.610
+So for example, a small
+number of these dots
+
+00:08:56.610 --> 00:08:59.970
+move coherently to the right.
+
+00:08:59.970 --> 00:09:06.850
+And if the motion stimulus
+is more to the right,
+
+00:09:06.850 --> 00:09:09.450
+then the monkey has to then--
+
+00:09:09.450 --> 00:09:11.340
+once that motion
+stimulus goes away,
+
+00:09:11.340 --> 00:09:16.020
+the monkey has to make a saccade
+to the right-hand target.
+
+00:09:16.020 --> 00:09:17.940
+Now, this task can
+be very difficult
+
+00:09:17.940 --> 00:09:21.060
+if a small fraction of the
+dots are moving coherently
+
+00:09:21.060 --> 00:09:23.130
+one way or the other.
+
+00:09:23.130 --> 00:09:27.390
+And so what you can see is
+that the percentage correct
+
+00:09:27.390 --> 00:09:31.200
+is near chance when the
+motion strength or the percent
+
+00:09:31.200 --> 00:09:33.630
+coherence, the fraction of
+the dots that are moving
+
+00:09:33.630 --> 00:09:36.370
+coherently, is very small.
+
+00:09:36.370 --> 00:09:39.570
+There's almost a--
+there's a 50% chance
+
+00:09:39.570 --> 00:09:41.550
+of getting the right answer.
+
+00:09:41.550 --> 00:09:45.400
+But as the motion
+strength increases,
+
+00:09:45.400 --> 00:09:47.220
+you can see that the
+monkey's performance
+
+00:09:47.220 --> 00:09:48.820
+gets better and better.
+
+00:09:48.820 --> 00:09:51.000
+And not only does the
+performance get better,
+
+00:09:51.000 --> 00:09:56.500
+but the reaction time
+actually gets smaller.
+
+00:09:56.500 --> 00:09:58.030
+So I'll show--
+
+00:09:58.030 --> 00:10:01.360
+I found a movie of
+what this looks like.
+
+00:10:01.360 --> 00:10:06.018
+So this is from another lab
+that set this up in rats.
+
+00:10:06.018 --> 00:10:07.310
+So here's what this looks like.
+
+00:10:07.310 --> 00:10:10.120
+So the rat is poking its
+nose in a center port.
+
+00:10:13.200 --> 00:10:14.250
+There's the rat.
+
+00:10:14.250 --> 00:10:15.230
+There's a screen.
+
+00:10:15.230 --> 00:10:16.980
+There's a center port
+right in front of it
+
+00:10:16.980 --> 00:10:20.160
+that the rat pokes its nose
+in to initiate a trial.
+
+00:10:20.160 --> 00:10:24.000
+And depending on whether
+the coherent motion
+
+00:10:24.000 --> 00:10:25.650
+is moving to the
+right or left, the rat
+
+00:10:25.650 --> 00:10:30.870
+has to get food reward
+from one or the other port
+
+00:10:30.870 --> 00:10:31.770
+to the left or right.
+
+00:10:31.770 --> 00:10:33.294
+So here's what that looks like.
+
+00:10:33.294 --> 00:10:34.776
+[VIDEO PLAYBACK]
+
+00:10:34.776 --> 00:10:36.258
+[BEEP]
+
+00:10:38.234 --> 00:10:39.222
+[CLINK]
+
+00:10:39.222 --> 00:10:40.704
+[BEEP]
+
+00:10:42.186 --> 00:10:43.668
+[CLINK]
+
+00:10:44.656 --> 00:10:46.138
+[BEEP]
+
+00:10:47.620 --> 00:10:49.102
+[CLINK]
+
+00:10:51.572 --> 00:10:52.560
+[CLINK]
+
+00:10:52.560 --> 00:10:54.042
+[BEEP]
+
+00:10:55.524 --> 00:10:58.000
+[CLINK]
+
+00:10:58.000 --> 00:11:00.910
+So this is a fairly
+high-motion coherent stimulus,
+
+00:11:00.910 --> 00:11:03.870
+so it's pretty easy to see.
+
+00:11:03.870 --> 00:11:07.910
+But and you can see the animal
+is performing nearly perfectly.
+
+00:11:07.910 --> 00:11:10.410
+It's getting the right-- it's
+making the right choice nearly
+
+00:11:10.410 --> 00:11:11.320
+every time.
+
+00:11:11.320 --> 00:11:14.820
+But for lower-coherence
+stimuli, it becomes much harder,
+
+00:11:14.820 --> 00:11:18.668
+and the animal gets a
+significant fraction of them
+
+00:11:18.668 --> 00:11:19.447
+wrong.
+
+00:11:19.447 --> 00:11:20.030
+[END PLAYBACK]
+
+00:11:20.030 --> 00:11:26.840
+OK, all right, I thought
+that was kind of amusing.
+
+00:11:26.840 --> 00:11:30.170
+Now, if you record
+in the brain in--
+
+00:11:30.170 --> 00:11:33.020
+also in parts of frontal
+cortex, what you find
+
+00:11:33.020 --> 00:11:35.280
+is that there are neurons.
+
+00:11:35.280 --> 00:11:37.730
+And this is data from
+the monkey again,
+
+00:11:37.730 --> 00:11:40.100
+and this is from
+Michael Shadlen's lab,
+
+00:11:40.100 --> 00:11:41.600
+who's now at Columbia.
+
+00:11:41.600 --> 00:11:44.120
+And what you find is that
+during the presentation
+
+00:11:44.120 --> 00:11:46.190
+of the stimulus
+here, you can see
+
+00:11:46.190 --> 00:11:50.210
+that there are neurons
+whose activity ramps up
+
+00:11:50.210 --> 00:11:55.880
+over time as the animal
+is watching the stimulus.
+
+00:11:55.880 --> 00:11:59.500
+And so what you can see here
+is that these different traces,
+
+00:11:59.500 --> 00:12:04.010
+so for example, the green
+trace and the blue trace here,
+
+00:12:04.010 --> 00:12:08.670
+show what the neurons are doing
+when the stimulus is very weak.
+
+00:12:08.670 --> 00:12:12.570
+And the yellow trace shows
+what the neurons do when--
+
+00:12:12.570 --> 00:12:15.230
+or this particular
+neuron does when
+
+00:12:15.230 --> 00:12:17.750
+the stimulus is very strong.
+
+00:12:17.750 --> 00:12:19.640
+And so there's this
+notion that these neurons
+
+00:12:19.640 --> 00:12:23.570
+are integrating the evidence
+about which way this--
+
+00:12:23.570 --> 00:12:29.720
+these random dots are going
+until that activity reaches
+
+00:12:29.720 --> 00:12:30.960
+some sort of threshold.
+
+00:12:30.960 --> 00:12:33.320
+And so this is
+what those neurons
+
+00:12:33.320 --> 00:12:38.240
+look like when you line
+their firing rate up
+
+00:12:38.240 --> 00:12:39.870
+to the time of the saccade.
+
+00:12:39.870 --> 00:12:43.070
+And you can see that all of
+those different trajectories
+
+00:12:43.070 --> 00:12:47.810
+of neural activity ramp up until
+they reach a threshold at which
+
+00:12:47.810 --> 00:12:49.820
+point the animal
+makes it's choice
+
+00:12:49.820 --> 00:12:52.590
+about looking left or right.
+
+00:12:52.590 --> 00:12:55.340
+And so the idea is that
+these neurons are integrating
+
+00:12:55.340 --> 00:12:58.820
+the evidence until
+they reach a bound,
+
+00:12:58.820 --> 00:13:00.740
+and then the animal
+makes a decision.
+
+00:13:00.740 --> 00:13:03.500
+The weaker the evidence is,
+the weaker that evidence
+
+00:13:03.500 --> 00:13:04.250
+accumulates.
+
+00:13:04.250 --> 00:13:08.120
+The more weaker the coherence,
+the more slowly the evidence
+
+00:13:08.120 --> 00:13:11.630
+accumulates and the longer it
+takes for that neural activity
+
+00:13:11.630 --> 00:13:13.470
+to reach the threshold.
+
+00:13:13.470 --> 00:13:16.400
+And so, therefore, the
+reaction time is longer.
+
+00:13:16.400 --> 00:13:21.590
+So it's a very powerful
+model of accumulat--
+
+00:13:21.590 --> 00:13:27.690
+evidence accumulation during
+a decision-making task.
+
+00:13:27.690 --> 00:13:30.900
+Here's another interesting
+behavior that potentially
+
+00:13:30.900 --> 00:13:32.730
+involves neural integration.
+
+00:13:32.730 --> 00:13:36.780
+So this is navigation
+by path integration
+
+00:13:36.780 --> 00:13:38.940
+in a species of desert ant.
+
+00:13:38.940 --> 00:13:41.430
+So these animals do
+something really cool.
+
+00:13:41.430 --> 00:13:45.400
+So they leave their nest,
+and they forage for food.
+
+00:13:45.400 --> 00:13:46.650
+But they're foraging for food.
+
+00:13:46.650 --> 00:13:48.270
+It's very hot.
+
+00:13:48.270 --> 00:13:49.270
+So they run around.
+
+00:13:49.270 --> 00:13:50.820
+They look for food.
+
+00:13:50.820 --> 00:13:55.600
+And as soon as they find
+food, they head straight home.
+
+00:13:55.600 --> 00:13:58.420
+And if you look at
+their trajectory
+
+00:13:58.420 --> 00:14:00.640
+from the time they leave
+food, they immediately
+
+00:14:00.640 --> 00:14:03.580
+head along a vector that
+points them straight
+
+00:14:03.580 --> 00:14:07.960
+back to their nest.
+
+00:14:07.960 --> 00:14:11.170
+And so it suggests that
+these animals are actually
+
+00:14:11.170 --> 00:14:12.150
+integrat-- look.
+
+00:14:12.150 --> 00:14:14.468
+The animal's doing all
+sorts of loop-dee-doos,
+
+00:14:14.468 --> 00:14:16.510
+and it's going all sorts
+of different directions.
+
+00:14:16.510 --> 00:14:19.210
+You'd think it would get lost.
+
+00:14:19.210 --> 00:14:21.010
+How does it maintain?
+
+00:14:21.010 --> 00:14:22.990
+How does it represent
+in its brain
+
+00:14:22.990 --> 00:14:26.860
+the knowledge of which direction
+is actually back to the nest?
+
+00:14:26.860 --> 00:14:30.400
+One possibility is that it uses
+external cues to figure this
+
+00:14:30.400 --> 00:14:33.230
+out, like it looks at the--
+
+00:14:33.230 --> 00:14:37.060
+it sees little sand dunes
+on the horizon or something.
+
+00:14:37.060 --> 00:14:40.270
+You can actually rule out that
+it's using sensor information
+
+00:14:40.270 --> 00:14:44.020
+by after the point where it
+finds food, you pick it up,
+
+00:14:44.020 --> 00:14:47.380
+and you transport it
+here to a different spot.
+
+00:14:47.380 --> 00:14:50.470
+And the animal heads
+off in a direction
+
+00:14:50.470 --> 00:14:51.940
+that's exactly
+the direction that
+
+00:14:51.940 --> 00:14:55.640
+would have taken it back to the
+nest had it been in the ori--
+
+00:14:55.640 --> 00:14:59.410
+in the location
+before you moved it.
+
+00:14:59.410 --> 00:15:02.590
+So the idea is that somehow
+it's integrating its distance,
+
+00:15:02.590 --> 00:15:05.890
+and it's doing vector
+integration of its distance
+
+00:15:05.890 --> 00:15:08.070
+and direction over time.
+
+00:15:08.070 --> 00:15:12.190
+OK, so lots of interesting
+bits of evidence that the brain
+
+00:15:12.190 --> 00:15:17.340
+does integration for different
+kinds of interesting behaviors.
+
+00:15:17.340 --> 00:15:20.070
+So today I'm going
+to show you some--
+
+00:15:20.070 --> 00:15:23.670
+another behavior that is
+thought to involve integration.
+
+00:15:23.670 --> 00:15:27.180
+And it's a simple
+sensory motor behavior
+
+00:15:27.180 --> 00:15:30.720
+where it's been possible to
+study the circuitry in detail
+
+00:15:30.720 --> 00:15:36.810
+that's involved in the neural
+control of that motor behavior.
+
+00:15:36.810 --> 00:15:43.260
+And the behavior is basically
+the control of eye position.
+
+00:15:43.260 --> 00:15:47.110
+And this group, this
+was largely work done
+
+00:15:47.110 --> 00:15:49.440
+that was done in David
+Tank's lab in collaboration
+
+00:15:49.440 --> 00:15:52.290
+with his theoretical
+collaborators,
+
+00:15:52.290 --> 00:15:56.390
+Mark Goldman and
+Sebastian's Seung.
+
+00:15:56.390 --> 00:15:58.700
+OK, so let me just show
+you this little movie.
+
+00:16:01.580 --> 00:16:03.980
+[VIDEO PLAYBACK]
+
+00:16:05.910 --> 00:16:08.460
+OK, so these are goldfish.
+
+00:16:08.460 --> 00:16:11.970
+Goldfish have an
+ocular motor control
+
+00:16:11.970 --> 00:16:16.800
+system that's very similar
+to that in mammals and in us.
+
+00:16:16.800 --> 00:16:18.690
+You can see that they
+move their eyes around.
+
+00:16:18.690 --> 00:16:22.290
+They actually make saccades.
+
+00:16:22.290 --> 00:16:26.610
+And if you zoom in on their eye
+and watch what their eyes do,
+
+00:16:26.610 --> 00:16:29.310
+you can see that they
+make discrete jumps
+
+00:16:29.310 --> 00:16:30.990
+in the position of the eye.
+
+00:16:30.990 --> 00:16:33.300
+And between those
+discrete jumps,
+
+00:16:33.300 --> 00:16:36.270
+the eyes are held
+in a fixed position.
+
+00:16:36.270 --> 00:16:41.400
+OK, now if you were to
+anesthetize the eye muscles,
+
+00:16:41.400 --> 00:16:44.370
+the eye would always
+just sort of spring back
+
+00:16:44.370 --> 00:16:46.800
+to some neutral location.
+
+00:16:46.800 --> 00:16:50.570
+The eye muscles are
+sort of like springs.
+
+00:16:50.570 --> 00:16:53.220
+And in the absence
+of any motor control
+
+00:16:53.220 --> 00:16:55.170
+of any activation
+of those muscles,
+
+00:16:55.170 --> 00:16:58.220
+the eyes just relax
+to a neutral position.
+
+00:16:58.220 --> 00:17:02.640
+So when the eye moves
+and it's maintained
+
+00:17:02.640 --> 00:17:04.920
+at a particular
+position, that has--
+
+00:17:04.920 --> 00:17:08.700
+something has to
+hold that muscle
+
+00:17:08.700 --> 00:17:10.920
+at a particular tension
+in order to hold
+
+00:17:10.920 --> 00:17:12.375
+the eye at that position.
+
+00:17:12.375 --> 00:17:13.589
+[END PLAYBACK]
+
+00:17:13.589 --> 00:17:18.210
+So there are a set of muscles
+that control eye position.
+
+00:17:18.210 --> 00:17:20.339
+There's a whole set
+of neural circuits
+
+00:17:20.339 --> 00:17:23.940
+that control the tension
+in those muscles.
+
+00:17:23.940 --> 00:17:27.540
+And in these experiments,
+the researchers
+
+00:17:27.540 --> 00:17:29.850
+just focused on
+the control system
+
+00:17:29.850 --> 00:17:34.680
+for horizontal eye movements,
+so motion, movement
+
+00:17:34.680 --> 00:17:37.770
+of the eye from a more
+lateral position to a more
+
+00:17:37.770 --> 00:17:44.730
+medial position or rotation,
+OK, so eye posi-- horizontal
+
+00:17:44.730 --> 00:17:45.580
+eye position.
+
+00:17:45.580 --> 00:17:48.770
+And so if you record
+the position of the eye,
+
+00:17:48.770 --> 00:17:52.480
+and look at-- this is sort of a
+cartoon representation of what
+
+00:17:52.480 --> 00:17:53.230
+you would see--
+
+00:17:53.230 --> 00:17:55.630
+you see that the
+eye stays stable
+
+00:17:55.630 --> 00:17:59.290
+at a particular angle for a
+while and then makes a jump,
+
+00:17:59.290 --> 00:18:02.110
+stays stable, makes a
+jump, and stays stable.
+
+00:18:02.110 --> 00:18:06.310
+These are called
+"fixations," and these
+
+00:18:06.310 --> 00:18:09.040
+are called "saccades."
+
+00:18:09.040 --> 00:18:12.010
+And if you record
+from motor neurons
+
+00:18:12.010 --> 00:18:14.590
+that innervate these
+muscles, so these
+
+00:18:14.590 --> 00:18:17.530
+are motor neurons in
+the nucleus abducens,
+
+00:18:17.530 --> 00:18:20.710
+you can see that the
+neural activity is low,
+
+00:18:20.710 --> 00:18:24.100
+the firing rate is low when
+the eyes are more medial,
+
+00:18:24.100 --> 00:18:26.590
+when the eyes are more forward.
+
+00:18:26.590 --> 00:18:30.040
+And that firing
+rate is high when
+
+00:18:30.040 --> 00:18:32.380
+the eye is in a more
+lateral position
+
+00:18:32.380 --> 00:18:36.550
+because these are motor neurons
+that activate the muscle that
+
+00:18:36.550 --> 00:18:38.290
+pulls the eye more lateral.
+
+00:18:41.020 --> 00:18:43.930
+Notice that there is a
+brief burst of activity
+
+00:18:43.930 --> 00:18:46.120
+here at the time
+when the eye makes
+
+00:18:46.120 --> 00:18:49.180
+a saccade to the-- into
+the more lateral direction.
+
+00:18:49.180 --> 00:18:51.070
+And there's a brief
+suppression of activity
+
+00:18:51.070 --> 00:18:53.110
+here when the eye
+makes a saccade
+
+00:18:53.110 --> 00:18:55.390
+to a more medial position.
+
+00:18:55.390 --> 00:19:02.170
+Those saccades are driven
+by a set of neurons,
+
+00:19:02.170 --> 00:19:07.520
+by a brain area called "saccade
+burst generator neurons."
+
+00:19:07.520 --> 00:19:09.610
+And you can see
+that those neurons
+
+00:19:09.610 --> 00:19:12.110
+generate a burst
+of activity prior
+
+00:19:12.110 --> 00:19:13.360
+to each one of these saccades.
+
+00:19:13.360 --> 00:19:16.960
+There are a set of neurons
+that activate bursts--
+
+00:19:16.960 --> 00:19:19.317
+activate saccades in
+the lateral direction,
+
+00:19:19.317 --> 00:19:21.400
+and there are other neurons
+that activate saccades
+
+00:19:21.400 --> 00:19:23.850
+in the medial direction.
+
+00:19:23.850 --> 00:19:27.710
+And what you see is if you--
+is that these saccade burst
+
+00:19:27.710 --> 00:19:29.810
+neurons are actually--
+
+00:19:29.810 --> 00:19:32.300
+generate activity
+that's very highly
+
+00:19:32.300 --> 00:19:34.700
+correlated with eye velocity.
+
+00:19:34.700 --> 00:19:37.430
+So here you can see
+recording from one
+
+00:19:37.430 --> 00:19:41.630
+of these burst generator neurons
+generates a burst of spikes
+
+00:19:41.630 --> 00:19:44.450
+that goes up to about
+400 hertz and lasts
+
+00:19:44.450 --> 00:19:47.280
+about 100 milliseconds
+during the saccade.
+
+00:19:47.280 --> 00:19:49.580
+And if you plot
+eye velocity along
+
+00:19:49.580 --> 00:19:52.370
+with the firing rate of these
+burst generator neurons,
+
+00:19:52.370 --> 00:19:56.160
+you can see that those are
+very similar to each other.
+
+00:19:56.160 --> 00:19:59.200
+So these neurons are
+generating a burst,
+
+00:19:59.200 --> 00:20:06.710
+drives change in the velocity
+of the neurons of the eye.
+
+00:20:06.710 --> 00:20:09.410
+OK, so if we go
+from neurons that
+
+00:20:09.410 --> 00:20:13.310
+have activity that's
+proportional to position,
+
+00:20:13.310 --> 00:20:16.190
+and we have neurons
+that have activity
+
+00:20:16.190 --> 00:20:19.920
+that's proportional to velocity,
+how do we get from velocity?
+
+00:20:19.920 --> 00:20:22.550
+So the idea is that you
+have burst saccade generator
+
+00:20:22.550 --> 00:20:25.010
+neurons that project
+to these neurons that
+
+00:20:25.010 --> 00:20:27.667
+project to the muscles.
+
+00:20:27.667 --> 00:20:29.250
+You have to have
+something in between.
+
+00:20:29.250 --> 00:20:32.240
+If you have neurons
+that encode velocity
+
+00:20:32.240 --> 00:20:35.060
+and you have neurons
+that encode position,
+
+00:20:35.060 --> 00:20:38.120
+you need something to
+connect those to go
+
+00:20:38.120 --> 00:20:40.550
+from velocity to position.
+
+00:20:40.550 --> 00:20:42.490
+How do you get from
+velocity to position?
+
+00:20:46.970 --> 00:20:51.390
+If I have a trace of velocity,
+can you calculate the position
+
+00:20:51.390 --> 00:20:52.400
+by doing what?
+
+00:20:52.400 --> 00:20:53.540
+AUDIENCE: Integrating.
+
+00:20:53.540 --> 00:20:54.930
+MICHALE FEE: By integrating.
+
+00:20:54.930 --> 00:20:58.710
+So the idea is that you
+have a set of neurons here.
+
+00:20:58.710 --> 00:21:01.460
+In fact, there's a part of
+the brain, and in the goldfish
+
+00:21:01.460 --> 00:21:08.300
+it's called "area one,"
+that take that burst saccade
+
+00:21:08.300 --> 00:21:13.865
+generator neuron
+burst, integrate
+
+00:21:13.865 --> 00:21:17.590
+it to produce a
+position signal that
+
+00:21:17.590 --> 00:21:19.030
+then controls eye position.
+
+00:21:22.680 --> 00:21:27.720
+All right, so if you record from
+one of these integrator neurons
+
+00:21:27.720 --> 00:21:29.610
+while you're watching
+eye position,
+
+00:21:29.610 --> 00:21:32.554
+here's what that looks like.
+
+00:21:32.554 --> 00:21:35.034
+[VIDEO PLAYBACK]
+
+00:21:39.498 --> 00:21:41.234
+And so here's the
+animal's looking
+
+00:21:41.234 --> 00:21:44.954
+more lateral to the nose.
+
+00:21:44.954 --> 00:21:47.150
+The goldfish's mouth is up here.
+
+00:21:47.150 --> 00:21:48.160
+So that's more lateral.
+
+00:21:48.160 --> 00:21:56.278
+That's moving more medial
+there, more lateral, more--
+
+00:22:11.477 --> 00:22:12.060
+[END PLAYBACK]
+
+00:22:12.060 --> 00:22:14.560
+OK, so this neuron that
+we were just watching
+
+00:22:14.560 --> 00:22:17.200
+was recorded in
+this area, area one.
+
+00:22:17.200 --> 00:22:19.480
+Those neurons project
+to the motor neurons
+
+00:22:19.480 --> 00:22:21.580
+that actually innervate
+the muscles to control
+
+00:22:21.580 --> 00:22:22.240
+eye position.
+
+00:22:22.240 --> 00:22:28.430
+And they receive inputs from
+these burst generator neuron.
+
+00:22:28.430 --> 00:22:31.280
+OK, so if you look at
+the activity of one
+
+00:22:31.280 --> 00:22:34.250
+of these integrator
+neurons, that's
+
+00:22:34.250 --> 00:22:37.940
+a spike train during
+a series of saccades,
+
+00:22:37.940 --> 00:22:41.360
+and fixations is a
+function of time.
+
+00:22:41.360 --> 00:22:45.360
+This trace shows the average
+firing rate of that neuron.
+
+00:22:45.360 --> 00:22:48.320
+This is just smoothed over
+time, so you're just averaging
+
+00:22:48.320 --> 00:22:50.760
+the firing rate in some window.
+
+00:22:50.760 --> 00:22:52.820
+You can see that the
+firing rate steps up,
+
+00:22:52.820 --> 00:22:55.610
+that the firing rate jumps
+up during these saccades
+
+00:22:55.610 --> 00:22:59.910
+and then maintains a stable,
+persistent firing rate.
+
+00:22:59.910 --> 00:23:04.310
+So the way-- think about this
+is that this persistent firing
+
+00:23:04.310 --> 00:23:08.750
+right here is maintaining a
+memory, a short-term memory
+
+00:23:08.750 --> 00:23:15.565
+of where the eye is, and
+that sends an output that
+
+00:23:15.565 --> 00:23:16.815
+puts the eye at that position.
+
+00:23:21.910 --> 00:23:24.120
+OK, and so just
+like we described,
+
+00:23:24.120 --> 00:23:28.860
+we can think of these
+saccade burst generator
+
+00:23:28.860 --> 00:23:32.520
+neurons as sending an
+input to an integrator that
+
+00:23:32.520 --> 00:23:36.580
+then produces a step
+in the position,
+
+00:23:36.580 --> 00:23:38.950
+and then the burst
+generator input
+
+00:23:38.950 --> 00:23:42.420
+is zero during the [INAUDIBLE].
+
+00:23:42.420 --> 00:23:46.910
+So the integrator doesn't
+change when the input is zero.
+
+00:23:46.910 --> 00:23:49.850
+And then there's
+effectively a negative input
+
+00:23:49.850 --> 00:23:52.750
+that produces decrement
+in the eye position.
+
+00:23:58.030 --> 00:24:02.120
+OK, we started talking last
+time about a neural model that
+
+00:24:02.120 --> 00:24:05.630
+could produce this
+kind of integration.
+
+00:24:05.630 --> 00:24:11.040
+And I'll just walk through
+the logic of that again.
+
+00:24:11.040 --> 00:24:14.930
+So our basic model of
+a neuron is a neuron
+
+00:24:14.930 --> 00:24:16.820
+that has a synaptic input.
+
+00:24:16.820 --> 00:24:20.060
+If we put a brief
+synaptic input,
+
+00:24:20.060 --> 00:24:24.410
+remember we described how our
+firing rate model of a neuron
+
+00:24:24.410 --> 00:24:29.650
+will take that input,
+integrate it briefly, and then
+
+00:24:29.650 --> 00:24:32.860
+the activity, the firing rate
+of that neuron will decay away.
+
+00:24:36.810 --> 00:24:41.620
+So we can write down an
+equation for this single neuron,
+
+00:24:41.620 --> 00:24:45.310
+tau dv/dt is equal
+to minus v. That's
+
+00:24:45.310 --> 00:24:50.180
+due to this intrinsic
+decay plus an input.
+
+00:24:50.180 --> 00:24:53.200
+And that input is
+synaptic input.
+
+00:24:56.700 --> 00:25:02.760
+But what we want, a system where
+when we put in a brief input,
+
+00:25:02.760 --> 00:25:09.330
+we get a persistent activity
+instead of a decaying activity.
+
+00:25:09.330 --> 00:25:12.090
+And I should just
+remind you that we
+
+00:25:12.090 --> 00:25:17.760
+think of this intrinsic
+decay and this intrinsic leak
+
+00:25:17.760 --> 00:25:22.020
+as having a time constant
+of order 100 milliseconds.
+
+00:25:22.020 --> 00:25:23.910
+And I should have
+pointed out actually
+
+00:25:23.910 --> 00:25:30.900
+that in this system here, these
+neurons have a persistence
+
+00:25:30.900 --> 00:25:32.740
+of order of tens of seconds.
+
+00:25:32.740 --> 00:25:36.770
+So even in the
+dark, the goldfish
+
+00:25:36.770 --> 00:25:40.730
+is making saccades to
+different directions.
+
+00:25:40.730 --> 00:25:43.330
+And when it makes a
+saccade, that eye position
+
+00:25:43.330 --> 00:25:45.400
+stays stable for--
+
+00:25:45.400 --> 00:25:50.110
+it can stay stable
+for many seconds.
+
+00:25:50.110 --> 00:25:52.880
+And if you can do
+this in humans,
+
+00:25:52.880 --> 00:25:57.250
+you can ask a person
+to saccade in the dark
+
+00:25:57.250 --> 00:26:00.160
+and try to hold their eyes
+steady at a given position,
+
+00:26:00.160 --> 00:26:02.830
+and a person will be able
+to saccade to a position.
+
+00:26:02.830 --> 00:26:04.480
+Just you can imagine
+closing your eyes
+
+00:26:04.480 --> 00:26:07.010
+and saccading to a position.
+
+00:26:07.010 --> 00:26:08.970
+Humans can hold
+that eye position
+
+00:26:08.970 --> 00:26:12.200
+for about 10 or 20 seconds.
+
+00:26:12.200 --> 00:26:14.480
+So that's sort of
+the time constant
+
+00:26:14.480 --> 00:26:21.290
+of this integrator
+in the primate,
+
+00:26:21.290 --> 00:26:24.450
+so that's also consistent with
+nonhuman primate experiments.
+
+00:26:24.450 --> 00:26:26.760
+OK, so this has a very
+long time constant.
+
+00:26:26.760 --> 00:26:33.920
+But we want a neural model that
+can model that very long time
+
+00:26:33.920 --> 00:26:37.640
+constant of this
+persistent activity that
+
+00:26:37.640 --> 00:26:39.170
+maintains eye position.
+
+00:26:39.170 --> 00:26:41.870
+All right, but the intrinsic
+time constant of neurons
+
+00:26:41.870 --> 00:26:43.920
+is about 100 milliseconds.
+
+00:26:43.920 --> 00:26:47.660
+So how do we get from
+a single neuron that
+
+00:26:47.660 --> 00:26:49.730
+has a time constant
+of 100 milliseconds
+
+00:26:49.730 --> 00:26:53.970
+to a neural integrator that can
+have a time constant of tens
+
+00:26:53.970 --> 00:26:54.470
+of seconds?
+
+00:26:57.380 --> 00:27:00.920
+All right, one way to do that
+is by making a network that
+
+00:27:00.920 --> 00:27:02.330
+has recurrent connections.
+
+00:27:02.330 --> 00:27:04.040
+And you remember
+that the simplest
+
+00:27:04.040 --> 00:27:08.930
+kind of recurrent network is
+a neuron that has an autapse.
+
+00:27:08.930 --> 00:27:10.700
+But more generally,
+we'll have neurons
+
+00:27:10.700 --> 00:27:12.650
+that connect to other neurons.
+
+00:27:12.650 --> 00:27:14.870
+Those other neurons
+connect to other neurons.
+
+00:27:14.870 --> 00:27:17.180
+And there are feedback loops.
+
+00:27:17.180 --> 00:27:18.680
+This neuron connects
+to that neuron.
+
+00:27:18.680 --> 00:27:20.870
+That neuron connects
+back, and so on.
+
+00:27:20.870 --> 00:27:24.560
+And so the activity of this
+neuron can go to other neurons,
+
+00:27:24.560 --> 00:27:28.520
+and then come back, and excite
+that neuron again, and maintain
+
+00:27:28.520 --> 00:27:30.330
+the activity of that neuron.
+
+00:27:30.330 --> 00:27:35.540
+So we developed a method for
+analyzing that kind of network
+
+00:27:35.540 --> 00:27:40.130
+by [INAUDIBLE] a
+recurrent weight
+
+00:27:40.130 --> 00:27:42.980
+matrix, recurrent
+connection matrix
+
+00:27:42.980 --> 00:27:47.750
+that describes the connections
+to a neuron A in this network
+
+00:27:47.750 --> 00:27:51.470
+from all the other
+neurons in the network,
+
+00:27:51.470 --> 00:27:57.752
+A prime, input to neuron
+A from neuron A prime.
+
+00:27:57.752 --> 00:28:02.520
+And now we can write down
+a differential equation
+
+00:28:02.520 --> 00:28:05.540
+for the activity of
+one of these neurons.
+
+00:28:05.540 --> 00:28:11.740
+dv/dt is minus v that
+produces this intrinsic decay,
+
+00:28:11.740 --> 00:28:18.670
+plus synaptic input from all
+the other neurons in the network
+
+00:28:18.670 --> 00:28:22.240
+summed up over all
+the other neurons
+
+00:28:22.240 --> 00:28:24.370
+plus this external burst input.
+
+00:28:27.630 --> 00:28:31.140
+So how do we make
+a neural network
+
+00:28:31.140 --> 00:28:34.090
+that looks like an integrator?
+
+00:28:34.090 --> 00:28:35.030
+But how do we do that?
+
+00:28:35.030 --> 00:28:40.200
+If we want our neuron, the
+firing rate of our neuron
+
+00:28:40.200 --> 00:28:44.400
+to behave like an
+integrator of its input,
+
+00:28:44.400 --> 00:28:46.830
+what do we have to
+do to this equation
+
+00:28:46.830 --> 00:28:49.395
+to make this neuron
+look like an integrator?
+
+00:28:55.830 --> 00:28:59.287
+So what do we have to do?
+
+00:28:59.287 --> 00:29:01.120
+To make this neuron
+look like an integrator,
+
+00:29:01.120 --> 00:29:07.090
+it would just be tau
+dv/dt equals burst input.
+
+00:29:07.090 --> 00:29:07.590
+Right?
+
+00:29:11.860 --> 00:29:17.920
+So in order to make this
+network into an integrator,
+
+00:29:17.920 --> 00:29:24.990
+we have to make sure that
+these two terms sum to zero.
+
+00:29:24.990 --> 00:29:29.090
+So in other words, the
+feedback from other neurons
+
+00:29:29.090 --> 00:29:32.240
+in the network
+back to our neuron
+
+00:29:32.240 --> 00:29:37.272
+has to exactly balance the
+intrinsic leak of that neuron.
+
+00:29:37.272 --> 00:29:40.820
+Does that makes sense?
+
+00:29:40.820 --> 00:29:44.270
+OK, so let's do that.
+
+00:29:44.270 --> 00:29:46.860
+And when you do
+that, this is zero.
+
+00:29:46.860 --> 00:29:48.610
+The sum of those
+two terms is zero.
+
+00:29:48.610 --> 00:29:54.250
+And now the derivative of
+the activity of our neuron
+
+00:29:54.250 --> 00:29:56.970
+is just equal to the input.
+
+00:29:56.970 --> 00:29:59.250
+So our neuron now
+integrates the input.
+
+00:30:02.280 --> 00:30:04.960
+So now the firing rate of our
+neuron, so there should be a v
+
+00:30:04.960 --> 00:30:10.080
+is equal to 1 over tau, the
+integral of burst input.
+
+00:30:10.080 --> 00:30:12.890
+So we talked last time
+about how you analyze
+
+00:30:12.890 --> 00:30:14.540
+recurrent neural networks.
+
+00:30:14.540 --> 00:30:17.730
+We start with a
+recurrent weight matrix.
+
+00:30:17.730 --> 00:30:21.950
+So again, these Ms describe
+the recurrent weights
+
+00:30:21.950 --> 00:30:23.530
+within that network.
+
+00:30:23.530 --> 00:30:28.310
+We talked about how if
+M is a symmetric matrix,
+
+00:30:28.310 --> 00:30:32.900
+connection matrix, then we can
+rewrite the connection matrix
+
+00:30:32.900 --> 00:30:41.290
+as a rotation matrix times
+a diagonal matrix times
+
+00:30:41.290 --> 00:30:43.870
+a rotation, the inverse
+rotation matrix,
+
+00:30:43.870 --> 00:30:48.070
+so phi transpose lambda
+phi where, again,
+
+00:30:48.070 --> 00:30:51.940
+lambda is a diagonal matrix,
+and phi is a rotation matrix
+
+00:30:51.940 --> 00:30:57.030
+that's [INAUDIBLE] two, in
+this case, in the case of two--
+
+00:30:57.030 --> 00:30:59.800
+a two-neuron network,
+then this rotation matrix
+
+00:30:59.800 --> 00:31:07.060
+has as its columns
+the two basis vectors
+
+00:31:07.060 --> 00:31:12.130
+that we can now use
+to rewrite the firing
+
+00:31:12.130 --> 00:31:17.010
+rates of this work in terms
+of modes of the network.
+
+00:31:17.010 --> 00:31:20.620
+So we can multiply
+the firing rate vector
+
+00:31:20.620 --> 00:31:22.480
+of this network
+times phi transpose
+
+00:31:22.480 --> 00:31:25.960
+to get the firing rates
+of different modes
+
+00:31:25.960 --> 00:31:27.232
+of that network.
+
+00:31:27.232 --> 00:31:28.690
+And what we're
+doing is essentially
+
+00:31:28.690 --> 00:31:38.660
+rewriting this recurrent network
+as set of independent modes,
+
+00:31:38.660 --> 00:31:42.890
+independent neurons,
+if you will,
+
+00:31:42.890 --> 00:31:47.410
+that described the modes
+with recurrent connectivity
+
+00:31:47.410 --> 00:31:49.580
+only within that mode.
+
+00:31:49.580 --> 00:31:54.550
+So we're rewriting that network
+as a set of only autapses.
+
+00:31:54.550 --> 00:31:58.090
+And the diagonal
+elements of this matrix
+
+00:31:58.090 --> 00:32:02.770
+are just the strength of
+the recurrent connections
+
+00:32:02.770 --> 00:32:03.550
+within that mode.
+
+00:32:08.390 --> 00:32:14.180
+All right, so for a network
+to behave as integrator,
+
+00:32:14.180 --> 00:32:17.600
+most of the eigenvalues
+should be less than 1,
+
+00:32:17.600 --> 00:32:21.590
+but one eigenvalue should be 1.
+
+00:32:21.590 --> 00:32:24.200
+And in that case, one
+mode of the network
+
+00:32:24.200 --> 00:32:27.170
+becomes an integrating
+mode, and all
+
+00:32:27.170 --> 00:32:29.600
+of the other modes
+of the network
+
+00:32:29.600 --> 00:32:33.210
+have the property that their
+activity decays away very,
+
+00:32:33.210 --> 00:32:34.910
+very rapidly.
+
+00:32:34.910 --> 00:32:38.000
+So I'm going to go through
+this in more detail
+
+00:32:38.000 --> 00:32:39.080
+and show you examples.
+
+00:32:39.080 --> 00:32:43.610
+But for a network to
+behave as an integrator,
+
+00:32:43.610 --> 00:32:48.070
+you want one integrating mode,
+one eigenvalue close to 1
+
+00:32:48.070 --> 00:32:52.540
+and most of the-- all
+of the other eigenvalues
+
+00:32:52.540 --> 00:32:53.500
+much less than 1.
+
+00:32:53.500 --> 00:32:56.710
+So if you do that,
+then you have one mode
+
+00:32:56.710 --> 00:33:00.250
+that has the following equation
+that describes its activity,
+
+00:33:00.250 --> 00:33:05.090
+tau, and let's say that's lambda
+1 that has eigenvalue of 1.
+
+00:33:05.090 --> 00:33:10.030
+So tau dc1/dt, dc/dt
+equals minus c,
+
+00:33:10.030 --> 00:33:12.880
+that's the intrinsic
+decay of that mode,
+
+00:33:12.880 --> 00:33:17.830
+plus lambda 1 c1
+plus burst input.
+
+00:33:17.830 --> 00:33:23.920
+And if lambda 1 is equal to 1,
+then those two terms cancel.
+
+00:33:23.920 --> 00:33:27.430
+Then the feedback
+balances the leak,
+
+00:33:27.430 --> 00:33:30.640
+and that mode becomes
+an integrating mode.
+
+00:33:34.240 --> 00:33:38.370
+So when you have a burst input,
+the activity in that mode
+
+00:33:38.370 --> 00:33:39.180
+increases.
+
+00:33:39.180 --> 00:33:42.510
+It steps up to some new value.
+
+00:33:42.510 --> 00:33:49.170
+And then between the burst
+inputs, that mode obeys--
+
+00:33:49.170 --> 00:33:52.130
+the activity of that mode obeys
+the following differential
+
+00:33:52.130 --> 00:33:52.710
+equation.
+
+00:33:52.710 --> 00:33:55.940
+There's no more burst
+input between the bursts.
+
+00:33:55.940 --> 00:34:00.830
+dc/dt is just equal to lambda
+minus 1 over tau times c1.
+
+00:34:00.830 --> 00:34:06.460
+And if lambda is equal to
+1, then this, then dc/dt
+
+00:34:06.460 --> 00:34:13.704
+equals zero, and the
+activity is constant.
+
+00:34:13.704 --> 00:34:15.330
+Does that makes sense?
+
+00:34:15.330 --> 00:34:17.117
+Any questions about that?
+
+00:34:17.117 --> 00:34:17.659
+Yes, Rebecca.
+
+00:34:17.659 --> 00:34:19.623
+AUDIENCE: OK, so why
+does it [INAUDIBLE]
+
+00:34:19.623 --> 00:34:23.060
+need to balance [INAUDIBLE]
+
+00:34:23.060 --> 00:34:25.340
+MICHALE FEE: Yes,
+that's exactly right.
+
+00:34:25.340 --> 00:34:28.820
+If this is not true,
+if, let's say that--
+
+00:34:28.820 --> 00:34:32.492
+what happens if
+lambda is less than 1?
+
+00:34:32.492 --> 00:34:39.010
+If lambda is less than 1, then
+this quantity is negative.
+
+00:34:39.010 --> 00:34:43.690
+So if lambda is 0.5, let's
+say, then this is 0.5 over tau,
+
+00:34:43.690 --> 00:34:46.030
+minus 0.5 over tau.
+
+00:34:46.030 --> 00:34:51.969
+So dc/dt is some negative
+constant times c.
+
+00:34:51.969 --> 00:34:56.050
+Which means if c is positive,
+then dc/dt is negative,
+
+00:34:56.050 --> 00:34:58.480
+and c is decaying.
+
+00:34:58.480 --> 00:35:00.650
+Does that makes sense?
+
+00:35:00.650 --> 00:35:04.620
+If lambda is bigger than 1,
+then this constant is positive.
+
+00:35:04.620 --> 00:35:08.900
+So if c is positive,
+then dc/dt is positive,
+
+00:35:08.900 --> 00:35:11.370
+and c continues to grow.
+
+00:35:11.370 --> 00:35:13.830
+So it's only when
+lambda equals 1
+
+00:35:13.830 --> 00:35:17.140
+that dc/dt is zero
+between the burst inputs.
+
+00:35:24.250 --> 00:35:30.370
+OK, so let's look at a
+really simple model where
+
+00:35:30.370 --> 00:35:32.120
+we have two neurons.
+
+00:35:32.120 --> 00:35:37.510
+There's autapse recurrence
+here, but it's easy to add that.
+
+00:35:37.510 --> 00:35:40.270
+And let's say that the weights
+between these two neurons
+
+00:35:40.270 --> 00:35:41.480
+are 1.
+
+00:35:41.480 --> 00:35:43.570
+So we can write down
+the weight matrix.
+
+00:35:43.570 --> 00:35:49.960
+It's just 0, 1; 1, 0
+because the diagonals,
+
+00:35:49.960 --> 00:35:55.615
+the diagonals are
+0, OK, 0, 1; 1, 0.
+
+00:35:55.615 --> 00:35:59.200
+The eigenvalue equation
+looks like this.
+
+00:35:59.200 --> 00:36:02.800
+You know that because
+the diagonal elements are
+
+00:36:02.800 --> 00:36:05.650
+equal to each other and the
+off-diagonal elements are
+
+00:36:05.650 --> 00:36:08.470
+equal to each other because
+it's a symmetric matrix, then
+
+00:36:08.470 --> 00:36:11.726
+the eigenvalue, the
+eigenvectors are always what?
+
+00:36:11.726 --> 00:36:13.710
+AUDIENCE: [INAUDIBLE]
+
+00:36:13.710 --> 00:36:19.334
+MICHALE FEE: 45 degrees,
+OK, so 1, 1 and minus 1, 1.
+
+00:36:22.710 --> 00:36:26.430
+So our modes of
+the network, if we
+
+00:36:26.430 --> 00:36:31.320
+look in this state space
+of v1 versus v2, the two
+
+00:36:31.320 --> 00:36:35.010
+modes of the network are in
+the 1, 1 direction and the 1,
+
+00:36:35.010 --> 00:36:37.380
+minus 1 direction.
+
+00:36:37.380 --> 00:36:41.630
+What are the eigenvalues
+of this network?
+
+00:36:41.630 --> 00:36:46.170
+OK, so for a matrix like
+this with equal diagonals
+
+00:36:46.170 --> 00:36:48.810
+and equal off-diagonals,
+the eigenvalues
+
+00:36:48.810 --> 00:36:52.590
+are just the diagonal
+elements plus or minus
+
+00:36:52.590 --> 00:36:55.670
+the off-diagonal element.
+
+00:36:55.670 --> 00:36:57.700
+I'll just give you a hint.
+
+00:36:57.700 --> 00:37:00.570
+This is going to be very
+similar to a problem
+
+00:37:00.570 --> 00:37:02.570
+that you'll have on the final.
+
+00:37:02.570 --> 00:37:06.978
+So if you have any questions,
+feel free to ask me.
+
+00:37:06.978 --> 00:37:09.960
+OK?
+
+00:37:09.960 --> 00:37:14.600
+OK, so the eigenvalues
+are plus or minus 1.
+
+00:37:14.600 --> 00:37:18.450
+They're 1 and minus 1.
+
+00:37:18.450 --> 00:37:19.950
+And it turns out
+for this case, it's
+
+00:37:19.950 --> 00:37:26.380
+easy to show that the
+value for this mode is 1,
+
+00:37:26.380 --> 00:37:30.026
+and the eigenvalue for
+this mode is minus 1.
+
+00:37:30.026 --> 00:37:30.930
+And you can see it.
+
+00:37:30.930 --> 00:37:33.660
+It's pretty intuitive.
+
+00:37:33.660 --> 00:37:40.560
+This network likes to be active
+such that both of these neurons
+
+00:37:40.560 --> 00:37:42.900
+are both on.
+
+00:37:42.900 --> 00:37:45.740
+When that neuron's on,
+it activates that neuron.
+
+00:37:45.740 --> 00:37:48.400
+When that neuron's on,
+it activates that neuron.
+
+00:37:48.400 --> 00:37:52.800
+And so this network really likes
+it when both of those neurons
+
+00:37:52.800 --> 00:37:54.300
+are active.
+
+00:37:54.300 --> 00:37:59.280
+And that's the amplifying
+direction of this network.
+
+00:37:59.280 --> 00:38:05.100
+And the eigenvalue value is
+such that the amplification
+
+00:38:05.100 --> 00:38:09.630
+in that direction is large
+enough that it turns that
+
+00:38:09.630 --> 00:38:12.768
+into an integrating mode.
+
+00:38:12.768 --> 00:38:14.810
+All right, so I'll show
+you what that looks like.
+
+00:38:14.810 --> 00:38:17.140
+So the eigenvalues
+again are 1 and minus 1.
+
+00:38:17.140 --> 00:38:19.450
+If you just do that
+matrix multiplication,
+
+00:38:19.450 --> 00:38:21.946
+you'll see that that's true.
+
+00:38:21.946 --> 00:38:26.845
+lambda is 1, and
+lambda is minus 1.
+
+00:38:26.845 --> 00:38:29.200
+You can just read this off.
+
+00:38:29.200 --> 00:38:32.740
+This first eigenvalue
+here is the eigenvector
+
+00:38:32.740 --> 00:38:35.590
+for the first mode.
+
+00:38:35.590 --> 00:38:38.680
+This eigenvalue
+is the eigenvalue
+
+00:38:38.680 --> 00:38:43.130
+for that vector for that mode.
+
+00:38:43.130 --> 00:38:45.030
+So here's what this looks like.
+
+00:38:45.030 --> 00:38:48.920
+So this mode is the
+integrating mode.
+
+00:38:48.920 --> 00:38:52.910
+This mode is a decaying
+mode because the eigenvalue
+
+00:38:52.910 --> 00:38:54.608
+is much less than 1.
+
+00:38:54.608 --> 00:38:56.150
+And what that means
+is that no matter
+
+00:38:56.150 --> 00:39:00.320
+where we start on this
+network, the activity
+
+00:39:00.320 --> 00:39:04.850
+will decay rapidly
+toward this line.
+
+00:39:04.850 --> 00:39:05.990
+Does that makes sense?
+
+00:39:08.500 --> 00:39:12.970
+No matter where you
+start the network,
+
+00:39:12.970 --> 00:39:17.765
+activity in this
+direction will decay.
+
+00:39:22.706 --> 00:39:29.650
+Any state of this network
+that's away from this line
+
+00:39:29.650 --> 00:39:33.370
+corresponds to activity of this
+mode, and activity of that mode
+
+00:39:33.370 --> 00:39:36.010
+decays away very rapidly.
+
+00:39:36.010 --> 00:39:38.470
+So no matter where you
+start, the activity
+
+00:39:38.470 --> 00:39:41.810
+will decay to this
+diagonal line.
+
+00:39:41.810 --> 00:39:44.970
+So let me just ask
+one more question.
+
+00:39:44.970 --> 00:39:49.750
+So if we put an input
+in this direction,
+
+00:39:49.750 --> 00:39:53.370
+what will the network do?
+
+00:39:53.370 --> 00:39:56.730
+So let's turn on an input in
+this direction and leave it on.
+
+00:39:56.730 --> 00:39:57.800
+What does the network do?
+
+00:40:06.060 --> 00:40:06.560
+Rebecca?
+
+00:40:06.560 --> 00:40:07.760
+AUDIENCE: [INAUDIBLE]
+
+00:40:07.760 --> 00:40:08.510
+MICHALE FEE: Good.
+
+00:40:08.510 --> 00:40:11.765
+So we're going to turn it
+on and leave it on first.
+
+00:40:11.765 --> 00:40:16.310
+The answer you gave is the
+answer to my next question.
+
+00:40:16.310 --> 00:40:20.750
+The answer is when you put that
+input on and you turn it off,
+
+00:40:20.750 --> 00:40:22.880
+then the activity
+goes back to zero.
+
+00:40:22.880 --> 00:40:23.960
+That's exactly right.
+
+00:40:23.960 --> 00:40:25.910
+But when you put the input--
+
+00:40:25.910 --> 00:40:29.970
+when you turn the input
+in this direction on,
+
+00:40:29.970 --> 00:40:31.590
+the network will--
+
+00:40:31.590 --> 00:40:33.480
+the state will move
+in this direction
+
+00:40:33.480 --> 00:40:35.420
+and reach a steady state.
+
+00:40:35.420 --> 00:40:39.300
+When you turn the input off, it
+will decay away back to zero.
+
+00:40:39.300 --> 00:40:41.970
+If we put an input in this
+direction, what happens?
+
+00:40:45.240 --> 00:40:46.730
+AUDIENCE: It just
+keeps going on.
+
+00:40:46.730 --> 00:40:49.580
+MICHALE FEE: It just
+keeps integrating.
+
+00:40:49.580 --> 00:40:51.350
+And then we turn the input off.
+
+00:40:51.350 --> 00:40:52.040
+What happens?
+
+00:40:52.040 --> 00:40:53.220
+AUDIENCE: It [INAUDIBLE]
+
+00:40:53.220 --> 00:40:55.410
+MICHALE FEE: It
+stops, and it stays.
+
+00:40:55.410 --> 00:40:59.370
+Because the network
+activity in this direction
+
+00:40:59.370 --> 00:41:01.980
+is integrating
+any input that has
+
+00:41:01.980 --> 00:41:05.950
+a projection in this direction.
+
+00:41:05.950 --> 00:41:06.600
+Yes.
+
+00:41:06.600 --> 00:41:08.700
+AUDIENCE: So [INAUDIBLE]
+steady state [INAUDIBLE]
+
+00:41:08.700 --> 00:41:12.530
+to F1, so if anything that
+has any component in the F1
+
+00:41:12.530 --> 00:41:17.535
+direction will either
+grow or [INAUDIBLE]
+
+00:41:17.535 --> 00:41:19.047
+over 90 degrees [INAUDIBLE] F1?
+
+00:41:19.047 --> 00:41:19.095
+MICHALE FEE: Yep.
+
+00:41:19.095 --> 00:41:20.230
+AUDIENCE: Would it [INAUDIBLE]
+
+00:41:20.230 --> 00:41:21.188
+MICHALE FEE: Like here?
+
+00:41:21.188 --> 00:41:22.970
+So if you put an input
+in this direction,
+
+00:41:22.970 --> 00:41:25.900
+what is the component
+of that input
+
+00:41:25.900 --> 00:41:28.470
+in the integrating direction?
+
+00:41:28.470 --> 00:41:31.580
+If we put an input
+like this, what--
+
+00:41:31.580 --> 00:41:34.490
+it has zero component in
+the integrating direction,
+
+00:41:34.490 --> 00:41:36.740
+and so nothing gets integrated.
+
+00:41:36.740 --> 00:41:38.060
+So you put that input.
+
+00:41:38.060 --> 00:41:39.140
+The network responds.
+
+00:41:39.140 --> 00:41:41.630
+You take the input away, and
+it goes right back to zero.
+
+00:41:41.630 --> 00:41:45.950
+If you put an input in this
+direction, all of that input
+
+00:41:45.950 --> 00:41:48.590
+is in this direction,
+and so that input just
+
+00:41:48.590 --> 00:41:51.460
+gets integrated by the network.
+
+00:41:51.460 --> 00:41:52.520
+OK?
+
+00:41:52.520 --> 00:41:57.020
+What happens if you put an
+input in this direction?
+
+00:41:57.020 --> 00:41:59.310
+Then it has a little
+bit of-- it has
+
+00:41:59.310 --> 00:42:01.150
+some projection
+in this direction
+
+00:42:01.150 --> 00:42:03.700
+and some projection
+in this direction.
+
+00:42:03.700 --> 00:42:08.180
+The network will respond to
+the input in this direction.
+
+00:42:08.180 --> 00:42:10.930
+But as soon as that input goes
+away, that will decay away.
+
+00:42:10.930 --> 00:42:12.820
+This, the projection
+in this direction,
+
+00:42:12.820 --> 00:42:16.223
+will continue to be integrated
+as long as the input is there.
+
+00:42:16.223 --> 00:42:17.890
+So let me show you
+what that looks like.
+
+00:42:21.610 --> 00:42:23.360
+So I'm going to show
+you what happens when
+
+00:42:23.360 --> 00:42:26.060
+you put an input vertically.
+
+00:42:26.060 --> 00:42:29.750
+What that means, input
+in this direction
+
+00:42:29.750 --> 00:42:33.710
+means that we have
+an input to H1.
+
+00:42:33.710 --> 00:42:39.040
+Input to this neuron is 0, but
+the input to that neuron is 1.
+
+00:42:39.040 --> 00:42:42.500
+That corresponds to H0 being--
+
+00:42:42.500 --> 00:42:45.140
+H1 direction being 0,
+and the H2 direction
+
+00:42:45.140 --> 00:42:48.380
+being 1 that has a
+projection in this direction
+
+00:42:48.380 --> 00:42:50.480
+and this direction.
+
+00:42:50.480 --> 00:42:52.190
+And here's what
+the network does.
+
+00:42:58.651 --> 00:43:00.110
+OK, sorry.
+
+00:43:00.110 --> 00:43:01.513
+I forgot which way it was going.
+
+00:43:01.513 --> 00:43:02.930
+So you can see
+that the network is
+
+00:43:02.930 --> 00:43:09.050
+responding to the input
+in the H1 direction.
+
+00:43:09.050 --> 00:43:14.440
+But as soon as that
+input goes away,
+
+00:43:14.440 --> 00:43:17.620
+the activity of the
+network in this direction
+
+00:43:17.620 --> 00:43:20.140
+goes away as soon as
+the input goes away.
+
+00:43:20.140 --> 00:43:23.360
+But it's integrating the
+projection in this direction.
+
+00:43:23.360 --> 00:43:26.000
+So you can see it
+continues to integrate.
+
+00:43:26.000 --> 00:43:28.540
+And than you put an input
+in the opposite direction,
+
+00:43:28.540 --> 00:43:32.070
+it integrates until the input
+goes away, and it stops there.
+
+00:43:32.070 --> 00:43:34.660
+OK, let me play that again.
+
+00:43:34.660 --> 00:43:39.396
+Does everyone get a sense
+for what's going on?
+
+00:43:53.070 --> 00:43:56.120
+So now we have a input
+that has a projection
+
+00:43:56.120 --> 00:44:00.260
+in the minus F1 direction.
+
+00:44:00.260 --> 00:44:02.860
+And so it's the network
+is just integrating
+
+00:44:02.860 --> 00:44:05.270
+that negative number.
+
+00:44:05.270 --> 00:44:08.960
+OK, is that clear?
+
+00:44:08.960 --> 00:44:15.080
+OK, all right, so that's
+a neural integrator.
+
+00:44:15.080 --> 00:44:17.320
+It's that simple.
+
+00:44:17.320 --> 00:44:21.310
+It has one mode that
+has an eigenvalue of 1.
+
+00:44:21.310 --> 00:44:25.860
+And all of its other modes
+have small eigenvalues
+
+00:44:25.860 --> 00:44:26.940
+or a negative.
+
+00:44:32.700 --> 00:44:37.550
+OK, so notice that no
+matter where you start,
+
+00:44:37.550 --> 00:44:39.365
+this network evolves.
+
+00:44:42.080 --> 00:44:44.300
+As long as there's no
+input, that network
+
+00:44:44.300 --> 00:44:50.400
+just relaxes to this line,
+to a state along that line.
+
+00:44:50.400 --> 00:44:54.680
+So that line is what we call
+an "attractor" of the network.
+
+00:44:54.680 --> 00:44:58.980
+The state of the network
+is attracted to that line.
+
+00:44:58.980 --> 00:45:02.630
+Once the state is sitting on
+that line, it will stay there.
+
+00:45:02.630 --> 00:45:05.840
+So that kind of attractor is
+called a "line attractor."
+
+00:45:05.840 --> 00:45:08.660
+That distinguishes it from
+other kinds of attractors
+
+00:45:08.660 --> 00:45:10.800
+that we'll talk in
+the next lecture.
+
+00:45:10.800 --> 00:45:14.850
+We'll talk about when there are
+particular points in the state
+
+00:45:14.850 --> 00:45:17.220
+space that are attractors.
+
+00:45:17.220 --> 00:45:20.930
+OK, no matter where you start
+the network around that point,
+
+00:45:20.930 --> 00:45:24.000
+the state evolves
+toward that one point.
+
+00:45:27.680 --> 00:45:30.080
+OK, so the line of
+the line attractor
+
+00:45:30.080 --> 00:45:35.110
+corresponds to the direction
+of the integrator mode,
+
+00:45:35.110 --> 00:45:36.310
+of the [INAUDIBLE] mode.
+
+00:45:42.980 --> 00:45:46.710
+So we can kind of see
+this attractor in action.
+
+00:45:46.710 --> 00:45:50.690
+If we record from two
+neurons in this integrator
+
+00:45:50.690 --> 00:45:54.940
+network of the goldfish
+during this task, if you will,
+
+00:45:54.940 --> 00:45:59.300
+where the [INAUDIBLE] saccades
+to different directions,
+
+00:45:59.300 --> 00:46:02.590
+so here's what that looks like.
+
+00:46:02.590 --> 00:46:06.475
+So again, we've got two neurons
+recorded simultaneously,
+
+00:46:06.475 --> 00:46:09.325
+and we're following the
+[INAUDIBLE] rate [INAUDIBLE]
+
+00:46:09.325 --> 00:46:11.225
+versus [INAUDIBLE].
+
+00:46:11.225 --> 00:46:13.630
+And Marvin the Martian
+here is indicating
+
+00:46:13.630 --> 00:46:16.238
+which way the goldfish
+is looking [INAUDIBLE]..
+
+00:46:50.340 --> 00:46:51.920
+OK, any questions about that?
+
+00:46:56.440 --> 00:46:59.470
+So the hypothesis is that--
+
+00:46:59.470 --> 00:47:01.100
+so I should mention that there--
+
+00:47:01.100 --> 00:47:02.270
+I didn't say this before.
+
+00:47:02.270 --> 00:47:05.480
+There are about a
+couple hundred neurons
+
+00:47:05.480 --> 00:47:13.160
+in that nucleus in area one
+that connect to each other, that
+
+00:47:13.160 --> 00:47:15.080
+contact each other.
+
+00:47:15.080 --> 00:47:19.970
+What's not really known yet--
+it's a little hard to prove,
+
+00:47:19.970 --> 00:47:23.730
+but people are working on it.
+
+00:47:23.730 --> 00:47:28.380
+What's not known yet is
+whether the connections
+
+00:47:28.380 --> 00:47:32.790
+between those neurons have
+the right synaptic strength
+
+00:47:32.790 --> 00:47:41.080
+to actually give you lambda,
+give you an eigenvalue of 1
+
+00:47:41.080 --> 00:47:42.080
+in that network.
+
+00:47:42.080 --> 00:47:43.930
+So it's still kind
+of an open question
+
+00:47:43.930 --> 00:47:47.860
+whether this model is
+exactly correct in describing
+
+00:47:47.860 --> 00:47:49.480
+how that network works.
+
+00:47:49.480 --> 00:47:53.770
+But Tank and others in
+the field are working
+
+00:47:53.770 --> 00:47:56.600
+on proving that hypothesis.
+
+00:47:56.600 --> 00:47:59.830
+You can see that one
+of the challenges
+
+00:47:59.830 --> 00:48:05.140
+of this model for this
+persistent activity
+
+00:48:05.140 --> 00:48:07.630
+is that in order
+for this network
+
+00:48:07.630 --> 00:48:11.350
+to maintain persistent
+activity, that feedback
+
+00:48:11.350 --> 00:48:15.520
+from these other neurons back
+to this neuron have to be--
+
+00:48:15.520 --> 00:48:22.900
+have to exactly match the
+intrinsic decay of that neuron.
+
+00:48:22.900 --> 00:48:26.380
+And if that feedback
+is too weak,
+
+00:48:26.380 --> 00:48:30.970
+you can see that lambda
+is slightly less than 1.
+
+00:48:30.970 --> 00:48:35.680
+What happens is that neural
+activity will decay away
+
+00:48:35.680 --> 00:48:37.630
+rather than being persistent.
+
+00:48:37.630 --> 00:48:40.270
+And if the feedback
+is too strong,
+
+00:48:40.270 --> 00:48:42.590
+that neural activity
+will run away,
+
+00:48:42.590 --> 00:48:46.800
+and it will grow exponentially.
+
+00:48:46.800 --> 00:48:54.890
+So you can actually see evidence
+of these two pathological cases
+
+00:48:54.890 --> 00:48:57.200
+in neural integrators.
+
+00:48:57.200 --> 00:49:04.460
+So let's see what that kind
+of mismatch of the feedback
+
+00:49:04.460 --> 00:49:06.060
+would look like in the behavior.
+
+00:49:06.060 --> 00:49:09.230
+So if you have a
+perfect integrator,
+
+00:49:09.230 --> 00:49:11.150
+you can see that the--
+
+00:49:11.150 --> 00:49:12.500
+you'll get saccades.
+
+00:49:12.500 --> 00:49:15.050
+And then the eye
+position between saccades
+
+00:49:15.050 --> 00:49:17.090
+will be exactly flat.
+
+00:49:17.090 --> 00:49:19.110
+The eye position
+will be constant,
+
+00:49:19.110 --> 00:49:21.020
+which means the
+derivative of eye position
+
+00:49:21.020 --> 00:49:24.020
+will be zero between
+the saccades.
+
+00:49:24.020 --> 00:49:27.590
+And it will be zero no matter
+what eye position the animal
+
+00:49:27.590 --> 00:49:29.060
+is holding its eyes.
+
+00:49:29.060 --> 00:49:32.450
+So we can plot the
+derivative of eye position
+
+00:49:32.450 --> 00:49:35.360
+as a function of eye
+position, and that
+
+00:49:35.360 --> 00:49:39.290
+should be zero everywhere if
+the integrator is perfect.
+
+00:49:39.290 --> 00:49:43.100
+Now, what happens if
+the integrator is leaky.
+
+00:49:43.100 --> 00:49:45.380
+Now you can see
+that, in this case,
+
+00:49:45.380 --> 00:49:50.180
+the eye is constantly rolling
+going back toward zero.
+
+00:49:50.180 --> 00:49:55.340
+So but if the eye
+is already at zero,
+
+00:49:55.340 --> 00:49:57.680
+then the derivative
+should be close to zero.
+
+00:49:57.680 --> 00:50:00.440
+If the eye is far
+away from zero,
+
+00:50:00.440 --> 00:50:02.610
+then the derivative should be--
+
+00:50:02.610 --> 00:50:05.390
+if the eye position
+is very positive,
+
+00:50:05.390 --> 00:50:10.890
+you can see that this
+leak, this leaky integrator
+
+00:50:10.890 --> 00:50:13.540
+corresponds to the
+derivative being negative.
+
+00:50:13.540 --> 00:50:16.110
+So if e is positive, then
+the derivative is negative.
+
+00:50:16.110 --> 00:50:18.550
+If e is negative, then the
+derivative is positive.
+
+00:50:18.550 --> 00:50:21.560
+And that corresponds to
+a situation like this.
+
+00:50:21.560 --> 00:50:23.490
+Positive eye
+position corresponds
+
+00:50:23.490 --> 00:50:26.710
+to negative derivative.
+
+00:50:26.710 --> 00:50:29.050
+And you can see
+that the equation
+
+00:50:29.050 --> 00:50:31.780
+for the activity of this
+mode which then translates
+
+00:50:31.780 --> 00:50:36.400
+into eye position is just e to
+the minus a constant times t.
+
+00:50:36.400 --> 00:50:39.310
+If you have an
+unstable integrator,
+
+00:50:39.310 --> 00:50:41.600
+if this lambda is
+greater than 1,
+
+00:50:41.600 --> 00:50:45.370
+then positive eye positions will
+produce a positive derivative,
+
+00:50:45.370 --> 00:50:49.890
+and you get x runaway
+growth of the eye position,
+
+00:50:49.890 --> 00:50:52.630
+and that corresponds to
+a situation like this--
+
+00:50:52.630 --> 00:50:56.020
+positive eye position, positive
+derivative, negative eye
+
+00:50:56.020 --> 00:50:59.920
+position, negative derivative.
+
+00:50:59.920 --> 00:51:02.950
+And then that equation for
+that situation is either
+
+00:51:02.950 --> 00:51:05.650
+the plus constant times t.
+
+00:51:09.270 --> 00:51:13.090
+All right, so you can actually
+produce a leaky integrator
+
+00:51:13.090 --> 00:51:17.350
+in the circuit by injecting a
+little bit of local anesthetic
+
+00:51:17.350 --> 00:51:19.680
+into part of that nucleus.
+
+00:51:19.680 --> 00:51:21.430
+And so what would that do?
+
+00:51:21.430 --> 00:51:25.150
+You can see that if
+you inject lidocaine
+
+00:51:25.150 --> 00:51:27.880
+or some other
+inactivator of neurons
+
+00:51:27.880 --> 00:51:30.730
+into part of that network,
+it would reduce the feedback
+
+00:51:30.730 --> 00:51:34.510
+connections onto the
+remaining neurons.
+
+00:51:34.510 --> 00:51:37.070
+And so lambda
+becomes less than 1,
+
+00:51:37.070 --> 00:51:40.570
+and that produces
+a leaky integrator
+
+00:51:40.570 --> 00:51:42.110
+when you do that manipulation.
+
+00:51:42.110 --> 00:51:44.980
+So this experiment is
+consistent with the idea
+
+00:51:44.980 --> 00:51:48.760
+that feedback
+within that network
+
+00:51:48.760 --> 00:51:54.400
+is required to produce that
+stable, persistent activity.
+
+00:51:54.400 --> 00:51:59.980
+Now, you can actually
+find cases where
+
+00:51:59.980 --> 00:52:06.460
+there are deficits in
+the ocular motor system
+
+00:52:06.460 --> 00:52:10.210
+that are associated with
+unstable integration.
+
+00:52:10.210 --> 00:52:13.630
+And this is called
+congenital nystagmus.
+
+00:52:13.630 --> 00:52:19.700
+So this is a human patient
+with this condition.
+
+00:52:19.700 --> 00:52:25.290
+And the person is being
+told to try to fixate
+
+00:52:25.290 --> 00:52:28.055
+at a particular position.
+
+00:52:28.055 --> 00:52:29.430
+But you can see
+that what happens
+
+00:52:29.430 --> 00:52:34.560
+is their eyes sort of
+run away to the edges,
+
+00:52:34.560 --> 00:52:37.200
+to the extremes of eye position.
+
+00:52:37.200 --> 00:52:41.080
+So they can fixate briefly.
+
+00:52:41.080 --> 00:52:42.700
+The integrator
+kind of runs away,
+
+00:52:42.700 --> 00:52:46.870
+and their eyes run to the
+edges, to the extremes
+
+00:52:46.870 --> 00:52:48.860
+of the range of eye position.
+
+00:52:48.860 --> 00:52:51.970
+And it's thought that that
+one hypothesis for what's
+
+00:52:51.970 --> 00:52:55.270
+going on there is that the
+ocular motor integrator is
+
+00:52:55.270 --> 00:52:57.850
+actually in an
+unstable configuration,
+
+00:52:57.850 --> 00:53:00.870
+that feedback is too strong.
+
+00:53:06.750 --> 00:53:09.320
+So exactly how
+precisely do you need
+
+00:53:09.320 --> 00:53:18.050
+to set that feedback in order
+to produce a perfect integrator?
+
+00:53:18.050 --> 00:53:21.160
+So you can see that the
+getting a perfect integrator
+
+00:53:21.160 --> 00:53:26.080
+requires that lambda
+minus 1 is equal to 0.
+
+00:53:26.080 --> 00:53:27.390
+So lambda is equal to 1.
+
+00:53:27.390 --> 00:53:29.610
+But if lambda is slightly
+different from 1,
+
+00:53:29.610 --> 00:53:31.770
+we can actually estimate
+what the time constant
+
+00:53:31.770 --> 00:53:32.970
+of the integrator would be.
+
+00:53:32.970 --> 00:53:36.240
+So you can see that
+the time constant
+
+00:53:36.240 --> 00:53:41.680
+is really tau over lambda minus
+1, tau over lambda minus 1.
+
+00:53:41.680 --> 00:53:46.290
+So given the intrinsic
+time constant tau n,
+
+00:53:46.290 --> 00:53:50.700
+you can actually estimate how
+close lambda has to be to 1
+
+00:53:50.700 --> 00:53:54.500
+to get a 30-second
+time constant, OK?
+
+00:53:54.500 --> 00:53:58.710
+And that turns out to
+be extremely close to 1.
+
+00:53:58.710 --> 00:54:01.140
+In order to go from a
+100-millisecond time
+
+00:54:01.140 --> 00:54:04.860
+constant to a 30-second
+time constant,
+
+00:54:04.860 --> 00:54:09.830
+you need a factor of 300 or,
+if the neural time constant
+
+00:54:09.830 --> 00:54:17.130
+is even shorter, maybe
+even 3,000 precision
+
+00:54:17.130 --> 00:54:20.000
+in setting lambda equal to 1.
+
+00:54:20.000 --> 00:54:25.750
+So this is actually one of the
+major criticisms of this model,
+
+00:54:25.750 --> 00:54:31.240
+that it can be hard to
+imagine how you would actually
+
+00:54:31.240 --> 00:54:35.830
+set the feedback in
+a recurrent network
+
+00:54:35.830 --> 00:54:40.210
+so precisely to get a
+lambda equal to give you
+
+00:54:40.210 --> 00:54:42.290
+time constants on the
+order of 30 seconds.
+
+00:54:45.980 --> 00:54:50.060
+Does anybody have any ideas
+how you might actually do that?
+
+00:54:57.030 --> 00:54:58.140
+What would happen?
+
+00:54:58.140 --> 00:55:03.210
+Let's imagine what would
+happen if we were--
+
+00:55:03.210 --> 00:55:04.980
+we make saccades constantly.
+
+00:55:04.980 --> 00:55:08.810
+We make several
+saccades per second,
+
+00:55:08.810 --> 00:55:11.060
+not including the
+little microsaccades
+
+00:55:11.060 --> 00:55:12.960
+that we make all the time.
+
+00:55:12.960 --> 00:55:19.040
+But when we make a
+saccade, what happens
+
+00:55:19.040 --> 00:55:20.510
+to the image on the retina?
+
+00:55:24.270 --> 00:55:25.680
+AUDIENCE: [INAUDIBLE]
+
+00:55:25.680 --> 00:55:29.460
+MICHALE FEE: Yeah, so and if
+we make a saccade this way,
+
+00:55:29.460 --> 00:55:32.790
+the image on the retina looks
+like the world is going whoosh,
+
+00:55:32.790 --> 00:55:34.560
+like this.
+
+00:55:34.560 --> 00:55:40.650
+And as soon as it
+stops and our eyes--
+
+00:55:40.650 --> 00:55:44.760
+if our integrator is perfect
+when the saccade ends,
+
+00:55:44.760 --> 00:55:47.640
+our eyes are at a
+certain position.
+
+00:55:47.640 --> 00:55:49.410
+What happens to the
+image on the retina?
+
+00:55:51.990 --> 00:55:57.990
+If our eyes make a
+saccade, and stop, and stay
+
+00:55:57.990 --> 00:56:02.120
+at a certain position and
+the velocity is zero, then
+
+00:56:02.120 --> 00:56:03.980
+what happens to the
+image on the retina?
+
+00:56:03.980 --> 00:56:07.950
+It becomes stationary.
+
+00:56:07.950 --> 00:56:11.670
+So but if we had a problem
+with our integrator--
+
+00:56:11.670 --> 00:56:14.140
+let's say that our
+integrator was unstable.
+
+00:56:14.140 --> 00:56:16.560
+So we make a saccade
+in this direction,
+
+00:56:16.560 --> 00:56:19.605
+but our integrator's unstable,
+so the eyes keep going.
+
+00:56:22.370 --> 00:56:25.550
+Then what would the
+image on the retina look
+
+00:56:25.550 --> 00:56:30.910
+like if we would have a motion
+of the image across the retina
+
+00:56:30.910 --> 00:56:32.650
+during the saccade?
+
+00:56:32.650 --> 00:56:36.150
+And then if our
+eyes kept drifting,
+
+00:56:36.150 --> 00:56:39.030
+the image would keep going.
+
+00:56:39.030 --> 00:56:43.950
+If we had a leaky integrator
+and we make a saccade,
+
+00:56:43.950 --> 00:56:45.660
+the image of the
+world could go whoosh,
+
+00:56:45.660 --> 00:56:49.320
+and then it would
+start relaxing back
+
+00:56:49.320 --> 00:56:53.100
+as the eyes drift back to zero.
+
+00:56:53.100 --> 00:56:59.100
+So the idea is that when we're
+walking around making saccades,
+
+00:56:59.100 --> 00:57:05.100
+we have immediately feedback
+about whether our integrator is
+
+00:57:05.100 --> 00:57:05.820
+working or not.
+
+00:57:09.660 --> 00:57:14.160
+And so, OK, I'm
+going to skip this.
+
+00:57:14.160 --> 00:57:21.330
+So the idea is that we can use
+that sensory feedback that's
+
+00:57:21.330 --> 00:57:25.800
+called "retinal
+slip," image slip,
+
+00:57:25.800 --> 00:57:31.760
+to give feedback about
+whether the integrator is
+
+00:57:31.760 --> 00:57:37.420
+leaky or unstable and use that
+feedback to change lambda.
+
+00:57:37.420 --> 00:57:40.866
+So if we make a
+saccade this way,
+
+00:57:40.866 --> 00:57:43.370
+the image is going
+to go like this.
+
+00:57:43.370 --> 00:57:48.090
+And now if that image starts
+slipping back, what does that
+
+00:57:48.090 --> 00:57:49.960
+mean we want to do?
+
+00:57:49.960 --> 00:57:56.180
+What do we need to do to
+our integrator, our synapses
+
+00:57:56.180 --> 00:57:59.510
+in our recurrent network
+if after we make a saccade,
+
+00:57:59.510 --> 00:58:02.000
+the image starts slipping
+back in the direction
+
+00:58:02.000 --> 00:58:05.100
+that it came from?
+
+00:58:05.100 --> 00:58:06.430
+We need to strengthen it.
+
+00:58:06.430 --> 00:58:08.460
+That means we have
+a leaky integrator.
+
+00:58:08.460 --> 00:58:11.460
+We would need to
+strengthen or make
+
+00:58:11.460 --> 00:58:14.280
+those connections within
+the integrator network more
+
+00:58:14.280 --> 00:58:16.850
+excitatory.
+
+00:58:16.850 --> 00:58:21.330
+And if we make a saccade this
+way, the world goes like this
+
+00:58:21.330 --> 00:58:23.910
+and then the image
+continues to move,
+
+00:58:23.910 --> 00:58:26.850
+it would mean our
+integrator is unstable.
+
+00:58:26.850 --> 00:58:30.100
+The excitatory connections
+are too strong.
+
+00:58:30.100 --> 00:58:32.820
+And so we would have a
+measurement of image slip
+
+00:58:32.820 --> 00:58:35.850
+that would tell us to
+weaken those connections.
+
+00:58:35.850 --> 00:58:38.130
+A lot of evidence that
+this kind of circuitry
+
+00:58:38.130 --> 00:58:41.880
+exists in the brain and that
+it involves the cerebellum.
+
+00:58:48.170 --> 00:58:50.210
+David Tank and his
+colleagues set out
+
+00:58:50.210 --> 00:58:53.690
+to test whether this
+kind of image slip
+
+00:58:53.690 --> 00:58:59.690
+actually controls the
+recurrent connections
+
+00:58:59.690 --> 00:59:02.540
+or controls the state
+of the integrator,
+
+00:59:02.540 --> 00:59:05.690
+whether you can use
+image slip to control
+
+00:59:05.690 --> 00:59:11.800
+whether the integrator
+network is unstable or leaky,
+
+00:59:11.800 --> 00:59:13.840
+whether that feedback
+actually controls it.
+
+00:59:13.840 --> 00:59:14.340
+Rebecca.
+
+00:59:14.340 --> 00:59:16.007
+AUDIENCE: [INAUDIBLE]
+is the [INAUDIBLE]
+
+00:59:16.007 --> 00:59:18.741
+between slip and
+overcompensation
+
+00:59:18.741 --> 00:59:23.360
+with [INAUDIBLE] versus unstable
+integrator, the direction of
+
+00:59:23.360 --> 00:59:23.860
+[INAUDIBLE]
+
+00:59:23.860 --> 00:59:26.290
+MICHALE FEE: Yes, exactly.
+
+00:59:26.290 --> 00:59:29.880
+So if we make a
+saccade this way,
+
+00:59:29.880 --> 00:59:33.090
+the world on-- the image on
+the retina is going to, whoosh,
+
+00:59:33.090 --> 00:59:36.240
+suddenly go this way.
+
+00:59:36.240 --> 00:59:38.490
+But then if the image goes--
+
+00:59:38.490 --> 00:59:40.530
+OK, in the unstable
+case, the eyes
+
+00:59:40.530 --> 00:59:45.760
+will keep going, which means the
+image will keep going this way.
+
+00:59:45.760 --> 00:59:46.665
+So you'll have--
+
+00:59:46.665 --> 00:59:48.540
+I don't know what sign
+you want to call that,
+
+00:59:48.540 --> 00:59:52.220
+but here, it's they
+did a sign flip.
+
+00:59:52.220 --> 00:59:54.030
+Here the case of decay.
+
+00:59:54.030 --> 00:59:56.760
+So dE/dt is less than zero.
+
+00:59:56.760 --> 00:59:59.750
+That means that the
+eyes are going back,
+
+00:59:59.750 --> 01:00:01.500
+which means that after
+you make a saccade,
+
+01:00:01.500 --> 01:00:04.530
+the image goes this way, and
+then it starts sliding back.
+
+01:00:04.530 --> 01:00:05.830
+AUDIENCE: So it'll return to--
+
+01:00:05.830 --> 01:00:06.930
+MICHALE FEE: Return, yeah.
+
+01:00:06.930 --> 01:00:12.450
+So if dE/dt is negative,
+that means it's leaky.
+
+01:00:12.450 --> 01:00:15.150
+The image slip will be positive.
+
+01:00:15.150 --> 01:00:18.150
+And then you use
+that positive image
+
+01:00:18.150 --> 01:00:24.000
+slip to increase the
+weight of the synapses.
+
+01:00:24.000 --> 01:00:27.810
+So you change the synaptic
+weights in your network
+
+01:00:27.810 --> 01:00:30.030
+by an amount that's
+proportional to
+
+01:00:30.030 --> 01:00:33.840
+the negative of the
+derivative of eye
+
+01:00:33.840 --> 01:00:37.180
+position, which is
+read out as image slip.
+
+01:00:37.180 --> 01:00:38.740
+OK, is that clear?
+
+01:00:41.620 --> 01:00:44.120
+OK, so they actually
+did this experiment.
+
+01:00:44.120 --> 01:00:50.350
+So they took a goldfish, head
+fixed it, put it in this arena.
+
+01:00:50.350 --> 01:00:52.480
+They made a little--
+
+01:00:52.480 --> 01:00:55.160
+you put a little coil
+on the fish's eye.
+
+01:00:55.160 --> 01:00:58.090
+So this is a standard procedure
+for measuring eye position
+
+01:00:58.090 --> 01:00:59.680
+in primates, for example.
+
+01:00:59.680 --> 01:01:05.770
+So you can put a little coil
+on the eye that measures--
+
+01:01:05.770 --> 01:01:11.240
+you measure-- OK, so you put
+a little coil on the eye,
+
+01:01:11.240 --> 01:01:15.140
+and you surround the fish with
+oscillating magnetic fields.
+
+01:01:15.140 --> 01:01:19.270
+So you have a big coil
+outside the fish on this side,
+
+01:01:19.270 --> 01:01:22.840
+another coil on this side, a
+coil on the top and bottom,
+
+01:01:22.840 --> 01:01:25.450
+and a coil on front and back.
+
+01:01:25.450 --> 01:01:30.130
+And now you run AC current
+through those coils.
+
+01:01:30.130 --> 01:01:32.800
+And now by measuring how
+much voltage fluctuation
+
+01:01:32.800 --> 01:01:34.510
+you get in this
+coil, you can tell
+
+01:01:34.510 --> 01:01:36.520
+what the orientation
+of that coil is.
+
+01:01:36.520 --> 01:01:38.000
+Does that makes sense?
+
+01:01:38.000 --> 01:01:39.850
+So now you can
+read that out here
+
+01:01:39.850 --> 01:01:42.235
+and get a very accurate
+measurement of eye position.
+
+01:01:45.120 --> 01:01:49.150
+And so now when the
+fish makes a saccade,
+
+01:01:49.150 --> 01:01:53.250
+you can read out which
+direction the saccade was.
+
+01:01:53.250 --> 01:01:56.140
+And immediately
+after the saccade,
+
+01:01:56.140 --> 01:02:04.440
+you can make this spot,
+so there's a like a disco
+
+01:02:04.440 --> 01:02:08.190
+ball up there that's on a
+motor that produces spots
+
+01:02:08.190 --> 01:02:11.430
+on the inside of
+the planetarium.
+
+01:02:11.430 --> 01:02:14.670
+Notice the fish makes a
+saccade in this direction.
+
+01:02:18.950 --> 01:02:24.110
+What you do is you make
+the spots drift back,
+
+01:02:24.110 --> 01:02:30.460
+drift in the direction as though
+the eyes were sliding back,
+
+01:02:30.460 --> 01:02:33.580
+as though the
+integrator were leaky.
+
+01:02:33.580 --> 01:02:35.450
+Does that make sense?
+
+01:02:35.450 --> 01:02:39.250
+So you can fool the
+fish's ocular motor system
+
+01:02:39.250 --> 01:02:43.910
+into thinking that its
+integrator is leaky.
+
+01:02:43.910 --> 01:02:47.170
+And what do you think happens?
+
+01:02:47.170 --> 01:02:50.230
+After about 10 minutes
+of that, you then
+
+01:02:50.230 --> 01:02:52.390
+turn all the lights off.
+
+01:02:52.390 --> 01:02:54.460
+And now the fish's
+integrator is unstable.
+
+01:02:57.228 --> 01:02:58.520
+So here's what that looks like.
+
+01:02:58.520 --> 01:03:00.700
+There's the spots on the inside.
+
+01:03:00.700 --> 01:03:03.020
+There's the disco ball.
+
+01:03:03.020 --> 01:03:06.680
+That's a overview picture
+showing the search coils
+
+01:03:06.680 --> 01:03:10.370
+for the eye position
+measurement system.
+
+01:03:13.270 --> 01:03:14.310
+And here's the control.
+
+01:03:14.310 --> 01:03:16.770
+That's what the fish--
+
+01:03:16.770 --> 01:03:19.690
+the eye position looks
+like as a function of time.
+
+01:03:19.690 --> 01:03:22.830
+So you have saccade,
+fixation, saccade, fixation.
+
+01:03:22.830 --> 01:03:26.280
+That right there, anybody
+know what that is?
+
+01:03:26.280 --> 01:03:28.062
+That's the fish blinking.
+
+01:03:28.062 --> 01:03:28.720
+So it blinks.
+
+01:03:32.000 --> 01:03:35.100
+Give feedback-- OK, here
+they did it the other way.
+
+01:03:35.100 --> 01:03:39.420
+So they give their feedback
+as if the network is unstable,
+
+01:03:39.420 --> 01:03:41.970
+and you can make
+the network leaky.
+
+01:03:44.890 --> 01:03:49.190
+If you give feedback as
+if the network is leaky,
+
+01:03:49.190 --> 01:03:51.820
+so it makes a
+saccade, and now you
+
+01:03:51.820 --> 01:03:58.890
+drift the spots in the direction
+as if the eye were sliding back
+
+01:03:58.890 --> 01:04:02.410
+to neutral position, and now you
+can make the network unstable.
+
+01:04:02.410 --> 01:04:04.410
+So it makes a
+saccade, and the eyes
+
+01:04:04.410 --> 01:04:09.090
+continue to move in the
+direction of the saccade.
+
+01:04:09.090 --> 01:04:11.240
+Saccade, and it runs away.
+
+01:04:15.200 --> 01:04:17.740
+Any questions about that?
+
+01:04:17.740 --> 01:04:21.820
+So that learning
+circuit, that circuit
+
+01:04:21.820 --> 01:04:27.970
+that implements that change
+in the synaptic weights
+
+01:04:27.970 --> 01:04:32.140
+of the integrator
+circuit, actually involves
+
+01:04:32.140 --> 01:04:32.890
+the cerebellum.
+
+01:04:32.890 --> 01:04:34.900
+There's a whole
+cerebellar circuit
+
+01:04:34.900 --> 01:04:37.480
+that's involved in
+learning various parameters
+
+01:04:37.480 --> 01:04:41.940
+of the ocular motor
+control system
+
+01:04:41.940 --> 01:04:45.460
+that produces these
+plastic changes.
+
+01:04:45.460 --> 01:04:50.320
+OK, so that's-- are
+there any questions?
+
+01:04:50.320 --> 01:04:54.030
+Because that's it.
+
+01:04:54.030 --> 01:04:55.870
+So I'll give you
+a little summary.
+
+01:04:55.870 --> 01:04:58.910
+So the goldfishes do integrals.
+
+01:04:58.910 --> 01:05:01.810
+There's an integrator
+network in the brain
+
+01:05:01.810 --> 01:05:06.370
+that takes burst inputs
+that drive saccades.
+
+01:05:06.370 --> 01:05:10.840
+And the integrator integrates
+those bursts and produces
+
+01:05:10.840 --> 01:05:14.140
+persistent changes in the
+activity of these integrator
+
+01:05:14.140 --> 01:05:18.820
+neurons that then drive the
+eyes to different positions
+
+01:05:18.820 --> 01:05:21.750
+and maintain that eye position.
+
+01:05:21.750 --> 01:05:24.020
+So we've described a
+neural mechanism, which
+
+01:05:24.020 --> 01:05:27.260
+is this recurrent network,
+a recurrent network
+
+01:05:27.260 --> 01:05:34.070
+has one eigenvalue that's 1 that
+produces an integrating mode,
+
+01:05:34.070 --> 01:05:38.300
+and all the other
+eigenvalues are close to--
+
+01:05:38.300 --> 01:05:42.280
+are less than 1 or negative.
+
+01:05:42.280 --> 01:05:44.890
+The model is not
+very robust if you
+
+01:05:44.890 --> 01:05:48.970
+have to somehow hand-tune
+all of those [INAUDIBLE]
+
+01:05:48.970 --> 01:05:50.710
+to get a lambda of 1.
+
+01:05:50.710 --> 01:05:55.690
+But there is a mechanism
+that uses retinal slip
+
+01:05:55.690 --> 01:05:59.890
+to tell whether that eigenvalue
+is set correctly in the brain
+
+01:05:59.890 --> 01:06:04.570
+and feeds back to adjust
+that eigenvalue to produce
+
+01:06:04.570 --> 01:06:10.180
+the upper lambda, the proper
+eigenvalue in that circuit
+
+01:06:10.180 --> 01:06:15.960
+so that it functions
+as an integrator
+
+01:06:15.960 --> 01:06:19.990
+and using visual feedback.
+
+01:06:19.990 --> 01:06:22.180
+And I just want
+to mention again,
+
+01:06:22.180 --> 01:06:24.460
+so I actually got
+most of these slides
+
+01:06:24.460 --> 01:06:29.140
+from Mark Goldman
+when he and I actually
+
+01:06:29.140 --> 01:06:31.388
+used to teach an early
+version of this course.
+
+01:06:31.388 --> 01:06:33.430
+We used to give lectures
+in each other's courses,
+
+01:06:33.430 --> 01:06:34.890
+and this was his lecture.
+
+01:06:34.890 --> 01:06:37.480
+He later moved to--
+he was at Wellesley.
+
+01:06:37.480 --> 01:06:40.060
+So we would go back and forth
+and give these lectures.
+
+01:06:40.060 --> 01:06:41.960
+But he moved to Davis.
+
+01:06:41.960 --> 01:06:47.080
+So now I'm giving
+his lecture myself.
+
+01:06:47.080 --> 01:06:51.070
+And the theoretical work
+was done by Sebastian Seung
+
+01:06:51.070 --> 01:06:52.870
+and Mark Goldman.
+
+01:06:52.870 --> 01:06:55.810
+The experimental work was
+done in David Tank's lab
+
+01:06:55.810 --> 01:06:58.610
+in collaboration with
+Bob Baker at NYU.
+
+01:06:58.610 --> 01:07:02.800
+OK, and so next time, we're
+going to-- so today we talked
+
+01:07:02.800 --> 01:07:09.010
+about short-term memory using
+neural networks as integrators
+
+01:07:09.010 --> 01:07:12.850
+to accumulate information
+and to perform--
+
+01:07:12.850 --> 01:07:16.600
+to generate line attractors that
+can produce a short-term memory
+
+01:07:16.600 --> 01:07:20.260
+of continuously graded
+variables like eye position.
+
+01:07:20.260 --> 01:07:23.260
+Next time, we're going to talk
+about using recurrent networks
+
+01:07:23.260 --> 01:07:27.030
+that have eigenvalues
+greater than 1
+
+01:07:27.030 --> 01:07:30.800
+as a way of storing
+short-term discrete memories.
+
+01:07:30.800 --> 01:07:34.800
+And those kinds of networks
+are called Hopfield networks,
+
+01:07:34.800 --> 01:07:38.040
+and that's what we're going
+to talk about next time.
+
+01:07:38.040 --> 01:07:40.130
+OK, thank you.

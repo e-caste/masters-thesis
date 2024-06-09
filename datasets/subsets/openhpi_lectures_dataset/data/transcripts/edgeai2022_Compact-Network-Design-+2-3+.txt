@@ -1,0 +1,567 @@
+WEBVTT
+
+1
+00:00:00.840 --> 00:00:09.560 
+Hello and welcome! In this video, we will continue exploring the
+compact network design, especially Google’s mobileNet series.
+
+2
+00:00:12.509 --> 00:00:22.160 
+In 2017, Google's MobilNet V1 opened the door to
+compact deep network designed for mobile devices.
+
+3
+00:00:23.039 --> 00:00:32.859 
+The most significant contribution of this work is to show
+a well-designed compact model that can offer good accuracy
+
+4
+00:00:32.939 --> 00:00:42.149 
+on a variety of different vision tasks and greatly reduces
+the computational complexity compared with traditional deep models
+
+5
+00:00:42.590 --> 00:00:43.789 
+such as ResNet.
+
+6
+00:00:44.539 --> 00:00:53.149 
+It makes people believe that the deep learning model, which has always
+been known for its extremely high computational complexity,
+
+7
+00:00:53.640 --> 00:00:57.500 
+It can also be run on edge devices such as mobile phones.
+
+8
+00:00:58.439 --> 00:01:01.729 
+MobileNet V1 has two essential features.
+
+9
+00:01:01.740 --> 00:01:11.879 
+First, it applies depthwise separable convolution instead of
+standard conv layer. It can significantly reduce the computation
+
+10
+00:01:11.879 --> 00:01:12.750 
+complexity.
+
+11
+00:01:13.540 --> 00:01:18.549 
+Second, it introduced a unified scaling mechanism for the network.
+
+12
+00:01:19.540 --> 00:01:29.689 
+So, the number of filter channels in a specific layer or
+the feature map resolution of each layer of the entire network
+
+13
+00:01:29.700 --> 00:01:31.750 
+can be uniformly scaled.
+
+14
+00:01:32.239 --> 00:01:34.689 
+It brings excellent flexibility.
+
+15
+00:01:35.140 --> 00:01:44.670 
+Therefore, MobileNet is very popular in engineering applications
+and has gradually become a commonly used model scaling
+
+16
+00:01:44.670 --> 00:01:45.250 
+method.
+
+17
+00:01:48.840 --> 00:01:53.459 
+MobileNet V1 uses ReLU6 activation method.
+
+18
+00:01:53.939 --> 00:02:01.650 
+ReLU6 is almost ReLU, but the maximum output is limited to 6 by
+clipping the output value.
+
+19
+00:02:02.340 --> 00:02:12.599 
+This is to have a good numerical resolution even when we want to
+use a lower precision like float16 instead of a standard
+
+20
+00:02:12.599 --> 00:02:15.360 
+float32 on the mobile devices.
+
+21
+00:02:15.939 --> 00:02:20.039 
+If we use ReLU and the activation value is very large
+
+22
+00:02:20.210 --> 00:02:23.780 
+and distributed in a large range,
+
+23
+00:02:23.789 --> 00:02:32.460 
+once converting to float16, it cannot accurately describe
+such a large range of value
+
+24
+00:02:32.939 --> 00:02:35.849 
+and will bring accuracy loss.
+
+25
+00:02:37.240 --> 00:02:43.750 
+So thr paper mentioned that It is important to put very
+little or no weight decay
+
+26
+00:02:44.340 --> 00:02:49.949 
+He used the l2 regularizer on the depth wise depth wise filters.
+
+27
+00:02:50.340 --> 00:02:59.330 
+This table shows the comparison of computation complexity and
+the number of parameters between Conv-Mobilenet which uses standard
+
+28
+00:02:59.330 --> 00:03:06.050 
+convolution and MobileNet using depthwise convolution.
+
+29
+00:03:06.539 --> 00:03:16.250 
+So we can see that  mobileNet can achieve approximately
+9x less computation and 7x less parameters.
+
+30
+00:03:17.939 --> 00:03:26.099 
+On the other hand, this design puts nearly all the
+computation into the dense 1x1 convolutions. It accounts for
+
+31
+00:03:26.099 --> 00:03:27.960 
+around 95%.
+
+32
+00:03:28.939 --> 00:03:37.580 
+However, 1x1 conv is computationally more efficient, since it
+doesn’t need im2col process which required
+
+33
+00:03:37.580 --> 00:03:42.949 
+by larger conv kernels to adapt to the GEMM method.
+
+34
+00:03:46.639 --> 00:03:54.949 
+We know that the current implementations of ConvNet or fully
+connected layers are still mainly relying on the GEMM or General
+
+35
+00:03:54.960 --> 00:03:58.240 
+Matrix Multiplication.
+
+36
+00:03:58.240 --> 00:03:59.150 
+For those viewers
+
+37
+00:03:59.159 --> 00:04:01.590 
+who are not familiar with how GEMM works,
+
+38
+00:04:01.610 --> 00:04:04.360 
+I will briefly introduce it here.
+
+39
+00:04:05.939 --> 00:04:11.759 
+In simple terms, we implement the dot product by using
+the highly optimized GEMM kernel.
+
+40
+00:04:12.340 --> 00:04:22.560 
+It calculates the output matrix for the two input matrices. The actual
+operation of image to column or in short Im2Col
+
+41
+00:04:22.569 --> 00:04:26.259 
+is to convert the input image into a matrix.
+
+42
+00:04:26.949 --> 00:04:30.610 
+At first convert the input image into a set of patches.
+
+43
+00:04:31.839 --> 00:04:38.949 
+After that, the pixels of each patch will
+be stored in a matrix according to the reading order.
+
+44
+00:04:39.649 --> 00:04:49.860 
+The width of the matrix is equal to the number of pixels in a
+single patch, and the height is equal to the number of patches.
+
+45
+00:04:50.240 --> 00:04:50.970 
+Similarly,
+
+46
+00:04:50.980 --> 00:04:56.709 
+all the convolution filters will also be converted to a filter matrices.
+
+47
+00:04:56.720 --> 00:05:03.949 
+The height is the pixel numbers of a single filter and the
+width equals the number of filter.
+
+48
+00:05:04.339 --> 00:05:13.269 
+Finally, for dot product, we just apply the general matrix multiplication
+to obtain the output matrix, which will be converted back
+
+49
+00:05:13.269 --> 00:05:18.160 
+to feature map form using col2Im operation.
+
+50
+00:05:21.939 --> 00:05:31.500 
+MobileNet quickly becomes the most popular mobile
+backbone design for a large variety of computer vision applications.
+
+51
+00:05:31.500 --> 00:05:39.990 
+Its contribution continued Google’s leading position in
+deep learning architecture design. A very interesting point from
+
+52
+00:05:39.990 --> 00:05:50.550 
+the paper in the left table shows the comparison based on
+a mobileNet variantion with width factor 0.5 and resolution
+
+53
+00:05:50.550 --> 00:05:52.069 
+of 160.
+
+54
+00:05:52.079 --> 00:05:58.459 
+It has a higher accuracy than SqueezeNet and Alexnet.
+We learned SqueezeNet.
+
+55
+00:05:58.459 --> 00:06:05.360 
+in the previous video, it achieves a good compression rate on model size.
+
+56
+00:06:05.370 --> 00:06:09.850 
+I have argued that it ignored the computation complexity.
+
+57
+00:06:10.839 --> 00:06:19.149 
+Now, we can see that the squeezeNet actually has much
+higher Mult-Adds than AlexNet.
+
+58
+00:06:19.639 --> 00:06:28.959 
+So if it works on a computation bounded hardware device, it will
+be slower than alexnet, although it has much smaller model
+
+59
+00:06:28.959 --> 00:06:39.160 
+size, even though the model size is also very important for the
+memory consumption here.
+
+60
+00:06:39.160 --> 00:06:48.930 
+Obviously a MobileNet has both smaller model size and also much
+fewer computation operations from this point of view.
+
+61
+00:06:48.939 --> 00:06:54.060 
+It has a better practical value  compared to SqueezeNet.
+
+62
+00:06:54.740 --> 00:06:58.360 
+The table on the right side shows the body structure:
+
+63
+00:06:59.040 --> 00:07:07.769 
+So just simply stacking depthwise separable convolutions, gradually
+increase the width, and reduce the feature map’s resolution,
+
+64
+00:07:07.779 --> 00:07:09.480 
+which is similar to VGG
+
+65
+00:07:09.480 --> 00:07:09.800 
+VGG
+
+66
+00:07:09.800 --> 00:07:16.060 
+style models and the first MobileNet doesn’t have shortcut
+connections.
+
+67
+00:07:19.939 --> 00:07:28.759 
+So the second version of MobileNet tried to answer the question:
+How to efficiently use residual block in MobileNet architecture?
+
+68
+00:07:29.639 --> 00:07:36.360 
+The number of input channels limits the features
+extracted by the DWConv layer.
+
+69
+00:07:36.939 --> 00:07:46.750 
+If the standard residual block is used, which first "compress" and
+then convolution to extract the features,
+
+70
+00:07:47.350 --> 00:07:54.350 
+then the DWConv layer can extract too few features, which
+strongly affects the accuracy.
+
+71
+00:07:55.240 --> 00:08:05.709 
+Therefore, MobileNetV2 does the opposite,
+"expanding" at the beginning. And the expand
+
+72
+00:08:05.709 --> 00:08:15.649 
+factor used in the paper is 6. Then, use convolution on the
+extended intermediate feature maps, and finally
+
+73
+00:08:15.660 --> 00:08:24.350 
+compress back to the input dimensions using a
+pointwise 1x1 convolution. Since it also uses shortcut
+
+74
+00:08:24.350 --> 00:08:34.830 
+connections, thus, its basic block is called Inverted residual
+bottleneck block. When using an inverted bottleneck, a problem
+
+75
+00:08:34.830 --> 00:08:42.960 
+will be encountered after "compression", that is, Relu will
+destroy some features.
+
+76
+00:08:43.740 --> 00:08:46.259 
+Why does Relu here destroy features?
+
+77
+00:08:46.370 --> 00:08:51.639 
+This has to start from the nature of Relu function.
+
+78
+00:08:51.639 --> 00:08:53.090 
+For negative input,
+
+79
+00:08:53.169 --> 00:08:55.659 
+the output of Relu is all zero;
+
+80
+00:08:56.240 --> 00:08:59.070 
+After the second point-wise convolution layer,
+
+81
+00:08:59.080 --> 00:09:08.110 
+the original features have already been "compressed", and then after Relu,
+features with negative values will be further set
+
+82
+00:09:08.110 --> 00:09:08.919 
+to zero,
+
+83
+00:09:08.929 --> 00:09:11.450 
+it causes further information loss.
+
+84
+00:09:13.740 --> 00:09:23.789 
+They also tried to explain this phenomenon using the following example.
+An Example of ReLU transformations of low-dimensional
+
+85
+00:09:23.799 --> 00:09:28.460 
+manifolds embedded in a higher dimensional space.
+
+86
+00:09:29.639 --> 00:09:40.450 
+In these examples the initial spiral is embedded into an
+ndimensional space using random matrix followed by a ReLU
+
+87
+00:09:40.460 --> 00:09:51.240 
+non linearity, and then projected back to the
+lower dimensional 2D space. In examples above n = 2, 3
+
+88
+00:09:51.240 --> 00:10:03.080 
+result in information loss where certain points of the manifold
+collapse into each other, while for n = 15 to 30 the transformation
+
+89
+00:10:03.090 --> 00:10:04.850 
+is highly non-convex.
+
+90
+00:10:05.840 --> 00:10:07.860 
+So let's look at the figure below,
+
+91
+00:10:07.870 --> 00:10:16.539 
+the authors also empirically proved that linear bottlenecks improve
+accuracy, supporting that non-linearity destroys the
+
+92
+00:10:16.539 --> 00:10:19.159 
+information in low-dimensional space.
+
+93
+00:10:20.740 --> 00:10:30.500 
+The table shows that mobilenetV2 outperforms its
+previous version by 1.4% accuracy
+
+94
+00:10:30.500 --> 00:10:37.399 
+gain on imagenet, while achieving 33% speedup on inference using
+mobile phone
+
+95
+00:10:37.409 --> 00:10:42.639 
+CPU's.
+
+96
+00:10:42.639 --> 00:10:53.580 
+MobileNet V3 is still a competitive mobile deep model so far. It has
+reached a certain degree of extreme in the optimization of computational
+
+97
+00:10:53.580 --> 00:10:55.450 
+complexity and precision.
+
+98
+00:10:56.240 --> 00:11:05.659 
+The core idea is the Basic block design by experts
+incorporated searching for the whole architecture.
+
+99
+00:11:06.139 --> 00:11:16.659 
+It adds SE block after depthwise layers, utilizes hardswish
+activation function incorporated with ReLU function,
+
+100
+00:11:17.440 --> 00:11:21.259 
+and optimizes the efficiency of its implementation.
+
+101
+00:11:21.269 --> 00:11:33.649 
+We can see that MobileNet V3 has only 219 Madds
+but achieves 75.2% top-1 accuracy on imagenet, which
+
+102
+00:11:33.649 --> 00:11:34.559 
+is amazing.
+
+103
+00:11:34.940 --> 00:11:38.149 
+This result can rarely be outperformed
+
+104
+00:11:38.149 --> 00:11:42.639 
+even now.
+
+105
+00:11:42.639 --> 00:11:53.049 
+In this work, a nonlinearity called swish was introduced
+that when used as a drop-in replacement for ReLU,
+
+106
+00:11:53.059 --> 00:11:57.159 
+it significantly improves the accuracy of the neural network.
+
+107
+00:11:58.240 --> 00:12:05.549 
+While this nonlinearity improves accuracy, it comes
+with non-zero cost in embedded environments
+
+108
+00:12:05.559 --> 00:12:10.960 
+as the sigmoid function is much more expensive to compute
+on mobile devices
+
+109
+00:12:12.440 --> 00:12:17.879 
+They also replaced the sigmoid function with its
+piecewise linear hard analog.
+
+110
+00:12:17.889 --> 00:12:27.500 
+And in the experiment, the authors found that the hardversion of this
+function has almost no loss in accuracy, but got multiple
+
+111
+00:12:27.509 --> 00:12:30.860 
+advantages from the deployment perspective.
+
+112
+00:12:34.039 --> 00:12:43.840 
+The final architecture of MobileNet V3 was searched by using
+Netadapt method, which is originally proposed in MnasNet
+
+113
+00:12:43.840 --> 00:12:47.710 
+paper, which is also another work from the google researchers.
+
+114
+00:12:47.720 --> 00:12:57.840 
+Therefore, from the figure on the right, it is not difficult to
+see that many structural choices are not based on any explainable
+
+115
+00:12:57.840 --> 00:12:58.350 
+rule.
+
+116
+00:12:58.840 --> 00:13:07.360 
+The progression of MibileNetV3 development showing a
+classical development pipeline of a machine learning model.
+
+117
+00:13:07.940 --> 00:13:08.960 
+Let's take a look.
+
+118
+00:13:09.639 --> 00:13:13.960 
+First boost accuracy to fulfil the usability requirement,
+
+119
+00:13:15.019 --> 00:13:23.629 
+then think about how to reduce the computational complexity, which
+makes the technology really applicable with the insufficient
+
+120
+00:13:23.629 --> 00:13:24.409 
+efficiency.
+
+121
+00:13:24.419 --> 00:13:30.700 
+It is difficult to bring technology to applications no matter
+how high accuracy
+
+122
+00:13:30.710 --> 00:13:31.789 
+it has.
+
+123
+00:13:31.799 --> 00:13:40.909 
+Therefore, the development of models is always like this, and
+the improvement of accuracy brings people huge expectations.
+
+124
+00:13:40.919 --> 00:13:48.759 
+And still, the real largescale entry into the application requires
+the same substantial improvement of efficiency.
+
+125
+00:13:52.940 --> 00:13:54.350 
+Thank you for watching the video.

@@ -1,0 +1,475 @@
+WEBVTT
+
+1
+00:00:00.440 --> 00:00:01.659 
+Hello and welcome!
+
+2
+00:00:02.339 --> 00:00:06.500 
+This video will present some advanced techniques in knowledge
+
+3
+00:00:06.500 --> 00:00:07.860 
+distillation method.
+
+4
+00:00:10.339 --> 00:00:19.850 
+This slide show	more details of	a standard KD training. Basically we can
+use	both distribution output of	the	teacher	models
+
+5
+00:00:19.850 --> 00:00:24.960 
+distribution output as soft labels and the dataset with hard levels.
+
+6
+00:00:25.539 --> 00:00:26.969 
+As mentioned before,
+
+7
+00:00:26.980 --> 00:00:29.940 
+We are using a temperature parameter tau
+
+8
+00:00:29.949 --> 00:00:35.049 
+in the training, for the hard prediction we just let tau=1,
+
+9
+00:00:35.490 --> 00:00:39.060 
+then the function becomes the standard softmax prediction.
+
+10
+00:00:39.939 --> 00:00:41.149 
+Why does adding the
+
+11
+00:00:41.149 --> 00:00:49.380 
+hard prediction loss term help? Because the teacher
+model also has a specific error rate,
+
+12
+00:00:50.140 --> 00:00:59.159 
+the ground truth can effectively reduce the possibility
+of errors being propagated to the student model.
+
+13
+00:00:59.740 --> 00:01:09.879 
+For example, although the teacher is more knowledgeable than
+the student, he still can make mistakes. If the student
+
+14
+00:01:09.879 --> 00:01:19.969 
+can also refer to the regular answer simultaneously, he may get
+better accuracy. In the function alpha and beta are weighting
+
+15
+00:01:20.019 --> 00:01:23.150 
+factors for adjusting the loss of terms.
+
+16
+00:01:23.640 --> 00:01:32.549 
+Experiments have found that the best results can be obtained when loft labels
+account for a relatively large proportion.
+
+17
+00:01:32.549 --> 00:01:34.760 
+This is an empirical conclusion.
+
+18
+00:01:35.439 --> 00:01:36.459 
+Of course,
+
+19
+00:01:36.840 --> 00:01:43.159 
+whether the hard label is effective or not
+needs to be verified in your specific use case.
+
+20
+00:01:43.739 --> 00:01:53.840 
+Generally speaking, when T&lt;1, the probability distribution is more "steeper"
+than the original; when T&gt;1,
+
+21
+00:01:53.840 --> 00:01:57.459 
+the probability distribution is more "smooth”.
+
+22
+00:01:58.140 --> 00:02:06.959 
+When T tends to infinity, the softmax output is uniform distributed. Regardless
+of the temperature value,
+
+23
+00:02:07.439 --> 00:02:17.870 
+Tthe soft target tends to ignore the information carried with a relatively
+small probability. So, how to set an appropriate
+
+24
+00:02:17.879 --> 00:02:18.449 
+tau?
+
+25
+00:02:19.639 --> 00:02:28.229 
+When the temperature is low, there will be less attention to negative labels,
+especially those significantly lower than the average
+
+26
+00:02:28.229 --> 00:02:28.659 
+value.
+
+27
+00:02:29.539 --> 00:02:38.530 
+When the temperature is high, the value of negative labels will increase
+relatively, and the student model will more focus
+
+28
+00:02:38.530 --> 00:02:50.139 
+on negative labels, which contain specific information that significantly
+higher than the average magnitude. In general,
+
+29
+00:02:50.150 --> 00:02:52.939 
+the lower values are less reliable.
+
+30
+00:02:52.949 --> 00:03:01.860 
+Therefore, the choice of temperature is more empirical, essentially
+choosing between the following three aspects
+
+31
+00:03:02.740 --> 00:03:10.060 
+First, if you want to learn from more informative negative labels,
+then select a higher tau
+
+32
+00:03:11.740 --> 00:03:12.539 
+Second.
+
+33
+00:03:12.550 --> 00:03:21.139 
+if you want to avoid being affected by noise in negative labels, then
+select a lower tau
+
+34
+00:03:21.139 --> 00:03:24.050 
+and use a lower tau for a smaller models,
+
+35
+00:03:24.240 --> 00:03:34.659 
+because the model with fewer parameters cannot capture a lot of information.
+Their performance could be affected
+
+36
+00:03:34.669 --> 00:03:40.139 
+by the negative label information.
+
+37
+00:03:40.139 --> 00:03:42.719 
+Regarding the commonly used knowledge types,
+
+38
+00:03:43.139 --> 00:03:47.939 
+there are prediction and feature based knowledge.
+
+39
+00:03:47.939 --> 00:03:54.449 
+Prediction-based knowledge usually refers to the response of the output
+layer of the teacher model.
+
+40
+00:03:55.539 --> 00:04:01.150 
+The main idea is to directly mimic the final
+prediction of the teacher model.
+
+41
+00:04:01.639 --> 00:04:09.560 
+In our previous example, we use the predicted class distribution
+from the teacher to train the small student model.
+
+42
+00:04:10.539 --> 00:04:18.959 
+Another possible way is to use the intermediate features of the teacher
+model as labels to train the student model.
+
+43
+00:04:19.439 --> 00:04:29.779 
+Then, we can linearly combine them as the final objective function for
+the training. Where the lamda are the weighting factors.
+
+44
+00:04:29.790 --> 00:04:33.459 
+To align the feature maps between teacher and student,
+
+45
+00:04:34.040 --> 00:04:36.910 
+we can use a transformation function g(m)
+
+46
+00:04:37.250 --> 00:04:48.029 
+to unify their dimensions. Because the teacher usually has a
+large dimension than the student at the similar level of
+
+47
+00:04:48.040 --> 00:04:48.649 
+the model.
+
+48
+00:04:49.240 --> 00:04:56.160 
+Then, we can use loss function like MSE to compute the loss.
+
+49
+00:04:59.339 --> 00:05:04.360 
+Here, we introduce a case study: TinyBERT
+
+50
+00:05:04.740 --> 00:05:08.360 
+which is a compact BERT model design also using KD.
+
+51
+00:05:08.360 --> 00:05:18.949 
+However, it beyond DistilBERT by using both
+prediction and feature level KD. For the feature
+
+52
+00:05:18.949 --> 00:05:22.180 
+level KD it calculates the MSE
+
+53
+00:05:22.889 --> 00:05:27.649 
+loss for embedding layers, hidden layers and attention heads.
+
+54
+00:05:28.439 --> 00:05:38.189 
+From the ablation study we can see that, without
+the embedding or prediction loss
+
+55
+00:05:38.189 --> 00:05:46.459 
+part, the reduction in accuracy is relatively small. But without the KD on
+both hidden layers and attention heads,
+
+56
+00:05:46.579 --> 00:05:50.160 
+there is huge drop of accuracy for TinyBERT.
+
+57
+00:05:51.540 --> 00:06:03.060 
+So if it compares to the previous models, tinyBERT achieves a further 78%
+reduction in parameters and 83% reduction in CPU inference
+
+58
+00:06:03.060 --> 00:06:08.709 
+time compared to DistilBERT, while maintain the same accuracy.
+
+59
+00:06:12.139 --> 00:06:18.160 
+Offline distillation is as the example we presented in this lecture.
+
+60
+00:06:18.839 --> 00:06:27.149 
+The whole Process is like: first the large teacher model is first trained on a
+set of training samples before distillation;
+
+61
+00:06:27.540 --> 00:06:35.550 
+and knowledge extracted from teacher model are then used to guide the
+training of the student model during distillation.
+
+62
+00:06:37.839 --> 00:06:39.360 
+Online distillation:
+
+63
+00:06:39.839 --> 00:06:46.259 
+Teacher training using both hard labels and knowledge from student:
+
+64
+00:06:46.639 --> 00:06:51.730 
+The teacher model uses part of the knowledge of the student
+model during training.
+
+65
+00:06:51.740 --> 00:06:53.949 
+So it also learns from the student.
+
+66
+00:06:53.959 --> 00:07:02.980 
+And this knowledge also provides richer information about negative samples.
+This information helps to improve the teacher
+
+67
+00:07:02.980 --> 00:07:05.259 
+models generalization ability.
+
+68
+00:07:06.040 --> 00:07:12.240 
+This is similar to the aforementioned student model using
+hard labels and soft labels for training.
+
+69
+00:07:12.250 --> 00:07:22.610 
+However, it should be noted here that the knowledge of the student
+model brings more noise, and its proportion needs
+
+70
+00:07:22.610 --> 00:07:24.360 
+to be carefully weighted.
+
+71
+00:07:25.740 --> 00:07:34.959 
+Mutual KD: trains two identical models using
+mutual distillations, the final performance
+
+72
+00:07:34.959 --> 00:07:38.050 
+should be higher than the individually trained model.
+
+73
+00:07:38.839 --> 00:07:40.459 
+And why does it work?
+
+74
+00:07:41.339 --> 00:07:47.759 
+Two identical network architectures can be regarded
+as two identical containers.
+
+75
+00:07:48.139 --> 00:07:57.439 
+First of all, their information capacity is the same.
+Then, the same network structure can be viewed as the same prior
+
+76
+00:07:57.439 --> 00:08:01.350 
+information. But they have different initializations,
+
+77
+00:08:01.939 --> 00:08:11.939 
+so, the characteristics learned by the network have a strong correlation,
+but they are specific. Therefore, using each other's
+
+78
+00:08:11.939 --> 00:08:21.720 
+knowledge to help one's learning can effectively provide generalization
+ability. Because of the same structure-prior, it will
+
+79
+00:08:21.720 --> 00:08:25.149 
+not bring too much noise to the peer model.
+
+80
+00:08:28.529 --> 00:08:33.149 
+Self-distillation is especially effective in the label noise setting.
+
+81
+00:08:33.799 --> 00:08:42.409 
+That means there are certain amount of the
+data samples with wrong label. Different teacher architectures can provide help
+
+82
+00:08:42.409 --> 00:08:44.960 
+for knowledge for student network.
+
+83
+00:08:45.340 --> 00:08:50.049 
+The multiple teacher networks can be individually and integrally
+
+84
+00:08:50.100 --> 00:08:58.659 
+used for distillation during the period of training a student network.
+In a typical teacher-student framework,
+
+85
+00:08:59.139 --> 00:09:04.450 
+the teacher usually has a large model or an ensemble of large models.
+
+86
+00:09:05.139 --> 00:09:15.379 
+The simplest way to transfer its knowledge from multiple teachers is to
+use the average response from our teachers as the
+
+87
+00:09:15.379 --> 00:09:16.559 
+supervision signal.
+
+88
+00:09:17.139 --> 00:09:22.509 
+Another possible way is to select the teacher's response during
+the training randomly.
+
+89
+00:09:23.139 --> 00:09:27.549 
+Either way we could achieve a more robust student model.
+
+90
+00:09:30.039 --> 00:09:38.080 
+We know that the student model could be smaller,
+but how to design it specifically?
+
+91
+00:09:38.080 --> 00:09:42.259 
+Here we just introduce three simple and common
+practical proposals:
+
+92
+00:09:44.139 --> 00:09:52.870 
+A easy and safe choice would be the simple version of the teacher
+network with fewer layers and fewer channels in each layer,
+
+93
+00:09:52.870 --> 00:09:53.649 
+for example,
+
+94
+00:09:54.039 --> 00:10:01.100 
+DistilBERT, TinyBERT.
+
+95
+00:10:01.409 --> 00:10:04.649 
+We mentioned it in the previous video.
+
+96
+00:10:05.639 --> 00:10:14.200 
+Another way is to create a quantized version of the teacher network in
+which the structure of the network is preserved.
+
+97
+00:10:14.210 --> 00:10:19.769 
+So, for the feature level KD we
+don’t need any dimension transformation step.
+
+98
+00:10:21.940 --> 00:10:30.549 
+The last one is to design a compact network with
+efficient basic operations, for
+
+99
+00:10:30.549 --> 00:10:33.360 
+example, MobileNet, SchuffleNet.
+
+100
+00:10:33.740 --> 00:10:36.090 
+For this setting,
+
+101
+00:10:36.100 --> 00:10:37.279 
+the feature level KD
+
+102
+00:10:37.649 --> 00:10:47.840 
+is more complicated to apply. But we have more freedom for the
+model structure design.
+
+103
+00:10:47.840 --> 00:10:55.850 
+In the practical session of this week, we will try to train an image
+classification model using knowledge distillation.
+
+104
+00:10:56.509 --> 00:11:01.659 
+The time required for this task is approximately 3 to 6 hours.
+
+105
+00:11:02.039 --> 00:11:05.330 
+I hope you have fun and get great success.
+
+106
+00:11:07.940 --> 00:11:09.460 
+Thank you for watching the video.

@@ -1,0 +1,4313 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.490
+The following content is
+provided under a Creative
+
+00:00:02.490 --> 00:00:04.059
+Commons license.
+
+00:00:04.059 --> 00:00:06.360
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.360 --> 00:00:10.720
+continue to offer high quality
+educational resources for free.
+
+00:00:10.720 --> 00:00:13.350
+To make a donation or
+view additional materials
+
+00:00:13.350 --> 00:00:17.290
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.290 --> 00:00:18.294
+at ocw.mit.edu.
+
+00:00:25.723 --> 00:00:28.140
+PROFESSOR: So we're going to
+talk about routing protocols.
+
+00:00:28.140 --> 00:00:32.130
+And today we're going to talk
+about how routing protocols
+
+00:00:32.130 --> 00:00:33.422
+handle failures.
+
+00:00:33.422 --> 00:00:34.130
+So I'm going to--
+
+00:00:34.130 --> 00:00:37.770
+I want to bring everybody back
+onto the same page with respect
+
+00:00:37.770 --> 00:00:39.900
+to where we are in the story.
+
+00:00:39.900 --> 00:00:45.930
+So in terms of
+routing protocols,
+
+00:00:45.930 --> 00:00:58.290
+if you imagine a network
+topology like this, and let's
+
+00:00:58.290 --> 00:01:00.322
+say that links have costs
+associated with them.
+
+00:01:00.322 --> 00:01:02.280
+So I'm just going to make
+up some numbers here.
+
+00:01:11.040 --> 00:01:13.020
+We studied two classes
+of routing protocols.
+
+00:01:13.020 --> 00:01:17.040
+And we looked at these in
+the absence of any failures.
+
+00:01:17.040 --> 00:01:20.280
+The first is the distance vector
+protocol, or more generally,
+
+00:01:20.280 --> 00:01:24.330
+vector protocols where,
+in an advertisement sent
+
+00:01:24.330 --> 00:01:27.390
+from one node to
+another, each node sends
+
+00:01:27.390 --> 00:01:28.990
+a subset of its routing table.
+
+00:01:28.990 --> 00:01:32.550
+In other words, it sends two
+columns from its routing table.
+
+00:01:32.550 --> 00:01:34.560
+Recall that the routing
+table at every node
+
+00:01:34.560 --> 00:01:40.740
+contains a destination,
+a route, which
+
+00:01:40.740 --> 00:01:45.420
+is a link, the name of
+the link, and a cost.
+
+00:01:45.420 --> 00:01:47.790
+And in a distance
+vector protocol,
+
+00:01:47.790 --> 00:01:51.210
+you send these two columns.
+
+00:01:51.210 --> 00:01:54.270
+You send these tuples for all of
+the destinations that you know.
+
+00:01:54.270 --> 00:01:57.480
+And that's what's spread out
+to all of the other nodes.
+
+00:01:57.480 --> 00:02:01.380
+In contrast-- so this
+is distance vector.
+
+00:02:01.380 --> 00:02:05.610
+In contrast, in a
+link state protocol,
+
+00:02:05.610 --> 00:02:07.560
+what you're sending to
+all of the other nodes
+
+00:02:07.560 --> 00:02:10.710
+is information about all
+of the links that you have.
+
+00:02:10.710 --> 00:02:12.450
+And in particular,
+you send information
+
+00:02:12.450 --> 00:02:21.150
+about the neighbor
+in your topology
+
+00:02:21.150 --> 00:02:25.650
+together with the link
+cost to that neighbor,
+
+00:02:25.650 --> 00:02:30.180
+whereas here it's the cost of
+the route to the destination
+
+00:02:30.180 --> 00:02:30.780
+that you send.
+
+00:02:34.250 --> 00:02:36.980
+In the distance vector protocol,
+the computation of the routes
+
+00:02:36.980 --> 00:02:37.890
+is distributed.
+
+00:02:37.890 --> 00:02:40.640
+So every node kind of
+computes and updates
+
+00:02:40.640 --> 00:02:44.810
+its routing table using the
+Bellman-Ford update step, which
+
+00:02:44.810 --> 00:02:47.420
+essentially updates the
+route to a destination
+
+00:02:47.420 --> 00:02:49.730
+if you find a better
+route to the destination.
+
+00:02:49.730 --> 00:02:52.450
+Or if you find that the route
+to the destination has--
+
+00:02:52.450 --> 00:02:54.530
+that you currently have
+"has a changed cost,"
+
+00:02:54.530 --> 00:02:57.340
+in which case, you update
+your routing table.
+
+00:02:57.340 --> 00:03:00.253
+In a link state protocol, the
+computation is not distributed.
+
+00:03:00.253 --> 00:03:01.670
+What is distributed
+is the process
+
+00:03:01.670 --> 00:03:06.410
+of flooding this information
+of the local links.
+
+00:03:06.410 --> 00:03:08.840
+That's why it's called
+a link state protocol.
+
+00:03:08.840 --> 00:03:11.170
+And the computation of
+the routes themselves
+
+00:03:11.170 --> 00:03:11.840
+are centralized.
+
+00:03:11.840 --> 00:03:15.020
+Each node just runs a
+shortest path computation--
+
+00:03:15.020 --> 00:03:18.530
+for example, Dijkstra's
+shortest path computation.
+
+00:03:18.530 --> 00:03:21.290
+And in a link state protocol,
+as long as all of the nodes run
+
+00:03:21.290 --> 00:03:23.730
+exactly the same
+computation-- in other words,
+
+00:03:23.730 --> 00:03:27.440
+they all try to minimize or
+optimize the same metric--
+
+00:03:27.440 --> 00:03:29.420
+then you're guaranteed
+that all of the nodes
+
+00:03:29.420 --> 00:03:31.523
+end up computing
+the correct routes,
+
+00:03:31.523 --> 00:03:33.440
+and that when you send
+a packet from one node,
+
+00:03:33.440 --> 00:03:35.480
+it will reach the
+destination, assuming
+
+00:03:35.480 --> 00:03:37.820
+there's a path in the network.
+
+00:03:37.820 --> 00:03:39.747
+And in the problem set--
+
+00:03:39.747 --> 00:03:40.830
+maybe not in the problems.
+
+00:03:40.830 --> 00:03:42.620
+Certainly at the
+back of the chapter,
+
+00:03:42.620 --> 00:03:44.810
+there are problems
+on what happens
+
+00:03:44.810 --> 00:03:47.630
+if some nodes run one
+protocol and another node
+
+00:03:47.630 --> 00:03:48.630
+runs another protocol.
+
+00:03:48.630 --> 00:03:51.260
+For example, you might have--
+imagine a routing protocol
+
+00:03:51.260 --> 00:03:54.320
+where one of the nodes is doing
+minimum cost routes and another
+
+00:03:54.320 --> 00:03:56.000
+node is doing shortest paths--
+
+00:03:56.000 --> 00:03:58.280
+in terms of the number
+of hops, not costs.
+
+00:03:58.280 --> 00:04:00.530
+And if you have that, you
+might end up in a situation
+
+00:04:00.530 --> 00:04:04.243
+where, in fact, the routing
+doesn't work correctly.
+
+00:04:04.243 --> 00:04:05.660
+But assuming that
+all of the nodes
+
+00:04:05.660 --> 00:04:08.530
+are on the same optimization
+in a link state protocol,
+
+00:04:08.530 --> 00:04:10.340
+they'll all get
+the correct answer.
+
+00:04:10.340 --> 00:04:12.230
+And similarly, in a
+distance vector protocol,
+
+00:04:12.230 --> 00:04:14.210
+actually the update
+rule can do anything,
+
+00:04:14.210 --> 00:04:16.519
+as long as the nodes
+believe that this route--
+
+00:04:16.519 --> 00:04:19.339
+and they perform some sort of
+an update to the routing table
+
+00:04:19.339 --> 00:04:22.610
+entry consistent with the
+information that they hear,
+
+00:04:22.610 --> 00:04:24.640
+then the routing will work.
+
+00:04:24.640 --> 00:04:26.390
+Now, what happens when
+there are failures?
+
+00:04:26.390 --> 00:04:27.840
+And how does it work?
+
+00:04:27.840 --> 00:04:31.380
+So let's say that you run this
+protocol and this topology.
+
+00:04:31.380 --> 00:04:32.990
+And you give it enough time.
+
+00:04:32.990 --> 00:04:35.420
+Once you hear all of
+the advertisements
+
+00:04:35.420 --> 00:04:37.790
+and compute the routes
+of the different nodes,
+
+00:04:37.790 --> 00:04:42.110
+if you look at this
+node over here,
+
+00:04:42.110 --> 00:04:45.410
+C four destination D
+would have a route--
+
+00:04:45.410 --> 00:04:48.910
+let's call this link L0.
+
+00:04:48.910 --> 00:04:50.210
+It will have a route, L0.
+
+00:04:50.210 --> 00:04:53.270
+And the cost of that
+route would be three.
+
+00:04:53.270 --> 00:04:57.800
+And similarly at B here, once
+it converges you'd have--
+
+00:04:57.800 --> 00:05:00.920
+for destination D, let's
+imagine this link is called L0,
+
+00:05:00.920 --> 00:05:04.670
+as well, at node B.
+You might have L0
+
+00:05:04.670 --> 00:05:11.560
+and the cost would be four, and
+similarly at the other nodes.
+
+00:05:11.560 --> 00:05:14.810
+Now, let's say what happens
+is that some sort of a failure
+
+00:05:14.810 --> 00:05:15.620
+occurs.
+
+00:05:15.620 --> 00:05:17.480
+And failures could be one of--
+
+00:05:17.480 --> 00:05:21.950
+a variety of failures could
+occur that cause the routing
+
+00:05:21.950 --> 00:05:23.030
+to get screwed up.
+
+00:05:23.030 --> 00:05:25.280
+So one of the failures-- the
+easiest form of failure--
+
+00:05:25.280 --> 00:05:26.990
+is that a packet could be lost.
+
+00:05:26.990 --> 00:05:29.000
+In particular, an
+advertisement could be lost.
+
+00:05:40.633 --> 00:05:42.050
+The second thing
+that could happen
+
+00:05:42.050 --> 00:05:43.370
+is that a link could fail.
+
+00:05:47.020 --> 00:05:48.710
+I mean, if it's a
+wire, maybe a backhoe
+
+00:05:48.710 --> 00:05:51.950
+runs over it, which is actually
+more common than you think.
+
+00:05:51.950 --> 00:05:55.250
+In fact, you could
+have undersea cables
+
+00:05:55.250 --> 00:05:58.130
+where sharks bite them
+and they get destroyed.
+
+00:05:58.130 --> 00:06:00.477
+I mean, lots of
+things could happen.
+
+00:06:00.477 --> 00:06:01.310
+So links could fail.
+
+00:06:01.310 --> 00:06:03.040
+And the third thing
+that could happen,
+
+00:06:03.040 --> 00:06:04.790
+which is more common
+than you might think,
+
+00:06:04.790 --> 00:06:07.550
+is that entire switches could
+fail or nodes could fail.
+
+00:06:13.820 --> 00:06:16.700
+Since we actually don't know
+how to write bug-free software,
+
+00:06:16.700 --> 00:06:18.470
+software bugs may
+cause things to fail.
+
+00:06:18.470 --> 00:06:19.920
+They may cause things to crash.
+
+00:06:19.920 --> 00:06:22.400
+In fact, they may cause things
+to fail in mysterious ways
+
+00:06:22.400 --> 00:06:25.890
+where it looks like
+it's not failed,
+
+00:06:25.890 --> 00:06:28.640
+but in fact, there's a fault
+in the software causing
+
+00:06:28.640 --> 00:06:30.800
+you to send bad advertisements.
+
+00:06:30.800 --> 00:06:32.780
+And for this course, we
+won't worry about this.
+
+00:06:32.780 --> 00:06:35.300
+We'll actually worry about
+only a class of failures
+
+00:06:35.300 --> 00:06:37.360
+that we think of as fail stop.
+
+00:06:40.202 --> 00:06:41.660
+What I mean by that
+is if it fails,
+
+00:06:41.660 --> 00:06:44.565
+it just stops, as opposed to
+it fails and then it gives you
+
+00:06:44.565 --> 00:06:46.940
+wrong information, which is
+actually a lot harder to deal
+
+00:06:46.940 --> 00:06:48.980
+with, because it's
+much better for you
+
+00:06:48.980 --> 00:06:51.350
+to fail and just stop
+rather than for the node
+
+00:06:51.350 --> 00:06:53.450
+to fail and pretend that
+it's correct and send you
+
+00:06:53.450 --> 00:06:54.290
+bad information.
+
+00:06:54.290 --> 00:06:56.120
+That's a lot harder
+to deal with.
+
+00:06:56.120 --> 00:07:00.020
+We'll worry about that
+later, not in 6.02.
+
+00:07:00.020 --> 00:07:01.530
+Anyway, these
+things could happen.
+
+00:07:01.530 --> 00:07:04.050
+So let's concretely assume that
+you have this topology here.
+
+00:07:04.050 --> 00:07:07.430
+And what happens
+is this link fails.
+
+00:07:11.810 --> 00:07:15.060
+Now, if you did nothing
+and you had that link fail,
+
+00:07:15.060 --> 00:07:17.660
+what would happen?
+
+00:07:17.660 --> 00:07:20.570
+Now, let's look at
+it node by node.
+
+00:07:20.570 --> 00:07:24.410
+What would happen here
+is that C would end up
+
+00:07:24.410 --> 00:07:28.162
+with no route to the
+destination, because what
+
+00:07:28.162 --> 00:07:30.620
+would happen is assuming that
+C has some way of discovering
+
+00:07:30.620 --> 00:07:32.960
+that this fault has
+happened, it would have
+
+00:07:32.960 --> 00:07:34.170
+no route to the destination.
+
+00:07:34.170 --> 00:07:36.650
+But if it doesn't discover
+the fault had happened,
+
+00:07:36.650 --> 00:07:38.280
+it has this route
+to the destination.
+
+00:07:38.280 --> 00:07:39.990
+But if it sends
+packets on that link,
+
+00:07:39.990 --> 00:07:41.780
+it wouldn't reach
+the other side.
+
+00:07:41.780 --> 00:07:42.722
+Packets would be lost.
+
+00:07:42.722 --> 00:07:44.180
+But assuming that
+it discovers, has
+
+00:07:44.180 --> 00:07:46.460
+a way of discovering that
+this link has failed,
+
+00:07:46.460 --> 00:07:49.170
+it has no route to
+the destination.
+
+00:07:49.170 --> 00:07:51.230
+Now, B has a route
+to the destination.
+
+00:07:51.230 --> 00:07:52.940
+It has this link.
+
+00:07:52.940 --> 00:07:58.150
+But in fact, the next
+advertisement from C,
+
+00:07:58.150 --> 00:07:59.820
+if C were to make
+another advertisement,
+
+00:07:59.820 --> 00:08:02.070
+would tell it that it had
+no route to the destination.
+
+00:08:02.070 --> 00:08:04.400
+But if it did nothing, if you
+did nothing in the protocol,
+
+00:08:04.400 --> 00:08:06.200
+B thinks it has a route
+to the destination.
+
+00:08:06.200 --> 00:08:09.313
+But in fact, it reaches C
+and it's actually a dead end
+
+00:08:09.313 --> 00:08:10.730
+because it reaches
+C and C doesn't
+
+00:08:10.730 --> 00:08:11.730
+know what to do with it.
+
+00:08:11.730 --> 00:08:13.670
+It just drops the packet.
+
+00:08:13.670 --> 00:08:16.660
+The technical term for
+this is a dead end.
+
+00:08:16.660 --> 00:08:17.540
+You send packets.
+
+00:08:17.540 --> 00:08:19.290
+You think you're
+reaching the destination.
+
+00:08:19.290 --> 00:08:21.880
+But it's actually
+getting dropped.
+
+00:08:21.880 --> 00:08:22.435
+What about S?
+
+00:08:22.435 --> 00:08:24.060
+Does S have a route
+to the destination?
+
+00:08:24.060 --> 00:08:27.420
+Well, S doesn't have a route
+to the destination, either,
+
+00:08:27.420 --> 00:08:29.170
+because the right route
+to the destination
+
+00:08:29.170 --> 00:08:35.720
+would probably have
+been this link over here
+
+00:08:35.720 --> 00:08:37.567
+because the cost
+was 2 plus 1 plus 3.
+
+00:08:37.567 --> 00:08:39.650
+And that wouldn't have a
+route to the destination.
+
+00:08:39.650 --> 00:08:41.150
+It would have a
+route, but the route
+
+00:08:41.150 --> 00:08:43.200
+would lead to a dead
+end at C. And in fact,
+
+00:08:43.200 --> 00:08:45.350
+in this particular
+example, no node
+
+00:08:45.350 --> 00:08:47.870
+would have a route to
+the destination in terms
+
+00:08:47.870 --> 00:08:50.300
+of the routing table itself.
+
+00:08:50.300 --> 00:08:52.640
+No node would have a route
+that actually worked,
+
+00:08:52.640 --> 00:08:54.710
+in that the route
+wouldn't correspond
+
+00:08:54.710 --> 00:08:56.705
+to an actual working path.
+
+00:08:56.705 --> 00:08:58.580
+But if you look at the
+picture, clearly there
+
+00:08:58.580 --> 00:09:00.288
+are other ways to get
+to the destination.
+
+00:09:00.288 --> 00:09:02.450
+I mean, we designed
+this topology presumably
+
+00:09:02.450 --> 00:09:04.650
+because we had some
+sort of redundancy.
+
+00:09:04.650 --> 00:09:07.730
+So if this failed, what
+you would like to have
+
+00:09:07.730 --> 00:09:09.740
+is for C to use one
+of the other paths.
+
+00:09:09.740 --> 00:09:13.570
+C might use this path or
+C might use this path.
+
+00:09:13.570 --> 00:09:15.738
+Or C might-- yeah, those
+are the two possible paths
+
+00:09:15.738 --> 00:09:16.280
+it could use.
+
+00:09:16.280 --> 00:09:18.830
+And similarly, S might use--
+
+00:09:18.830 --> 00:09:21.480
+should use that
+path, and so forth.
+
+00:09:21.480 --> 00:09:23.330
+So what you want is
+a routing protocol
+
+00:09:23.330 --> 00:09:27.210
+that converges to the
+new correct answer,
+
+00:09:27.210 --> 00:09:28.958
+assuming there is a
+new correct answer.
+
+00:09:28.958 --> 00:09:30.500
+And if there's no
+new correct answer,
+
+00:09:30.500 --> 00:09:33.930
+it converges to whatever
+the best possible answer is.
+
+00:09:33.930 --> 00:09:36.110
+So to some destinations,
+you could have a route,
+
+00:09:36.110 --> 00:09:38.310
+and to some destinations,
+you don't have a route.
+
+00:09:38.310 --> 00:09:42.410
+So what you want is, as long
+as there is a connected path,
+
+00:09:42.410 --> 00:09:45.230
+there is a path between a
+source and a destination,
+
+00:09:45.230 --> 00:09:47.300
+you would like that
+source to end up
+
+00:09:47.300 --> 00:09:51.110
+with a route that corresponds
+to some good working path,
+
+00:09:51.110 --> 00:09:54.170
+and in particular,
+converges to the new minimum
+
+00:09:54.170 --> 00:09:57.540
+cost working path between the
+source and the destination.
+
+00:09:57.540 --> 00:10:00.620
+So that's the statement
+of the problem.
+
+00:10:00.620 --> 00:10:04.670
+And we're going to solve that
+problem today for both distance
+
+00:10:04.670 --> 00:10:05.937
+vector and link scale.
+
+00:10:05.937 --> 00:10:07.520
+And interestingly,
+the idea that we're
+
+00:10:07.520 --> 00:10:11.410
+going to use the same
+idea in both cases.
+
+00:10:11.410 --> 00:10:14.390
+And the idea is, just like
+we built a redundant topology
+
+00:10:14.390 --> 00:10:17.540
+by having alternate
+paths between places,
+
+00:10:17.540 --> 00:10:20.510
+we're just going to
+repeat advertisements.
+
+00:10:20.510 --> 00:10:23.030
+And we're going to repeat
+the process of processing
+
+00:10:23.030 --> 00:10:24.890
+these advertisements.
+
+00:10:24.890 --> 00:10:26.600
+It's a very simple idea.
+
+00:10:26.600 --> 00:10:29.870
+And the general plan-- there
+are three steps to the plan.
+
+00:10:29.870 --> 00:10:33.740
+The first step in the plan
+is to periodically check--
+
+00:10:33.740 --> 00:10:36.170
+every neighbor is
+responsible for checking
+
+00:10:36.170 --> 00:10:38.900
+the health of-- every node
+is responsible for checking
+
+00:10:38.900 --> 00:10:41.390
+the health of its neighbors.
+
+00:10:41.390 --> 00:10:43.430
+So that's the step,
+which we're going
+
+00:10:43.430 --> 00:10:45.080
+to call neighbor aliveness.
+
+00:10:50.780 --> 00:10:53.350
+And the protocol we're
+going to use for that
+
+00:10:53.350 --> 00:10:56.273
+is called the hello protocol.
+
+00:10:56.273 --> 00:10:57.690
+It's a very, very
+simple protocol.
+
+00:10:57.690 --> 00:11:00.250
+I'll describe it in a moment.
+
+00:11:00.250 --> 00:11:02.400
+And we're going to use this
+idea that every node is
+
+00:11:02.400 --> 00:11:06.460
+responsible for checking whether
+each of its neighbors is alive.
+
+00:11:06.460 --> 00:11:10.200
+And if it determines that
+a neighbor is not alive,
+
+00:11:10.200 --> 00:11:14.010
+it assumes the neighbor
+is dead and removes
+
+00:11:14.010 --> 00:11:16.860
+it from various tables and
+data structures and so on.
+
+00:11:16.860 --> 00:11:18.450
+And in fact, this
+fail stop assumption
+
+00:11:18.450 --> 00:11:20.575
+is pretty crucial for us,
+because the assumption is
+
+00:11:20.575 --> 00:11:23.400
+that when a failure occurs
+of a node, that in fact,
+
+00:11:23.400 --> 00:11:25.100
+the node doesn't respond.
+
+00:11:25.100 --> 00:11:27.600
+If a failure occurs of a link,
+the assumption here, as well,
+
+00:11:27.600 --> 00:11:29.430
+is that the link
+stops responding.
+
+00:11:29.430 --> 00:11:32.652
+You don't get to send packets or
+receive packets over that link.
+
+00:11:32.652 --> 00:11:34.860
+And for now, we're going to
+assume that every link is
+
+00:11:34.860 --> 00:11:35.590
+bidirectional.
+
+00:11:35.590 --> 00:11:38.250
+So you send packets
+in both directions.
+
+00:11:38.250 --> 00:11:41.400
+In reality, there are
+unidirectional network links.
+
+00:11:41.400 --> 00:11:43.680
+And you have to deal with
+the problem differently.
+
+00:11:43.680 --> 00:11:46.100
+Not going to worry about that.
+
+00:11:46.100 --> 00:11:48.420
+So there is a protocol
+called the hello protocol
+
+00:11:48.420 --> 00:11:53.340
+that runs to detect if your
+neighbor is alive or not.
+
+00:11:53.340 --> 00:11:57.550
+The second step in our answer
+is to make the advertisements
+
+00:11:57.550 --> 00:11:58.050
+periodic.
+
+00:12:05.020 --> 00:12:07.680
+And the third step
+is, what do you
+
+00:12:07.680 --> 00:12:09.390
+do when you receive
+an advertisement?
+
+00:12:09.390 --> 00:12:10.958
+When you receive
+an advertisement,
+
+00:12:10.958 --> 00:12:12.750
+you collect a bunch of
+these advertisements
+
+00:12:12.750 --> 00:12:15.230
+that you receive from
+various neighbors.
+
+00:12:15.230 --> 00:12:17.430
+In the link state protocol,
+it's these link state
+
+00:12:17.430 --> 00:12:18.110
+advertisements.
+
+00:12:18.110 --> 00:12:21.010
+In the distance vector protocol,
+it's these distance vector
+
+00:12:21.010 --> 00:12:23.070
+tuple advertisements.
+
+00:12:23.070 --> 00:12:25.840
+And then you run a periodic
+integration process.
+
+00:12:36.410 --> 00:12:43.210
+So if you look at
+it with a timeline,
+
+00:12:43.210 --> 00:12:46.210
+every node asynchronously--
+in other words,
+
+00:12:46.210 --> 00:12:48.192
+independent of the other nodes.
+
+00:12:48.192 --> 00:12:49.900
+You don't have to
+synchronize the clocks.
+
+00:12:49.900 --> 00:12:52.060
+Every node has its own clock.
+
+00:12:52.060 --> 00:12:56.140
+And every node does these
+two steps periodically.
+
+00:12:56.140 --> 00:13:03.209
+So from time to time, it
+sends an advertisement.
+
+00:13:08.200 --> 00:13:09.700
+It just says, in
+distance vector,
+
+00:13:09.700 --> 00:13:12.850
+just sends these two
+columns to its neighbors.
+
+00:13:12.850 --> 00:13:14.590
+In the link state
+advertisement, it just
+
+00:13:14.590 --> 00:13:16.450
+sends out its link
+state information,
+
+00:13:16.450 --> 00:13:18.880
+and the flooding process works.
+
+00:13:18.880 --> 00:13:20.500
+And then from time
+to time, there's
+
+00:13:20.500 --> 00:13:22.720
+this integration of these
+advertisements that happen.
+
+00:13:31.170 --> 00:13:32.680
+Et cetera.
+
+00:13:32.680 --> 00:13:34.690
+Now the beautiful part
+of these protocols
+
+00:13:34.690 --> 00:13:36.643
+is that I've shown
+this picture here
+
+00:13:36.643 --> 00:13:38.560
+with these integrations
+happening interspersed
+
+00:13:38.560 --> 00:13:39.550
+with the advertisements.
+
+00:13:39.550 --> 00:13:41.300
+That doesn't actually
+have to be the case.
+
+00:13:41.300 --> 00:13:43.810
+You could do them pretty
+much arbitrarily as long
+
+00:13:43.810 --> 00:13:45.970
+as you do them periodically.
+
+00:13:45.970 --> 00:13:47.860
+The beautiful part
+of these protocols
+
+00:13:47.860 --> 00:13:50.800
+is that every node
+asynchronously running
+
+00:13:50.800 --> 00:13:52.960
+these advertisement steps
+and these integration
+
+00:13:52.960 --> 00:13:56.350
+steps, as long as they
+do this periodically,
+
+00:13:56.350 --> 00:13:58.810
+in the end what you get
+as a property called
+
+00:13:58.810 --> 00:14:01.012
+eventual convergence.
+
+00:14:12.840 --> 00:14:17.760
+What that means is, assuming
+you have all sorts of failures
+
+00:14:17.760 --> 00:14:20.430
+and any pattern of packet
+losses, link failures,
+
+00:14:20.430 --> 00:14:25.360
+and switches, and then
+you freeze the system
+
+00:14:25.360 --> 00:14:29.230
+and assume that no more
+failures happen, then what
+
+00:14:29.230 --> 00:14:35.095
+eventual convergence means
+is that in some finite time,
+
+00:14:35.095 --> 00:14:36.970
+all of the nodes in the
+network will converge
+
+00:14:36.970 --> 00:14:38.590
+to correct routing state.
+
+00:14:38.590 --> 00:14:41.050
+That is, in these routing
+protocols, all of the nodes
+
+00:14:41.050 --> 00:14:43.525
+will end up with an answer
+that's consistent with what
+
+00:14:43.525 --> 00:14:44.650
+you are trying to optimize.
+
+00:14:44.650 --> 00:14:49.810
+For example, minimum cost
+paths to all the destinations.
+
+00:14:49.810 --> 00:14:52.150
+Now, proving that under
+an arbitrary model
+
+00:14:52.150 --> 00:14:55.450
+of when these advertisements
+and integration steps are all
+
+00:14:55.450 --> 00:14:57.930
+asynchronous and being
+done at random times
+
+00:14:57.930 --> 00:14:59.170
+is a little involved.
+
+00:14:59.170 --> 00:15:01.750
+And we're not going to
+attempt that in this course.
+
+00:15:01.750 --> 00:15:03.370
+The notes talk a
+little bit about how
+
+00:15:03.370 --> 00:15:05.082
+you get eventual
+convergence when
+
+00:15:05.082 --> 00:15:06.790
+you assume that all
+the nodes are running
+
+00:15:06.790 --> 00:15:09.852
+very periodic advertisement
+steps interspersed
+
+00:15:09.852 --> 00:15:10.810
+with integration steps.
+
+00:15:10.810 --> 00:15:12.590
+The proof is really
+not that important.
+
+00:15:12.590 --> 00:15:15.090
+What's more important is for
+you to understand the intention
+
+00:15:15.090 --> 00:15:16.460
+behind why it works.
+
+00:15:16.460 --> 00:15:18.130
+So I'll do that by
+some examples here.
+
+00:15:21.065 --> 00:15:23.190
+I have to also tell you
+what the Hello protocol is.
+
+00:15:23.190 --> 00:15:23.948
+I'll get to that.
+
+00:15:23.948 --> 00:15:25.740
+But for now, just assume
+it's a module that
+
+00:15:25.740 --> 00:15:29.590
+tells you if the
+neighbor is alive or not.
+
+00:15:29.590 --> 00:15:31.360
+So is this plan
+clear to everybody?
+
+00:15:31.360 --> 00:15:33.500
+It's just this same
+idea, except every node's
+
+00:15:33.500 --> 00:15:34.500
+doing this periodically.
+
+00:15:34.500 --> 00:15:36.250
+So in practice, you
+might do this every 30
+
+00:15:36.250 --> 00:15:38.970
+seconds or every three minutes
+or something like that.
+
+00:15:38.970 --> 00:15:41.910
+Of course, the longer the
+time between advertisements,
+
+00:15:41.910 --> 00:15:44.460
+the longer it's going
+to take for the protocol
+
+00:15:44.460 --> 00:15:47.090
+to converge after a failure
+or a set of failures.
+
+00:15:47.090 --> 00:15:50.730
+And the shorter the time, it
+takes a quicker amount of time
+
+00:15:50.730 --> 00:15:51.240
+to converge.
+
+00:15:51.240 --> 00:15:55.100
+But you end up doing
+a lot more work.
+
+00:15:55.100 --> 00:15:58.830
+And moreover, in practice,
+many failures are transient.
+
+00:15:58.830 --> 00:16:02.440
+So a link may fail for a few
+seconds and then come back up.
+
+00:16:02.440 --> 00:16:05.740
+And so it's in practice not
+that useful to converge very,
+
+00:16:05.740 --> 00:16:08.438
+very quickly or react
+very, very quickly.
+
+00:16:08.438 --> 00:16:10.230
+It's important to
+converge quickly once you
+
+00:16:10.230 --> 00:16:11.500
+start the convergence process.
+
+00:16:11.500 --> 00:16:15.750
+But once you-- detecting that
+a neighbor is alive or dead
+
+00:16:15.750 --> 00:16:17.260
+on the timescale
+of a few packets
+
+00:16:17.260 --> 00:16:21.780
+is sometimes too fast,
+because sometimes failures
+
+00:16:21.780 --> 00:16:24.310
+last for very little time
+and then they go away.
+
+00:16:24.310 --> 00:16:25.740
+And in the meantime, you
+have done all this work
+
+00:16:25.740 --> 00:16:27.220
+to converge to a
+new routing state.
+
+00:16:27.220 --> 00:16:28.790
+And then when the
+link comes back up,
+
+00:16:28.790 --> 00:16:31.290
+you're going to do more work
+to come back to the old answer.
+
+00:16:31.290 --> 00:16:34.000
+You may as well have
+just been a little lazy.
+
+00:16:34.000 --> 00:16:36.690
+And so deciding these
+times is tricky.
+
+00:16:36.690 --> 00:16:40.830
+And there's no real systematic
+way of doing it in practice.
+
+00:16:40.830 --> 00:16:43.680
+But the trade-off is usually
+between how quickly you
+
+00:16:43.680 --> 00:16:45.780
+wish to converge
+and how much work
+
+00:16:45.780 --> 00:16:49.940
+you're willing to expand in
+making that convergence happen.
+
+00:16:49.940 --> 00:16:50.940
+So is the plan clear?
+
+00:16:50.940 --> 00:16:52.690
+It's just this same
+protocol, except we're
+
+00:16:52.690 --> 00:16:55.860
+going to do this periodically.
+
+00:16:55.860 --> 00:16:56.580
+OK.
+
+00:16:56.580 --> 00:16:58.780
+So the first step is
+this enable liveness,
+
+00:16:58.780 --> 00:17:00.990
+or the hello protocol.
+
+00:17:00.990 --> 00:17:03.030
+So that protocol is
+actually very easy.
+
+00:17:03.030 --> 00:17:08.760
+Every node-- you have a set of
+links coming out of the node
+
+00:17:08.760 --> 00:17:10.938
+and then neighbors at
+the other end of it.
+
+00:17:10.938 --> 00:17:12.480
+So the problem is
+that the node needs
+
+00:17:12.480 --> 00:17:16.940
+to decide which of these links
+is working or not working
+
+00:17:16.940 --> 00:17:20.560
+and which of the neighbors are
+still there versus not there.
+
+00:17:20.560 --> 00:17:22.560
+And the way the
+protocol works is
+
+00:17:22.560 --> 00:17:26.700
+that every node in the
+system on each of its links--
+
+00:17:26.700 --> 00:17:28.405
+let's call these nodes ABC.
+
+00:17:32.360 --> 00:17:35.540
+On each of these
+links sends out--
+
+00:17:35.540 --> 00:17:38.780
+periodically sends out
+only to its neighbors
+
+00:17:38.780 --> 00:17:41.810
+a packet called a Hello packet.
+
+00:17:41.810 --> 00:17:44.090
+And the Hello packet usually
+has a sequence number
+
+00:17:44.090 --> 00:17:48.260
+on it, an incrementing
+sequence number.
+
+00:17:48.260 --> 00:17:50.380
+The idea is now
+very, very simple.
+
+00:17:50.380 --> 00:17:54.490
+This may be sent periodically,
+say, every 10 seconds.
+
+00:17:54.490 --> 00:17:58.300
+If n finds that a certain
+number of hello packets--
+
+00:17:58.300 --> 00:18:01.720
+it hasn't heard from its
+neighbor, one of its neighbors,
+
+00:18:01.720 --> 00:18:04.240
+in some time-- that is,
+perhaps three hello packets are
+
+00:18:04.240 --> 00:18:06.850
+missing, or four hello
+packets are missing in a row--
+
+00:18:06.850 --> 00:18:10.860
+it just decides that
+that neighbor is dead.
+
+00:18:10.860 --> 00:18:12.160
+It's a very simple idea.
+
+00:18:12.160 --> 00:18:15.340
+So you send out hello
+packets periodically
+
+00:18:15.340 --> 00:18:25.540
+and if k successive
+missing hello packets
+
+00:18:25.540 --> 00:18:29.030
+implies the neighbor from
+which those packets are missing
+
+00:18:29.030 --> 00:18:29.530
+is dead.
+
+00:18:35.110 --> 00:18:36.790
+Now, in response,
+what happens is
+
+00:18:36.790 --> 00:18:42.610
+that all of the routes
+that this node had that
+
+00:18:42.610 --> 00:18:45.880
+went via that neighbor,
+via that link,
+
+00:18:45.880 --> 00:18:47.710
+are eliminated from
+the routing table.
+
+00:18:47.710 --> 00:18:50.350
+And you could do that by
+either simply removing
+
+00:18:50.350 --> 00:18:53.290
+the entry from the routing
+table or by keeping
+
+00:18:53.290 --> 00:18:55.450
+the entry in the routing
+table but making--
+
+00:18:55.450 --> 00:18:57.640
+for those destinations--
+and replacing
+
+00:18:57.640 --> 00:19:02.350
+the cost from whatever
+the value was to infinity.
+
+00:19:02.350 --> 00:19:06.970
+And it's probably a better idea
+to replace it with infinity.
+
+00:19:06.970 --> 00:19:08.080
+I'm not exactly sure why.
+
+00:19:08.080 --> 00:19:10.618
+That's kind of what
+most people do.
+
+00:19:10.618 --> 00:19:12.160
+I think the reason
+is that you'd like
+
+00:19:12.160 --> 00:19:14.500
+to know that that destination
+exists in the network.
+
+00:19:14.500 --> 00:19:16.750
+And then when the later route
+arrives, you can fix it.
+
+00:19:16.750 --> 00:19:20.420
+But you could just
+remove it, as well.
+
+00:19:20.420 --> 00:19:22.920
+The other thing that happens
+is, if you were in a link state
+
+00:19:22.920 --> 00:19:27.142
+protocol, what you would then
+do is on the next advertisement
+
+00:19:27.142 --> 00:19:28.600
+of the link state,
+you would simply
+
+00:19:28.600 --> 00:19:31.780
+eliminate that link and
+that neighbor altogether.
+
+00:19:31.780 --> 00:19:35.590
+So you would not advertise
+this link and this neighbor
+
+00:19:35.590 --> 00:19:37.360
+as existing anymore.
+
+00:19:37.360 --> 00:19:39.370
+And when that link state
+advertisement floods
+
+00:19:39.370 --> 00:19:41.910
+through the network,
+all of the other nodes
+
+00:19:41.910 --> 00:19:43.480
+through the flooding
+process would
+
+00:19:43.480 --> 00:19:46.030
+determine that that
+node has gone away
+
+00:19:46.030 --> 00:19:47.318
+and that link has gone away.
+
+00:19:47.318 --> 00:19:49.360
+And then when they run
+Dijkstra's algorithm again
+
+00:19:49.360 --> 00:19:51.992
+and recompute the routes,
+they will no longer
+
+00:19:51.992 --> 00:19:53.200
+assume that that link exists.
+
+00:19:53.200 --> 00:19:57.130
+And they may find new
+routes to the destination.
+
+00:19:57.130 --> 00:19:59.620
+So that's what the
+hello protocol does.
+
+00:19:59.620 --> 00:20:02.530
+And so how you pick k, again,
+it's the same trade-off.
+
+00:20:02.530 --> 00:20:05.050
+It depends on how
+quickly you want
+
+00:20:05.050 --> 00:20:08.050
+to converge to a real failure.
+
+00:20:08.050 --> 00:20:09.975
+And picking this is
+difficult. For example,
+
+00:20:09.975 --> 00:20:11.350
+if you were on a
+wireless network
+
+00:20:11.350 --> 00:20:14.440
+where the normal packet
+loss probability might
+
+00:20:14.440 --> 00:20:19.810
+be 10%, something high,
+then waiting for a larger
+
+00:20:19.810 --> 00:20:21.700
+number of successive
+failed packets
+
+00:20:21.700 --> 00:20:25.060
+is a good idea, because
+just because a packet's lost
+
+00:20:25.060 --> 00:20:27.465
+or two packets are lost doesn't
+mean the link has failed.
+
+00:20:27.465 --> 00:20:29.590
+On the other hand, if you
+were running on a highly,
+
+00:20:29.590 --> 00:20:32.440
+highly reliable link in
+terms of packet loss-- like,
+
+00:20:32.440 --> 00:20:35.200
+you were running on some
+dedicated optical link where
+
+00:20:35.200 --> 00:20:38.860
+the packet loss rate is
+one part in a million--
+
+00:20:38.860 --> 00:20:42.070
+then a single packet missing
+or two packets missing
+
+00:20:42.070 --> 00:20:44.900
+would be a good indication that
+that link has actually failed
+
+00:20:44.900 --> 00:20:47.620
+or that node at the other
+end of the link has failed,
+
+00:20:47.620 --> 00:20:50.720
+and therefore, k could be small.
+
+00:20:50.720 --> 00:20:53.710
+So again, it totally depends
+on the actual system context
+
+00:20:53.710 --> 00:20:55.792
+and the normal
+packet loss rates,
+
+00:20:55.792 --> 00:20:57.250
+because what you're
+trying to do is
+
+00:20:57.250 --> 00:20:58.875
+to make sure you
+react to real failure,
+
+00:20:58.875 --> 00:21:01.205
+not to simply packet loss.
+
+00:21:01.205 --> 00:21:03.080
+There's really no way
+to tell the difference.
+
+00:21:03.080 --> 00:21:05.920
+There's no way to tell the
+difference between a link that
+
+00:21:05.920 --> 00:21:09.670
+really has failed versus a link
+with a high packet loss rate.
+
+00:21:09.670 --> 00:21:10.683
+It's a heuristic.
+
+00:21:10.683 --> 00:21:12.100
+And in fact, there's
+really no way
+
+00:21:12.100 --> 00:21:14.740
+to tell between a node that has
+actually failed and gone away
+
+00:21:14.740 --> 00:21:17.470
+and a node that's just
+heavily overloaded
+
+00:21:17.470 --> 00:21:19.810
+and is extremely
+slow in responding.
+
+00:21:19.810 --> 00:21:21.130
+There's no way to tell.
+
+00:21:21.130 --> 00:21:22.690
+So these are all
+heuristics that you
+
+00:21:22.690 --> 00:21:30.033
+have to work with and
+try to solve the problem.
+
+00:21:30.033 --> 00:21:31.450
+So sometimes you
+may get it wrong.
+
+00:21:31.450 --> 00:21:33.040
+Sometimes you may
+find that a link has--
+
+00:21:33.040 --> 00:21:35.415
+you may declare a link to have
+failed when, in fact, it's
+
+00:21:35.415 --> 00:21:36.600
+still fine.
+
+00:21:36.600 --> 00:21:37.930
+But that's life.
+
+00:21:37.930 --> 00:21:40.250
+And you just have
+to deal with it.
+
+00:21:40.250 --> 00:21:43.270
+So is the story clear
+so far as to how we deal
+
+00:21:43.270 --> 00:21:44.455
+with routing and a failure?
+
+00:21:44.455 --> 00:21:46.330
+So we're going to apply
+that to this picture.
+
+00:21:46.330 --> 00:21:49.180
+And you'll find that
+the answer will work.
+
+00:21:49.180 --> 00:21:50.384
+Yes?
+
+00:21:50.384 --> 00:21:53.352
+AUDIENCE: [INAUDIBLE].
+
+00:21:53.352 --> 00:21:54.060
+PROFESSOR: Right.
+
+00:21:54.060 --> 00:21:55.920
+Like I said, what it--
+
+00:21:55.920 --> 00:21:57.870
+let me repeat this.
+
+00:21:57.870 --> 00:22:01.867
+What it does is, first
+of all, it really
+
+00:22:01.867 --> 00:22:04.200
+now assumes that both the
+node and the link have failed.
+
+00:22:04.200 --> 00:22:05.550
+It doesn't really know.
+
+00:22:05.550 --> 00:22:10.320
+Now, it can definitively assume
+that the link has failed.
+
+00:22:10.320 --> 00:22:12.750
+The node may still be alive,
+because it may well be
+
+00:22:12.750 --> 00:22:15.600
+that there is a path like that.
+
+00:22:15.600 --> 00:22:21.328
+And n wants to find that route
+via A to that destination.
+
+00:22:21.328 --> 00:22:22.870
+So what it does is
+really two things.
+
+00:22:22.870 --> 00:22:24.930
+The first thing
+it does is it may
+
+00:22:24.930 --> 00:22:28.175
+have routes in its routing
+table going through that link.
+
+00:22:28.175 --> 00:22:29.550
+This link is now
+considered dead.
+
+00:22:29.550 --> 00:22:31.470
+And therefore, it should
+remove those routes.
+
+00:22:31.470 --> 00:22:33.390
+And then in subsequent
+advertisements,
+
+00:22:33.390 --> 00:22:35.920
+it should make sure that
+the cost to that destination
+
+00:22:35.920 --> 00:22:40.560
+is infinity, which is why you
+would remove it and replace
+
+00:22:40.560 --> 00:22:42.452
+the cost to be infinity
+so that you tell
+
+00:22:42.452 --> 00:22:44.160
+the other guys that
+previously I told you
+
+00:22:44.160 --> 00:22:46.530
+I could get to B with
+the cost of five,
+
+00:22:46.530 --> 00:22:48.408
+but really now it's infinity.
+
+00:22:48.408 --> 00:22:50.700
+The second thing that's done
+in the link state protocol
+
+00:22:50.700 --> 00:22:53.580
+is when you advertise-- you
+no longer advertise that link.
+
+00:22:53.580 --> 00:22:55.380
+So really, the answer
+to your question
+
+00:22:55.380 --> 00:22:57.450
+is it assumes that
+the link has failed.
+
+00:22:57.450 --> 00:23:01.050
+It makes no determination
+about the node.
+
+00:23:01.050 --> 00:23:01.550
+Yes?
+
+00:23:01.550 --> 00:23:03.008
+AUDIENCE: [INAUDIBLE].
+
+00:23:06.410 --> 00:23:07.543
+PROFESSOR: Yes.
+
+00:23:07.543 --> 00:23:08.960
+A good protocol--
+and this will be
+
+00:23:08.960 --> 00:23:11.390
+tested in your lab
+eight, in p-set eight,
+
+00:23:11.390 --> 00:23:13.890
+is if a link fence and
+eventually comes back up,
+
+00:23:13.890 --> 00:23:16.670
+we would like for you to
+actually find that answer.
+
+00:23:16.670 --> 00:23:18.893
+And this is an
+important requirement.
+
+00:23:18.893 --> 00:23:20.810
+So if the broadcast--
+that's why all the stuff
+
+00:23:20.810 --> 00:23:22.970
+that's done in the background
+is done periodically.
+
+00:23:22.970 --> 00:23:24.230
+So if a link comes
+back up, you want
+
+00:23:24.230 --> 00:23:25.355
+to find the correct answer.
+
+00:23:28.710 --> 00:23:31.560
+Any other questions?
+
+00:23:31.560 --> 00:23:32.060
+OK.
+
+00:23:32.060 --> 00:23:35.717
+So let me apply this idea
+to this picture here.
+
+00:23:35.717 --> 00:23:37.550
+So what happened here
+was this thing failed.
+
+00:23:37.550 --> 00:23:39.998
+So C is, at this point in time--
+
+00:23:39.998 --> 00:23:42.290
+let's assume we're doing
+distance vector, this protocol
+
+00:23:42.290 --> 00:23:46.430
+here-- so C is going to assume
+that this link has failed.
+
+00:23:46.430 --> 00:23:48.770
+And therefore, it tells
+all of the other guys
+
+00:23:48.770 --> 00:23:50.930
+in its next advertisement--
+
+00:23:50.930 --> 00:23:54.260
+it tells these other
+guys that it no longer
+
+00:23:54.260 --> 00:24:00.500
+has a route to destination
+D. And it does that
+
+00:24:00.500 --> 00:24:03.350
+by sending in its next
+link state advertisement.
+
+00:24:03.350 --> 00:24:06.820
+Previously, it would have sent--
+
+00:24:06.820 --> 00:24:08.020
+you know what?
+
+00:24:08.020 --> 00:24:09.637
+Did I tell everybody
+that you send out
+
+00:24:09.637 --> 00:24:11.470
+the destination and the
+route in the links--
+
+00:24:11.470 --> 00:24:12.370
+in the advertisement?
+
+00:24:12.370 --> 00:24:13.390
+I may have done that.
+
+00:24:13.390 --> 00:24:16.100
+I meant the destination
+and the cost.
+
+00:24:16.100 --> 00:24:20.450
+So maybe I should call this the
+cost and change that to route.
+
+00:24:20.450 --> 00:24:23.320
+So this is the stuff that's
+sent in the advertisements.
+
+00:24:23.320 --> 00:24:25.940
+And these two columns
+are in the routing table.
+
+00:24:25.940 --> 00:24:29.680
+But anyway, right
+now here what would
+
+00:24:29.680 --> 00:24:33.100
+be advertised as D
+at a cost of three,
+
+00:24:33.100 --> 00:24:35.830
+we replace that now
+with D with the cost
+
+00:24:35.830 --> 00:24:37.960
+of infinity in
+our advertisements
+
+00:24:37.960 --> 00:24:39.440
+to our neighbors.
+
+00:24:39.440 --> 00:24:41.530
+So that's what C
+would advertise.
+
+00:24:41.530 --> 00:24:45.430
+And B, when it receives
+that, would now
+
+00:24:45.430 --> 00:24:48.190
+find that the route
+that it gets along here
+
+00:24:48.190 --> 00:24:50.020
+had previously a cost of four.
+
+00:24:50.020 --> 00:24:52.480
+But now it says
+that it's replaced
+
+00:24:52.480 --> 00:24:53.640
+with the cost of infinity.
+
+00:24:53.640 --> 00:24:54.940
+So it will replace--
+
+00:24:54.940 --> 00:24:57.070
+this routing table
+entry would go away.
+
+00:24:57.070 --> 00:25:01.180
+And it would replace it with no
+route and a cost of infinity.
+
+00:25:01.180 --> 00:25:03.340
+And that's what would propagate.
+
+00:25:03.340 --> 00:25:06.000
+Now, these advertisements
+are done periodically.
+
+00:25:06.000 --> 00:25:08.350
+So what D is doing,
+of course, is
+
+00:25:08.350 --> 00:25:11.507
+to send out two advertisements,
+one this way and one that way.
+
+00:25:11.507 --> 00:25:13.090
+Now, this thing is
+not going to reach,
+
+00:25:13.090 --> 00:25:16.510
+because this link
+no longer is alive.
+
+00:25:16.510 --> 00:25:18.310
+But this advertisement works.
+
+00:25:18.310 --> 00:25:22.630
+So when A receives the next
+distance vector advertisement
+
+00:25:22.630 --> 00:25:28.540
+from D, it now knows that
+it has a cost-- you know,
+
+00:25:28.540 --> 00:25:31.390
+that link is actually alive
+and it has a route going there.
+
+00:25:31.390 --> 00:25:34.000
+Now, this particular
+example is a little tricky,
+
+00:25:34.000 --> 00:25:36.970
+because what's happening here,
+of course, is that A previously
+
+00:25:36.970 --> 00:25:39.620
+had two ways of getting to D--
+
+00:25:39.620 --> 00:25:43.030
+4 plus 3 this way,
+or 7 that way.
+
+00:25:43.030 --> 00:25:45.580
+If it were previously
+using that,
+
+00:25:45.580 --> 00:25:49.090
+then A would also have no
+route to the destination.
+
+00:25:49.090 --> 00:25:51.400
+And then it would have
+to wait for this guy
+
+00:25:51.400 --> 00:25:52.870
+to send that route.
+
+00:25:52.870 --> 00:25:56.620
+So when it sent that route, A
+would now have a valid route
+
+00:25:56.620 --> 00:25:57.820
+to the destination.
+
+00:25:57.820 --> 00:26:01.420
+And in A's next advertisement,
+it would send that route over
+
+00:26:01.420 --> 00:26:02.230
+to these two guys.
+
+00:26:02.230 --> 00:26:06.980
+So it would send out saying
+that D is at cost seven.
+
+00:26:06.980 --> 00:26:08.480
+And it would do the
+same thing here.
+
+00:26:08.480 --> 00:26:12.400
+The D is at cost 7
+to C. Now, C, when
+
+00:26:12.400 --> 00:26:13.840
+it receives the
+next advertisement
+
+00:26:13.840 --> 00:26:16.990
+that D is at cost 7,
+compares that route
+
+00:26:16.990 --> 00:26:20.800
+against its current route, which
+is now infinity, and replaces
+
+00:26:20.800 --> 00:26:24.490
+in its routing table
+entry D infinity with D,
+
+00:26:24.490 --> 00:26:29.000
+this link here, and a cost
+of 4 plus 7, which is 11.
+
+00:26:29.000 --> 00:26:32.470
+So it would replace it with
+D. Let me call this L1, L1,
+
+00:26:32.470 --> 00:26:34.480
+and a cost of 11.
+
+00:26:34.480 --> 00:26:36.580
+And then on its
+next advertisement,
+
+00:26:36.580 --> 00:26:40.750
+C would send that out to B
+according to that advertisement
+
+00:26:40.750 --> 00:26:41.740
+schedule.
+
+00:26:41.740 --> 00:26:46.300
+And similarly here, S, when
+it receives this from A
+
+00:26:46.300 --> 00:26:48.070
+would, on its next
+advertisement,
+
+00:26:48.070 --> 00:26:50.980
+after integrating the
+route to destination D,
+
+00:26:50.980 --> 00:26:53.320
+which would have a
+cost of 1 plus 7, 8,
+
+00:26:53.320 --> 00:26:56.860
+it would send out an
+advertisement this way,
+
+00:26:56.860 --> 00:27:00.940
+which would have a cost of 8.
+
+00:27:00.940 --> 00:27:03.010
+And B, when it receives
+both of these things,
+
+00:27:03.010 --> 00:27:09.450
+would compare a cost of 8 on
+this link against a cost of 1
+
+00:27:09.450 --> 00:27:13.080
+plus 4 plus 7, which is 12.
+
+00:27:13.080 --> 00:27:14.970
+And it would find that
+8 is smaller than 12.
+
+00:27:14.970 --> 00:27:16.860
+And therefore, B
+would use this way
+
+00:27:16.860 --> 00:27:18.600
+of getting to the destination.
+
+00:27:18.600 --> 00:27:19.920
+Does that make sense?
+
+00:27:19.920 --> 00:27:20.828
+Yes?
+
+00:27:20.828 --> 00:27:22.190
+AUDIENCE: [INAUDIBLE].
+
+00:27:28.605 --> 00:27:30.480
+PROFESSOR: Well, it's
+receiving hello packets
+
+00:27:30.480 --> 00:27:32.100
+from all its neighbors.
+
+00:27:32.100 --> 00:27:35.160
+And it's just, if a link is
+alive and a hello shows up,
+
+00:27:35.160 --> 00:27:36.043
+it processes it.
+
+00:27:36.043 --> 00:27:37.710
+And the moment the
+first hello shows up,
+
+00:27:37.710 --> 00:27:39.765
+it declares the link
+to be alive again.
+
+00:27:39.765 --> 00:27:41.640
+Finding that someone is
+alive is a lot easier
+
+00:27:41.640 --> 00:27:43.765
+than finding that they're
+dead, at least if they're
+
+00:27:43.765 --> 00:27:44.810
+in networks.
+
+00:27:44.810 --> 00:27:46.872
+It's probably true in life, too.
+
+00:27:46.872 --> 00:27:48.330
+But it's certainly
+true of networks
+
+00:27:48.330 --> 00:27:50.100
+because all you have to know--
+
+00:27:50.100 --> 00:27:53.520
+I mean, assuming there's no
+malicious nodes, detecting
+
+00:27:53.520 --> 00:27:55.650
+that a node is alive,
+it takes one packet.
+
+00:27:55.650 --> 00:27:57.840
+Detecting that a node is
+dead, you're not sure.
+
+00:27:57.840 --> 00:27:59.190
+Maybe the link was down.
+
+00:27:59.190 --> 00:28:00.690
+Maybe it was just
+a transit failure.
+
+00:28:00.690 --> 00:28:02.580
+Maybe a packet was lost.
+
+00:28:02.580 --> 00:28:04.980
+So it's a lot harder to find
+that something has crashed
+
+00:28:04.980 --> 00:28:08.400
+than it is to find that
+something's working.
+
+00:28:08.400 --> 00:28:13.410
+But yeah, so you keep
+listening for hello packets.
+
+00:28:13.410 --> 00:28:15.420
+OK, so this is how it converges.
+
+00:28:15.420 --> 00:28:19.020
+Now eventually, of
+course, because there's
+
+00:28:19.020 --> 00:28:21.060
+some correct working
+path, eventually it
+
+00:28:21.060 --> 00:28:23.700
+will all converge to
+the correct answer.
+
+00:28:23.700 --> 00:28:26.790
+If later at some point and
+then this link comes back up,
+
+00:28:26.790 --> 00:28:29.565
+the same thing occurs,
+because all of this stuff
+
+00:28:29.565 --> 00:28:30.690
+is being done periodically.
+
+00:28:30.690 --> 00:28:32.460
+And so periodically,
+these advertisements
+
+00:28:32.460 --> 00:28:33.610
+are going to be sent.
+
+00:28:33.610 --> 00:28:35.910
+C is going to find that
+there's a better route
+
+00:28:35.910 --> 00:28:38.330
+to go to D via this link as 0.
+
+00:28:38.330 --> 00:28:40.590
+It advertises D
+now at a cost of 4.
+
+00:28:40.590 --> 00:28:42.720
+And eventually all of
+the nodes figure it out.
+
+00:28:42.720 --> 00:28:45.450
+And they converge back
+to the right answer.
+
+00:28:45.450 --> 00:28:46.333
+OK.
+
+00:28:46.333 --> 00:28:48.250
+And you can see that the
+link state protocol--
+
+00:28:48.250 --> 00:28:50.208
+the convergence is actually
+a little bit easier
+
+00:28:50.208 --> 00:28:52.380
+because again, there--
+
+00:28:52.380 --> 00:28:54.700
+the nodes are periodically
+advertising these links.
+
+00:28:54.700 --> 00:28:57.270
+So what's going to happen
+in a link state protocol is
+
+00:28:57.270 --> 00:28:58.730
+if you take the same picture--
+
+00:28:58.730 --> 00:29:00.630
+and previously the
+nodes all had routes.
+
+00:29:00.630 --> 00:29:03.830
+And many of those routes
+went through that link.
+
+00:29:03.830 --> 00:29:07.050
+You have to wait for the next
+link state advertisement, which
+
+00:29:07.050 --> 00:29:10.350
+would tell you after this
+hello protocol discovers that C
+
+00:29:10.350 --> 00:29:11.970
+discovers that this
+link has failed,
+
+00:29:11.970 --> 00:29:15.210
+it takes that next link
+state protocol advertised--
+
+00:29:15.210 --> 00:29:17.370
+link state advertisement
+by which all
+
+00:29:17.370 --> 00:29:19.290
+of the nodes through
+the flooding process
+
+00:29:19.290 --> 00:29:20.970
+discover that this
+link has failed.
+
+00:29:20.970 --> 00:29:23.430
+And they all run
+Dijkstra's algorithm again.
+
+00:29:23.430 --> 00:29:26.280
+And they will find the
+correct new answer,
+
+00:29:26.280 --> 00:29:27.720
+which will take
+them through paths
+
+00:29:27.720 --> 00:29:31.970
+that bypass this failed link.
+
+00:29:31.970 --> 00:29:34.115
+Now, the same logic
+applies in both protocols
+
+00:29:34.115 --> 00:29:34.990
+to when a node fails.
+
+00:29:34.990 --> 00:29:37.160
+If this node were to
+fail, you can sort of
+
+00:29:37.160 --> 00:29:39.377
+think through-- the
+node failing is actually
+
+00:29:39.377 --> 00:29:41.960
+equivalent to all of the links
+coming out of the node failing.
+
+00:29:41.960 --> 00:29:43.670
+So it's a somewhat
+harder problem
+
+00:29:43.670 --> 00:29:46.950
+in terms of just making sure
+that you're able to find
+
+00:29:46.950 --> 00:29:48.260
+the routes correctly.
+
+00:29:48.260 --> 00:29:50.660
+But this node failing is
+really the same as all
+
+00:29:50.660 --> 00:29:53.132
+of the links attached
+to that node failing.
+
+00:29:53.132 --> 00:29:54.590
+And in a link state
+protocol, it'll
+
+00:29:54.590 --> 00:29:56.007
+eventually-- you'll
+discover that.
+
+00:29:56.007 --> 00:29:58.190
+And all of the nodes will
+compute routes this way.
+
+00:29:58.190 --> 00:30:00.260
+And similarly in a
+distance vector protocol
+
+00:30:00.260 --> 00:30:02.485
+that's what happens.
+
+00:30:02.485 --> 00:30:03.860
+Now, so far in
+this picture, I've
+
+00:30:03.860 --> 00:30:08.620
+assumed that once you have these
+failures and then you pause,
+
+00:30:08.620 --> 00:30:10.220
+nothing else happens.
+
+00:30:10.220 --> 00:30:12.360
+There's no more failures,
+no packets that are lost,
+
+00:30:12.360 --> 00:30:12.980
+and so on.
+
+00:30:12.980 --> 00:30:15.080
+But life's actually not so kind.
+
+00:30:15.080 --> 00:30:19.605
+What will happen in practice
+is that, first of all,
+
+00:30:19.605 --> 00:30:21.980
+before I get to why this stuff
+is a lot more complicated,
+
+00:30:21.980 --> 00:30:24.110
+does everyone understand
+how these things work
+
+00:30:24.110 --> 00:30:27.020
+and how they converge
+correctly to the right answer
+
+00:30:27.020 --> 00:30:31.500
+after failure and after
+recovery from failure?
+
+00:30:31.500 --> 00:30:32.570
+Any questions?
+
+00:30:35.210 --> 00:30:35.800
+OK.
+
+00:30:35.800 --> 00:30:36.910
+So now let me tell
+you all the ways
+
+00:30:36.910 --> 00:30:38.380
+in which this story goes wrong.
+
+00:30:43.160 --> 00:30:45.748
+The first way the
+story goes wrong is--
+
+00:30:45.748 --> 00:30:47.540
+let me do it in the
+context of a link state
+
+00:30:47.540 --> 00:30:50.090
+protocol with a very,
+very simple picture.
+
+00:30:50.090 --> 00:30:51.350
+Let's say you have--
+
+00:30:51.350 --> 00:30:52.370
+I think I have a slide.
+
+00:30:55.820 --> 00:30:56.320
+All right.
+
+00:30:56.320 --> 00:31:00.630
+Let's say you have the picture
+that I've shown up there,
+
+00:31:00.630 --> 00:31:02.540
+so very, very simple picture.
+
+00:31:02.540 --> 00:31:05.110
+There's A, B, and D.
+D is the destination.
+
+00:31:05.110 --> 00:31:06.790
+And this is some path.
+
+00:31:06.790 --> 00:31:10.020
+So let's say that what
+happens is that normally when
+
+00:31:10.020 --> 00:31:13.770
+there's no failures, the way
+to go from B to D is via A.
+
+00:31:13.770 --> 00:31:17.560
+So B, A, D. And A
+goes to D directly.
+
+00:31:17.560 --> 00:31:20.610
+Now, let's assume
+that this link fails.
+
+00:31:20.610 --> 00:31:23.142
+If that link fails
+and things work great,
+
+00:31:23.142 --> 00:31:25.350
+what's going to happen is
+that in the next link state
+
+00:31:25.350 --> 00:31:30.450
+advertisement, A tells B
+that AD no longer exists.
+
+00:31:30.450 --> 00:31:33.570
+A knows the correct
+link state from B.
+
+00:31:33.570 --> 00:31:37.320
+And so it computes its path
+via B, its route via B.
+
+00:31:37.320 --> 00:31:41.310
+And similarly, B realizes
+that AD doesn't exist anymore.
+
+00:31:41.310 --> 00:31:45.000
+And it computes an
+alternate route that way.
+
+00:31:45.000 --> 00:31:47.730
+But let's say what
+happens is that AD fails.
+
+00:31:47.730 --> 00:31:52.660
+And then in the next link state
+advertisement that A sends out,
+
+00:31:52.660 --> 00:31:54.580
+that packet is lost.
+
+00:31:54.580 --> 00:31:56.760
+Let's say that A's link
+state advertisement to B
+
+00:31:56.760 --> 00:31:58.390
+is just lost.
+
+00:31:58.390 --> 00:32:00.150
+Packets could get lost.
+
+00:32:00.150 --> 00:32:05.280
+Now we have a problem because
+A knows that this has failed.
+
+00:32:05.280 --> 00:32:08.100
+And therefore, when it computes
+its Dijkstra's algorithm
+
+00:32:08.100 --> 00:32:10.740
+or shortest path algorithm,
+it knows that what it wants
+
+00:32:10.740 --> 00:32:12.990
+is a route going like that.
+
+00:32:12.990 --> 00:32:14.640
+But B, on the
+other hand, doesn't
+
+00:32:14.640 --> 00:32:16.920
+know that link AD has
+failed, because it
+
+00:32:16.920 --> 00:32:20.680
+didn't see that link state
+advisement which was lost.
+
+00:32:20.680 --> 00:32:23.140
+So what B does is compute
+its routing table entry,
+
+00:32:23.140 --> 00:32:26.070
+which is the same as
+it was before, going
+
+00:32:26.070 --> 00:32:27.960
+through that link over here.
+
+00:32:30.720 --> 00:32:32.530
+Now you have a
+problem because when
+
+00:32:32.530 --> 00:32:34.430
+A gets a packet
+that it now-- a data
+
+00:32:34.430 --> 00:32:37.137
+packet that it wants to send
+to destination D, previously
+
+00:32:37.137 --> 00:32:37.970
+it sent it this way.
+
+00:32:37.970 --> 00:32:39.620
+But now it knows
+that link has failed.
+
+00:32:39.620 --> 00:32:42.170
+So it sends the packet to
+B, because its route for D
+
+00:32:42.170 --> 00:32:45.200
+is via B. Well, B
+gets that packet
+
+00:32:45.200 --> 00:32:47.540
+and looks it up in
+its routing table.
+
+00:32:47.540 --> 00:32:50.390
+And B believes that the
+way to get to D is via A.
+
+00:32:50.390 --> 00:32:52.183
+So it sends it back to A.
+
+00:32:52.183 --> 00:32:54.350
+Well, A gets that packet
+and says, oh, that's great.
+
+00:32:54.350 --> 00:32:56.900
+This is a packet for
+destination D. I look it up
+
+00:32:56.900 --> 00:32:57.990
+in my routing table.
+
+00:32:57.990 --> 00:33:00.680
+It goes via B. And
+this thing [INAUDIBLE]
+
+00:33:00.680 --> 00:33:03.860
+for pretty much as
+long as you want.
+
+00:33:03.860 --> 00:33:07.430
+This thing here is the simplest
+example of a general phenomenon
+
+00:33:07.430 --> 00:33:09.750
+called a routing loop.
+
+00:33:09.750 --> 00:33:11.630
+So the first thing
+that can happen when--
+
+00:33:11.630 --> 00:33:14.000
+during the process
+of route convergence,
+
+00:33:14.000 --> 00:33:16.640
+various kinds of pathologies
+and problematic conditions
+
+00:33:16.640 --> 00:33:17.353
+could happen.
+
+00:33:17.353 --> 00:33:18.770
+And one of them
+is a routing loop.
+
+00:33:22.310 --> 00:33:23.810
+The second thing
+that could happen--
+
+00:33:23.810 --> 00:33:25.490
+and I showed you that here--
+
+00:33:25.490 --> 00:33:28.460
+where during the
+process of convergence,
+
+00:33:28.460 --> 00:33:31.040
+C does not have a
+route to this link--
+
+00:33:31.040 --> 00:33:32.810
+to the destination
+D. But B thought
+
+00:33:32.810 --> 00:33:35.750
+it had a route going via
+C. But in fact, C just
+
+00:33:35.750 --> 00:33:36.620
+dropped that packet.
+
+00:33:36.620 --> 00:33:38.180
+That's the second
+condition that happens.
+
+00:33:38.180 --> 00:33:38.847
+It's a dead end.
+
+00:33:41.522 --> 00:33:43.730
+So both of these things can
+happen during the process
+
+00:33:43.730 --> 00:33:44.355
+of convergence.
+
+00:33:44.355 --> 00:33:46.063
+Now, these routing
+loops are particularly
+
+00:33:46.063 --> 00:33:48.470
+problematic because when
+you have a routing loop,
+
+00:33:48.470 --> 00:33:51.440
+this is an example of
+a two-hop routing loop.
+
+00:33:51.440 --> 00:33:54.840
+A goes to B. B goes to A goes
+to B. So it bounces twice.
+
+00:33:54.840 --> 00:33:56.840
+But you can have more
+complicated routing loops.
+
+00:33:56.840 --> 00:34:00.110
+You could have a routing
+loop with four hops that
+
+00:34:00.110 --> 00:34:03.080
+looks like-- or four
+nodes involved, as opposed
+
+00:34:03.080 --> 00:34:06.410
+to two nodes, where
+this is destination D.
+
+00:34:06.410 --> 00:34:09.600
+And this A thinks that
+you have to go that way.
+
+00:34:09.600 --> 00:34:11.270
+B thinks that you
+have to go this way.
+
+00:34:11.270 --> 00:34:12.690
+C thinks you have
+to go this way.
+
+00:34:12.690 --> 00:34:15.380
+And let's call this guy E. He
+thinks you have to go that way.
+
+00:34:15.380 --> 00:34:16.949
+And this could happen.
+
+00:34:16.949 --> 00:34:19.679
+So you end up with
+packets cycling around.
+
+00:34:19.679 --> 00:34:22.260
+Now, these packets
+cycling around--
+
+00:34:22.260 --> 00:34:24.110
+you know, there's
+really no way to--
+
+00:34:24.110 --> 00:34:28.040
+once you have routing table
+entries that have somehow
+
+00:34:28.040 --> 00:34:31.040
+converged, until it gets
+fixed, somehow if they've
+
+00:34:31.040 --> 00:34:33.739
+converged to routes that--
+
+00:34:33.739 --> 00:34:35.420
+where for B, you have
+to use this link,
+
+00:34:35.420 --> 00:34:37.489
+and C has to use this
+link, and so forth,
+
+00:34:37.489 --> 00:34:40.430
+and you get a cycle,
+what ends up happening
+
+00:34:40.430 --> 00:34:42.739
+is these packets cycle forever.
+
+00:34:42.739 --> 00:34:46.190
+There's really no way to avoid
+the packets cycling forever.
+
+00:34:48.830 --> 00:34:51.170
+Now, this is, of course--
+eventually this will be fixed.
+
+00:34:51.170 --> 00:34:52.940
+If the routing protocol
+eventually converges,
+
+00:34:52.940 --> 00:34:54.860
+it will eventually
+discover that this is wrong
+
+00:34:54.860 --> 00:34:56.600
+and find the correct answer.
+
+00:34:56.600 --> 00:34:58.610
+But during the process
+of convergence,
+
+00:34:58.610 --> 00:35:00.170
+bad things could
+happen like this.
+
+00:35:00.170 --> 00:35:03.320
+And that's why we have on
+packets in packet switch
+
+00:35:03.320 --> 00:35:06.620
+networks a field called
+the hop limit field.
+
+00:35:06.620 --> 00:35:08.030
+And that's on a data packet.
+
+00:35:08.030 --> 00:35:10.880
+So you have the source
+of the packet sets
+
+00:35:10.880 --> 00:35:12.980
+a hop limit-- let's say 32.
+
+00:35:12.980 --> 00:35:15.230
+It just says that I need
+to get to the destination
+
+00:35:15.230 --> 00:35:17.120
+and I know it shouldn't
+take more than 32
+
+00:35:17.120 --> 00:35:19.070
+hops, no matter what happens.
+
+00:35:19.070 --> 00:35:22.100
+And then every node that-- every
+switch that gets this packet
+
+00:35:22.100 --> 00:35:25.340
+reduces the hop limit by 1.
+
+00:35:25.340 --> 00:35:28.010
+And eventually when the
+hop limit gets to zero,
+
+00:35:28.010 --> 00:35:29.052
+the packet's discarded.
+
+00:35:29.052 --> 00:35:31.260
+So this is a way to flush
+packets out of the network.
+
+00:35:31.260 --> 00:35:35.060
+And usually you use this
+mechanism to handle the case
+
+00:35:35.060 --> 00:35:37.963
+when you get stuck
+in a routing loop,
+
+00:35:37.963 --> 00:35:40.130
+you don't want these packets
+to cycle around forever
+
+00:35:40.130 --> 00:35:43.010
+and ever and ever, because these
+packets move around the network
+
+00:35:43.010 --> 00:35:44.510
+in milliseconds.
+
+00:35:44.510 --> 00:35:46.160
+And the routing
+protocols take minutes
+
+00:35:46.160 --> 00:35:48.260
+to converge, or many,
+many seconds to converge.
+
+00:35:48.260 --> 00:35:49.490
+So that's many,
+many milliseconds.
+
+00:35:49.490 --> 00:35:51.532
+These packets could remain
+in the network forever
+
+00:35:51.532 --> 00:35:54.080
+and ever using the bandwidth
+and no one's getting any use out
+
+00:35:54.080 --> 00:35:54.900
+of it.
+
+00:35:54.900 --> 00:35:57.200
+So you have this hop limit
+field to flush packets out
+
+00:35:57.200 --> 00:35:58.862
+of the system.
+
+00:35:58.862 --> 00:36:00.320
+But of course, what
+we'd like to do
+
+00:36:00.320 --> 00:36:03.470
+is to design protocols with
+guaranteed no routing loops
+
+00:36:03.470 --> 00:36:04.820
+at all.
+
+00:36:04.820 --> 00:36:07.320
+Unfortunately, it's
+impossible to do that.
+
+00:36:07.320 --> 00:36:09.740
+But what we can try to do
+is to reduce and mitigate
+
+00:36:09.740 --> 00:36:13.040
+the effects of routing loops.
+
+00:36:13.040 --> 00:36:16.190
+Now, I want to go through a few
+more examples of routing loops
+
+00:36:16.190 --> 00:36:17.060
+in--
+
+00:36:17.060 --> 00:36:18.717
+this is in the link
+state protocol.
+
+00:36:18.717 --> 00:36:20.300
+I want to actually
+now talk about what
+
+00:36:20.300 --> 00:36:22.910
+happens with a distance
+vector protocol
+
+00:36:22.910 --> 00:36:26.047
+and show you why this basic,
+simple distance vector
+
+00:36:26.047 --> 00:36:28.130
+protocol, which is the
+first routing protocol that
+
+00:36:28.130 --> 00:36:31.253
+was invented, has some problems
+and how we go about fixing it.
+
+00:36:31.253 --> 00:36:33.170
+And eventually I'll talk
+about how this is all
+
+00:36:33.170 --> 00:36:36.720
+used on the internet today.
+
+00:36:36.720 --> 00:36:39.125
+So here's how a
+distance protocol--
+
+00:36:39.125 --> 00:36:40.820
+a distance vector
+protocol might get
+
+00:36:40.820 --> 00:36:45.690
+stuck in a weird
+kind of routing loop.
+
+00:36:45.690 --> 00:36:49.310
+So let's take this example
+here where you have five nodes
+
+00:36:49.310 --> 00:36:52.310
+and we're all interested in
+finding routes to destination
+
+00:36:52.310 --> 00:36:55.160
+E. And the general lesson
+I want to get at here
+
+00:36:55.160 --> 00:36:58.080
+is that a distance vector
+protocol is extremely simple,
+
+00:36:58.080 --> 00:37:01.010
+but it only works
+on small networks.
+
+00:37:01.010 --> 00:37:03.950
+And for bigger networks,
+we want something better.
+
+00:37:03.950 --> 00:37:06.470
+So that's where
+the story's going.
+
+00:37:06.470 --> 00:37:09.200
+So let me refresh where we
+are, all the discussion I
+
+00:37:09.200 --> 00:37:09.980
+had so far.
+
+00:37:09.980 --> 00:37:14.558
+So let's assume that link
+AC fails in this picture.
+
+00:37:14.558 --> 00:37:16.975
+So what you would like to--
+and assume that all link costs
+
+00:37:16.975 --> 00:37:17.540
+are 1.
+
+00:37:17.540 --> 00:37:20.300
+So we don't worry about
+costs at this point.
+
+00:37:20.300 --> 00:37:23.910
+What you want to have happen is
+for A to discover that this--
+
+00:37:23.910 --> 00:37:25.220
+A discovers that's failed.
+
+00:37:25.220 --> 00:37:26.900
+And when the routing
+converges, you
+
+00:37:26.900 --> 00:37:30.890
+would like A to use this link
+as its route to destination E.
+
+00:37:30.890 --> 00:37:35.040
+And the cost would be 1,
+1, 1, which would be 3.
+
+00:37:35.040 --> 00:37:35.540
+All right.
+
+00:37:35.540 --> 00:37:38.060
+So when A discovers failure,
+it sends a cost of E
+
+00:37:38.060 --> 00:37:42.770
+is infinity to its neighbor--
+in particular, to B.
+
+00:37:42.770 --> 00:37:45.500
+And then B, of
+course, has a route
+
+00:37:45.500 --> 00:37:48.090
+to destination E at cost 2.
+
+00:37:48.090 --> 00:37:51.620
+B advertises that to
+A. And then A says, now
+
+00:37:51.620 --> 00:37:54.020
+I have a route to
+destination E. And thus, this
+
+00:37:54.020 --> 00:37:57.140
+is an example of a good
+converging routing protocol.
+
+00:37:57.140 --> 00:37:59.278
+Everything's good.
+
+00:37:59.278 --> 00:38:01.070
+Now, let's assume I
+complicate the picture.
+
+00:38:01.070 --> 00:38:04.820
+Let's assume that
+link BD also fails.
+
+00:38:04.820 --> 00:38:06.480
+So now what's the
+correct answer?
+
+00:38:06.480 --> 00:38:10.850
+Well, these two guys
+have a route to E.
+
+00:38:10.850 --> 00:38:12.883
+But the network has
+become disconnected.
+
+00:38:12.883 --> 00:38:15.050
+So the correct answer, the
+correct convergent answer
+
+00:38:15.050 --> 00:38:19.270
+here is that A and B both
+discover and instantiate
+
+00:38:19.270 --> 00:38:21.080
+in the routing
+tables entries that
+
+00:38:21.080 --> 00:38:23.510
+say that E is at
+a cost of infinity
+
+00:38:23.510 --> 00:38:25.010
+because there's no
+path, which means
+
+00:38:25.010 --> 00:38:27.270
+that it's an infinite cost.
+
+00:38:27.270 --> 00:38:30.800
+So when a packet arrives
+at B for destination DE,
+
+00:38:30.800 --> 00:38:33.230
+you just drop the packet.
+
+00:38:33.230 --> 00:38:34.830
+But this could happen.
+
+00:38:34.830 --> 00:38:37.020
+So here's an example
+of how that happens.
+
+00:38:37.020 --> 00:38:40.130
+So let's say that
+this link fails.
+
+00:38:40.130 --> 00:38:42.530
+B discovers that through
+the hello protocol.
+
+00:38:42.530 --> 00:38:46.500
+And at this point, B changes
+its routing table entry
+
+00:38:46.500 --> 00:38:49.190
+so that E is at infinity.
+
+00:38:49.190 --> 00:38:51.980
+B had previously sent
+information to A saying
+
+00:38:51.980 --> 00:38:53.240
+that B was--
+
+00:38:53.240 --> 00:38:56.360
+E was at distance 2 or cost 2.
+
+00:38:56.360 --> 00:38:58.220
+And now it says,
+well, I told you
+
+00:38:58.220 --> 00:39:00.350
+that E was at cost 2 before.
+
+00:39:00.350 --> 00:39:01.520
+But I'm changing my mind.
+
+00:39:01.520 --> 00:39:02.890
+It's at cost infinity.
+
+00:39:02.890 --> 00:39:04.580
+And A says, OK.
+
+00:39:04.580 --> 00:39:08.630
+My entry for E now has cost
+infinity and both of them
+
+00:39:08.630 --> 00:39:12.245
+have converged correctly
+to the right answer.
+
+00:39:12.245 --> 00:39:14.120
+Now, unfortunately,
+that's not the only thing
+
+00:39:14.120 --> 00:39:15.560
+that could happen.
+
+00:39:15.560 --> 00:39:19.310
+This was in the lucky situation
+when B discovered it had failed
+
+00:39:19.310 --> 00:39:22.790
+and immediately sent
+out its cost to A.
+
+00:39:22.790 --> 00:39:25.530
+But what could happen
+is a little different.
+
+00:39:25.530 --> 00:39:27.560
+What could happen
+is that B could
+
+00:39:27.560 --> 00:39:33.380
+discover that D has failed
+and change its routing table
+
+00:39:33.380 --> 00:39:35.240
+entry to infinity.
+
+00:39:35.240 --> 00:39:38.080
+But before it gets a chance
+to send out its advertisement
+
+00:39:38.080 --> 00:39:39.140
+to A--
+
+00:39:39.140 --> 00:39:41.250
+or perhaps it sends
+out its advertisement
+
+00:39:41.250 --> 00:39:44.368
+with a cost of infinity
+to A, but it got lost--
+
+00:39:44.368 --> 00:39:46.160
+in either of those
+cases, what could happen
+
+00:39:46.160 --> 00:39:48.990
+is A could send out
+its routing table
+
+00:39:48.990 --> 00:39:53.780
+cost to B for destination
+E, because that's what's
+
+00:39:53.780 --> 00:39:55.190
+happening periodically, right?
+
+00:39:55.190 --> 00:39:56.630
+Every node is
+periodically running this.
+
+00:39:56.630 --> 00:39:58.088
+And the times are
+all asynchronous.
+
+00:39:58.088 --> 00:40:01.220
+Every node has its own notion
+of when it should send out
+
+00:40:01.220 --> 00:40:03.290
+its advertisement.
+
+00:40:03.290 --> 00:40:07.790
+So what happens now is A sends
+out an advertisement to B
+
+00:40:07.790 --> 00:40:12.810
+saying it has a route to
+destination E at a cost of 3,
+
+00:40:12.810 --> 00:40:14.120
+which is very valid, right?
+
+00:40:14.120 --> 00:40:18.580
+After all, A does have a
+route in its routing table
+
+00:40:18.580 --> 00:40:20.120
+to E, whose cost is 3.
+
+00:40:20.120 --> 00:40:22.670
+It so happens it goes
+through B. But A doesn't yet
+
+00:40:22.670 --> 00:40:25.040
+know that that
+link BD has failed.
+
+00:40:27.775 --> 00:40:29.150
+Now we're a little
+bit in trouble
+
+00:40:29.150 --> 00:40:32.960
+because B now believes that
+its routing table entry for E
+
+00:40:32.960 --> 00:40:37.700
+is at cost of infinity because
+BD has failed that link.
+
+00:40:37.700 --> 00:40:42.490
+And now it sees an advertisement
+from A with a better cost.
+
+00:40:42.490 --> 00:40:44.700
+The route says,
+wow, this is cool.
+
+00:40:44.700 --> 00:40:48.330
+I now have a path
+of cost 3 via A
+
+00:40:48.330 --> 00:40:52.380
+to E, which is better
+than my cost of infinity.
+
+00:40:52.380 --> 00:40:55.320
+And so I'm going to assume
+that I have an entry
+
+00:40:55.320 --> 00:40:58.080
+to E at a cost of 4.
+
+00:40:58.080 --> 00:41:00.120
+So now you can see
+that this is actually
+
+00:41:00.120 --> 00:41:03.350
+not a valid route at all.
+
+00:41:03.350 --> 00:41:05.150
+Now, B actually,
+on the face of it,
+
+00:41:05.150 --> 00:41:08.660
+has no way of knowing if A is
+telling it a different route.
+
+00:41:08.660 --> 00:41:10.280
+So it could
+conceivably be the case
+
+00:41:10.280 --> 00:41:16.640
+that A has a different route
+going that way whose cost is 3.
+
+00:41:16.640 --> 00:41:20.222
+And A can legitimately
+have a cost of 3 to E
+
+00:41:20.222 --> 00:41:23.060
+that it could be
+telling B about.
+
+00:41:23.060 --> 00:41:25.010
+But in this protocol,
+there's no way for B
+
+00:41:25.010 --> 00:41:28.670
+to distinguish that case
+from the case where A is just
+
+00:41:28.670 --> 00:41:31.520
+repeating to B a route
+that it received via B.
+
+00:41:31.520 --> 00:41:35.550
+But it's just telling it
+that it has a route via B.
+
+00:41:35.550 --> 00:41:39.710
+Now, B, therefore, says that
+it has a cost of 4 to E.
+
+00:41:39.710 --> 00:41:42.020
+And it sends that to
+A. And A says, whoa.
+
+00:41:42.020 --> 00:41:43.760
+Previously, the cost was 3--
+
+00:41:43.760 --> 00:41:46.190
+2 from B. And now
+B is telling me
+
+00:41:46.190 --> 00:41:47.810
+that the cost is
+4, which means I
+
+00:41:47.810 --> 00:41:51.460
+need to make my cost equal
+to 4 plus 1, which is 5.
+
+00:41:51.460 --> 00:41:53.570
+And I'm going to
+send that back down.
+
+00:41:53.570 --> 00:41:54.490
+B says, all right.
+
+00:41:54.490 --> 00:41:55.490
+I've got a cost of 5.
+
+00:41:55.490 --> 00:41:58.500
+Previously, that same
+thing had a cost of 3.
+
+00:41:58.500 --> 00:42:00.901
+So now I'm going
+to make my cost 6.
+
+00:42:00.901 --> 00:42:02.552
+And this goes on forever.
+
+00:42:02.552 --> 00:42:04.760
+Now, in the meantime, if
+there are packets showing up
+
+00:42:04.760 --> 00:42:06.895
+at either A or B
+for destination E,
+
+00:42:06.895 --> 00:42:09.020
+they're just going to go
+bouncing between these two
+
+00:42:09.020 --> 00:42:09.750
+guys.
+
+00:42:09.750 --> 00:42:12.530
+This is a routing loop.
+
+00:42:12.530 --> 00:42:14.880
+Now, when does this stop?
+
+00:42:14.880 --> 00:42:20.065
+When do these guys stop sending
+these incrementing costs?
+
+00:42:20.065 --> 00:42:20.991
+Sorry?
+
+00:42:20.991 --> 00:42:23.493
+AUDIENCE: [INAUDIBLE].
+
+00:42:23.493 --> 00:42:24.160
+PROFESSOR: Yeah.
+
+00:42:24.160 --> 00:42:25.990
+You need a value of infinity.
+
+00:42:25.990 --> 00:42:27.610
+You need to say
+that, at some point,
+
+00:42:27.610 --> 00:42:30.050
+they're going to reach infinity
+and we're going to stop.
+
+00:42:30.050 --> 00:42:31.570
+So in other words,
+for this protocol
+
+00:42:31.570 --> 00:42:34.330
+as it's presented to converge
+in a legitimate amount--
+
+00:42:34.330 --> 00:42:37.030
+reasonable amount of time,
+your value of infinity
+
+00:42:37.030 --> 00:42:39.940
+should be small.
+
+00:42:39.940 --> 00:42:41.470
+So this thing has
+a colorful name.
+
+00:42:41.470 --> 00:42:43.270
+It's called counting
+to infinity.
+
+00:42:43.270 --> 00:42:47.280
+Now, in reality, in any network,
+the cost of infinity cannot be
+
+00:42:47.280 --> 00:42:53.760
+smaller than the minimum--
+the maximum minimum cost path.
+
+00:42:53.760 --> 00:42:56.970
+If you have a minimum cost
+path that has a cost of 75,
+
+00:42:56.970 --> 00:43:01.590
+for whatever reason, infinity
+had better be bigger than 75.
+
+00:43:01.590 --> 00:43:02.280
+Right?
+
+00:43:02.280 --> 00:43:04.080
+So what it means
+is that you have
+
+00:43:04.080 --> 00:43:06.440
+a problem with this protocol.
+
+00:43:06.440 --> 00:43:07.950
+It works great on
+small networks.
+
+00:43:07.950 --> 00:43:09.480
+But it only works
+on small networks.
+
+00:43:09.480 --> 00:43:12.220
+And the reason for that is that
+it needs the value of infinity
+
+00:43:12.220 --> 00:43:14.830
+that's not very big.
+
+00:43:14.830 --> 00:43:17.370
+So this is why distance
+vector protocols are only
+
+00:43:17.370 --> 00:43:19.800
+used for really
+simple, small networks.
+
+00:43:19.800 --> 00:43:22.170
+And the moment the network
+becomes a certain size
+
+00:43:22.170 --> 00:43:25.390
+or when you want costs
+that are large values,
+
+00:43:25.390 --> 00:43:27.788
+you really can't
+use this protocol.
+
+00:43:27.788 --> 00:43:29.080
+So how do you fix this problem?
+
+00:43:32.460 --> 00:43:35.580
+Any ideas on how to
+solve this problem?
+
+00:43:35.580 --> 00:43:38.710
+Clearly the internet
+is pretty big.
+
+00:43:38.710 --> 00:43:41.820
+We're not counting to infinity
+throughout the whole internet.
+
+00:43:41.820 --> 00:43:43.770
+Or at least, we
+don't think we are.
+
+00:43:43.770 --> 00:43:45.300
+So how would you
+fix this problem?
+
+00:43:45.300 --> 00:43:45.930
+Any ideas?
+
+00:43:51.370 --> 00:43:51.870
+Yes?
+
+00:43:51.870 --> 00:43:53.680
+AUDIENCE: [INAUDIBLE].
+
+00:43:53.680 --> 00:43:55.680
+PROFESSOR: So we do have
+a hop limit on packets.
+
+00:43:55.680 --> 00:43:58.120
+So all these packets
+might have a hop limit.
+
+00:43:58.120 --> 00:44:01.020
+So the packets don't remain in
+the network for a long time.
+
+00:44:01.020 --> 00:44:03.930
+But that doesn't solve the
+problem of the routing protocol
+
+00:44:03.930 --> 00:44:10.625
+to converge takes a time
+which is this counting
+
+00:44:10.625 --> 00:44:12.130
+to infinity problem.
+
+00:44:12.130 --> 00:44:14.080
+So you want a better
+solution in some way.
+
+00:44:14.080 --> 00:44:15.344
+Yes?
+
+00:44:15.344 --> 00:44:16.805
+AUDIENCE: [INAUDIBLE].
+
+00:44:24.997 --> 00:44:25.580
+PROFESSOR: OK.
+
+00:44:25.580 --> 00:44:27.655
+So that's one good
+idea, which is--
+
+00:44:27.655 --> 00:44:29.280
+in fact, that's how
+they started trying
+
+00:44:29.280 --> 00:44:33.180
+to solve this problem,
+which is, if you have
+
+00:44:33.180 --> 00:44:37.740
+a route to a destination
+coming from a neighbor,
+
+00:44:37.740 --> 00:44:40.570
+don't send back the
+same route to them.
+
+00:44:40.570 --> 00:44:44.100
+In other words, in this
+case, A's route to E
+
+00:44:44.100 --> 00:44:49.320
+was via B. So A should not
+advertise a route to E--
+
+00:44:49.320 --> 00:44:51.947
+a route for destination
+E back to B.
+
+00:44:51.947 --> 00:44:53.530
+If you do that,
+there's a name for it.
+
+00:44:53.530 --> 00:44:55.155
+It's called split
+horizon and the notes
+
+00:44:55.155 --> 00:44:57.450
+describe how this
+protocol works.
+
+00:44:57.450 --> 00:44:59.910
+Or you could do even better.
+
+00:44:59.910 --> 00:45:03.660
+A could advertise to B that
+its route to destination E
+
+00:45:03.660 --> 00:45:07.800
+has a cost of infinity,
+forcing B to definitely
+
+00:45:07.800 --> 00:45:09.270
+not use that route,
+no matter what
+
+00:45:09.270 --> 00:45:11.610
+happens, because A
+perceived that route via B.
+
+00:45:11.610 --> 00:45:14.100
+So A should tell B that
+the cost of that route
+
+00:45:14.100 --> 00:45:16.770
+is infinity because under
+no circumstances does A
+
+00:45:16.770 --> 00:45:20.220
+want B to use the same
+route that it received.
+
+00:45:20.220 --> 00:45:21.095
+So you could do that.
+
+00:45:21.095 --> 00:45:23.303
+The trouble with that is it
+doesn't-- it solves these
+
+00:45:23.303 --> 00:45:25.680
+two-hop loop problems, but it
+doesn't solve four-hop loop
+
+00:45:25.680 --> 00:45:26.340
+problems.
+
+00:45:26.340 --> 00:45:30.960
+So you could have a situation
+where this link fails and C
+
+00:45:30.960 --> 00:45:32.010
+discovers that.
+
+00:45:32.010 --> 00:45:34.140
+But before C sends
+out its update,
+
+00:45:34.140 --> 00:45:38.805
+B sends out its route to C.
+And so C thinks it can use B.
+
+00:45:38.805 --> 00:45:42.600
+In the meantime, B thinks
+it has a route via A.
+
+00:45:42.600 --> 00:45:44.730
+So you might end up with
+packets cycling around
+
+00:45:44.730 --> 00:45:45.900
+in longer hop loops.
+
+00:45:45.900 --> 00:45:48.030
+So that idea that you
+had doesn't actually
+
+00:45:48.030 --> 00:45:50.110
+solve the more general problem.
+
+00:45:50.110 --> 00:45:51.765
+So any other
+modification or idea
+
+00:45:51.765 --> 00:45:52.890
+that can solve the problem?
+
+00:46:01.250 --> 00:46:03.260
+So one thing you
+could do is something
+
+00:46:03.260 --> 00:46:05.870
+called path vector, which
+is what you could do
+
+00:46:05.870 --> 00:46:09.080
+is every node, rather than
+just sending the cost,
+
+00:46:09.080 --> 00:46:12.230
+it could send the entire
+route, that is-- sorry.
+
+00:46:12.230 --> 00:46:13.910
+It could send the entire path.
+
+00:46:13.910 --> 00:46:16.250
+It could send the
+list of nodes that
+
+00:46:16.250 --> 00:46:19.417
+corresponds to that particular
+route in its routing table
+
+00:46:19.417 --> 00:46:20.000
+advertisement.
+
+00:46:20.000 --> 00:46:21.620
+So I'll show that
+with a picture here.
+
+00:46:21.620 --> 00:46:25.910
+So E could send out not
+just its destination
+
+00:46:25.910 --> 00:46:29.240
+and a cost, which previously, it
+would say that to come to E, E
+
+00:46:29.240 --> 00:46:30.710
+would say the cost is zero.
+
+00:46:30.710 --> 00:46:34.700
+But it could now say the cost
+is zero and the path is E.
+
+00:46:34.700 --> 00:46:38.210
+And then each of these
+other guys, C and D,
+
+00:46:38.210 --> 00:46:42.850
+could send out their
+own advertisements
+
+00:46:42.850 --> 00:46:46.030
+saying the cost is 2 or
+whatever-- the cost is 1.
+
+00:46:46.030 --> 00:46:48.970
+But they could also say
+that the path is the DE.
+
+00:46:48.970 --> 00:46:53.560
+So D says that my path to get
+to E is DE in its advertisement.
+
+00:46:53.560 --> 00:46:55.540
+And B here, when
+it receives that,
+
+00:46:55.540 --> 00:46:59.120
+could send out its
+own path vector,
+
+00:46:59.120 --> 00:47:05.270
+which is the list of nodes
+or the list of switches
+
+00:47:05.270 --> 00:47:09.590
+that corresponds to an actual
+path that's advertised.
+
+00:47:09.590 --> 00:47:11.630
+And now the rule for
+how you integrate
+
+00:47:11.630 --> 00:47:15.180
+a route into your routing
+table entries is very simple.
+
+00:47:15.180 --> 00:47:18.380
+If you see an advertisement
+with your own identity
+
+00:47:18.380 --> 00:47:19.940
+in that advertisement,
+then you know
+
+00:47:19.940 --> 00:47:22.455
+that that's just a
+rumor that you started
+
+00:47:22.455 --> 00:47:24.830
+or you were involved with, so
+you shouldn't integrate it.
+
+00:47:24.830 --> 00:47:27.020
+So in particular, in
+this example here,
+
+00:47:27.020 --> 00:47:31.280
+if B, for example, were to
+see an advertisement from A
+
+00:47:31.280 --> 00:47:36.568
+with a path that was A, B, D, E,
+then B wouldn't integrate that.
+
+00:47:36.568 --> 00:47:38.860
+So what would happen in the
+picture I showed you before
+
+00:47:38.860 --> 00:47:41.510
+is if these two links were
+to fail, what would happen
+
+00:47:41.510 --> 00:47:44.510
+is that B would have--
+if that link failed,
+
+00:47:44.510 --> 00:47:47.780
+B would have sent
+that BDE over here.
+
+00:47:47.780 --> 00:47:50.480
+And when A advertises
+that back to B,
+
+00:47:50.480 --> 00:47:53.120
+it would have ABDE show up.
+
+00:47:53.120 --> 00:47:55.880
+And B now sees ABDE.
+
+00:47:55.880 --> 00:47:59.270
+And B finds that its own
+name is in that vector
+
+00:47:59.270 --> 00:48:00.890
+or in that
+advertisement and says,
+
+00:48:00.890 --> 00:48:03.550
+I should pay no
+attention to that.
+
+00:48:03.550 --> 00:48:05.810
+And as long as you find
+your own name somewhere
+
+00:48:05.810 --> 00:48:09.890
+in that list of nodes
+that routing advertisement
+
+00:48:09.890 --> 00:48:12.500
+went through, you know that
+you shouldn't pay any attention
+
+00:48:12.500 --> 00:48:16.190
+to it because you were involved
+in creating that advertisement.
+
+00:48:16.190 --> 00:48:18.560
+And so you shouldn't
+pay attention to it.
+
+00:48:18.560 --> 00:48:20.090
+This protocol is
+called path vector.
+
+00:48:20.090 --> 00:48:21.872
+It's used on the
+internet in something
+
+00:48:21.872 --> 00:48:23.330
+called the Border
+Gateway Protocol,
+
+00:48:23.330 --> 00:48:25.310
+which runs between
+autonomous systems.
+
+00:48:25.310 --> 00:48:30.050
+And that's actually what
+makes the internet essentially
+
+00:48:30.050 --> 00:48:32.780
+converge and not have
+these routing loops that
+
+00:48:32.780 --> 00:48:35.212
+go between different
+internet service providers.
+
+00:48:38.590 --> 00:48:42.160
+Any questions, comments so
+far about any of this stuff?
+
+00:48:45.950 --> 00:48:48.423
+So let me summarize everything
+about routing protocols.
+
+00:48:48.423 --> 00:48:50.590
+And we pick this up in
+recitation with some problems
+
+00:48:50.590 --> 00:48:51.400
+tomorrow.
+
+00:48:51.400 --> 00:48:53.620
+So the last two lectures
+in recitation, we've
+
+00:48:53.620 --> 00:48:55.490
+spoken about the network layer.
+
+00:48:55.490 --> 00:48:58.420
+And the main problem that's
+solved by the network layer
+
+00:48:58.420 --> 00:49:00.640
+is how to get packet
+routing to work.
+
+00:49:00.640 --> 00:49:04.200
+How do you find good paths
+between different nodes
+
+00:49:04.200 --> 00:49:05.950
+in the network, between
+different switches
+
+00:49:05.950 --> 00:49:06.575
+in the network?
+
+00:49:09.150 --> 00:49:10.850
+Now, we've separated
+out the tasks
+
+00:49:10.850 --> 00:49:12.680
+of routing from forwarding.
+
+00:49:12.680 --> 00:49:16.208
+Forwarding is what happens when
+a packet arrives at a switch.
+
+00:49:16.208 --> 00:49:18.250
+There's a lookup that
+happens in a routing table.
+
+00:49:18.250 --> 00:49:19.160
+You take the destination.
+
+00:49:19.160 --> 00:49:20.660
+You look it up in
+the table, find
+
+00:49:20.660 --> 00:49:24.000
+the link in the routing
+table, and ship the packet.
+
+00:49:24.000 --> 00:49:25.630
+So that's done--
+usually you want
+
+00:49:25.630 --> 00:49:27.502
+it to be done very, very fast.
+
+00:49:27.502 --> 00:49:29.210
+Routing is the process
+by which the nodes
+
+00:49:29.210 --> 00:49:31.130
+create routing table entries.
+
+00:49:31.130 --> 00:49:32.870
+And that's a very
+distributed process.
+
+00:49:32.870 --> 00:49:35.240
+It runs amongst all
+of the other-- all
+
+00:49:35.240 --> 00:49:37.092
+of the switches in the network.
+
+00:49:37.092 --> 00:49:39.050
+We looked at two routing
+protocols-- link state
+
+00:49:39.050 --> 00:49:41.190
+and distance vector.
+
+00:49:41.190 --> 00:49:43.070
+In distance vector,
+the computation
+
+00:49:43.070 --> 00:49:46.250
+is distributed with these
+Bellman-Ford update steps.
+
+00:49:46.250 --> 00:49:48.560
+And the distance
+vector protocol is
+
+00:49:48.560 --> 00:49:50.600
+very beautiful in that
+it's very, very simple.
+
+00:49:50.600 --> 00:49:52.122
+It works for small networks.
+
+00:49:52.122 --> 00:49:54.080
+But to make the ideal
+work for bigger networks,
+
+00:49:54.080 --> 00:49:57.590
+you have to enhance the
+distance with the actual path.
+
+00:49:57.590 --> 00:49:59.262
+And if you enhance
+it with the path,
+
+00:49:59.262 --> 00:50:01.220
+you actually avoid a lot
+of these routing loops
+
+00:50:01.220 --> 00:50:01.762
+that show up.
+
+00:50:01.762 --> 00:50:02.780
+You can't eliminate it.
+
+00:50:02.780 --> 00:50:06.330
+But you can mitigate
+the effect of it.
+
+00:50:06.330 --> 00:50:07.918
+In the link state
+protocol, there's
+
+00:50:07.918 --> 00:50:09.210
+actually more work that's done.
+
+00:50:09.210 --> 00:50:12.480
+There's a lot more information
+that's flooded between nodes.
+
+00:50:12.480 --> 00:50:14.400
+But the protocol
+converges quicker
+
+00:50:14.400 --> 00:50:17.875
+than these distance vector and
+path vector protocols usually.
+
+00:50:17.875 --> 00:50:20.250
+Link state protocol, you flood
+this neighbor information.
+
+00:50:20.250 --> 00:50:21.375
+You consume more bandwidth.
+
+00:50:21.375 --> 00:50:23.667
+There's a lot more bandwidth
+that's used in the network
+
+00:50:23.667 --> 00:50:24.372
+in flooding it.
+
+00:50:24.372 --> 00:50:25.830
+And the computation
+is centralized.
+
+00:50:25.830 --> 00:50:27.560
+You run Dijkstra's
+shortest path.
+
+00:50:27.560 --> 00:50:29.460
+So what the internet
+does in general--
+
+00:50:29.460 --> 00:50:31.170
+I'll pick up on this two
+lecture-- or three lectures
+
+00:50:31.170 --> 00:50:33.295
+from now, when I talk about
+how the internet really
+
+00:50:33.295 --> 00:50:35.730
+works and applies the
+concepts we've studied.
+
+00:50:35.730 --> 00:50:38.460
+What you'll find is that
+networks like MIT's network
+
+00:50:38.460 --> 00:50:40.740
+will run a protocol like--
+
+00:50:40.740 --> 00:50:43.530
+a link state like protocol
+to achieve connectivity
+
+00:50:43.530 --> 00:50:45.300
+between nodes inside MIT.
+
+00:50:45.300 --> 00:50:47.682
+And then routers at the
+edge of MIT connecting
+
+00:50:47.682 --> 00:50:49.140
+to other internet
+service providers
+
+00:50:49.140 --> 00:50:52.008
+run a path vector
+protocol, like BGP.
+
+00:50:52.008 --> 00:50:53.550
+And all of these
+things work together
+
+00:50:53.550 --> 00:50:55.830
+and they work because
+ultimately, all of the switches
+
+00:50:55.830 --> 00:50:57.510
+create these routing
+table entries
+
+00:50:57.510 --> 00:51:00.870
+that have a mapping between
+destinations and routes
+
+00:51:00.870 --> 00:51:02.793
+or links that have to be used.
+
+00:51:02.793 --> 00:51:03.960
+So that's the routing story.
+
+00:51:03.960 --> 00:51:05.730
+We'll pick it up in
+recitation tomorrow
+
+00:51:05.730 --> 00:51:09.140
+and see you back on Wednesday.

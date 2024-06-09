@@ -1,0 +1,4271 @@
+WEBVTT
+
+00:00:15.405 --> 00:00:16.280
+ADAM YALA: OK, great.
+
+00:00:16.280 --> 00:00:18.113
+Well, thank you for
+the great setup.
+
+00:00:18.113 --> 00:00:20.530
+So for this section, I'm gonna
+talk about some of our work
+
+00:00:20.530 --> 00:00:22.275
+in interpreting
+mammograms for cancer.
+
+00:00:22.275 --> 00:00:24.400
+Specifically it's going to
+go into cancer detection
+
+00:00:24.400 --> 00:00:25.510
+and triage mammograms.
+
+00:00:25.510 --> 00:00:27.940
+Next, we'll talk about
+our technical approach
+
+00:00:27.940 --> 00:00:29.380
+in breast cancer risk.
+
+00:00:29.380 --> 00:00:31.840
+And then finally close up in
+the many, many different ways
+
+00:00:31.840 --> 00:00:33.850
+to mess up and the way
+things can go wrong,
+
+00:00:33.850 --> 00:00:35.360
+and how does it [INAUDIBLE]
+clinical implementation.
+
+00:00:35.360 --> 00:00:36.843
+So let's kind of
+look more closely
+
+00:00:36.843 --> 00:00:39.010
+at the numbers of the actual
+breast cancer screening
+
+00:00:39.010 --> 00:00:39.550
+workflow.
+
+00:00:39.550 --> 00:00:42.190
+So as Connie already said,
+you might see something
+
+00:00:42.190 --> 00:00:43.570
+like 1,000 patients.
+
+00:00:43.570 --> 00:00:44.680
+All them take mammograms.
+
+00:00:44.680 --> 00:00:46.780
+Of that 1,000, on
+average maybe 100
+
+00:00:46.780 --> 00:00:48.910
+they called back for
+additional imaging.
+
+00:00:48.910 --> 00:00:52.172
+Of that 100, something
+like 20 will get biopsied.
+
+00:00:52.172 --> 00:00:54.130
+And you end up with maybe
+five or six diagnoses
+
+00:00:54.130 --> 00:00:55.250
+of breast cancer.
+
+00:00:55.250 --> 00:00:57.880
+So one very clear thing
+you see about problems
+
+00:00:57.880 --> 00:01:00.820
+when you look at this
+funnel is that way
+
+00:01:00.820 --> 00:01:04.860
+over 99% of people that you see
+in a given day are cancer-free.
+
+00:01:04.860 --> 00:01:07.002
+So your actual
+incidence is very low.
+
+00:01:07.002 --> 00:01:09.460
+And so there's kind of a natural
+question that can come up.
+
+00:01:09.460 --> 00:01:10.960
+What can you do in
+terms of modeling
+
+00:01:10.960 --> 00:01:13.720
+if you have an even OK
+cancer detection model
+
+00:01:13.720 --> 00:01:15.730
+to raise the incidence
+of this population
+
+00:01:15.730 --> 00:01:17.590
+but automatically reading
+a portion of the population
+
+00:01:17.590 --> 00:01:18.090
+is healthy.
+
+00:01:18.090 --> 00:01:21.220
+Does everybody just
+follow that broad idea?
+
+00:01:21.220 --> 00:01:21.720
+OK.
+
+00:01:21.720 --> 00:01:23.407
+That's enough head nods.
+
+00:01:23.407 --> 00:01:24.990
+So the broad idea
+here is you're going
+
+00:01:24.990 --> 00:01:27.730
+to train the cancer detection
+model to try to find cancer
+
+00:01:27.730 --> 00:01:28.597
+as well as we can.
+
+00:01:28.597 --> 00:01:30.180
+Given that, we're
+going to try to say,
+
+00:01:30.180 --> 00:01:32.940
+what's a threshold on
+a development set such
+
+00:01:32.940 --> 00:01:34.950
+that we can kind of
+say below the threshold
+
+00:01:34.950 --> 00:01:36.035
+no one has cancer.
+
+00:01:36.035 --> 00:01:37.410
+And if we use that
+at test times,
+
+00:01:37.410 --> 00:01:39.390
+simulating clinical
+implementation, what would that
+
+00:01:39.390 --> 00:01:40.030
+look like?
+
+00:01:40.030 --> 00:01:43.560
+And can we actually do better
+by doing this kind of process?
+
+00:01:43.560 --> 00:01:46.240
+And the kind of broad plan of
+how I'm gonna talk about this--
+
+00:01:46.240 --> 00:01:47.700
+I'm gonna do this for
+the next product as well.
+
+00:01:47.700 --> 00:01:48.960
+Of course, we're going
+to talk about the kind
+
+00:01:48.960 --> 00:01:51.085
+of dataset collection and
+how we think about, like,
+
+00:01:51.085 --> 00:01:54.000
+you know, what is good data
+and how do we think about that.
+
+00:01:54.000 --> 00:01:56.940
+Next, the actual methodology and
+go into the general challenges
+
+00:01:56.940 --> 00:01:59.930
+when you're modeling mammograms
+for any computer mission tasks,
+
+00:01:59.930 --> 00:02:02.342
+specifically in cancer,
+and also, obviously, risk.
+
+00:02:02.342 --> 00:02:04.800
+And lastly, how we thought
+about the analysis and some kind
+
+00:02:04.800 --> 00:02:06.270
+of objectives there.
+
+00:02:06.270 --> 00:02:08.789
+So to kind of dive into it, we
+took consecutive mammograms.
+
+00:02:08.789 --> 00:02:10.039
+I'll get back into this later.
+
+00:02:10.039 --> 00:02:11.450
+This is actually
+quite important.
+
+00:02:11.450 --> 00:02:14.760
+We took consecutive
+mammograms from 2009 to 2016.
+
+00:02:14.760 --> 00:02:17.740
+This started off with
+about 280,000 cancers.
+
+00:02:17.740 --> 00:02:21.640
+And once we kind of filtered--
+so at least one year follow up,
+
+00:02:21.640 --> 00:02:23.400
+we ended up with
+this final setting
+
+00:02:23.400 --> 00:02:27.660
+where we had 220,000
+mammograms for training
+
+00:02:27.660 --> 00:02:30.088
+and about 26,000 for
+development and testing.
+
+00:02:30.088 --> 00:02:31.880
+And the way we had it,
+it all comes to say,
+
+00:02:31.880 --> 00:02:33.432
+is this a positive
+mammogram or not?
+
+00:02:33.432 --> 00:02:34.890
+We didn't look at
+what cancers were
+
+00:02:34.890 --> 00:02:36.220
+caught by the radiologists.
+
+00:02:36.220 --> 00:02:38.303
+We'd say, you know, what
+was cancer that was found
+
+00:02:38.303 --> 00:02:39.910
+in any means within a year?
+
+00:02:39.910 --> 00:02:42.510
+And where we looked to was
+through the radiology, EHR,
+
+00:02:42.510 --> 00:02:44.732
+and the Partners-- kind
+of five hospital registry.
+
+00:02:44.732 --> 00:02:46.440
+And there we were
+trying to save cancer--
+
+00:02:46.440 --> 00:02:48.300
+if anyway we can tell
+a cancer occurred,
+
+00:02:48.300 --> 00:02:51.240
+let's mart it as such regardless
+of what others caught on MRI
+
+00:02:51.240 --> 00:02:53.383
+or some kind of later stage.
+
+00:02:53.383 --> 00:02:55.050
+And so the thing we're
+trying to do here
+
+00:02:55.050 --> 00:02:57.270
+is just mimic the
+real world of what
+
+00:02:57.270 --> 00:02:59.023
+are we trying to catch cancer.
+
+00:02:59.023 --> 00:03:00.690
+And finally, important
+details we always
+
+00:03:00.690 --> 00:03:04.290
+split by patient so that
+your results aren't just
+
+00:03:04.290 --> 00:03:07.030
+memorizing this specific
+patient didn't have cancer.
+
+00:03:07.030 --> 00:03:10.130
+And so we have some overlap
+that's some bad bias to have.
+
+00:03:10.130 --> 00:03:10.630
+OK.
+
+00:03:10.630 --> 00:03:11.505
+That's pretty simple.
+
+00:03:11.505 --> 00:03:12.850
+Now let's go into the modeling.
+
+00:03:12.850 --> 00:03:15.510
+There's going to kind
+of follow two chunks.
+
+00:03:15.510 --> 00:03:18.070
+One chunk is going to be on
+the kind of general challenges,
+
+00:03:18.070 --> 00:03:20.680
+and it's kind of shared between
+the variety of projects.
+
+00:03:20.680 --> 00:03:23.190
+And next is going to be kind
+of more specific analysis
+
+00:03:23.190 --> 00:03:25.020
+for this project.
+
+00:03:25.020 --> 00:03:27.900
+So kind of a general
+question you might be asking,
+
+00:03:27.900 --> 00:03:28.650
+I have some image.
+
+00:03:28.650 --> 00:03:29.483
+I have some outcome.
+
+00:03:29.483 --> 00:03:31.470
+Obviously, this is just
+image classification.
+
+00:03:31.470 --> 00:03:34.330
+How is it different
+from ImageNet?
+
+00:03:34.330 --> 00:03:36.090
+Well, it's quite similar.
+
+00:03:36.090 --> 00:03:37.260
+Most lessons are shared.
+
+00:03:37.260 --> 00:03:39.190
+But there are some
+key differences.
+
+00:03:39.190 --> 00:03:40.600
+So I gave you two examples.
+
+00:03:40.600 --> 00:03:42.457
+One of them is a
+scene in my kitchen.
+
+00:03:42.457 --> 00:03:44.040
+Can anyone tell me
+what the object is?
+
+00:03:44.040 --> 00:03:46.376
+This is not a particularly
+hard question.
+
+00:03:46.376 --> 00:03:46.737
+AUDIENCE: [Intermingled
+voices] Dog.
+
+00:03:46.737 --> 00:03:46.810
+Bear.
+
+00:03:46.810 --> 00:03:47.690
+ADAM YALA: Right.
+
+00:03:47.690 --> 00:03:49.420
+AUDIENCE: Dog.
+
+00:03:49.420 --> 00:03:51.340
+ADAM YALA: It is almost
+all of those things.
+
+00:03:51.340 --> 00:03:53.180
+So that is my dog, the best dog.
+
+00:03:53.180 --> 00:03:53.680
+OK.
+
+00:03:53.680 --> 00:03:55.300
+So can anyone tell
+me, now that you've
+
+00:03:55.300 --> 00:03:58.490
+had some training with Connie,
+if this mammogram indicates
+
+00:03:58.490 --> 00:03:58.990
+cancer?
+
+00:04:01.560 --> 00:04:02.310
+Well, it does.
+
+00:04:02.310 --> 00:04:05.260
+And this is unfair for
+a couple of reasons.
+
+00:04:05.260 --> 00:04:07.200
+Let's go into, like,
+why this is hard.
+
+00:04:07.200 --> 00:04:09.533
+It's unfair in part because
+you don't have the training.
+
+00:04:09.533 --> 00:04:11.880
+But it's actually a much
+harder signal to learn.
+
+00:04:11.880 --> 00:04:15.630
+So first let's kind
+of delve into it.
+
+00:04:15.630 --> 00:04:18.180
+In this kind of task,
+the image is really huge.
+
+00:04:18.180 --> 00:04:21.810
+So you have something like a
+3,200 by 2,600 pixel image.
+
+00:04:21.810 --> 00:04:23.367
+This is a single
+view of a breast.
+
+00:04:23.367 --> 00:04:25.450
+And in that, the actual
+cancer they're looking for
+
+00:04:25.450 --> 00:04:27.030
+might be 50 by 50 pixels.
+
+00:04:27.030 --> 00:04:29.780
+So intuitively your signal to
+noise ratio is very different.
+
+00:04:29.780 --> 00:04:30.780
+Whereas an image that--
+
+00:04:30.780 --> 00:04:32.150
+my dog is like the entire image.
+
+00:04:32.150 --> 00:04:35.130
+She's huge in real
+life and in that photo.
+
+00:04:35.130 --> 00:04:36.720
+And the image itself
+is much smaller.
+
+00:04:36.720 --> 00:04:39.030
+So not only do you have
+much smaller images,
+
+00:04:39.030 --> 00:04:41.410
+but you're kind of, like, the
+relative size of the object
+
+00:04:41.410 --> 00:04:42.615
+in there is much larger.
+
+00:04:42.615 --> 00:04:44.520
+To kind of further
+compound the difficulty,
+
+00:04:44.520 --> 00:04:47.820
+the pattern you're looking
+for inside the mammogram
+
+00:04:47.820 --> 00:04:49.540
+is really context-dependent.
+
+00:04:49.540 --> 00:04:52.440
+So if you saw that pattern
+somewhere else in the breast,
+
+00:04:52.440 --> 00:04:54.863
+it doesn't indicate
+the same thing.
+
+00:04:54.863 --> 00:04:56.280
+And so you really
+care about where
+
+00:04:56.280 --> 00:04:58.368
+in this kind of global
+context this comes out.
+
+00:04:58.368 --> 00:04:59.910
+And if you kind of
+take the mammogram
+
+00:04:59.910 --> 00:05:02.060
+at different times with
+different compressions,
+
+00:05:02.060 --> 00:05:04.650
+you would have this kind
+of non-rigid morphing
+
+00:05:04.650 --> 00:05:06.960
+of the image that's much
+more difficult to model.
+
+00:05:06.960 --> 00:05:09.330
+Whereas that's a more or
+less context-independent dog.
+
+00:05:09.330 --> 00:05:11.520
+You see that kind of
+frame kind of anywhere,
+
+00:05:11.520 --> 00:05:12.360
+you know it's a dog.
+
+00:05:12.360 --> 00:05:14.490
+And so it's a much
+easier thing to learn
+
+00:05:14.490 --> 00:05:17.302
+in a traditional
+computer vision setting.
+
+00:05:17.302 --> 00:05:19.510
+And so the core challenge
+here is that both the image
+
+00:05:19.510 --> 00:05:21.340
+is too big and too small.
+
+00:05:21.340 --> 00:05:24.600
+So if you're looking at just
+the number of cancers we have,
+
+00:05:24.600 --> 00:05:27.030
+the cancer might be less
+than 1% of the mammogram
+
+00:05:27.030 --> 00:05:29.610
+and about 0.7% of your
+images have cancers,
+
+00:05:29.610 --> 00:05:32.560
+even in this data set,
+which is from 2000 to 2016
+
+00:05:32.560 --> 00:05:35.820
+MGH, a massive imaging center,
+in total across all of that,
+
+00:05:35.820 --> 00:05:39.220
+you will still have
+less than 2,000 cancers.
+
+00:05:39.220 --> 00:05:41.670
+And this is super tiny
+compared to regular object
+
+00:05:41.670 --> 00:05:43.710
+classification data sets.
+
+00:05:43.710 --> 00:05:45.630
+And this is looking at
+over a million images
+
+00:05:45.630 --> 00:05:48.163
+if you look at all the
+four views of the exams.
+
+00:05:48.163 --> 00:05:49.830
+And at the same time,
+it's also too big.
+
+00:05:49.830 --> 00:05:52.740
+So even if I downsample
+these images,
+
+00:05:52.740 --> 00:05:56.670
+I can only really fit three
+of them for a single GPU.
+
+00:05:56.670 --> 00:05:59.510
+And so this kind of limits the
+batch size I can work with.
+
+00:05:59.510 --> 00:06:01.220
+And whereas the
+kind of comparable,
+
+00:06:01.220 --> 00:06:02.970
+if I took just the
+regular image net size,
+
+00:06:02.970 --> 00:06:05.297
+I could fit batches of
+128, easily happy days
+
+00:06:05.297 --> 00:06:06.880
+and do all this
+parallelization stuff,
+
+00:06:06.880 --> 00:06:08.838
+and it's just much
+easier to play with.
+
+00:06:08.838 --> 00:06:11.130
+And finally, the actual data
+set itself is quite large.
+
+00:06:11.130 --> 00:06:12.490
+And so you have to do some--
+
+00:06:12.490 --> 00:06:14.340
+there's nuisances to deal
+with in terms of, like, just
+
+00:06:14.340 --> 00:06:16.298
+setting up your server
+infrastructure to handle
+
+00:06:16.298 --> 00:06:21.730
+these massive data sets, also
+be able to train efficiently.
+
+00:06:21.730 --> 00:06:23.770
+So you know, the
+core challenge here
+
+00:06:23.770 --> 00:06:25.435
+across all of
+these kind of tasks
+
+00:06:25.435 --> 00:06:27.310
+is, how do we make this
+model actually learn?
+
+00:06:27.310 --> 00:06:29.010
+The core problem is that
+our signal to noise ratio
+
+00:06:29.010 --> 00:06:29.690
+is quite low.
+
+00:06:29.690 --> 00:06:31.540
+So training ends up
+being quite unstable.
+
+00:06:31.540 --> 00:06:33.820
+And there's a kind of a
+couple of simple levers
+
+00:06:33.820 --> 00:06:34.780
+you can play with.
+
+00:06:34.780 --> 00:06:38.512
+The first lever is often
+deep learning initialization.
+
+00:06:38.512 --> 00:06:40.720
+Next, we're gonna talk about
+kind of the optimization
+
+00:06:40.720 --> 00:06:42.700
+or architecture choice
+and how this compares
+
+00:06:42.700 --> 00:06:44.990
+to what people often
+do in the community,
+
+00:06:44.990 --> 00:06:46.782
+including in a recent
+paper from yesterday.
+
+00:06:46.782 --> 00:06:49.073
+And then finally, we're gonna
+talk about something more
+
+00:06:49.073 --> 00:06:51.820
+explicit for the triage idea and
+how we actually use this model
+
+00:06:51.820 --> 00:06:53.720
+once it's trained.
+
+00:06:53.720 --> 00:06:54.220
+OK.
+
+00:06:54.220 --> 00:06:56.638
+So before I go into how
+we made these choices,
+
+00:06:56.638 --> 00:06:58.930
+I'm just going to say what
+we chose to give you context
+
+00:06:58.930 --> 00:07:00.830
+before I dive in.
+
+00:07:00.830 --> 00:07:03.190
+So we followed some
+image initialization.
+
+00:07:03.190 --> 00:07:06.160
+We use a relatively large
+batch size-ish of 24.
+
+00:07:06.160 --> 00:07:08.032
+And the way we do that
+is by taking 4 GPUs
+
+00:07:08.032 --> 00:07:09.490
+and just stepping
+a couple of times
+
+00:07:09.490 --> 00:07:11.177
+before doing an optimizer step.
+
+00:07:11.177 --> 00:07:12.760
+So when you do a
+couple rounds of back
+
+00:07:12.760 --> 00:07:14.690
+prop first to accumulate
+those gradients
+
+00:07:14.690 --> 00:07:16.710
+before doing optimization.
+
+00:07:16.710 --> 00:07:18.760
+And you sample balanced
+batches of training time.
+
+00:07:18.760 --> 00:07:20.950
+And for backbone architecture
+we use ResNet-18.
+
+00:07:20.950 --> 00:07:23.750
+It's just kind of,
+like, fairly standard.
+
+00:07:23.750 --> 00:07:24.250
+OK.
+
+00:07:24.250 --> 00:07:26.770
+But as I said before, one
+of the first key decisions
+
+00:07:26.770 --> 00:07:29.620
+is how do you think about
+your initialization?
+
+00:07:29.620 --> 00:07:32.642
+So this is a figure of
+ImageNet initialization
+
+00:07:32.642 --> 00:07:33.850
+versus random initialization.
+
+00:07:33.850 --> 00:07:36.190
+It's not any
+particular experiment.
+
+00:07:36.190 --> 00:07:37.870
+I've done this across
+many, many times.
+
+00:07:37.870 --> 00:07:39.040
+It's always like this.
+
+00:07:39.040 --> 00:07:41.200
+Where if you use
+image initialization,
+
+00:07:41.200 --> 00:07:42.998
+your loss drops
+immediately, both in
+
+00:07:42.998 --> 00:07:45.040
+train loss and development
+loss when you actually
+
+00:07:45.040 --> 00:07:46.330
+learn something.
+
+00:07:46.330 --> 00:07:48.565
+Whereas when you do
+random initialization,
+
+00:07:48.565 --> 00:07:49.940
+you kind of don't
+learn anything.
+
+00:07:49.940 --> 00:07:51.732
+And your loss kind of
+bounds around the top
+
+00:07:51.732 --> 00:07:54.175
+for a very long time before
+it finds some region where
+
+00:07:54.175 --> 00:07:55.300
+it quickly starts learning.
+
+00:07:55.300 --> 00:07:57.217
+And then it will plateau
+again for a long time
+
+00:07:57.217 --> 00:07:58.780
+before quickly start learning.
+
+00:07:58.780 --> 00:08:00.460
+And to kind of
+give some context,
+
+00:08:00.460 --> 00:08:04.400
+to give about 50 epochs takes
+on the order of, like, 15,
+
+00:08:04.400 --> 00:08:06.140
+16 hours.
+
+00:08:06.140 --> 00:08:08.623
+And so to wait long
+enough to even see
+
+00:08:08.623 --> 00:08:10.540
+if random initialization
+could perform as well
+
+00:08:10.540 --> 00:08:11.853
+is beyond my level of patience.
+
+00:08:11.853 --> 00:08:14.020
+It just takes too long, and
+I have other experiments
+
+00:08:14.020 --> 00:08:16.010
+to be running.
+
+00:08:16.010 --> 00:08:18.100
+So this is more of an
+empirical observation
+
+00:08:18.100 --> 00:08:20.290
+that the image initialization
+learns immediately.
+
+00:08:20.290 --> 00:08:22.955
+And there's some kind of
+questions of why is this?
+
+00:08:22.955 --> 00:08:25.330
+Our theoretical understanding
+of this is not that strong.
+
+00:08:25.330 --> 00:08:27.710
+We have some intuitions of
+why this might be happening.
+
+00:08:27.710 --> 00:08:31.330
+We don't think it's anything
+about this particular filter
+
+00:08:31.330 --> 00:08:34.030
+of this dog is really
+great for breast cancer.
+
+00:08:34.030 --> 00:08:35.080
+That's quite implausible.
+
+00:08:35.080 --> 00:08:37.663
+But if you look it into a lot
+of the earlier research in terms
+
+00:08:37.663 --> 00:08:40.048
+of the right kind of random
+initialization for things
+
+00:08:40.048 --> 00:08:41.590
+like revenue networks,
+a lot of focus
+
+00:08:41.590 --> 00:08:44.200
+was on does the
+activation pattern not
+
+00:08:44.200 --> 00:08:45.890
+blow up as you go
+further down the line.
+
+00:08:45.890 --> 00:08:48.460
+One of the benefits of starting
+with the pre-trained network
+
+00:08:48.460 --> 00:08:50.725
+is that a lot of
+those kind of dynamics
+
+00:08:50.725 --> 00:08:52.810
+are already figured out
+for a specific task.
+
+00:08:52.810 --> 00:08:55.487
+And so shifting from
+that to other tasks
+
+00:08:55.487 --> 00:08:57.070
+has seemed to be not
+that challenging.
+
+00:08:57.070 --> 00:08:58.947
+Another possible
+area of explanation
+
+00:08:58.947 --> 00:09:00.530
+is actually in a
+BatchNorm statistics.
+
+00:09:00.530 --> 00:09:03.118
+So if you remember, we can
+only fit three images per GPU.
+
+00:09:03.118 --> 00:09:05.410
+And the way the BatchNorm
+initialization is implemented
+
+00:09:05.410 --> 00:09:08.320
+across every deep learning
+library that I know of,
+
+00:09:08.320 --> 00:09:10.330
+it computes
+independently per GPU
+
+00:09:10.330 --> 00:09:12.880
+to minimize the kind of
+inter-GPU communication.
+
+00:09:12.880 --> 00:09:15.368
+And so it's also less able to
+kind of guess from scratch.
+
+00:09:15.368 --> 00:09:17.535
+But if you're starting with
+the BatchNorm statistics
+
+00:09:17.535 --> 00:09:19.910
+to ImageNet and just
+slowly shifting it over,
+
+00:09:19.910 --> 00:09:21.910
+it might also result in
+some stability benefits.
+
+00:09:24.820 --> 00:09:26.568
+But in general, or
+like, a true deeper
+
+00:09:26.568 --> 00:09:29.110
+theoretical understanding, but
+as I said, it still eludes us.
+
+00:09:29.110 --> 00:09:32.650
+And it isn't something I can
+give too much conclusions
+
+00:09:32.650 --> 00:09:34.160
+about, unfortunately.
+
+00:09:34.160 --> 00:09:34.660
+OK.
+
+00:09:34.660 --> 00:09:35.980
+So that's initialization.
+
+00:09:35.980 --> 00:09:37.360
+And if you don't get this
+right, kind of nothing
+
+00:09:37.360 --> 00:09:38.588
+works for a very long time.
+
+00:09:38.588 --> 00:09:40.630
+So if you're gonna start
+a project in this space,
+
+00:09:40.630 --> 00:09:41.545
+try this.
+
+00:09:41.545 --> 00:09:43.795
+Next, another important
+decision that if you don't do,
+
+00:09:43.795 --> 00:09:46.540
+it kind of breaks, is your
+optimization/architecture
+
+00:09:46.540 --> 00:09:47.740
+choice.
+
+00:09:47.740 --> 00:09:50.140
+So as I said before, kind of
+a core problem in stability
+
+00:09:50.140 --> 00:09:52.600
+here is this idea that our
+just signal to noise ratio
+
+00:09:52.600 --> 00:09:54.070
+is really low.
+
+00:09:54.070 --> 00:09:56.135
+And so a very common
+approach throughout a lot
+
+00:09:56.135 --> 00:09:57.760
+of the prior work
+and things I actually
+
+00:09:57.760 --> 00:10:01.600
+have tried myself before
+is to say, OK, let's
+
+00:10:01.600 --> 00:10:02.860
+just break down this problem.
+
+00:10:02.860 --> 00:10:05.102
+We can train at a
+patch level first.
+
+00:10:05.102 --> 00:10:07.060
+We're going to take just
+subsets of a mammogram
+
+00:10:07.060 --> 00:10:08.590
+in this little
+bonding box, have it
+
+00:10:08.590 --> 00:10:11.860
+annotated for radiology
+findings like benign masses
+
+00:10:11.860 --> 00:10:14.020
+or calcification and
+things of that sort.
+
+00:10:14.020 --> 00:10:15.870
+We're going to
+pre-train on that task
+
+00:10:15.870 --> 00:10:17.890
+to have this kind of
+pixel level prediction.
+
+00:10:17.890 --> 00:10:18.800
+And then once we're
+done with that,
+
+00:10:18.800 --> 00:10:20.950
+we're going to fine tune
+that initialized model
+
+00:10:20.950 --> 00:10:24.280
+across the entire image.
+
+00:10:24.280 --> 00:10:26.837
+So you kind of have this
+two-stage training procedure.
+
+00:10:26.837 --> 00:10:29.170
+And actually, another paper
+that came out just yesterday
+
+00:10:29.170 --> 00:10:31.690
+does the exact same approach
+with some slightly different
+
+00:10:31.690 --> 00:10:34.543
+details.
+
+00:10:34.543 --> 00:10:36.460
+But one of the things
+we wanted to investigate
+
+00:10:36.460 --> 00:10:38.740
+is if you just-- oh, And
+the base architecture
+
+00:10:38.740 --> 00:10:40.180
+that's always used
+for this, there
+
+00:10:40.180 --> 00:10:42.260
+is quite a few valid
+options of things
+
+00:10:42.260 --> 00:10:44.830
+that just get
+reasonable performance
+
+00:10:44.830 --> 00:10:48.210
+and ImageNet, things like
+VGG, Wide ResNets and ResNets.
+
+00:10:48.210 --> 00:10:50.890
+In my experience, they all
+performed fairly similarly.
+
+00:10:50.890 --> 00:10:53.722
+So it's kind of a
+speed/benefit trade-off.
+
+00:10:53.722 --> 00:10:55.930
+And there's an advantage to
+using fully convolutional
+
+00:10:55.930 --> 00:10:58.450
+architectures because if you
+have fully connected layers
+
+00:10:58.450 --> 00:11:00.550
+that are assumed
+specific dimensionality,
+
+00:11:00.550 --> 00:11:02.788
+you can convert them to
+convolutional layers.
+
+00:11:02.788 --> 00:11:04.330
+They're just more
+convenient to start
+
+00:11:04.330 --> 00:11:06.010
+with a full convolutional
+architecture.
+
+00:11:06.010 --> 00:11:08.290
+There's going to be
+resolution invariant.
+
+00:11:08.290 --> 00:11:08.875
+Yes.
+
+00:11:08.875 --> 00:11:11.120
+AUDIENCE: In the last
+slide when you do patches--
+
+00:11:11.120 --> 00:11:11.745
+ADAM YALA: Yes.
+
+00:11:11.745 --> 00:11:13.890
+AUDIENCE: How do you
+label every single patch?
+
+00:11:13.890 --> 00:11:16.317
+Are they just labeled
+with a global label?
+
+00:11:16.317 --> 00:11:18.602
+Or do you have to
+actually look and catch,
+
+00:11:18.602 --> 00:11:19.980
+and figure out what's happened?
+
+00:11:19.980 --> 00:11:21.397
+ADAM YALA: So
+normally what you do
+
+00:11:21.397 --> 00:11:23.860
+is you have positive
+patches labeled.
+
+00:11:23.860 --> 00:11:25.828
+And then you randomly
+sample other patches.
+
+00:11:25.828 --> 00:11:28.120
+So from your annotation--
+so, for example, a lot people
+
+00:11:28.120 --> 00:11:31.192
+do this on public data sets like
+the Florida DSM dataset that
+
+00:11:31.192 --> 00:11:32.650
+has some entries,
+of like, here are
+
+00:11:32.650 --> 00:11:35.920
+benign masses, benign calcs,
+malignant calcs, et cetera.
+
+00:11:35.920 --> 00:11:38.440
+What people do then is
+take those annotations.
+
+00:11:38.440 --> 00:11:40.510
+They will randomly
+select other patches
+
+00:11:40.510 --> 00:11:42.750
+and say, if it's not
+there, it's negative.
+
+00:11:42.750 --> 00:11:44.470
+And I'm going to
+call it healthy.
+
+00:11:44.470 --> 00:11:45.970
+And then they'll
+say if this bonding
+
+00:11:45.970 --> 00:11:47.950
+box overlaps with patch
+by some marginal call,
+
+00:11:47.950 --> 00:11:49.210
+it's the same label.
+
+00:11:49.210 --> 00:11:50.813
+So do this heuristically.
+
+00:11:50.813 --> 00:11:53.230
+And other data sets that are
+proprietary also kind of play
+
+00:11:53.230 --> 00:11:54.610
+with a similar trick.
+
+00:11:54.610 --> 00:11:57.950
+In general, they don't actually
+label every single pixel
+
+00:11:57.950 --> 00:11:58.450
+accordingly.
+
+00:11:58.450 --> 00:12:00.640
+But there's relatively
+minor differences
+
+00:12:00.640 --> 00:12:01.840
+in how people do this.
+
+00:12:01.840 --> 00:12:04.110
+But the results are fairly
+similar, regardless.
+
+00:12:04.110 --> 00:12:04.866
+Yes.
+
+00:12:04.866 --> 00:12:08.027
+AUDIENCE: When you go from the
+patch level to the full image,
+
+00:12:08.027 --> 00:12:10.360
+if I understand correctly,
+the architecture hasn't quite
+
+00:12:10.360 --> 00:12:13.348
+changed because it's just
+convolution is over a larger--
+
+00:12:13.348 --> 00:12:14.140
+ADAM YALA: Exactly.
+
+00:12:14.140 --> 00:12:18.010
+So the end thing right before we
+do the prediction is normally--
+
+00:12:18.010 --> 00:12:20.620
+ResNet, for example, does
+a global average pool.
+
+00:12:20.620 --> 00:12:23.260
+Channel lies across
+the entire feature map.
+
+00:12:23.260 --> 00:12:24.660
+And so they just--
+
+00:12:24.660 --> 00:12:27.257
+for the patch level they take
+in an image that's 250 by 250,
+
+00:12:27.257 --> 00:12:28.840
+do the global average
+pool across that
+
+00:12:28.840 --> 00:12:29.970
+to make the prediction.
+
+00:12:29.970 --> 00:12:32.220
+And when they just go up to
+the full resolution image,
+
+00:12:32.220 --> 00:12:34.900
+now you're taking a global
+average pool over a 3,000
+
+00:12:34.900 --> 00:12:36.110
+by 2,000.
+
+00:12:36.110 --> 00:12:39.670
+AUDIENCE: And presumably there
+might be some scaling issue
+
+00:12:39.670 --> 00:12:43.610
+that you might need to adjust.
+
+00:12:43.610 --> 00:12:45.204
+Do you do any of that?
+
+00:12:45.204 --> 00:12:46.150
+Or are you just--
+
+00:12:46.150 --> 00:12:48.280
+ADAM YALA: So you feed it
+in at the full resolution
+
+00:12:48.280 --> 00:12:49.520
+the entire time.
+
+00:12:49.520 --> 00:12:51.680
+So you just-- do
+you see what I mean?
+
+00:12:51.680 --> 00:12:53.710
+So you're taking a crop.
+
+00:12:53.710 --> 00:12:55.280
+So the resolution
+isn't changing.
+
+00:12:55.280 --> 00:12:57.530
+So the same filter map should
+be able to kind of scale
+
+00:12:57.530 --> 00:12:58.340
+accordingly.
+
+00:12:58.340 --> 00:13:00.460
+But if you do things
+like average pooling,
+
+00:13:00.460 --> 00:13:01.555
+then you're kind of--
+
+00:13:01.555 --> 00:13:03.430
+any one thing that has
+a very high activation
+
+00:13:03.430 --> 00:13:04.665
+will get averaged down lower.
+
+00:13:04.665 --> 00:13:06.040
+And so, for example,
+in our work,
+
+00:13:06.040 --> 00:13:09.240
+we use max pooling to
+kind of get around that.
+
+00:13:09.240 --> 00:13:10.840
+Any other questions?
+
+00:13:10.840 --> 00:13:12.307
+But if this looks
+complicated, have
+
+00:13:12.307 --> 00:13:14.890
+no worries because we actually
+think it's totally unnecessary.
+
+00:13:14.890 --> 00:13:16.015
+And this is the next slide.
+
+00:13:16.015 --> 00:13:18.920
+So good for you.
+
+00:13:18.920 --> 00:13:21.018
+So as I said before,
+this kind of,
+
+00:13:21.018 --> 00:13:22.810
+what are the problems
+that signal to noise?
+
+00:13:22.810 --> 00:13:25.630
+So one obvious thing to kind
+of think about is, like, OK.
+
+00:13:25.630 --> 00:13:27.640
+Maybe doing SGD with
+a batch size of three
+
+00:13:27.640 --> 00:13:30.850
+when the lesion is less than
+1% of the image is a bad idea.
+
+00:13:30.850 --> 00:13:32.590
+If I just take less
+noisy gradients
+
+00:13:32.590 --> 00:13:35.650
+by increasing my batch size,
+which means use more GPUs,
+
+00:13:35.650 --> 00:13:39.680
+take more steps before
+doing the weight update,
+
+00:13:39.680 --> 00:13:42.340
+we actually find that the
+need to do this actually
+
+00:13:42.340 --> 00:13:43.580
+goes away completely.
+
+00:13:43.580 --> 00:13:46.122
+So these are experiments I did
+in the publicly available data
+
+00:13:46.122 --> 00:13:48.608
+set a while back while we
+were figuring this out.
+
+00:13:48.608 --> 00:13:50.650
+If you take this kind of
+[INAUDIBLE] architecture
+
+00:13:50.650 --> 00:13:54.670
+and fine tune with a batch
+size of 2, 4, 10, 16,
+
+00:13:54.670 --> 00:13:56.950
+and compare that to just
+a one-stage training where
+
+00:13:56.950 --> 00:13:58.830
+you just do the
+[INAUDIBLE] beginning
+
+00:13:58.830 --> 00:14:01.247
+and initialized in ImageNet
+and as you use different batch
+
+00:14:01.247 --> 00:14:03.460
+sizes, you quickly
+start to close the gap
+
+00:14:03.460 --> 00:14:05.240
+on the development AUC.
+
+00:14:05.240 --> 00:14:07.930
+And so for all the
+experiments that we do broadly
+
+00:14:07.930 --> 00:14:10.520
+we find that we actually get
+reasonably stable training
+
+00:14:10.520 --> 00:14:13.900
+by just using a batch
+size of 20 and above.
+
+00:14:13.900 --> 00:14:16.540
+And this kind of comes down to
+if you use a batch size of one,
+
+00:14:16.540 --> 00:14:18.210
+it's just particularly unstable.
+
+00:14:18.210 --> 00:14:20.290
+In other details that we always
+sample the balanced batches.
+
+00:14:20.290 --> 00:14:21.940
+Cause otherwise you'd
+be sampling like,
+
+00:14:21.940 --> 00:14:24.065
+20 batches before you see
+a single positive sample.
+
+00:14:24.065 --> 00:14:25.360
+You just don't learn anything.
+
+00:14:25.360 --> 00:14:25.930
+Cool.
+
+00:14:25.930 --> 00:14:27.550
+So that is like,
+if you do that, you
+
+00:14:27.550 --> 00:14:28.800
+don't do anything complicated.
+
+00:14:28.800 --> 00:14:31.210
+You don't do any fancy cropping
+or anything of that sort,
+
+00:14:31.210 --> 00:14:33.290
+or like, dealing with
+like VGG annotations.
+
+00:14:33.290 --> 00:14:35.800
+We found that the actual using
+VGG annotation for this task
+
+00:14:35.800 --> 00:14:38.620
+is not actually helpful.
+
+00:14:38.620 --> 00:14:39.240
+OK.
+
+00:14:39.240 --> 00:14:40.140
+No questions?
+
+00:14:40.140 --> 00:14:40.832
+Yes.
+
+00:14:40.832 --> 00:14:42.370
+AUDIENCE: So with
+the larger batch
+
+00:14:42.370 --> 00:14:45.237
+sizing you don't use
+the magnified patches?
+
+00:14:45.237 --> 00:14:46.070
+ADAM YALA: We don't.
+
+00:14:46.070 --> 00:14:47.780
+We just take the whole
+image from beginning.
+
+00:14:47.780 --> 00:14:49.280
+Pretend you-- like,
+can you just see
+
+00:14:49.280 --> 00:14:51.630
+the annotation as
+whole image, cancer
+
+00:14:51.630 --> 00:14:54.330
+with less than within a year.
+
+00:14:54.330 --> 00:14:55.443
+It's a much simpler setup.
+
+00:14:55.443 --> 00:14:56.360
+AUDIENCE: I don't get.
+
+00:14:56.360 --> 00:14:57.662
+That's the same thing
+I thought you said you
+
+00:14:57.662 --> 00:14:58.980
+couldn't do for memory reasons.
+
+00:14:58.980 --> 00:14:59.563
+ADAM YALA: Oh.
+
+00:14:59.563 --> 00:15:02.900
+So you just-- instead of--
+so normally when you do,
+
+00:15:02.900 --> 00:15:04.532
+you're going to
+train the network,
+
+00:15:04.532 --> 00:15:06.990
+the most common approach is
+you do back prop and then step.
+
+00:15:06.990 --> 00:15:08.520
+Cause you do back
+prop several times,
+
+00:15:08.520 --> 00:15:10.820
+you're accumulating the
+gradients, at least in PyTorch.
+
+00:15:10.820 --> 00:15:12.610
+And then you can
+do step afterwards.
+
+00:15:12.610 --> 00:15:15.060
+So instead of doing the
+whole batch at one time,
+
+00:15:15.060 --> 00:15:16.290
+you just do it serially.
+
+00:15:16.290 --> 00:15:19.950
+So there you're just
+trading time for space.
+
+00:15:19.950 --> 00:15:22.830
+The minimum, though, is you have
+to fit at least a single image
+
+00:15:22.830 --> 00:15:24.150
+per GPU.
+
+00:15:24.150 --> 00:15:26.350
+And in our case
+we can fit three.
+
+00:15:26.350 --> 00:15:28.850
+But to make this actually scale,
+we use four GPUs at a time.
+
+00:15:31.500 --> 00:15:32.000
+Yes.
+
+00:15:32.000 --> 00:15:35.150
+AUDIENCE: How much is
+the trade-off with time?
+
+00:15:35.150 --> 00:15:37.585
+ADAM YALA: So if I'm gonna
+take one batch size any bigger,
+
+00:15:37.585 --> 00:15:39.460
+I would only do it in
+increments of let's say
+
+00:15:39.460 --> 00:15:42.740
+12, because that's how much I
+can fit within my set of GPUs
+
+00:15:42.740 --> 00:15:44.212
+at the same time.
+
+00:15:44.212 --> 00:15:45.920
+But to control the
+size of the experiment
+
+00:15:45.920 --> 00:15:47.930
+you want to have the kind of the
+same number of gradient updates
+
+00:15:47.930 --> 00:15:49.015
+per experiment.
+
+00:15:49.015 --> 00:15:50.640
+So if I want to use
+a batch size of 48,
+
+00:15:50.640 --> 00:15:53.190
+so all my experiments, instead
+of taking about half a day,
+
+00:15:53.190 --> 00:15:55.200
+it takes about a day.
+
+00:15:55.200 --> 00:15:57.790
+And so there's kind of,
+like, this natural trade-off
+
+00:15:57.790 --> 00:15:58.620
+as you go along.
+
+00:15:58.620 --> 00:16:00.620
+So one of the things I
+mentioned at the very end
+
+00:16:00.620 --> 00:16:02.610
+is we're considering
+some adversarial approach
+
+00:16:02.610 --> 00:16:03.500
+for something.
+
+00:16:03.500 --> 00:16:04.580
+And one of the annoying
+things about that
+
+00:16:04.580 --> 00:16:07.070
+is that if I have five
+discriminator steps, oh my god.
+
+00:16:07.070 --> 00:16:08.930
+My my experiment-- I'll take
+three days per experiment.
+
+00:16:08.930 --> 00:16:10.320
+And [INAUDIBLE]
+update of someone
+
+00:16:10.320 --> 00:16:11.390
+that's trying to
+design a better model
+
+00:16:11.390 --> 00:16:13.250
+becomes really slow
+when the experiments
+
+00:16:13.250 --> 00:16:16.220
+start taking this long.
+
+00:16:16.220 --> 00:16:17.030
+Yes.
+
+00:16:17.030 --> 00:16:20.257
+AUDIENCE: So you said
+the annotations did not
+
+00:16:20.257 --> 00:16:21.215
+help with the training.
+
+00:16:21.215 --> 00:16:25.250
+Is that because
+the actual cancer
+
+00:16:25.250 --> 00:16:28.220
+itself is not really different
+from the dense tissue,
+
+00:16:28.220 --> 00:16:31.224
+and the location of
+that matters, and not
+
+00:16:31.224 --> 00:16:34.120
+the actual granularity of the--
+
+00:16:34.120 --> 00:16:35.342
+what is the reason?
+
+00:16:35.342 --> 00:16:37.550
+ADAM YALA: So in general
+when something doesn't help,
+
+00:16:37.550 --> 00:16:40.510
+there's always kind of like
+a possibility of two things.
+
+00:16:40.510 --> 00:16:43.110
+One thing is that the whole
+image signal kind of subsumes
+
+00:16:43.110 --> 00:16:44.855
+that smaller scale signal.
+
+00:16:44.855 --> 00:16:46.230
+Or there is a
+better way to do it
+
+00:16:46.230 --> 00:16:48.230
+I haven't found that would help.
+
+00:16:48.230 --> 00:16:51.300
+And then this thing looks
+to us all very hard.
+
+00:16:51.300 --> 00:16:54.330
+As of now, so the
+task we're [INAUDIBLE]
+
+00:16:54.330 --> 00:16:56.765
+on is whole image
+classification.
+
+00:16:56.765 --> 00:16:58.140
+And so on that
+task it's possible
+
+00:16:58.140 --> 00:17:00.180
+that the kind of
+surrounding context--
+
+00:17:00.180 --> 00:17:02.270
+so when you do a patch
+with an annotation,
+
+00:17:02.270 --> 00:17:04.470
+you kind of lose the
+context which it appears in.
+
+00:17:04.470 --> 00:17:06.887
+So it's possible that just by
+looking at the whole context
+
+00:17:06.887 --> 00:17:09.660
+every time, it's as good--
+
+00:17:09.660 --> 00:17:12.750
+you don't get any benefit from
+kind of the zooming boxes.
+
+00:17:12.750 --> 00:17:15.847
+However, we're not evaluating
+on kind of an object detection
+
+00:17:15.847 --> 00:17:16.930
+type of evaluation metric.
+
+00:17:16.930 --> 00:17:19.240
+If you say how well we
+are catching the box.
+
+00:17:19.240 --> 00:17:21.900
+And if we were, we'd probably
+have much better luck
+
+00:17:21.900 --> 00:17:23.970
+with using the VGG annotation.
+
+00:17:23.970 --> 00:17:25.506
+Because you might
+be able to tell
+
+00:17:25.506 --> 00:17:27.089
+some of those
+discriminations by like,
+
+00:17:27.089 --> 00:17:29.422
+this looks like a breast
+that's likely to develop cancer
+
+00:17:29.422 --> 00:17:30.420
+at all.
+
+00:17:30.420 --> 00:17:32.220
+And the ability of
+the model to do that
+
+00:17:32.220 --> 00:17:33.845
+is part of why we
+can do risk modeling.
+
+00:17:33.845 --> 00:17:37.610
+Which is going to be the kind
+of the last bit of the talk.
+
+00:17:37.610 --> 00:17:38.110
+Yes.
+
+00:17:38.110 --> 00:17:40.050
+AUDIENCE: So do you do
+the object detection
+
+00:17:40.050 --> 00:17:42.920
+after you identify whether
+there's cancer or not?
+
+00:17:42.920 --> 00:17:45.420
+ADAM YALA: So as of now we don't
+do object detection in part
+
+00:17:45.420 --> 00:17:47.550
+because we're framing
+the problem as triage.
+
+00:17:47.550 --> 00:17:49.620
+So there is quite a
+few tool kits out there
+
+00:17:49.620 --> 00:17:51.460
+to draw more boxes
+on the mammogram.
+
+00:17:51.460 --> 00:17:53.100
+But the insight
+is that if there's
+
+00:17:53.100 --> 00:17:55.870
+1,000 things to look at,
+looking at 2,000 things
+
+00:17:55.870 --> 00:17:57.680
+you drew more boxes per image.
+
+00:17:57.680 --> 00:17:59.190
+And it isn't
+necessarily the problem
+
+00:17:59.190 --> 00:18:00.190
+we're trying to look at.
+
+00:18:00.190 --> 00:18:02.243
+There's quite a bit
+of effort there.
+
+00:18:02.243 --> 00:18:04.660
+And it's something we might
+look into later in the future.
+
+00:18:04.660 --> 00:18:06.860
+But it's not the
+focus of this work.
+
+00:18:06.860 --> 00:18:07.400
+Yes.
+
+00:18:07.400 --> 00:18:11.490
+AUDIENCE: So Connie was saying
+that the same pattern appearing
+
+00:18:11.490 --> 00:18:16.820
+in different parts of the breast
+can mean different things.
+
+00:18:16.820 --> 00:18:23.175
+But when you're looking at
+the entire image as once,
+
+00:18:23.175 --> 00:18:26.700
+I would worry
+intuitively about whether
+
+00:18:26.700 --> 00:18:29.390
+the convolutional
+architecture is
+
+00:18:29.390 --> 00:18:32.990
+going to be able to pick
+that up or whether--
+
+00:18:32.990 --> 00:18:35.840
+because you were looking
+for a very small cancer
+
+00:18:35.840 --> 00:18:37.590
+on a very large image.
+
+00:18:37.590 --> 00:18:41.120
+And then you were looking
+for the significance
+
+00:18:41.120 --> 00:18:45.360
+of that very small cancer in
+different parts of the image
+
+00:18:45.360 --> 00:18:47.910
+or in different
+contexts of the image.
+
+00:18:47.910 --> 00:18:49.340
+And I'm just--
+
+00:18:49.340 --> 00:18:52.645
+I mean, it's a pleasant
+surprise that this works.
+
+00:18:52.645 --> 00:18:54.770
+ADAM YALA: So there is kind
+of like two pieces that
+
+00:18:54.770 --> 00:18:56.030
+can help explain that.
+
+00:18:56.030 --> 00:18:57.970
+So the first is that
+if you look at, like,
+
+00:18:57.970 --> 00:19:00.320
+the receptive fields of any
+given last receptive map
+
+00:19:00.320 --> 00:19:02.630
+at the very end of the
+network, each of those
+
+00:19:02.630 --> 00:19:04.960
+summarizes through
+these convolutions
+
+00:19:04.960 --> 00:19:07.350
+a fairly sizable
+part of the image.
+
+00:19:07.350 --> 00:19:10.090
+And so you are kind of, like,
+each pixel at the very end
+
+00:19:10.090 --> 00:19:12.620
+ends up being like something
+like a 50 by 50 image.
+
+00:19:12.620 --> 00:19:14.730
+That's by five total dimensions.
+
+00:19:14.730 --> 00:19:17.780
+And so each part does summarize
+this local context decently
+
+00:19:17.780 --> 00:19:18.370
+well.
+
+00:19:18.370 --> 00:19:20.037
+And when you do maximum
+at the very end,
+
+00:19:20.037 --> 00:19:23.780
+and you get some not perfect
+but OK global summary, what
+
+00:19:23.780 --> 00:19:25.440
+is the context of this image?
+
+00:19:25.440 --> 00:19:28.525
+So something like, let's say,
+some of the lower dimensions
+
+00:19:28.525 --> 00:19:30.650
+can summarize, like, is
+this a dense breast or kind
+
+00:19:30.650 --> 00:19:32.480
+of some of the other
+pattern information
+
+00:19:32.480 --> 00:19:34.640
+that might tell you what
+kind of breast this is.
+
+00:19:34.640 --> 00:19:38.210
+Whereas any one of
+them can tell you
+
+00:19:38.210 --> 00:19:40.353
+this looks like a cancer
+given its local context.
+
+00:19:40.353 --> 00:19:42.020
+So do you have some
+level summarization,
+
+00:19:42.020 --> 00:19:44.900
+both because of the
+channel-wise maxim of the end,
+
+00:19:44.900 --> 00:19:49.030
+and because each point through
+the many, many convolutions
+
+00:19:49.030 --> 00:19:53.830
+of different strides gives you
+some of that summary effect.
+
+00:19:53.830 --> 00:19:54.710
+OK, great.
+
+00:19:54.710 --> 00:19:56.690
+I'm going to jump forward.
+
+00:19:56.690 --> 00:19:58.900
+So we've talked about
+how to make this learn.
+
+00:19:58.900 --> 00:20:01.070
+It's actually not
+that tricky if we just
+
+00:20:01.070 --> 00:20:02.658
+do it carefully and tune.
+
+00:20:02.658 --> 00:20:05.200
+Now I'll talk about how to use
+this model to actually deliver
+
+00:20:05.200 --> 00:20:07.600
+on this triage idea.
+
+00:20:07.600 --> 00:20:10.540
+So some of my choices again,
+ImageNet initialization
+
+00:20:10.540 --> 00:20:12.540
+is going to make your
+life a happier time.
+
+00:20:12.540 --> 00:20:13.697
+Use bigger batch sizes.
+
+00:20:13.697 --> 00:20:15.280
+And architecture
+choice doesn't really
+
+00:20:15.280 --> 00:20:17.536
+matter if it's convolutional.
+
+00:20:17.536 --> 00:20:20.080
+And the overall setup that
+we do through this work
+
+00:20:20.080 --> 00:20:21.700
+and across many
+other projects we're
+
+00:20:21.700 --> 00:20:23.580
+training independently
+per image.
+
+00:20:23.580 --> 00:20:26.290
+Now this is a harder task
+because you don't actually
+
+00:20:26.290 --> 00:20:26.870
+have the--
+
+00:20:26.870 --> 00:20:27.720
+you're not taking any
+of the other view,
+
+00:20:27.720 --> 00:20:29.178
+you're not taking
+prior mammograms.
+
+00:20:29.178 --> 00:20:31.743
+But this is for kind of more
+harder reasons than that.
+
+00:20:31.743 --> 00:20:33.910
+We're going to get the
+prediction for the whole exam
+
+00:20:33.910 --> 00:20:36.590
+by taking the maximum
+across the different images.
+
+00:20:36.590 --> 00:20:39.160
+So if I say this breast has
+cancer, the exam has cancer.
+
+00:20:39.160 --> 00:20:41.710
+So you should get it checked up.
+
+00:20:41.710 --> 00:20:43.920
+And at each
+development epoch we're
+
+00:20:43.920 --> 00:20:45.670
+going to evaluate the
+ability of the model
+
+00:20:45.670 --> 00:20:48.263
+to do triage task, which
+I'll step into in a second.
+
+00:20:48.263 --> 00:20:49.930
+And we're going to
+kind of take the best
+
+00:20:49.930 --> 00:20:51.490
+model that can do triage.
+
+00:20:51.490 --> 00:20:54.142
+So you're always kind of
+like, your true end metric
+
+00:20:54.142 --> 00:20:55.850
+is what you're measuring
+during training.
+
+00:20:55.850 --> 00:20:57.433
+And you're going to
+do model selection
+
+00:20:57.433 --> 00:20:59.830
+and kind of hyper
+patching based on that.
+
+00:20:59.830 --> 00:21:02.530
+And the way we're going
+to do triage and our goal
+
+00:21:02.530 --> 00:21:06.483
+here is to mark as
+many people as healthy
+
+00:21:06.483 --> 00:21:08.400
+without missing a single
+cancer that we always
+
+00:21:08.400 --> 00:21:09.460
+would have caught.
+
+00:21:09.460 --> 00:21:11.533
+So intuitively kind of
+by taking all the cancers
+
+00:21:11.533 --> 00:21:13.450
+that the radiologist
+would have caught, what's
+
+00:21:13.450 --> 00:21:15.470
+the probability of cancer
+across these images,
+
+00:21:15.470 --> 00:21:17.470
+and just take the minimum
+of those and call that
+
+00:21:17.470 --> 00:21:18.340
+the threshold.
+
+00:21:18.340 --> 00:21:21.010
+That's exactly what we do.
+
+00:21:21.010 --> 00:21:23.710
+And another detail
+that's quite relevant
+
+00:21:23.710 --> 00:21:26.358
+often is if you want
+these models to output
+
+00:21:26.358 --> 00:21:27.775
+a reasonable
+probability like this
+
+00:21:27.775 --> 00:21:31.320
+is the probability of cancer,
+and you train on a 50/50 sample
+
+00:21:31.320 --> 00:21:34.000
+the batches, by default
+your model thinks
+
+00:21:34.000 --> 00:21:35.570
+that the average
+incidence is 50%.
+
+00:21:35.570 --> 00:21:37.540
+So it's crazy
+confidence all the time.
+
+00:21:37.540 --> 00:21:39.940
+So to calibrate that one
+really simple trick is you do
+
+00:21:39.940 --> 00:21:43.120
+something called Platt's Method
+where you basically just fit
+
+00:21:43.120 --> 00:21:45.580
+like a two-parameter sigmoid
+or just scale and a shift
+
+00:21:45.580 --> 00:21:46.230
+to just--
+
+00:21:46.230 --> 00:21:48.022
+on the development sets
+to make it actually
+
+00:21:48.022 --> 00:21:49.098
+fit the distribution.
+
+00:21:49.098 --> 00:21:51.140
+That way the average
+probability you would expect
+
+00:21:51.140 --> 00:21:52.430
+to actually fit the incidence.
+
+00:21:52.430 --> 00:21:55.510
+And you don't get this kind
+of like crazy off-kilter
+
+00:21:55.510 --> 00:21:56.800
+probabilities.
+
+00:21:56.800 --> 00:21:57.370
+OK.
+
+00:21:57.370 --> 00:21:59.413
+So analysis.
+
+00:21:59.413 --> 00:22:01.330
+The objectives of what
+we would try to do here
+
+00:22:01.330 --> 00:22:03.130
+is kind of similar
+across all the projects.
+
+00:22:03.130 --> 00:22:04.652
+One, does this thing work?
+
+00:22:04.652 --> 00:22:06.610
+Two, does this thing work
+across all the people
+
+00:22:06.610 --> 00:22:08.290
+it's supposed to work for?
+
+00:22:08.290 --> 00:22:09.580
+So we did a subgroup analysis.
+
+00:22:09.580 --> 00:22:11.288
+First we looked at
+the AUC in this model.
+
+00:22:11.288 --> 00:22:13.840
+So the ability to
+discriminate cancer is not.
+
+00:22:13.840 --> 00:22:15.140
+We did it across races.
+
+00:22:15.140 --> 00:22:19.065
+We have across MGH, age
+groups, and density categories.
+
+00:22:19.065 --> 00:22:20.440
+And finally, how
+does this relate
+
+00:22:20.440 --> 00:22:22.360
+to radiologist's assessments?
+
+00:22:22.360 --> 00:22:24.810
+And if we actually
+use this at test time
+
+00:22:24.810 --> 00:22:26.560
+on the test set, what
+would have happened?
+
+00:22:26.560 --> 00:22:31.700
+Kind of a simulation before a
+full clinical implementation.
+
+00:22:31.700 --> 00:22:37.160
+So overall AUC here was 82 with
+some confident from 80 to 85.
+
+00:22:37.160 --> 00:22:39.120
+And we did our analysis by age.
+
+00:22:39.120 --> 00:22:41.120
+We found that the performance
+was pretty similar
+
+00:22:41.120 --> 00:22:42.440
+across every age group.
+
+00:22:42.440 --> 00:22:45.210
+What's not shown here is
+the confidence intervals.
+
+00:22:45.210 --> 00:22:47.720
+So for example-- but the
+kind of key core takeaway
+
+00:22:47.720 --> 00:22:51.290
+here is that there
+was no noticeable gap
+
+00:22:51.290 --> 00:22:52.790
+in terms of by age group.
+
+00:22:52.790 --> 00:22:54.470
+We repeated this
+analysis by race,
+
+00:22:54.470 --> 00:22:56.730
+and we saw the same trend again.
+
+00:22:56.730 --> 00:23:01.000
+The performance kind of
+ranged generally around 82.
+
+00:23:01.000 --> 00:23:02.960
+And in places where
+the gap was bigger,
+
+00:23:02.960 --> 00:23:06.080
+the just confidence interval
+was bigger accordingly due
+
+00:23:06.080 --> 00:23:09.740
+to smaller sample sizes,
+cause MGH is 80% white.
+
+00:23:09.740 --> 00:23:12.290
+We saw the exact same
+trend by density.
+
+00:23:12.290 --> 00:23:14.352
+The outlier here is
+very dense breasts.
+
+00:23:14.352 --> 00:23:16.310
+But there's only like
+100 of those on test set.
+
+00:23:16.310 --> 00:23:19.670
+So this confidence actually
+goes from like, 60 to 90.
+
+00:23:19.670 --> 00:23:22.430
+So as far as we know for
+the other three categories,
+
+00:23:22.430 --> 00:23:24.860
+it is very much tied
+to confidence interval
+
+00:23:24.860 --> 00:23:29.000
+and very similar,
+once again, around 82.
+
+00:23:29.000 --> 00:23:29.500
+OK.
+
+00:23:29.500 --> 00:23:32.570
+So we have a decent idea
+that this model seems
+
+00:23:32.570 --> 00:23:35.410
+at least with a
+publish of MGH actually
+
+00:23:35.410 --> 00:23:38.050
+serve the relevant
+populations that
+
+00:23:38.050 --> 00:23:40.280
+exist as far as we know so far.
+
+00:23:40.280 --> 00:23:42.405
+The next question is, how
+does the model assessment
+
+00:23:42.405 --> 00:23:44.030
+relate to the
+radiologist's assessment?
+
+00:23:44.030 --> 00:23:45.940
+So to look at that we
+looked at on the test,
+
+00:23:45.940 --> 00:23:48.310
+if you look at the
+radiologist's true positives,
+
+00:23:48.310 --> 00:23:51.080
+false positives, true
+negatives, false negatives.
+
+00:23:51.080 --> 00:23:53.080
+Where do they fall within
+the model distribution
+
+00:23:53.080 --> 00:23:54.760
+of percentile risk?
+
+00:23:54.760 --> 00:23:56.260
+And if there is
+below the threshold,
+
+00:23:56.260 --> 00:23:58.580
+we've got to color it in
+this kind of cyan color.
+
+00:23:58.580 --> 00:24:00.163
+And if it's above
+the threshold, we're
+
+00:24:00.163 --> 00:24:02.480
+going to color it in
+this purple color.
+
+00:24:02.480 --> 00:24:04.607
+So this is kind of
+triage, not triage.
+
+00:24:04.607 --> 00:24:06.940
+The first thing to notice--
+this is the true positives--
+
+00:24:06.940 --> 00:24:11.050
+is that there is like a
+pretty kind of steep drop-off.
+
+00:24:11.050 --> 00:24:14.410
+And so there is only
+one true positive
+
+00:24:14.410 --> 00:24:17.330
+fell below the threshold in
+a test set of 26,000 exams.
+
+00:24:17.330 --> 00:24:20.540
+So none of this difference
+was statistically significant.
+
+00:24:20.540 --> 00:24:23.522
+And the vast majority of them
+are kind of this top 10%.
+
+00:24:23.522 --> 00:24:25.730
+But you kind of see, like,
+there's a clear trend here
+
+00:24:25.730 --> 00:24:29.220
+that they kind of get piled up
+towards the higher percentages.
+
+00:24:29.220 --> 00:24:31.470
+Whereas if you look at the
+false positive assessments,
+
+00:24:31.470 --> 00:24:33.000
+this trend is much weaker.
+
+00:24:33.000 --> 00:24:36.200
+So you still see that
+there is some correlation
+
+00:24:36.200 --> 00:24:38.810
+that there's going to more false
+positives the higher amounts,
+
+00:24:38.810 --> 00:24:39.955
+but much less stark.
+
+00:24:39.955 --> 00:24:42.080
+And this actually means
+that a lot of radiologist's
+
+00:24:42.080 --> 00:24:44.960
+false positives we actually
+place below the threshold.
+
+00:24:44.960 --> 00:24:47.390
+And so because these assessments
+are completely concordant
+
+00:24:47.390 --> 00:24:49.848
+and we're not just modeling
+what the radiologist would have
+
+00:24:49.848 --> 00:24:52.280
+said, we get an
+anticipated benefit
+
+00:24:52.280 --> 00:24:56.570
+of actually reducing the false
+positives significantly because
+
+00:24:56.570 --> 00:24:58.340
+of the weight of disagreeing.
+
+00:24:58.340 --> 00:25:01.830
+And finally, kind of
+aiding that further,
+
+00:25:01.830 --> 00:25:03.790
+if you look at the true
+negative assessments,
+
+00:25:03.790 --> 00:25:06.495
+there is not that much
+trending between where
+
+00:25:06.495 --> 00:25:07.370
+it falls within this.
+
+00:25:07.370 --> 00:25:12.308
+So it shows that they're kind of
+picking up on different things
+
+00:25:12.308 --> 00:25:14.600
+and they're-- where they
+disagree gives them both areas
+
+00:25:14.600 --> 00:25:18.450
+to improve and ancillary
+benefits because now we can
+
+00:25:18.450 --> 00:25:20.150
+reduce false positives.
+
+00:25:20.150 --> 00:25:22.192
+This directly leads into
+assimilating the impact.
+
+00:25:22.192 --> 00:25:24.108
+So one of the things we
+did, we just said, OK.
+
+00:25:24.108 --> 00:25:26.760
+If people retrospective on
+the test set as a simulation
+
+00:25:26.760 --> 00:25:29.690
+before which truly plug it
+in, if people didn't rebuild
+
+00:25:29.690 --> 00:25:31.743
+the triage threshold-- so
+we can't catch any more
+
+00:25:31.743 --> 00:25:33.910
+cancer this way, but we can
+reduce false positives--
+
+00:25:33.910 --> 00:25:34.952
+what would have happened?
+
+00:25:34.952 --> 00:25:37.922
+So at the top we have
+the original performance.
+
+00:25:37.922 --> 00:25:39.630
+So this is looking at
+100% of mammograms,
+
+00:25:39.630 --> 00:25:43.530
+sensitivity was 98.6
+with specificity of 93.
+
+00:25:43.530 --> 00:25:45.990
+And in the simulation
+the sensitivity
+
+00:25:45.990 --> 00:25:49.410
+dropped not
+significantly to 90.1,
+
+00:25:49.410 --> 00:25:51.900
+but significantly improved
+to 93.7 while looking
+
+00:25:51.900 --> 00:25:54.660
+at 81% of the mammograms.
+
+00:25:54.660 --> 00:25:57.120
+So this is like promising
+preliminary data.
+
+00:25:57.120 --> 00:26:00.170
+But to reevaluate this and
+go forward, our next step--
+
+00:26:00.170 --> 00:26:01.098
+let's see if-- oh.
+
+00:26:01.098 --> 00:26:02.640
+I'm going to get to
+that in a second.
+
+00:26:02.640 --> 00:26:05.070
+Our next step is we need to
+do clinical implementation
+
+00:26:05.070 --> 00:26:06.337
+to really figure out--
+
+00:26:06.337 --> 00:26:07.920
+because there's a
+core assumption here
+
+00:26:07.920 --> 00:26:09.670
+is that people read
+it the same way.
+
+00:26:09.670 --> 00:26:12.370
+But if you have this higher
+incidence, what does that mean?
+
+00:26:12.370 --> 00:26:15.000
+Can you focus more on the
+people that are more suspicious?
+
+00:26:15.000 --> 00:26:18.150
+And is the right way to do this
+just a single threshold to not
+
+00:26:18.150 --> 00:26:18.780
+read?
+
+00:26:18.780 --> 00:26:20.040
+Or have a double
+ended with the seniors
+
+00:26:20.040 --> 00:26:21.957
+cause they're much more
+likely to have cancer.
+
+00:26:21.957 --> 00:26:24.249
+And so there is quite a bit
+of exploration here to say,
+
+00:26:24.249 --> 00:26:25.832
+given we have these
+tools that give us
+
+00:26:25.832 --> 00:26:27.792
+some probability of
+cancer, that's not perfect,
+
+00:26:27.792 --> 00:26:28.750
+but gives us something.
+
+00:26:28.750 --> 00:26:31.600
+How well can we do that
+to improve care today?
+
+00:26:31.600 --> 00:26:35.422
+So as a quiz, can you tell
+which of these will be triaged?
+
+00:26:35.422 --> 00:26:36.630
+So this is no cherry-picking.
+
+00:26:36.630 --> 00:26:39.180
+I randomly picked
+four mammograms
+
+00:26:39.180 --> 00:26:41.610
+that were below and
+above the threshold.
+
+00:26:41.610 --> 00:26:42.930
+Can anyone guess which side--
+
+00:26:42.930 --> 00:26:45.360
+left or right-- was triaged?
+
+00:26:48.192 --> 00:26:50.590
+This is not graded,
+Chris, so you know.
+
+00:26:50.590 --> 00:26:52.066
+AUDIENCE: Raise your hand for--
+
+00:26:52.066 --> 00:26:52.858
+ADAM YALA: Oh yeah.
+
+00:26:52.858 --> 00:26:55.450
+Raise your hand for the left.
+
+00:26:55.450 --> 00:26:55.950
+OK.
+
+00:26:55.950 --> 00:26:57.033
+Raise your hand for right.
+
+00:26:59.580 --> 00:27:00.980
+Here we go.
+
+00:27:00.980 --> 00:27:01.480
+Well done.
+
+00:27:01.480 --> 00:27:02.840
+Well done.
+
+00:27:02.840 --> 00:27:03.670
+OK.
+
+00:27:03.670 --> 00:27:05.410
+And then next step,
+as I said before,
+
+00:27:05.410 --> 00:27:07.120
+is we need to kind of push to
+the clinical implementation
+
+00:27:07.120 --> 00:27:09.340
+because that's where the
+rubber hits the road.
+
+00:27:09.340 --> 00:27:11.910
+We identify is there any
+biases we didn't detect?
+
+00:27:11.910 --> 00:27:16.160
+And we need to say, can
+we deliver this value?
+
+00:27:16.160 --> 00:27:20.360
+So the next project is on
+assessing breast cancer risk.
+
+00:27:20.360 --> 00:27:22.837
+So this is the same mammogram
+I showed you earlier.
+
+00:27:22.837 --> 00:27:24.670
+It was diagnosed with
+breast cancer in 2014.
+
+00:27:24.670 --> 00:27:27.260
+It's actually my
+advisor, Regina's.
+
+00:27:27.260 --> 00:27:31.550
+And you can see that in
+2013 you see it's there.
+
+00:27:31.550 --> 00:27:34.790
+In 2012 it looks
+much less prominence.
+
+00:27:34.790 --> 00:27:38.880
+And five years ago, really
+looking at breast cancer risk.
+
+00:27:38.880 --> 00:27:40.430
+So if you can tell
+from an image that
+
+00:27:40.430 --> 00:27:42.290
+is going to be healthy
+for a long time,
+
+00:27:42.290 --> 00:27:43.790
+you're really trying
+to model what's
+
+00:27:43.790 --> 00:27:45.457
+the likelihood of
+this breast developing
+
+00:27:45.457 --> 00:27:46.760
+cancer in the future.
+
+00:27:46.760 --> 00:27:49.520
+Now modeling breast cancer
+risk, as Connie earlier said,
+
+00:27:49.520 --> 00:27:51.430
+is not a new problem.
+
+00:27:51.430 --> 00:27:54.600
+It's been a quite researched
+one in the community.
+
+00:27:54.600 --> 00:27:56.350
+And the more classical
+approach that we're
+
+00:27:56.350 --> 00:27:58.080
+gonna look at other
+kind of global health
+
+00:27:58.080 --> 00:28:00.833
+factors-- the person's
+age, their family history,
+
+00:28:00.833 --> 00:28:02.750
+whether or not they've
+had menopause, and kind
+
+00:28:02.750 --> 00:28:05.000
+of any other of these kind
+of facts we can sort of say
+
+00:28:05.000 --> 00:28:06.560
+are markers of
+their health to try
+
+00:28:06.560 --> 00:28:08.510
+to predict whether this person's
+at risk of developing breast
+
+00:28:08.510 --> 00:28:09.260
+cancer.
+
+00:28:09.260 --> 00:28:10.820
+People have thought that
+the image contains something
+
+00:28:10.820 --> 00:28:11.630
+before.
+
+00:28:11.630 --> 00:28:12.530
+The way they've
+thought about this
+
+00:28:12.530 --> 00:28:14.150
+is through this kind of
+subjective breast density
+
+00:28:14.150 --> 00:28:15.020
+marker.
+
+00:28:15.020 --> 00:28:17.660
+And the improvements
+seen across this
+
+00:28:17.660 --> 00:28:20.690
+are kind of marginal
+from 61 to 63.
+
+00:28:20.690 --> 00:28:23.220
+And as before,
+the kind of sketch
+
+00:28:23.220 --> 00:28:25.790
+we're going to go through is
+dataset collection, modeling,
+
+00:28:25.790 --> 00:28:27.523
+and analysis.
+
+00:28:27.523 --> 00:28:28.940
+And dataset
+collection we followed
+
+00:28:28.940 --> 00:28:30.860
+a very similar template.
+
+00:28:30.860 --> 00:28:32.440
+We saw from
+consecutive mammograms
+
+00:28:32.440 --> 00:28:37.190
+from 2009 to 2012 we took
+outcomes from the EHR,
+
+00:28:37.190 --> 00:28:39.530
+once again, and the
+Partners Registry.
+
+00:28:39.530 --> 00:28:42.260
+We didn't do exclusions based on
+race or anything of that sort,
+
+00:28:42.260 --> 00:28:43.580
+or implants.
+
+00:28:43.580 --> 00:28:45.570
+But we did exclude
+negatives for followup.
+
+00:28:45.570 --> 00:28:47.570
+So if someone didn't have
+cancer in three years,
+
+00:28:47.570 --> 00:28:49.240
+but disappeared
+from the system, we
+
+00:28:49.240 --> 00:28:50.823
+didn't count them
+as negatives that we
+
+00:28:50.823 --> 00:28:53.550
+have some certainty in both
+the modeling and the analysis.
+
+00:28:53.550 --> 00:28:58.030
+And as always, we split
+patients into train, dev, test.
+
+00:28:58.030 --> 00:29:00.420
+The modeling is very similar.
+
+00:29:00.420 --> 00:29:04.010
+It's the same kind of templated
+lessons as from triage,
+
+00:29:04.010 --> 00:29:07.250
+except we experimented with a
+model that's only the image.
+
+00:29:07.250 --> 00:29:10.440
+And for the sake of analysis,
+a model that's the image model
+
+00:29:10.440 --> 00:29:12.107
+I just talked to you
+before concatenated
+
+00:29:12.107 --> 00:29:14.315
+with those traditional risk
+factors at the last layer
+
+00:29:14.315 --> 00:29:15.180
+and trained jointly.
+
+00:29:15.180 --> 00:29:16.500
+That make sense for everyone?
+
+00:29:16.500 --> 00:29:19.340
+So I'm going to call that
+ImageOnly an Image+RF
+
+00:29:19.340 --> 00:29:20.778
+or hybrid.
+
+00:29:20.778 --> 00:29:21.278
+OK.
+
+00:29:21.278 --> 00:29:22.590
+Cool?
+
+00:29:22.590 --> 00:29:24.350
+Our kind of goals
+for the analysis.
+
+00:29:24.350 --> 00:29:27.110
+As before, we want to
+see does this model
+
+00:29:27.110 --> 00:29:29.210
+actually serve the
+whole population?
+
+00:29:29.210 --> 00:29:32.330
+Is it going to be discriminative
+across race, menopause status,
+
+00:29:32.330 --> 00:29:33.538
+the family history?
+
+00:29:33.538 --> 00:29:36.080
+And how does it relate to kind
+of classical portions of risk?
+
+00:29:36.080 --> 00:29:38.380
+And are we actually
+doing any better?
+
+00:29:38.380 --> 00:29:40.360
+And so just diving
+directly into that,
+
+00:29:40.360 --> 00:29:42.440
+assuming there's no questions.
+
+00:29:42.440 --> 00:29:43.260
+Good.
+
+00:29:43.260 --> 00:29:45.280
+Just to kind of remind you,
+this is the kind of the setting.
+
+00:29:45.280 --> 00:29:46.980
+One thing I forgot to mention--
+that's why I had the slide here
+
+00:29:46.980 --> 00:29:48.010
+to remind me--
+
+00:29:48.010 --> 00:29:50.690
+is that we excluded
+cancers from the first year
+
+00:29:50.690 --> 00:29:51.720
+from the test set.
+
+00:29:51.720 --> 00:29:53.900
+So there is truly a negative
+screening population.
+
+00:29:53.900 --> 00:29:56.030
+That way we kind of
+disentangle cancer detection
+
+00:29:56.030 --> 00:29:57.230
+from cancer risk.
+
+00:29:57.230 --> 00:29:57.730
+OK.
+
+00:29:57.730 --> 00:29:59.360
+Cool.
+
+00:29:59.360 --> 00:30:02.470
+So Tyrer-Cuzick is the kind of
+prior state-of-the-art model.
+
+00:30:02.470 --> 00:30:05.310
+It's a model based
+out of the UK.
+
+00:30:05.310 --> 00:30:08.558
+Their developer is
+someone named Sir Cuzick,
+
+00:30:08.558 --> 00:30:09.850
+who was knighted for this work.
+
+00:30:09.850 --> 00:30:11.270
+It's very commonly used.
+
+00:30:11.270 --> 00:30:13.160
+So that one had an AUC of 62.
+
+00:30:13.160 --> 00:30:16.940
+Our image-only model
+had an AUC about 68.
+
+00:30:16.940 --> 00:30:18.898
+And hybrid one had an AUC of 70.
+
+00:30:18.898 --> 00:30:20.690
+So you know, what is
+this kind of AUC thing
+
+00:30:20.690 --> 00:30:22.430
+gives you when you look
+using a risk model.
+
+00:30:22.430 --> 00:30:24.430
+What it gives you is the
+ability to build better
+
+00:30:24.430 --> 00:30:25.880
+high-risk and low-risk cohorts.
+
+00:30:25.880 --> 00:30:27.713
+So in terms of looking
+at high-risk cohorts,
+
+00:30:27.713 --> 00:30:29.900
+our best model place about
+30% of all the cancers
+
+00:30:29.900 --> 00:30:32.840
+in the population
+in the top 10%,
+
+00:30:32.840 --> 00:30:35.210
+and 3% of all the
+cancers in the bottom 10%
+
+00:30:35.210 --> 00:30:39.422
+compared to 18 and 5 to
+the prior state of the art.
+
+00:30:39.422 --> 00:30:40.880
+And so what this
+enables you to do,
+
+00:30:40.880 --> 00:30:42.380
+if you're going to
+say that this 10%
+
+00:30:42.380 --> 00:30:44.270
+should actually
+qualify for MRI, you
+
+00:30:44.270 --> 00:30:46.102
+can start fighting this
+problem of majority
+
+00:30:46.102 --> 00:30:47.810
+of people that get
+cancer don't have MRI,
+
+00:30:47.810 --> 00:30:50.938
+and the majority of people
+that get it don't need it.
+
+00:30:50.938 --> 00:30:52.730
+It's all about, is your
+risk model actually
+
+00:30:52.730 --> 00:30:55.670
+place the right people
+into the right buckets.
+
+00:30:55.670 --> 00:30:58.460
+Now we saw that this trend of
+outperforming the prior state
+
+00:30:58.460 --> 00:30:59.880
+of the art held across races.
+
+00:30:59.880 --> 00:31:02.080
+And one of the things that
+was kind of astonishing
+
+00:31:02.080 --> 00:31:04.580
+was that though Tyrer-Cuzick
+performed on white women, which
+
+00:31:04.580 --> 00:31:06.288
+makes sense because
+it was developed only
+
+00:31:06.288 --> 00:31:07.490
+using white women in the UK.
+
+00:31:07.490 --> 00:31:08.990
+It was worse than
+random [INAUDIBLE]
+
+00:31:08.990 --> 00:31:10.490
+for African-American women.
+
+00:31:10.490 --> 00:31:13.208
+And so this kind of
+emphasizes the importance
+
+00:31:13.208 --> 00:31:14.750
+of this kind of
+analysis to make sure
+
+00:31:14.750 --> 00:31:16.580
+that the kind of
+data that you have
+
+00:31:16.580 --> 00:31:19.038
+is reflective of the population
+that you're trying to serve
+
+00:31:19.038 --> 00:31:21.530
+and actually doing the
+analysis accordingly.
+
+00:31:21.530 --> 00:31:25.030
+So we saw that our model
+kind of held across races
+
+00:31:25.030 --> 00:31:26.780
+and as well across--
+we see this trend
+
+00:31:26.780 --> 00:31:29.480
+from across
+pre-postmenopausal and with
+
+00:31:29.480 --> 00:31:32.238
+and without family history.
+
+00:31:32.238 --> 00:31:34.530
+One thing we did in terms of
+a more granular comparison
+
+00:31:34.530 --> 00:31:36.560
+of performance, if
+we just look at kind
+
+00:31:36.560 --> 00:31:39.860
+of like the risk thirds for
+our model and the Tyrer-Cuzick
+
+00:31:39.860 --> 00:31:41.990
+model, what's the
+trend that you see
+
+00:31:41.990 --> 00:31:44.370
+or the cases where kind
+of like which one is right
+
+00:31:44.370 --> 00:31:46.568
+that's kind of ambiguous.
+
+00:31:46.568 --> 00:31:48.110
+And what I should
+show in these boxes
+
+00:31:48.110 --> 00:31:51.480
+is the cancer incidence
+prevalence in the population.
+
+00:31:51.480 --> 00:31:53.792
+So the darker the box,
+the higher the incidence.
+
+00:31:53.792 --> 00:31:55.250
+And on the right-hand
+side are just
+
+00:31:55.250 --> 00:31:58.250
+random images from cases
+that fit within those boxes.
+
+00:31:58.250 --> 00:32:00.230
+Does that make
+sense for everyone?
+
+00:32:00.230 --> 00:32:00.955
+Great.
+
+00:32:00.955 --> 00:32:03.080
+So a clear trend that you
+see is that, for example,
+
+00:32:03.080 --> 00:32:08.260
+if TCv8 calls you a high
+risk but we call it low,
+
+00:32:08.260 --> 00:32:11.875
+that is a lower incidence
+than if we called it medium
+
+00:32:11.875 --> 00:32:13.000
+and they call it low.
+
+00:32:13.000 --> 00:32:15.700
+So kind of like you kind of
+see this straight column-wise
+
+00:32:15.700 --> 00:32:17.950
+pattern showing that
+discrimination truly does
+
+00:32:17.950 --> 00:32:21.233
+follow the deep learning model
+and not the classical approach.
+
+00:32:21.233 --> 00:32:22.900
+And by looking at the
+random images that
+
+00:32:22.900 --> 00:32:24.972
+were selected in case
+where we disagree,
+
+00:32:24.972 --> 00:32:26.680
+it supports the notion
+that it's not just
+
+00:32:26.680 --> 00:32:28.450
+that the column is just
+the most dense, crazy,
+
+00:32:28.450 --> 00:32:30.230
+dense looking breast, that
+there's something more subtle
+
+00:32:30.230 --> 00:32:32.688
+it's picking up that's actually
+indicative of breast cancer
+
+00:32:32.688 --> 00:32:34.343
+risk.
+
+00:32:34.343 --> 00:32:35.760
+Kind of a very
+similar analysis we
+
+00:32:35.760 --> 00:32:39.180
+looked at as if we look at just
+by a traditional breast density
+
+00:32:39.180 --> 00:32:42.030
+as labeled by the original
+radiologist on the development
+
+00:32:42.030 --> 00:32:44.640
+set or on the test
+set, we end up
+
+00:32:44.640 --> 00:32:47.312
+seeing the same trend where
+if someone is non-dense
+
+00:32:47.312 --> 00:32:48.270
+we call them high risk.
+
+00:32:48.270 --> 00:32:49.430
+They're much higher
+risk than someone
+
+00:32:49.430 --> 00:32:50.930
+that is dense than
+we call low risk.
+
+00:32:53.900 --> 00:32:55.670
+And as before, the
+kind of real next step
+
+00:32:55.670 --> 00:32:59.930
+here to make this truly valuable
+and truly useful is actually
+
+00:32:59.930 --> 00:33:02.060
+implementing a clinically
+seamless prospectively
+
+00:33:02.060 --> 00:33:04.910
+and with more centers and
+kind of more population to see
+
+00:33:04.910 --> 00:33:07.310
+does this work and does it
+deliver the kind of benefits
+
+00:33:07.310 --> 00:33:08.280
+that we care about.
+
+00:33:08.280 --> 00:33:10.030
+And viewing what is
+the leverage of change
+
+00:33:10.030 --> 00:33:11.697
+once you know that
+someone is high risk?
+
+00:33:11.697 --> 00:33:14.000
+Perhaps MRI, perhaps
+more frequent screening.
+
+00:33:14.000 --> 00:33:16.190
+And so this is the kind
+of gap between having
+
+00:33:16.190 --> 00:33:18.500
+a useful technology
+on the paper side
+
+00:33:18.500 --> 00:33:21.360
+to an actual useful
+technology in real life.
+
+00:33:21.360 --> 00:33:23.968
+So I am moving on schedule.
+
+00:33:23.968 --> 00:33:25.760
+So now I'm gonna talk
+about how to mess up.
+
+00:33:25.760 --> 00:33:27.760
+And it's actually
+quite interesting.
+
+00:33:27.760 --> 00:33:29.490
+There is like, so many ways.
+
+00:33:29.490 --> 00:33:33.175
+And I fall into them a few
+times myself, and it happens.
+
+00:33:33.175 --> 00:33:34.550
+And kind of
+following the sketch,
+
+00:33:34.550 --> 00:33:35.780
+you can mess up in
+dataset collection.
+
+00:33:35.780 --> 00:33:37.405
+That's probably the
+most common by far.
+
+00:33:37.405 --> 00:33:39.990
+You can mess up in modeling,
+which I'm doing right now.
+
+00:33:39.990 --> 00:33:41.040
+And it's very sad.
+
+00:33:41.040 --> 00:33:44.130
+And you can mess up in analysis,
+which is really preventable.
+
+00:33:44.130 --> 00:33:47.120
+So in dataset collection,
+enriched data sets
+
+00:33:47.120 --> 00:33:49.670
+are the kind of the most common
+thing you see in this space.
+
+00:33:49.670 --> 00:33:51.170
+You find in a public
+data set that's
+
+00:33:51.170 --> 00:33:54.140
+most likely going to be like
+50-50 cancer, not cancer.
+
+00:33:54.140 --> 00:33:57.310
+And oftentimes these
+datasets collect
+
+00:33:57.310 --> 00:33:59.250
+can have some sort of
+bias within the way
+
+00:33:59.250 --> 00:34:00.370
+it was collected.
+
+00:34:00.370 --> 00:34:04.080
+So it might be that you have
+negative cases from less
+
+00:34:04.080 --> 00:34:05.940
+centers than you
+have positive cases.
+
+00:34:05.940 --> 00:34:07.200
+Or they're collected
+from different years.
+
+00:34:07.200 --> 00:34:08.783
+And actually, this
+is something we ran
+
+00:34:08.783 --> 00:34:10.199
+into earlier in our own work.
+
+00:34:10.199 --> 00:34:12.000
+Once upon a time,
+Connie and I were
+
+00:34:12.000 --> 00:34:16.090
+in Shanghai for the opening
+of a cancer center there.
+
+00:34:16.090 --> 00:34:19.000
+And at that time we had all the
+cancers from the MGH dataset,
+
+00:34:19.000 --> 00:34:20.100
+about 2,000.
+
+00:34:20.100 --> 00:34:22.770
+But the mammograms were still
+being collected annually
+
+00:34:22.770 --> 00:34:25.110
+from 2012-- from 2009.
+
+00:34:25.110 --> 00:34:28.020
+So at that time, we only had,
+like, half of the negatives
+
+00:34:28.020 --> 00:34:30.333
+by year, but all of the cancers.
+
+00:34:30.333 --> 00:34:31.750
+And all of a sudden
+I had to-- you
+
+00:34:31.750 --> 00:34:34.000
+know, I came from the slightly
+more complicated model,
+
+00:34:34.000 --> 00:34:34.850
+as one often does.
+
+00:34:34.850 --> 00:34:36.683
+I looked at several
+images at the same time.
+
+00:34:36.683 --> 00:34:38.320
+And my AUC went up to like, 95.
+
+00:34:38.320 --> 00:34:40.560
+And I had all this, like,
+bouncing off the wall.
+
+00:34:40.560 --> 00:34:42.917
+And then in-- you know, I
+had some suspicion of like,
+
+00:34:42.917 --> 00:34:43.500
+wait a second.
+
+00:34:43.500 --> 00:34:44.460
+This is too high.
+
+00:34:44.460 --> 00:34:46.350
+This is too good.
+
+00:34:46.350 --> 00:34:48.780
+And we completely realized
+that all these numbers
+
+00:34:48.780 --> 00:34:50.159
+were kind of a myth.
+
+00:34:50.159 --> 00:34:51.510
+But this level of--
+
+00:34:51.510 --> 00:34:54.060
+kind of if you do these
+kind of case control things,
+
+00:34:54.060 --> 00:34:56.670
+you can oftentimes,
+unless you're
+
+00:34:56.670 --> 00:34:58.587
+very careful about the
+way it was constructed,
+
+00:34:58.587 --> 00:35:00.212
+you could easily run
+into these issues.
+
+00:35:00.212 --> 00:35:02.380
+And your testing set won't
+protect you from that.
+
+00:35:02.380 --> 00:35:05.370
+And so having a clean
+dataset that truly
+
+00:35:05.370 --> 00:35:08.400
+follows the kind of spectrum
+we expect to use it in--
+
+00:35:08.400 --> 00:35:10.480
+i.e., a natural
+distribution, collected
+
+00:35:10.480 --> 00:35:12.840
+through routine clinical
+care is important to say
+
+00:35:12.840 --> 00:35:16.530
+will it behave as we
+actually want it to be used.
+
+00:35:16.530 --> 00:35:17.700
+In general, the only--
+
+00:35:17.700 --> 00:35:20.047
+some of this you can think
+through in first principle.
+
+00:35:20.047 --> 00:35:21.630
+But it kind of
+stresses the importance
+
+00:35:21.630 --> 00:35:23.820
+of actually testing
+this prospectively
+
+00:35:23.820 --> 00:35:26.820
+in external validation to try to
+see does this work when I take
+
+00:35:26.820 --> 00:35:28.760
+away some of the
+biases in my dataset,
+
+00:35:28.760 --> 00:35:30.550
+and being really
+careful about that.
+
+00:35:30.550 --> 00:35:32.175
+The common approach
+of just controlling
+
+00:35:32.175 --> 00:35:33.960
+by age or by density
+is not enough
+
+00:35:33.960 --> 00:35:36.168
+when the model can catch
+really fine-grained signals.
+
+00:35:38.455 --> 00:35:39.580
+How to mess up in modeling.
+
+00:35:39.580 --> 00:35:41.940
+So there's been adventures
+in this space as well.
+
+00:35:41.940 --> 00:35:43.690
+One of the things I've
+recently discovered
+
+00:35:43.690 --> 00:35:46.720
+is that the actual
+mammography machine
+
+00:35:46.720 --> 00:35:48.323
+device that the
+machine was captured
+
+00:35:48.323 --> 00:35:49.865
+on-- so you saw a
+bunch of mammograms
+
+00:35:49.865 --> 00:35:51.282
+probably from
+different machines--
+
+00:35:51.282 --> 00:35:54.710
+has an unexpected
+impact on the model.
+
+00:35:54.710 --> 00:35:56.790
+So the actual probability
+distribution--
+
+00:35:56.790 --> 00:35:59.500
+the distribution of cancer
+probabilities by the model
+
+00:35:59.500 --> 00:36:01.032
+is not independent
+of the device.
+
+00:36:01.032 --> 00:36:02.740
+That's something we're
+going through now.
+
+00:36:02.740 --> 00:36:04.365
+We actually ran into
+this while working
+
+00:36:04.365 --> 00:36:06.210
+on clinical implementation
+is like this kind
+
+00:36:06.210 --> 00:36:07.960
+of conditional adversarial
+training set up
+
+00:36:07.960 --> 00:36:10.300
+to try to rectify this issue.
+
+00:36:10.300 --> 00:36:11.030
+It's important.
+
+00:36:11.030 --> 00:36:13.955
+So this is much harder to
+catch based on first principle.
+
+00:36:13.955 --> 00:36:16.330
+But it's important to think
+through as you kind of really
+
+00:36:16.330 --> 00:36:18.842
+start demoing out
+your computations.
+
+00:36:18.842 --> 00:36:20.800
+This will kind of-- these
+issues pop up easily,
+
+00:36:20.800 --> 00:36:22.990
+and they're harder to avoid.
+
+00:36:22.990 --> 00:36:25.600
+And lastly, and I
+think probably one
+
+00:36:25.600 --> 00:36:28.120
+that's probably
+the most important
+
+00:36:28.120 --> 00:36:30.020
+is messing up in analysis.
+
+00:36:30.020 --> 00:36:32.560
+So it's quite common
+in the previous section
+
+00:36:32.560 --> 00:36:33.310
+in this field--
+
+00:36:33.310 --> 00:36:33.620
+yes.
+
+00:36:33.620 --> 00:36:35.304
+AUDIENCE: With the
+adversarial up there,
+
+00:36:35.304 --> 00:36:38.810
+just to understand what you
+do, do you that discriminate
+
+00:36:38.810 --> 00:36:40.320
+or predict the machine?
+
+00:36:40.320 --> 00:36:43.548
+And then you train against that?
+
+00:36:43.548 --> 00:36:45.590
+ADAM YALA: So my answer
+is going to be two parts.
+
+00:36:45.590 --> 00:36:48.350
+One, it doesn't work as
+well as I want it to yet.
+
+00:36:48.350 --> 00:36:49.330
+So really who knows?
+
+00:36:49.330 --> 00:36:52.000
+But my best hunch
+in terms of what's
+
+00:36:52.000 --> 00:36:54.520
+been done before for other
+kind of work, specifically
+
+00:36:54.520 --> 00:36:56.853
+in radio signals, is they use
+a conditional adversarial.
+
+00:36:56.853 --> 00:36:59.437
+So you're free to discriminate
+at both the label and the image
+
+00:36:59.437 --> 00:36:59.980
+presentation.
+
+00:36:59.980 --> 00:37:01.690
+You have to try to
+predict out the device
+
+00:37:01.690 --> 00:37:04.210
+to try to take away the
+information that's not just
+
+00:37:04.210 --> 00:37:06.250
+contained within the
+label distribution.
+
+00:37:06.250 --> 00:37:09.150
+And that's been shown to be very
+helpful for people trying to do
+
+00:37:09.150 --> 00:37:12.540
+[INAUDIBLE] detection
+based off on Wi-Fi--
+
+00:37:12.540 --> 00:37:14.390
+or not Wi-Fi-- but
+like, radio waves.
+
+00:37:14.390 --> 00:37:16.090
+And the [INAUDIBLE]
+but also, it seems
+
+00:37:16.090 --> 00:37:18.440
+to be the most common approach
+I've seen in literature.
+
+00:37:18.440 --> 00:37:20.120
+So it's something that
+I'm going to try soon.
+
+00:37:20.120 --> 00:37:20.810
+I haven't implemented it.
+
+00:37:20.810 --> 00:37:22.810
+It was just GPU time
+and kind of waiting
+
+00:37:22.810 --> 00:37:25.750
+to queue up the experiment.
+
+00:37:25.750 --> 00:37:29.020
+And the last part in
+terms of how to mess up
+
+00:37:29.020 --> 00:37:30.225
+is this kind of analysis.
+
+00:37:30.225 --> 00:37:31.600
+One thing that's
+common is people
+
+00:37:31.600 --> 00:37:33.810
+assume that's it kind of
+like synthetic experiments
+
+00:37:33.810 --> 00:37:35.360
+or the same thing as
+clinical implementation.
+
+00:37:35.360 --> 00:37:37.330
+Like, people do reader
+studies very often.
+
+00:37:37.330 --> 00:37:38.500
+And it's quite common
+to see that when
+
+00:37:38.500 --> 00:37:40.900
+you do reader studies that
+it doesn't actually-- like,
+
+00:37:40.900 --> 00:37:42.280
+you might find that
+computer detection does
+
+00:37:42.280 --> 00:37:43.980
+a huge difference
+in reader studies.
+
+00:37:43.980 --> 00:37:46.480
+And it's-- Connie actual showed
+it was harmful in real life.
+
+00:37:46.480 --> 00:37:50.015
+And it's important to kind
+of like, do these real world
+
+00:37:50.015 --> 00:37:51.890
+experiments that we can
+say what is happening
+
+00:37:51.890 --> 00:37:54.520
+and just them the real
+benefit that I expected.
+
+00:37:54.520 --> 00:37:58.270
+And a hopefully less
+common nowadays mistake
+
+00:37:58.270 --> 00:38:01.510
+is that oftentimes people
+exclude all inconvenient cases.
+
+00:38:01.510 --> 00:38:03.760
+So there was a paper
+yesterday that just came out
+
+00:38:03.760 --> 00:38:06.818
+that the cancer detection used a
+kind of patched-up architecture
+
+00:38:06.818 --> 00:38:08.860
+which would read more
+closely into their details,
+
+00:38:08.860 --> 00:38:10.760
+they excluded all
+women with breasts
+
+00:38:10.760 --> 00:38:12.760
+that they considered too
+small by some threshold
+
+00:38:12.760 --> 00:38:14.260
+for like modeling convenience.
+
+00:38:14.260 --> 00:38:15.635
+But that might
+disproportionately
+
+00:38:15.635 --> 00:38:19.680
+affect specifically Asian
+women in that population.
+
+00:38:19.680 --> 00:38:21.790
+And so they didn't do
+a subgroup analysis
+
+00:38:21.790 --> 00:38:23.290
+for all the different
+races, so it's
+
+00:38:23.290 --> 00:38:24.920
+hard to know what
+is happening there.
+
+00:38:24.920 --> 00:38:26.378
+If your population
+is mostly white,
+
+00:38:26.378 --> 00:38:28.570
+which it is at MGH, and
+is at a lot of the centers
+
+00:38:28.570 --> 00:38:30.450
+that these colleges
+have developed,
+
+00:38:30.450 --> 00:38:31.915
+are reporting the
+average that you
+
+00:38:31.915 --> 00:38:33.470
+see isn't enough to
+really validate that.
+
+00:38:33.470 --> 00:38:35.260
+And so you can have things
+like Tyrer-Cuzick model
+
+00:38:35.260 --> 00:38:37.450
+that are worse than random
+and especially harmful
+
+00:38:37.450 --> 00:38:38.680
+for African-American women.
+
+00:38:38.680 --> 00:38:41.140
+And so guarding
+against that is you
+
+00:38:41.140 --> 00:38:43.300
+can do a lot of that
+based on first principle.
+
+00:38:43.300 --> 00:38:45.508
+But some of these things
+you can only really find out
+
+00:38:45.508 --> 00:38:48.430
+by actively monitoring to say,
+is there any subpopulation
+
+00:38:48.430 --> 00:38:51.770
+that I didn't think about a
+priority that could be harmed?
+
+00:38:51.770 --> 00:38:54.160
+And finally, so I talked
+about clinical deployments.
+
+00:38:54.160 --> 00:38:55.830
+We've actually done
+this a couple times.
+
+00:38:55.830 --> 00:38:59.110
+And I'm going to switch
+over to Connie real soon.
+
+00:38:59.110 --> 00:39:01.480
+In general, what
+you want to do is
+
+00:39:01.480 --> 00:39:04.540
+you want to make it as easy
+as plausible and possible
+
+00:39:04.540 --> 00:39:08.980
+for the in-house IT
+team to use your tool.
+
+00:39:08.980 --> 00:39:11.070
+We've gone through this with--
+
+00:39:11.070 --> 00:39:12.990
+not like-- I don't--
+depends on how you count.
+
+00:39:12.990 --> 00:39:14.470
+It's like once for density
+and then like three times
+
+00:39:14.470 --> 00:39:15.360
+at the same time.
+
+00:39:15.360 --> 00:39:17.950
+But I spent, like, many
+hours sitting there.
+
+00:39:17.950 --> 00:39:21.190
+And the broad way that we
+set it up so far is we just
+
+00:39:21.190 --> 00:39:24.340
+have a kind of
+docker as container
+
+00:39:24.340 --> 00:39:26.860
+to manage a web app
+that holds the model.
+
+00:39:26.860 --> 00:39:29.140
+This web app has kind of a
+backup processing toolkit.
+
+00:39:29.140 --> 00:39:31.140
+So the kind of steps that
+all of our deployments
+
+00:39:31.140 --> 00:39:33.242
+follow and I look
+under unified framework
+
+00:39:33.242 --> 00:39:35.200
+is the IT application
+would get some images out
+
+00:39:35.200 --> 00:39:36.760
+of the PAC system.
+
+00:39:36.760 --> 00:39:38.260
+It will send it
+over to application.
+
+00:39:38.260 --> 00:39:40.760
+We're going to convert to the
+PNG in the way that we expect,
+
+00:39:40.760 --> 00:39:43.410
+because we kind of encapsulate
+this functionality.
+
+00:39:43.410 --> 00:39:45.743
+Run for the models, send it
+back, and then write it back
+
+00:39:45.743 --> 00:39:46.270
+to the EHR.
+
+00:39:46.270 --> 00:39:49.000
+One of the things I ran into
+was that they didn't actually
+
+00:39:49.000 --> 00:39:51.760
+know how to use things like
+HTTP because it's not actually
+
+00:39:51.760 --> 00:39:53.930
+normal within their
+infrastructure.
+
+00:39:53.930 --> 00:39:56.620
+And so being cognizant that
+some of these more, like,
+
+00:39:56.620 --> 00:39:59.230
+tech standard things
+like just HTTP requests
+
+00:39:59.230 --> 00:40:04.390
+and responses and stuff is
+less standard within the inside
+
+00:40:04.390 --> 00:40:06.460
+of their infrastructure
+and kind of looking up
+
+00:40:06.460 --> 00:40:07.830
+how to actually do these
+things in like C Sharp,
+
+00:40:07.830 --> 00:40:09.310
+or whatever language
+they have, has
+
+00:40:09.310 --> 00:40:11.602
+been really what's enabled
+us to end block these things
+
+00:40:11.602 --> 00:40:13.450
+and actually plug it in.
+
+00:40:13.450 --> 00:40:14.660
+And that is it for my part.
+
+00:40:14.660 --> 00:40:16.160
+So I'm gonna hand
+it back-- oh, yes.
+
+00:40:16.160 --> 00:40:19.220
+AUDIENCE: So you're writing
+stuff in the IT application
+
+00:40:19.220 --> 00:40:21.970
+in C Sharp to do API requests?
+
+00:40:21.970 --> 00:40:23.983
+ADAM YALA: So
+they're writing it.
+
+00:40:23.983 --> 00:40:25.900
+I just meet them to tell
+them how to write it.
+
+00:40:25.900 --> 00:40:28.070
+But yes.
+
+00:40:28.070 --> 00:40:30.610
+So like, in general,
+like, there's libraries.
+
+00:40:30.610 --> 00:40:33.200
+So like, the entire
+environment is in Windows.
+
+00:40:33.200 --> 00:40:34.670
+And Windows has a
+very poor support
+
+00:40:34.670 --> 00:40:35.790
+for lots of things
+you would expect
+
+00:40:35.790 --> 00:40:37.130
+it to have a good support for.
+
+00:40:37.130 --> 00:40:38.930
+So there was like,
+if you wanted to send
+
+00:40:38.930 --> 00:40:41.660
+HP requests for like
+a multipart form
+
+00:40:41.660 --> 00:40:43.430
+and just put the
+images in that form,
+
+00:40:43.430 --> 00:40:47.000
+apparently that has bugs in
+it in like, Windows whatever
+
+00:40:47.000 --> 00:40:48.620
+version they use today.
+
+00:40:48.620 --> 00:40:50.450
+And so that vanilla
+version didn't work.
+
+00:40:50.450 --> 00:40:52.370
+Windows for Docker
+also has bugs.
+
+00:40:52.370 --> 00:40:54.830
+And I had to set up this kind
+of locking function for them
+
+00:40:54.830 --> 00:40:57.530
+to like, automatically table
+locks inside the container.
+
+00:40:57.530 --> 00:40:59.070
+And it just doesn't work
+in Windows for Docker.
+
+00:40:59.070 --> 00:41:00.940
+AUDIENCE: [INAUDIBLE] questions
+because he is short on time.
+
+00:41:00.940 --> 00:41:01.735
+ADAM YALA: Yeah.
+
+00:41:01.735 --> 00:41:03.110
+So we can get to
+this at the end.
+
+00:41:03.110 --> 00:41:04.700
+I want to hand off to Connie.
+
+00:41:04.700 --> 00:41:07.870
+If you have any
+questions, grab me after.

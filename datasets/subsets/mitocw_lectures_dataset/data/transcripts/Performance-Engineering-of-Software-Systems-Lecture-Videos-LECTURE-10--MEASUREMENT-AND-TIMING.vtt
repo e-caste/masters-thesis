@@ -1,0 +1,5699 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT OpenCourseWare
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high-quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:18.140
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:18.140 --> 00:00:19.026
+at ocw.mit.edu.
+
+00:00:22.847 --> 00:00:24.680
+CHARLES E. LEISERSON:
+OK, let's get started.
+
+00:00:28.270 --> 00:00:33.210
+So today we're going to talk
+about measurement and timing.
+
+00:00:33.210 --> 00:00:37.950
+And I want to start out by
+just showing you a study
+
+00:00:37.950 --> 00:00:40.680
+that one of my students did--
+
+00:00:40.680 --> 00:00:44.370
+actually, at that point,
+he was a former student--
+
+00:00:44.370 --> 00:00:47.050
+whereas timing a
+code for sorting.
+
+00:00:47.050 --> 00:00:48.660
+So here's the code.
+
+00:00:48.660 --> 00:00:53.220
+This isn't exactly his code,
+but it's in the same spirit
+
+00:00:53.220 --> 00:00:56.550
+so that you get the idea.
+
+00:00:56.550 --> 00:00:58.255
+And so let's just
+run through this code
+
+00:00:58.255 --> 00:00:59.880
+and take a look to
+see what it's doing.
+
+00:00:59.880 --> 00:01:03.080
+It's pretty straightforward.
+
+00:01:03.080 --> 00:01:09.330
+We're going to use the time.h
+header file to get access
+
+00:01:09.330 --> 00:01:14.340
+to the clock_gettime() routine,
+which is going to be what we
+
+00:01:14.340 --> 00:01:18.310
+used to get timing measurements.
+
+00:01:18.310 --> 00:01:20.498
+And then we have
+a sorting routine
+
+00:01:20.498 --> 00:01:21.540
+that we're going to time.
+
+00:01:21.540 --> 00:01:24.480
+That I'm not showing you.
+
+00:01:24.480 --> 00:01:27.180
+And there is also
+a fill routine,
+
+00:01:27.180 --> 00:01:31.680
+which is going to fill up
+the array with numbers--
+
+00:01:31.680 --> 00:01:35.070
+with random numbers, so
+we have something to sort.
+
+00:01:35.070 --> 00:01:43.740
+And the clock_gettime() uses
+a struct that is defined here,
+
+00:01:43.740 --> 00:01:49.840
+and so I'm defining two timing
+structs-- a start and an end.
+
+00:01:49.840 --> 00:01:53.230
+So this is just absolute
+boilerplate setting up
+
+00:01:53.230 --> 00:01:56.590
+for taking timing measurements.
+
+00:01:56.590 --> 00:01:59.680
+And in this case, basically the
+high order part of the struct
+
+00:01:59.680 --> 00:02:03.220
+tells the seconds, the lower
+part tells the nanoseconds.
+
+00:02:06.530 --> 00:02:08.780
+And then we're
+going to loop over
+
+00:02:08.780 --> 00:02:11.750
+arrays of increasing length.
+
+00:02:11.750 --> 00:02:15.113
+And then what we're going
+to do is fill them up--
+
+00:02:15.113 --> 00:02:17.780
+oh, I forgot the fill-- and then
+we're going to measure how much
+
+00:02:17.780 --> 00:02:18.680
+time--
+
+00:02:18.680 --> 00:02:21.410
+what the time is
+just before we sort.
+
+00:02:21.410 --> 00:02:23.360
+Then we're going to
+sort, and then we're
+
+00:02:23.360 --> 00:02:27.280
+going to measure the
+time after sorting.
+
+00:02:27.280 --> 00:02:29.740
+And then we compute
+the difference,
+
+00:02:29.740 --> 00:02:32.740
+and figure out what the elapsed
+time is, print that out,
+
+00:02:32.740 --> 00:02:36.585
+and then we do it again for
+a little bit larger array.
+
+00:02:36.585 --> 00:02:37.960
+So is that clear
+what's going on?
+
+00:02:37.960 --> 00:02:39.910
+So we're just sorting
+a bunch of numbers,
+
+00:02:39.910 --> 00:02:41.500
+then we're sorting
+some bigger ones,
+
+00:02:41.500 --> 00:02:42.958
+sorting some bigger
+ones, so we can
+
+00:02:42.958 --> 00:02:46.370
+see what the growth of the
+sorting routine should be.
+
+00:02:49.410 --> 00:02:51.630
+People have a pretty
+good understanding
+
+00:02:51.630 --> 00:02:53.650
+of what the code does?
+
+00:02:53.650 --> 00:02:57.060
+OK, so what do we expect to see?
+
+00:03:00.690 --> 00:03:02.998
+What's this curve
+going to look like?
+
+00:03:02.998 --> 00:03:04.290
+What are some properties of it?
+
+00:03:11.630 --> 00:03:12.130
+Yep?
+
+00:03:15.070 --> 00:03:18.000
+AUDIENCE: [INAUDIBLE]
+
+00:03:18.000 --> 00:03:19.750
+CHARLES E. LEISERSON:
+So micro is n log n,
+
+00:03:19.750 --> 00:03:22.090
+but it's certainly
+going to grow, right?
+
+00:03:22.090 --> 00:03:23.560
+It should be up
+and to the right.
+
+00:03:23.560 --> 00:03:26.800
+In fact, one rule, if you
+ever get into marketing,
+
+00:03:26.800 --> 00:03:31.030
+is that all graphs must
+go up and to the right.
+
+00:03:31.030 --> 00:03:33.070
+If they're going down
+and to the right,
+
+00:03:33.070 --> 00:03:37.620
+then your company's in trouble.
+
+00:03:37.620 --> 00:03:39.370
+So it should be going
+up and to the right,
+
+00:03:39.370 --> 00:03:41.410
+and it should follow,
+for example, n log n,
+
+00:03:41.410 --> 00:03:44.270
+if it's an n log n sort,
+which is what this one was.
+
+00:03:44.270 --> 00:03:48.150
+I think he was, in this
+case, timing a merge sort.
+
+00:03:48.150 --> 00:03:50.140
+They should go up
+and to the right,
+
+00:03:50.140 --> 00:03:53.800
+and should follow n
+log n, or whatever.
+
+00:03:53.800 --> 00:03:55.480
+So let's see what
+actually happened
+
+00:03:55.480 --> 00:03:58.540
+when he took the measurements.
+
+00:03:58.540 --> 00:04:00.880
+This is actually his data from--
+
+00:04:00.880 --> 00:04:06.230
+gosh, this must have been
+20 years ago or something.
+
+00:04:06.230 --> 00:04:08.680
+Here's what it looked like.
+
+00:04:08.680 --> 00:04:12.940
+So the blue Xs there
+are the runtimes.
+
+00:04:17.690 --> 00:04:20.300
+And then through that,
+we've plotted two curves,
+
+00:04:20.300 --> 00:04:23.510
+one which is the
+best fit to order n
+
+00:04:23.510 --> 00:04:26.660
+log n growth, and the best
+fit to order n growth.
+
+00:04:26.660 --> 00:04:27.890
+You notice that for--
+
+00:04:27.890 --> 00:04:31.610
+even though we're going
+up to 4 million here,
+
+00:04:31.610 --> 00:04:36.800
+there's not that much difference
+between n log n and order n.
+
+00:04:36.800 --> 00:04:39.710
+You can see it mostly
+down in the tails.
+
+00:04:39.710 --> 00:04:42.110
+Definitely the n log n
+follows a little bit better,
+
+00:04:42.110 --> 00:04:52.160
+but really, log n is
+pretty small already.
+
+00:04:52.160 --> 00:04:55.670
+But wow, those measured times--
+
+00:04:55.670 --> 00:04:59.030
+so if you look, there
+are points way up here--
+
+00:04:59.030 --> 00:04:59.795
+really slow.
+
+00:05:03.110 --> 00:05:05.973
+It starts out-- it
+goes slow a little bit,
+
+00:05:05.973 --> 00:05:08.390
+and then it gets a little bit
+worse, and then a little bit
+
+00:05:08.390 --> 00:05:09.980
+worse, and a little bit worse.
+
+00:05:09.980 --> 00:05:12.420
+Notice also that the bumps
+are getting closer and closer
+
+00:05:12.420 --> 00:05:12.920
+together.
+
+00:05:15.740 --> 00:05:19.340
+What is going on?
+
+00:05:19.340 --> 00:05:21.320
+Why?
+
+00:05:21.320 --> 00:05:23.960
+I don't know about
+you, but I thought
+
+00:05:23.960 --> 00:05:32.180
+the data would follow the
+green dots reasonably closely.
+
+00:05:32.180 --> 00:05:35.180
+But you can see it doesn't.
+
+00:05:35.180 --> 00:05:36.920
+It's always good to
+have a model for what
+
+00:05:36.920 --> 00:05:39.210
+you think is going on
+because then, when you--
+
+00:05:39.210 --> 00:05:41.210
+because some people
+will just take numbers.
+
+00:05:41.210 --> 00:05:44.720
+They'll say, here's
+my numbers for my--
+
+00:05:44.720 --> 00:05:46.580
+that I've measured.
+
+00:05:46.580 --> 00:05:48.950
+And if you don't
+actually have a model
+
+00:05:48.950 --> 00:05:51.740
+for what those
+numbers mean, you're
+
+00:05:51.740 --> 00:05:54.050
+probably fooling yourself.
+
+00:05:54.050 --> 00:05:56.465
+You're more likely to have
+made some sort of error,
+
+00:05:56.465 --> 00:05:58.340
+or there's something
+going on that you're not
+
+00:05:58.340 --> 00:06:01.910
+observing, or whatever,
+if you don't actually
+
+00:06:01.910 --> 00:06:04.370
+have a model for what you
+think should be going on.
+
+00:06:04.370 --> 00:06:06.120
+So what's going on here?
+
+00:06:06.120 --> 00:06:12.395
+Who can suggest a hypothesis
+for what is going on?
+
+00:06:17.210 --> 00:06:19.430
+So he took these numbers
+on his laptop, by the way.
+
+00:06:26.717 --> 00:06:28.300
+What do you suppose
+is happening here?
+
+00:06:34.650 --> 00:06:37.240
+Some ideas.
+
+00:06:37.240 --> 00:06:40.010
+Yeah?
+
+00:06:40.010 --> 00:06:40.917
+AUDIENCE: [INAUDIBLE]
+
+00:06:40.917 --> 00:06:43.250
+CHARLES E. LEISERSON: Maybe
+it doesn't fit in the cache.
+
+00:06:43.250 --> 00:06:44.990
+What would you expect
+to happen if things
+
+00:06:44.990 --> 00:06:46.832
+didn't fit in the cache?
+
+00:06:46.832 --> 00:06:48.220
+AUDIENCE: [INAUDIBLE]
+
+00:06:48.220 --> 00:06:49.845
+CHARLES E. LEISERSON:
+Yeah, you sort of
+
+00:06:49.845 --> 00:06:54.380
+think that it would go along,
+and then it would jump.
+
+00:06:54.380 --> 00:06:59.750
+So interesting issue, but
+that doesn't seem to be what's
+
+00:06:59.750 --> 00:07:00.770
+happening there.
+
+00:07:00.770 --> 00:07:02.660
+It's going up, then
+it's going back down.
+
+00:07:02.660 --> 00:07:05.060
+It's going up and
+going back down--
+
+00:07:05.060 --> 00:07:07.995
+roller coaster.
+
+00:07:07.995 --> 00:07:09.120
+What other ideas are there?
+
+00:07:09.120 --> 00:07:10.860
+Good idea.
+
+00:07:10.860 --> 00:07:11.640
+Good idea.
+
+00:07:11.640 --> 00:07:14.223
+Let's think a little bit about
+what's going on in the machine.
+
+00:07:16.870 --> 00:07:18.880
+What are some other good ideas?
+
+00:07:18.880 --> 00:07:21.275
+Or bad ideas?
+
+00:07:21.275 --> 00:07:22.150
+Let's eliminate some.
+
+00:07:25.524 --> 00:07:26.970
+Yeah.
+
+00:07:26.970 --> 00:07:28.910
+AUDIENCE: They're
+not powers of 2.
+
+00:07:28.910 --> 00:07:32.190
+CHARLES E. LEISERSON:
+They're not powers of 2.
+
+00:07:32.190 --> 00:07:34.677
+These are not
+powers of 2, right?
+
+00:07:34.677 --> 00:07:36.510
+Because they're getting
+closer and closer as
+
+00:07:36.510 --> 00:07:37.940
+we get bigger and bigger.
+
+00:07:37.940 --> 00:07:40.110
+Yeah, so you're right.
+
+00:07:40.110 --> 00:07:42.770
+It's not correlated
+with powers of 2.
+
+00:07:42.770 --> 00:07:43.920
+Weird.
+
+00:07:43.920 --> 00:07:45.868
+Because sometimes things
+are alignment issues,
+
+00:07:45.868 --> 00:07:47.160
+and we'll talk more about that.
+
+00:07:47.160 --> 00:07:51.030
+It will come up when we talk
+about caching after the quiz.
+
+00:07:51.030 --> 00:07:53.377
+Everybody knows there's
+a quiz next time--
+
+00:07:53.377 --> 00:07:54.960
+especially all of
+you who aren't here?
+
+00:07:59.290 --> 00:08:02.560
+OK, so what else might be
+going on in the machine here?
+
+00:08:07.890 --> 00:08:09.520
+Because this is reality.
+
+00:08:09.520 --> 00:08:12.797
+This is what happens when
+you take measurements.
+
+00:08:12.797 --> 00:08:14.130
+So we're being very nice to you.
+
+00:08:14.130 --> 00:08:17.900
+We're giving you AWS run.
+
+00:08:17.900 --> 00:08:20.060
+We have done everything
+we can to make
+
+00:08:20.060 --> 00:08:26.210
+sure those numbers come
+out clean, and beautiful,
+
+00:08:26.210 --> 00:08:29.870
+and untouched.
+
+00:08:29.870 --> 00:08:30.950
+There they are.
+
+00:08:30.950 --> 00:08:36.020
+That is quality measurements
+we're taking for you.
+
+00:08:36.020 --> 00:08:37.970
+But if you had to
+do it yourself,
+
+00:08:37.970 --> 00:08:40.010
+that's what this lecture,
+in part, is about.
+
+00:08:40.010 --> 00:08:40.772
+Yeah?
+
+00:08:40.772 --> 00:08:44.708
+AUDIENCE: [INAUDIBLE]
+
+00:08:52.233 --> 00:08:53.650
+CHARLES E. LEISERSON:
+So you think
+
+00:08:53.650 --> 00:08:58.120
+that there may be something
+having to do with the cache.
+
+00:08:58.120 --> 00:09:00.695
+But I'm going through each time
+and I'm refilling the array
+
+00:09:00.695 --> 00:09:04.510
+each time, so they're kind of
+starting from a clean slate--
+
+00:09:04.510 --> 00:09:06.100
+similar clean slate each time.
+
+00:09:10.930 --> 00:09:13.190
+What else is going on
+in the machine here?
+
+00:09:13.190 --> 00:09:13.690
+Yeah?
+
+00:09:13.690 --> 00:09:16.065
+AUDIENCE: [INAUDIBLE] totally
+unrelated stuff [INAUDIBLE]
+
+00:09:16.065 --> 00:09:17.440
+CHARLES E. LEISERSON:
+Yeah, there
+
+00:09:17.440 --> 00:09:19.450
+could be totally
+unrelated stuff running.
+
+00:09:22.180 --> 00:09:25.430
+You might have daemons, you
+might have all kinds of things,
+
+00:09:25.430 --> 00:09:26.530
+and so forth.
+
+00:09:26.530 --> 00:09:30.310
+So he thought of
+that, and he shut down
+
+00:09:30.310 --> 00:09:32.590
+everything he possibly could.
+
+00:09:32.590 --> 00:09:37.090
+And this is what he got still.
+
+00:09:37.090 --> 00:09:40.760
+But that's a great idea
+because often, there's
+
+00:09:40.760 --> 00:09:43.510
+some external things going on.
+
+00:09:43.510 --> 00:09:45.280
+In this case, it's
+called multi-tenancy.
+
+00:09:45.280 --> 00:09:48.880
+There's more than one thing
+using the computer at a time.
+
+00:09:48.880 --> 00:09:52.586
+Good idea, but happens
+not to be the one.
+
+00:09:52.586 --> 00:09:54.880
+AUDIENCE: [INAUDIBLE]
+
+00:09:54.880 --> 00:09:57.320
+CHARLES E. LEISERSON: Could
+be precision with the timing.
+
+00:09:57.320 --> 00:09:59.260
+Yeah, sometimes there
+can be issues there,
+
+00:09:59.260 --> 00:10:04.810
+but this was not
+a precision issue.
+
+00:10:04.810 --> 00:10:07.180
+He could have used
+a really dumb timer
+
+00:10:07.180 --> 00:10:09.460
+and gotten something
+very similar to this.
+
+00:10:12.252 --> 00:10:13.710
+What else is going
+on your machine?
+
+00:10:13.710 --> 00:10:15.032
+Yeah?
+
+00:10:15.032 --> 00:10:16.615
+AUDIENCE: Maybe his
+machine's checking
+
+00:10:16.615 --> 00:10:18.247
+for updates every minute.
+
+00:10:18.247 --> 00:10:19.830
+CHARLES E. LEISERSON:
+Yeah, maybe it's
+
+00:10:19.830 --> 00:10:20.705
+checking for updates.
+
+00:10:20.705 --> 00:10:22.710
+That's once again
+some external things.
+
+00:10:22.710 --> 00:10:25.128
+No, it wasn't
+checking for updates.
+
+00:10:25.128 --> 00:10:26.295
+Wasn't checking for updates.
+
+00:10:31.300 --> 00:10:33.952
+What is going on here?
+
+00:10:33.952 --> 00:10:34.660
+What is going on?
+
+00:10:34.660 --> 00:10:35.785
+Let's have some more ideas.
+
+00:10:35.785 --> 00:10:38.271
+What other things might
+disrupt measurements?
+
+00:10:41.040 --> 00:10:41.862
+Yeah?
+
+00:10:41.862 --> 00:10:45.105
+AUDIENCE: [INAUDIBLE]
+
+00:10:45.105 --> 00:10:46.230
+CHARLES E. LEISERSON: Yeah.
+
+00:10:53.190 --> 00:10:55.110
+This was actually merge
+sort he was timing,
+
+00:10:55.110 --> 00:10:56.550
+so there's no randomization.
+
+00:10:56.550 --> 00:10:58.890
+But even that, if
+it were quick sort,
+
+00:10:58.890 --> 00:11:02.700
+it'd be at random that things
+would tend to take longer,
+
+00:11:02.700 --> 00:11:06.360
+rather than following
+this crazy pattern.
+
+00:11:06.360 --> 00:11:10.050
+What is causing
+that crazy pattern?
+
+00:11:10.050 --> 00:11:10.827
+Yeah?
+
+00:11:10.827 --> 00:11:13.388
+AUDIENCE: Does the random
+fill have to do with the time?
+
+00:11:13.388 --> 00:11:15.430
+CHARLES E. LEISERSON: No,
+because the random fill
+
+00:11:15.430 --> 00:11:16.630
+is done outside the timer.
+
+00:11:21.840 --> 00:11:23.340
+Each time through
+the loop, we fill,
+
+00:11:23.340 --> 00:11:25.157
+and then we start
+the timer, and then
+
+00:11:25.157 --> 00:11:26.740
+we take the measurement,
+and so forth.
+
+00:11:26.740 --> 00:11:28.002
+Yeah?
+
+00:11:28.002 --> 00:11:31.474
+AUDIENCE: [INAUDIBLE]
+
+00:11:35.458 --> 00:11:37.500
+CHARLES E. LEISERSON: It's
+not allocating memory.
+
+00:11:37.500 --> 00:11:41.040
+But that's an interesting
+idea, because sometimes you
+
+00:11:41.040 --> 00:11:44.670
+have things going on where
+you think things are happening
+
+00:11:44.670 --> 00:11:49.380
+right away, but the system is
+being clever and delaying it.
+
+00:11:49.380 --> 00:11:52.320
+And so you end up paying
+for it at some later time,
+
+00:11:52.320 --> 00:11:55.022
+and that could possibly
+create something.
+
+00:11:55.022 --> 00:11:56.730
+Turns out not to be
+what's going on here.
+
+00:12:08.390 --> 00:12:14.960
+So what's happening here
+is that the machine is
+
+00:12:14.960 --> 00:12:16.820
+changing the clock frequency.
+
+00:12:20.130 --> 00:12:24.710
+Why is the machine changing
+the clock frequency?
+
+00:12:24.710 --> 00:12:26.680
+Your laptops change the--
+
+00:12:26.680 --> 00:12:30.550
+the systems that we have,
+they change clock frequency.
+
+00:12:30.550 --> 00:12:32.110
+Why do they change it?
+
+00:12:32.110 --> 00:12:33.460
+AUDIENCE: [INAUDIBLE]
+
+00:12:33.460 --> 00:12:36.475
+CHARLES E. LEISERSON: Because
+the laptop is getting hot.
+
+00:12:36.475 --> 00:12:37.350
+So what do are doing?
+
+00:12:37.350 --> 00:12:40.290
+We're running something
+computational.
+
+00:12:40.290 --> 00:12:41.310
+And the smaller ones--
+
+00:12:41.310 --> 00:12:44.910
+OK, we get a lot of those done,
+until it starts heating up,
+
+00:12:44.910 --> 00:12:50.770
+and so it slows down the
+system clock to save power.
+
+00:12:50.770 --> 00:12:52.550
+OK, and then what happens?
+
+00:12:52.550 --> 00:12:56.570
+Slows it down a little bit,
+cools off a little bit,
+
+00:12:56.570 --> 00:12:59.730
+starts to speed up again.
+
+00:12:59.730 --> 00:13:01.590
+And then we run longer.
+
+00:13:01.590 --> 00:13:04.320
+And why are these things getting
+closer and closer together?
+
+00:13:13.070 --> 00:13:13.570
+Yeah?
+
+00:13:13.570 --> 00:13:15.695
+AUDIENCE: Takes longer and
+longer to run the sorts.
+
+00:13:15.695 --> 00:13:17.945
+CHARLES E. LEISERSON: Yeah,
+it takes longer and longer
+
+00:13:17.945 --> 00:13:19.370
+to run the sorts,
+so you're going
+
+00:13:19.370 --> 00:13:25.280
+to see the effect
+closer in an interval
+
+00:13:25.280 --> 00:13:28.792
+here, even if it happened
+to be equal in time.
+
+00:13:28.792 --> 00:13:30.250
+Even if it was
+equal in time, we're
+
+00:13:30.250 --> 00:13:33.610
+doing bigger and
+bigger problems.
+
+00:13:33.610 --> 00:13:36.960
+This is nuts, right?
+
+00:13:36.960 --> 00:13:38.260
+We want to take measurements.
+
+00:13:38.260 --> 00:13:40.430
+We want to know whether
+the software is faster.
+
+00:13:40.430 --> 00:13:41.920
+What are you supposed to do?
+
+00:13:41.920 --> 00:13:44.320
+So here, if you just took
+a measurement and said,
+
+00:13:44.320 --> 00:13:48.460
+look, this is the time that
+it takes me to run this code,
+
+00:13:48.460 --> 00:13:53.648
+you would be hugely missing
+the boat, if you were taking
+
+00:13:53.648 --> 00:13:54.940
+one of those high measurements.
+
+00:13:54.940 --> 00:13:58.820
+You compare A to
+B. You run A first,
+
+00:13:58.820 --> 00:14:01.430
+then you run B. B is slower.
+
+00:14:01.430 --> 00:14:04.070
+Oh, well, that's
+because when you ran A,
+
+00:14:04.070 --> 00:14:08.450
+it heated up the processor, so
+the processor slowed it down.
+
+00:14:08.450 --> 00:14:11.030
+So this particular
+architectural feature
+
+00:14:11.030 --> 00:14:15.200
+is called DVFS, dynamic
+frequency and voltage scaling.
+
+00:14:15.200 --> 00:14:17.990
+It's a technique to reduce
+power by adjusting the clock
+
+00:14:17.990 --> 00:14:22.700
+frequency and supply
+voltage to transistors.
+
+00:14:22.700 --> 00:14:26.000
+So the idea is that,
+if the chip ends up
+
+00:14:26.000 --> 00:14:29.150
+getting too hot, or in
+the case of laptops,
+
+00:14:29.150 --> 00:14:33.800
+often if you want
+to conserve battery,
+
+00:14:33.800 --> 00:14:38.210
+it chooses to slow
+down the clock.
+
+00:14:38.210 --> 00:14:41.780
+And the second thing it can
+do is reduce the voltage,
+
+00:14:41.780 --> 00:14:44.820
+if the frequency is reduced.
+
+00:14:44.820 --> 00:14:47.270
+So when you're actually
+running slower,
+
+00:14:47.270 --> 00:14:51.470
+you can actually get the
+same reliability of switching
+
+00:14:51.470 --> 00:14:53.330
+with a lower voltage.
+
+00:14:53.330 --> 00:14:54.830
+At a higher voltage--
+
+00:14:54.830 --> 00:14:56.540
+sorry-- at higher
+clock frequencies
+
+00:14:56.540 --> 00:14:59.510
+you need enough voltage to
+make sure those electrons are
+
+00:14:59.510 --> 00:15:03.770
+scooting across the transistor
+junctions fast enough.
+
+00:15:03.770 --> 00:15:08.640
+So the basic power law that
+the electrical engineers--
+
+00:15:08.640 --> 00:15:10.265
+is anybody here an
+electrical engineer?
+
+00:15:14.040 --> 00:15:16.540
+OK.
+
+00:15:16.540 --> 00:15:19.355
+There's good stuff in
+EE, let me tell you.
+
+00:15:19.355 --> 00:15:20.980
+So those of you who
+are too embarrassed
+
+00:15:20.980 --> 00:15:26.050
+to raise your
+hands, I support EE.
+
+00:15:26.050 --> 00:15:32.980
+So power goes as CV squared
+f, where C is what's
+
+00:15:32.980 --> 00:15:35.500
+called the dynamic capacitance.
+
+00:15:35.500 --> 00:15:37.360
+There's actually
+another term, which
+
+00:15:37.360 --> 00:15:41.200
+is the static capacitance,
+which doesn't have to deal
+
+00:15:41.200 --> 00:15:43.810
+with frequency or whatever.
+
+00:15:43.810 --> 00:15:47.132
+But for the dynamic
+power, it's CV squared f.
+
+00:15:47.132 --> 00:15:48.340
+It's the dynamic capacitance.
+
+00:15:48.340 --> 00:15:53.350
+It's roughly the area
+of the circuitry times
+
+00:15:53.350 --> 00:15:55.660
+how many bits are moving.
+
+00:15:55.660 --> 00:15:59.510
+So if bits don't move,
+they don't consume power,
+
+00:15:59.510 --> 00:16:02.030
+for dynamic power.
+
+00:16:02.030 --> 00:16:05.480
+And then V is the
+supply voltage, and then
+
+00:16:05.480 --> 00:16:07.770
+f as the clock frequency.
+
+00:16:07.770 --> 00:16:10.910
+So if you can reduce the
+frequency and voltage,
+
+00:16:10.910 --> 00:16:15.230
+you get a cubic reduction
+in power, and also in heat.
+
+00:16:19.800 --> 00:16:25.000
+Who thinks their battery
+doesn't last long enough?
+
+00:16:25.000 --> 00:16:26.670
+Yeah, OK.
+
+00:16:26.670 --> 00:16:29.640
+Wouldn't be nice if
+they lasted a month?
+
+00:16:29.640 --> 00:16:34.860
+So you can see why they're
+motivated to play this game--
+
+00:16:34.860 --> 00:16:38.820
+to save the battery or to run
+things as hot as they can.
+
+00:16:38.820 --> 00:16:42.890
+But if it gets too hot,
+we'll just back off.
+
+00:16:42.890 --> 00:16:48.620
+But for performance measurement,
+this is basically a nightmare.
+
+00:16:48.620 --> 00:16:50.810
+It wreaks havoc.
+
+00:16:50.810 --> 00:16:55.520
+So the topic of today's lecture
+is how can one reliably measure
+
+00:16:55.520 --> 00:16:58.730
+the performance of software,
+when you have stuff like this
+
+00:16:58.730 --> 00:17:01.310
+going on in our system?
+
+00:17:01.310 --> 00:17:03.470
+Now, the good thing
+about something like DVFS
+
+00:17:03.470 --> 00:17:07.160
+is there's actually ways of
+shutting it off and taking
+
+00:17:07.160 --> 00:17:08.225
+measurements.
+
+00:17:12.930 --> 00:17:17.020
+You probably pay some
+performance for doing that,
+
+00:17:17.020 --> 00:17:19.270
+because they can basically--
+who's ever worked
+
+00:17:19.270 --> 00:17:22.520
+on an overclocked system?
+
+00:17:22.520 --> 00:17:25.250
+Some of you game players, right?
+
+00:17:25.250 --> 00:17:26.450
+So part of the game--
+
+00:17:26.450 --> 00:17:29.660
+the idea there, when they're
+overclocking it, is let's
+
+00:17:29.660 --> 00:17:31.070
+keep--
+
+00:17:31.070 --> 00:17:33.080
+get things cool and so forth.
+
+00:17:33.080 --> 00:17:35.090
+And there's lots of
+games like this that are
+
+00:17:35.090 --> 00:17:36.410
+played and overclocked systems.
+
+00:17:39.020 --> 00:17:42.890
+So I'm going to talk
+about three topics today.
+
+00:17:42.890 --> 00:17:45.275
+One is about quiescing
+systems, which
+
+00:17:45.275 --> 00:17:47.900
+is making them quiet enough that
+we can take good measurements,
+
+00:17:47.900 --> 00:17:50.660
+getting rid of
+some of the noise.
+
+00:17:50.660 --> 00:17:52.730
+And that second I
+talk about some tools
+
+00:17:52.730 --> 00:17:54.830
+for measuring
+software performance,
+
+00:17:54.830 --> 00:17:59.060
+and then we'll talk a bit
+about performance modeling.
+
+00:17:59.060 --> 00:18:01.180
+So I hope this is a
+little motivational.
+
+00:18:01.180 --> 00:18:04.790
+Boy, you think you've
+seen it all sometimes,
+
+00:18:04.790 --> 00:18:08.930
+and then somebody presents you
+with a puzzle, and it's like,
+
+00:18:08.930 --> 00:18:10.850
+what's going on?
+
+00:18:10.850 --> 00:18:12.620
+And then takes a
+little detective work
+
+00:18:12.620 --> 00:18:17.120
+to figure out that that's
+actually what's going on.
+
+00:18:17.120 --> 00:18:20.900
+So we'll start first
+about quiescing systems.
+
+00:18:20.900 --> 00:18:26.700
+Who knows who
+Genichi Taguchi was?
+
+00:18:26.700 --> 00:18:27.810
+Anybody here?
+
+00:18:27.810 --> 00:18:28.860
+No?
+
+00:18:28.860 --> 00:18:33.570
+He's very famous because he's
+the one who made our automobile
+
+00:18:33.570 --> 00:18:37.980
+industry produce reliable cars.
+
+00:18:37.980 --> 00:18:42.720
+Very, very famous fellow.
+
+00:18:42.720 --> 00:18:44.350
+He did a lot of
+different things.
+
+00:18:44.350 --> 00:18:47.580
+I'm going to point out one of
+the things that he observed.
+
+00:18:47.580 --> 00:18:51.870
+And it's in the
+context of suppose
+
+00:18:51.870 --> 00:18:54.007
+you were an Olympic
+pistol coach,
+
+00:18:54.007 --> 00:18:55.215
+and you've got two shooters--
+
+00:18:55.215 --> 00:18:57.570
+A and B-- and you
+look at their targets.
+
+00:18:57.570 --> 00:18:59.680
+And here's A's target.
+
+00:18:59.680 --> 00:19:00.930
+Oh, he hit the bulls-eye.
+
+00:19:00.930 --> 00:19:02.180
+Good.
+
+00:19:02.180 --> 00:19:06.750
+And if you add that up, he's
+got a pretty decent score.
+
+00:19:06.750 --> 00:19:11.490
+Then you look at B. B didn't
+even hit the bullseye,
+
+00:19:11.490 --> 00:19:14.760
+and his score is really lousy.
+
+00:19:14.760 --> 00:19:18.340
+Who do you want on
+your team, A or B?
+
+00:19:20.843 --> 00:19:21.510
+Who do you want?
+
+00:19:21.510 --> 00:19:23.302
+AUDIENCE: You would
+pick B, just because he
+
+00:19:23.302 --> 00:19:24.312
+could adjust the sights.
+
+00:19:24.312 --> 00:19:25.320
+CHARLES E. LEISERSON:
+Yeah, because it's
+
+00:19:25.320 --> 00:19:26.670
+easy to tell him what to do.
+
+00:19:26.670 --> 00:19:27.870
+You adjust the sights.
+
+00:19:27.870 --> 00:19:32.310
+You teach him to shoot down a
+little bit lower to the left.
+
+00:19:32.310 --> 00:19:35.070
+It's easy to diagnose
+what his problem is.
+
+00:19:38.427 --> 00:19:39.510
+That's all you have to do.
+
+00:19:39.510 --> 00:19:40.770
+What do you do for A?
+
+00:19:44.060 --> 00:19:46.700
+It's not clear what you do.
+
+00:19:46.700 --> 00:19:54.170
+And so what he did in the realm
+of quality control was say,
+
+00:19:54.170 --> 00:19:58.160
+look, when we're
+producing products,
+
+00:19:58.160 --> 00:20:03.560
+before we try to fix the
+reliability, or whatever is,
+
+00:20:03.560 --> 00:20:04.760
+of the product--
+
+00:20:04.760 --> 00:20:06.870
+increase the quality
+of the product--
+
+00:20:06.870 --> 00:20:09.770
+let's first reliably
+produce whatever
+
+00:20:09.770 --> 00:20:13.790
+we're producing so we get
+the same thing every time.
+
+00:20:13.790 --> 00:20:16.340
+Because then we can go in
+and see what the problem is,
+
+00:20:16.340 --> 00:20:19.820
+and we can adjust for it.
+
+00:20:19.820 --> 00:20:23.620
+And so the idea is go
+after the variance first.
+
+00:20:23.620 --> 00:20:24.580
+Go after the spread.
+
+00:20:24.580 --> 00:20:27.520
+Try to get the spread
+as small as possible.
+
+00:20:27.520 --> 00:20:30.880
+Try to figure out how it
+is that you can isolate--
+
+00:20:30.880 --> 00:20:34.820
+produce the same thing,
+even if it's not very good.
+
+00:20:34.820 --> 00:20:37.030
+And then go and try
+to make changes.
+
+00:20:37.030 --> 00:20:38.650
+Because if you try
+to make changes
+
+00:20:38.650 --> 00:20:40.483
+while you have high
+variance, you don't even
+
+00:20:40.483 --> 00:20:42.730
+know if you're making
+progress or not,
+
+00:20:42.730 --> 00:20:46.720
+because it could be in the
+noise of your measurements.
+
+00:20:46.720 --> 00:20:50.620
+Now, in the context of
+performance engineering,
+
+00:20:50.620 --> 00:20:53.380
+if you can reduce
+variability, you
+
+00:20:53.380 --> 00:20:56.230
+can do things like compensate
+for systematic and random
+
+00:20:56.230 --> 00:20:58.000
+measurement errors.
+
+00:20:58.000 --> 00:21:02.430
+And you can also do things
+like not run as many trials
+
+00:21:02.430 --> 00:21:06.410
+to discover whether one
+program is better than another.
+
+00:21:06.410 --> 00:21:08.140
+So a lot of advantages
+to being able to
+
+00:21:08.140 --> 00:21:09.460
+have really quiet things.
+
+00:21:09.460 --> 00:21:11.020
+It's kind of obvious
+that you should
+
+00:21:11.020 --> 00:21:14.170
+want to have reliable
+measurements,
+
+00:21:14.170 --> 00:21:18.487
+but there's actually, as I say,
+a theory behind it for wide
+
+00:21:18.487 --> 00:21:20.320
+is that you want to
+have quiet measurements,
+
+00:21:20.320 --> 00:21:24.750
+and what you need to focus on.
+
+00:21:24.750 --> 00:21:26.790
+Now, in our computer
+systems, there
+
+00:21:26.790 --> 00:21:28.470
+are lots of sources
+of variability,
+
+00:21:28.470 --> 00:21:31.080
+and some people came up
+with some of them here.
+
+00:21:31.080 --> 00:21:35.730
+Let me mention just
+a few of them here.
+
+00:21:35.730 --> 00:21:39.180
+So there are things like daemons
+and background jobs, things
+
+00:21:39.180 --> 00:21:42.720
+that are running on your system
+that are helping the system
+
+00:21:42.720 --> 00:21:45.150
+to do whatever it's doing.
+
+00:21:45.150 --> 00:21:48.370
+Many of them are unnecessary,
+and those can be running--
+
+00:21:48.370 --> 00:21:51.000
+so for example, maybe
+you set up a chron job
+
+00:21:51.000 --> 00:21:54.578
+to do something for
+you every night,
+
+00:21:54.578 --> 00:21:56.370
+and that happens to be
+just when you happen
+
+00:21:56.370 --> 00:22:01.960
+to be making some measurements.
+
+00:22:01.960 --> 00:22:03.960
+Well, that's not really
+good, because you're now
+
+00:22:03.960 --> 00:22:07.050
+sharing the resource.
+
+00:22:07.050 --> 00:22:09.690
+Interrupts-- something comes in.
+
+00:22:09.690 --> 00:22:14.790
+I had one time where
+we were measuring stuff
+
+00:22:14.790 --> 00:22:18.240
+on the connection machine
+CM5, which in its day,
+
+00:22:18.240 --> 00:22:21.030
+was the world's most
+powerful computer.
+
+00:22:21.030 --> 00:22:24.630
+1993, it was the top of the
+list of the supercomputers.
+
+00:22:24.630 --> 00:22:30.450
+And now this computer
+is more powerful.
+
+00:22:30.450 --> 00:22:33.140
+Cost $43 million or something.
+
+00:22:36.300 --> 00:22:39.960
+Moore's law has really
+made a difference.
+
+00:22:39.960 --> 00:22:44.400
+And we were measuring the
+performance of something,
+
+00:22:44.400 --> 00:22:48.030
+and we kept getting
+these anomalous results.
+
+00:22:48.030 --> 00:22:49.740
+And eventually, we
+tracked it down.
+
+00:22:49.740 --> 00:22:52.770
+It took us a lot of work,
+but we tracked it down.
+
+00:22:52.770 --> 00:22:54.720
+The graduate student
+who was running it,
+
+00:22:54.720 --> 00:22:58.650
+while he was running it, he
+was moving the mouse around.
+
+00:22:58.650 --> 00:23:00.730
+And when you moved the
+mouse, it was interrupting
+
+00:23:00.730 --> 00:23:04.330
+200 times a second to deal
+with the interrupts that
+
+00:23:04.330 --> 00:23:07.120
+was interfering with
+our measurements.
+
+00:23:07.120 --> 00:23:08.200
+True story.
+
+00:23:08.200 --> 00:23:08.860
+True story.
+
+00:23:14.290 --> 00:23:17.098
+We disconnected
+the network even so
+
+00:23:17.098 --> 00:23:18.640
+that we wouldn't
+get external things,
+
+00:23:18.640 --> 00:23:20.098
+and we're still
+getting this thing.
+
+00:23:20.098 --> 00:23:22.630
+What is going on?
+
+00:23:22.630 --> 00:23:25.955
+And eventually, we tracked
+it down to that fact
+
+00:23:25.955 --> 00:23:27.580
+that he was just
+sitting there idling--
+
+00:23:27.580 --> 00:23:30.250
+so it's like, start it
+up, and then hands off.
+
+00:23:30.250 --> 00:23:32.230
+It was like, nobody move.
+
+00:23:36.010 --> 00:23:38.290
+Code and data alignment--
+
+00:23:38.290 --> 00:23:42.520
+where the code lies
+affects its performance.
+
+00:23:42.520 --> 00:23:46.450
+If a code goes across
+two cache lines
+
+00:23:46.450 --> 00:23:49.178
+versus completely
+within one cache line,
+
+00:23:49.178 --> 00:23:51.220
+that can have a difference,
+depending upon what's
+
+00:23:51.220 --> 00:23:53.290
+conflicting in the cache.
+
+00:23:53.290 --> 00:23:56.090
+Or if you go across
+page boundaries,
+
+00:23:56.090 --> 00:23:58.840
+it can have a very big
+difference, for example,
+
+00:23:58.840 --> 00:24:02.375
+in the translation
+lookaside buffer, TLB.
+
+00:24:02.375 --> 00:24:04.000
+You may be going for
+different entries.
+
+00:24:04.000 --> 00:24:06.710
+There may be different
+things there.
+
+00:24:06.710 --> 00:24:10.720
+So code alignment can
+make a difference in the--
+
+00:24:10.720 --> 00:24:11.800
+what you're doing.
+
+00:24:11.800 --> 00:24:17.050
+Thread placement-- if you
+have a multicore machine,
+
+00:24:17.050 --> 00:24:18.340
+which core is it running?
+
+00:24:18.340 --> 00:24:21.550
+It turns out the
+system likes to use
+
+00:24:21.550 --> 00:24:24.808
+core 0 for a lot of its stuff.
+
+00:24:24.808 --> 00:24:26.850
+So if you're going to take
+reliable measurements,
+
+00:24:26.850 --> 00:24:30.600
+don't run on core 0.
+
+00:24:30.600 --> 00:24:33.840
+Runtime scheduler-- the
+fact that, for example, we
+
+00:24:33.840 --> 00:24:36.270
+have a randomized
+scheduler, which
+
+00:24:36.270 --> 00:24:38.430
+means that there's
+random numbers going on
+
+00:24:38.430 --> 00:24:40.350
+so you're going to try
+to take measurements
+
+00:24:40.350 --> 00:24:42.940
+in the midst of all
+this randomness.
+
+00:24:42.940 --> 00:24:46.410
+Hyperthreading-- hyperthreading
+is where they take one core.
+
+00:24:46.410 --> 00:24:52.650
+It's also called
+symmetric multithreading--
+
+00:24:52.650 --> 00:24:54.480
+or no, simultaneous
+multithreading.
+
+00:24:54.480 --> 00:24:56.970
+That's what it's called,
+simultaneous multithreading,
+
+00:24:56.970 --> 00:24:59.280
+or hyperthreading is
+what Intel calls it.
+
+00:24:59.280 --> 00:25:03.830
+What that is is they
+have one functional unit,
+
+00:25:03.830 --> 00:25:07.400
+and then they run two
+instruction streams through it
+
+00:25:07.400 --> 00:25:10.670
+at the same time, each with
+its own set of registers,
+
+00:25:10.670 --> 00:25:13.400
+but using the same
+functional units.
+
+00:25:13.400 --> 00:25:15.590
+And they get basically
+a 20% speed up
+
+00:25:15.590 --> 00:25:17.030
+or something from having--
+
+00:25:17.030 --> 00:25:19.670
+it looks, from the
+software point of view,
+
+00:25:19.670 --> 00:25:22.460
+like you've got two
+processors, but really
+
+00:25:22.460 --> 00:25:26.215
+it only gives you
+1.2 processors.
+
+00:25:26.215 --> 00:25:27.590
+So it's one of
+these things that,
+
+00:25:27.590 --> 00:25:30.410
+by the way, if you start
+counting up how many processors
+
+00:25:30.410 --> 00:25:32.660
+and saying work over the
+number of processors,
+
+00:25:32.660 --> 00:25:36.420
+and you say, well, how
+many processors do I have--
+
+00:25:36.420 --> 00:25:38.750
+well, you may have just a
+hyperthreaded processor,
+
+00:25:38.750 --> 00:25:41.650
+rather than a real processor.
+
+00:25:41.650 --> 00:25:46.510
+So one thing, for example,
+in the cloud system
+
+00:25:46.510 --> 00:25:48.715
+that you folks are
+using, we turn off
+
+00:25:48.715 --> 00:25:53.087
+hyperthreading so that we can
+get more reliable measurements,
+
+00:25:53.087 --> 00:25:54.670
+and so we can look
+at the measurements
+
+00:25:54.670 --> 00:25:57.250
+as a function of the
+number of processors.
+
+00:25:57.250 --> 00:25:59.380
+Multitenancy-- and
+this is particularly
+
+00:25:59.380 --> 00:26:00.520
+important in the cloud.
+
+00:26:00.520 --> 00:26:02.437
+If you're in the cloud,
+there are other people
+
+00:26:02.437 --> 00:26:06.280
+using the system, they can
+end up using lots of resources
+
+00:26:06.280 --> 00:26:09.550
+that maybe you want, like cache.
+
+00:26:09.550 --> 00:26:11.920
+And they can end up using
+network traffic that
+
+00:26:11.920 --> 00:26:14.090
+may affect you, and such.
+
+00:26:14.090 --> 00:26:17.170
+I'm actually quite
+amazed at how well Amazon
+
+00:26:17.170 --> 00:26:21.130
+does in AWS in making
+it so that that stuff
+
+00:26:21.130 --> 00:26:24.130
+doesn't affect you very much.
+
+00:26:24.130 --> 00:26:26.190
+Our numbers show that
+they are, in fact--
+
+00:26:26.190 --> 00:26:28.210
+they are definitely
+the leader right now
+
+00:26:28.210 --> 00:26:33.010
+in having repeatable
+measurements,
+
+00:26:33.010 --> 00:26:37.050
+compared to all the
+cloud providers.
+
+00:26:37.050 --> 00:26:38.500
+We talked about DVFS.
+
+00:26:38.500 --> 00:26:40.810
+There's also another
+one called Turbo Boost.
+
+00:26:40.810 --> 00:26:46.158
+So Turbo Boost looks to see
+how many jobs are actually
+
+00:26:46.158 --> 00:26:47.200
+running on the multicore.
+
+00:26:47.200 --> 00:26:49.600
+If there's only one job
+running on the multicore,
+
+00:26:49.600 --> 00:26:53.178
+it increases the clock
+frequency for that job--
+
+00:26:53.178 --> 00:26:54.220
+or if there's just a few.
+
+00:26:54.220 --> 00:26:57.750
+As soon as another one comes
+in, it slows things back down.
+
+00:26:57.750 --> 00:26:59.590
+So it tries to give
+a boost when you're
+
+00:26:59.590 --> 00:27:01.500
+in executing serial
+code because it
+
+00:27:01.500 --> 00:27:05.600
+says, well, I'm not generating
+heat from all the cores.
+
+00:27:05.600 --> 00:27:10.390
+I just have to generate it
+from the one that I've got.
+
+00:27:10.390 --> 00:27:13.360
+I can afford to have
+one of them run hotter.
+
+00:27:13.360 --> 00:27:15.160
+Network traffic-- and
+there's, by the way,
+
+00:27:15.160 --> 00:27:15.950
+a bunch of other ones.
+
+00:27:15.950 --> 00:27:17.658
+We're going to talk
+about a few of these,
+
+00:27:17.658 --> 00:27:21.280
+but first let me tell you
+what the impact of quiescing
+
+00:27:21.280 --> 00:27:22.660
+a system is.
+
+00:27:22.660 --> 00:27:27.910
+So this is joint work that I
+did in my group with Tim Kaler.
+
+00:27:27.910 --> 00:27:30.100
+So we wrote a Cilk program
+to count the primes
+
+00:27:30.100 --> 00:27:31.540
+in an interval.
+
+00:27:31.540 --> 00:27:34.900
+And we ran on a c4 instance,
+18 cores-- similar to what
+
+00:27:34.900 --> 00:27:36.970
+you're running with.
+
+00:27:36.970 --> 00:27:39.520
+We had two-way
+hyper-threading on.
+
+00:27:39.520 --> 00:27:41.260
+Turbo Boost was on.
+
+00:27:41.260 --> 00:27:43.000
+We had 18 Cilk workers.
+
+00:27:43.000 --> 00:27:46.600
+We had 100 runs, each
+about one second.
+
+00:27:46.600 --> 00:27:52.030
+And what I've plotted here
+is how much is the percent
+
+00:27:52.030 --> 00:27:53.440
+that each run was.
+
+00:27:53.440 --> 00:27:55.540
+We basically ran
+100 runs, and then
+
+00:27:55.540 --> 00:27:58.900
+I sorted them from
+smallest run to largest.
+
+00:27:58.900 --> 00:28:01.360
+And I normalized them to
+whatever the minimum one
+
+00:28:01.360 --> 00:28:06.340
+was so that each thing here is
+a percentage above the minimum.
+
+00:28:06.340 --> 00:28:14.950
+So you can see that the
+slowest run was almost 25%
+
+00:28:14.950 --> 00:28:18.430
+slower than the fastest run.
+
+00:28:18.430 --> 00:28:21.650
+So you can see
+what the impact is.
+
+00:28:21.650 --> 00:28:27.490
+So 25%-- if you're trying to
+produce a code by getting a 3%
+
+00:28:27.490 --> 00:28:33.670
+improvement 30
+times, you can't--
+
+00:28:33.670 --> 00:28:34.810
+there's so much noise here.
+
+00:28:34.810 --> 00:28:40.570
+It's very hard for you to figure
+out that you're 3% faster.
+
+00:28:40.570 --> 00:28:44.780
+So if you quiesce the
+system, same thing.
+
+00:28:44.780 --> 00:28:47.210
+We turn hyperthreading
+off, turn Turbo Boost off,
+
+00:28:47.210 --> 00:28:53.030
+and we quieted all the
+daemons, and so forth.
+
+00:28:53.030 --> 00:28:58.790
+Then out of 100 runs, we got
+essentially the same value
+
+00:28:58.790 --> 00:29:02.610
+every single time,
+except for three times.
+
+00:29:02.610 --> 00:29:05.600
+And notice that the
+scale here has changed.
+
+00:29:05.600 --> 00:29:13.460
+The scale here is now less
+than 0.8%, less than 1% slower.
+
+00:29:13.460 --> 00:29:17.750
+So this says that, hey, if I
+took a couple of measurements,
+
+00:29:17.750 --> 00:29:23.060
+I'm very likely to
+hit something that
+
+00:29:23.060 --> 00:29:28.550
+is the real running
+time, which tends to be,
+
+00:29:28.550 --> 00:29:32.962
+for this, what the
+minimum is here.
+
+00:29:32.962 --> 00:29:35.420
+Because all the other stuff is
+noise that's just adding in.
+
+00:29:39.170 --> 00:29:40.310
+Make sense?
+
+00:29:40.310 --> 00:29:42.920
+So it is possible
+to quiesce a system.
+
+00:29:42.920 --> 00:29:45.890
+It's not that
+hard, it just takes
+
+00:29:45.890 --> 00:29:49.340
+a small matter of
+programming and systems work.
+
+00:29:53.250 --> 00:29:58.150
+So here are some tips
+on how you quiesce
+
+00:29:58.150 --> 00:30:00.300
+a system, if you wanted to
+do this for your laptop,
+
+00:30:00.300 --> 00:30:01.490
+for example.
+
+00:30:01.490 --> 00:30:03.400
+Make sure no other
+jobs are running.
+
+00:30:03.400 --> 00:30:05.330
+Shut down daemons and cron jobs.
+
+00:30:05.330 --> 00:30:06.410
+Disconnect the network.
+
+00:30:06.410 --> 00:30:09.620
+Don't fiddle with the mouse.
+
+00:30:09.620 --> 00:30:12.950
+For serial jobs, don't run
+on core 0, where interrupt
+
+00:30:12.950 --> 00:30:14.990
+handlers are usually run.
+
+00:30:14.990 --> 00:30:16.220
+Turn hyperthreading off.
+
+00:30:16.220 --> 00:30:18.980
+Turn off DVFS.
+
+00:30:18.980 --> 00:30:20.450
+Turn off Turbo Boost.
+
+00:30:20.450 --> 00:30:23.520
+Use taskset to pin
+workers to cores.
+
+00:30:23.520 --> 00:30:25.860
+So taskset is a
+utility that says,
+
+00:30:25.860 --> 00:30:28.340
+I want you to run this
+thread on this core,
+
+00:30:28.340 --> 00:30:32.810
+and don't let the operating
+system bounce it around.
+
+00:30:32.810 --> 00:30:35.750
+So normally, the operating
+system maps threads to cores--
+
+00:30:35.750 --> 00:30:37.430
+the workers, the Cilk workers--
+
+00:30:37.430 --> 00:30:39.200
+to cores in any way
+that it feels like.
+
+00:30:39.200 --> 00:30:42.530
+This says, no, I want you
+to have it exactly here so
+
+00:30:42.530 --> 00:30:45.860
+that, when I run something else,
+it's exactly the same thing.
+
+00:30:45.860 --> 00:30:46.700
+And so forth.
+
+00:30:46.700 --> 00:30:52.120
+And we've already done a lot
+of this for you for AWS run.
+
+00:30:52.120 --> 00:30:54.910
+By the way, there
+is no way of getting
+
+00:30:54.910 --> 00:30:59.560
+a completely
+deterministic result out
+
+00:30:59.560 --> 00:31:01.435
+of running on modern hardware.
+
+00:31:01.435 --> 00:31:02.800
+Does anybody know why?
+
+00:31:02.800 --> 00:31:06.010
+If I have a serial
+program and it's
+
+00:31:06.010 --> 00:31:10.810
+deterministic serial
+program, and I set it up
+
+00:31:10.810 --> 00:31:13.210
+and I reboot the system
+so it's got exactly
+
+00:31:13.210 --> 00:31:16.120
+the same content,
+et cetera, I still
+
+00:31:16.120 --> 00:31:19.090
+can get non-deterministic
+results.
+
+00:31:19.090 --> 00:31:21.370
+Does anybody know why?
+
+00:31:21.370 --> 00:31:22.524
+Yeah?
+
+00:31:22.524 --> 00:31:26.640
+AUDIENCE: Because [INAUDIBLE]
+
+00:31:26.640 --> 00:31:29.990
+CHARLES E. LEISERSON: No,
+you can turn that off.
+
+00:31:29.990 --> 00:31:32.040
+So they actually do
+randomize address space
+
+00:31:32.040 --> 00:31:33.610
+for security reasons.
+
+00:31:33.610 --> 00:31:37.070
+But when you run under
+the debugger and so forth,
+
+00:31:37.070 --> 00:31:40.590
+they tend to turn that off so
+that you can get repeatability
+
+00:31:40.590 --> 00:31:42.360
+for debugging purposes.
+
+00:31:42.360 --> 00:31:43.146
+Yeah?
+
+00:31:43.146 --> 00:31:46.482
+AUDIENCE: [INAUDIBLE]
+
+00:31:46.482 --> 00:31:48.440
+CHARLES E. LEISERSON:
+No, those are generally--
+
+00:31:52.987 --> 00:31:54.570
+no, those are
+deterministic, but there
+
+00:31:54.570 --> 00:31:59.360
+is something in the hardware
+which is non-deterministic.
+
+00:31:59.360 --> 00:32:02.090
+Does anybody know what
+is, happen to know,
+
+00:32:02.090 --> 00:32:03.980
+can guess what it is?
+
+00:32:03.980 --> 00:32:06.110
+Something the hardware
+that's non-deterministic.
+
+00:32:06.110 --> 00:32:06.994
+Yeah?
+
+00:32:06.994 --> 00:32:08.048
+AUDIENCE: [INAUDIBLE]
+
+00:32:08.048 --> 00:32:09.840
+CHARLES E. LEISERSON:
+Disk access would be,
+
+00:32:09.840 --> 00:32:11.632
+but if I'm just running
+something in core--
+
+00:32:11.632 --> 00:32:14.090
+I'm not using disk,
+I'm just going to run--
+
+00:32:14.090 --> 00:32:16.790
+it turns out non-deterministic,
+even though I'm just
+
+00:32:16.790 --> 00:32:21.530
+running everything inside
+with ordinary DRAM memory,
+
+00:32:21.530 --> 00:32:22.310
+and so forth.
+
+00:32:22.310 --> 00:32:22.950
+Yeah?
+
+00:32:22.950 --> 00:32:23.870
+AUDIENCE: [INAUDIBLE]
+
+00:32:23.870 --> 00:32:25.385
+CHARLES E. LEISERSON: No,
+the out of order execution
+
+00:32:25.385 --> 00:32:26.590
+is all deterministic.
+
+00:32:26.590 --> 00:32:27.980
+There's no randomization there.
+
+00:32:31.640 --> 00:32:32.573
+Yeah?
+
+00:32:32.573 --> 00:32:33.740
+AUDIENCE: Branch prediction.
+
+00:32:33.740 --> 00:32:36.440
+CHARLES E. LEISERSON: Branch
+prediction's all deterministic
+
+00:32:36.440 --> 00:32:37.910
+algorithms--
+
+00:32:37.910 --> 00:32:39.020
+all deterministic.
+
+00:32:42.130 --> 00:32:42.825
+Yeah?
+
+00:32:42.825 --> 00:32:45.250
+AUDIENCE: The
+system clock signal?
+
+00:32:45.250 --> 00:32:47.982
+CHARLES E. LEISERSON: System
+clock signal's very regular.
+
+00:32:47.982 --> 00:32:55.240
+Very regular, if you turn
+off DVFS and stuff like that.
+
+00:32:55.240 --> 00:32:55.951
+Yep?
+
+00:32:55.951 --> 00:32:59.110
+AUDIENCE: [INAUDIBLE]
+
+00:32:59.110 --> 00:33:01.810
+CHARLES E. LEISERSON: So the
+Linus schedule is, in fact,
+
+00:33:01.810 --> 00:33:03.040
+a deterministic algorithm.
+
+00:33:03.040 --> 00:33:04.460
+And if you're just
+running on one core,
+
+00:33:04.460 --> 00:33:05.900
+the scheduler never
+comes into it.
+
+00:33:08.550 --> 00:33:11.070
+So there is one source
+of non-determinism,
+
+00:33:11.070 --> 00:33:15.390
+and that is memory errors.
+
+00:33:15.390 --> 00:33:19.740
+So there's a chance that
+one of your memory--
+
+00:33:19.740 --> 00:33:23.730
+when you're accessing the
+DRAM, that an alpha particle
+
+00:33:23.730 --> 00:33:26.310
+collided with one of
+the bits and flipped it.
+
+00:33:26.310 --> 00:33:28.980
+And there's hardware in
+there to do error correction,
+
+00:33:28.980 --> 00:33:32.220
+but it takes an
+extra cycle to do it.
+
+00:33:32.220 --> 00:33:34.080
+So if it reads the
+memory location,
+
+00:33:34.080 --> 00:33:41.190
+discovers that there is an
+error in what it read, then it
+
+00:33:41.190 --> 00:33:43.645
+performs the correction,
+and then you get it.
+
+00:33:43.645 --> 00:33:46.020
+And that's something that's
+completely non-deterministic,
+
+00:33:46.020 --> 00:33:49.650
+because its alpha particle's
+coming from outer space--
+
+00:33:49.650 --> 00:33:52.680
+space aliens messing
+with your system.
+
+00:33:52.680 --> 00:33:53.388
+Yeah?
+
+00:33:53.388 --> 00:33:54.930
+AUDIENCE: [INAUDIBLE]
+
+00:33:54.930 --> 00:33:56.430
+CHARLES E. LEISERSON:
+No, actually--
+
+00:33:59.880 --> 00:34:02.610
+now, most cache is covered
+by error correction,
+
+00:34:02.610 --> 00:34:04.100
+but the most
+likely-- if you look,
+
+00:34:04.100 --> 00:34:06.570
+the biggest memory is the DRAMs.
+
+00:34:06.570 --> 00:34:08.909
+That's the most likely
+source of these things.
+
+00:34:12.989 --> 00:34:16.860
+So in any case, I
+want to now just talk
+
+00:34:16.860 --> 00:34:18.870
+about a few things which--
+
+00:34:18.870 --> 00:34:23.139
+just some examples of things
+that might come up for you.
+
+00:34:23.139 --> 00:34:25.012
+So these are ones
+that I've mentioned,
+
+00:34:25.012 --> 00:34:26.429
+but I just want
+to go through them
+
+00:34:26.429 --> 00:34:27.877
+in a little bit more depth.
+
+00:34:27.877 --> 00:34:29.460
+So one of the things
+is code alignment
+
+00:34:29.460 --> 00:34:32.370
+can make a difference.
+
+00:34:32.370 --> 00:34:34.590
+So what happens is
+you have your program,
+
+00:34:34.590 --> 00:34:36.090
+and you make a
+change that you think
+
+00:34:36.090 --> 00:34:38.250
+is improving your program.
+
+00:34:38.250 --> 00:34:42.690
+But what happens, let's say,
+is that it causes an extra byte
+
+00:34:42.690 --> 00:34:46.350
+to be put into the code.
+
+00:34:46.350 --> 00:34:49.199
+So maybe the compiler
+is very smart.
+
+00:34:49.199 --> 00:34:50.670
+You made some little change.
+
+00:34:50.670 --> 00:34:55.440
+Then everything that follows
+it gets shifted down,
+
+00:34:55.440 --> 00:34:57.300
+and so the cache
+alignment issues
+
+00:34:57.300 --> 00:34:58.720
+can be completely different.
+
+00:34:58.720 --> 00:35:00.960
+Something can go across
+a page boundary that
+
+00:35:00.960 --> 00:35:03.300
+didn't used to go across
+the page boundary,
+
+00:35:03.300 --> 00:35:06.660
+and that can have a big
+impact on your performance.
+
+00:35:06.660 --> 00:35:09.270
+This is like, yikes.
+
+00:35:09.270 --> 00:35:12.660
+This is like, yikes,
+how am I supposed to--
+
+00:35:12.660 --> 00:35:15.060
+maybe we should just pack up
+on performance engineering.
+
+00:35:17.910 --> 00:35:19.710
+So everybody gets what
+the issue is there?
+
+00:35:19.710 --> 00:35:22.440
+So in this case, I
+inserted one byte.
+
+00:35:22.440 --> 00:35:28.316
+Well, everything after that,
+it's all linear in memory
+
+00:35:28.316 --> 00:35:30.100
+would change.
+
+00:35:30.100 --> 00:35:36.390
+Here's another one that's
+even more insidious.
+
+00:35:42.340 --> 00:35:45.490
+If you change the order in
+which the .o files appear
+
+00:35:45.490 --> 00:35:49.090
+on the linker command line,
+that can actually have a bigger
+
+00:35:49.090 --> 00:35:51.660
+effect than going between
+minus 02 and minus 03.
+
+00:35:54.855 --> 00:35:56.230
+And when you
+compile, you compile
+
+00:35:56.230 --> 00:35:58.990
+this order versus this order.
+
+00:35:58.990 --> 00:36:04.870
+You can have actually
+quite a big difference.
+
+00:36:04.870 --> 00:36:08.020
+Yike, OK, so what do you do?
+
+00:36:08.020 --> 00:36:10.240
+Well, first of all, one of
+the things I'm glad to say
+
+00:36:10.240 --> 00:36:13.810
+is that the compiler people
+have recognized this,
+
+00:36:13.810 --> 00:36:17.920
+and the situation is not as
+dire as it was years ago.
+
+00:36:17.920 --> 00:36:25.010
+What they do now very often is
+do a lot of alignment already.
+
+00:36:25.010 --> 00:36:30.100
+So for example, it's common
+for compilers to produce--
+
+00:36:30.100 --> 00:36:35.470
+to start every function on the
+first word of a cache line.
+
+00:36:35.470 --> 00:36:37.810
+That way, when
+things get slid down,
+
+00:36:37.810 --> 00:36:39.490
+you might apart
+from one cache line
+
+00:36:39.490 --> 00:36:43.060
+to the next for where it
+starts, but you're not
+
+00:36:43.060 --> 00:36:47.380
+going to affect the--
+
+00:36:47.380 --> 00:36:49.000
+where you lie on the
+cache line, which
+
+00:36:49.000 --> 00:36:51.333
+can make a difference, by the
+way, in branch predictors,
+
+00:36:51.333 --> 00:36:53.560
+and things like that.
+
+00:36:53.560 --> 00:36:54.370
+And so that helps.
+
+00:36:54.370 --> 00:36:56.180
+That really quiets
+a lot of things.
+
+00:36:56.180 --> 00:36:59.380
+And in fact, they give
+you some directives.
+
+00:36:59.380 --> 00:37:02.650
+So LLVM has these switches.
+
+00:37:02.650 --> 00:37:04.330
+As far as I could
+tell, the first one,
+
+00:37:04.330 --> 00:37:07.480
+which is align-all-functions,
+I think--
+
+00:37:07.480 --> 00:37:09.640
+I was unable to test
+this in advance,
+
+00:37:09.640 --> 00:37:12.610
+but I suspect that it's
+actually already doing this
+
+00:37:12.610 --> 00:37:15.040
+and this is actually a no
+op, because it's already
+
+00:37:15.040 --> 00:37:17.050
+aligning all functions.
+
+00:37:17.050 --> 00:37:19.540
+I don't know that
+for a fact, but you
+
+00:37:19.540 --> 00:37:27.130
+can give the switch anyway,
+which will help if I'm lying.
+
+00:37:27.130 --> 00:37:29.330
+So that forces the
+alignment of all functions.
+
+00:37:29.330 --> 00:37:31.470
+So all functions start
+on the cache line,
+
+00:37:31.470 --> 00:37:34.900
+and that way, if you change one
+function, it's unlikely to--
+
+00:37:34.900 --> 00:37:37.290
+it won't change the cache
+alignment of another function.
+
+00:37:37.290 --> 00:37:39.582
+It will only change the cache
+alignment of the function
+
+00:37:39.582 --> 00:37:42.130
+that you're messing with.
+
+00:37:42.130 --> 00:37:46.220
+You can also ask it to align
+all blocks in the function.
+
+00:37:46.220 --> 00:37:49.000
+So remember that, in LLVM,
+we have these basic blocks,
+
+00:37:49.000 --> 00:37:58.060
+these pieces of serial code
+with links, the basic blocks.
+
+00:37:58.060 --> 00:38:01.150
+So what it will do is
+force every one of those
+
+00:38:01.150 --> 00:38:02.380
+to be on a boundary.
+
+00:38:02.380 --> 00:38:04.060
+But of course, what
+that means is now
+
+00:38:04.060 --> 00:38:06.470
+you've got a jump
+between these codes,
+
+00:38:06.470 --> 00:38:08.470
+even if it were going to
+be the next instruction
+
+00:38:08.470 --> 00:38:10.060
+or put in a bunch of no ops.
+
+00:38:10.060 --> 00:38:12.430
+So that can
+substantially increase
+
+00:38:12.430 --> 00:38:22.770
+the size of your binary,
+and it can slow you down.
+
+00:38:22.770 --> 00:38:25.260
+But on the other hand, you'll
+get very reliable results
+
+00:38:25.260 --> 00:38:31.050
+from then on, because every
+block is now cache-aligned.
+
+00:38:31.050 --> 00:38:33.520
+Probably more
+practical is to align--
+
+00:38:37.888 --> 00:38:39.930
+is to force the alignment
+of all blocks that have
+
+00:38:39.930 --> 00:38:42.450
+no fall-through predecessors.
+
+00:38:42.450 --> 00:38:45.330
+That is, you don't
+have to add notes.
+
+00:38:45.330 --> 00:38:48.300
+So this basically reduces it
+to the ones that are usually
+
+00:38:48.300 --> 00:38:50.310
+causing the trouble.
+
+00:38:50.310 --> 00:38:53.470
+So a line of code is more likely
+to avoid performance anomalies,
+
+00:38:53.470 --> 00:38:55.428
+but it can also
+sometimes be slower.
+
+00:38:55.428 --> 00:38:56.970
+And so one of the
+questions is, well,
+
+00:38:56.970 --> 00:39:05.040
+which matters to you in
+your particular thing?
+
+00:39:05.040 --> 00:39:07.020
+Here's one that I love.
+
+00:39:07.020 --> 00:39:11.310
+So the example that I gave
+before of the order of linking,
+
+00:39:11.310 --> 00:39:14.010
+we have that as a reading
+assignment, by the way,
+
+00:39:14.010 --> 00:39:16.450
+on the web, that paper.
+
+00:39:16.450 --> 00:39:23.490
+And here's another result
+from this paper by Mytkowicz
+
+00:39:23.490 --> 00:39:27.960
+and his colleagues.
+
+00:39:27.960 --> 00:39:30.750
+They have a wonderful paper
+called Producing Wrong Data
+
+00:39:30.750 --> 00:39:34.800
+Without Doing Anything
+Obviously Wrong.
+
+00:39:34.800 --> 00:39:37.590
+So one of the examples they
+give [INAUDIBLE] the ordering
+
+00:39:37.590 --> 00:39:41.580
+of things, saying that, look,
+that actually had an impact
+
+00:39:41.580 --> 00:39:44.340
+between 02 and 03.
+
+00:39:44.340 --> 00:39:48.510
+The program's name can affect
+its speed, and here's why.
+
+00:39:48.510 --> 00:39:52.625
+The executable's name ends up
+in an environment variable.
+
+00:39:52.625 --> 00:39:54.000
+So when you start
+up the program,
+
+00:39:54.000 --> 00:39:55.740
+it puts it in an
+environment variable.
+
+00:39:55.740 --> 00:39:57.510
+The environment
+variables, it turns out,
+
+00:39:57.510 --> 00:40:01.260
+end up on the call stack.
+
+00:40:01.260 --> 00:40:03.600
+So you can find out
+from the program
+
+00:40:03.600 --> 00:40:07.080
+what's the name of the
+program I was invoked with.
+
+00:40:07.080 --> 00:40:12.220
+The length of the name
+affects the stack alignment.
+
+00:40:12.220 --> 00:40:15.480
+You have a longer
+name, they put longer--
+
+00:40:15.480 --> 00:40:17.170
+a longer piece there.
+
+00:40:17.170 --> 00:40:20.700
+And so if the data happens to
+go across page boundaries--
+
+00:40:20.700 --> 00:40:25.890
+some critical piece of data goes
+on two pages, rather than one--
+
+00:40:25.890 --> 00:40:29.288
+that could have a big
+impact on your performance.
+
+00:40:29.288 --> 00:40:31.080
+And there are other
+data alignment problems
+
+00:40:31.080 --> 00:40:32.160
+that can arise.
+
+00:40:35.070 --> 00:40:36.930
+Yeah, this is kind
+of nasty stuff.
+
+00:40:36.930 --> 00:40:38.370
+So as I say, what we've done--
+
+00:40:38.370 --> 00:40:40.620
+we've given you a
+very quiesced system.
+
+00:40:40.620 --> 00:40:45.750
+We have done everything
+we can to make it so
+
+00:40:45.750 --> 00:40:49.770
+that, when you submit stuff
+in this class, it's measured.
+
+00:40:49.770 --> 00:40:52.830
+But as we get along
+in the semester
+
+00:40:52.830 --> 00:40:55.410
+and you're doing more
+sophisticated stuff,
+
+00:40:55.410 --> 00:40:57.210
+some of this is going
+to fall increasingly
+
+00:40:57.210 --> 00:40:59.520
+to you to do things
+that make it robust.
+
+00:41:02.730 --> 00:41:04.492
+OK, let's move on.
+
+00:41:04.492 --> 00:41:05.700
+We've talked about quiescing.
+
+00:41:05.700 --> 00:41:09.000
+Now, let's talk a little
+about tools for measuring
+
+00:41:09.000 --> 00:41:12.120
+software performance.
+
+00:41:12.120 --> 00:41:16.680
+So I did a little thinking, and
+I figured that there's actually
+
+00:41:16.680 --> 00:41:20.580
+about five different
+ways I know of measuring
+
+00:41:20.580 --> 00:41:21.900
+the performance of a program.
+
+00:41:24.870 --> 00:41:28.110
+So one is you can measure
+the program externally.
+
+00:41:28.110 --> 00:41:29.550
+You can run the time command.
+
+00:41:29.550 --> 00:41:32.770
+If you say time and then
+give a shell command,
+
+00:41:32.770 --> 00:41:35.880
+it will run the shell command
+and then tell you at the end
+
+00:41:35.880 --> 00:41:38.460
+how long it took.
+
+00:41:38.460 --> 00:41:43.950
+You can instrument the program.
+
+00:41:43.950 --> 00:41:48.000
+That means to actually put
+timing calls into the program.
+
+00:41:48.000 --> 00:41:50.370
+So you can use things
+like clock_gettime,
+
+00:41:50.370 --> 00:41:51.330
+which I recommend.
+
+00:41:51.330 --> 00:41:53.413
+And we'll talk a little
+bit about these other two,
+
+00:41:53.413 --> 00:41:56.070
+gettimeofday and rdtsc.
+
+00:41:58.950 --> 00:42:01.030
+And you can either do this
+by hand where you say,
+
+00:42:01.030 --> 00:42:02.790
+I'm going to time
+something myself,
+
+00:42:02.790 --> 00:42:06.750
+or it turns out you can have
+compiler support for taking
+
+00:42:06.750 --> 00:42:09.090
+timing measurements.
+
+00:42:09.090 --> 00:42:12.090
+But what that involves is
+changing the program in order
+
+00:42:12.090 --> 00:42:14.670
+to put these timing calls in.
+
+00:42:14.670 --> 00:42:16.620
+And of course, you
+have the effect that,
+
+00:42:16.620 --> 00:42:19.620
+if you're perturbing the--
+
+00:42:19.620 --> 00:42:21.510
+if you're putting
+these timing calls in,
+
+00:42:21.510 --> 00:42:23.460
+you can be changing the timing.
+
+00:42:23.460 --> 00:42:25.650
+So you've got that problem
+to worry about, as well.
+
+00:42:28.168 --> 00:42:30.210
+One of the ones is you
+can interrupt the program.
+
+00:42:30.210 --> 00:42:33.690
+One of the cheapest ways you
+can do it's just basically
+
+00:42:33.690 --> 00:42:35.160
+take gdb.
+
+00:42:35.160 --> 00:42:38.210
+So you start running
+your program.
+
+00:42:38.210 --> 00:42:43.180
+You run it under gdb, and
+then you type Control-C.
+
+00:42:43.180 --> 00:42:44.770
+And then you look.
+
+00:42:44.770 --> 00:42:47.600
+Where is the program?
+
+00:42:47.600 --> 00:42:49.730
+And you do that a few
+times, and you say, hey,
+
+00:42:49.730 --> 00:42:52.910
+the same routine is always
+where the code is running.
+
+00:42:52.910 --> 00:42:56.120
+Oh, that must be where
+it's spending all its time.
+
+00:42:56.120 --> 00:42:59.180
+That's actually been put into
+a thing called poor man's
+
+00:42:59.180 --> 00:43:02.510
+profiler, and then
+you can actually--
+
+00:43:02.510 --> 00:43:05.320
+this is essentially the
+method that gprof uses.
+
+00:43:05.320 --> 00:43:07.790
+And we'll talk about
+that in a little bit.
+
+00:43:07.790 --> 00:43:10.920
+You can exploit hardware and
+operating system support.
+
+00:43:10.920 --> 00:43:13.760
+So there are a bunch of hardware
+counters that the operating
+
+00:43:13.760 --> 00:43:17.730
+system and hardware support--
+
+00:43:17.730 --> 00:43:19.670
+that, for example, perf uses.
+
+00:43:19.670 --> 00:43:22.850
+And so you folks are familiar
+with the perf tool set.
+
+00:43:22.850 --> 00:43:26.300
+Those are basically using
+hardware and operating system
+
+00:43:26.300 --> 00:43:27.100
+support.
+
+00:43:27.100 --> 00:43:29.210
+And you can also
+simulate the program.
+
+00:43:29.210 --> 00:43:31.400
+You can run it as a
+simulation, and then
+
+00:43:31.400 --> 00:43:32.900
+you really can go
+in and do anything
+
+00:43:32.900 --> 00:43:34.700
+you want to understand.
+
+00:43:34.700 --> 00:43:36.920
+But of course, it's
+much, much slower,
+
+00:43:36.920 --> 00:43:39.980
+and you hope that your
+simulator is modeling everything
+
+00:43:39.980 --> 00:43:41.570
+that's have relevance to you.
+
+00:43:41.570 --> 00:43:43.760
+Maybe it's not modeling
+something that turns out
+
+00:43:43.760 --> 00:43:46.027
+to be relevant for you.
+
+00:43:46.027 --> 00:43:48.110
+So I'm going to talk it
+give some examples of each
+
+00:43:48.110 --> 00:43:50.000
+of these five things.
+
+00:43:50.000 --> 00:43:53.960
+So let's start with
+the time command.
+
+00:43:53.960 --> 00:43:57.950
+So it can measure elapsed time,
+user time, and system time
+
+00:43:57.950 --> 00:43:58.973
+for an entire program.
+
+00:43:58.973 --> 00:44:00.890
+Does anybody know what
+these three terms mean?
+
+00:44:05.870 --> 00:44:09.650
+Elapsed time, user
+time, and system time.
+
+00:44:13.710 --> 00:44:14.491
+Sure.
+
+00:44:14.491 --> 00:44:18.147
+AUDIENCE: Is elapsed
+time [INAUDIBLE]
+
+00:44:18.147 --> 00:44:20.730
+CHARLES E. LEISERSON: Yeah, it's
+what we call wall clock time.
+
+00:44:20.730 --> 00:44:21.230
+Good.
+
+00:44:21.230 --> 00:44:27.130
+AUDIENCE: User time is how
+long a program runs [INAUDIBLE]
+
+00:44:27.130 --> 00:44:29.130
+CHARLES E. LEISERSON:
+It's in the kernel working
+
+00:44:29.130 --> 00:44:32.280
+on your stuff, as opposed
+to somebody else's.
+
+00:44:32.280 --> 00:44:34.380
+So that's exactly right.
+
+00:44:34.380 --> 00:44:36.960
+So when you run
+the time command,
+
+00:44:36.960 --> 00:44:39.780
+you get some numbers like
+this where it says here's
+
+00:44:39.780 --> 00:44:42.185
+the real time,
+here's the user time,
+
+00:44:42.185 --> 00:44:43.310
+and here's the system time.
+
+00:44:43.310 --> 00:44:46.110
+Now, you might think that the
+user time and the system time
+
+00:44:46.110 --> 00:44:48.736
+should add up to
+your total time.
+
+00:44:48.736 --> 00:44:52.270
+Uh-uh-- doesn't work that way.
+
+00:44:52.270 --> 00:44:55.110
+And part of the reason
+is that it may--
+
+00:44:55.110 --> 00:44:59.220
+the processor may actually
+not be working on your code.
+
+00:44:59.220 --> 00:45:01.620
+You may be contact switched
+out and something else is in.
+
+00:45:05.610 --> 00:45:10.950
+So in any case, we have
+those three types of things--
+
+00:45:10.950 --> 00:45:13.650
+war clock time, the amount
+of processing time spent
+
+00:45:13.650 --> 00:45:18.090
+in the user mode code
+within your process,
+
+00:45:18.090 --> 00:45:22.110
+and the systems time, which is
+the time spent in the kernel,
+
+00:45:22.110 --> 00:45:24.350
+but within your process--
+
+00:45:24.350 --> 00:45:27.360
+for example, satisfying
+system calls and such.
+
+00:45:33.360 --> 00:45:39.060
+Now, the timing call
+that I recommend you use,
+
+00:45:39.060 --> 00:45:43.410
+and that was used in the example
+that I gave, is clock_gettime.
+
+00:45:43.410 --> 00:45:45.920
+In particular, there are a
+bunch of options to that,
+
+00:45:45.920 --> 00:45:50.820
+and the one that I strongly
+recommend is CLOCK_MONOTONIC.
+
+00:45:50.820 --> 00:45:53.900
+And it takes about
+83 nanoseconds
+
+00:45:53.900 --> 00:45:58.470
+to actually read
+what the time is.
+
+00:45:58.470 --> 00:46:00.150
+That's about two
+orders of magnitude
+
+00:46:00.150 --> 00:46:01.740
+faster than a system call.
+
+00:46:04.410 --> 00:46:06.240
+And one of the
+things about it is--
+
+00:46:06.240 --> 00:46:08.880
+this is such a funny
+thing to have to say--
+
+00:46:08.880 --> 00:46:11.280
+is that guarantees
+never to run backwards.
+
+00:46:13.860 --> 00:46:21.030
+Turns out the other
+timers can run backwards.
+
+00:46:21.030 --> 00:46:24.900
+You can take measurements and
+discover they're negative.
+
+00:46:24.900 --> 00:46:27.660
+This one does not run backwards.
+
+00:46:27.660 --> 00:46:29.580
+Part of it is because
+some of the other timers
+
+00:46:29.580 --> 00:46:35.340
+do things like, oh, there's
+this national standards thing
+
+00:46:35.340 --> 00:46:40.170
+that, periodically,
+your computer goes out
+
+00:46:40.170 --> 00:46:43.090
+to find out what
+the real time is,
+
+00:46:43.090 --> 00:46:45.940
+and it resets its clock to
+be consistent with whatever
+
+00:46:45.940 --> 00:46:48.250
+the global clock is.
+
+00:46:48.250 --> 00:46:52.000
+And that will cause
+the clock to be updated
+
+00:46:52.000 --> 00:46:56.920
+in a non-standard way, and where
+suddenly you lost some time
+
+00:46:56.920 --> 00:46:57.760
+or gained some time.
+
+00:47:00.520 --> 00:47:04.330
+So this is really
+the [INAUDIBLE]..
+
+00:47:04.330 --> 00:47:06.790
+The only unfortunate
+thing about this
+
+00:47:06.790 --> 00:47:13.690
+is that it is non-deterministic
+how long it takes.
+
+00:47:13.690 --> 00:47:16.910
+And let me explain a little
+bit what's going on in this.
+
+00:47:16.910 --> 00:47:21.470
+So what happens is it
+takes a measurement--
+
+00:47:21.470 --> 00:47:23.410
+it has to take two
+measurements to figure out
+
+00:47:23.410 --> 00:47:27.640
+what the elapsed time is to find
+out what the actual time is.
+
+00:47:27.640 --> 00:47:29.320
+It can't just take
+one measurement
+
+00:47:29.320 --> 00:47:30.970
+because it may have
+been swapped out.
+
+00:47:30.970 --> 00:47:36.270
+And the kernel helps support,
+in user space, something
+
+00:47:36.270 --> 00:47:38.020
+that says, here's the
+total amount of time
+
+00:47:38.020 --> 00:47:41.890
+you've spent up until you
+started your time slice.
+
+00:47:41.890 --> 00:47:44.560
+So when you read that, you
+have to read those two values.
+
+00:47:44.560 --> 00:47:46.060
+Well, how do you
+know that you don't
+
+00:47:46.060 --> 00:47:47.530
+have an atomicity violation?
+
+00:47:47.530 --> 00:47:49.870
+You read one of the values,
+you got switched out,
+
+00:47:49.870 --> 00:47:53.290
+you get switched back
+in-- now, you have
+
+00:47:53.290 --> 00:47:54.700
+a new value for the other one.
+
+00:47:54.700 --> 00:47:58.300
+So the way it does it is
+it reads this register.
+
+00:47:58.300 --> 00:47:59.950
+It reads what the
+operating system
+
+00:47:59.950 --> 00:48:04.660
+has kept as its cumulative
+time, it reads the clock,
+
+00:48:04.660 --> 00:48:06.730
+and then it reads
+that register again.
+
+00:48:06.730 --> 00:48:08.530
+And if those two
+things differ, it
+
+00:48:08.530 --> 00:48:10.252
+knows there's been
+a switch in there.
+
+00:48:10.252 --> 00:48:11.710
+If they're the
+same, it knows there
+
+00:48:11.710 --> 00:48:15.560
+isn't, and that the number
+that it can take is reliable.
+
+00:48:15.560 --> 00:48:18.070
+So in that kind of
+case, it will actually
+
+00:48:18.070 --> 00:48:21.205
+take two measurements--
+more than one measurement.
+
+00:48:21.205 --> 00:48:23.995
+You do it again and you could
+have another context switch.
+
+00:48:23.995 --> 00:48:25.870
+And you could do it
+again, and have another--
+
+00:48:25.870 --> 00:48:28.900
+but this thing is
+generally pretty fast.
+
+00:48:28.900 --> 00:48:36.110
+And on my laptop, it takes
+about 83 nanoseconds to run.
+
+00:48:36.110 --> 00:48:39.400
+There's a lot of people say,
+well, why don't I just read
+
+00:48:39.400 --> 00:48:40.300
+the cycle counter?
+
+00:48:40.300 --> 00:48:41.490
+That's actually cheaper.
+
+00:48:41.490 --> 00:48:43.480
+It runs in about 32 nanoseconds.
+
+00:48:43.480 --> 00:48:46.900
+And that you can
+do with the rdtsc--
+
+00:48:49.870 --> 00:48:53.050
+read the timestamp counter--
+
+00:48:53.050 --> 00:48:54.580
+instruction.
+
+00:48:54.580 --> 00:49:02.980
+And you can do it yourself
+by using a built-in assembly.
+
+00:49:02.980 --> 00:49:04.840
+And what it does is
+it returns to how many
+
+00:49:04.840 --> 00:49:06.970
+clock cycles since
+the boot, and it
+
+00:49:06.970 --> 00:49:09.970
+runs in about 32 nanoseconds.
+
+00:49:09.970 --> 00:49:12.700
+But why not use this?
+
+00:49:12.700 --> 00:49:15.610
+Well, one thing
+is that rdtsc may
+
+00:49:15.610 --> 00:49:17.440
+give different answers
+on different cores
+
+00:49:17.440 --> 00:49:19.030
+on the same machine--
+
+00:49:19.030 --> 00:49:25.600
+so the cycle counters on a
+processor by processor basis.
+
+00:49:25.600 --> 00:49:31.180
+Sometimes tsc runs
+backwards, as I mentioned.
+
+00:49:31.180 --> 00:49:35.570
+And also, the counter may not
+progress at a constant speed.
+
+00:49:35.570 --> 00:49:38.860
+So remember that
+the time between--
+
+00:49:38.860 --> 00:49:42.470
+the system is possibly
+slowing and speeding up
+
+00:49:42.470 --> 00:49:44.920
+the counters, and so forth.
+
+00:49:44.920 --> 00:49:49.270
+And converting clock cycles,
+for that reason, to seconds
+
+00:49:49.270 --> 00:49:51.970
+can be very tricky.
+
+00:49:51.970 --> 00:49:55.060
+So I recommend you stay
+away from this faster
+
+00:49:55.060 --> 00:49:58.390
+counter, this faster timer.
+
+00:49:58.390 --> 00:50:00.850
+The other one is don't
+use gettimeofday.
+
+00:50:00.850 --> 00:50:03.460
+That's the one most people know.
+
+00:50:03.460 --> 00:50:09.010
+That gives you
+microsecond precision.
+
+00:50:09.010 --> 00:50:11.140
+It's not actually
+microsecond accurate,
+
+00:50:11.140 --> 00:50:13.600
+but it gives you
+microsecond precision.
+
+00:50:13.600 --> 00:50:17.350
+Because it has similar problems,
+whereas this particular--
+
+00:50:22.340 --> 00:50:28.200
+the clock_gettime MONOTONIC
+has been very well engineered,
+
+00:50:28.200 --> 00:50:30.990
+in my opinion, to give
+good reliable numbers
+
+00:50:30.990 --> 00:50:34.530
+at a reasonable cost.
+
+00:50:34.530 --> 00:50:37.710
+Any questions about
+that, about taking
+
+00:50:37.710 --> 00:50:39.240
+measurements and what to use?
+
+00:50:39.240 --> 00:50:44.280
+This stuff, by the way, over
+time, it's going to change.
+
+00:50:44.280 --> 00:50:47.587
+People are going to come up
+with better ways or worse ways.
+
+00:50:47.587 --> 00:50:49.920
+Or they'll say, we're not
+going to support that anymore,
+
+00:50:49.920 --> 00:50:50.890
+or what have you.
+
+00:50:50.890 --> 00:50:53.290
+And then, if you're out
+there as an engineer,
+
+00:50:53.290 --> 00:50:55.350
+you're going to be on your own.
+
+00:50:55.350 --> 00:50:57.480
+Hopefully you know what
+some of the issues here are
+
+00:50:57.480 --> 00:50:59.410
+and you're prepared
+to be on your own.
+
+00:50:59.410 --> 00:51:00.102
+Yeah?
+
+00:51:00.102 --> 00:51:04.038
+AUDIENCE: [INAUDIBLE]
+
+00:51:14.548 --> 00:51:16.340
+CHARLES E. LEISERSON:
+So when it does that,
+
+00:51:16.340 --> 00:51:18.890
+it aggregates and the
+operating system has to do it.
+
+00:51:18.890 --> 00:51:21.340
+Those numbers
+actually are very--
+
+00:51:21.340 --> 00:51:24.830
+are relatively coarse grained.
+
+00:51:24.830 --> 00:51:27.260
+You cannot time something
+that's very short--
+
+00:51:27.260 --> 00:51:28.960
+with time, for example--
+
+00:51:28.960 --> 00:51:33.380
+with the time command.
+
+00:51:33.380 --> 00:51:39.320
+In general, my experience is
+you should, even with something
+
+00:51:39.320 --> 00:51:42.110
+like-- you can get very fairly
+fine grained measurements
+
+00:51:42.110 --> 00:51:50.220
+with the clock_gettime.
+
+00:51:50.220 --> 00:51:51.970
+You can get fairly
+good measurements
+
+00:51:51.970 --> 00:51:54.970
+there, but unless you're
+aggregating, unless you're
+
+00:51:54.970 --> 00:51:58.840
+running code that's running
+around a second, certainly
+
+00:51:58.840 --> 00:52:01.900
+at least a 10th of a second--
+
+00:52:01.900 --> 00:52:05.830
+if you're not running
+things that are that long,
+
+00:52:05.830 --> 00:52:12.070
+you run the risk that you've
+got really, really bad--
+
+00:52:12.070 --> 00:52:13.060
+you get unlucky.
+
+00:52:13.060 --> 00:52:18.290
+Let me point that out in
+this particular example.
+
+00:52:18.290 --> 00:52:20.140
+So here's the
+interrupting strategy,
+
+00:52:20.140 --> 00:52:21.790
+which we talked about briefly.
+
+00:52:21.790 --> 00:52:25.240
+This is where I just
+Control-C at random intervals.
+
+00:52:25.240 --> 00:52:26.920
+And you look at
+the stack and say,
+
+00:52:26.920 --> 00:52:28.150
+who needs a fancy profiler?
+
+00:52:28.150 --> 00:52:32.590
+In fact, there are
+large companies
+
+00:52:32.590 --> 00:52:38.890
+who use this for debugging
+their big, big codes.
+
+00:52:38.890 --> 00:52:41.325
+Facebook comes to mind.
+
+00:52:41.325 --> 00:52:42.700
+They actually use
+this technique.
+
+00:52:42.700 --> 00:52:46.690
+It is a really easy worthwhile
+technique for figuring out
+
+00:52:46.690 --> 00:52:49.060
+where time is being spent.
+
+00:52:49.060 --> 00:52:50.560
+Now, there are
+some other things.
+
+00:52:50.560 --> 00:52:53.570
+The Poor Man's
+Profiler-- and people
+
+00:52:53.570 --> 00:52:58.540
+have built things like gprof
+and so forth to increment--
+
+00:52:58.540 --> 00:53:01.660
+to automate the strategy so
+you get this information.
+
+00:53:01.660 --> 00:53:03.870
+Because then it
+automatically [INAUDIBLE]
+
+00:53:03.870 --> 00:53:05.920
+looks at the stack,
+what's being executed,
+
+00:53:05.920 --> 00:53:08.590
+puts that into a call
+graph and so forth,
+
+00:53:08.590 --> 00:53:12.250
+and figures out where
+the time is going.
+
+00:53:12.250 --> 00:53:14.290
+But neither of those
+programs is accurate,
+
+00:53:14.290 --> 00:53:15.970
+if you don't obtain
+enough samples.
+
+00:53:15.970 --> 00:53:20.140
+And just to give you an example,
+gprof samples only 100 times
+
+00:53:20.140 --> 00:53:22.660
+per second.
+
+00:53:22.660 --> 00:53:26.340
+So if you're going to use gprof
+for timing something that's
+
+00:53:26.340 --> 00:53:29.430
+only a second long, you
+only got 100 samples.
+
+00:53:29.430 --> 00:53:30.670
+How many samples is 100?
+
+00:53:30.670 --> 00:53:33.450
+That's not actually a real lot.
+
+00:53:33.450 --> 00:53:40.030
+And so you get wildly inaccurate
+numbers from interrupting.
+
+00:53:40.030 --> 00:53:42.860
+But on the other hand,
+for a quick type--
+
+00:53:42.860 --> 00:53:45.100
+we use gprof all the time.
+
+00:53:45.100 --> 00:53:46.480
+It's quick.
+
+00:53:46.480 --> 00:53:47.920
+We do Control-C all the time.
+
+00:53:47.920 --> 00:53:48.850
+It's really quick.
+
+00:53:48.850 --> 00:53:50.230
+I don't have to
+install anything.
+
+00:53:50.230 --> 00:53:56.230
+I just take a look, and it
+gives me a first cut it at what
+
+00:53:56.230 --> 00:53:57.580
+I want to do.
+
+00:53:57.580 --> 00:53:58.480
+It all depends.
+
+00:53:58.480 --> 00:54:03.520
+You don't need all the
+surgically precise tools
+
+00:54:03.520 --> 00:54:04.210
+all the time.
+
+00:54:04.210 --> 00:54:07.480
+Sometimes a really dumb tool
+is adequate for the job,
+
+00:54:07.480 --> 00:54:09.400
+and a lot quicker to deal with.
+
+00:54:12.280 --> 00:54:16.660
+Hardware counters-- so one of
+the nice things that's happened
+
+00:54:16.660 --> 00:54:22.240
+in recent years is that there
+has become available a library
+
+00:54:22.240 --> 00:54:28.330
+called libpfm4, which is
+virtualizing all the hardware
+
+00:54:28.330 --> 00:54:34.130
+counters so that you have
+access to them with--
+
+00:54:34.130 --> 00:54:38.440
+to all of these types of
+events on a per process basis.
+
+00:54:38.440 --> 00:54:40.270
+So normally, there's
+the hardware counters,
+
+00:54:40.270 --> 00:54:42.370
+but then you switch to some--
+
+00:54:42.370 --> 00:54:46.210
+if there's context switching
+going on to some other process,
+
+00:54:46.210 --> 00:54:48.440
+then what happens
+to your counters?
+
+00:54:48.440 --> 00:54:51.090
+They have to be saved,
+they have to be updated.
+
+00:54:51.090 --> 00:54:56.840
+So anyway, libpfm4 does all
+of that kind of virtualization
+
+00:54:56.840 --> 00:54:58.840
+to make it so that the
+counter-- you can view it
+
+00:54:58.840 --> 00:55:02.110
+as if it's your own counter.
+
+00:55:02.110 --> 00:55:05.560
+And perf stat, for
+example, employs that.
+
+00:55:05.560 --> 00:55:09.370
+There are a lot of
+esoteric hardware counters.
+
+00:55:09.370 --> 00:55:11.530
+And as I say, good
+luck in figuring out
+
+00:55:11.530 --> 00:55:13.420
+what they all measure,
+because they often
+
+00:55:13.420 --> 00:55:15.850
+are not well-documented.
+
+00:55:15.850 --> 00:55:17.950
+A few of the important
+ones are well-documented,
+
+00:55:17.950 --> 00:55:21.220
+but most of them are
+very poorly documented
+
+00:55:21.220 --> 00:55:22.780
+exactly what it does.
+
+00:55:22.780 --> 00:55:27.790
+A really good example
+was we had somebody
+
+00:55:27.790 --> 00:55:33.880
+who was looking at cache
+misses to figure out
+
+00:55:33.880 --> 00:55:38.170
+how much bandwidth-- so
+last level cache, L3 cache
+
+00:55:38.170 --> 00:55:40.870
+misses to count
+how much data was
+
+00:55:40.870 --> 00:55:48.100
+being transferred from DRAM.
+
+00:55:48.100 --> 00:55:53.890
+And they were getting
+curious numbers
+
+00:55:53.890 --> 00:55:57.920
+that didn't seem to measure up.
+
+00:55:57.920 --> 00:56:05.860
+And it's like, wait a minute,
+have a miss, moves from DRAM
+
+00:56:05.860 --> 00:56:08.590
+onto the chip.
+
+00:56:08.590 --> 00:56:11.110
+Why is that not
+counting how much
+
+00:56:11.110 --> 00:56:13.060
+stuff is being
+moved, if I count up
+
+00:56:13.060 --> 00:56:16.480
+how many cache misses times how
+many bytes in the cache line?
+
+00:56:16.480 --> 00:56:18.610
+Which is what, on the
+machines we're using?
+
+00:56:21.160 --> 00:56:24.476
+How many bytes in a cache line
+on the machines we're using?
+
+00:56:30.550 --> 00:56:32.110
+OK, 64.
+
+00:56:32.110 --> 00:56:33.580
+OK, gotcha, you guys are--
+
+00:56:33.580 --> 00:56:35.530
+OK, 64.
+
+00:56:35.530 --> 00:56:37.050
+But not every machine has that.
+
+00:56:37.050 --> 00:56:40.030
+But anyway, so why was this
+not measuring how much stuff
+
+00:56:40.030 --> 00:56:40.810
+is being moved?
+
+00:56:45.875 --> 00:56:46.750
+I'll give you a hint.
+
+00:56:46.750 --> 00:56:51.710
+It used to measure how
+much stuff was being moved,
+
+00:56:51.710 --> 00:56:58.830
+but then those architects, they
+are such pesky, clever people,
+
+00:56:58.830 --> 00:57:00.803
+and they put in a great feature.
+
+00:57:00.803 --> 00:57:01.720
+AUDIENCE: Prefetching.
+
+00:57:01.720 --> 00:57:04.480
+CHARLES E. LEISERSON:
+Prefetching.
+
+00:57:04.480 --> 00:57:06.160
+They put it in prefetching.
+
+00:57:06.160 --> 00:57:07.660
+There's things that
+fetch it, and it
+
+00:57:07.660 --> 00:57:11.260
+doesn't update that counter.
+
+00:57:11.260 --> 00:57:14.110
+So if you want, you have to
+count how many prefetching
+
+00:57:14.110 --> 00:57:16.690
+incidents you have, as well.
+
+00:57:16.690 --> 00:57:19.060
+So you can often cobble
+this together, but good luck
+
+00:57:19.060 --> 00:57:21.970
+figuring out what
+some of these do.
+
+00:57:21.970 --> 00:57:22.990
+Also, watch out.
+
+00:57:22.990 --> 00:57:27.730
+You may think that the tools let
+you measure a lot of counters,
+
+00:57:27.730 --> 00:57:29.470
+if you want.
+
+00:57:29.470 --> 00:57:31.870
+But if you read
+the fine print, it
+
+00:57:31.870 --> 00:57:35.080
+turns out that, if you do
+more than four or five,
+
+00:57:35.080 --> 00:57:40.510
+it starts essentially time
+sharing the available counting
+
+00:57:40.510 --> 00:57:44.050
+bandwidth that it has, and it's
+not-- it's actually just doing
+
+00:57:44.050 --> 00:57:47.800
+something statistical, rather
+than actually counting them.
+
+00:57:47.800 --> 00:57:50.740
+So you can't count more than
+like four or five-- actually,
+
+00:57:50.740 --> 00:57:53.630
+four or five I think
+is a high number.
+
+00:57:53.630 --> 00:57:58.420
+But somebody I know well,
+who knows this stuff,
+
+00:57:58.420 --> 00:58:02.320
+said four or five is
+probably what it is today.
+
+00:58:02.320 --> 00:58:03.850
+So that's hardware counters.
+
+00:58:03.850 --> 00:58:07.760
+So hardware counters
+are good technique.
+
+00:58:07.760 --> 00:58:09.820
+Next one is simulators.
+
+00:58:09.820 --> 00:58:11.950
+So things like
+cachegrind usually
+
+00:58:11.950 --> 00:58:15.100
+run much slower than
+real time, but what's
+
+00:58:15.100 --> 00:58:18.190
+great about simulators is you
+can get repeatable numbers out
+
+00:58:18.190 --> 00:58:20.760
+of them.
+
+00:58:20.760 --> 00:58:21.560
+You run the code.
+
+00:58:21.560 --> 00:58:22.580
+You run it again.
+
+00:58:22.580 --> 00:58:24.700
+If you've set up everything
+right, you can get--
+
+00:58:24.700 --> 00:58:27.800
+and you can see what's
+going on inside.
+
+00:58:27.800 --> 00:58:30.718
+The downside is that they don't
+necessarily-- it's slower,
+
+00:58:30.718 --> 00:58:32.510
+and it doesn't necessarily
+model everything
+
+00:58:32.510 --> 00:58:33.860
+going on in the cache.
+
+00:58:33.860 --> 00:58:35.390
+But for things
+like cache misses,
+
+00:58:35.390 --> 00:58:38.600
+this is a great tool
+to just figure out
+
+00:58:38.600 --> 00:58:41.540
+what's the fundamental cache--
+
+00:58:41.540 --> 00:58:44.270
+and we'll talk about that
+when we talk about caches
+
+00:58:44.270 --> 00:58:47.430
+in the next couple of weeks.
+
+00:58:47.430 --> 00:58:50.030
+And if you want a
+particular statistic,
+
+00:58:50.030 --> 00:58:51.710
+in principle, you can
+go in, and if it's
+
+00:58:51.710 --> 00:58:56.750
+an open-source simulator
+like cachegrind is,
+
+00:58:56.750 --> 00:59:00.740
+you can collect it without
+perturbing the simulation.
+
+00:59:00.740 --> 00:59:04.597
+So any question about these
+ways of collecting measurements?
+
+00:59:04.597 --> 00:59:06.680
+There are a whole bunch
+of ways of doing it-- they
+
+00:59:06.680 --> 00:59:08.550
+all have pros and cons.
+
+00:59:08.550 --> 00:59:11.870
+They all can be useful
+in a given context.
+
+00:59:11.870 --> 00:59:13.655
+They all have some flaws.
+
+00:59:16.660 --> 00:59:17.920
+A really good strategy--
+
+00:59:17.920 --> 00:59:22.390
+I'll talk about this
+later-- is triangulation.
+
+00:59:22.390 --> 00:59:25.700
+I never take one
+measurement and believe it.
+
+00:59:25.700 --> 00:59:29.050
+I always want to take at
+least two measurements
+
+00:59:29.050 --> 00:59:31.480
+in different ways,
+and make sure they're
+
+00:59:31.480 --> 00:59:33.850
+telling me the same story--
+
+00:59:33.850 --> 00:59:35.560
+triangulation.
+
+00:59:35.560 --> 00:59:37.300
+If there's a
+discrepancy, then I want
+
+00:59:37.300 --> 00:59:39.630
+to know what's causing
+the discrepancy.
+
+00:59:39.630 --> 00:59:42.430
+But I never trust one number,
+and I never trust any numbers
+
+00:59:42.430 --> 00:59:45.817
+without having a model for
+what I think is coming up.
+
+00:59:45.817 --> 00:59:47.650
+And in fact, that's
+what we're going to talk
+
+00:59:47.650 --> 00:59:50.860
+about next is
+performance modeling.
+
+00:59:50.860 --> 00:59:55.930
+So any questions about
+measurements and such?
+
+00:59:55.930 --> 00:59:58.700
+Isn't it good we have AWS run?
+
+00:59:58.700 --> 01:00:00.900
+Number comes back,
+it's the number.
+
+01:00:00.900 --> 01:00:02.565
+And it's actually a
+pretty good number.
+
+01:00:02.565 --> 01:00:04.940
+We've worked very hard to make
+that a pretty good number.
+
+01:00:11.940 --> 01:00:16.170
+So performance
+modeling-- so yeah,
+
+01:00:16.170 --> 01:00:19.080
+we cover a lot of stuff in this
+class, as I think some of you
+
+01:00:19.080 --> 01:00:20.070
+have started to notice.
+
+01:00:23.940 --> 01:00:26.940
+But really,
+performance-- software
+
+01:00:26.940 --> 01:00:31.830
+performance engineering
+is pretty simple process.
+
+01:00:31.830 --> 01:00:36.900
+You take a program that you
+want to make go fast, program A.
+
+01:00:36.900 --> 01:00:40.890
+You make a change to program A
+to produce a hopefully faster
+
+01:00:40.890 --> 01:00:43.230
+program A prime.
+
+01:00:43.230 --> 01:00:46.410
+You measure the performance
+of program A prime.
+
+01:00:46.410 --> 01:00:51.570
+If A prime beats A, then
+you said A equals A prime.
+
+01:00:51.570 --> 01:00:55.005
+And if A is still not fast
+enough, you repeat the process.
+
+01:00:58.140 --> 01:01:00.210
+That's basically
+what you're doing.
+
+01:01:00.210 --> 01:01:01.590
+It's pretty simple.
+
+01:01:04.230 --> 01:01:08.670
+And as should be apparent, if
+you can't measure performance
+
+01:01:08.670 --> 01:01:12.960
+reliably, it's hard to make
+many small changes that add up,
+
+01:01:12.960 --> 01:01:16.740
+because it's hard to tell
+whether A beats A prime--
+
+01:01:16.740 --> 01:01:24.000
+sorry, whether A prime
+beats A. It's hard to tell.
+
+01:01:24.000 --> 01:01:27.130
+And so as a consequence,
+what we want to do is we
+
+01:01:27.130 --> 01:01:29.820
+want a model of performance
+that we're in a position
+
+01:01:29.820 --> 01:01:32.500
+to draw accurate conclusions.
+
+01:01:32.500 --> 01:01:36.270
+So we want to do things
+like drive the variability
+
+01:01:36.270 --> 01:01:38.370
+of measurement down to 0.
+
+01:01:38.370 --> 01:01:40.230
+And we want to do
+things like figure
+
+01:01:40.230 --> 01:01:44.220
+out ways of using
+statistics to give us
+
+01:01:44.220 --> 01:01:45.900
+more accurate picture
+of what's going
+
+01:01:45.900 --> 01:01:47.718
+on then maybe what is apparent.
+
+01:01:47.718 --> 01:01:49.260
+And that's basically
+what we're going
+
+01:01:49.260 --> 01:01:52.020
+to talk about for a little bit.
+
+01:01:52.020 --> 01:01:55.140
+Part of what I'm going to do is
+going to talk about statistics.
+
+01:01:55.140 --> 01:01:58.410
+How many people have had a
+statistics class, or a machine
+
+01:01:58.410 --> 01:01:59.850
+learning class,
+or something where
+
+01:01:59.850 --> 01:02:02.250
+you dealt with statistics?
+
+01:02:02.250 --> 01:02:03.570
+Beyond probability, I mean.
+
+01:02:03.570 --> 01:02:08.493
+I mean real statistics, sample
+means, and things like that.
+
+01:02:08.493 --> 01:02:09.160
+So a few of you.
+
+01:02:09.160 --> 01:02:10.230
+OK.
+
+01:02:10.230 --> 01:02:12.540
+The basics of what
+you need to know you
+
+01:02:12.540 --> 01:02:15.870
+can find from
+Wikipedia, or MathWorld,
+
+01:02:15.870 --> 01:02:17.580
+or someplace like that.
+
+01:02:20.130 --> 01:02:24.030
+And I'm not going to try to
+teach you Statistics 101,
+
+01:02:24.030 --> 01:02:25.980
+but I will point you
+in some directions,
+
+01:02:25.980 --> 01:02:29.220
+and give you some pointers
+to some tools you can do.
+
+01:02:29.220 --> 01:02:32.310
+OK, so here's a puzzle.
+
+01:02:32.310 --> 01:02:33.990
+Suppose you measure
+the performance
+
+01:02:33.990 --> 01:02:36.270
+of a deterministic
+program 100 times
+
+01:02:36.270 --> 01:02:40.890
+on a computer with some
+interfering background noise.
+
+01:02:40.890 --> 01:02:45.300
+What statistic best
+represents the raw performance
+
+01:02:45.300 --> 01:02:47.540
+of the software?
+
+01:02:47.540 --> 01:02:52.350
+Is it the mean of the-- the
+arithmetic mean of those runs?
+
+01:02:52.350 --> 01:02:55.690
+Is it the geometric
+mean of those runs?
+
+01:02:55.690 --> 01:02:58.120
+Is it the median of the runs?
+
+01:02:58.120 --> 01:03:00.070
+Is it the maximum of the runs?
+
+01:03:00.070 --> 01:03:03.440
+Is that the minimum of the runs?
+
+01:03:03.440 --> 01:03:07.340
+This is where it's helpful,
+if we had those clickers
+
+01:03:07.340 --> 01:03:09.170
+or whatever they have.
+
+01:03:09.170 --> 01:03:13.250
+But we don't, so I
+ask people to vote.
+
+01:03:13.250 --> 01:03:14.600
+Now, I want everybody to vote.
+
+01:03:14.600 --> 01:03:16.288
+And once again,
+it doesn't matter
+
+01:03:16.288 --> 01:03:17.330
+if you're right or wrong.
+
+01:03:17.330 --> 01:03:19.610
+You can be right for
+the wrong reasons.
+
+01:03:19.610 --> 01:03:23.840
+You can be wrong, but
+have the idea right.
+
+01:03:23.840 --> 01:03:26.240
+But it's fun when everybody
+participates-- certainly
+
+01:03:26.240 --> 01:03:29.870
+more fun for me when I see hands
+go up than when I see people
+
+01:03:29.870 --> 01:03:32.780
+sitting there looking bored.
+
+01:03:32.780 --> 01:03:35.420
+OK, how many people think
+arithmetic mean would
+
+01:03:35.420 --> 01:03:39.782
+be a good way of measuring
+the raw performance?
+
+01:03:39.782 --> 01:03:40.700
+Arithmetic mean.
+
+01:03:40.700 --> 01:03:44.250
+That's the most common
+statistic that we ever gather.
+
+01:03:44.250 --> 01:03:47.840
+OK, what about geometric mean?
+
+01:03:47.840 --> 01:03:49.340
+OK.
+
+01:03:49.340 --> 01:03:50.105
+What about median?
+
+01:03:52.980 --> 01:03:54.080
+OK, good.
+
+01:03:54.080 --> 01:03:57.190
+What about maximum?
+
+01:03:57.190 --> 01:03:58.000
+One for maximum.
+
+01:03:58.000 --> 01:04:00.990
+What about minimum?
+
+01:04:00.990 --> 01:04:02.220
+OK.
+
+01:04:02.220 --> 01:04:05.070
+So turns out that actually,
+these are all good
+
+01:04:05.070 --> 01:04:06.870
+measures to take, and
+it depends upon what
+
+01:04:06.870 --> 01:04:08.030
+you're doing with them.
+
+01:04:08.030 --> 01:04:14.040
+But turns out minimum is--
+
+01:04:14.040 --> 01:04:17.220
+does the best it
+noise rejection.
+
+01:04:17.220 --> 01:04:19.740
+And that's because you expect
+any measurements higher
+
+01:04:19.740 --> 01:04:22.980
+than the minimum, if it's a
+deterministic program and so
+
+01:04:22.980 --> 01:04:26.682
+forth, that's going
+to be due to noise.
+
+01:04:26.682 --> 01:04:28.390
+So if you're really
+interested in knowing
+
+01:04:28.390 --> 01:04:32.305
+how long fundamentally your
+code takes on the underlying
+
+01:04:32.305 --> 01:04:34.180
+hardware, when there's
+other things going on,
+
+01:04:34.180 --> 01:04:36.160
+taking the minimum rejects it.
+
+01:04:36.160 --> 01:04:40.810
+Now, you might say, the
+median also rejects noise,
+
+01:04:40.810 --> 01:04:47.860
+but it doesn't, because if
+you view your program as being
+
+01:04:47.860 --> 01:04:52.210
+its running time plus
+noise, then the median
+
+01:04:52.210 --> 01:04:53.770
+is going to give
+you some number that
+
+01:04:53.770 --> 01:04:57.643
+is in the midst of the noise.
+
+01:04:57.643 --> 01:04:59.060
+It's going to have
+some component.
+
+01:04:59.060 --> 01:05:03.620
+So minimum is the only one that
+really rejects all of them.
+
+01:05:03.620 --> 01:05:06.620
+But they're all useful
+measures in different contexts.
+
+01:05:06.620 --> 01:05:11.240
+And there are ways that you
+can use the mean and some
+
+01:05:11.240 --> 01:05:14.000
+of these other ones, as
+we'll talk about in a minute,
+
+01:05:14.000 --> 01:05:17.297
+to get information
+about making decisions,
+
+01:05:17.297 --> 01:05:19.130
+because is the thing
+that we're after is not
+
+01:05:19.130 --> 01:05:22.460
+necessarily always the raw
+performance of the software.
+
+01:05:22.460 --> 01:05:24.800
+Sometimes we're interested
+in whether A beats
+
+01:05:24.800 --> 01:05:29.240
+B. That's a different
+question than how fast is this
+
+01:05:29.240 --> 01:05:31.610
+fundamentally go.
+
+01:05:31.610 --> 01:05:36.210
+Now, so there are a lot of
+different types of summary
+
+01:05:36.210 --> 01:05:41.730
+statistics, and there's lots of
+reasons to pick different ones.
+
+01:05:41.730 --> 01:05:43.830
+So for example, if you're
+interested in serving
+
+01:05:43.830 --> 01:05:47.843
+as many requests as possible
+in a web server, for example,
+
+01:05:47.843 --> 01:05:50.010
+you're going to be looking
+at something like the CPU
+
+01:05:50.010 --> 01:05:54.120
+utilization and taking
+the arithmetic mean
+
+01:05:54.120 --> 01:05:59.280
+to try to understand
+how those things add up.
+
+01:05:59.280 --> 01:06:01.050
+If all tasks have
+to be completed
+
+01:06:01.050 --> 01:06:04.955
+within 10 milliseconds,
+then you're
+
+01:06:04.955 --> 01:06:07.080
+going to look at the--
+you're looking at the total,
+
+01:06:07.080 --> 01:06:08.788
+and you're going to
+add it up, and you're
+
+01:06:08.788 --> 01:06:11.700
+going to be interested in making
+sure that each one is small.
+
+01:06:11.700 --> 01:06:13.460
+And that's also
+what the mean does.
+
+01:06:13.460 --> 01:06:16.560
+And you're going to be
+looking at wall clock time.
+
+01:06:16.560 --> 01:06:19.440
+If you want to ensure that
+most requests are satisfied
+
+01:06:19.440 --> 01:06:22.020
+within 100
+milliseconds, you might
+
+01:06:22.020 --> 01:06:26.097
+be looking at the 90th
+percentile behavior.
+
+01:06:26.097 --> 01:06:27.930
+And you'll say, yes, I
+won't make every one,
+
+01:06:27.930 --> 01:06:30.850
+but I want 90% of the time
+I want to get it there,
+
+01:06:30.850 --> 01:06:33.090
+and I'll be using something
+like walk clock time.
+
+01:06:38.730 --> 01:06:41.730
+In a lot of web
+companies, there's
+
+01:06:41.730 --> 01:06:44.640
+a thing called a
+service level agreement.
+
+01:06:44.640 --> 01:06:46.890
+This is what they should
+give you for your telephone,
+
+01:06:46.890 --> 01:06:48.360
+but they don't.
+
+01:06:48.360 --> 01:06:51.060
+Tells you what kind of
+service you can expect,
+
+01:06:51.060 --> 01:06:53.940
+and if they don't meet
+that service requirement,
+
+01:06:53.940 --> 01:06:55.900
+then they haven't
+lived up to it.
+
+01:06:55.900 --> 01:06:59.410
+Instead, we buy these phones
+and we get the service,
+
+01:06:59.410 --> 01:07:03.300
+and we just get whatever
+they decide to give us.
+
+01:07:03.300 --> 01:07:07.290
+But if you're a big
+company, you insist
+
+01:07:07.290 --> 01:07:09.420
+that you get some kind of
+service out of the people
+
+01:07:09.420 --> 01:07:11.560
+that you're using.
+
+01:07:11.560 --> 01:07:14.070
+And so there that's typically
+some weighted combination,
+
+01:07:14.070 --> 01:07:16.640
+and you're using
+multiple things.
+
+01:07:16.640 --> 01:07:18.240
+You might want to
+fit into a machine
+
+01:07:18.240 --> 01:07:24.763
+with 100 megabytes of memory,
+some sort of embedded machine
+
+01:07:24.763 --> 01:07:27.180
+or whatever, then you're going
+to be interested in maximum
+
+01:07:27.180 --> 01:07:28.380
+of the memory use.
+
+01:07:28.380 --> 01:07:30.090
+So it's not all the
+performances, not
+
+01:07:30.090 --> 01:07:31.790
+all just time.
+
+01:07:31.790 --> 01:07:34.035
+You might want the
+least cost possible,
+
+01:07:34.035 --> 01:07:35.910
+and you're looking at
+things like energy use,
+
+01:07:35.910 --> 01:07:38.790
+et cetera, or the fastest,
+biggest, best solutions.
+
+01:07:38.790 --> 01:07:44.790
+You can see average comes
+up a lot as one of the ways.
+
+01:07:44.790 --> 01:07:48.990
+So I wanted to though cover
+one particular example, which
+
+01:07:48.990 --> 01:07:53.220
+I find is the most commonplace
+I see a misuse of summary
+
+01:07:53.220 --> 01:07:58.110
+statistics, and that's for
+when I'm summarizing ratios.
+
+01:07:58.110 --> 01:08:02.070
+So suppose I have
+two programs A and B,
+
+01:08:02.070 --> 01:08:03.600
+and I run the four trials.
+
+01:08:03.600 --> 01:08:08.250
+Normally, you'd run a lot more,
+but I wanted to fit on a slide.
+
+01:08:08.250 --> 01:08:15.150
+And program A, on whatever trial
+1 was, took nine seconds, say.
+
+01:08:17.670 --> 01:08:19.500
+On trial 2, it took 8--
+
+01:08:19.500 --> 01:08:20.609
+2 and 10.
+
+01:08:20.609 --> 01:08:24.990
+And program B you've
+got 3, 2, 20, and 2.
+
+01:08:24.990 --> 01:08:28.210
+So I can compute the
+mean for each of those.
+
+01:08:28.210 --> 01:08:33.060
+So the mean of the program A is
+8.25, and the mean of program B
+
+01:08:33.060 --> 01:08:37.260
+is 4.75 over those
+four benchmarks.
+
+01:08:37.260 --> 01:08:42.990
+I can also take a look at
+how much is A winning--
+
+01:08:42.990 --> 01:08:48.899
+sorry, is B winning over A.
+And so if I take the ratios,
+
+01:08:48.899 --> 01:08:59.609
+I then get 3, 4, 1/10,
+and 5 for a mean of 3.13.
+
+01:08:59.609 --> 01:09:02.160
+It's actually
+3.125, but I'm only
+
+01:09:02.160 --> 01:09:06.060
+keeping things to two digits.
+
+01:09:06.060 --> 01:09:08.430
+And so if I was asked
+to summarize this,
+
+01:09:08.430 --> 01:09:11.810
+I could perhaps
+conclude that program 3
+
+01:09:11.810 --> 01:09:15.420
+is more than three times
+better than program A,
+
+01:09:15.420 --> 01:09:18.420
+based on these statistics.
+
+01:09:18.420 --> 01:09:19.920
+But there's a bug
+in that reasoning.
+
+01:09:19.920 --> 01:09:21.060
+Can anybody see the bug?
+
+01:09:28.440 --> 01:09:29.424
+This is wrong.
+
+01:09:39.264 --> 01:09:42.708
+AUDIENCE: [INAUDIBLE]
+
+01:09:45.198 --> 01:09:46.990
+CHARLES E. LEISERSON:
+It doesn't make sense
+
+01:09:46.990 --> 01:09:51.040
+to take the arithmetic
+mean of a bunch of ratios.
+
+01:09:51.040 --> 01:09:52.540
+Why's that?
+
+01:09:52.540 --> 01:09:55.570
+Yeah, one thing
+here is that you can
+
+01:09:55.570 --> 01:09:59.800
+see is that-- notice that
+the mean of the ratio
+
+01:09:59.800 --> 01:10:04.340
+is not the same as
+the ratio of the mean.
+
+01:10:04.340 --> 01:10:08.000
+That should be suspicious.
+
+01:10:08.000 --> 01:10:10.050
+Should I not be comparing
+the ratio of the mean,
+
+01:10:10.050 --> 01:10:12.050
+or should I be comparing
+the mean of the ratios?
+
+01:10:14.570 --> 01:10:17.340
+So that's not particularly good.
+
+01:10:17.340 --> 01:10:20.420
+Another thing is suppose I take
+a look at the ratio B over A,
+
+01:10:20.420 --> 01:10:23.810
+and I take the arithmetic mean.
+
+01:10:23.810 --> 01:10:26.210
+Then what I discover
+is that A is better
+
+01:10:26.210 --> 01:10:31.580
+by a factor of almost
+three than B. So clearly,
+
+01:10:31.580 --> 01:10:42.950
+taking the average of the means
+is the average of the ratios.
+
+01:10:42.950 --> 01:10:45.260
+There's something
+wrong with that.
+
+01:10:45.260 --> 01:10:49.785
+And in particular, as I
+say, the ratio of the means
+
+01:10:49.785 --> 01:10:51.035
+is not the mean of the ratios.
+
+01:10:54.590 --> 01:10:56.390
+And then your
+intuition is spot on.
+
+01:10:59.090 --> 01:11:03.360
+Suppose instead I compute
+the geometric mean.
+
+01:11:03.360 --> 01:11:06.530
+So geometric mean is
+basically like taking
+
+01:11:06.530 --> 01:11:09.860
+the average of the logs, the
+arithmetic mean of the logs.
+
+01:11:09.860 --> 01:11:13.280
+So you're basically
+taking the product
+
+01:11:13.280 --> 01:11:16.750
+and taking the n-th
+root of the product.
+
+01:11:16.750 --> 01:11:19.640
+And I've computed
+that for these things.
+
+01:11:19.640 --> 01:11:22.670
+And now I've taken
+the arithmetic mean
+
+01:11:22.670 --> 01:11:24.917
+of the run times,
+because that makes sense.
+
+01:11:24.917 --> 01:11:26.750
+That's kind of an average
+over these things,
+
+01:11:26.750 --> 01:11:28.700
+how long did things take.
+
+01:11:28.700 --> 01:11:35.720
+And now I look at A over B and
+B over A, I get the same thing.
+
+01:11:35.720 --> 01:11:38.390
+And it's, in fact, the case
+that the ratio of the means
+
+01:11:38.390 --> 01:11:41.990
+is the mean of the ratios.
+
+01:11:41.990 --> 01:11:43.700
+So when you look
+at ratios, there's
+
+01:11:43.700 --> 01:11:48.080
+another place that comes
+up where you look at rates.
+
+01:11:48.080 --> 01:11:50.210
+And I've seen people
+look at rates,
+
+01:11:50.210 --> 01:11:52.520
+and it turns out when you're
+looking at rates, often
+
+01:11:52.520 --> 01:11:55.400
+it's the harmonic mean
+that you want in order
+
+01:11:55.400 --> 01:11:57.980
+to preserve these good
+mathematical properties,
+
+01:11:57.980 --> 01:11:59.980
+and make sure that--
+
+01:11:59.980 --> 01:12:02.360
+it's really bad
+if I do this thing
+
+01:12:02.360 --> 01:12:04.370
+and I say, look how
+much better A is than B,
+
+01:12:04.370 --> 01:12:06.470
+and somebody-- if I
+flipped the ratio,
+
+01:12:06.470 --> 01:12:09.800
+B would be better than
+A. That's really suspect
+
+01:12:09.800 --> 01:12:13.190
+If the identity of
+whether you're A or B,
+
+01:12:13.190 --> 01:12:16.490
+and which one was the numerator,
+which in the denominator
+
+01:12:16.490 --> 01:12:23.000
+had an impact, that
+would be really suspect.
+
+01:12:23.000 --> 01:12:25.340
+So this is the
+kind of thing, when
+
+01:12:25.340 --> 01:12:27.710
+you're thinking about how
+you're reporting things
+
+01:12:27.710 --> 01:12:30.112
+and so forth, you want to be
+careful about, when you're
+
+01:12:30.112 --> 01:12:31.820
+aggregating things,
+to make sure that you
+
+01:12:31.820 --> 01:12:37.240
+have the basic mathematical
+properties met.
+
+01:12:37.240 --> 01:12:45.890
+And what's nice is 1 divided
+by 1.57 here is, in fact, 0.64.
+
+01:12:45.890 --> 01:12:47.990
+So it didn't matter which
+way I took the ratio--
+
+01:12:47.990 --> 01:12:49.070
+I got the same answer.
+
+01:12:51.590 --> 01:12:54.830
+So B is better that by
+a factor of about 1.6,
+
+01:12:54.830 --> 01:12:55.965
+something like that.
+
+01:12:55.965 --> 01:12:57.090
+It was a little bit better.
+
+01:12:57.090 --> 01:12:58.790
+It's not three times better.
+
+01:12:58.790 --> 01:13:01.340
+And it for sure isn't the
+case that A is better than B
+
+01:13:01.340 --> 01:13:03.320
+by a factor of three.
+
+01:13:03.320 --> 01:13:06.568
+OK, good.
+
+01:13:06.568 --> 01:13:07.610
+Any questions about that?
+
+01:13:14.910 --> 01:13:17.190
+Good, OK.
+
+01:13:17.190 --> 01:13:20.850
+Suppose as I want to compare
+two programs, A and B, which
+
+01:13:20.850 --> 01:13:24.772
+is faster, and I have a
+slightly noisy computer on which
+
+01:13:24.772 --> 01:13:25.980
+to measure their performance.
+
+01:13:25.980 --> 01:13:26.938
+What's a good strategy?
+
+01:13:32.460 --> 01:13:35.100
+What's a good strategy for
+comparing and figuring out
+
+01:13:35.100 --> 01:13:37.110
+whether A is better than
+B, or B better than A?
+
+01:13:41.020 --> 01:13:41.520
+Sure.
+
+01:13:44.448 --> 01:13:48.352
+AUDIENCE: [INAUDIBLE]
+
+01:13:59.605 --> 01:14:01.480
+CHARLES E. LEISERSON:
+Sorry, so you're saying
+
+01:14:01.480 --> 01:14:04.750
+I'm going to run multiple runs?
+
+01:14:04.750 --> 01:14:07.407
+That's a great idea.
+
+01:14:07.407 --> 01:14:08.740
+We're going to do multiple runs.
+
+01:14:08.740 --> 01:14:11.260
+And what am I doing
+for each of these runs?
+
+01:14:11.260 --> 01:14:15.580
+AUDIENCE: [INAUDIBLE]
+
+01:14:15.580 --> 01:14:19.090
+CHARLES E. LEISERSON: The
+low order statistic of the--
+
+01:14:19.090 --> 01:14:23.810
+for example, minimum or 10%
+or something really low.
+
+01:14:23.810 --> 01:14:24.705
+OK.
+
+01:14:24.705 --> 01:14:25.330
+So I take that.
+
+01:14:25.330 --> 01:14:28.300
+I have one number for program
+A. I have one number for program
+
+01:14:28.300 --> 01:14:30.640
+B. I ran them n times.
+
+01:14:30.640 --> 01:14:31.180
+What else?
+
+01:14:31.180 --> 01:14:36.220
+AUDIENCE: [INAUDIBLE]
+
+01:14:36.220 --> 01:14:40.520
+CHARLES E. LEISERSON:
+Well, am I comparing
+
+01:14:40.520 --> 01:14:47.782
+the two minimums I've got there,
+or am I comparing each one?
+
+01:14:47.782 --> 01:14:52.210
+AUDIENCE: [INAUDIBLE]
+
+01:14:56.685 --> 01:14:58.810
+CHARLES E. LEISERSON: Oh,
+I see what you're saying.
+
+01:14:58.810 --> 01:15:03.130
+Take all the measurements
+that go below your 10%--
+
+01:15:03.130 --> 01:15:07.850
+cheapest ones-- and
+then compare those.
+
+01:15:07.850 --> 01:15:08.350
+OK.
+
+01:15:13.210 --> 01:15:16.090
+So you're substantially doing
+noise reduction is what you're
+
+01:15:16.090 --> 01:15:18.880
+saying, and then
+other than that,
+
+01:15:18.880 --> 01:15:22.450
+you're comparing
+by comparing means.
+
+01:15:22.450 --> 01:15:26.710
+OK, that's an
+interesting methodology.
+
+01:15:26.710 --> 01:15:30.250
+You'd probably get something
+reasonable, I would think,
+
+01:15:30.250 --> 01:15:34.060
+but you couldn't prove
+anything about it.
+
+01:15:34.060 --> 01:15:35.530
+But that's an interesting idea.
+
+01:15:35.530 --> 01:15:38.140
+Yeah, that's an
+interesting idea.
+
+01:15:38.140 --> 01:15:38.720
+What else?
+
+01:15:38.720 --> 01:15:39.423
+Yeah?
+
+01:15:39.423 --> 01:15:41.888
+AUDIENCE: You run both, and
+then see which one is faster
+
+01:15:41.888 --> 01:15:42.596
+and mark it.
+
+01:15:42.596 --> 01:15:44.846
+And then run them both again,
+see which one is faster,
+
+01:15:44.846 --> 01:15:46.325
+mark it again-- mark that one.
+
+01:15:46.325 --> 01:15:49.198
+And keep doing that, and then
+see how many marks [INAUDIBLE]
+
+01:15:49.198 --> 01:15:50.740
+CHARLES E. LEISERSON:
+Good, so you're
+
+01:15:50.740 --> 01:15:54.220
+saying to a bunch of
+head-to-head runs,
+
+01:15:54.220 --> 01:15:56.860
+and mark just who wins
+over those things.
+
+01:15:59.630 --> 01:16:02.650
+So one wins more than the
+other, or the other wins more
+
+01:16:02.650 --> 01:16:03.205
+than the one?
+
+01:16:03.205 --> 01:16:03.830
+AUDIENCE: Yeah.
+
+01:16:03.830 --> 01:16:05.497
+CHARLES E. LEISERSON:
+What good is that?
+
+01:16:05.497 --> 01:16:08.087
+AUDIENCE: If the time it takes
+for each program to finish
+
+01:16:08.087 --> 01:16:11.935
+is a random variable that
+tells you [INAUDIBLE]
+
+01:16:11.935 --> 01:16:14.335
+or how much more [INAUDIBLE]
+
+01:16:14.335 --> 01:16:15.460
+CHARLES E. LEISERSON: Yeah.
+
+01:16:15.460 --> 01:16:18.280
+So this is actually
+a very good strategy
+
+01:16:18.280 --> 01:16:23.800
+and actually has some
+statistical muscle behind it.
+
+01:16:23.800 --> 01:16:26.740
+So what you can do is do
+n head-to-head comparisons
+
+01:16:26.740 --> 01:16:31.960
+between A and B. So in
+both these examples, yeah,
+
+01:16:31.960 --> 01:16:34.630
+we better run it a few times.
+
+01:16:34.630 --> 01:16:40.000
+And suppose that a
+wins more frequently.
+
+01:16:40.000 --> 01:16:42.880
+So now, what we want to do in
+the statistics, where they call
+
+01:16:42.880 --> 01:16:47.800
+the null hypothesis,
+is that B beats A.
+
+01:16:47.800 --> 01:16:51.340
+So even though we see A beats B,
+the null hypothesis that we're
+
+01:16:51.340 --> 01:16:54.160
+wrong, and that A beats--
+
+01:16:54.160 --> 01:16:55.660
+that B beats A.
+
+01:16:55.660 --> 01:16:57.940
+And what we then cannot
+calculate is what they call
+
+01:16:57.940 --> 01:17:01.600
+the p-value, which is the
+probability we'd observe that
+
+01:17:01.600 --> 01:17:02.320
+B--
+
+01:17:02.320 --> 01:17:07.060
+that A beats B more
+often than we did.
+
+01:17:07.060 --> 01:17:11.310
+So for example,
+for each of these--
+
+01:17:11.310 --> 01:17:13.970
+to imagine that
+in the worst case,
+
+01:17:13.970 --> 01:17:18.280
+let's just say that they
+were equal in performance,
+
+01:17:18.280 --> 01:17:20.740
+and all we're
+seeing is the noise.
+
+01:17:20.740 --> 01:17:23.230
+Then I would expect
+that I would get
+
+01:17:23.230 --> 01:17:26.630
+about an even number of things.
+
+01:17:26.630 --> 01:17:30.070
+And so the further that I
+deviate from them being even,
+
+01:17:30.070 --> 01:17:32.860
+especially once I--
+
+01:17:32.860 --> 01:17:35.980
+that distribution is essentially
+a Bernoulli distribution.
+
+01:17:35.980 --> 01:17:40.280
+The further I get out--
+or a T distribution,
+
+01:17:40.280 --> 01:17:43.930
+if you have small numbers.
+
+01:17:43.930 --> 01:17:46.510
+As I get further out from--
+
+01:17:46.510 --> 01:17:50.050
+away from the mean by what
+the variance of just flipping
+
+01:17:50.050 --> 01:17:52.870
+coins, in that case,
+I can calculate what's
+
+01:17:52.870 --> 01:17:54.730
+the probability that
+I'm seeing something
+
+01:17:54.730 --> 01:17:56.920
+that would be that extreme.
+
+01:17:56.920 --> 01:18:01.240
+And that gives me a good reason
+to reject the null hypothesis,
+
+01:18:01.240 --> 01:18:04.810
+if it turns out that
+deviates by a lot.
+
+01:18:04.810 --> 01:18:08.242
+So this is very standard
+stuff in the social sciences.
+
+01:18:08.242 --> 01:18:09.950
+Who's had a course in
+this kind of stuff,
+
+01:18:09.950 --> 01:18:13.750
+in testing null hypothesis,
+biology, and so forth?
+
+01:18:13.750 --> 01:18:16.900
+You remember anything from it?
+
+01:18:16.900 --> 01:18:18.640
+Just vaguely?
+
+01:18:18.640 --> 01:18:19.140
+Yeah, yeah.
+
+01:18:19.140 --> 01:18:21.160
+OK, that's fine.
+
+01:18:21.160 --> 01:18:24.250
+One of the things I
+have found in life
+
+01:18:24.250 --> 01:18:26.370
+is that I don't
+remember anything I
+
+01:18:26.370 --> 01:18:29.530
+learned in college to speak of.
+
+01:18:29.530 --> 01:18:32.530
+What I had to do is relearn it,
+but I relearned it a lot faster
+
+01:18:32.530 --> 01:18:33.655
+than when I was in college.
+
+01:18:36.820 --> 01:18:38.560
+And so that's part
+of this is also-- so
+
+01:18:38.560 --> 01:18:40.600
+when you see it again--
+oh, OK, now, you know
+
+01:18:40.600 --> 01:18:41.850
+how to go about learning this.
+
+01:18:45.370 --> 01:18:49.510
+Once again, you can look this
+up on Wikipedia or whatever,
+
+01:18:49.510 --> 01:18:51.870
+if you want to use
+this methodology.
+
+01:18:51.870 --> 01:18:54.610
+It's a good one for being
+able to determine, even
+
+01:18:54.610 --> 01:18:55.750
+in the presence of noise.
+
+01:18:55.750 --> 01:18:57.333
+What it does do is
+it doesn't tell you
+
+01:18:57.333 --> 01:18:59.290
+what the raw
+performance was, but it
+
+01:18:59.290 --> 01:19:03.040
+says, in that environment,
+which one is actually faster.
+
+01:19:03.040 --> 01:19:05.950
+And that may actually be
+a more relevant question,
+
+01:19:05.950 --> 01:19:07.840
+because you're not
+always going to have
+
+01:19:07.840 --> 01:19:09.760
+this completely quiet system.
+
+01:19:09.760 --> 01:19:12.070
+You may have a lot of
+noise going on in a system.
+
+01:19:12.070 --> 01:19:14.320
+You'd like to know which one
+is going to behave better
+
+01:19:14.320 --> 01:19:16.250
+in what that actual system is.
+
+01:19:16.250 --> 01:19:18.910
+And so this methodology
+is pretty good.
+
+01:19:18.910 --> 01:19:25.090
+Note that, with a lot of
+noise, we need lots of trials.
+
+01:19:25.090 --> 01:19:27.110
+The last thing that I
+want to talk about--
+
+01:19:27.110 --> 01:19:30.010
+which I won't-- is
+fitting to a model.
+
+01:19:30.010 --> 01:19:32.530
+And this is the issue of
+sometimes you measure things,
+
+01:19:32.530 --> 01:19:35.350
+but you're interested
+in a derived statistic,
+
+01:19:35.350 --> 01:19:41.770
+such as, in this case,
+gathering some time,
+
+01:19:41.770 --> 01:19:43.690
+counting instructions,
+counting cache misses,
+
+01:19:43.690 --> 01:19:48.130
+counting time, and
+asking, OK, what's the--
+
+01:19:48.130 --> 01:19:51.760
+what can I estimate is
+the instruction time,
+
+01:19:51.760 --> 01:19:53.110
+and what is the cache time?
+
+01:19:53.110 --> 01:19:56.450
+And to do that, you do a
+least-squares approximation.
+
+01:19:56.450 --> 01:20:00.565
+And there's, once again,
+some statistics behind that.
+
+01:20:00.565 --> 01:20:01.940
+I'm not going to
+go over it here,
+
+01:20:01.940 --> 01:20:04.180
+but you can look in the notes.
+
+01:20:04.180 --> 01:20:07.100
+There are a bunch of
+issues with modeling,
+
+01:20:07.100 --> 01:20:10.240
+which is that you can
+over fit very easily.
+
+01:20:10.240 --> 01:20:14.650
+If you add more basis functions,
+you will fit the data better.
+
+01:20:14.650 --> 01:20:17.920
+And so how do you know
+if you're overfitting?
+
+01:20:17.920 --> 01:20:19.780
+Answer is, if you
+remove a basis function,
+
+01:20:19.780 --> 01:20:22.690
+it doesn't affect the
+quality very much.
+
+01:20:22.690 --> 01:20:23.920
+Is the model predictive?
+
+01:20:23.920 --> 01:20:25.337
+I'm actually going
+to just let you
+
+01:20:25.337 --> 01:20:29.513
+guys look at these,
+because it's pretty good.
+
+01:20:29.513 --> 01:20:31.180
+I think they're pretty
+self-explanatory.
+
+01:20:31.180 --> 01:20:32.920
+Let me just finish
+with a couple of words
+
+01:20:32.920 --> 01:20:35.590
+from a giant of science.
+
+01:20:35.590 --> 01:20:37.190
+This is Lord Kelvin.
+
+01:20:37.190 --> 01:20:40.120
+What is Kelvin famous for?
+
+01:20:40.120 --> 01:20:40.855
+Besides Kelvin.
+
+01:20:44.640 --> 01:20:50.280
+He was the guru of measurement.
+
+01:20:50.280 --> 01:20:54.120
+And he said, to
+measure is to know.
+
+01:20:54.120 --> 01:20:55.590
+That's a good one.
+
+01:20:55.590 --> 01:20:58.260
+And he said also, if you
+cannot measurement it,
+
+01:20:58.260 --> 01:21:00.720
+you cannot improve it.
+
+01:21:00.720 --> 01:21:05.250
+So both very apt sayings
+from the same guy,
+
+01:21:05.250 --> 01:21:10.585
+so there's a reason he's
+got a big forehand, I guess.
+
+01:21:10.585 --> 01:21:11.460
+So anyway, that's it.
+
+01:21:11.460 --> 01:21:14.160
+Thanks very much.
+
+01:21:14.160 --> 01:21:16.880
+And good luck on
+the quiz on Tuesday.

@@ -1,0 +1,5986 @@
+WEBVTT
+
+00:00:01.161 --> 00:00:03.920
+ANNOUNCER: The following content
+is provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT Open Courseware
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:16.670
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:16.670 --> 00:00:18.540
+at ocw.mit.edu.
+
+00:00:22.812 --> 00:00:23.770
+JULIAN SHUN: All right.
+
+00:00:23.770 --> 00:00:25.870
+So today we're going
+to talk about cache
+
+00:00:25.870 --> 00:00:27.730
+oblivious algorithms.
+
+00:00:27.730 --> 00:00:30.250
+Who remembers what a cache
+oblivious algorithm is?
+
+00:00:38.190 --> 00:00:43.430
+So what is a cache oblivious
+algorithm oblivious to?
+
+00:00:43.430 --> 00:00:44.680
+Cache size.
+
+00:00:44.680 --> 00:00:48.710
+So a cache oblivious
+algorithm is an algorithm
+
+00:00:48.710 --> 00:00:53.210
+that automatically tunes for
+the cache size on your machine.
+
+00:00:53.210 --> 00:00:55.820
+So it achieves good
+cache efficiency.
+
+00:00:55.820 --> 00:00:58.730
+And the code doesn't need to
+have any knowledge of the cache
+
+00:00:58.730 --> 00:00:59.950
+parameters of your machine.
+
+00:00:59.950 --> 00:01:02.330
+In contrast, a
+cache-aware algorithm
+
+00:01:02.330 --> 00:01:05.239
+would actually know the
+parameters of the cache sizes
+
+00:01:05.239 --> 00:01:06.230
+on your machine.
+
+00:01:06.230 --> 00:01:10.970
+And the code would actually put
+the size of the cache inside.
+
+00:01:10.970 --> 00:01:14.270
+So today we're going to talk a
+lot more about cache oblivious
+
+00:01:14.270 --> 00:01:14.960
+algorithms.
+
+00:01:14.960 --> 00:01:17.630
+Last time we talked about
+one cache oblivious algorithm
+
+00:01:17.630 --> 00:01:19.400
+that was for matrix
+multiplication.
+
+00:01:19.400 --> 00:01:22.820
+And today we're going to
+talk about some other ones.
+
+00:01:22.820 --> 00:01:24.740
+So first example I
+want to talk about
+
+00:01:24.740 --> 00:01:29.900
+is simulation of heat diffusion.
+
+00:01:29.900 --> 00:01:35.360
+So here's a famous equation
+known as the heat equation.
+
+00:01:35.360 --> 00:01:38.450
+And this equation is
+in two dimensions.
+
+00:01:38.450 --> 00:01:41.420
+And we want to
+simulate this function
+
+00:01:41.420 --> 00:01:46.400
+u that has three parameters t,
+x, and y. t is the time step.
+
+00:01:46.400 --> 00:01:49.960
+X and y are the x, y
+coordinates of the 2D space.
+
+00:01:49.960 --> 00:01:52.190
+And we want to know the
+temperature for each x,
+
+00:01:52.190 --> 00:01:57.290
+y coordinate for
+any point in time t.
+
+00:01:57.290 --> 00:01:59.540
+And the 2D heat
+equation can be modeled
+
+00:01:59.540 --> 00:02:02.030
+using a differential equation.
+
+00:02:02.030 --> 00:02:05.940
+So how many of you have seen
+differential equations before?
+
+00:02:05.940 --> 00:02:06.440
+OK.
+
+00:02:06.440 --> 00:02:08.720
+So good, most of you.
+
+00:02:08.720 --> 00:02:12.650
+So here I'm showing the
+equation in two dimensions.
+
+00:02:12.650 --> 00:02:14.240
+But you can get
+similarly equations
+
+00:02:14.240 --> 00:02:16.170
+for higher dimensions.
+
+00:02:16.170 --> 00:02:19.310
+So here it says the partial
+derivative of u with respect
+
+00:02:19.310 --> 00:02:22.820
+to t is equal to alpha.
+
+00:02:22.820 --> 00:02:26.210
+Alpha is what's called
+the thermo diffusivity.
+
+00:02:26.210 --> 00:02:30.960
+It's a constant times the sum
+of the second partial derivative
+
+00:02:30.960 --> 00:02:35.570
+of u with respect to x, and the
+second partial derivative of u
+
+00:02:35.570 --> 00:02:38.750
+with respect to y.
+
+00:02:38.750 --> 00:02:43.470
+So this is a pretty
+famous equation.
+
+00:02:43.470 --> 00:02:45.740
+And you can see that we
+have a single derivative
+
+00:02:45.740 --> 00:02:48.860
+on the left side and a double
+derivative on the right side.
+
+00:02:48.860 --> 00:02:50.510
+And how do we
+actually write code
+
+00:02:50.510 --> 00:02:54.990
+to simulate this
+2D heat process?
+
+00:02:54.990 --> 00:02:57.350
+So oftentimes in
+scientific computing,
+
+00:02:57.350 --> 00:03:00.440
+people will come up with these
+differential equations just
+
+00:03:00.440 --> 00:03:02.358
+to describe physical processes.
+
+00:03:02.358 --> 00:03:04.400
+And then they want to come
+up with efficient code
+
+00:03:04.400 --> 00:03:06.860
+to actually simulate
+the physical process.
+
+00:03:10.440 --> 00:03:10.940
+OK.
+
+00:03:10.940 --> 00:03:14.660
+So here's an example
+of a 2D heat diffusion.
+
+00:03:14.660 --> 00:03:18.350
+So let's say we started out with
+a configuration on the left.
+
+00:03:18.350 --> 00:03:21.020
+And here the color
+corresponds to a temperature.
+
+00:03:21.020 --> 00:03:23.030
+So a brighter color
+means it's hotter.
+
+00:03:23.030 --> 00:03:25.980
+Yellow is the hottest
+and blue is the coldest.
+
+00:03:25.980 --> 00:03:28.985
+In on the left we
+just have 6172,
+
+00:03:28.985 --> 00:03:30.110
+which is the course number.
+
+00:03:30.110 --> 00:03:31.527
+So if you didn't
+know that, you're
+
+00:03:31.527 --> 00:03:33.560
+probably in the wrong class.
+
+00:03:33.560 --> 00:03:35.720
+And then afterwards
+we're going to run it
+
+00:03:35.720 --> 00:03:37.100
+for a couple time steps.
+
+00:03:37.100 --> 00:03:39.470
+And then the heat is going
+to diffuse to the neighboring
+
+00:03:39.470 --> 00:03:41.500
+regions of the 2D space.
+
+00:03:41.500 --> 00:03:43.250
+So after you run it
+for a couple of steps,
+
+00:03:43.250 --> 00:03:46.370
+you might get the
+configuration on the right
+
+00:03:46.370 --> 00:03:49.730
+where the heat is
+more spread out now.
+
+00:03:49.730 --> 00:03:53.000
+And oftentimes, you want
+to run this simulation
+
+00:03:53.000 --> 00:03:57.110
+for a number of time steps
+until the distribution of heat
+
+00:03:57.110 --> 00:03:59.690
+converges so it
+becomes stable and that
+
+00:03:59.690 --> 00:04:01.110
+doesn't change by much anymore.
+
+00:04:01.110 --> 00:04:02.720
+And then we stop the simulation.
+
+00:04:07.020 --> 00:04:09.300
+So this is the 1D heat equation.
+
+00:04:09.300 --> 00:04:10.870
+I showed you a 2D one earlier.
+
+00:04:10.870 --> 00:04:13.680
+But we're actually going to
+generate code for the 1D heat
+
+00:04:13.680 --> 00:04:15.270
+equation since it's simpler.
+
+00:04:15.270 --> 00:04:18.959
+But all the ideas generalize
+to higher dimensions.
+
+00:04:18.959 --> 00:04:23.640
+And here's the range of colors
+corresponding to temperature,
+
+00:04:23.640 --> 00:04:25.830
+so the hottest
+colors on the left
+
+00:04:25.830 --> 00:04:28.690
+and the coldest
+colors on the right.
+
+00:04:28.690 --> 00:04:31.170
+And if you had a
+heat source that's
+
+00:04:31.170 --> 00:04:33.570
+on the left hand
+side of this bar,
+
+00:04:33.570 --> 00:04:36.700
+then this might possibly
+be a stable distribution.
+
+00:04:36.700 --> 00:04:39.150
+So if you keep running
+the simulation,
+
+00:04:39.150 --> 00:04:41.580
+you might get a stable
+distribution of heat
+
+00:04:41.580 --> 00:04:44.770
+that looks like this.
+
+00:04:44.770 --> 00:04:45.270
+OK.
+
+00:04:45.270 --> 00:04:48.660
+So how do we actually write code
+to simulate this differential
+
+00:04:48.660 --> 00:04:50.160
+equation?
+
+00:04:50.160 --> 00:04:53.670
+So one commonly used method
+is known as finite difference
+
+00:04:53.670 --> 00:04:55.650
+approximation.
+
+00:04:55.650 --> 00:05:00.120
+So we're going to approximate
+the partial derivative of u
+
+00:05:00.120 --> 00:05:04.230
+with respect to each
+of its coordinates.
+
+00:05:04.230 --> 00:05:07.980
+So the partial derivative
+of u with respect to t
+
+00:05:07.980 --> 00:05:12.090
+is approximately equal
+to u of t plus delta t
+
+00:05:12.090 --> 00:05:18.120
+where delta t is some small
+value, and x, and then
+
+00:05:18.120 --> 00:05:20.010
+minus u of tx.
+
+00:05:20.010 --> 00:05:23.070
+And then that's all
+divided by delta t.
+
+00:05:23.070 --> 00:05:26.580
+So how many of you have seen
+this approximation method
+
+00:05:26.580 --> 00:05:29.720
+before from your calculus class?
+
+00:05:29.720 --> 00:05:30.240
+OK, good.
+
+00:05:30.240 --> 00:05:34.050
+So as you bring the value
+of delta t down to 0,
+
+00:05:34.050 --> 00:05:36.070
+then the thing on the
+right hand side approach
+
+00:05:36.070 --> 00:05:39.760
+is the true partial derivative.
+
+00:05:39.760 --> 00:05:41.880
+So that's a partial
+derivative with respect to t.
+
+00:05:41.880 --> 00:05:47.340
+We also need to get the partial
+derivative with respect to x.
+
+00:05:47.340 --> 00:05:50.670
+And here I'm saying the
+partial derivative with respect
+
+00:05:50.670 --> 00:05:54.510
+to x is approximately
+equal to ut of x plus delta
+
+00:05:54.510 --> 00:05:58.410
+x over 2 minus ut
+of x minus delta x
+
+00:05:58.410 --> 00:06:01.350
+over 2, all divided by delta x.
+
+00:06:01.350 --> 00:06:04.350
+So notice here that
+instead of adding delta
+
+00:06:04.350 --> 00:06:06.360
+x in the first term
+and not adding anything
+
+00:06:06.360 --> 00:06:08.700
+in the second term, I'm
+actually adding delta x over 2
+
+00:06:08.700 --> 00:06:11.330
+in the first term and
+subtracting text over 2
+
+00:06:11.330 --> 00:06:12.150
+in the second term.
+
+00:06:12.150 --> 00:06:14.920
+And it turns out that I can
+do this with the approximation
+
+00:06:14.920 --> 00:06:15.420
+method.
+
+00:06:15.420 --> 00:06:19.740
+And it still turns out to be
+valid as long as the two terms
+
+00:06:19.740 --> 00:06:22.860
+that I'm putting in, their
+difference is delta x.
+
+00:06:22.860 --> 00:06:24.300
+So here the
+difference is delta x.
+
+00:06:24.300 --> 00:06:26.730
+And I can basically
+decide how to split up
+
+00:06:26.730 --> 00:06:33.120
+this delta x term among the
+two things in the numerator.
+
+00:06:33.120 --> 00:06:36.870
+And the reason why I
+chose delta x over 2 here
+
+00:06:36.870 --> 00:06:39.460
+is because the math is just
+going to work out nicely.
+
+00:06:39.460 --> 00:06:42.100
+And it's going to
+give us cleaner code.
+
+00:06:42.100 --> 00:06:44.880
+This is just the first partial
+derivative with respect to x.
+
+00:06:44.880 --> 00:06:46.980
+Actually need the second
+partial derivative
+
+00:06:46.980 --> 00:06:48.930
+since the right hand
+side of this equation
+
+00:06:48.930 --> 00:06:51.990
+has the second
+partial derivative.
+
+00:06:51.990 --> 00:06:54.870
+So this is what the second
+partial derivative looks like.
+
+00:06:54.870 --> 00:06:57.810
+So I just take the partial
+derivative with respect
+
+00:06:57.810 --> 00:07:01.680
+to x of each of the terms in
+my numerator from the equation
+
+00:07:01.680 --> 00:07:03.060
+above.
+
+00:07:03.060 --> 00:07:05.670
+And then now I can
+actually plug in the value
+
+00:07:05.670 --> 00:07:08.460
+of this partial derivative
+by applying the equation
+
+00:07:08.460 --> 00:07:12.240
+above using the arguments
+t and x plus delta x
+
+00:07:12.240 --> 00:07:14.400
+over 2, and similarly
+for the second term.
+
+00:07:17.250 --> 00:07:18.840
+So for the first
+term when I plug it
+
+00:07:18.840 --> 00:07:23.970
+into the equation for the
+partial derivative with respect
+
+00:07:23.970 --> 00:07:30.305
+to x, I'm just going to get ut
+of x plus delta x minus utx.
+
+00:07:30.305 --> 00:07:31.680
+And then for the
+second term, I'm
+
+00:07:31.680 --> 00:07:34.440
+going to get ut of
+x minus delta x.
+
+00:07:34.440 --> 00:07:37.740
+And then I subtract
+another factor of utx.
+
+00:07:37.740 --> 00:07:42.000
+So that's why I'm subtracting
+2 times utx in the numerator
+
+00:07:42.000 --> 00:07:42.930
+here.
+
+00:07:42.930 --> 00:07:44.940
+And then the partial
+derivative of each
+
+00:07:44.940 --> 00:07:46.860
+of the things in
+a numerator also
+
+00:07:46.860 --> 00:07:49.170
+have to divide by
+this delta x term.
+
+00:07:49.170 --> 00:07:51.720
+So on the denominator,
+I get delta x squared.
+
+00:07:55.420 --> 00:07:59.485
+So now I have the second partial
+derivative with respect to x.
+
+00:07:59.485 --> 00:08:01.860
+And I also have the first
+partial derivative with respect
+
+00:08:01.860 --> 00:08:02.360
+to t.
+
+00:08:02.360 --> 00:08:06.450
+So I can just plug them
+into my equation above.
+
+00:08:06.450 --> 00:08:09.660
+So on the left hand side I
+just have this term here.
+
+00:08:09.660 --> 00:08:11.790
+And I'm multiplying by
+this alpha constant.
+
+00:08:11.790 --> 00:08:16.600
+And then on this term
+just comes from here.
+
+00:08:16.600 --> 00:08:19.080
+So this is what the
+1d heat equation
+
+00:08:19.080 --> 00:08:22.180
+reduces to using the finite
+difference approximation
+
+00:08:22.180 --> 00:08:22.680
+method.
+
+00:08:22.680 --> 00:08:30.050
+So any questions on this
+
+00:08:30.050 --> 00:08:37.250
+So how do we actually write code
+to simulate this equation here?
+
+00:08:37.250 --> 00:08:41.179
+So we're going to use what's
+called a stencil computation.
+
+00:08:41.179 --> 00:08:46.790
+And here I'm going to set delta
+at x and delta t equal to 1,
+
+00:08:46.790 --> 00:08:47.720
+just for simplicity.
+
+00:08:47.720 --> 00:08:49.760
+But in general you can set
+them to whatever you want.
+
+00:08:49.760 --> 00:08:51.135
+You can make them
+smaller to have
+
+00:08:51.135 --> 00:08:54.240
+a more fine grained simulation.
+
+00:08:54.240 --> 00:08:57.780
+So my set delta x and
+delta eat t equal to 1.
+
+00:08:57.780 --> 00:09:00.800
+Then the denominators of these
+two terms just become one
+
+00:09:00.800 --> 00:09:04.160
+and I don't need to
+worry about them.
+
+00:09:04.160 --> 00:09:06.080
+And then I'm going
+to represent my 2D
+
+00:09:06.080 --> 00:09:12.620
+space using a 2D matrix where
+the horizontal axis represents
+
+00:09:12.620 --> 00:09:17.210
+values of x, and the vertical
+axis represents values of t.
+
+00:09:17.210 --> 00:09:20.630
+And I want to fill
+in all these entries
+
+00:09:20.630 --> 00:09:23.810
+that have a black dot in it.
+
+00:09:23.810 --> 00:09:26.840
+The ones with the orange
+dot, those are my boundaries.
+
+00:09:26.840 --> 00:09:29.670
+So those actually fixed
+throughout the computation.
+
+00:09:29.670 --> 00:09:32.000
+So I'm not going to do
+any computation on those.
+
+00:09:32.000 --> 00:09:33.500
+Those are just given
+to me as input.
+
+00:09:33.500 --> 00:09:36.890
+So they could be
+heat sources if we're
+
+00:09:36.890 --> 00:09:40.680
+doing the heat simulation.
+
+00:09:40.680 --> 00:09:43.280
+And then now I can
+actually write code
+
+00:09:43.280 --> 00:09:46.890
+to simulate this equation.
+
+00:09:46.890 --> 00:09:53.510
+So if I want to compute u of t
+plus 1x, I can just go up here.
+
+00:09:53.510 --> 00:09:57.530
+And I see that that's equal
+to this thing over here.
+
+00:09:57.530 --> 00:10:00.830
+And then I bring the negative
+utx term to the right.
+
+00:10:00.830 --> 00:10:04.550
+So I get ut of x
+plus alpha times ut
+
+00:10:04.550 --> 00:10:11.150
+x plus 1 minus 2 times
+utx plus ut x minus 1.
+
+00:10:11.150 --> 00:10:13.850
+As I said before, we just
+want to keep iterating this
+
+00:10:13.850 --> 00:10:18.210
+until the temperatures
+becomes stable.
+
+00:10:18.210 --> 00:10:25.310
+So I'm going to proceed in time,
+which in time is going up here.
+
+00:10:25.310 --> 00:10:29.540
+And to compute one
+of these points--
+
+00:10:29.540 --> 00:10:31.910
+so let's say this
+is ut plus 1x--
+
+00:10:31.910 --> 00:10:34.860
+I need to know the value
+of utx, which is just
+
+00:10:34.860 --> 00:10:37.640
+a thing below me in the matrix.
+
+00:10:37.640 --> 00:10:41.480
+And I also need to know
+utx plus 1 and utx minus 1.
+
+00:10:41.480 --> 00:10:43.460
+And those are just
+the things below me
+
+00:10:43.460 --> 00:10:48.150
+and diagonal to either the
+left or the right side.
+
+00:10:48.150 --> 00:10:52.070
+So each value here just
+depends on three other values.
+
+00:10:52.070 --> 00:10:53.960
+And this is called a
+three point stencil.
+
+00:10:53.960 --> 00:10:58.460
+This is the pattern that this
+equation is representing.
+
+00:10:58.460 --> 00:11:00.410
+And in general, a
+stencil computation
+
+00:11:00.410 --> 00:11:05.180
+is going to update each point in
+an array using a fixed pattern.
+
+00:11:05.180 --> 00:11:07.465
+This is called a stencil.
+
+00:11:07.465 --> 00:11:08.840
+So I'm going to
+do the same thing
+
+00:11:08.840 --> 00:11:10.490
+for all of the other points.
+
+00:11:10.490 --> 00:11:13.400
+And here, I'm going to
+compute all the values
+
+00:11:13.400 --> 00:11:15.170
+of x for a given time step.
+
+00:11:15.170 --> 00:11:17.450
+And then I move on to
+the next time step.
+
+00:11:20.390 --> 00:11:24.470
+And then I keep doing this
+until the distribution
+
+00:11:24.470 --> 00:11:26.990
+of temperatures becomes stable.
+
+00:11:26.990 --> 00:11:29.810
+And then I'm done.
+
+00:11:29.810 --> 00:11:30.310
+OK.
+
+00:11:30.310 --> 00:11:33.590
+So these stencil
+computations are widely
+
+00:11:33.590 --> 00:11:35.840
+used in scientific computing.
+
+00:11:35.840 --> 00:11:38.780
+They're used for weather
+simulations, stock market
+
+00:11:38.780 --> 00:11:42.390
+simulations, fluid dynamics,
+image processing probability,
+
+00:11:42.390 --> 00:11:42.890
+and so on.
+
+00:11:42.890 --> 00:11:45.350
+So they're used all over
+the place in science.
+
+00:11:45.350 --> 00:11:50.100
+So this is a very
+important concept to know.
+
+00:11:50.100 --> 00:11:53.802
+So let's say I just ran
+the code as I showed you
+
+00:11:53.802 --> 00:11:54.510
+in the animation.
+
+00:11:54.510 --> 00:11:57.120
+So I completed one row at
+a time before I moved on
+
+00:11:57.120 --> 00:11:58.400
+to the next row.
+
+00:11:58.400 --> 00:12:00.950
+How would this code perform
+with respect to caching?
+
+00:12:11.895 --> 00:12:12.395
+Yes?
+
+00:12:15.200 --> 00:12:19.315
+AUDIENCE: I think if
+x is less than a third
+
+00:12:19.315 --> 00:12:23.227
+of the cache size, [INAUDIBLE]
+
+00:12:23.227 --> 00:12:24.710
+JULIAN SHUN: Yeah.
+
+00:12:24.710 --> 00:12:28.910
+So if x is small, this
+would do pretty well.
+
+00:12:28.910 --> 00:12:32.875
+But what if x is much larger
+than the size of your cache?
+
+00:12:32.875 --> 00:12:33.825
+AUDIENCE: [INAUDIBLE].
+
+00:12:33.825 --> 00:12:34.783
+JULIAN SHUN: Yeah, you.
+
+00:12:34.783 --> 00:12:37.245
+Would do badly and why is that?
+
+00:12:37.245 --> 00:12:46.890
+AUDIENCE: Because the whole
+[INAUDIBLE] second row,
+
+00:12:46.890 --> 00:12:49.245
+[INAUDIBLE]
+
+00:12:49.245 --> 00:12:49.995
+JULIAN SHUN: Yeah.
+
+00:12:49.995 --> 00:12:52.650
+So it turns out that there
+could be some reuse here,
+
+00:12:52.650 --> 00:12:56.280
+because when I compute
+the second row,
+
+00:12:56.280 --> 00:12:58.020
+I'm actually using
+some values that
+
+00:12:58.020 --> 00:12:59.920
+are computed in the first row.
+
+00:12:59.920 --> 00:13:02.280
+But if the row is much
+larger than the cache size,
+
+00:13:02.280 --> 00:13:03.840
+by the time I get
+to the second row,
+
+00:13:03.840 --> 00:13:06.720
+the values that I loaded
+into cache from the first row
+
+00:13:06.720 --> 00:13:08.190
+would have been evicted.
+
+00:13:08.190 --> 00:13:11.490
+And therefore, I'm going to
+suffer a cache miss again
+
+00:13:11.490 --> 00:13:13.710
+for the second row, for the
+values I need to load in,
+
+00:13:13.710 --> 00:13:17.280
+even though they could have been
+used if we made our code have
+
+00:13:17.280 --> 00:13:18.505
+good locality.
+
+00:13:23.740 --> 00:13:26.050
+Another question I
+have is if we only
+
+00:13:26.050 --> 00:13:30.040
+cared about the values of x
+at the most recent time step,
+
+00:13:30.040 --> 00:13:33.490
+do we actually have to keep
+around this whole 2D matrix?
+
+00:13:33.490 --> 00:13:35.590
+Or can we get by
+with less storage?
+
+00:13:44.500 --> 00:13:45.000
+Yeah.
+
+00:13:45.000 --> 00:13:47.610
+So how many rows would
+I have to keep around
+
+00:13:47.610 --> 00:13:51.260
+if I only cared about the
+most recent time step?
+
+00:13:51.260 --> 00:13:51.760
+Yeah?
+
+00:13:51.760 --> 00:13:52.362
+AUDIENCE: Two.
+
+00:13:52.362 --> 00:13:53.070
+JULIAN SHUN: Two.
+
+00:13:53.070 --> 00:13:54.060
+And why is that?
+
+00:13:54.060 --> 00:13:55.893
+AUDIENCE: So one for
+the previous time step.
+
+00:13:55.893 --> 00:13:57.546
+One for the current time step.
+
+00:13:57.546 --> 00:13:58.608
+[INAUDIBLE]
+
+00:13:58.608 --> 00:13:59.400
+JULIAN SHUN: Right.
+
+00:13:59.400 --> 00:14:01.650
+So I need to keep around
+two rows because I
+
+00:14:01.650 --> 00:14:03.630
+need the row from the
+previous time step
+
+00:14:03.630 --> 00:14:06.570
+in order to compute the values
+in the current time step.
+
+00:14:06.570 --> 00:14:08.010
+And after the
+current time step, I
+
+00:14:08.010 --> 00:14:10.180
+can just swap the
+roles of the two rows
+
+00:14:10.180 --> 00:14:12.060
+that I'm keeping
+around, and then
+
+00:14:12.060 --> 00:14:14.460
+reuse the previous
+row for the next one.
+
+00:14:14.460 --> 00:14:15.371
+Yes?
+
+00:14:15.371 --> 00:14:18.808
+AUDIENCE: Would you
+only need one and then
+
+00:14:18.808 --> 00:14:22.245
+a constant amount
+of extra space,
+
+00:14:22.245 --> 00:14:27.646
+like if you had
+three extra things,
+
+00:14:27.646 --> 00:14:30.592
+you could probably
+do it with one.
+
+00:14:30.592 --> 00:14:32.650
+JULIAN SHUN: So I need to know--
+
+00:14:32.650 --> 00:14:34.630
+when I'm computing
+the second row,
+
+00:14:34.630 --> 00:14:36.850
+I need to keep around
+all of these values
+
+00:14:36.850 --> 00:14:38.260
+that I computed
+in the first row,
+
+00:14:38.260 --> 00:14:42.190
+because these values
+get fed to one
+
+00:14:42.190 --> 00:14:43.850
+of the computations
+in the second row.
+
+00:14:43.850 --> 00:14:46.005
+So I need to actually
+keep all of them around.
+
+00:14:46.005 --> 00:14:50.388
+AUDIENCE: I think if you
+iterate to the right,
+
+00:14:50.388 --> 00:14:56.080
+then you have three that are
+this one and the next one.
+
+00:14:56.080 --> 00:14:56.986
+Just three.
+
+00:14:56.986 --> 00:14:59.180
+Then you can--
+
+00:14:59.180 --> 00:15:01.180
+JULIAN SHUN: Oh, I see I
+see what you're saying.
+
+00:15:01.180 --> 00:15:01.680
+Yeah.
+
+00:15:01.680 --> 00:15:03.330
+So that's actually
+a good observation.
+
+00:15:03.330 --> 00:15:06.010
+So you only need to
+keep a constant amount
+
+00:15:06.010 --> 00:15:11.230
+more storage, because you'll
+just be overwriting the values
+
+00:15:11.230 --> 00:15:13.090
+as you go through the row.
+
+00:15:13.090 --> 00:15:15.370
+So if you keep around one
+row, some of the values
+
+00:15:15.370 --> 00:15:17.718
+would be for the current
+time step, and some of them
+
+00:15:17.718 --> 00:15:19.260
+would be from the
+previous time step.
+
+00:15:19.260 --> 00:15:21.390
+So that's a good
+observation, yes.
+
+00:15:26.240 --> 00:15:28.850
+OK.
+
+00:15:28.850 --> 00:15:32.600
+So that code, as we saw, it
+wasn't very cache efficient.
+
+00:15:32.600 --> 00:15:35.540
+You could make a cache
+efficient using tiling.
+
+00:15:35.540 --> 00:15:38.120
+But we're going to go straight
+to the cache oblivious
+
+00:15:38.120 --> 00:15:41.190
+algorithm because
+it's much cleaner.
+
+00:15:41.190 --> 00:15:44.480
+So let's recall the
+ideal cache model.
+
+00:15:44.480 --> 00:15:47.340
+We talked about this in
+the previous lecture.
+
+00:15:47.340 --> 00:15:49.460
+So here we have a
+two level hierarchy.
+
+00:15:49.460 --> 00:15:52.250
+We have a cache.
+
+00:15:52.250 --> 00:15:56.060
+And then we have
+the main memory.
+
+00:15:56.060 --> 00:15:58.910
+The cache has size of M bytes.
+
+00:15:58.910 --> 00:16:01.080
+And a cache line is B bytes.
+
+00:16:01.080 --> 00:16:05.930
+So you can keep around M over
+B cache lines in your cache.
+
+00:16:05.930 --> 00:16:08.570
+And if something's in cache
+and you operate on it,
+
+00:16:08.570 --> 00:16:11.450
+then it doesn't incur
+any cache misses.
+
+00:16:11.450 --> 00:16:13.550
+But if you have to
+go to main memory
+
+00:16:13.550 --> 00:16:18.060
+to load the cache line in,
+then you incur one cache miss.
+
+00:16:18.060 --> 00:16:20.500
+The ideal cache model
+assumes that the cache
+
+00:16:20.500 --> 00:16:22.240
+is fully associative.
+
+00:16:22.240 --> 00:16:25.780
+So any cache line can go
+anywhere in the cache.
+
+00:16:25.780 --> 00:16:29.380
+And it also assumes either an
+optimal omniscient replacement
+
+00:16:29.380 --> 00:16:31.760
+policy or the LRU policy.
+
+00:16:31.760 --> 00:16:34.690
+So the optimal omniscient
+replacement policy
+
+00:16:34.690 --> 00:16:38.380
+knows the sequence of all
+future requests to memory.
+
+00:16:38.380 --> 00:16:40.060
+And when it needs
+to evict something,
+
+00:16:40.060 --> 00:16:42.640
+it's going to pick the thing
+that leads to the fewest cache
+
+00:16:42.640 --> 00:16:45.840
+misses overall to evict.
+
+00:16:45.840 --> 00:16:49.000
+The LRU policy just
+evict the thing
+
+00:16:49.000 --> 00:16:51.520
+that was least recently used.
+
+00:16:51.520 --> 00:16:53.830
+But we saw from the
+previous lecture,
+
+00:16:53.830 --> 00:16:57.010
+that in terms of
+asymptotic costs,
+
+00:16:57.010 --> 00:16:59.140
+these two replacement
+policies will give you
+
+00:16:59.140 --> 00:17:01.405
+cache misses within a
+constant fact of each other.
+
+00:17:01.405 --> 00:17:04.690
+So you can use either one,
+depending on what's convenient.
+
+00:17:07.940 --> 00:17:09.520
+And two performance
+measures that we
+
+00:17:09.520 --> 00:17:11.740
+care about when we're
+analyzing an algorithm
+
+00:17:11.740 --> 00:17:15.037
+and the ideal cache
+model are the work
+
+00:17:15.037 --> 00:17:16.329
+and the number of cache misses.
+
+00:17:16.329 --> 00:17:18.819
+So the work is just the
+total number of operations
+
+00:17:18.819 --> 00:17:20.619
+that the algorithm incurs.
+
+00:17:20.619 --> 00:17:24.641
+And serially, this is just
+the ordinary running time.
+
+00:17:24.641 --> 00:17:27.099
+And the number of cache misses
+is the number of cache lines
+
+00:17:27.099 --> 00:17:31.240
+you have to transfer between
+the cache and your main memory.
+
+00:17:33.770 --> 00:17:37.270
+So let's assume that
+we're running an algorithm
+
+00:17:37.270 --> 00:17:39.640
+or analyzing an algorithm
+in the ideal cache model,
+
+00:17:39.640 --> 00:17:41.800
+and it runs serially.
+
+00:17:41.800 --> 00:17:44.920
+What kinds of cache misses
+does the ideal cache model
+
+00:17:44.920 --> 00:17:45.535
+not capture?
+
+00:17:48.380 --> 00:17:51.133
+So remember, we talked about
+several types of cache misses.
+
+00:17:51.133 --> 00:17:52.550
+And there's one
+type of cache miss
+
+00:17:52.550 --> 00:17:55.310
+that this model doesn't capture
+when we're running serially.
+
+00:18:06.760 --> 00:18:09.220
+So let's assume we're
+running this serially
+
+00:18:09.220 --> 00:18:11.770
+without any parallelism here.
+
+00:18:11.770 --> 00:18:13.690
+So the sharing misses
+has only come about when
+
+00:18:13.690 --> 00:18:14.910
+you have parallelism.
+
+00:18:14.910 --> 00:18:15.410
+Yes?
+
+00:18:15.410 --> 00:18:16.220
+AUDIENCE: Conflictness?
+
+00:18:16.220 --> 00:18:16.928
+JULIAN SHUN: Yes.
+
+00:18:16.928 --> 00:18:18.440
+So the answer is conflictnesses.
+
+00:18:18.440 --> 00:18:19.300
+And why is that?
+
+00:18:19.300 --> 00:18:21.790
+Why does this model
+not capture it?
+
+00:18:21.790 --> 00:18:24.010
+AUDIENCE: There's
+not a specific sets
+
+00:18:24.010 --> 00:18:26.566
+that could get replaced then
+since it's fully associated.
+
+00:18:26.566 --> 00:18:27.370
+JULIAN SHUN: Yes.
+
+00:18:27.370 --> 00:18:29.620
+So this is a fully
+associative cache.
+
+00:18:29.620 --> 00:18:32.230
+So any cache line can go
+anywhere in the cache.
+
+00:18:32.230 --> 00:18:35.310
+And you can only get conflict
+misses for set associated
+
+00:18:35.310 --> 00:18:37.960
+schemes where each
+cache line can only
+
+00:18:37.960 --> 00:18:40.122
+be mapped to a particular set.
+
+00:18:40.122 --> 00:18:41.830
+And if you have too
+many cache lines that
+
+00:18:41.830 --> 00:18:43.420
+map to that particular
+set, then you're
+
+00:18:43.420 --> 00:18:44.795
+going to keep
+evicting each other
+
+00:18:44.795 --> 00:18:47.350
+even though the rest of
+the cache could have space.
+
+00:18:47.350 --> 00:18:50.220
+And that's what's
+called a conflict miss.
+
+00:18:50.220 --> 00:18:54.160
+The ideal cash model does
+capture capacity misses.
+
+00:18:54.160 --> 00:18:57.430
+So therefore, it is
+still a very good model
+
+00:18:57.430 --> 00:18:59.140
+to use at a high
+level when you're
+
+00:18:59.140 --> 00:19:01.930
+designing efficient
+algorithms, because it
+
+00:19:01.930 --> 00:19:06.100
+encourages you to optimize for
+spatial and temporal locality.
+
+00:19:06.100 --> 00:19:08.770
+And once you have a good
+algorithm in the ideal cache
+
+00:19:08.770 --> 00:19:11.530
+model then you can start
+dealing with conflict misses
+
+00:19:11.530 --> 00:19:13.030
+using some of the
+strategies that we
+
+00:19:13.030 --> 00:19:15.220
+talked about last
+time such as padding
+
+00:19:15.220 --> 00:19:18.010
+or using temporary memory.
+
+00:19:18.010 --> 00:19:19.660
+So any questions on this?
+
+00:19:29.210 --> 00:19:29.710
+OK.
+
+00:19:29.710 --> 00:19:37.120
+So this is the code that
+does the heat simulation
+
+00:19:37.120 --> 00:19:38.180
+that we saw earlier.
+
+00:19:38.180 --> 00:19:42.040
+So it's just two for
+loops, a nested for loop.
+
+00:19:42.040 --> 00:19:44.800
+In the outer loop, we're
+looping over the time dimension.
+
+00:19:44.800 --> 00:19:47.715
+In the inner loop, we're looping
+over the space dimension.
+
+00:19:47.715 --> 00:19:49.090
+So we're computing
+all the values
+
+00:19:49.090 --> 00:19:53.320
+of x before we move on
+to the next time step.
+
+00:19:53.320 --> 00:19:55.600
+And then we're
+storing two rows here
+
+00:19:55.600 --> 00:19:59.380
+and we're using this trick
+called a even odd trick.
+
+00:19:59.380 --> 00:20:00.410
+And here's how it works.
+
+00:20:00.410 --> 00:20:04.840
+So to access the next row
+that we want to compute,
+
+00:20:04.840 --> 00:20:08.050
+that we just do
+a t plus 1 mod 2.
+
+00:20:08.050 --> 00:20:10.480
+And then to access the current
+row, it's just t mod 2.
+
+00:20:10.480 --> 00:20:14.020
+So this is implicitly going to
+swap the roles of the two rows
+
+00:20:14.020 --> 00:20:18.500
+that we're keeping around
+as we progress through time.
+
+00:20:18.500 --> 00:20:21.100
+And then we're
+going to set u of t
+
+00:20:21.100 --> 00:20:25.600
+plus 1 mod 2x equal
+to kernel of u--
+
+00:20:25.600 --> 00:20:28.450
+pointer to ut mod 2x.
+
+00:20:28.450 --> 00:20:31.600
+And this kernel function
+is defined up here.
+
+00:20:31.600 --> 00:20:34.240
+And recall, that
+when we're actually
+
+00:20:34.240 --> 00:20:36.340
+passing a pointer to
+this kernel function,
+
+00:20:36.340 --> 00:20:40.960
+we can actually treat a pointer
+as the beginning of an array.
+
+00:20:40.960 --> 00:20:43.570
+So we're using array
+notation up here
+
+00:20:43.570 --> 00:20:45.250
+inside the kernel function.
+
+00:20:45.250 --> 00:20:48.400
+So the array W is
+passed as input.
+
+00:20:48.400 --> 00:20:51.130
+And then we need
+to return W of 0.
+
+00:20:51.130 --> 00:20:54.430
+That's just the element
+at the current pointer
+
+00:20:54.430 --> 00:20:56.290
+that we passed to kernel.
+
+00:20:56.290 --> 00:20:59.500
+And then we add alpha
+times w of negative 1.
+
+00:20:59.500 --> 00:21:03.730
+That's one element before the
+thing that we're pointing to,
+
+00:21:03.730 --> 00:21:07.000
+minus 2 times W
+of 0 plus W of 1.
+
+00:21:07.000 --> 00:21:09.190
+W of 1 is the next element
+that we're pointing to.
+
+00:21:13.110 --> 00:21:13.610
+OK.
+
+00:21:13.610 --> 00:21:17.210
+So let's look at the caching
+behavior of this code.
+
+00:21:17.210 --> 00:21:21.470
+So we're going to analyze
+the cache complexity.
+
+00:21:21.470 --> 00:21:24.590
+And we're going to assume the
+LRU replacement policy here,
+
+00:21:24.590 --> 00:21:26.480
+because we can.
+
+00:21:26.480 --> 00:21:28.960
+And as we said
+before, we're going
+
+00:21:28.960 --> 00:21:31.370
+to loop through one
+entire row at a time
+
+00:21:31.370 --> 00:21:34.980
+before we go onto the next row.
+
+00:21:34.980 --> 00:21:37.040
+So the number of
+cache misses I get,
+
+00:21:37.040 --> 00:21:40.310
+assuming that n
+is greater than M,
+
+00:21:40.310 --> 00:21:42.860
+so that the row size is
+greater than the cache
+
+00:21:42.860 --> 00:21:48.530
+size, the number of cache
+misses is theta of NT over B.
+
+00:21:48.530 --> 00:21:51.740
+So how do I get this cache
+complexity around here?
+
+00:22:04.490 --> 00:22:06.230
+So how many cache
+misses do I have
+
+00:22:06.230 --> 00:22:10.457
+to incur for each row of this
+2D space that I'm computing?
+
+00:22:14.685 --> 00:22:15.185
+Yes?
+
+00:22:15.185 --> 00:22:16.112
+AUDIENCE: N over B.
+
+00:22:16.112 --> 00:22:16.904
+JULIAN SHUN: Right.
+
+00:22:16.904 --> 00:22:20.190
+So I need N over B cache
+misses for each row.
+
+00:22:20.190 --> 00:22:25.130
+And this is because I can
+load in B bytes at a time.
+
+00:22:25.130 --> 00:22:27.860
+So I benefit from
+spatial locality there.
+
+00:22:27.860 --> 00:22:29.880
+And then I have N elements
+I need to compute.
+
+00:22:29.880 --> 00:22:31.940
+So it's theta of
+N over B per row.
+
+00:22:31.940 --> 00:22:34.370
+And as we said before, when
+we get to the next row,
+
+00:22:34.370 --> 00:22:37.250
+the stuff that we need
+from the previous row
+
+00:22:37.250 --> 00:22:39.300
+have already been
+evicted from cache.
+
+00:22:39.300 --> 00:22:41.630
+So I basically have to incur
+theta of N over B cache
+
+00:22:41.630 --> 00:22:43.280
+misses for every row.
+
+00:22:43.280 --> 00:22:46.040
+And the number of rows
+I'm going to compute as t.
+
+00:22:46.040 --> 00:22:52.460
+So it's just theta of NT over B.
+Any questions on this analysis?
+
+00:23:02.000 --> 00:23:04.640
+So how many of you think
+we can do better than this?
+
+00:23:08.370 --> 00:23:08.870
+OK.
+
+00:23:08.870 --> 00:23:11.410
+So one person.
+
+00:23:11.410 --> 00:23:12.470
+Two, three.
+
+00:23:12.470 --> 00:23:13.620
+OK.
+
+00:23:13.620 --> 00:23:16.065
+So turns out that we
+can do better than this.
+
+00:23:16.065 --> 00:23:17.690
+You can actually do
+better with tiling,
+
+00:23:17.690 --> 00:23:19.550
+but I'm not going to
+do the tiling version.
+
+00:23:19.550 --> 00:23:23.420
+I want to do the cache
+oblivious version.
+
+00:23:23.420 --> 00:23:25.250
+And the cache
+oblivious version is
+
+00:23:25.250 --> 00:23:29.390
+going to work on trapezoidal
+regions in the 2D space.
+
+00:23:29.390 --> 00:23:34.670
+And recall that a trapezoid has
+a top base and a bottom base.
+
+00:23:34.670 --> 00:23:41.420
+And here the top base is at
+t1, the bottom base is at t0,
+
+00:23:41.420 --> 00:23:45.030
+and the height is
+just t1 minus t0.
+
+00:23:45.030 --> 00:23:48.020
+And the width of a trapezoid
+is just the width of it
+
+00:23:48.020 --> 00:23:54.590
+at the midpoint between t1 and
+t0, so at t1 plus t0 over 2.
+
+00:23:54.590 --> 00:23:58.910
+So we're going to
+compute all of the points
+
+00:23:58.910 --> 00:24:02.150
+inside this trapezoid
+that satisfy
+
+00:24:02.150 --> 00:24:03.380
+these inequalities here.
+
+00:24:03.380 --> 00:24:07.670
+So t has to be greater than or
+equal to t0 and less than t1.
+
+00:24:07.670 --> 00:24:13.430
+And then x is greater than
+or equal to x0 plus dx0
+
+00:24:13.430 --> 00:24:14.960
+times t minus t0.
+
+00:24:14.960 --> 00:24:20.150
+So dx0 is actually the
+inverse slope here.
+
+00:24:20.150 --> 00:24:22.100
+And then it also has
+to be less than x1
+
+00:24:22.100 --> 00:24:25.120
+plus dx1 times t minus t0.
+
+00:24:25.120 --> 00:24:28.100
+So dx1 is the inverse
+slope on the other side.
+
+00:24:28.100 --> 00:24:33.240
+And dx0 and dx1 have to be
+either negative 1, 0, or 1.
+
+00:24:33.240 --> 00:24:37.590
+So negative 1 just corresponds
+to inverse slope of negative 1,
+
+00:24:37.590 --> 00:24:40.300
+which is also a
+slope of negative 1.
+
+00:24:40.300 --> 00:24:44.150
+If it's 1, then it's just
+a slope or inverse of 1.
+
+00:24:44.150 --> 00:24:48.500
+And then if it's 0, then we
+just have a vertical line.
+
+00:24:52.110 --> 00:24:52.610
+OK.
+
+00:24:52.610 --> 00:24:56.180
+So the nice property
+of this trapezoid
+
+00:24:56.180 --> 00:24:59.120
+is that we can actually compute
+everything inside the trapezoid
+
+00:24:59.120 --> 00:25:01.740
+without looking
+outside the trapezoid.
+
+00:25:01.740 --> 00:25:03.800
+So we can compute everything
+here independently
+
+00:25:03.800 --> 00:25:06.433
+of any other trapezoids
+we might be generating.
+
+00:25:06.433 --> 00:25:08.100
+And we're going to
+come up with a divide
+
+00:25:08.100 --> 00:25:11.510
+and conquer approach
+to execute this code.
+
+00:25:14.480 --> 00:25:18.710
+So the divide and conquer
+algorithm has a base case.
+
+00:25:18.710 --> 00:25:20.540
+So our base case
+is going to be when
+
+00:25:20.540 --> 00:25:23.390
+the height of the
+trapezoid is 1.
+
+00:25:23.390 --> 00:25:25.130
+And when the height
+is 1, then we're
+
+00:25:25.130 --> 00:25:30.660
+just going to compute all of
+the values using a simple loop.
+
+00:25:30.660 --> 00:25:34.160
+And any order if the
+computation inside this loop
+
+00:25:34.160 --> 00:25:37.400
+is valid, since we
+have all the values
+
+00:25:37.400 --> 00:25:40.520
+in the base of the
+trapezoid and we
+
+00:25:40.520 --> 00:25:43.160
+can compute the values in
+the top of the trapezoid
+
+00:25:43.160 --> 00:25:43.910
+in whatever order.
+
+00:25:43.910 --> 00:25:45.243
+They don't depend on each other.
+
+00:25:48.083 --> 00:25:49.000
+So that's a base case.
+
+00:25:49.000 --> 00:25:50.040
+Any questions so far?
+
+00:25:56.940 --> 00:25:58.482
+So here's one of
+the recursive cases.
+
+00:25:58.482 --> 00:26:00.023
+It turns out that
+we're going to have
+
+00:26:00.023 --> 00:26:01.330
+two different types of cuts.
+
+00:26:01.330 --> 00:26:04.690
+The first cut is
+called a space cut.
+
+00:26:04.690 --> 00:26:08.470
+So I'm going to do a space cut
+if the width of the trapezoid
+
+00:26:08.470 --> 00:26:10.520
+is greater than or equal
+to twice the height.
+
+00:26:10.520 --> 00:26:13.390
+So this means that the
+trapezoid is too wide.
+
+00:26:13.390 --> 00:26:16.660
+And I'm going to
+cut it vertically.
+
+00:26:19.420 --> 00:26:21.640
+More specifically, I'm
+going to cut it with a line,
+
+00:26:21.640 --> 00:26:24.820
+with slope negative 1
+going through the center
+
+00:26:24.820 --> 00:26:27.490
+of the trapezoid.
+
+00:26:27.490 --> 00:26:30.910
+And then I'm going to traverse
+the trapezoid on the left side
+
+00:26:30.910 --> 00:26:31.450
+first.
+
+00:26:31.450 --> 00:26:32.950
+And then after I'm
+done with that,
+
+00:26:32.950 --> 00:26:35.200
+traverse the trapezoid
+on the right side.
+
+00:26:37.750 --> 00:26:40.310
+So can I actually switch
+the order of this?
+
+00:26:40.310 --> 00:26:42.340
+Can I compute the
+stuff on the right side
+
+00:26:42.340 --> 00:26:46.250
+before I do this stuff
+on the left side?
+
+00:26:46.250 --> 00:26:46.750
+No.
+
+00:26:46.750 --> 00:26:49.890
+Why is that?
+
+00:26:49.890 --> 00:26:52.650
+AUDIENCE: [INAUDIBLE].
+
+00:26:52.650 --> 00:26:53.430
+JULIAN SHUN: Yeah.
+
+00:26:53.430 --> 00:26:55.500
+So there some points
+in the right trapezoid
+
+00:26:55.500 --> 00:26:59.340
+that depend on the values
+from the left trapezoid.
+
+00:26:59.340 --> 00:27:04.140
+And so for the left trapezoid,
+every point we want to compute,
+
+00:27:04.140 --> 00:27:05.730
+we already have
+all of its points,
+
+00:27:05.730 --> 00:27:10.320
+assuming that we get all the
+values of the base points.
+
+00:27:10.320 --> 00:27:12.510
+But for the right hand
+side, some of the values
+
+00:27:12.510 --> 00:27:15.140
+depend on values in
+the left trapezoid.
+
+00:27:15.140 --> 00:27:17.100
+So we can't execute
+the right trapezoid
+
+00:27:17.100 --> 00:27:19.710
+until we're done with
+the left trapezoid.
+
+00:27:19.710 --> 00:27:22.410
+And this is the reason
+why I cut this trapezoid
+
+00:27:22.410 --> 00:27:24.030
+with a slope of
+negative 1 instead
+
+00:27:24.030 --> 00:27:25.680
+of using a vertical cut.
+
+00:27:25.680 --> 00:27:27.570
+Because if I did a
+vertical cut then
+
+00:27:27.570 --> 00:27:29.160
+inside both of the
+trapezoids, I would
+
+00:27:29.160 --> 00:27:34.110
+have points that depend
+on the other trapezoid.
+
+00:27:34.110 --> 00:27:35.405
+So this is one of the two cuts.
+
+00:27:35.405 --> 00:27:36.530
+This is called a space cut.
+
+00:27:36.530 --> 00:27:40.010
+And it happens when the
+trapezoid is too wide.
+
+00:27:40.010 --> 00:27:41.630
+The other cut is
+the time cut I'm
+
+00:27:41.630 --> 00:27:44.310
+going to cut with respect
+to the time dimension.
+
+00:27:44.310 --> 00:27:46.580
+And this happens when the
+trapezoid is too tall,
+
+00:27:46.580 --> 00:27:49.520
+so when the width is less
+than twice the height
+
+00:27:49.520 --> 00:27:50.948
+of the trapezoid.
+
+00:27:50.948 --> 00:27:52.490
+Then what I'm going
+to do is I'm just
+
+00:27:52.490 --> 00:27:55.040
+going to cut it with
+a horizontal line
+
+00:27:55.040 --> 00:27:57.360
+through the center.
+
+00:27:57.360 --> 00:28:00.448
+And then I'm going to traverse
+the bottom trapezoid first.
+
+00:28:00.448 --> 00:28:02.990
+And after I'm done with that,
+I can traverse a top trapezoid.
+
+00:28:02.990 --> 00:28:05.277
+And again, the top trapezoid
+depends on some points
+
+00:28:05.277 --> 00:28:06.360
+from the bottom trapezoid.
+
+00:28:06.360 --> 00:28:10.140
+So it's I can't switch
+the order of those.
+
+00:28:10.140 --> 00:28:10.950
+Any questions?
+
+00:28:17.040 --> 00:28:17.540
+OK.
+
+00:28:17.540 --> 00:28:20.010
+So let's now look
+at the code that
+
+00:28:20.010 --> 00:28:24.690
+implements this recursive
+divide and conquer algorithm.
+
+00:28:24.690 --> 00:28:26.760
+So here's the C code.
+
+00:28:26.760 --> 00:28:29.970
+It takes as input t0 and t1.
+
+00:28:29.970 --> 00:28:31.800
+These are the
+coordinates of the top
+
+00:28:31.800 --> 00:28:34.050
+and the bottom up the
+trapezoid, or bottom and top
+
+00:28:34.050 --> 00:28:35.730
+of the trapezoid, then x.
+
+00:28:35.730 --> 00:28:38.670
+0 is the left side
+of the trapezoid--
+
+00:28:38.670 --> 00:28:40.710
+of the base of the trapezoid.
+
+00:28:40.710 --> 00:28:43.050
+dx0 is the inverse
+slope, and the x1
+
+00:28:43.050 --> 00:28:45.930
+is the right side of the
+bottom base of the trapezoid,
+
+00:28:45.930 --> 00:28:50.670
+and dx1 is the inverse
+slope on the right side.
+
+00:28:50.670 --> 00:28:53.310
+So we're first going to compute
+the height of our trapezoid.
+
+00:28:53.310 --> 00:28:55.890
+And we're going to
+let LT be the height.
+
+00:28:55.890 --> 00:28:58.350
+And that's just t1 minus t0.
+
+00:28:58.350 --> 00:29:00.510
+And if the height
+is 1, then we're
+
+00:29:00.510 --> 00:29:05.370
+just going to use a for
+loop over all the points
+
+00:29:05.370 --> 00:29:07.993
+in that height 1 trapezoid.
+
+00:29:07.993 --> 00:29:09.660
+We're going to call
+this kernel function
+
+00:29:09.660 --> 00:29:11.980
+that we defined before.
+
+00:29:11.980 --> 00:29:15.235
+And otherwise, the
+height is greater than 1.
+
+00:29:15.235 --> 00:29:17.610
+And we're going to check
+whether we should do a space cut
+
+00:29:17.610 --> 00:29:19.020
+or time cut.
+
+00:29:19.020 --> 00:29:22.140
+So we do a space cut if
+the trapezoid is too wide.
+
+00:29:22.140 --> 00:29:24.380
+And this condition
+inside the if clause
+
+00:29:24.380 --> 00:29:27.030
+is checking if the
+trapezoid is too wide.
+
+00:29:27.030 --> 00:29:30.780
+And if so, then we're going
+to make two recursive calls
+
+00:29:30.780 --> 00:29:32.370
+to trapezoid.
+
+00:29:32.370 --> 00:29:34.590
+And we're going to cut
+it in the middle using
+
+00:29:34.590 --> 00:29:36.420
+this slope of negative 1.
+
+00:29:36.420 --> 00:29:40.170
+So you see the negative ones
+here in the recursive calls.
+
+00:29:40.170 --> 00:29:42.180
+And otherwise,
+we'll do a time cut.
+
+00:29:42.180 --> 00:29:44.620
+And for the time cut we
+just cut it in the middle.
+
+00:29:44.620 --> 00:29:49.020
+So we cut it at the value of t
+that's equal to LT divided by,
+
+00:29:49.020 --> 00:29:52.860
+2 or t0 plus LT divided by 2.
+
+00:29:52.860 --> 00:29:56.010
+And again, we have two
+recursive calls to trapezoid.
+
+00:29:59.700 --> 00:30:00.200
+OK.
+
+00:30:00.200 --> 00:30:03.540
+So even though I'm only
+generating slopes of negative 1
+
+00:30:03.540 --> 00:30:05.360
+in this recursive
+call, this code
+
+00:30:05.360 --> 00:30:08.450
+is going to work even if
+I have slopes of 1 and 0,
+
+00:30:08.450 --> 00:30:11.330
+because I could start out
+with slopes of 1 and 0.
+
+00:30:11.330 --> 00:30:13.740
+For example, if I had
+a rectangular region,
+
+00:30:13.740 --> 00:30:15.428
+then the slopes are
+just going to be 0,
+
+00:30:15.428 --> 00:30:16.970
+and this code is
+still going to work.
+
+00:30:16.970 --> 00:30:18.803
+But most of the slopes
+that I'm dealing with
+
+00:30:18.803 --> 00:30:20.630
+are going to be a
+negative 1, because those
+
+00:30:20.630 --> 00:30:22.677
+are the new slopes
+and I'm generating.
+
+00:30:25.420 --> 00:30:26.460
+Any questions?
+
+00:30:34.720 --> 00:30:36.820
+So this code is very concise.
+
+00:30:36.820 --> 00:30:42.400
+It turns out that even, odd
+tricks still works here.
+
+00:30:42.400 --> 00:30:44.502
+You can still keep
+around just two rows,
+
+00:30:44.502 --> 00:30:46.210
+because you're guaranteed
+that you're not
+
+00:30:46.210 --> 00:30:51.400
+going to overwrite any
+value until all the things
+
+00:30:51.400 --> 00:30:54.640
+that depend on it are computed.
+
+00:30:54.640 --> 00:30:57.220
+But when you're
+using just two rows,
+
+00:30:57.220 --> 00:30:59.560
+the values in a particular
+row might not all
+
+00:30:59.560 --> 00:31:01.100
+correspond to the
+same time step,
+
+00:31:01.100 --> 00:31:03.610
+because we're not finishing
+an entire row before we
+
+00:31:03.610 --> 00:31:04.870
+move on to the next one.
+
+00:31:04.870 --> 00:31:07.420
+We're actually partially
+computing rows.
+
+00:31:10.590 --> 00:31:11.090
+OK.
+
+00:31:11.090 --> 00:31:15.152
+So let's analyze the cash
+complexity of this algorithm.
+
+00:31:17.750 --> 00:31:19.970
+Again, we're going to use
+the recursion tree approach
+
+00:31:19.970 --> 00:31:22.930
+that we talked about last time.
+
+00:31:22.930 --> 00:31:28.010
+And our code is
+going to split itself
+
+00:31:28.010 --> 00:31:32.990
+into two cell problems at every
+level until it gets to a leaf.
+
+00:31:32.990 --> 00:31:37.280
+And each leaf represents
+theta of hw points
+
+00:31:37.280 --> 00:31:39.620
+where h is theta of w.
+
+00:31:39.620 --> 00:31:41.960
+So h is the height.
+w is the width.
+
+00:31:41.960 --> 00:31:47.328
+And we have the property that
+h is equal to theta w because
+
+00:31:47.328 --> 00:31:48.620
+of the nature of the algorithm.
+
+00:31:48.620 --> 00:31:50.610
+When the trapezoid
+becomes too wide,
+
+00:31:50.610 --> 00:31:54.920
+we're going to make it less
+wide by doing a space cut.
+
+00:31:54.920 --> 00:31:56.300
+And if it becomes
+too tall, we're
+
+00:31:56.300 --> 00:31:58.280
+going to do a horizontal cut.
+
+00:31:58.280 --> 00:32:00.410
+So we're guaranteed that
+the height and the width
+
+00:32:00.410 --> 00:32:02.660
+are going to be within a
+constant factor of each other
+
+00:32:02.660 --> 00:32:06.140
+when we get to the base case.
+
+00:32:06.140 --> 00:32:08.540
+And each leaf in
+the base case is
+
+00:32:08.540 --> 00:32:12.230
+going to incur theta
+of w over B misses
+
+00:32:12.230 --> 00:32:16.460
+because we have to load in
+the base of the trapezoid
+
+00:32:16.460 --> 00:32:17.900
+from main memory.
+
+00:32:17.900 --> 00:32:19.923
+And once that's in
+cache, we can compute
+
+00:32:19.923 --> 00:32:21.590
+all of the other
+points in the trapezoid
+
+00:32:21.590 --> 00:32:23.400
+without incurring any
+more cache misses.
+
+00:32:23.400 --> 00:32:28.040
+So the cache misses per
+leaf is just theta w over B.
+
+00:32:28.040 --> 00:32:33.660
+And we're going to set w equal
+to theta of M in the analysis,
+
+00:32:33.660 --> 00:32:37.610
+because that's the point when
+the trapezoid fits into cache.
+
+00:32:37.610 --> 00:32:41.420
+The algorithm doesn't
+actually have any knowledge
+
+00:32:41.420 --> 00:32:42.530
+of this M parameter.
+
+00:32:42.530 --> 00:32:44.600
+So it's still going
+to keep divide
+
+00:32:44.600 --> 00:32:47.870
+and conquering until it gets
+the base case of size 1.
+
+00:32:47.870 --> 00:32:50.840
+But just for the analysis,
+we're going to use a base
+
+00:32:50.840 --> 00:32:56.950
+case when w is theta of M.
+
+00:32:56.950 --> 00:33:00.340
+So the number of leaves
+we have is theta of NT
+
+00:33:00.340 --> 00:33:04.600
+divided by w because each
+leaf is a size theta hw.
+
+00:33:08.500 --> 00:33:10.450
+The number of
+internal notes we have
+
+00:33:10.450 --> 00:33:12.070
+is equal to a number
+of leaves minus
+
+00:33:12.070 --> 00:33:14.500
+because we have a tree here.
+
+00:33:14.500 --> 00:33:17.470
+But the internal notes don't
+contribute substantially
+
+00:33:17.470 --> 00:33:20.050
+to the cache complexity,
+because each of them
+
+00:33:20.050 --> 00:33:22.420
+is just doing a
+constant number of cache
+
+00:33:22.420 --> 00:33:24.280
+misses to set up the
+two recursive calls.
+
+00:33:24.280 --> 00:33:26.980
+And it's not doing anything
+more expensive than that.
+
+00:33:29.623 --> 00:33:31.540
+So we just need to compute
+the number of cache
+
+00:33:31.540 --> 00:33:33.700
+misses at the leaves.
+
+00:33:33.700 --> 00:33:37.660
+We have theta of NT over hw
+leaves, each one of which
+
+00:33:37.660 --> 00:33:40.928
+takes theta of w
+over B cache misses.
+
+00:33:40.928 --> 00:33:42.470
+And we're going to
+multiply that out.
+
+00:33:42.470 --> 00:33:44.330
+So the w term cancels out.
+
+00:33:44.330 --> 00:33:51.790
+We just have NT over hB and we
+set h and w to be theta of M.
+
+00:33:51.790 --> 00:33:56.620
+So we're just left with NT over
+MB as our cache complexity.
+
+00:33:56.620 --> 00:33:57.866
+Yes?
+
+00:33:57.866 --> 00:34:02.576
+AUDIENCE: Can you explain
+why hB [INAUDIBLE]??
+
+00:34:02.576 --> 00:34:03.570
+JULIAN SHUN: Sure.
+
+00:34:03.570 --> 00:34:06.870
+So each leaf only incurs
+theta w over B cache
+
+00:34:06.870 --> 00:34:10.920
+misses because we need
+to compute the values
+
+00:34:10.920 --> 00:34:12.840
+of the base of the trapezoid.
+
+00:34:12.840 --> 00:34:15.239
+And that's going to
+incur theta of w over B
+
+00:34:15.239 --> 00:34:17.580
+cache misses
+because it's w wide,
+
+00:34:17.580 --> 00:34:20.292
+and therefore, everything else
+is going to fit into cache.
+
+00:34:20.292 --> 00:34:21.750
+So when we compute
+them, we already
+
+00:34:21.750 --> 00:34:26.340
+have all of our previous
+values that we want in cache.
+
+00:34:26.340 --> 00:34:29.228
+So that's why it's not going
+to incur any more cache misses.
+
+00:34:29.228 --> 00:34:30.270
+So does that makes sense?
+
+00:34:30.270 --> 00:34:32.360
+AUDIENCE: Yeah, I forgot
+that it was [INAUDIBLE]..
+
+00:34:32.360 --> 00:34:33.110
+JULIAN SHUN: Yeah.
+
+00:34:39.310 --> 00:34:39.810
+OK.
+
+00:34:39.810 --> 00:34:45.310
+So this was just analysis
+for one dimension.
+
+00:34:45.310 --> 00:34:48.670
+But it actually generalizes
+to more than one dimension.
+
+00:34:48.670 --> 00:34:50.940
+So in general, if we
+have d dimensions,
+
+00:34:50.940 --> 00:34:53.310
+then the cache complexity
+is going to be theta of NT
+
+00:34:53.310 --> 00:34:57.060
+divided by M to the
+1 over d times B.
+
+00:34:57.060 --> 00:35:00.720
+So if d is 1, then that
+just reduces to NT over MB.
+
+00:35:00.720 --> 00:35:05.250
+If d is 2, then it's going to
+be NT over B times square root
+
+00:35:05.250 --> 00:35:06.720
+of M and so on.
+
+00:35:06.720 --> 00:35:08.790
+And it turns out that this
+bound is also optimal.
+
+00:35:13.170 --> 00:35:14.730
+So any questions?
+
+00:35:14.730 --> 00:35:16.770
+So compared to the
+looping code, this code
+
+00:35:16.770 --> 00:35:19.170
+actually has much
+better cache complexity.
+
+00:35:19.170 --> 00:35:22.660
+It's saving by a factor
+of M. The looping code
+
+00:35:22.660 --> 00:35:25.770
+had a cache complexity that
+was theta of NT over B.
+
+00:35:25.770 --> 00:35:30.170
+It didn't have an M
+in the denominator.
+
+00:35:30.170 --> 00:35:32.530
+OK.
+
+00:35:32.530 --> 00:35:34.870
+So we're actually going
+to do a simulation now.
+
+00:35:34.870 --> 00:35:36.940
+We're going to compare
+how the looping
+
+00:35:36.940 --> 00:35:40.200
+code in a trapezoid code runs.
+
+00:35:40.200 --> 00:35:44.080
+And in this simulation,
+the green points
+
+00:35:44.080 --> 00:35:48.040
+correspond to a cache hit,
+the purple points correspond
+
+00:35:48.040 --> 00:35:49.900
+to a cache miss.
+
+00:35:49.900 --> 00:35:53.170
+And we're going assume a fully
+associative cache using the LRU
+
+00:35:53.170 --> 00:35:57.850
+replacement policy where the
+cache line size is 4 points
+
+00:35:57.850 --> 00:36:01.720
+and cache size is 32 points.
+
+00:36:01.720 --> 00:36:05.470
+And we're going to set the cache
+hit latency to be one cycle,
+
+00:36:05.470 --> 00:36:08.230
+and the cache miss
+latency to be 10 cycles.
+
+00:36:08.230 --> 00:36:11.220
+So an order of magnitude
+slower for cache misses.
+
+00:36:11.220 --> 00:36:13.600
+And we're doing this
+for a rectangular region
+
+00:36:13.600 --> 00:36:15.790
+where N is 95.
+
+00:36:15.790 --> 00:36:18.130
+And we're doing it
+for 87 time steps.
+
+00:36:18.130 --> 00:36:22.340
+So when we pull out
+the simulation now.
+
+00:36:22.340 --> 00:36:22.840
+OK.
+
+00:36:22.840 --> 00:36:25.120
+So on the left hand side, we're
+going to have the looping code.
+
+00:36:25.120 --> 00:36:26.578
+On the right hand
+side, we're going
+
+00:36:26.578 --> 00:36:27.880
+to have the trapezoidal code.
+
+00:36:27.880 --> 00:36:30.640
+So let's start this.
+
+00:36:30.640 --> 00:36:32.980
+So you can see that
+the looping code
+
+00:36:32.980 --> 00:36:36.130
+is going over one row at a time
+whereas the trapezoidal code is
+
+00:36:36.130 --> 00:36:36.850
+not doing that.
+
+00:36:36.850 --> 00:36:39.700
+It's partially computing
+one row and then moving
+
+00:36:39.700 --> 00:36:40.660
+on to the next row.
+
+00:36:44.280 --> 00:36:47.950
+I can also show the
+cuts that are generated
+
+00:36:47.950 --> 00:36:51.670
+by the trapezoidal algorithm.
+
+00:36:51.670 --> 00:36:54.520
+I have to remember
+how to do this.
+
+00:36:54.520 --> 00:36:56.690
+So C--
+
+00:36:59.620 --> 00:37:02.710
+So there there's the
+cuts that are generated
+
+00:37:02.710 --> 00:37:05.290
+by the trapezoidal algorithm.
+
+00:37:05.290 --> 00:37:06.610
+And I can speed this up.
+
+00:37:11.955 --> 00:37:13.830
+So you can see that the
+trapezoidal algorithm
+
+00:37:13.830 --> 00:37:17.470
+is incurring much fewer cache
+misses than the looping code.
+
+00:37:23.650 --> 00:37:24.900
+So I just make this go faster.
+
+00:37:24.900 --> 00:37:28.770
+And the trapezoid code
+is going to finish,
+
+00:37:28.770 --> 00:37:30.990
+while the looping code
+is still slowly making
+
+00:37:30.990 --> 00:37:32.010
+its way up the top.
+
+00:37:41.470 --> 00:37:41.970
+OK.
+
+00:37:41.970 --> 00:37:43.808
+So it's finally done.
+
+00:37:43.808 --> 00:37:44.850
+So any questions on this?
+
+00:37:44.850 --> 00:37:45.616
+Yeah?
+
+00:37:45.616 --> 00:37:49.704
+AUDIENCE: Why doesn't the
+trapezoid [INAUDIBLE]??
+
+00:37:52.656 --> 00:37:55.400
+JULIAN SHUN: In
+which of the regions?
+
+00:37:55.400 --> 00:37:59.030
+So it's loading-- you get a
+cache miss for the purple dots
+
+00:37:59.030 --> 00:37:59.530
+here.
+
+00:38:02.110 --> 00:38:04.750
+And then the cache
+line size is 4.
+
+00:38:04.750 --> 00:38:06.790
+So you get a cache miss
+for the first point,
+
+00:38:06.790 --> 00:38:09.040
+and then you hit on
+the next three points.
+
+00:38:09.040 --> 00:38:11.890
+Then you get another cache
+miss for the fifth point.
+
+00:38:11.890 --> 00:38:14.882
+And then you hit on
+the 6, 7, and 8 points.
+
+00:38:14.882 --> 00:38:17.714
+AUDIENCE: I was indicating
+the one above it.
+
+00:38:17.714 --> 00:38:20.770
+JULIAN SHUN: So for
+the one above it--
+
+00:38:20.770 --> 00:38:24.010
+so we're assuming that the two
+arrays fitting cache already.
+
+00:38:24.010 --> 00:38:26.980
+So we don't actually need
+to load them from memory.
+
+00:38:26.980 --> 00:38:29.830
+The thing above it just
+depends on the values
+
+00:38:29.830 --> 00:38:31.360
+that we have already computed.
+
+00:38:31.360 --> 00:38:34.690
+And that fits in cache.
+
+00:38:34.690 --> 00:38:37.210
+Those are ready in cache.
+
+00:38:37.210 --> 00:38:40.100
+This base of the trapezoid
+is already in cache.
+
+00:38:40.100 --> 00:38:42.520
+And the row right
+above it, we just
+
+00:38:42.520 --> 00:38:45.830
+need to look at those values.
+
+00:38:45.830 --> 00:38:47.166
+Does that makes sense?
+
+00:38:47.166 --> 00:38:48.120
+AUDIENCE: OK.
+
+00:38:48.120 --> 00:38:49.676
+Because of the even odd?
+
+00:38:49.676 --> 00:38:51.180
+JULIAN SHUN: Yeah.
+
+00:38:51.180 --> 00:38:51.680
+Yeah.
+
+00:38:55.160 --> 00:38:56.450
+Any other questions on this?
+
+00:38:58.970 --> 00:39:01.980
+Does anyone want
+to see this again?
+
+00:39:01.980 --> 00:39:02.480
+Yeah?
+
+00:39:20.640 --> 00:39:22.950
+So I could let this run for
+the rest of the lecture,
+
+00:39:22.950 --> 00:39:25.207
+but I have more
+interesting material
+
+00:39:25.207 --> 00:39:26.290
+that I want to talk about.
+
+00:39:26.290 --> 00:39:28.185
+So let's just stop
+after this finishes.
+
+00:39:33.247 --> 00:39:34.830
+And as you see again,
+the looping code
+
+00:39:34.830 --> 00:39:37.140
+is slowly making
+its way to the top.
+
+00:39:37.140 --> 00:39:39.960
+It's much slower than
+the trapezoid code.
+
+00:39:49.330 --> 00:39:49.830
+OK.
+
+00:39:49.830 --> 00:39:52.780
+So that was only
+for one dimensions.
+
+00:39:52.780 --> 00:39:55.680
+Now let's look at what
+happens in two dimensions.
+
+00:39:55.680 --> 00:39:57.870
+And here, I'm going
+to show another demo.
+
+00:39:57.870 --> 00:40:01.290
+And this demo, I'm actually
+going to run the code for real.
+
+00:40:01.290 --> 00:40:03.310
+The previous demo was
+just a simulation.
+
+00:40:03.310 --> 00:40:05.380
+So this is going to
+happen in real time.
+
+00:40:05.380 --> 00:40:08.670
+And I'm going to simulate
+the heat in a 2D space.
+
+00:40:08.670 --> 00:40:11.670
+And recall that the colors
+correspond to the temperature.
+
+00:40:11.670 --> 00:40:14.790
+So a brighter color
+means it's hotter.
+
+00:40:14.790 --> 00:40:16.860
+So let me pull out
+the other demo.
+
+00:40:25.770 --> 00:40:26.270
+OK.
+
+00:40:26.270 --> 00:40:32.140
+So here, my mouse cursor
+is the source of heat.
+
+00:40:32.140 --> 00:40:37.270
+So you see that it's making the
+points around my mouse cursor
+
+00:40:37.270 --> 00:40:37.900
+hot.
+
+00:40:37.900 --> 00:40:42.890
+And then it's slowly diffusing
+its way to the other points.
+
+00:40:42.890 --> 00:40:46.450
+Now I can actually move this
+so that my heat source changes,
+
+00:40:46.450 --> 00:40:49.210
+and then the heat I generated
+earlier slowly goes away.
+
+00:40:52.110 --> 00:40:52.610
+OK.
+
+00:40:57.430 --> 00:41:00.470
+So in the lower
+left hand corner,
+
+00:41:00.470 --> 00:41:02.200
+I'm showing the
+number of iterations
+
+00:41:02.200 --> 00:41:04.450
+per second of the code.
+
+00:41:04.450 --> 00:41:08.320
+And we can see that the
+looping code is taking--
+
+00:41:08.320 --> 00:41:13.550
+it's doing about 1,560
+iterations per second.
+
+00:41:13.550 --> 00:41:16.240
+Let's see what happens when we
+switch to the trapezoid code.
+
+00:41:23.330 --> 00:41:29.420
+So the trapezoid code is
+doing about 1,830 iterations
+
+00:41:29.420 --> 00:41:31.440
+per second.
+
+00:41:31.440 --> 00:41:35.420
+So it's a little bit
+faster, but not by too much.
+
+00:41:40.580 --> 00:41:45.210
+Does anyone have an idea why
+we're seeing this behavior?
+
+00:41:45.210 --> 00:41:46.700
+So we said that
+the trapezoid code
+
+00:41:46.700 --> 00:41:50.600
+incurs many fewer cache
+misses than the looping code,
+
+00:41:50.600 --> 00:41:53.240
+so we would expect it to
+be significantly faster.
+
+00:41:53.240 --> 00:41:57.000
+But here it's only
+a little bit faster.
+
+00:41:57.000 --> 00:41:57.500
+Yeah?
+
+00:41:57.500 --> 00:42:01.328
+AUDIENCE: [INAUDIBLE].
+
+00:42:01.328 --> 00:42:02.120
+JULIAN SHUN: Right.
+
+00:42:02.120 --> 00:42:03.870
+So that's a good point.
+
+00:42:03.870 --> 00:42:06.080
+So in 2D you're
+only saving a factor
+
+00:42:06.080 --> 00:42:09.620
+of square root of M instead
+of M. But square root of M
+
+00:42:09.620 --> 00:42:12.350
+is still pretty big
+compared to the speed
+
+00:42:12.350 --> 00:42:13.470
+up we're getting here.
+
+00:42:13.470 --> 00:42:15.180
+So any other ideas?
+
+00:42:15.180 --> 00:42:15.680
+Yeah.
+
+00:42:15.680 --> 00:42:18.750
+So there is a constant factor
+in the trapezoidal code.
+
+00:42:18.750 --> 00:42:22.160
+But even after accounting
+for the constant factor,
+
+00:42:22.160 --> 00:42:27.260
+you should still see a
+better speed up than this.
+
+00:42:27.260 --> 00:42:30.710
+So even accounting for
+the constant factors,
+
+00:42:30.710 --> 00:42:32.810
+what other problem
+might be going on here?
+
+00:42:32.810 --> 00:42:33.460
+Yeah?
+
+00:42:33.460 --> 00:42:36.050
+AUDIENCE: Is it that we don't
+actually have an ideal cache?
+
+00:42:36.050 --> 00:42:36.800
+JULIAN SHUN: Yeah.
+
+00:42:36.800 --> 00:42:41.180
+So that's another
+good observation.
+
+00:42:41.180 --> 00:42:44.630
+But the caches that
+we're using, they still
+
+00:42:44.630 --> 00:42:47.060
+should get pretty good cache.
+
+00:42:47.060 --> 00:42:50.150
+I mean, they should still
+have cache complexly
+
+00:42:50.150 --> 00:42:52.160
+that's pretty close to
+the ideal cache model.
+
+00:42:52.160 --> 00:42:55.490
+I mean, you might be off
+by small constant factor,
+
+00:42:55.490 --> 00:42:56.490
+but not by too much.
+
+00:42:56.490 --> 00:42:57.229
+Yeah?
+
+00:42:57.229 --> 00:43:00.981
+AUDIENCE: Maybe
+because [INAUDIBLE]
+
+00:43:01.808 --> 00:43:02.600
+JULIAN SHUN: Sorry.
+
+00:43:02.600 --> 00:43:04.260
+Could you repeat that?
+
+00:43:04.260 --> 00:43:07.640
+AUDIENCE: There are [INAUDIBLE]
+this time like [INAUDIBLE]
+
+00:43:07.640 --> 00:43:08.390
+JULIAN SHUN: Yeah.
+
+00:43:08.390 --> 00:43:09.440
+So OK.
+
+00:43:09.440 --> 00:43:11.180
+So if I move the
+cursor, it's probably
+
+00:43:11.180 --> 00:43:15.440
+going to be a little bit slower,
+go slower by a little bit.
+
+00:43:15.440 --> 00:43:18.150
+But that doesn't really
+affect the performance.
+
+00:43:18.150 --> 00:43:20.540
+I can just leave my cursor
+there and this is what
+
+00:43:20.540 --> 00:43:22.790
+the iterations per second is.
+
+00:43:27.170 --> 00:43:27.948
+Yes?
+
+00:43:27.948 --> 00:43:30.240
+AUDIENCE: Maybe there's like,
+a lot of similar programs
+
+00:43:30.240 --> 00:43:32.221
+doing this [INAUDIBLE].
+
+00:43:37.191 --> 00:43:37.970
+JULIAN SHUN: Yeah.
+
+00:43:37.970 --> 00:43:40.040
+So there is some other
+factor dominating.
+
+00:43:40.040 --> 00:43:43.250
+Does anyone have an idea
+what that factor might be?
+
+00:43:43.250 --> 00:43:44.666
+AUDIENCE: Rendering?
+
+00:43:44.666 --> 00:43:46.040
+JULIAN SHUN: No.
+
+00:43:46.040 --> 00:43:47.390
+It's not the rendering.
+
+00:43:47.390 --> 00:43:50.000
+I ran the code without
+showing the graphics,
+
+00:43:50.000 --> 00:43:51.940
+and performance was similar.
+
+00:43:51.940 --> 00:43:52.947
+Yes?
+
+00:43:52.947 --> 00:43:56.426
+AUDIENCE: Maybe similar to what
+she said there could be other
+
+00:43:56.426 --> 00:44:01.396
+things using cache [INAUDIBLE].
+
+00:44:05.869 --> 00:44:07.300
+JULIAN SHUN: Yes.
+
+00:44:07.300 --> 00:44:07.800
+Yeah.
+
+00:44:07.800 --> 00:44:10.250
+So there could be other
+things using the cache.
+
+00:44:10.250 --> 00:44:13.430
+But that would be true
+for both of the programs.
+
+00:44:13.430 --> 00:44:15.890
+And I don't actually have
+anything that's intensive
+
+00:44:15.890 --> 00:44:18.050
+running, except for PowerPoint.
+
+00:44:18.050 --> 00:44:19.790
+I don't think that
+uses much of my cache.
+
+00:44:22.710 --> 00:44:23.210
+All right.
+
+00:44:23.210 --> 00:44:29.750
+So let's look at why
+this is the case.
+
+00:44:29.750 --> 00:44:33.910
+So it turns out that the
+hardware is actually helping
+
+00:44:33.910 --> 00:44:34.952
+the looping code.
+
+00:44:34.952 --> 00:44:36.910
+So the question is how
+come the cache oblivious
+
+00:44:36.910 --> 00:44:40.448
+trapezoidal code can have
+so many fewer cache misses,
+
+00:44:40.448 --> 00:44:42.490
+but the advantage gained
+over the looping version
+
+00:44:42.490 --> 00:44:44.650
+is so marginal?
+
+00:44:44.650 --> 00:44:46.660
+Turns out that for
+the looping code,
+
+00:44:46.660 --> 00:44:48.280
+the hardware is
+actually helping it
+
+00:44:48.280 --> 00:44:50.920
+by doing hardware prefetching.
+
+00:44:50.920 --> 00:44:53.080
+And hardware prefetching
+for the looping code
+
+00:44:53.080 --> 00:44:55.270
+is actually pretty good,
+because the access pattern
+
+00:44:55.270 --> 00:44:56.230
+is very regular.
+
+00:44:56.230 --> 00:44:58.250
+It's just going
+one row at a time.
+
+00:44:58.250 --> 00:45:01.720
+So the hardware can predict
+the memory access pattern
+
+00:45:01.720 --> 00:45:03.670
+of the looping code,
+and therefore, he
+
+00:45:03.670 --> 00:45:06.520
+can bring in the cache lines
+that the looping code would
+
+00:45:06.520 --> 00:45:11.240
+need before it actually gets to
+that part of the computation.
+
+00:45:11.240 --> 00:45:14.050
+So prefetching is
+helping the looping code.
+
+00:45:14.050 --> 00:45:16.090
+And it's not helping
+the trapezoid code
+
+00:45:16.090 --> 00:45:20.620
+that much because the access
+pattern is less regular there.
+
+00:45:20.620 --> 00:45:23.230
+And prefetching does
+use memory bandwidth.
+
+00:45:23.230 --> 00:45:25.270
+But when you're using
+just a single core,
+
+00:45:25.270 --> 00:45:27.550
+you have more than
+enough bandwidth
+
+00:45:27.550 --> 00:45:30.520
+to take advantage of
+the hardware prefetching
+
+00:45:30.520 --> 00:45:34.000
+capabilities of the machine.
+
+00:45:34.000 --> 00:45:37.480
+But later on, we'll see that
+when we're running in parallel
+
+00:45:37.480 --> 00:45:39.430
+the memory bandwidth
+does become more
+
+00:45:39.430 --> 00:45:43.630
+of an issue when you
+have multiple processors
+
+00:45:43.630 --> 00:45:46.970
+all using the memory.
+
+00:45:46.970 --> 00:45:47.470
+Yeah?
+
+00:45:47.470 --> 00:45:48.752
+Question?
+
+00:45:48.752 --> 00:45:53.984
+AUDIENCE: Is there a way of
+touching a cache [INAUDIBLE]
+
+00:45:53.984 --> 00:45:57.386
+or touching a piece of memory
+before you need it so that you
+
+00:45:57.386 --> 00:46:00.302
+don't need [INAUDIBLE]
+
+00:46:00.302 --> 00:46:02.280
+JULIAN SHUN: You can do
+software prefetching.
+
+00:46:02.280 --> 00:46:06.390
+There are instructions to
+do software prefetching.
+
+00:46:06.390 --> 00:46:09.010
+Hardware prefetching is
+usually more efficient,
+
+00:46:09.010 --> 00:46:11.550
+but it's like less flexible
+than the software prefetching.
+
+00:46:11.550 --> 00:46:13.175
+But here we're not
+actually doing that.
+
+00:46:13.175 --> 00:46:15.360
+We're just taking advantage
+of hardware prefetching.
+
+00:46:15.360 --> 00:46:17.988
+AUDIENCE: [INAUDIBLE]?
+
+00:46:17.988 --> 00:46:18.750
+JULIAN SHUN: Yeah.
+
+00:46:18.750 --> 00:46:20.940
+So we didn't actually try that.
+
+00:46:20.940 --> 00:46:23.670
+It could benefit a little
+bit if we used a little bit
+
+00:46:23.670 --> 00:46:26.825
+of software prefetching.
+
+00:46:26.825 --> 00:46:28.950
+Although, I think it would
+benefit the looping code
+
+00:46:28.950 --> 00:46:30.840
+probably as well if we did that.
+
+00:46:30.840 --> 00:46:31.340
+Yes?
+
+00:46:31.340 --> 00:46:33.280
+AUDIENCE: Is hardware
+prefetching [INAUDIBLE]??
+
+00:46:33.280 --> 00:46:33.590
+JULIAN SHUN: Sorry?
+
+00:46:33.590 --> 00:46:34.090
+Sorry?
+
+00:46:34.090 --> 00:46:36.644
+AUDIENCE: Is hardware
+prefetching always enabled?
+
+00:46:36.644 --> 00:46:37.500
+JULIAN SHUN: Yeah.
+
+00:46:37.500 --> 00:46:40.350
+So hardware
+prefetching is enabled.
+
+00:46:40.350 --> 00:46:42.602
+It's always done by the
+hardware on the machines
+
+00:46:42.602 --> 00:46:43.560
+that we're using today.
+
+00:46:47.880 --> 00:46:49.920
+This was a pretty
+surprising result.
+
+00:46:49.920 --> 00:46:53.550
+But we'll actually see the
+fact of the memory bandwidth
+
+00:46:53.550 --> 00:46:58.432
+later on when we look
+at the parallel code.
+
+00:46:58.432 --> 00:47:00.015
+Any other questions
+before I continue?
+
+00:47:02.530 --> 00:47:03.030
+OK.
+
+00:47:03.030 --> 00:47:05.520
+So let's now look at the
+interplay between caching
+
+00:47:05.520 --> 00:47:07.030
+and parallelism.
+
+00:47:07.030 --> 00:47:09.970
+So this was a theorem that we
+proved in the previous lecture.
+
+00:47:09.970 --> 00:47:11.625
+So let's recall what it says.
+
+00:47:11.625 --> 00:47:14.220
+It says let Q sub p
+be the number of cache
+
+00:47:14.220 --> 00:47:17.460
+misses in a deterministic
+Cilk computation
+
+00:47:17.460 --> 00:47:20.340
+when run on p processors,
+each with a private cache,
+
+00:47:20.340 --> 00:47:22.920
+and let s sub p be the
+number of successful steals
+
+00:47:22.920 --> 00:47:24.630
+during the computation.
+
+00:47:24.630 --> 00:47:28.140
+In an ideal cache model
+with a cache size of M
+
+00:47:28.140 --> 00:47:30.390
+and a block size of
+B, the number of cache
+
+00:47:30.390 --> 00:47:32.820
+misses on p processors
+equal to the number of cache
+
+00:47:32.820 --> 00:47:36.450
+misses on one
+processor plus order
+
+00:47:36.450 --> 00:47:39.810
+number of successful
+steals times M over B.
+
+00:47:39.810 --> 00:47:44.730
+And last time we also said that
+the number of successful steals
+
+00:47:44.730 --> 00:47:47.400
+is upper bounded by the
+span of the computation
+
+00:47:47.400 --> 00:47:48.730
+times the number of processors.
+
+00:47:48.730 --> 00:47:51.120
+If you minimize the span
+of your computation,
+
+00:47:51.120 --> 00:47:54.570
+then you can also minimize the
+number of successful steals.
+
+00:47:54.570 --> 00:47:56.700
+And then for low
+span algorithms,
+
+00:47:56.700 --> 00:48:00.817
+the first term is usually
+going to dominate the Q1 term.
+
+00:48:00.817 --> 00:48:02.400
+So I'm not going to
+go over the proof.
+
+00:48:02.400 --> 00:48:04.110
+We did that last time.
+
+00:48:04.110 --> 00:48:06.120
+The moral of the story
+is that minimizing
+
+00:48:06.120 --> 00:48:07.860
+cache misses in
+the serial elision
+
+00:48:07.860 --> 00:48:10.590
+essentially minimizes them
+into parallel execution,
+
+00:48:10.590 --> 00:48:12.917
+assuming that you have
+a low span algorithm.
+
+00:48:15.720 --> 00:48:18.870
+So let's see whether our
+trapezoidal algorithm works
+
+00:48:18.870 --> 00:48:21.090
+in parallel.
+
+00:48:21.090 --> 00:48:23.670
+So does the space
+cut work in parallel?
+
+00:48:23.670 --> 00:48:26.583
+Recall that the space
+cut, I'm cutting it
+
+00:48:26.583 --> 00:48:28.500
+with a slope of negative
+1 through the center,
+
+00:48:28.500 --> 00:48:30.730
+because it's too wide.
+
+00:48:30.730 --> 00:48:34.980
+So can I execute the two
+trapezoids in parallel here?
+
+00:48:38.590 --> 00:48:39.910
+No.
+
+00:48:39.910 --> 00:48:41.650
+The reason is that
+the right trapezoid
+
+00:48:41.650 --> 00:48:44.450
+depends on the result
+of the left trapezoid.
+
+00:48:44.450 --> 00:48:47.080
+So I can't execute
+them at the same time.
+
+00:48:47.080 --> 00:48:50.890
+But there is a way that I can
+execute trapezoids in parallel.
+
+00:48:50.890 --> 00:48:54.760
+So instead of just doing
+the cut through the center,
+
+00:48:54.760 --> 00:48:58.670
+I'm actually going
+to do a V-cut.
+
+00:48:58.670 --> 00:49:01.270
+So now I have three trapezoids.
+
+00:49:01.270 --> 00:49:02.950
+The two trapezoid in black--
+
+00:49:02.950 --> 00:49:05.260
+I can actually execute
+those in parallel,
+
+00:49:05.260 --> 00:49:06.580
+because they're independent.
+
+00:49:06.580 --> 00:49:08.770
+And everything in
+those two trapezoids
+
+00:49:08.770 --> 00:49:11.440
+just depends on the
+base of that trapezoid.
+
+00:49:11.440 --> 00:49:14.650
+And after I'm done with the
+two trapezoids labeled 1,
+
+00:49:14.650 --> 00:49:19.240
+then I can compute
+the trapezoid label 2.
+
+00:49:19.240 --> 00:49:22.330
+And this is known as
+a parallel space cut.
+
+00:49:22.330 --> 00:49:26.320
+It produces two black trapezoids
+as well as a gray trapezoid
+
+00:49:26.320 --> 00:49:29.800
+and two black trapezoids
+executed in parallel.
+
+00:49:29.800 --> 00:49:33.460
+And afterwards, the
+gray trapezoid executes.
+
+00:49:33.460 --> 00:49:35.140
+And this is done
+recursively as well.
+
+00:49:39.550 --> 00:49:41.460
+Any questions?
+
+00:49:41.460 --> 00:49:42.130
+Yeah?
+
+00:49:42.130 --> 00:49:42.890
+No.
+
+00:49:42.890 --> 00:49:45.310
+OK.
+
+00:49:45.310 --> 00:49:47.650
+We also have the time cut.
+
+00:49:47.650 --> 00:49:48.280
+Oh, sorry.
+
+00:49:48.280 --> 00:49:52.060
+So if the trapezoid is
+inverted, then we're
+
+00:49:52.060 --> 00:49:56.470
+going to do this
+upside down V-cut.
+
+00:49:56.470 --> 00:50:00.370
+And in this case, we're going
+to execute the middle trapezoid
+
+00:50:00.370 --> 00:50:04.090
+before we execute the two
+trapezoids on the side.
+
+00:50:07.590 --> 00:50:10.670
+For the time cut, it turns
+out that we're just going
+
+00:50:10.670 --> 00:50:13.300
+to use the same cut as before.
+
+00:50:13.300 --> 00:50:16.185
+And we're just going to execute
+the two trapezoids serially.
+
+00:50:19.000 --> 00:50:20.890
+So we do get a little
+bit of parallelism
+
+00:50:20.890 --> 00:50:24.850
+here from the
+parallel space cut.
+
+00:50:24.850 --> 00:50:27.530
+Let's look at how the
+parallel codes perform now.
+
+00:50:46.970 --> 00:50:50.450
+So, OK.
+
+00:50:50.450 --> 00:50:54.530
+So this was a
+serial looping code.
+
+00:50:54.530 --> 00:50:56.660
+Here's the parallel
+looping code.
+
+00:50:56.660 --> 00:51:00.971
+So we had 1,450 before.
+
+00:51:00.971 --> 00:51:03.320
+About 3,700 now.
+
+00:51:03.320 --> 00:51:06.382
+So little over
+twice the speed up.
+
+00:51:06.382 --> 00:51:07.840
+And this is on a
+four core machine.
+
+00:51:07.840 --> 00:51:09.220
+It's just on my laptop.
+
+00:51:09.220 --> 00:51:11.398
+AUDIENCE: [INAUDIBLE]?
+
+00:51:11.398 --> 00:51:12.190
+JULIAN SHUN: Sorry?
+
+00:51:12.190 --> 00:51:13.630
+AUDIENCE: [INAUDIBLE]?
+
+00:51:13.630 --> 00:51:14.860
+JULIAN SHUN: Oh yeah, sure.
+
+00:51:20.360 --> 00:51:23.330
+Yeah, it's slowing down a
+little bit, but not by too much.
+
+00:51:32.560 --> 00:51:34.810
+OK.
+
+00:51:34.810 --> 00:51:38.590
+Let's look at the
+trapezoidal code now.
+
+00:51:38.590 --> 00:51:41.500
+So as we saw before,
+the trapezoid code
+
+00:51:41.500 --> 00:51:45.430
+does about 1,840
+iterations per second.
+
+00:51:45.430 --> 00:51:47.410
+And we can paralyze this.
+
+00:51:47.410 --> 00:51:54.260
+So now it's doing about
+5,350 iterations per second.
+
+00:51:54.260 --> 00:51:56.890
+So it's getting about a
+factor of three speed up.
+
+00:52:01.650 --> 00:52:05.760
+I can move it around a little
+bit more if you want to see it.
+
+00:52:05.760 --> 00:52:10.108
+So serial trapezoid
+and parallel trapezoid.
+
+00:52:12.920 --> 00:52:13.926
+Is everyone happy?
+
+00:52:21.190 --> 00:52:21.690
+OK.
+
+00:52:26.357 --> 00:52:27.940
+Because I had to do
+this in real time,
+
+00:52:27.940 --> 00:52:30.670
+the input size wasn't
+actually that big.
+
+00:52:30.670 --> 00:52:34.810
+So I ran the experiment
+offline without the rendering
+
+00:52:34.810 --> 00:52:36.350
+on a much larger input.
+
+00:52:36.350 --> 00:52:42.120
+So this input is a
+3,000 by 3,000 grid.
+
+00:52:42.120 --> 00:52:45.220
+And I did this for 1,000 time
+steps using four processor
+
+00:52:45.220 --> 00:52:46.210
+cores.
+
+00:52:46.210 --> 00:52:48.950
+And my cache size
+is 8 megabytes.
+
+00:52:48.950 --> 00:52:50.980
+So last level cache size.
+
+00:52:50.980 --> 00:52:54.460
+So the input size here is much
+larger than my last level cache
+
+00:52:54.460 --> 00:52:56.883
+size.
+
+00:52:56.883 --> 00:52:58.300
+And here are the
+times that I got.
+
+00:52:58.300 --> 00:53:03.560
+So the serial looping code
+took about 129 seconds.
+
+00:53:03.560 --> 00:53:07.720
+And when we did it in parallel,
+it was about 66 seconds.
+
+00:53:07.720 --> 00:53:09.820
+So it got about a
+factor of two speed up,
+
+00:53:09.820 --> 00:53:12.520
+which is consistent
+with what we saw.
+
+00:53:12.520 --> 00:53:16.090
+For the trapezoidal code, it
+actually got a better speed up
+
+00:53:16.090 --> 00:53:17.950
+when we increased
+the input size.
+
+00:53:17.950 --> 00:53:19.750
+So we got about a
+factor of four speed up.
+
+00:53:19.750 --> 00:53:22.180
+And this is because
+for larger input size,
+
+00:53:22.180 --> 00:53:25.780
+the cache efficiency
+plays a much larger role,
+
+00:53:25.780 --> 00:53:30.290
+because the cache is so small
+compared to our input size.
+
+00:53:30.290 --> 00:53:34.210
+So here we see that the
+parallel looping code achieves
+
+00:53:34.210 --> 00:53:35.980
+less than half of
+the potential speed
+
+00:53:35.980 --> 00:53:37.480
+up, even though the
+parallel looping
+
+00:53:37.480 --> 00:53:39.370
+code has much more
+potential parallelism
+
+00:53:39.370 --> 00:53:40.630
+than the trapezoidal code.
+
+00:53:40.630 --> 00:53:43.570
+So trapezoidal code only had a
+little bit of parallelism only
+
+00:53:43.570 --> 00:53:49.780
+for the space cuts, whereas the
+trapezoidal code is actually
+
+00:53:49.780 --> 00:53:51.070
+getting pretty good speed up.
+
+00:53:51.070 --> 00:53:54.800
+So this is near linear speed
+up, since I'm using four cores
+
+00:53:54.800 --> 00:54:00.360
+and it's getting
+3.96 x speed up.
+
+00:54:00.360 --> 00:54:02.070
+So what could be going on here?
+
+00:54:06.680 --> 00:54:08.330
+Another thing to
+look at is to compare
+
+00:54:08.330 --> 00:54:11.660
+the serial trapezoid code with
+the serial looping code, as
+
+00:54:11.660 --> 00:54:14.280
+well as the parallel trapezoid
+code with the parallel looping
+
+00:54:14.280 --> 00:54:14.780
+code.
+
+00:54:14.780 --> 00:54:17.360
+So if you look at the
+serial trapezoid code,
+
+00:54:17.360 --> 00:54:19.610
+you see that it's
+about twice as fast
+
+00:54:19.610 --> 00:54:21.800
+as the serial looping code.
+
+00:54:21.800 --> 00:54:23.840
+But the parallel
+trapezoid or code
+
+00:54:23.840 --> 00:54:26.932
+is about four times faster
+than the parallel looping code.
+
+00:54:30.380 --> 00:54:33.690
+And the reason here is
+that the harbor prefetching
+
+00:54:33.690 --> 00:54:36.750
+can't help the parallel
+looping code that much.
+
+00:54:36.750 --> 00:54:42.000
+Because when you're running
+in parallel, all of the cores
+
+00:54:42.000 --> 00:54:43.800
+are using memory.
+
+00:54:43.800 --> 00:54:46.530
+And there's a memory
+bandwidth bottleneck here.
+
+00:54:46.530 --> 00:54:50.260
+And prefetching actually
+needs to use memory bandwidth.
+
+00:54:50.260 --> 00:54:53.850
+So in the serial case, we had
+plenty of memory bandwidth
+
+00:54:53.850 --> 00:54:57.630
+we could use for a prefetching,
+but in the parallel case,
+
+00:54:57.630 --> 00:55:00.210
+we don't actually have much
+parallel-- but much memory
+
+00:55:00.210 --> 00:55:02.910
+bandwidth we can use here.
+
+00:55:02.910 --> 00:55:06.210
+So that's why in
+a parallel case,
+
+00:55:06.210 --> 00:55:08.760
+the trapezoid code
+gets a better speed up
+
+00:55:08.760 --> 00:55:13.310
+over the parallel looping code,
+compared to the serial case.
+
+00:55:13.310 --> 00:55:17.820
+And the trapezoid code
+also gets better speed up
+
+00:55:17.820 --> 00:55:20.890
+because it does
+things more locally,
+
+00:55:20.890 --> 00:55:22.950
+so it needs to use less--
+
+00:55:22.950 --> 00:55:24.490
+fewer memory operations.
+
+00:55:24.490 --> 00:55:26.340
+And there's a
+scalability bottleneck
+
+00:55:26.340 --> 00:55:28.060
+at the memory interconnect.
+
+00:55:28.060 --> 00:55:30.930
+But because the trapezoidal
+code is cache oblivious,
+
+00:55:30.930 --> 00:55:34.290
+it does a lot of work in
+cache, whereas the looping code
+
+00:55:34.290 --> 00:55:39.360
+does more accesses
+to the main memory.
+
+00:55:39.360 --> 00:55:40.530
+Any questions on this?
+
+00:55:47.190 --> 00:55:53.980
+So how do we know when we have
+a parallel speed up bottleneck,
+
+00:55:53.980 --> 00:55:57.370
+how do we know
+what's causing it?
+
+00:55:57.370 --> 00:56:02.300
+So there are several main
+things that we should look at.
+
+00:56:02.300 --> 00:56:04.630
+So we should see if
+our algorithm has
+
+00:56:04.630 --> 00:56:07.660
+insufficient parallelism,
+whether the scheduling
+
+00:56:07.660 --> 00:56:09.910
+overhead is
+dominating, whether we
+
+00:56:09.910 --> 00:56:12.470
+have a lack of memory
+bandwidth, or whether there
+
+00:56:12.470 --> 00:56:13.630
+is contention going on.
+
+00:56:13.630 --> 00:56:17.020
+And contention can refer to
+either locking or true and
+
+00:56:17.020 --> 00:56:22.170
+false sharing, which we talked
+about in the last lecture.
+
+00:56:22.170 --> 00:56:25.340
+So the first two are usually
+quite easy to diagnose.
+
+00:56:25.340 --> 00:56:28.100
+You can compute the work in
+the span of your algorithm,
+
+00:56:28.100 --> 00:56:30.200
+and from that you can
+get the parallelism.
+
+00:56:30.200 --> 00:56:34.340
+You can also use Cilkscale to
+help you diagnose the first two
+
+00:56:34.340 --> 00:56:37.223
+problems, because Cilkscale can
+tell you how much parallelism
+
+00:56:37.223 --> 00:56:38.390
+you're getting in your code.
+
+00:56:38.390 --> 00:56:40.473
+And it can also tell you
+the burden of parallelism
+
+00:56:40.473 --> 00:56:42.120
+which includes the
+scheduler overhead.
+
+00:56:45.230 --> 00:56:46.880
+What about for memory bandwidth?
+
+00:56:46.880 --> 00:56:50.530
+How can we diagnose that?
+
+00:56:50.530 --> 00:56:52.040
+So does anyone have any ideas?
+
+00:56:55.470 --> 00:56:57.310
+So I can tell you
+one way to do it.
+
+00:56:57.310 --> 00:57:00.720
+I can open up my hardware and
+take out all of my memory chips
+
+00:57:00.720 --> 00:57:03.750
+except for one of them,
+and run my serial code.
+
+00:57:03.750 --> 00:57:05.580
+And if it slows
+down, then that means
+
+00:57:05.580 --> 00:57:07.530
+it was probably
+memory bandwidth bound
+
+00:57:07.530 --> 00:57:09.810
+when I did it in parallel.
+
+00:57:09.810 --> 00:57:12.660
+But that's a pretty heavy handed
+way to diagnose this problem.
+
+00:57:12.660 --> 00:57:16.210
+Is there anything we can
+do was just software?
+
+00:57:16.210 --> 00:57:16.710
+Yes?
+
+00:57:16.710 --> 00:57:21.490
+AUDIENCE: Can we simulate like
+Valgrind would do it and count
+
+00:57:21.490 --> 00:57:24.358
+how memory accesses [INAUDIBLE]
+
+00:57:24.358 --> 00:57:28.180
+JULIAN SHUN: Yeah, so you
+could use a tool like Valgrind
+
+00:57:28.180 --> 00:57:32.050
+to count the number
+of memory accesses.
+
+00:57:32.050 --> 00:57:33.458
+Yes?
+
+00:57:33.458 --> 00:57:36.916
+AUDIENCE: It's like
+toolset or something
+
+00:57:36.916 --> 00:57:40.868
+where you can make sure
+that only one processor is
+
+00:57:40.868 --> 00:57:42.298
+being use for this.
+
+00:57:42.298 --> 00:57:44.590
+JULIAN SHUN: So you can make
+sure only one processor is
+
+00:57:44.590 --> 00:57:46.390
+being used, but you can't--
+
+00:57:49.390 --> 00:57:52.000
+but it might be using
+like, more memory
+
+00:57:52.000 --> 00:57:55.630
+than just the memory
+from one chip.
+
+00:57:55.630 --> 00:57:59.650
+There's actually a
+simpler way to do this.
+
+00:57:59.650 --> 00:58:02.890
+The idea is that we'll
+just run p identical copies
+
+00:58:02.890 --> 00:58:05.290
+of the serial code.
+
+00:58:05.290 --> 00:58:07.440
+And then they will all
+executing in parallel.
+
+00:58:07.440 --> 00:58:10.480
+And if the execution
+slows down, then that
+
+00:58:10.480 --> 00:58:11.950
+means they were
+probably contending
+
+00:58:11.950 --> 00:58:14.675
+for memory bandwidth.
+
+00:58:14.675 --> 00:58:15.550
+Does that make sense?
+
+00:58:18.410 --> 00:58:20.030
+One caveat of this
+is you can only
+
+00:58:20.030 --> 00:58:22.843
+do this if you have enough
+physical memory, because when
+
+00:58:22.843 --> 00:58:24.260
+you're running p
+identical copies,
+
+00:58:24.260 --> 00:58:27.868
+you have to use more DRAM
+than if you just ran one copy.
+
+00:58:27.868 --> 00:58:29.660
+So you have to have
+enough physical memory.
+
+00:58:29.660 --> 00:58:32.270
+But oftentimes, you can usually
+isolate some part of the code
+
+00:58:32.270 --> 00:58:34.103
+that you think has a
+performance bottleneck,
+
+00:58:34.103 --> 00:58:37.190
+and just execute that
+part of the program
+
+00:58:37.190 --> 00:58:38.510
+with p copies in parallel.
+
+00:58:38.510 --> 00:58:41.060
+And hopefully that
+will take less memory.
+
+00:58:41.060 --> 00:58:42.620
+There are also
+hardware counters you
+
+00:58:42.620 --> 00:58:45.680
+can check if you have root
+access to your machine
+
+00:58:45.680 --> 00:58:47.720
+that can measure how
+much memory bandwidth
+
+00:58:47.720 --> 00:58:51.170
+your program is using.
+
+00:58:51.170 --> 00:58:55.470
+But this is a pretty
+simple way to do this.
+
+00:58:55.470 --> 00:58:59.390
+So there are ways to diagnose
+lack of memory bandwidth.
+
+00:58:59.390 --> 00:59:03.560
+Turns out that contention
+is much harder to diagnose.
+
+00:59:03.560 --> 00:59:07.130
+There are tools that exist
+that detect lock contention
+
+00:59:07.130 --> 00:59:10.250
+in an execution, but usually
+they only detect a contention
+
+00:59:10.250 --> 00:59:12.500
+when the contention
+actually happens,
+
+00:59:12.500 --> 00:59:14.360
+but the contention
+doesn't have to happen
+
+00:59:14.360 --> 00:59:16.860
+every time you run your code.
+
+00:59:16.860 --> 00:59:22.790
+So these tools don't detect a
+potential for lock contention.
+
+00:59:22.790 --> 00:59:24.470
+And potential for
+true and false sharing
+
+00:59:24.470 --> 00:59:27.200
+is even harder to detect,
+especially false sharing,
+
+00:59:27.200 --> 00:59:30.440
+because if you're using a bunch
+of variables in your code,
+
+00:59:30.440 --> 00:59:34.260
+you don't know which of those
+map to the same cache line.
+
+00:59:34.260 --> 00:59:36.650
+So this is much
+harder to detect.
+
+00:59:36.650 --> 00:59:40.310
+Usually when you're trying to
+debug the speed up bottleneck
+
+00:59:40.310 --> 00:59:42.820
+in your code, you would first
+look at the first three things
+
+00:59:42.820 --> 00:59:43.320
+here.
+
+00:59:43.320 --> 00:59:46.190
+And then once you eliminated
+those first few things,
+
+00:59:46.190 --> 00:59:48.742
+then you can start looking
+at whether contention
+
+00:59:48.742 --> 00:59:49.700
+is causing the problem.
+
+00:59:53.100 --> 00:59:53.870
+Any questions?
+
+00:59:57.300 --> 00:59:57.800
+OK.
+
+00:59:57.800 --> 01:00:01.100
+So I talked about
+stencil computation.
+
+01:00:01.100 --> 01:00:04.370
+I want to now talk about
+another problem, sorting.
+
+01:00:04.370 --> 01:00:09.170
+And we want to do this
+cache efficiently.
+
+01:00:09.170 --> 01:00:09.670
+OK.
+
+01:00:09.670 --> 01:00:12.750
+So let's first analyze
+the cache complexity
+
+01:00:12.750 --> 01:00:14.985
+of a standard merge sort.
+
+01:00:14.985 --> 01:00:18.690
+So we first need to analyze
+the complexity of merging,
+
+01:00:18.690 --> 01:00:22.500
+because this is used as a
+subroutine in merge sort.
+
+01:00:22.500 --> 01:00:24.240
+And as you recall
+in merging, we're
+
+01:00:24.240 --> 01:00:26.640
+given two sorted input arrays.
+
+01:00:26.640 --> 01:00:28.770
+And we want to generate
+an output array that's
+
+01:00:28.770 --> 01:00:31.890
+also sorted containing all the
+elements from the two input
+
+01:00:31.890 --> 01:00:33.140
+arrays.
+
+01:00:33.140 --> 01:00:37.260
+And the algorithm is going to
+maintain a pointer to the head
+
+01:00:37.260 --> 01:00:39.090
+of each of our input arrays.
+
+01:00:39.090 --> 01:00:41.310
+And then it's going to
+compare the two elements
+
+01:00:41.310 --> 01:00:43.830
+and take the smaller one
+and put it into the output,
+
+01:00:43.830 --> 01:00:48.060
+and then increment the
+pointer for that array.
+
+01:00:48.060 --> 01:00:50.580
+And then we keep doing this,
+taking the smaller of the two
+
+01:00:50.580 --> 01:00:54.840
+elements until the two
+input arrays become empty,
+
+01:00:54.840 --> 01:00:57.300
+at which point we're
+done with the algorithm.
+
+01:00:57.300 --> 01:00:59.703
+We have one sorted output array.
+
+01:01:03.160 --> 01:01:03.660
+OK.
+
+01:01:03.660 --> 01:01:13.450
+So to merge n elements, the time
+to do this is just theta of n.
+
+01:01:13.450 --> 01:01:16.380
+Here n is the sum of the
+sizes of my two input arrays.
+
+01:01:16.380 --> 01:01:18.880
+And this is because I'm only
+doing a constant amount of work
+
+01:01:18.880 --> 01:01:20.815
+for each of my input elements.
+
+01:01:24.200 --> 01:01:25.860
+What about the number
+of cache misses?
+
+01:01:25.860 --> 01:01:30.590
+How many cache misses will incur
+when I'm merging n elements?
+
+01:01:37.125 --> 01:01:37.625
+Yes?
+
+01:01:37.625 --> 01:01:38.840
+AUDIENCE: [INAUDIBLE].
+
+01:01:38.840 --> 01:01:39.590
+JULIAN SHUN: Yeah.
+
+01:01:39.590 --> 01:01:42.120
+So I'm going to incur
+theta of n over B cache
+
+01:01:42.120 --> 01:01:45.920
+misses because my two input
+arrays are stored contiguously
+
+01:01:45.920 --> 01:01:48.410
+in memory so I can
+read them at B bytes
+
+01:01:48.410 --> 01:01:50.930
+at a time with just
+one cache miss.
+
+01:01:50.930 --> 01:01:53.300
+And then my output array
+is also stored contiguously
+
+01:01:53.300 --> 01:01:55.130
+so I can write
+things out B bytes
+
+01:01:55.130 --> 01:01:57.980
+at a time with just
+one cache miss.
+
+01:01:57.980 --> 01:02:01.550
+I might waste to cache line at
+the beginning and end of each
+
+01:02:01.550 --> 01:02:04.130
+of my three arrays, but
+that only affects the bound
+
+01:02:04.130 --> 01:02:05.120
+by a constant factor.
+
+01:02:05.120 --> 01:02:09.790
+So it's theta of n over B.
+
+01:02:09.790 --> 01:02:12.280
+So now let's look at merge sort.
+
+01:02:12.280 --> 01:02:16.870
+So recall that merge sort has
+two recursive calls to itself
+
+01:02:16.870 --> 01:02:18.680
+on inputs of half the size.
+
+01:02:18.680 --> 01:02:20.520
+And then it doesn't
+merge at the end
+
+01:02:20.520 --> 01:02:25.700
+to merge the two sorted
+outputs of its recursive calls.
+
+01:02:25.700 --> 01:02:30.610
+So if you look at how
+the recursion precedes,
+
+01:02:30.610 --> 01:02:34.965
+its first going to divide the
+input array into two halves.
+
+01:02:34.965 --> 01:02:36.590
+It's going to divide
+it into two halves
+
+01:02:36.590 --> 01:02:40.070
+again again, until
+you get to the base
+
+01:02:40.070 --> 01:02:43.700
+case of just one element,
+at which point you return.
+
+01:02:43.700 --> 01:02:46.040
+And then now we start merging
+pairs of these elements
+
+01:02:46.040 --> 01:02:47.550
+together.
+
+01:02:47.550 --> 01:02:50.870
+So now I have these arrays
+of size 2 in sorted order.
+
+01:02:50.870 --> 01:02:53.480
+And I merged pairs
+of those arrays.
+
+01:02:53.480 --> 01:02:57.230
+And I get subarrays of size 4.
+
+01:02:57.230 --> 01:02:59.030
+And then finally, I
+do this one more time
+
+01:02:59.030 --> 01:03:01.030
+to get my sorted output.
+
+01:03:04.820 --> 01:03:05.320
+OK.
+
+01:03:05.320 --> 01:03:09.320
+So let's review the
+work of merge sort.
+
+01:03:09.320 --> 01:03:11.740
+So what's the recurrence
+for merge sort
+
+01:03:11.740 --> 01:03:14.610
+if we're computing the work?
+
+01:03:14.610 --> 01:03:15.610
+Yes?
+
+01:03:15.610 --> 01:03:18.384
+AUDIENCE: [INAUDIBLE].
+
+01:03:18.384 --> 01:03:19.190
+JULIAN SHUN: Yeah.
+
+01:03:19.190 --> 01:03:19.960
+So that's correct.
+
+01:03:19.960 --> 01:03:22.870
+So I have two subproblems
+of size N over 2.
+
+01:03:22.870 --> 01:03:25.780
+And then I need to do theta
+n work to do the merge.
+
+01:03:28.750 --> 01:03:32.480
+And this is case two
+of master theorem.
+
+01:03:32.480 --> 01:03:36.220
+So I'm computing log base b of
+a, which is log base 2 of 2.
+
+01:03:36.220 --> 01:03:37.840
+And that's just 1.
+
+01:03:37.840 --> 01:03:40.600
+And that's the same as
+the exponent in the term
+
+01:03:40.600 --> 01:03:41.610
+that I'm adding in.
+
+01:03:41.610 --> 01:03:45.220
+So since they're the same, I
+add in an additional log factor.
+
+01:03:45.220 --> 01:03:48.056
+And my overall work is
+just theta of n log n.
+
+01:03:51.560 --> 01:03:52.060
+OK.
+
+01:03:52.060 --> 01:03:55.030
+So now I'm going to solve
+this recurrence again using
+
+01:03:55.030 --> 01:03:56.303
+the recursion tree method.
+
+01:03:56.303 --> 01:03:57.970
+I'm still going to
+get theta of n log n.
+
+01:03:57.970 --> 01:03:59.512
+But I'm doing this
+because it's going
+
+01:03:59.512 --> 01:04:04.330
+to be useful when we analyze
+the cache complexity.
+
+01:04:04.330 --> 01:04:07.810
+So at the top level I
+have a problem of size n.
+
+01:04:07.810 --> 01:04:10.570
+And I'm going to branch into
+two problems of size n over 2.
+
+01:04:10.570 --> 01:04:12.028
+And when I'm done
+with them, I have
+
+01:04:12.028 --> 01:04:13.990
+to do a merge, which
+takes theta of n work.
+
+01:04:13.990 --> 01:04:15.157
+And I'm just putting n here.
+
+01:04:15.157 --> 01:04:17.500
+I'm ignoring the constants.
+
+01:04:17.500 --> 01:04:19.370
+And I'm going to branch again.
+
+01:04:19.370 --> 01:04:23.560
+And each one of these is going
+to do n over 2 work to merge.
+
+01:04:23.560 --> 01:04:26.530
+And I'm going to get all
+the way down to my base case
+
+01:04:26.530 --> 01:04:30.460
+after log base 2 of n levels.
+
+01:04:30.460 --> 01:04:32.590
+The top level is doing n work.
+
+01:04:32.590 --> 01:04:34.660
+Second level is
+also doing n work.
+
+01:04:34.660 --> 01:04:37.450
+And it's going to be the
+same for all levels down
+
+01:04:37.450 --> 01:04:39.220
+to the leaves.
+
+01:04:39.220 --> 01:04:41.950
+Leaves is also doing a
+linear amount of work.
+
+01:04:41.950 --> 01:04:45.610
+So the overall work is just
+the work per level times
+
+01:04:45.610 --> 01:04:46.660
+the number of levels.
+
+01:04:46.660 --> 01:04:48.554
+So it's just theta of n log n.
+
+01:04:58.870 --> 01:04:59.370
+OK.
+
+01:04:59.370 --> 01:05:02.530
+So now let's analyze
+this with caching.
+
+01:05:02.530 --> 01:05:03.030
+OK.
+
+01:05:03.030 --> 01:05:06.360
+So we said earlier that
+the cache complexity
+
+01:05:06.360 --> 01:05:10.200
+of the merging subroutine
+is theta of n over B.
+
+01:05:10.200 --> 01:05:12.780
+And here's the
+recurrence for the cache
+
+01:05:12.780 --> 01:05:14.680
+complexity of merge sort.
+
+01:05:14.680 --> 01:05:20.100
+So my base case here is when
+n is less than or equal to cM,
+
+01:05:20.100 --> 01:05:23.430
+for some sufficiently
+small constant c.
+
+01:05:23.430 --> 01:05:25.470
+And this is because
+at this point,
+
+01:05:25.470 --> 01:05:27.600
+my problem size fits into cache.
+
+01:05:27.600 --> 01:05:29.970
+And everything else
+I do for that problem
+
+01:05:29.970 --> 01:05:33.480
+is still going to be in cache.
+
+01:05:33.480 --> 01:05:36.240
+And to load it into
+cache, the base case,
+
+01:05:36.240 --> 01:05:39.570
+I need to incur theta
+and over B cache misses.
+
+01:05:39.570 --> 01:05:43.290
+And otherwise, I'm going to have
+to recursive calls of size n
+
+01:05:43.290 --> 01:05:44.250
+over 2.
+
+01:05:44.250 --> 01:05:46.710
+And then I need to do
+theta of n over B cache
+
+01:05:46.710 --> 01:05:49.390
+misses to do the merge
+of my two results.
+
+01:05:51.990 --> 01:05:57.530
+So here, my base case is larger
+than what I did for the work.
+
+01:05:57.530 --> 01:05:59.820
+The algorithm actually
+is still recursing down
+
+01:05:59.820 --> 01:06:01.830
+to a constant size base case.
+
+01:06:01.830 --> 01:06:05.490
+But just for analysis, I'm
+stopping the recursion when
+
+01:06:05.490 --> 01:06:08.520
+n is less than or equal to CM.
+
+01:06:08.520 --> 01:06:09.540
+So let's analyze this.
+
+01:06:09.540 --> 01:06:12.590
+So again, I'm going to
+have the problems of size n
+
+01:06:12.590 --> 01:06:14.160
+at the beginning.
+
+01:06:14.160 --> 01:06:17.170
+And then I'm going to split into
+two problems of size n over 2.
+
+01:06:17.170 --> 01:06:19.170
+And then I'm going to
+have to pay n over B cache
+
+01:06:19.170 --> 01:06:22.750
+misses to merge the
+results together.
+
+01:06:22.750 --> 01:06:24.660
+Similarly for the
+next level, now I'm
+
+01:06:24.660 --> 01:06:28.920
+paying n over 2B cache misses
+for each of my two problems
+
+01:06:28.920 --> 01:06:30.660
+here to do the merge.
+
+01:06:30.660 --> 01:06:36.240
+And I keep going down until
+I get to a subproblem of size
+
+01:06:36.240 --> 01:06:37.830
+theta of cM.
+
+01:06:37.830 --> 01:06:39.630
+At that point, it's
+going to fit in cache.
+
+01:06:39.630 --> 01:06:42.750
+And I don't need to recurse
+anymore in my analysis.
+
+01:06:45.380 --> 01:06:48.080
+So number of levels
+of this recursion tree
+
+01:06:48.080 --> 01:06:51.770
+is just log base 2 of n over cM.
+
+01:06:51.770 --> 01:06:54.350
+So I'm basically chopping off
+the bottom up this recursion
+
+01:06:54.350 --> 01:06:55.640
+tree.
+
+01:06:55.640 --> 01:07:00.590
+The number of levels I had
+below this is log base 2 of cM.
+
+01:07:00.590 --> 01:07:02.960
+So I'm taking a log base
+2 of n and subtracting
+
+01:07:02.960 --> 01:07:04.280
+log base 2 of cM.
+
+01:07:04.280 --> 01:07:07.590
+And that's equivalent to log
+base 2 of n divided by cM.
+
+01:07:10.750 --> 01:07:15.220
+The number of leaves I have
+is n over cM since each leaf
+
+01:07:15.220 --> 01:07:18.310
+is state of cM large.
+
+01:07:18.310 --> 01:07:20.740
+And the number of cache
+misses I need to incur--
+
+01:07:20.740 --> 01:07:25.990
+to process a leaf is
+just theta of m over B,
+
+01:07:25.990 --> 01:07:31.270
+because I just need to load
+the input for that subproblem
+
+01:07:31.270 --> 01:07:31.840
+into cache.
+
+01:07:31.840 --> 01:07:33.731
+And then everything
+else fits in cache.
+
+01:07:36.890 --> 01:07:39.200
+So for the top level,
+I'm incurring n
+
+01:07:39.200 --> 01:07:41.540
+over B cache misses.
+
+01:07:41.540 --> 01:07:43.955
+The next level, I'm also
+incurring n over B cache
+
+01:07:43.955 --> 01:07:44.780
+misses.
+
+01:07:44.780 --> 01:07:46.460
+Same with the third level.
+
+01:07:46.460 --> 01:07:51.260
+And then for the leaves, I'm
+incurring m over B times n
+
+01:07:51.260 --> 01:07:53.000
+over cM cache misses.
+
+01:07:53.000 --> 01:07:55.250
+The n over cM is
+the number of leaves
+
+01:07:55.250 --> 01:07:58.355
+I have and theta of m over
+B is the number of cache
+
+01:07:58.355 --> 01:07:59.480
+misses per leaf.
+
+01:07:59.480 --> 01:08:05.790
+And that also equals
+theta of n over B.
+
+01:08:05.790 --> 01:08:09.090
+So overall, I multiply
+theta of n over B
+
+01:08:09.090 --> 01:08:11.760
+by the number of levels I have.
+
+01:08:11.760 --> 01:08:14.670
+So the number of levels I have
+is log base 2 of n over cM.
+
+01:08:14.670 --> 01:08:16.140
+And I just got rid
+of the constant
+
+01:08:16.140 --> 01:08:19.630
+here, since doesn't affect
+the asymptotic bound.
+
+01:08:19.630 --> 01:08:22.649
+So the number of cache misses I
+have is theta of n over B times
+
+01:08:22.649 --> 01:08:24.540
+log base 2 of--
+
+01:08:24.540 --> 01:08:30.240
+or any base for the
+log of n over M.
+
+01:08:30.240 --> 01:08:32.658
+So any questions
+on this analysis?
+
+01:08:40.979 --> 01:08:48.560
+So I am saving a factor of
+B here in the first term.
+
+01:08:48.560 --> 01:08:50.450
+So that does reduce.
+
+01:08:50.450 --> 01:08:52.520
+That just gives me a
+better cache complexity
+
+01:08:52.520 --> 01:08:54.529
+than just a work bound.
+
+01:08:54.529 --> 01:08:56.960
+But for the M
+term, it's actually
+
+01:08:56.960 --> 01:08:59.450
+inside the denominator
+of the log.
+
+01:08:59.450 --> 01:09:02.240
+And that doesn't actually
+help me that much.
+
+01:09:02.240 --> 01:09:05.750
+So let's look at how
+much we actually save.
+
+01:09:05.750 --> 01:09:11.720
+So one n is much greater than
+M. Then log base 2 of n over M
+
+01:09:11.720 --> 01:09:14.090
+is approximately equal
+to log base 2 of n.
+
+01:09:14.090 --> 01:09:18.109
+So the M term doesn't contribute
+much to the asymptotic costs,
+
+01:09:18.109 --> 01:09:20.359
+and therefore,
+compared to the work,
+
+01:09:20.359 --> 01:09:24.585
+we're only saving
+a factor of B. When
+
+01:09:24.585 --> 01:09:29.180
+n is approximately equal to
+M, then log base 2 of n over m
+
+01:09:29.180 --> 01:09:36.020
+is constant, and we're
+saving a factor of B log n.
+
+01:09:36.020 --> 01:09:38.569
+So we save more when
+the memory size--
+
+01:09:38.569 --> 01:09:40.399
+or when the problem
+size is small.
+
+01:09:40.399 --> 01:09:42.080
+But for large enough
+problem sizes,
+
+01:09:42.080 --> 01:09:45.710
+we're only saving
+a factor of B. So
+
+01:09:45.710 --> 01:09:48.420
+does anyone think that we
+can do better than this?
+
+01:09:53.420 --> 01:09:55.623
+So I've asked this question
+several times before,
+
+01:09:55.623 --> 01:09:57.040
+and the answer is
+always the same.
+
+01:09:59.900 --> 01:10:00.440
+Yes?
+
+01:10:00.440 --> 01:10:01.310
+It's a good answer.
+
+01:10:04.170 --> 01:10:06.710
+So we're going to do this
+using multiway merging.
+
+01:10:06.710 --> 01:10:09.470
+So instead of just merging
+two sorted subarrays,
+
+01:10:09.470 --> 01:10:13.400
+we're going to merge
+together R sorted subarrays.
+
+01:10:13.400 --> 01:10:15.830
+So we're going to have R
+subarrays, each of size
+
+01:10:15.830 --> 01:10:18.650
+n over R. And these are sorted.
+
+01:10:18.650 --> 01:10:20.150
+And I'm going to
+merge them together
+
+01:10:20.150 --> 01:10:23.840
+using what's called
+a tournament tree.
+
+01:10:23.840 --> 01:10:26.900
+So how the tournament
+tree works is I'm
+
+01:10:26.900 --> 01:10:31.590
+going to compare the heads of
+each pair of these subarrays
+
+01:10:31.590 --> 01:10:34.213
+and store it in the node
+of the tournament tree.
+
+01:10:34.213 --> 01:10:36.380
+And then after I do that,
+I compare these two nodes.
+
+01:10:36.380 --> 01:10:38.330
+And I get the
+minimum of those two.
+
+01:10:38.330 --> 01:10:42.387
+Eventually, after I compare
+all of the elements,
+
+01:10:42.387 --> 01:10:43.970
+I'm just left with
+the minimum element
+
+01:10:43.970 --> 01:10:45.428
+at the root of the
+tournament tree.
+
+01:10:45.428 --> 01:10:47.450
+And then I can place
+that into my output.
+
+01:10:50.990 --> 01:10:54.130
+So the first time I want to
+fill this tournament tree,
+
+01:10:54.130 --> 01:10:57.160
+it's going to theta of
+R work because there are
+
+01:10:57.160 --> 01:11:00.310
+R nodes in my tournament tree.
+
+01:11:00.310 --> 01:11:04.570
+So when I compare these two
+elements, the smaller one is 6.
+
+01:11:04.570 --> 01:11:07.420
+For these two, the
+smaller one is 2.
+
+01:11:07.420 --> 01:11:10.910
+And then I compare 2 and
+6, take the smaller one.
+
+01:11:10.910 --> 01:11:13.130
+And then on the other
+side, I have a 7 here.
+
+01:11:13.130 --> 01:11:14.290
+So I compare 2 and 7.
+
+01:11:14.290 --> 01:11:17.110
+2 is smaller, so it
+appears at the root.
+
+01:11:17.110 --> 01:11:18.750
+And then I know
+that that's going
+
+01:11:18.750 --> 01:11:22.660
+to be my minimum element among
+the heads of all of the R
+
+01:11:22.660 --> 01:11:24.010
+subarrays that I'm passing it.
+
+01:11:27.670 --> 01:11:30.370
+So the first time to
+generate this tournament tree
+
+01:11:30.370 --> 01:11:35.350
+takes theta of R work because
+I have to fill in R nodes.
+
+01:11:35.350 --> 01:11:38.680
+But once I generated
+this tournament tree,
+
+01:11:38.680 --> 01:11:42.640
+for all subsequent rounds, I
+only need to fill in the path
+
+01:11:42.640 --> 01:11:45.280
+from the element that one
+to the output or right,
+
+01:11:45.280 --> 01:11:47.020
+or to the root of
+the tournament tree,
+
+01:11:47.020 --> 01:11:50.000
+because those are the only
+values that would have changed.
+
+01:11:50.000 --> 01:11:52.310
+So now I'm going to
+fill in this path here.
+
+01:11:52.310 --> 01:11:55.660
+And this only takes theta
+of log R work to do it,
+
+01:11:55.660 --> 01:11:57.910
+because the height of
+this tournament tree
+
+01:11:57.910 --> 01:12:01.150
+is log base 2 of R.
+
+01:12:01.150 --> 01:12:02.810
+So I'm going to fill this in.
+
+01:12:02.810 --> 01:12:04.120
+Now 14 goes here.
+
+01:12:04.120 --> 01:12:05.650
+6 is a smaller of the two.
+
+01:12:05.650 --> 01:12:07.720
+And then 6 is a smaller
+of the two again.
+
+01:12:07.720 --> 01:12:09.517
+So my next element is 6.
+
+01:12:14.090 --> 01:12:17.040
+And I keep doing this until
+all of the elements for my R
+
+01:12:17.040 --> 01:12:21.680
+subarrays get put
+into the output.
+
+01:12:21.680 --> 01:12:23.750
+The total work for
+merging is going
+
+01:12:23.750 --> 01:12:26.750
+to be theta of R
+for the first round,
+
+01:12:26.750 --> 01:12:30.140
+plus n log R for all
+the remaining rounds.
+
+01:12:30.140 --> 01:12:33.740
+And that's just equal
+to theta of n log R,
+
+01:12:33.740 --> 01:12:37.530
+because we're assuming that
+n is bigger than R here.
+
+01:12:37.530 --> 01:12:40.743
+Any questions on how the
+multiway merge works?
+
+01:12:44.830 --> 01:12:45.330
+No?
+
+01:12:45.330 --> 01:12:45.830
+OK.
+
+01:12:45.830 --> 01:12:48.630
+So let's analyze the
+work of this multiway
+
+01:12:48.630 --> 01:12:53.260
+merge when used
+inside merge sort.
+
+01:12:53.260 --> 01:12:55.250
+So the recurrence is
+going to be as follows.
+
+01:12:55.250 --> 01:13:00.190
+So if n is 1, then we just
+do a constant amount of work.
+
+01:13:00.190 --> 01:13:03.600
+Otherwise, we have R
+subproblems of size n over R.
+
+01:13:03.600 --> 01:13:08.970
+And then we're paying theta of n
+log R to do the multiway merge.
+
+01:13:08.970 --> 01:13:11.130
+So here's the recursion tree.
+
+01:13:11.130 --> 01:13:15.390
+At the top level, we
+have a problem of size n.
+
+01:13:15.390 --> 01:13:18.300
+And then we're going to split
+into R subproblems of size n/R.
+
+01:13:18.300 --> 01:13:20.250
+And then we have
+to pay n log R work
+
+01:13:20.250 --> 01:13:24.800
+to merge the results of the
+recursive call together.
+
+01:13:24.800 --> 01:13:26.040
+And then we keep doing this.
+
+01:13:26.040 --> 01:13:29.040
+Turns out that the
+work at each level
+
+01:13:29.040 --> 01:13:35.370
+sums up to n log base 2 of
+R. And the number of levels
+
+01:13:35.370 --> 01:13:40.110
+we have here is log base R
+of n, because each time we're
+
+01:13:40.110 --> 01:13:45.750
+branching by a factor of R. For
+the leaves, we have n leaves.
+
+01:13:45.750 --> 01:13:47.490
+And we just pay
+linear work for that,
+
+01:13:47.490 --> 01:13:50.670
+because we don't have
+to pay for the merge.
+
+01:13:50.670 --> 01:13:52.890
+We're not doing anymore
+recursive calls.
+
+01:13:52.890 --> 01:13:57.260
+So the overall work is
+going to be theta of n log
+
+01:13:57.260 --> 01:14:00.960
+R times log base R of n,
+plus n for the leaves,
+
+01:14:00.960 --> 01:14:02.850
+but that's just a
+lower order term.
+
+01:14:02.850 --> 01:14:05.118
+And if you work out the
+math, some of these terms
+
+01:14:05.118 --> 01:14:06.660
+are going to cancel
+out, and you just
+
+01:14:06.660 --> 01:14:08.940
+get theta of log n for the work.
+
+01:14:08.940 --> 01:14:14.070
+So the work is the same
+as the binary merge sort.
+
+01:14:14.070 --> 01:14:17.650
+Let's now analyze
+the cash complexity.
+
+01:14:17.650 --> 01:14:20.760
+So let's assume that
+we have R less than cM
+
+01:14:20.760 --> 01:14:24.130
+over B for a sufficiently
+small constant C less than
+
+01:14:24.130 --> 01:14:25.940
+or equal to 1.
+
+01:14:25.940 --> 01:14:28.770
+We're going to consider the
+R way merging of contiguous
+
+01:14:28.770 --> 01:14:31.170
+arrays of total size n.
+
+01:14:31.170 --> 01:14:33.990
+And if R is less than
+cM over B, then we
+
+01:14:33.990 --> 01:14:36.780
+can fit the entire
+tournament tree into cache.
+
+01:14:36.780 --> 01:14:40.530
+And we can also fit one block
+from each of the R subarrays
+
+01:14:40.530 --> 01:14:43.680
+into cache.
+
+01:14:43.680 --> 01:14:46.410
+And in that case, the
+total number of cache
+
+01:14:46.410 --> 01:14:51.090
+misses to do the multiway merge
+is just theta of n over B,
+
+01:14:51.090 --> 01:14:54.630
+because we just have to go over
+the n elements in our input
+
+01:14:54.630 --> 01:14:57.230
+arrays.
+
+01:14:57.230 --> 01:15:00.210
+So the recurrence for the R
+way merge sort is as follows.
+
+01:15:00.210 --> 01:15:04.390
+So if n is less than cM,
+then it fits in cache.
+
+01:15:04.390 --> 01:15:07.210
+So the number of cache misses we
+pay is just theta of n over B.
+
+01:15:07.210 --> 01:15:10.080
+And otherwise, we have R
+subproblems of size n over R.
+
+01:15:10.080 --> 01:15:11.710
+And that we add
+theta of n over B
+
+01:15:11.710 --> 01:15:15.750
+to do the merge of the
+results of the subproblems.
+
+01:15:15.750 --> 01:15:18.115
+Any questions on
+the recurrence here?
+
+01:15:23.540 --> 01:15:24.040
+Yes?
+
+01:15:24.040 --> 01:15:27.090
+AUDIENCE: So how do we
+pick up the value of R?
+
+01:15:27.090 --> 01:15:29.450
+Does it make it cache oblivious?
+
+01:15:29.450 --> 01:15:30.620
+JULIAN SHUN: Good question.
+
+01:15:30.620 --> 01:15:32.740
+So we didn't pick
+the value of R.
+
+01:15:32.740 --> 01:15:34.891
+So this is not a cache
+oblivious algorithm.
+
+01:15:40.080 --> 01:15:44.990
+And we'll see what to choose
+for R in a couple of slides.
+
+01:15:44.990 --> 01:15:48.430
+So let's analyze the cache
+complexity of this algorithm
+
+01:15:48.430 --> 01:15:51.760
+again, using the
+recursion tree analysis.
+
+01:15:51.760 --> 01:15:57.090
+So at the top level, we're going
+to have R subproblems of size
+
+01:15:57.090 --> 01:15:59.170
+n over R. And we have
+to pay n over B cache
+
+01:15:59.170 --> 01:16:01.310
+misses to merge them.
+
+01:16:01.310 --> 01:16:05.470
+And it turns out that at each
+level, the number of cache
+
+01:16:05.470 --> 01:16:09.300
+misses we have to pay is n over
+B, if you work out the math.
+
+01:16:09.300 --> 01:16:11.260
+And the number of levels
+of this recursion tree
+
+01:16:11.260 --> 01:16:14.260
+is going to be log
+base R of n over cM,
+
+01:16:14.260 --> 01:16:16.080
+because we're going
+to stop recurring
+
+01:16:16.080 --> 01:16:18.100
+when our problem size is cM.
+
+01:16:18.100 --> 01:16:20.410
+And on every level
+of recursion, we're
+
+01:16:20.410 --> 01:16:27.670
+branching by a factor of R. So
+our leaf size is cM, therefore
+
+01:16:27.670 --> 01:16:30.550
+the number of leaves
+we have is n over cM.
+
+01:16:30.550 --> 01:16:34.270
+And for each leaf, it's going
+to take theta of m over B cache
+
+01:16:34.270 --> 01:16:36.190
+misses to load it into cache.
+
+01:16:36.190 --> 01:16:39.220
+And afterwards, we can
+do everything in cache.
+
+01:16:39.220 --> 01:16:43.300
+And multiplying the number of
+leaves by the cost per leaf,
+
+01:16:43.300 --> 01:16:46.000
+we get theta of n
+over B cache misses.
+
+01:16:46.000 --> 01:16:48.670
+And therefore, the
+number of cache
+
+01:16:48.670 --> 01:16:50.860
+misses is n over B times
+the number of levels.
+
+01:16:50.860 --> 01:16:57.390
+Number of levels is
+log base R of n over M.
+
+01:16:57.390 --> 01:17:01.510
+So compared to the binary
+merge sort algorithm,
+
+01:17:01.510 --> 01:17:04.630
+here we actually have a factor
+of R in the base of the log.
+
+01:17:04.630 --> 01:17:09.610
+Before, the base of
+the log was just 2.
+
+01:17:09.610 --> 01:17:15.080
+So now the question is what
+we're going to set R to be.
+
+01:17:15.080 --> 01:17:17.720
+So again, we have
+a voodoo parameter.
+
+01:17:17.720 --> 01:17:20.330
+This is not a cache
+oblivious algorithm.
+
+01:17:20.330 --> 01:17:23.760
+And we said that R has to be
+less than or equal to cM over
+
+01:17:23.760 --> 01:17:25.670
+B in order for the
+analysis to work out.
+
+01:17:25.670 --> 01:17:27.650
+So let's just make it
+as large as possible.
+
+01:17:27.650 --> 01:17:32.240
+Let's just set R equal
+to theta of M over B.
+
+01:17:32.240 --> 01:17:37.250
+And now we can see what this
+complexity works out to be.
+
+01:17:37.250 --> 01:17:40.080
+So we have the total
+cache assumption.
+
+01:17:40.080 --> 01:17:43.550
+We also have the fact that
+log base M of n over M
+
+01:17:43.550 --> 01:17:48.230
+is equal to theta
+of log n over log M.
+
+01:17:48.230 --> 01:17:53.090
+So the cache complexity is
+theta of n over B times log base
+
+01:17:53.090 --> 01:17:57.740
+M over B of n over M. But if we
+have the tall cache assumption
+
+01:17:57.740 --> 01:18:00.870
+that log base M over B is
+the same as log base of M
+
+01:18:00.870 --> 01:18:02.030
+asymptotically.
+
+01:18:02.030 --> 01:18:04.820
+So that's how we get
+to the second line.
+
+01:18:04.820 --> 01:18:07.550
+And then you can
+rearrange some terms
+
+01:18:07.550 --> 01:18:09.200
+and cancel some terms out.
+
+01:18:09.200 --> 01:18:15.560
+And we'll end up with theta
+of n log n divided by B log M.
+
+01:18:15.560 --> 01:18:17.960
+So we're saving
+a factor of theta
+
+01:18:17.960 --> 01:18:23.030
+of b log M compared to
+the work of the algorithm,
+
+01:18:23.030 --> 01:18:25.340
+whereas for the binary
+version of merge sort,
+
+01:18:25.340 --> 01:18:28.550
+we were only saving a factor
+of B for large enough inputs.
+
+01:18:28.550 --> 01:18:36.050
+So here we get another factor
+of log M in our savings.
+
+01:18:36.050 --> 01:18:41.240
+So as I said, the binary one
+cache misses is n log n over B,
+
+01:18:41.240 --> 01:18:45.110
+whereas the multiway one
+is n log n over B log M.
+
+01:18:45.110 --> 01:18:47.870
+And as longest as n is
+much greater than M,
+
+01:18:47.870 --> 01:18:52.790
+then we're actually saving much
+more than the binary version.
+
+01:18:52.790 --> 01:18:55.970
+So we're saving a factor
+of log M in cache misses.
+
+01:18:55.970 --> 01:18:59.870
+And let's just ignore the
+constants here and look at what
+
+01:18:59.870 --> 01:19:02.060
+log M can be in practice.
+
+01:19:02.060 --> 01:19:03.990
+So here are some
+typical cache sizes.
+
+01:19:03.990 --> 01:19:06.560
+The L1 cache size
+is 32 kilobytes,
+
+01:19:06.560 --> 01:19:08.330
+so that's 2 to the 15th.
+
+01:19:08.330 --> 01:19:10.490
+And log base 2 of that is 15.
+
+01:19:10.490 --> 01:19:12.980
+So we get a 15x savings.
+
+01:19:12.980 --> 01:19:14.780
+And then for the
+larger cache sizes,
+
+01:19:14.780 --> 01:19:17.204
+we get even larger saving.
+
+01:19:17.204 --> 01:19:19.589
+So any questions on this?
+
+01:19:23.410 --> 01:19:25.870
+So the problem
+with this algorithm
+
+01:19:25.870 --> 01:19:27.580
+is that it's not
+cache oblivious.
+
+01:19:27.580 --> 01:19:31.610
+We have to tune the value of
+R for a particular machine.
+
+01:19:31.610 --> 01:19:33.670
+And even when we're running
+on the same machine,
+
+01:19:33.670 --> 01:19:35.110
+there could be
+other jobs running
+
+01:19:35.110 --> 01:19:37.420
+that contend for the cache.
+
+01:19:37.420 --> 01:19:40.360
+Turns out that there are
+several cache oblivious sorting
+
+01:19:40.360 --> 01:19:40.870
+algorithms.
+
+01:19:40.870 --> 01:19:44.740
+The first one that was
+developed was by paper
+
+01:19:44.740 --> 01:19:47.440
+by Charles Leiserson, and
+it's called funnel sort.
+
+01:19:47.440 --> 01:19:52.000
+The idea here is to recursively
+sort n to the 1/3 groups of n
+
+01:19:52.000 --> 01:19:55.390
+to the 2/3 elements, and
+then merge the sorted groups
+
+01:19:55.390 --> 01:19:59.020
+with an n to the 1/3 funnel.
+
+01:19:59.020 --> 01:20:02.950
+And this funnel is called
+a k funnel, more generally,
+
+01:20:02.950 --> 01:20:07.180
+and it merges together k cubed
+elements in a k sorted list.
+
+01:20:07.180 --> 01:20:11.050
+And the costs for doing
+this merge is shown here.
+
+01:20:11.050 --> 01:20:13.270
+And if you plug this
+into the recurrence,
+
+01:20:13.270 --> 01:20:15.460
+you'll get that, the
+asymptotic number of cache
+
+01:20:15.460 --> 01:20:18.460
+misses is the same as
+that of the multiway
+
+01:20:18.460 --> 01:20:21.520
+merge sort algorithm while
+being cache oblivious.
+
+01:20:21.520 --> 01:20:24.508
+And this bound is
+actually optimal.
+
+01:20:24.508 --> 01:20:26.050
+So I'm not going to
+have time to talk
+
+01:20:26.050 --> 01:20:29.230
+about the details of the
+funnel sort algorithm.
+
+01:20:29.230 --> 01:20:30.700
+But I do have time
+to just show you
+
+01:20:30.700 --> 01:20:33.740
+a pretty picture of what
+the funnel looks like.
+
+01:20:33.740 --> 01:20:35.650
+So this is what a k
+funnel looks like.
+
+01:20:35.650 --> 01:20:37.720
+It's recursively constructed.
+
+01:20:37.720 --> 01:20:40.727
+We have a bunch of square
+root of k funnels inside.
+
+01:20:40.727 --> 01:20:42.310
+They're all connected
+to some buffers.
+
+01:20:42.310 --> 01:20:44.170
+So they feed
+elements the buffer,
+
+01:20:44.170 --> 01:20:45.640
+and then the
+buffers feed element
+
+01:20:45.640 --> 01:20:50.483
+to this output square root
+of k funnel, which becomes
+
+01:20:50.483 --> 01:20:51.650
+the output for the k funnel.
+
+01:20:51.650 --> 01:20:54.160
+So this whole blue
+thing is the k funnel.
+
+01:20:54.160 --> 01:20:58.900
+And the small green triangles
+are square root of k funnels.
+
+01:20:58.900 --> 01:21:01.900
+And the number of cache misses
+incurred by doing this merge
+
+01:21:01.900 --> 01:21:02.920
+is shown here.
+
+01:21:02.920 --> 01:21:07.450
+And it uses the tall cache
+assumption for analysis.
+
+01:21:07.450 --> 01:21:08.590
+So a pretty cool algorithm.
+
+01:21:08.590 --> 01:21:11.735
+And we've posted a paper online
+that describes this algorithm.
+
+01:21:11.735 --> 01:21:13.360
+So if you're interested
+in the details,
+
+01:21:13.360 --> 01:21:15.835
+I encourage you to
+read that paper.
+
+01:21:15.835 --> 01:21:18.460
+There are also many other cache
+oblivious algorithms out there.
+
+01:21:18.460 --> 01:21:20.830
+So there's been
+hundreds of papers
+
+01:21:20.830 --> 01:21:22.630
+on cache oblivious algorithms.
+
+01:21:22.630 --> 01:21:23.800
+Here are some of them.
+
+01:21:23.800 --> 01:21:25.850
+Some of these are also
+described in the paper.
+
+01:21:25.850 --> 01:21:27.730
+In fact, I think all
+of these are described
+
+01:21:27.730 --> 01:21:29.880
+in the paper we posted.
+
+01:21:29.880 --> 01:21:32.605
+There are also some cool cache
+oblivious data structures
+
+01:21:32.605 --> 01:21:35.650
+that have been developed,
+such as for B-trees,
+
+01:21:35.650 --> 01:21:38.513
+ordered-file maintenance,
+and priority queues.
+
+01:21:38.513 --> 01:21:40.930
+So it's a lot of literature
+on cache oblivious algorithms.
+
+01:21:40.930 --> 01:21:43.150
+And there's also a
+lot of material online
+
+01:21:43.150 --> 01:21:45.780
+if you're interested
+in learning more.

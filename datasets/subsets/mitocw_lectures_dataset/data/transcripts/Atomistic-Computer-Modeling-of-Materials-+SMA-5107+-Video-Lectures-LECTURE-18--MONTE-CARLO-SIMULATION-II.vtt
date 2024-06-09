@@ -1,0 +1,5367 @@
+WEBVTT
+
+00:00:00.318 --> 00:00:02.360
+GERBRAND CEDER: --recap
+a little the introduction
+
+00:00:02.360 --> 00:00:03.890
+to Monte Carlo.
+
+00:00:03.890 --> 00:00:07.580
+And then, I want to show you
+in different types of systems,
+
+00:00:07.580 --> 00:00:10.100
+systems with different
+types of degrees of freedom,
+
+00:00:10.100 --> 00:00:14.420
+how you would implement
+a Monte Carlo move.
+
+00:00:14.420 --> 00:00:16.730
+And then towards the end,
+depending on how far we get,
+
+00:00:16.730 --> 00:00:21.020
+I'll talk a little about
+error analysis in Monte Carlo
+
+00:00:21.020 --> 00:00:23.810
+and also about things like
+free energy integration
+
+00:00:23.810 --> 00:00:28.820
+and how to detect phase
+transitions in Monte Carlo.
+
+00:00:28.820 --> 00:00:29.320
+OK.
+
+00:00:32.640 --> 00:00:35.565
+I wanted to go through the
+list of references first.
+
+00:00:38.130 --> 00:00:40.770
+For general
+statistical mechanics,
+
+00:00:40.770 --> 00:00:44.610
+the books I particularly like
+are David Chandler's book
+
+00:00:44.610 --> 00:00:47.520
+and Don McQuarrie's book.
+
+00:00:47.520 --> 00:00:51.000
+Those of you who've
+taken 320 with me,
+
+00:00:51.000 --> 00:00:55.890
+Statistical Thermodynamics is
+exactly the book we use in 320.
+
+00:00:55.890 --> 00:00:59.430
+But if you've never sort
+of seen the relation
+
+00:00:59.430 --> 00:01:01.470
+between statistical
+mechanics and thermo,
+
+00:01:01.470 --> 00:01:04.590
+then I would really
+recommend to Dave Chandler's
+
+00:01:04.590 --> 00:01:06.300
+little green book.
+
+00:01:06.300 --> 00:01:09.540
+It's really sort of an
+excellent but short tutorial,
+
+00:01:09.540 --> 00:01:12.600
+I think, to modern
+statistical mechanics.
+
+00:01:12.600 --> 00:01:15.750
+More specifically
+on the Monte Carlo,
+
+00:01:15.750 --> 00:01:19.110
+my favorite is the book by
+Franklin Smith, which I think
+
+00:01:19.110 --> 00:01:20.460
+is now in a second edition.
+
+00:01:20.460 --> 00:01:22.950
+I sort of noticed that
+people had a book that
+
+00:01:22.950 --> 00:01:24.810
+looked very different.
+
+00:01:24.810 --> 00:01:26.730
+If it's anywhere like
+the first edition,
+
+00:01:26.730 --> 00:01:29.707
+I thought it was a
+really good book.
+
+00:01:29.707 --> 00:01:32.040
+I think it's a little deeper
+than all of the other books
+
+00:01:32.040 --> 00:01:33.810
+I've seen on Monte Carlo.
+
+00:01:33.810 --> 00:01:37.110
+Because of that, it may
+look a little more abstract
+
+00:01:37.110 --> 00:01:38.550
+on some occasions.
+
+00:01:38.550 --> 00:01:41.370
+And because these
+guys are chemists,
+
+00:01:41.370 --> 00:01:44.640
+it tends to focus heavily on
+molecular systems rather than
+
+00:01:44.640 --> 00:01:45.840
+solid state.
+
+00:01:45.840 --> 00:01:48.660
+But I think it's a
+great book to learn
+
+00:01:48.660 --> 00:01:51.570
+the proper statistical
+mechanics and sort
+
+00:01:51.570 --> 00:01:54.210
+of the theory of Monte Carlo.
+
+00:01:54.210 --> 00:01:57.250
+The Newman book is
+pretty good as well.
+
+00:01:57.250 --> 00:01:59.290
+And then a classic
+for Monte Carlo books
+
+00:01:59.290 --> 00:02:01.182
+is all the books by Binder.
+
+00:02:01.182 --> 00:02:02.640
+Binder has actually
+several books--
+
+00:02:02.640 --> 00:02:07.320
+Kurt Binder-- at least four or
+five, some thick, some thin.
+
+00:02:07.320 --> 00:02:09.750
+And Binder's expertise
+is essentially
+
+00:02:09.750 --> 00:02:11.610
+Monte Carlp and lattice models.
+
+00:02:11.610 --> 00:02:13.330
+I mean, he does
+other stuff as well,
+
+00:02:13.330 --> 00:02:15.720
+but that's really where
+his expertise lie.
+
+00:02:15.720 --> 00:02:19.730
+And in particular,
+long chain molecules,
+
+00:02:19.730 --> 00:02:22.530
+for example if you do
+polymers on lattice models.
+
+00:02:22.530 --> 00:02:24.750
+And I'll show an
+example of that.
+
+00:02:24.750 --> 00:02:26.680
+Binder's book is great for that.
+
+00:02:26.680 --> 00:02:28.800
+But he has the standard
+introduction in there
+
+00:02:28.800 --> 00:02:32.520
+with lattice models with
+Ising like-- so spin models,
+
+00:02:32.520 --> 00:02:35.670
+how to do the statistical
+mechanics of those,
+
+00:02:35.670 --> 00:02:37.290
+how to look at transitions.
+
+00:02:37.290 --> 00:02:42.690
+It's a great reference if
+you're first starting out.
+
+00:02:42.690 --> 00:02:43.770
+OK.
+
+00:02:43.770 --> 00:02:48.120
+So let me sort of recap
+how we got to Monte Carlo.
+
+00:02:48.120 --> 00:02:50.490
+Remember that we talked
+about an ensemble
+
+00:02:50.490 --> 00:02:54.660
+as a collection of the
+microscopic states that
+
+00:02:54.660 --> 00:02:56.890
+really belong to one
+macroscopic state.
+
+00:02:56.890 --> 00:03:00.060
+So the macroscopic state is
+thermodynamically defined.
+
+00:03:00.060 --> 00:03:02.970
+The ensemble is the collection
+of microscopic states
+
+00:03:02.970 --> 00:03:05.310
+that the system goes
+through for a given
+
+00:03:05.310 --> 00:03:09.030
+set of thermodynamic
+boundary conditions.
+
+00:03:09.030 --> 00:03:12.720
+The probability that your
+state is in a given system
+
+00:03:12.720 --> 00:03:15.600
+is the exponential minus
+beta, the Hamiltonian,
+
+00:03:15.600 --> 00:03:17.940
+normalized by the
+partition function.
+
+00:03:17.940 --> 00:03:21.450
+And so the way you
+track averages is simply
+
+00:03:21.450 --> 00:03:28.290
+by averaging the property
+over the microstates
+
+00:03:28.290 --> 00:03:30.600
+with the relevant probability.
+
+00:03:30.600 --> 00:03:32.820
+We distinguish two
+types of sampling--
+
+00:03:32.820 --> 00:03:36.000
+and I'll come back to this later
+to show you intermediates--
+
+00:03:36.000 --> 00:03:41.700
+simple sampling, where you would
+randomly pick in the ensemble,
+
+00:03:41.700 --> 00:03:44.790
+and then weigh the property--
+let's say that A is
+
+00:03:44.790 --> 00:03:48.240
+the property you're
+trying to average--
+
+00:03:48.240 --> 00:03:51.240
+with the correct probability.
+
+00:03:51.240 --> 00:03:53.640
+And I've shown you
+why in many cases,
+
+00:03:53.640 --> 00:03:57.380
+in systems with a large
+number of degrees of freedom,
+
+00:03:57.380 --> 00:03:59.730
+why simple sampling
+will not work.
+
+00:03:59.730 --> 00:04:03.030
+Because you will tend
+to pick the states that
+
+00:04:03.030 --> 00:04:05.410
+have high degeneracy--
+
+00:04:05.410 --> 00:04:08.670
+so the type of states that have
+high frequency of occurrence,
+
+00:04:08.670 --> 00:04:13.110
+not the states that necessarily
+determine your average well.
+
+00:04:13.110 --> 00:04:16.800
+And the classic example is
+if you take the spin model--
+
+00:04:16.800 --> 00:04:18.930
+if you're in a low
+temperature state,
+
+00:04:18.930 --> 00:04:22.380
+the dominant states are
+the ferromagnetic states.
+
+00:04:22.380 --> 00:04:24.390
+Whereas if you randomly
+picked spin states,
+
+00:04:24.390 --> 00:04:26.790
+you would all pick
+disordered states.
+
+00:04:26.790 --> 00:04:29.430
+You would barely
+ever have any states
+
+00:04:29.430 --> 00:04:33.790
+with significant
+ferromagnetic patches.
+
+00:04:33.790 --> 00:04:36.360
+So that's why we went
+to importance sampling.
+
+00:04:36.360 --> 00:04:38.730
+And importance
+sampling is essentially
+
+00:04:38.730 --> 00:04:42.120
+you try to pick the
+states in your sample
+
+00:04:42.120 --> 00:04:45.120
+immediately with the
+correct probability
+
+00:04:45.120 --> 00:04:46.860
+or with a rate
+that's proportional
+
+00:04:46.860 --> 00:04:48.490
+to the correct probability.
+
+00:04:48.490 --> 00:04:50.520
+So if you pick them
+with the proper rate,
+
+00:04:50.520 --> 00:04:53.520
+you really just average the
+property you're getting.
+
+00:04:53.520 --> 00:04:57.780
+Because these already occur
+in the sample with a frequency
+
+00:04:57.780 --> 00:05:00.750
+proportional to the
+correct probability.
+
+00:05:00.750 --> 00:05:02.895
+That's the idea of
+importance sampling.
+
+00:05:14.000 --> 00:05:15.590
+OK.
+
+00:05:15.590 --> 00:05:18.950
+So I've shown you how a
+typical Metropolis algorithm
+
+00:05:18.950 --> 00:05:22.490
+with Boltzmann's
+sampling would work.
+
+00:05:22.490 --> 00:05:24.410
+You would start with
+some configuration
+
+00:05:24.410 --> 00:05:27.560
+in the system, which could
+be pretty much anything.
+
+00:05:27.560 --> 00:05:30.400
+You would choose a
+perturbation of the system--
+
+00:05:30.400 --> 00:05:33.560
+and I'll do a lot more
+examples of what these can be.
+
+00:05:33.560 --> 00:05:36.710
+You compute the energy
+of that perturbation.
+
+00:05:36.710 --> 00:05:40.580
+If the energy goes down,
+you accept the perturbation.
+
+00:05:40.580 --> 00:05:42.110
+If the energy goes
+up, you accept it
+
+00:05:42.110 --> 00:05:46.320
+with a probability of
+the Boltzmann factor--
+
+00:05:46.320 --> 00:05:49.880
+so the exponential minus
+beta delta E-- and then
+
+00:05:49.880 --> 00:05:51.200
+you kind of circle around.
+
+00:06:00.740 --> 00:06:05.330
+It's not totally clear who first
+developed modern Monte Carlo,
+
+00:06:05.330 --> 00:06:11.690
+but it's often attributed to
+Metropolis in this famous paper
+
+00:06:11.690 --> 00:06:14.150
+Metropolis, Rosenbluth,
+Rosenbluth, Teller, and Teller.
+
+00:06:14.150 --> 00:06:17.040
+Her I know these Tellers
+were husband and wife.
+
+00:06:17.040 --> 00:06:19.670
+I'm not sure about the
+Rosenbluth, but I also saw--
+
+00:06:19.670 --> 00:06:21.770
+these were couples
+doing research together.
+
+00:06:24.690 --> 00:06:29.370
+And no surprise, the sort of
+modern version of Monte Carlo
+
+00:06:29.370 --> 00:06:32.610
+essentially started with
+the advent of computers.
+
+00:06:32.610 --> 00:06:34.800
+Because to do the
+statistical sampling,
+
+00:06:34.800 --> 00:06:36.800
+essentially what you
+need was a computer.
+
+00:06:36.800 --> 00:06:39.900
+So the time frame
+is about the same.
+
+00:06:39.900 --> 00:06:41.550
+I give you one
+example of a model
+
+00:06:41.550 --> 00:06:45.930
+that I'm going to come back to,
+the Ising spin model, where you
+
+00:06:45.930 --> 00:06:48.810
+literally have up and down
+spins on given lattice sites
+
+00:06:48.810 --> 00:06:52.050
+with a simple
+interaction Hamiltonian.
+
+00:06:52.050 --> 00:06:53.970
+And the reason these
+models are nice,
+
+00:06:53.970 --> 00:06:58.020
+you can very quickly calculate
+the excitation energy.
+
+00:06:58.020 --> 00:07:02.340
+So for example, if you were
+in a ferromagnetic state--
+
+00:07:02.340 --> 00:07:06.380
+so a central spin is
+surrounded by four up spins,
+
+00:07:06.380 --> 00:07:08.380
+so in a ferromagnetic state--
+
+00:07:08.380 --> 00:07:10.915
+you can easily calculate
+what the spin flip energy
+
+00:07:10.915 --> 00:07:15.310
+is of these.
+
+00:07:15.310 --> 00:07:17.890
+Here you have four
+parallel bonds.
+
+00:07:17.890 --> 00:07:21.220
+If you flip this over, you
+have four antiparallel bonds
+
+00:07:21.220 --> 00:07:29.040
+So the delta E is essentially
+8 times the bond energy,
+
+00:07:29.040 --> 00:07:32.290
+assuming this case
+eta j is positive.
+
+00:07:32.290 --> 00:07:36.360
+So an excitation occurs with the
+rate of exponential minus beta
+
+00:07:36.360 --> 00:07:39.980
+delta E.
+
+00:07:39.980 --> 00:07:43.400
+If you ever want to play games
+and try to write really, really
+
+00:07:43.400 --> 00:07:47.390
+fast Monte Carlo code, if you
+just have a nearest neighbor
+
+00:07:47.390 --> 00:07:53.990
+interaction, you see that the
+number of different excitation
+
+00:07:53.990 --> 00:07:57.260
+energies you can
+get is very finite.
+
+00:07:57.260 --> 00:07:59.210
+Because there's really
+only a small number
+
+00:07:59.210 --> 00:08:01.860
+of possible nearest
+neighbor environments.
+
+00:08:01.860 --> 00:08:05.420
+And so what you can
+do is tabulate them.
+
+00:08:05.420 --> 00:08:07.190
+You can tabulate
+their exponential
+
+00:08:07.190 --> 00:08:08.720
+at a given temperature.
+
+00:08:08.720 --> 00:08:11.360
+And so then you save
+all the calculations
+
+00:08:11.360 --> 00:08:12.960
+of these exponentials.
+
+00:08:12.960 --> 00:08:16.220
+And you can write extremely
+fast Monte Carlo code.
+
+00:08:16.220 --> 00:08:19.640
+This is code where you can
+easily reach 100 million
+
+00:08:19.640 --> 00:08:21.150
+spin flip attempts per second.
+
+00:08:21.150 --> 00:08:25.220
+So you can do, just for the
+fun of it, amazing statistics.
+
+00:08:25.220 --> 00:08:27.080
+You can keep on doing that.
+
+00:08:27.080 --> 00:08:29.900
+It's something to keep
+in mind, that if you're
+
+00:08:29.900 --> 00:08:32.360
+going to do Monte Carlo
+where speed becomes
+
+00:08:32.360 --> 00:08:36.299
+an issue, sometimes if you
+have discrete environments,
+
+00:08:36.299 --> 00:08:39.054
+it can be efficient to
+tabulate them ahead of time.
+
+00:08:39.054 --> 00:08:40.429
+Because if you
+can tabulate them,
+
+00:08:40.429 --> 00:08:41.960
+you can tabulate their energy.
+
+00:08:41.960 --> 00:08:43.940
+That means you can
+tabulator exponential,
+
+00:08:43.940 --> 00:08:48.230
+and there's a big chunk
+of time you tend to save.
+
+00:08:48.230 --> 00:08:51.410
+The way we implement
+the probability
+
+00:08:51.410 --> 00:08:53.618
+is with random numbers.
+
+00:08:53.618 --> 00:08:55.160
+And I want to come
+back to that issue
+
+00:08:55.160 --> 00:08:57.285
+that I brought up last
+time, because I may have not
+
+00:08:57.285 --> 00:09:00.380
+been very clear from
+the comments I got.
+
+00:09:03.800 --> 00:09:07.490
+Normally, random number
+generation works pretty well,
+
+00:09:07.490 --> 00:09:08.540
+but there's one issue.
+
+00:09:08.540 --> 00:09:10.040
+So remember, the
+way you implement
+
+00:09:10.040 --> 00:09:12.590
+a probability is that
+you take a random number,
+
+00:09:12.590 --> 00:09:16.460
+say between 0 and 1, and
+when that random number
+
+00:09:16.460 --> 00:09:20.030
+is less than the exponential,
+then you execute.
+
+00:09:27.305 --> 00:09:30.490
+I've really got to
+calibrate this pen.
+
+00:09:30.490 --> 00:09:32.550
+But the way random
+numbers are typically
+
+00:09:32.550 --> 00:09:36.090
+made in a lot of computers is
+that you don't generate reals,
+
+00:09:36.090 --> 00:09:39.600
+you generate integers,
+and typically between 0
+
+00:09:39.600 --> 00:09:44.250
+and some largest
+integer 2n minus 1
+
+00:09:44.250 --> 00:09:46.350
+depending on the type of
+random number generator.
+
+00:09:46.350 --> 00:09:48.270
+And then you divide
+that by 2 to the n
+
+00:09:48.270 --> 00:09:51.330
+to get the real between 0 and 1.
+
+00:09:51.330 --> 00:09:53.790
+But what that means
+is that you really
+
+00:09:53.790 --> 00:09:58.080
+have a set of discrete
+real random numbers,
+
+00:09:58.080 --> 00:10:00.060
+and they start from 0--
+
+00:10:00.060 --> 00:10:03.510
+1 over 2 to the n
+2 over 2 to the n.
+
+00:10:03.510 --> 00:10:07.530
+So the important part of this is
+that on occasion will cause you
+
+00:10:07.530 --> 00:10:12.570
+trouble is that you draw 0
+with a certain probability,
+
+00:10:12.570 --> 00:10:15.750
+with a finite probability, which
+is actually 1 over 2 to the n
+
+00:10:15.750 --> 00:10:17.360
+you get 0.
+
+00:10:17.360 --> 00:10:19.950
+And you may think
+that's not a problem,
+
+00:10:19.950 --> 00:10:24.170
+but the problem is that whenever
+your random number is 0,
+
+00:10:24.170 --> 00:10:29.190
+you will execute any
+perturbation you attempt.
+
+00:10:29.190 --> 00:10:34.770
+So if you have a perturbation
+algorithm that can occasionally
+
+00:10:34.770 --> 00:10:39.440
+pick very high
+energy perturbations,
+
+00:10:39.440 --> 00:10:41.900
+normally that's a
+safe thing to do.
+
+00:10:41.900 --> 00:10:46.940
+Because if your random number
+generation was continuous,
+
+00:10:46.940 --> 00:10:49.490
+tat means you would never
+hit 0, and the probability
+
+00:10:49.490 --> 00:10:51.950
+of hitting 0 is essentially 0.
+
+00:10:51.950 --> 00:10:54.930
+Then that would
+never be accepted.
+
+00:10:54.930 --> 00:10:55.455
+OK.
+
+00:10:55.455 --> 00:10:58.080
+But because of the discreetness
+of the random number generator,
+
+00:10:58.080 --> 00:11:00.130
+you do accept that.
+
+00:11:00.130 --> 00:11:04.330
+And so this is a great way of
+sort of blowing up your system.
+
+00:11:04.330 --> 00:11:08.100
+I mean, you could imagine,
+let's say, for some silly reason
+
+00:11:08.100 --> 00:11:10.750
+you could occasionally do
+perturbation atoms in a liquid,
+
+00:11:10.750 --> 00:11:13.600
+where you put all the
+atoms on top of each other.
+
+00:11:13.600 --> 00:11:16.155
+So that would be a very
+high energy perturbation.
+
+00:11:16.155 --> 00:11:17.760
+It would never be accepted.
+
+00:11:17.760 --> 00:11:22.800
+But here it would be accepted
+at a rate of 1 over 2 to the n.
+
+00:11:22.800 --> 00:11:26.730
+And usually, that
+means that in a sort
+
+00:11:26.730 --> 00:11:30.720
+of regular set of
+samplings, you tend
+
+00:11:30.720 --> 00:11:33.690
+to do typically more
+than 2 to the n passes
+
+00:11:33.690 --> 00:11:35.790
+for a reasonable random
+number generator.
+
+00:11:35.790 --> 00:11:37.634
+You will actually
+hit up on that .
+
+00:11:48.250 --> 00:11:50.380
+I want to come back to
+what the quantity is,
+
+00:11:50.380 --> 00:11:54.620
+what essentially the
+Hamiltonian is very briefly.
+
+00:11:54.620 --> 00:11:59.490
+So if you did a lattice
+model where you can actually
+
+00:11:59.490 --> 00:12:01.290
+change the overall spin--
+
+00:12:01.290 --> 00:12:04.360
+so you're flipping up
+spin and down spin--
+
+00:12:04.360 --> 00:12:07.410
+you would typically have a
+field term in the Hamiltonian.
+
+00:12:07.410 --> 00:12:09.190
+So you have the
+interaction term,
+
+00:12:09.190 --> 00:12:11.050
+and then you have a field term.
+
+00:12:11.050 --> 00:12:13.200
+You can think of it as
+a chemical potential
+
+00:12:13.200 --> 00:12:16.800
+for the spin which try to
+essentially force the spin
+
+00:12:16.800 --> 00:12:18.780
+to have a given average value.
+
+00:12:18.780 --> 00:12:23.130
+And you would put that full in
+some almost Legendre transform
+
+00:12:23.130 --> 00:12:25.830
+of the Hamiltonian
+into the exponential.
+
+00:12:30.180 --> 00:12:32.040
+And I showed you last
+time how you actually
+
+00:12:32.040 --> 00:12:34.705
+get the quantity that
+goes into the exponential.
+
+00:12:34.705 --> 00:12:37.080
+For example, if you were to
+work at constant temperature,
+
+00:12:37.080 --> 00:12:40.493
+pressure, and
+number of particles,
+
+00:12:40.493 --> 00:12:41.910
+your Hamiltonian,
+the exponential,
+
+00:12:41.910 --> 00:12:44.865
+would be the energy
+pV or minus pV.
+
+00:12:48.330 --> 00:12:50.160
+OK.
+
+00:12:50.160 --> 00:12:52.890
+What I will do now is tell you
+a little about the problem we're
+
+00:12:52.890 --> 00:12:54.870
+going to give you in the lab.
+
+00:12:54.870 --> 00:12:57.617
+I think the lab is still like
+more than a week away because
+
+00:12:57.617 --> 00:12:58.200
+of scheduling.
+
+00:12:58.200 --> 00:12:59.160
+We had to move it back.
+
+00:12:59.160 --> 00:13:02.320
+But I want to show you,
+introduce you to, the problem
+
+00:13:02.320 --> 00:13:04.002
+we're going to solve there.
+
+00:13:04.002 --> 00:13:05.460
+Essentially, what
+we're going to do
+
+00:13:05.460 --> 00:13:09.090
+is an absorption model for
+hydrogen on a palladium
+
+00:13:09.090 --> 00:13:11.190
+1 0 0 surface.
+
+00:13:11.190 --> 00:13:13.770
+And palladium is an FCC metal.
+
+00:13:13.770 --> 00:13:17.430
+So the 1 0 0 surface
+is essentially
+
+00:13:17.430 --> 00:13:19.650
+a centered square lattice.
+
+00:13:19.650 --> 00:13:23.885
+Remember, it's if you take the
+0 0 1 plane of the FCC cube,
+
+00:13:23.885 --> 00:13:25.260
+it's the centered
+square lattice.
+
+00:13:25.260 --> 00:13:27.690
+Which if you rotate
+it 45 degrees,
+
+00:13:27.690 --> 00:13:29.790
+it's a simple square lattice.
+
+00:13:29.790 --> 00:13:32.850
+So that's going to make
+this at least topologically
+
+00:13:32.850 --> 00:13:33.810
+a very simple model.
+
+00:13:33.810 --> 00:13:36.720
+We're going to have
+a square lattice,
+
+00:13:36.720 --> 00:13:39.040
+and we're going to look at
+hydrogen absorption on that.
+
+00:13:39.040 --> 00:13:43.140
+So the question is really,
+at every lattice site--
+
+00:13:43.140 --> 00:13:47.220
+so I can't really draw on
+the lattice sites anymore--
+
+00:13:47.220 --> 00:13:48.960
+is there a hydrogen
+there or not?
+
+00:13:51.267 --> 00:13:53.100
+Typically, you'll see
+that written in what's
+
+00:13:53.100 --> 00:13:54.810
+called a lattice Hamiltonian.
+
+00:13:54.810 --> 00:13:57.390
+And a lattice Hamiltonian
+has occupation variables
+
+00:13:57.390 --> 00:14:01.340
+which are either 1 or 0.
+
+00:14:01.340 --> 00:14:05.090
+So 1 when the site is
+occupied by hydrogen,
+
+00:14:05.090 --> 00:14:07.640
+0 when the site is not occupied.
+
+00:14:07.640 --> 00:14:12.365
+So only when you have two
+occupations across a bond
+
+00:14:12.365 --> 00:14:19.360
+length, say i and j, will you
+actually get interaction energy
+
+00:14:19.360 --> 00:14:20.983
+between the two hydrogens.
+
+00:14:20.983 --> 00:14:22.900
+So you can write your
+Hamiltonian as something
+
+00:14:22.900 --> 00:14:26.717
+like sum over i j bonds.
+
+00:14:26.717 --> 00:14:28.800
+And i j, you could have
+the restriction here, say,
+
+00:14:28.800 --> 00:14:30.630
+that i j are nearest neighbor.
+
+00:14:30.630 --> 00:14:34.235
+So then you just have a near
+neighbor interaction W1.
+
+00:14:34.235 --> 00:14:35.610
+So that gives you
+the interaction
+
+00:14:35.610 --> 00:14:37.680
+between the hydrogen.
+
+00:14:37.680 --> 00:14:40.650
+And then if you do
+this is an open system,
+
+00:14:40.650 --> 00:14:42.990
+you have a chemical
+potential-like term,
+
+00:14:42.990 --> 00:14:46.860
+which you think of as the
+absorption energy for hydrogen
+
+00:14:46.860 --> 00:14:49.830
+but which is essentially the
+difference between absorption
+
+00:14:49.830 --> 00:14:52.770
+energy and whatever
+chemical potential you have
+
+00:14:52.770 --> 00:14:57.240
+in your source of hydrogen. But
+in the end it's just a number
+
+00:14:57.240 --> 00:14:58.260
+times--
+
+00:14:58.260 --> 00:15:01.050
+this is the total amount of
+hydrogen on your surface--
+
+00:15:01.050 --> 00:15:03.750
+some i p i.
+
+00:15:03.750 --> 00:15:07.740
+You can transform this to a
+lattice model Hamiltonian.
+
+00:15:07.740 --> 00:15:10.230
+I don't know if everybody's
+familiar with that.
+
+00:15:10.230 --> 00:15:14.190
+Essentially we like to work
+with lattice model Hamiltonians,
+
+00:15:14.190 --> 00:15:16.530
+so we do the spin
+transformation.
+
+00:15:16.530 --> 00:15:21.200
+Sigma i is-- how
+does it go again--
+
+00:15:21.200 --> 00:15:25.670
+2 p i minus 1.
+
+00:15:25.670 --> 00:15:30.020
+So if p i is 1,
+then sigma i is 1.
+
+00:15:35.030 --> 00:15:42.740
+And if p i is 0, then
+sigma i is minus 1.
+
+00:15:42.740 --> 00:15:45.590
+So you transform the variables.
+
+00:15:45.590 --> 00:15:47.420
+And if you substitute--
+
+00:15:47.420 --> 00:15:52.730
+so you invert this,
+that means that p i is
+
+00:15:52.730 --> 00:15:54.650
+1 plus sigma i over 2.
+
+00:15:57.920 --> 00:16:00.260
+If you substitute
+that in here, you
+
+00:16:00.260 --> 00:16:02.630
+transform your lattice
+model Hamiltonian
+
+00:16:02.630 --> 00:16:04.940
+to a spin Hamiltonian.
+
+00:16:04.940 --> 00:16:09.490
+And what you'll see
+is the interactions,
+
+00:16:09.490 --> 00:16:12.160
+the relation between the
+interactions V1 in the spin
+
+00:16:12.160 --> 00:16:13.000
+model.
+
+00:16:13.000 --> 00:16:16.180
+And in the lattice model, the
+interaction of the spin model
+
+00:16:16.180 --> 00:16:18.160
+is a factor of 4 smaller
+than the interaction
+
+00:16:18.160 --> 00:16:20.530
+with the lattice model.
+
+00:16:20.530 --> 00:16:23.440
+And the chemical potential
+in the spin model
+
+00:16:23.440 --> 00:16:26.350
+also relate to the absorption
+energy in the latice model.
+
+00:16:26.350 --> 00:16:28.690
+It's useful to keep these
+transformations in mind,
+
+00:16:28.690 --> 00:16:32.860
+because this one, a spin
+model is often mathematically
+
+00:16:32.860 --> 00:16:35.560
+much easier to deal with
+than a lattice model.
+
+00:16:35.560 --> 00:16:39.190
+But the lattice model,
+it's often easier
+
+00:16:39.190 --> 00:16:42.260
+to interpret the quantities
+in a physical sense.
+
+00:16:42.260 --> 00:16:46.470
+And the reason is
+that here you only
+
+00:16:46.470 --> 00:16:52.620
+have interaction when i and
+j are occupied by hydrogen.
+
+00:16:52.620 --> 00:16:56.010
+So W is sort of a true
+hydrogen-hydrogen interaction
+
+00:16:56.010 --> 00:16:57.360
+on the surface.
+
+00:16:57.360 --> 00:17:01.590
+In a spin model,
+you have terms here
+
+00:17:01.590 --> 00:17:04.900
+for any occupation of i and j.
+
+00:17:04.900 --> 00:17:07.777
+When i and j are
+hydrogen, then you
+
+00:17:07.777 --> 00:17:10.200
+have the interaction energy V1.
+
+00:17:10.200 --> 00:17:13.890
+When i and j are both vacant,
+so they're minus 1 minus 1,
+
+00:17:13.890 --> 00:17:14.910
+you also have plus 1.
+
+00:17:14.910 --> 00:17:18.119
+So you also have
+the interaction V1.
+
+00:17:18.119 --> 00:17:21.500
+And then when you just have
+a hydrogen at either i or j,
+
+00:17:21.500 --> 00:17:25.619
+so you have plus 1 and minus
+1, then you get minus V1.
+
+00:17:25.619 --> 00:17:29.730
+So it's harder to interpret
+these constants physically.
+
+00:17:29.730 --> 00:17:31.440
+We always tend to use
+spin models though,
+
+00:17:31.440 --> 00:17:34.348
+because they're mathematically
+much more elegant.
+
+00:17:34.348 --> 00:17:36.390
+And the reason is that
+the variable is symmetric.
+
+00:17:36.390 --> 00:17:39.330
+The variable is symmetric
+around 0, plus 1 and minus 1,
+
+00:17:39.330 --> 00:17:42.720
+which gives you a lot
+of useful properties.
+
+00:17:42.720 --> 00:17:43.220
+OK.
+
+00:18:05.560 --> 00:18:08.450
+I must draw too much.
+
+00:18:08.450 --> 00:18:10.730
+OK, here we go.
+
+00:18:10.730 --> 00:18:14.330
+Like I mentioned already before,
+to equilibrate the system--
+
+00:18:14.330 --> 00:18:17.720
+essentially what your
+assignment is going to be
+
+00:18:17.720 --> 00:18:20.300
+for a Hamiltonian that's a
+little more complicated than
+
+00:18:20.300 --> 00:18:22.717
+the one I've shown you-- it's
+actually going to be a first
+
+00:18:22.717 --> 00:18:26.720
+and second neighbor Hamiltonian,
+and the interactions were
+
+00:18:26.720 --> 00:18:28.910
+calculated on paper from
+electronic structure--
+
+00:18:28.910 --> 00:18:31.880
+I want you to essentially get
+the phase diagram for hydrogen
+
+00:18:31.880 --> 00:18:34.580
+absorption on palladium 1 0 0.
+
+00:18:34.580 --> 00:18:37.840
+So that means, as a function of
+coverage, how much of the sites
+
+00:18:37.840 --> 00:18:42.210
+are current temperature, what
+the phase diagram looks like.
+
+00:18:42.210 --> 00:18:44.480
+And again, to
+equilibrate that, you
+
+00:18:44.480 --> 00:18:48.140
+have to keep in
+mind that it's much
+
+00:18:48.140 --> 00:18:50.370
+faster to do grand
+canonical ensemble
+
+00:18:50.370 --> 00:18:51.590
+than canonical ensemble.
+
+00:18:51.590 --> 00:18:55.730
+So an obvious way that you
+may think of doing this
+
+00:18:55.730 --> 00:19:00.510
+is if you plot the hydrogen
+coverage versus temperature.
+
+00:19:00.510 --> 00:19:02.990
+You may think of like
+initializing a system
+
+00:19:02.990 --> 00:19:07.840
+at a given hydrogen coverage
+and then just sort of heating it
+
+00:19:07.840 --> 00:19:10.930
+and looking at it.
+
+00:19:10.930 --> 00:19:15.310
+The problem there occurs when
+you're in two-phase regions.
+
+00:19:15.310 --> 00:19:17.530
+If you're in a canonical
+system and you're
+
+00:19:17.530 --> 00:19:20.950
+in a two-phase
+region, your system
+
+00:19:20.950 --> 00:19:24.940
+has to phase separate
+within your cell.
+
+00:19:24.940 --> 00:19:27.010
+So for example,
+that means it may
+
+00:19:27.010 --> 00:19:28.930
+make a region with
+a lot of hydrogen
+
+00:19:28.930 --> 00:19:33.940
+and a region with less
+hydrogen. And so what happens
+
+00:19:33.940 --> 00:19:35.980
+is that if you're in
+a two-phase region
+
+00:19:35.980 --> 00:19:38.710
+you need a boundary in
+your cell, essentially
+
+00:19:38.710 --> 00:19:39.910
+a phase boundary.
+
+00:19:39.910 --> 00:19:43.240
+And the phase
+boundary, a boundary
+
+00:19:43.240 --> 00:19:45.010
+carries energy with it.
+
+00:19:45.010 --> 00:19:47.740
+And because the system
+here is really small,
+
+00:19:47.740 --> 00:19:51.760
+maybe you'll do a 40 by 40
+cell, or something, or even 100
+
+00:19:51.760 --> 00:19:52.820
+by 100 cell--
+
+00:19:52.820 --> 00:19:54.110
+this is really small.
+
+00:19:54.110 --> 00:19:58.390
+So the boundary has a
+non-negligible effect
+
+00:19:58.390 --> 00:20:00.670
+on your total energy.
+
+00:20:00.670 --> 00:20:02.680
+Whereas in reality,
+in real systems,
+
+00:20:02.680 --> 00:20:06.310
+the patches that coexist
+would be much bigger,
+
+00:20:06.310 --> 00:20:09.460
+and so the boundary would have,
+proportionately, a much smaller
+
+00:20:09.460 --> 00:20:11.000
+energy contribution.
+
+00:20:11.000 --> 00:20:13.840
+So if you do
+canonical and you're
+
+00:20:13.840 --> 00:20:16.960
+in these two-phase
+regions, your energy
+
+00:20:16.960 --> 00:20:19.810
+will depend somewhat
+on your system size.
+
+00:20:19.810 --> 00:20:21.850
+Because the system size--
+
+00:20:21.850 --> 00:20:25.180
+with system size, I mean the
+size of the Monte Carlo box--
+
+00:20:25.180 --> 00:20:29.710
+determines the relative
+proportion of boundary
+
+00:20:29.710 --> 00:20:32.738
+to perfect system.
+
+00:20:32.738 --> 00:20:34.280
+And so you'll get
+a different energy.
+
+00:20:34.280 --> 00:20:36.830
+So it's much better to
+do canonical simulations,
+
+00:20:36.830 --> 00:20:40.220
+where you essentially assume
+some hydrogen chemical
+
+00:20:40.220 --> 00:20:43.480
+potential and use
+as the Hamiltonian
+
+00:20:43.480 --> 00:20:51.070
+some interactions, some i
+j, V i j, sigma i sigma j,
+
+00:20:51.070 --> 00:20:52.870
+so you have an
+interaction term, and then
+
+00:20:52.870 --> 00:20:55.060
+you just control the
+amount of hydrogen
+
+00:20:55.060 --> 00:21:03.010
+with a chemical potential
+term, mu H, some i, sigma i.
+
+00:21:03.010 --> 00:21:07.120
+So how will you see
+phase boundaries then?
+
+00:21:07.120 --> 00:21:12.120
+Well, essentially at
+a given temperature
+
+00:21:12.120 --> 00:21:15.383
+you just tweak mu H,
+the chemical potential.
+
+00:21:15.383 --> 00:21:16.800
+This is just like
+in an experiment
+
+00:21:16.800 --> 00:21:19.590
+where you would control
+the gas pressure.
+
+00:21:19.590 --> 00:21:21.360
+And you may start--
+
+00:21:21.360 --> 00:21:25.260
+if you start with
+very high mu H--
+
+00:21:25.260 --> 00:21:26.940
+this actually makes
+a little more sense,
+
+00:21:26.940 --> 00:21:28.680
+I guess, if I use a minus.
+
+00:21:28.680 --> 00:21:36.580
+So if I start with very low
+mu H, so very negative mu H,
+
+00:21:36.580 --> 00:21:39.080
+then I want this to be low.
+
+00:21:39.080 --> 00:21:42.710
+So then the spin is going
+to drift to minus 1.
+
+00:21:42.710 --> 00:21:45.020
+And depending on what you've
+defined to be hydrogen,
+
+00:21:45.020 --> 00:21:48.950
+if you define minus 1 to be a
+vacant side, a plus 1 hydrogen,
+
+00:21:48.950 --> 00:21:50.210
+you're going to drift--
+
+00:21:50.210 --> 00:21:53.090
+your system is going to tend
+towards having no hydrogen.
+
+00:21:53.090 --> 00:21:56.180
+And as you crank up
+your chemical potential,
+
+00:21:56.180 --> 00:21:59.760
+you'll get more and more
+hydrogen in your system.
+
+00:21:59.760 --> 00:22:03.650
+But the nice thing is that if
+you have two-phase regions,
+
+00:22:03.650 --> 00:22:06.240
+you'll essentially
+jump across them.
+
+00:22:06.240 --> 00:22:08.253
+So let me give you an example.
+
+00:22:08.253 --> 00:22:09.920
+Let's say that this
+phase diagram simply
+
+00:22:09.920 --> 00:22:11.120
+looked like this.
+
+00:22:11.120 --> 00:22:13.400
+But I'll tell you
+already, it doesn't.
+
+00:22:13.400 --> 00:22:15.170
+But it's a sort
+of simple example.
+
+00:22:15.170 --> 00:22:17.420
+Let's say it was just
+sort of a miscibility gap.
+
+00:22:17.420 --> 00:22:19.730
+So at low temperature
+you have states--
+
+00:22:19.730 --> 00:22:23.510
+this is essentially the
+state here with no hydrogen,
+
+00:22:23.510 --> 00:22:25.130
+and this is full coverage.
+
+00:22:28.610 --> 00:22:30.620
+And so in here you
+have coexistence
+
+00:22:30.620 --> 00:22:34.412
+between patches of full
+coverage and no hydrogen.
+
+00:22:34.412 --> 00:22:36.620
+If you do this by cranking
+up the chemical potential,
+
+00:22:36.620 --> 00:22:39.650
+you will essentially sort
+of move from here to here.
+
+00:22:39.650 --> 00:22:43.310
+From no hydrogen, you'll
+move to this phase boundary,
+
+00:22:43.310 --> 00:22:46.980
+and then you'll jump across
+to this phase boundary.
+
+00:22:46.980 --> 00:22:49.770
+And you will never live
+in the two-phase region.
+
+00:22:49.770 --> 00:22:52.130
+So let me actually plot that.
+
+00:22:52.130 --> 00:22:55.460
+If you were to plot
+the hydrogen coverage
+
+00:22:55.460 --> 00:22:57.860
+as a function of the
+chemical potential,
+
+00:22:57.860 --> 00:23:05.990
+you'll essentially
+go up very small.
+
+00:23:05.990 --> 00:23:08.830
+And then at some critical
+chemical, potential
+
+00:23:08.830 --> 00:23:16.000
+you'll jump up and then
+you'll sort of go to 1.
+
+00:23:16.000 --> 00:23:22.000
+And this discontinuity
+here, that's
+
+00:23:22.000 --> 00:23:23.570
+the width of your
+two-phase region.
+
+00:23:26.320 --> 00:23:29.440
+So you never live in
+a two-phase region
+
+00:23:29.440 --> 00:23:31.600
+when you grand canonical,
+because you work only
+
+00:23:31.600 --> 00:23:35.170
+with intensive variables
+in your thermodynamics.
+
+00:23:35.170 --> 00:23:39.040
+So you essentially jump across
+the first-order transitions,
+
+00:23:39.040 --> 00:23:41.530
+rather than living in
+the discontinuity that
+
+00:23:41.530 --> 00:23:43.300
+defines them.
+
+00:23:43.300 --> 00:23:45.300
+So it tends to be much
+more efficient to get
+
+00:23:45.300 --> 00:23:45.925
+phase diagrams.
+
+00:24:05.690 --> 00:24:06.190
+OK.
+
+00:24:08.740 --> 00:24:11.440
+One of the nice aspects
+of Monte Carlo simulation
+
+00:24:11.440 --> 00:24:15.790
+is that because
+it's a simulation
+
+00:24:15.790 --> 00:24:21.040
+method with essentially
+no approximations
+
+00:24:21.040 --> 00:24:23.980
+in the approach--
+
+00:24:23.980 --> 00:24:25.780
+there are essentially
+no approximations
+
+00:24:25.780 --> 00:24:29.030
+in the Metropolis algorithm--
+
+00:24:29.030 --> 00:24:32.680
+so you can get the answer
+as accurately as you want.
+
+00:24:32.680 --> 00:24:35.260
+Or as accurately
+as you can afford
+
+00:24:35.260 --> 00:24:38.240
+is probably a better
+way to say it.
+
+00:24:38.240 --> 00:24:44.200
+So where do inaccuracies
+come from when
+
+00:24:44.200 --> 00:24:45.760
+you do Monte Carlo sampling?
+
+00:24:45.760 --> 00:24:49.960
+So we're going to talk about the
+inaccuracies of the integration
+
+00:24:49.960 --> 00:24:52.090
+of the ensemble averaging.
+
+00:24:52.090 --> 00:24:54.430
+So we're not going to
+talk about the inaccuracy
+
+00:24:54.430 --> 00:24:56.230
+of the Hamiltonian
+you start with,
+
+00:24:56.230 --> 00:24:57.580
+that's something you take.
+
+00:24:57.580 --> 00:24:59.830
+You're going to ensemble
+average some properties
+
+00:24:59.830 --> 00:25:01.030
+defined by Hamilton.
+
+00:25:01.030 --> 00:25:03.100
+If the Hamiltonian is
+not accurate, well,
+
+00:25:03.100 --> 00:25:04.530
+we're not going
+to deal with that.
+
+00:25:04.530 --> 00:25:07.300
+But the question is, how
+accurate is the sampling?
+
+00:25:07.300 --> 00:25:11.230
+Well, you get sources
+from two things--
+
+00:25:11.230 --> 00:25:16.090
+the fact that you take a finite
+time sample or a finite sample,
+
+00:25:16.090 --> 00:25:20.080
+so you don't really
+collect the whole ensemble,
+
+00:25:20.080 --> 00:25:23.890
+and you tend to work
+with finite size.
+
+00:25:23.890 --> 00:25:26.500
+Finite size is a
+bit of a misnomer.
+
+00:25:26.500 --> 00:25:27.983
+Unfortunately, we all use it.
+
+00:25:27.983 --> 00:25:30.400
+Because if you use periodic
+boundary conditions, of course
+
+00:25:30.400 --> 00:25:32.890
+your system is always infinite.
+
+00:25:32.890 --> 00:25:37.800
+It's just that you have
+imposed a periodicity on it.
+
+00:25:37.800 --> 00:25:41.960
+So the error really comes
+from imposed periodicity.
+
+00:25:41.960 --> 00:25:45.080
+But but we just tend to call
+them finite size effects.
+
+00:25:45.080 --> 00:25:47.810
+If you set up a
+20 by 20 lattice,
+
+00:25:47.810 --> 00:25:52.240
+you can't get any things in
+there that have periodicity 35.
+
+00:25:52.240 --> 00:25:54.530
+It won't fit in there.
+
+00:25:54.530 --> 00:25:57.290
+You can't get any
+truly random things.
+
+00:25:57.290 --> 00:26:01.400
+In anything with periodic
+boundary conditions,
+
+00:26:01.400 --> 00:26:03.560
+you don't have truly
+random things, because you
+
+00:26:03.560 --> 00:26:05.912
+force that that unit repeats.
+
+00:26:05.912 --> 00:26:07.370
+And to get in more
+and more random,
+
+00:26:07.370 --> 00:26:09.800
+you can make the box
+bigger so the repeat
+
+00:26:09.800 --> 00:26:11.690
+period becomes longer.
+
+00:26:11.690 --> 00:26:14.270
+But in the end, it's
+all non-periodic.
+
+00:26:14.270 --> 00:26:19.080
+So you can't truly simulate
+a random liquid, say.
+
+00:26:19.080 --> 00:26:21.110
+Notice that you
+also impose symmetry
+
+00:26:21.110 --> 00:26:22.970
+from your periodic
+boundary condition.
+
+00:26:22.970 --> 00:26:29.720
+If you take, let's say,
+in 3D, a cubic cell
+
+00:26:29.720 --> 00:26:33.510
+and you simulate
+a liquid in there,
+
+00:26:33.510 --> 00:26:35.100
+what's the symmetry
+of that system?
+
+00:26:38.110 --> 00:26:41.100
+What's the symmetry of
+a liquid, a real liquid?
+
+00:26:44.290 --> 00:26:47.200
+It has a perfect spherical
+symmetry actually.
+
+00:26:47.200 --> 00:26:50.800
+It's point group, it has
+perfect spherical symmetry.
+
+00:26:50.800 --> 00:26:52.850
+Every direction is identical.
+
+00:26:52.850 --> 00:26:55.820
+So it's higher than
+cubic symmetry actually.
+
+00:26:55.820 --> 00:26:57.380
+But what do you do?
+
+00:26:57.380 --> 00:27:00.300
+You impose cubic symmetry.
+
+00:27:00.300 --> 00:27:03.420
+Because you essentially have a
+cubic lattice of a repeat unit
+
+00:27:03.420 --> 00:27:04.920
+that you displace.
+
+00:27:04.920 --> 00:27:08.160
+For a lot of properties,
+this won't matter at all.
+
+00:27:08.160 --> 00:27:10.220
+But it's just something
+to keep in mind.
+
+00:27:10.220 --> 00:27:12.540
+So you get errors
+from your sample time
+
+00:27:12.540 --> 00:27:17.620
+and from your finite or your
+periodic boundary conditions--
+
+00:27:17.620 --> 00:27:18.780
+put it like that way.
+
+00:27:18.780 --> 00:27:20.700
+The sampling error
+is the easiest one
+
+00:27:20.700 --> 00:27:23.430
+to deal with, because you
+can quantify it if you really
+
+00:27:23.430 --> 00:27:24.443
+want to work on it.
+
+00:27:24.443 --> 00:27:25.860
+Having said that,
+let me tell you,
+
+00:27:25.860 --> 00:27:28.320
+most people who run [INAUDIBLE]
+just run it long enough
+
+00:27:28.320 --> 00:27:29.850
+and hope it's long enough.
+
+00:27:29.850 --> 00:27:32.037
+Rarely ever do you see
+this quantitative analysis.
+
+00:27:32.037 --> 00:27:33.870
+But I want to show you
+that you can actually
+
+00:27:33.870 --> 00:27:36.540
+do it if you really wanted to.
+
+00:27:36.540 --> 00:27:38.730
+It's essentially a
+very basic statistic.
+
+00:27:38.730 --> 00:27:42.570
+So we're only going to
+talk about averages so far.
+
+00:27:42.570 --> 00:27:44.970
+Because the errors
+on quantities that
+
+00:27:44.970 --> 00:27:48.670
+are not available, like heat
+capacity, and free energy,
+
+00:27:48.670 --> 00:27:50.800
+and so on, entropy,
+we'll come to later.
+
+00:27:50.800 --> 00:27:53.100
+So I'm only going to
+talk about quantities
+
+00:27:53.100 --> 00:27:55.350
+that exist in the
+microscopic state,
+
+00:27:55.350 --> 00:27:56.970
+and the macroscopic
+value is just
+
+00:27:56.970 --> 00:28:00.610
+the average over the
+microscopic defined variables--
+
+00:28:00.610 --> 00:28:07.290
+so things like a volume or
+an energy or a concentration.
+
+00:28:07.290 --> 00:28:12.180
+So if you want to the
+average for some property A,
+
+00:28:12.180 --> 00:28:17.820
+I'm going to use different
+terminology here.
+
+00:28:17.820 --> 00:28:19.680
+When I write A
+with a bar on top,
+
+00:28:19.680 --> 00:28:23.070
+I mean the true average
+of A in the ensemble.
+
+00:28:23.070 --> 00:28:27.330
+So the ensemble gives you
+some distribution of A's.
+
+00:28:27.330 --> 00:28:32.790
+A bar is the true average,
+and A between these brackets
+
+00:28:32.790 --> 00:28:36.870
+is the average I actually
+collect in my finite sample.
+
+00:28:36.870 --> 00:28:41.140
+And the question is,
+how different are those?
+
+00:28:41.140 --> 00:28:44.190
+Well, that's basic statistics.
+
+00:28:44.190 --> 00:28:52.950
+You know that A fluctuates
+with some spread
+
+00:28:52.950 --> 00:28:55.320
+around the true average.
+
+00:28:55.320 --> 00:28:58.060
+So you have some
+standard deviation,
+
+00:28:58.060 --> 00:29:04.806
+which is the standard deviation
+of A in the distribution.
+
+00:29:04.806 --> 00:29:06.900
+For example, if
+the property here
+
+00:29:06.900 --> 00:29:09.030
+was the energy we
+were looking at,
+
+00:29:09.030 --> 00:29:12.473
+that standard deviation is
+essentially the heat capacity.
+
+00:29:12.473 --> 00:29:14.640
+Heat capacity is a measure
+of the standard deviation
+
+00:29:14.640 --> 00:29:16.140
+in the ensemble.
+
+00:29:16.140 --> 00:29:20.400
+So if you take a finite
+sample in this distribution,
+
+00:29:20.400 --> 00:29:21.960
+you will not get
+the true average,
+
+00:29:21.960 --> 00:29:25.230
+but you'll get
+some other average.
+
+00:29:25.230 --> 00:29:28.350
+If you do that a
+lot of times, you
+
+00:29:28.350 --> 00:29:33.480
+can actually see how the average
+you sample is distributed.
+
+00:29:33.480 --> 00:29:36.810
+And if the sample you
+take is uncorrelated,
+
+00:29:36.810 --> 00:29:41.280
+then you know that the standard
+deviation on the average
+
+00:29:41.280 --> 00:29:45.120
+is essentially the
+standard deviation
+
+00:29:45.120 --> 00:29:47.410
+on the distribution divided
+by the square root of M.
+
+00:29:47.410 --> 00:29:48.952
+So I've written it
+here with squares.
+
+00:29:48.952 --> 00:29:52.110
+The square of the average,
+the standard deviation
+
+00:29:52.110 --> 00:29:54.745
+on the average,
+goes like the square
+
+00:29:54.745 --> 00:29:56.620
+on the standard deviation
+of the distribution
+
+00:29:56.620 --> 00:29:59.770
+divide by M, which M
+is the sample size.
+
+00:29:59.770 --> 00:30:01.480
+Is everybody familiar with that?
+
+00:30:01.480 --> 00:30:02.140
+OK.
+
+00:30:02.140 --> 00:30:06.250
+Essentially, if you
+come you pick averages
+
+00:30:06.250 --> 00:30:08.770
+from a distribution--
+
+00:30:08.770 --> 00:30:11.740
+this could be some population--
+
+00:30:11.740 --> 00:30:15.790
+that distribution itself
+has a standard deviation.
+
+00:30:15.790 --> 00:30:18.940
+Not everybody sits at the mean.
+
+00:30:18.940 --> 00:30:22.180
+So if you only take
+say three or four--
+
+00:30:22.180 --> 00:30:25.630
+let's say you sample with
+only three or four members--
+
+00:30:25.630 --> 00:30:27.940
+you're going to get some
+average for that distribution.
+
+00:30:27.940 --> 00:30:30.900
+But you won't be right.
+
+00:30:30.900 --> 00:30:32.490
+So if you do that many times--
+
+00:30:32.490 --> 00:30:35.250
+you take many times
+a sample of four--
+
+00:30:35.250 --> 00:30:38.290
+you're going to get different
+values of the average.
+
+00:30:38.290 --> 00:30:41.410
+And if you plot how that
+average is distributed,
+
+00:30:41.410 --> 00:30:43.360
+that also tends
+to be a Gaussian.
+
+00:30:43.360 --> 00:30:45.700
+If your original
+distribution is a Gaussian,
+
+00:30:45.700 --> 00:30:47.650
+your average is a Gaussian.
+
+00:30:47.650 --> 00:30:50.630
+And you can look at the root
+mean square distribution
+
+00:30:50.630 --> 00:30:54.850
+at the standard deviation
+for your average.
+
+00:30:54.850 --> 00:30:59.260
+And it turns out that if
+your sample is uncorrelated,
+
+00:30:59.260 --> 00:31:00.280
+they relate like this.
+
+00:31:03.970 --> 00:31:05.860
+Now, why is that useful?
+
+00:31:05.860 --> 00:31:07.810
+Because you actually
+have all these quantities
+
+00:31:07.810 --> 00:31:09.310
+in your simulation.
+
+00:31:09.310 --> 00:31:13.000
+In your simulation, you
+actually get some idea
+
+00:31:13.000 --> 00:31:16.348
+about the standard deviation
+on the distribution,
+
+00:31:16.348 --> 00:31:17.890
+because you take a
+very large sample.
+
+00:31:17.890 --> 00:31:20.320
+You can average
+it by essentially
+
+00:31:20.320 --> 00:31:23.957
+the standard deviation
+in your sample.
+
+00:31:23.957 --> 00:31:26.040
+So you essentially say
+that the standard deviation
+
+00:31:26.040 --> 00:31:27.820
+I get in my sample
+is going to be
+
+00:31:27.820 --> 00:31:31.490
+pretty close to the standard
+deviation of the distribution.
+
+00:31:31.490 --> 00:31:33.910
+And then if the sample
+size, you have an idea
+
+00:31:33.910 --> 00:31:37.790
+of the error on your average.
+
+00:31:37.790 --> 00:31:39.950
+So this you get in
+your simulation,
+
+00:31:39.950 --> 00:31:41.060
+because you can easily--
+
+00:31:41.060 --> 00:31:42.560
+this is the average
+of A squared.
+
+00:31:42.560 --> 00:31:44.310
+This is what you get
+in your distribution.
+
+00:31:44.310 --> 00:31:46.817
+But you can also keep
+track of A squared average.
+
+00:31:53.980 --> 00:31:55.840
+There is one caveat.
+
+00:31:55.840 --> 00:32:03.230
+So this is true if the samples
+you take are uncorrelated.
+
+00:32:03.230 --> 00:32:05.440
+So it means that if you
+really randomly pick
+
+00:32:05.440 --> 00:32:07.700
+from the ensemble.
+
+00:32:07.700 --> 00:32:10.220
+The problem is that in a
+Markov chain that we set up
+
+00:32:10.220 --> 00:32:12.470
+through a Metropolis
+algorithm, the samples
+
+00:32:12.470 --> 00:32:14.030
+are not uncorrelated.
+
+00:32:14.030 --> 00:32:16.520
+Because every step
+in a Markov chain
+
+00:32:16.520 --> 00:32:19.710
+comes from the previous one.
+
+00:32:19.710 --> 00:32:22.740
+And you can sort
+of see why that is.
+
+00:32:22.740 --> 00:32:24.930
+Let's say I did Monte
+Carlo on a liquid
+
+00:32:24.930 --> 00:32:27.610
+and I did really
+small perturbations.
+
+00:32:27.610 --> 00:32:30.420
+So I just moved the
+atom within a range
+
+00:32:30.420 --> 00:32:33.160
+of a tenth of an Angstrom
+or something like that.
+
+00:32:33.160 --> 00:32:36.630
+So that way I will almost
+always accept the moves.
+
+00:32:36.630 --> 00:32:39.030
+But obviously my states
+are very correlated.
+
+00:32:39.030 --> 00:32:41.880
+One state in a
+Markov chain just has
+
+00:32:41.880 --> 00:32:44.850
+one atom displaced 0.1
+Angstrom from the other one.
+
+00:32:44.850 --> 00:32:48.530
+So I have a high
+degree of correlation.
+
+00:32:48.530 --> 00:32:53.340
+Correlation reduces the
+quality of your sampling.
+
+00:32:53.340 --> 00:32:57.840
+Actually, the extreme limit
+is if you do perturbations
+
+00:32:57.840 --> 00:32:59.950
+with very high energy
+in a Markov chain,
+
+00:32:59.950 --> 00:33:02.190
+they will almost
+never be accepted.
+
+00:33:02.190 --> 00:33:04.530
+And then your Markov chain
+just has identical states
+
+00:33:04.530 --> 00:33:05.677
+for a long time.
+
+00:33:05.677 --> 00:33:07.260
+Because if you don't
+accept the state,
+
+00:33:07.260 --> 00:33:09.730
+you actually keep the old
+one in the Markov chain.
+
+00:33:09.730 --> 00:33:11.890
+So you have a high
+degree of correlation.
+
+00:33:11.890 --> 00:33:16.680
+So the quality of a sample
+gets polluted by what's
+
+00:33:16.680 --> 00:33:18.480
+called the correlation time.
+
+00:33:18.480 --> 00:33:20.400
+And the correlation time
+is, again, something
+
+00:33:20.400 --> 00:33:23.730
+you can calculate essentially
+with this equation.
+
+00:33:23.730 --> 00:33:26.550
+And what does it measure?
+
+00:33:26.550 --> 00:33:28.590
+What is correlation
+time, in case
+
+00:33:28.590 --> 00:33:30.690
+you're not familiar with it.
+
+00:33:30.690 --> 00:33:35.010
+If I look at a quantity, let's
+say as a function of time A T,
+
+00:33:35.010 --> 00:33:40.590
+and time could be here
+sample length, the distance
+
+00:33:40.590 --> 00:33:43.410
+in my Markov chain.
+
+00:33:43.410 --> 00:33:47.670
+Let's say I sort of get a bunch
+of points scattered like this.
+
+00:33:47.670 --> 00:33:49.350
+You're essentially
+trying to measure
+
+00:33:49.350 --> 00:33:57.830
+if what comes at any time
+T that can be predicted
+
+00:33:57.830 --> 00:34:03.435
+from what you had
+at some T here,
+
+00:34:03.435 --> 00:34:05.940
+where this is t minus tau.
+
+00:34:05.940 --> 00:34:09.509
+If it can be, then what
+happens at T and T minus tau
+
+00:34:09.509 --> 00:34:13.800
+are correlated, and they're
+correlated over a distance tau.
+
+00:34:13.800 --> 00:34:15.510
+And so that's what
+you're doing here.
+
+00:34:15.510 --> 00:34:17.520
+What you're doing
+here is you're looking
+
+00:34:17.520 --> 00:34:20.489
+at whether-- this is
+the perturbation away
+
+00:34:20.489 --> 00:34:22.560
+from equilibrium.
+
+00:34:22.560 --> 00:34:25.679
+This is how far A is away
+from equilibrium at time
+
+00:34:25.679 --> 00:34:27.900
+T. Let's not call
+it equilibrium.
+
+00:34:27.900 --> 00:34:30.030
+Let's call it the
+average-- sorry.
+
+00:34:30.030 --> 00:34:33.989
+And this is how far A is
+away from the average at time
+
+00:34:33.989 --> 00:34:37.170
+T plus tau.
+
+00:34:37.170 --> 00:34:39.360
+And so you're seeing if
+these are correlated.
+
+00:34:39.360 --> 00:34:44.739
+You're looking at how
+this fluctuation looks
+
+00:34:44.739 --> 00:34:48.940
+like when you're normalizing
+by the overall fluctuations
+
+00:34:48.940 --> 00:34:49.600
+in the system.
+
+00:34:52.370 --> 00:34:56.560
+So the correlation function
+essentially measures
+
+00:34:56.560 --> 00:34:59.650
+over what time you
+keep correlation.
+
+00:34:59.650 --> 00:35:03.925
+So for example in a liquid where
+the system over a long time A
+
+00:35:03.925 --> 00:35:06.910
+is purely randomly, you'll have
+of course short correlation
+
+00:35:06.910 --> 00:35:08.140
+time.
+
+00:35:08.140 --> 00:35:13.120
+Probably in a real
+liquid after a picosecond
+
+00:35:13.120 --> 00:35:16.720
+the system still has a
+lot of memory from time 0.
+
+00:35:16.720 --> 00:35:19.660
+But after a whole second,
+maybe it doesn't anymore.
+
+00:35:19.660 --> 00:35:21.970
+So you'll have a finite
+correlation time.
+
+00:35:21.970 --> 00:35:23.800
+And this is what
+you'll typically see.
+
+00:35:23.800 --> 00:35:26.740
+If you plot correlation
+time for systems
+
+00:35:26.740 --> 00:35:33.930
+with some degree
+of disorder, it'll
+
+00:35:33.930 --> 00:35:36.240
+start out at 1,
+because that's the way
+
+00:35:36.240 --> 00:35:41.030
+this function is normalized,
+and then sort of go down.
+
+00:35:41.030 --> 00:35:44.900
+There are systems where the
+correlation time is infinite.
+
+00:35:44.900 --> 00:35:48.230
+If you have a perfect
+harmonic oscillator
+
+00:35:48.230 --> 00:35:51.260
+and you look at, say, the
+velocity of a harmonic
+
+00:35:51.260 --> 00:35:55.280
+oscillator versus T, since
+this is a periodic system,
+
+00:35:55.280 --> 00:35:58.600
+it just sort of
+oscillates back and forth.
+
+00:35:58.600 --> 00:36:01.210
+And if the period, if
+the harmonic oscillator's
+
+00:36:01.210 --> 00:36:04.840
+perfect, then once I know
+what happens at one time,
+
+00:36:04.840 --> 00:36:09.460
+I can exactly predict what
+happens at another time.
+
+00:36:09.460 --> 00:36:12.130
+So that system has an
+infinite correlation time.
+
+00:36:14.660 --> 00:36:17.780
+Essentially, what happens is
+that the quality of the average
+
+00:36:17.780 --> 00:36:20.390
+gets diluted by the
+correlation time.
+
+00:36:20.390 --> 00:36:23.040
+If you have correlation
+in your sample,
+
+00:36:23.040 --> 00:36:27.420
+the standard deviation on the
+average is what we had before.
+
+00:36:27.420 --> 00:36:32.300
+This is the standard deviation
+on the uncorrelated sample,
+
+00:36:32.300 --> 00:36:35.600
+but it gets multiplied by
+essentially a factor that
+
+00:36:35.600 --> 00:36:37.070
+depends on the correlation time.
+
+00:36:37.070 --> 00:36:38.737
+And the correlation
+time is the integral
+
+00:36:38.737 --> 00:36:40.403
+of the correlation function.
+
+00:36:40.403 --> 00:36:42.320
+So it's sort of the
+integrated time over which
+
+00:36:42.320 --> 00:36:45.480
+you have correlation.
+
+00:36:45.480 --> 00:36:49.770
+So these are all things that are
+relatively easy to calculate.
+
+00:36:49.770 --> 00:36:54.140
+It actually costs you
+no more computing time
+
+00:36:54.140 --> 00:36:56.930
+to keep track of all
+these things essentially.
+
+00:36:56.930 --> 00:36:58.880
+This can be done
+by post-processing,
+
+00:36:58.880 --> 00:37:00.320
+this correlation time.
+
+00:37:00.320 --> 00:37:03.140
+If you output the
+trajectory A T,
+
+00:37:03.140 --> 00:37:05.120
+you can do this simply
+by post-processing,
+
+00:37:05.120 --> 00:37:07.400
+and it's a fairly
+fast operation.
+
+00:37:07.400 --> 00:37:09.710
+So if you are
+interested, you can
+
+00:37:09.710 --> 00:37:11.870
+look at the quality
+of your averages.
+
+00:37:11.870 --> 00:37:14.090
+Like I said, most people
+just kind of eyeball it.
+
+00:37:18.570 --> 00:37:20.120
+I want to show you
+a few correlation
+
+00:37:20.120 --> 00:37:22.910
+times in this lattice
+model, spin model.
+
+00:37:22.910 --> 00:37:25.160
+This is actually from
+your homework assignment,
+
+00:37:25.160 --> 00:37:26.610
+from the lab assignment.
+
+00:37:26.610 --> 00:37:28.040
+So it's actually
+correlation time
+
+00:37:28.040 --> 00:37:31.180
+in this hydrogen on
+palladium system.
+
+00:37:31.180 --> 00:37:32.930
+Because I kind of
+learned a lesson from it
+
+00:37:32.930 --> 00:37:37.790
+myself that I hadn't
+figured out until I started
+
+00:37:37.790 --> 00:37:39.350
+doing this homework problem.
+
+00:37:42.850 --> 00:37:46.290
+And I should tell you
+something up front.
+
+00:37:46.290 --> 00:37:49.610
+Random number generation
+is expensive in a computer.
+
+00:37:49.610 --> 00:37:53.730
+It takes time, because the
+sort of fraction algorithm
+
+00:37:53.730 --> 00:37:56.070
+that calculates it does
+quite a few operations, quite
+
+00:37:56.070 --> 00:37:58.720
+a few multiplications.
+
+00:37:58.720 --> 00:38:02.400
+So especially if your
+energy calculation is fast--
+
+00:38:02.400 --> 00:38:04.500
+like if you did
+this lattice model,
+
+00:38:04.500 --> 00:38:08.730
+this magnetic spin
+model, 95% of the time
+
+00:38:08.730 --> 00:38:11.670
+would be spent in the
+random number generator.
+
+00:38:11.670 --> 00:38:13.560
+The rest is all so fast.
+
+00:38:13.560 --> 00:38:16.770
+So people often
+try to do shortcuts
+
+00:38:16.770 --> 00:38:20.820
+to reduce the number of random
+numbers you have to take.
+
+00:38:20.820 --> 00:38:23.610
+Because think about it, you
+have to take quite a few.
+
+00:38:23.610 --> 00:38:26.545
+Let's say you do a
+three-dimensional spin model.
+
+00:38:26.545 --> 00:38:28.170
+First of all, you
+have to randomly pick
+
+00:38:28.170 --> 00:38:30.270
+a spin you're trying to perturb.
+
+00:38:30.270 --> 00:38:31.860
+That takes three random numbers.
+
+00:38:31.860 --> 00:38:36.180
+So you have to randomize
+three, x, y, z.
+
+00:38:36.180 --> 00:38:38.460
+And then you need a
+fourth random number
+
+00:38:38.460 --> 00:38:41.110
+to compare with the exponential
+of minus beta delta E.
+
+00:38:41.110 --> 00:38:43.790
+So that's four and
+the numbers per pass.
+
+00:38:43.790 --> 00:38:45.260
+So that's not what
+we usually do.
+
+00:38:45.260 --> 00:38:46.490
+Here's what we usually do--
+
+00:38:46.490 --> 00:38:48.530
+we don't randomly pick
+spins in the lattice,
+
+00:38:48.530 --> 00:38:51.800
+we run through the
+latter sequentially.
+
+00:38:51.800 --> 00:38:54.350
+Because it kills three
+random number operations.
+
+00:38:54.350 --> 00:38:55.400
+So you just kind of go.
+
+00:38:55.400 --> 00:38:59.220
+And most of the time that works
+out fine, except this time.
+
+00:38:59.220 --> 00:39:06.970
+So here's the correlation
+time in a lattice model.
+
+00:39:06.970 --> 00:39:08.720
+This is actually the
+hydrogen on palladium
+
+00:39:08.720 --> 00:39:10.640
+at different temperatures.
+
+00:39:10.640 --> 00:39:16.360
+And the scale down here is the
+number of Monte Carlo passes.
+
+00:39:16.360 --> 00:39:20.910
+So this is correlation time
+in units of Monte Carlo time.
+
+00:39:20.910 --> 00:39:25.220
+Which is 1 unit of time is one
+pass through the whole lattice.
+
+00:39:25.220 --> 00:39:28.670
+So if you have a 10 by 10,
+it's 100 perturbations.
+
+00:39:28.670 --> 00:39:31.550
+If you have a 100 by 100,
+it'd be 10,000 perturbations.
+
+00:39:31.550 --> 00:39:33.050
+That's one unit of time.
+
+00:39:33.050 --> 00:39:35.330
+And to give you an
+idea, this is a system,
+
+00:39:35.330 --> 00:39:39.560
+at these conditions it undergoes
+a second-order transition
+
+00:39:39.560 --> 00:39:44.930
+near about somewhere T's eight
+or nine or something like that.
+
+00:39:44.930 --> 00:39:47.390
+So below that you're in an
+ordered state, above that
+
+00:39:47.390 --> 00:39:49.520
+you're in a disordered state.
+
+00:39:49.520 --> 00:39:53.930
+So let's first look at
+the low temperature.
+
+00:39:53.930 --> 00:39:56.090
+So you're in an order state--
+
+00:39:56.090 --> 00:39:59.180
+you actually have very
+short correlation time.
+
+00:39:59.180 --> 00:40:00.920
+It goes down very quickly to 0.
+
+00:40:00.920 --> 00:40:03.150
+And then there's this
+spurious oscillations--
+
+00:40:03.150 --> 00:40:05.862
+I'll show you in a second
+where to come from.
+
+00:40:05.862 --> 00:40:07.820
+which is really weird,
+because you wouldn't you
+
+00:40:07.820 --> 00:40:10.580
+don't expect large
+correlation times
+
+00:40:10.580 --> 00:40:12.950
+at either low or
+high temperature.
+
+00:40:12.950 --> 00:40:15.050
+Basically at either
+low temperature
+
+00:40:15.050 --> 00:40:17.390
+you barely have
+any fluctuations,
+
+00:40:17.390 --> 00:40:19.610
+and at very high temperature
+everything is so random
+
+00:40:19.610 --> 00:40:20.900
+that it's uncorrelated.
+
+00:40:20.900 --> 00:40:23.360
+It's at intermediate temperature
+that you have the longest
+
+00:40:23.360 --> 00:40:27.240
+correlation and in particular
+near-phase transitions.
+
+00:40:27.240 --> 00:40:29.600
+You sort of see the
+same thing a T equals 0.
+
+00:40:29.600 --> 00:40:31.375
+Correlation time
+is a little longer.
+
+00:40:31.375 --> 00:40:32.750
+Remember, the
+correlation time is
+
+00:40:32.750 --> 00:40:35.180
+the integral under this curve.
+
+00:40:35.180 --> 00:40:37.400
+And then you got
+these fluctuations.
+
+00:40:37.400 --> 00:40:40.890
+And then 0at T equals 8, you're
+very close to the transition.
+
+00:40:40.890 --> 00:40:50.250
+You see now you have a
+fairly high degree of fairly
+
+00:40:50.250 --> 00:40:51.660
+long correlation time.
+
+00:40:51.660 --> 00:40:57.370
+I mean, if you sort of
+eyeball the integration here,
+
+00:40:57.370 --> 00:41:00.060
+we'd almost have a
+triangle from 1 to 15.
+
+00:41:00.060 --> 00:41:04.780
+So we'd have, what, about 7
+and 1/2 under this integral?
+
+00:41:04.780 --> 00:41:07.380
+So that means that the
+quality of your averaging
+
+00:41:07.380 --> 00:41:11.400
+here has almost gone
+down by a factor of 10
+
+00:41:11.400 --> 00:41:15.178
+from what you would get if
+you did a random sample.
+
+00:41:15.178 --> 00:41:15.970
+It's actually more.
+
+00:41:15.970 --> 00:41:18.400
+Because, remember, the
+quality of the average
+
+00:41:18.400 --> 00:41:21.985
+goes down by a factor 1 plus
+2 times the correlation time.
+
+00:41:21.985 --> 00:41:27.190
+So if we have 7 and 1/2, we
+have a factor of 16 there.
+
+00:41:27.190 --> 00:41:29.440
+So the quality of
+our average is pretty
+
+00:41:29.440 --> 00:41:31.450
+poor near the
+second-order transition.
+
+00:41:31.450 --> 00:41:34.450
+And then at high
+temperature, it goes--
+
+00:41:34.450 --> 00:41:38.400
+you really have a
+short correlation time.
+
+00:41:38.400 --> 00:41:41.550
+Now, the reason I keep
+this bad data up here,
+
+00:41:41.550 --> 00:41:44.550
+because it's a
+mistake I made myself.
+
+00:41:44.550 --> 00:41:46.560
+The spurious
+fluctuations, at first
+
+00:41:46.560 --> 00:41:48.150
+I thought they were noise.
+
+00:41:48.150 --> 00:41:50.790
+But they're obviously
+way too big to be noise.
+
+00:41:50.790 --> 00:41:54.843
+And they don't go away when
+you take a longer sample.
+
+00:41:54.843 --> 00:41:56.260
+So if they're
+noise, then I think,
+
+00:41:56.260 --> 00:41:59.640
+well, I got an order
+of magnitude longer.
+
+00:41:59.640 --> 00:42:00.970
+They don't go away.
+
+00:42:00.970 --> 00:42:03.800
+Those fluctuations stay,
+and they can't be real.
+
+00:42:03.800 --> 00:42:07.660
+At T equals 2, you can't
+have correlation over 20.
+
+00:42:07.660 --> 00:42:10.870
+And why would you have
+correlation time over at 20
+
+00:42:10.870 --> 00:42:12.550
+but not 15?
+
+00:42:12.550 --> 00:42:14.800
+And so these actually
+come from sequentially
+
+00:42:14.800 --> 00:42:16.660
+stepping through the lattice.
+
+00:42:16.660 --> 00:42:20.220
+What actually happens
+is that your lattice
+
+00:42:20.220 --> 00:42:23.700
+starts locking in with the
+random number generator.
+
+00:42:23.700 --> 00:42:27.480
+So your random number
+generator has a period to it.
+
+00:42:27.480 --> 00:42:29.930
+And if you sequentially
+step through the lattice,
+
+00:42:29.930 --> 00:42:35.860
+you're visiting every site at
+a given periodicity of time.
+
+00:42:35.860 --> 00:42:38.125
+And at some point, that
+periodicity of time
+
+00:42:38.125 --> 00:42:39.750
+started locking in
+with the periodicity
+
+00:42:39.750 --> 00:42:41.350
+of the random number generator.
+
+00:42:41.350 --> 00:42:46.500
+Which really what it's saying
+is that certain spins are not
+
+00:42:46.500 --> 00:42:49.380
+randomly flipped
+anymore, because they
+
+00:42:49.380 --> 00:42:54.120
+occur at a certain time scale
+in the random number generator.
+
+00:42:54.120 --> 00:42:56.910
+And all random number generators
+have a period in them,
+
+00:42:56.910 --> 00:43:00.330
+and that's what causes this.
+
+00:43:00.330 --> 00:43:05.400
+So you can easily solve it if
+you just randomly pick spins.
+
+00:43:05.400 --> 00:43:08.400
+Another way you can do it if
+you want to sort of have it
+
+00:43:08.400 --> 00:43:12.000
+both ways, the things
+we do now sometimes
+
+00:43:12.000 --> 00:43:16.350
+is that you can just
+once in a while randomly
+
+00:43:16.350 --> 00:43:19.920
+jump ahead in the
+random number generator.
+
+00:43:19.920 --> 00:43:24.570
+Or you can randomly jump
+ahead in the spins you
+
+00:43:24.570 --> 00:43:25.672
+touch in the lattice.
+
+00:43:25.672 --> 00:43:27.630
+Rather than sequentially,
+you just sort of stop
+
+00:43:27.630 --> 00:43:29.040
+and you go to another one.
+
+00:44:01.920 --> 00:44:02.550
+OK.
+
+00:44:02.550 --> 00:44:04.620
+Size effects I'm not
+going to say a lot about,
+
+00:44:04.620 --> 00:44:06.930
+because they're kind of obvious.
+
+00:44:06.930 --> 00:44:09.180
+There's the obvious
+part of size effect
+
+00:44:09.180 --> 00:44:13.440
+that if your system has
+some periodicity that
+
+00:44:13.440 --> 00:44:15.950
+doesn't fit in your box,
+you're kind of messing up
+
+00:44:15.950 --> 00:44:16.950
+your system essentially.
+
+00:44:16.950 --> 00:44:20.350
+You're forcing on a periodicity
+which it doesn't have.
+
+00:44:20.350 --> 00:44:23.860
+And so if it's a
+solid state system,
+
+00:44:23.860 --> 00:44:26.700
+often what's going to do is make
+some kind of phase boundaries
+
+00:44:26.700 --> 00:44:28.810
+to try to fit into it.
+
+00:44:28.810 --> 00:44:32.280
+So that's an obvious one,
+that if your system has
+
+00:44:32.280 --> 00:44:35.520
+real periodicity
+your box size should
+
+00:44:35.520 --> 00:44:38.330
+be commensurate with
+that periodicity.
+
+00:44:38.330 --> 00:44:40.757
+It's kind of the obvious thing.
+
+00:44:40.757 --> 00:44:42.840
+The other obvious thing--
+if your system is really
+
+00:44:42.840 --> 00:44:47.850
+way too small, you can
+start seeing interaction
+
+00:44:47.850 --> 00:44:53.790
+between the perturbation
+in your Monte Carlo box
+
+00:44:53.790 --> 00:44:57.660
+and its image coming from the
+periodic boundary conditions.
+
+00:44:57.660 --> 00:44:59.910
+But usually you've got to
+have pretty small systems
+
+00:44:59.910 --> 00:45:02.200
+to actually run into that.
+
+00:45:02.200 --> 00:45:06.060
+And then there's a
+sort of classic problem
+
+00:45:06.060 --> 00:45:08.090
+of near second-order
+transitions.
+
+00:45:08.090 --> 00:45:13.260
+Near second-order transitions,
+the fluctuations in a system
+
+00:45:13.260 --> 00:45:15.120
+go towards infinity.
+
+00:45:15.120 --> 00:45:17.970
+The correlation length of the
+fluctuation becomes infinite,
+
+00:45:17.970 --> 00:45:21.150
+and at the transition
+it's actually infinite.
+
+00:45:21.150 --> 00:45:28.170
+So for example, if you do this
+ferromagnet, it spins all up,
+
+00:45:28.170 --> 00:45:30.210
+and it was a
+second-order transition,
+
+00:45:30.210 --> 00:45:34.290
+there will be whole patches of
+spins kind of flipping over.
+
+00:45:34.290 --> 00:45:37.363
+And the spatial
+correlation over distance
+
+00:45:37.363 --> 00:45:39.030
+over which they do
+that becomes infinite
+
+00:45:39.030 --> 00:45:41.300
+at the second-order transition.
+
+00:45:41.300 --> 00:45:43.910
+That means there
+will be a point where
+
+00:45:43.910 --> 00:45:46.730
+your cell is by definition
+not large enough
+
+00:45:46.730 --> 00:45:48.838
+to capture those fluctuations.
+
+00:45:48.838 --> 00:45:50.630
+And essentially what
+happens is that if you
+
+00:45:50.630 --> 00:45:54.560
+work with a finite cell,
+you remove all fluctuations
+
+00:45:54.560 --> 00:45:57.180
+below a certain wavelength.
+
+00:45:57.180 --> 00:46:00.510
+Any wavelength that's
+larger than your box,
+
+00:46:00.510 --> 00:46:05.330
+those fluctuations are gone
+essentially from your system.
+
+00:46:05.330 --> 00:46:08.420
+So that does things
+to the heat capacity.
+
+00:46:08.420 --> 00:46:10.040
+Remember that the
+heat capacity is
+
+00:46:10.040 --> 00:46:12.590
+a measure of the fluctuations.
+
+00:46:12.590 --> 00:46:16.400
+It's E squared average minus
+E average squared essentially
+
+00:46:16.400 --> 00:46:19.020
+over kT squared.
+
+00:46:19.020 --> 00:46:21.840
+So this is the
+really funny thing.
+
+00:46:21.840 --> 00:46:26.730
+The heat capacity at a
+second-order transition
+
+00:46:26.730 --> 00:46:31.260
+depends on the system
+size even when normalized.
+
+00:46:31.260 --> 00:46:33.450
+So you calculate the heat
+capacity of your system,
+
+00:46:33.450 --> 00:46:35.790
+you normalize it by
+the number of particles
+
+00:46:35.790 --> 00:46:37.920
+or spins in your
+system, you think
+
+00:46:37.920 --> 00:46:40.350
+that's a constant
+quantity-- it's not.
+
+00:46:40.350 --> 00:46:42.670
+That depends on
+your system size.
+
+00:46:42.670 --> 00:46:44.035
+And that's what I've shown here.
+
+00:46:44.035 --> 00:46:45.660
+This is actually not
+the heat capacity,
+
+00:46:45.660 --> 00:46:47.470
+it's the susceptibility
+variant of it.
+
+00:46:47.470 --> 00:46:50.555
+So it's the fluctuation of the
+spin rather than the energy.
+
+00:46:50.555 --> 00:46:51.180
+But look at it.
+
+00:46:51.180 --> 00:46:54.120
+This is for a ferromagnet.
+
+00:46:54.120 --> 00:46:55.380
+This is a small size.
+
+00:46:55.380 --> 00:46:58.770
+This is a 5 by 5
+lattice, the green thing.
+
+00:46:58.770 --> 00:47:05.020
+This blue thing here is a 10
+by 10, 20 by 20, 30 by 30,
+
+00:47:05.020 --> 00:47:06.765
+50 by 50.
+
+00:47:06.765 --> 00:47:08.140
+And so what you
+see is the bigger
+
+00:47:08.140 --> 00:47:11.250
+your system, the bigger
+your heat capacity.
+
+00:47:11.250 --> 00:47:12.000
+And I don't know--
+
+00:47:12.000 --> 00:47:14.740
+if we did it right, it should
+go like the square root of n
+
+00:47:14.740 --> 00:47:16.900
+essentially, where n is
+the number of particles
+
+00:47:16.900 --> 00:47:19.160
+in your system.
+
+00:47:19.160 --> 00:47:20.650
+This is a great
+thing to remember.
+
+00:47:20.650 --> 00:47:25.060
+If you see phase
+transitions in your system,
+
+00:47:25.060 --> 00:47:28.110
+if you want to know whether
+their first or second-order,
+
+00:47:28.110 --> 00:47:31.560
+this is the test to do if
+you absolutely want to know.
+
+00:47:31.560 --> 00:47:33.960
+We'll talk later in
+more detail about how
+
+00:47:33.960 --> 00:47:35.670
+to see phase transitions.
+
+00:47:35.670 --> 00:47:37.770
+But if you want to
+be absolutely sure,
+
+00:47:37.770 --> 00:47:40.410
+you'll often see humps
+in susceptibilities
+
+00:47:40.410 --> 00:47:43.560
+so susceptibilities I mean
+second-order derivatives
+
+00:47:43.560 --> 00:47:46.490
+of free energy--
+source heat capacities
+
+00:47:46.490 --> 00:47:49.380
+magnetic susceptibilities
+chemical susceptibilities,
+
+00:47:49.380 --> 00:47:52.140
+all those things tend to
+show peak behavior near phase
+
+00:47:52.140 --> 00:47:53.340
+transitions.
+
+00:47:53.340 --> 00:47:54.990
+But you'll often
+see peaks in them
+
+00:47:54.990 --> 00:47:57.960
+even when you're not out
+at a phase transition.
+
+00:47:57.960 --> 00:48:00.600
+And the way to know that
+it's a second or transition
+
+00:48:00.600 --> 00:48:03.410
+is often just to look at the
+scaling with system size.
+
+00:48:09.470 --> 00:48:13.400
+I think I talked
+about this last time--
+
+00:48:13.400 --> 00:48:15.230
+keep in mind that if
+you do to Monte Carlo,
+
+00:48:15.230 --> 00:48:17.480
+you can pretty much
+choose any types of moves.
+
+00:48:17.480 --> 00:48:22.270
+And I talked last time
+about diffusion-like moves
+
+00:48:22.270 --> 00:48:24.370
+and exchange moves.
+
+00:48:24.370 --> 00:48:29.390
+One thing I wanted to
+kind of point out--
+
+00:48:29.390 --> 00:48:31.213
+let me see if I still--
+
+00:48:31.213 --> 00:48:31.880
+I'll do it here.
+
+00:48:35.480 --> 00:48:37.490
+Sometimes looking
+carefully at your system
+
+00:48:37.490 --> 00:48:39.860
+can really help you do moves.
+
+00:48:39.860 --> 00:48:41.730
+I'll give you an example.
+
+00:48:41.730 --> 00:48:45.980
+A while ago I was
+studying oxygen transport
+
+00:48:45.980 --> 00:48:47.840
+on platinum surfaces.
+
+00:48:47.840 --> 00:48:49.670
+And it's sort of the same.
+
+00:48:49.670 --> 00:48:52.730
+Like in hydrogen on
+palladium, in this case
+
+00:48:52.730 --> 00:48:55.640
+it's a platinum 1 1 1, So
+it's a triangular lattice.
+
+00:48:55.640 --> 00:48:59.480
+But you have oxygen sitting
+on particular lattice sites.
+
+00:48:59.480 --> 00:49:02.030
+But because of some
+reason, the oxygen
+
+00:49:02.030 --> 00:49:06.710
+wanted to form strong
+triplet clusters.
+
+00:49:06.710 --> 00:49:08.547
+So that means on different
+place in the labs
+
+00:49:08.547 --> 00:49:10.005
+you all had these
+triplet clusters.
+
+00:49:12.723 --> 00:49:13.890
+So I'm drawing on a lattice.
+
+00:49:13.890 --> 00:49:17.370
+As you can't see it, but anyway.
+
+00:49:17.370 --> 00:49:22.470
+If your perturbation
+mechanism is moving one oxygen
+
+00:49:22.470 --> 00:49:27.270
+or flipping one oxygen
+into a vacant site,
+
+00:49:27.270 --> 00:49:30.870
+the dynamics of these kind of
+systems becomes really poor.
+
+00:49:30.870 --> 00:49:32.130
+And the reason is--
+
+00:49:32.130 --> 00:49:34.295
+remember, if you
+anneal the system, what
+
+00:49:34.295 --> 00:49:36.480
+it's going to do its form
+these triplet clusters.
+
+00:49:36.480 --> 00:49:38.355
+But then what you'll
+find in your Monte Carlo
+
+00:49:38.355 --> 00:49:40.500
+is you can't move them anymore.
+
+00:49:40.500 --> 00:49:42.120
+Because these clusters
+then will have
+
+00:49:42.120 --> 00:49:44.160
+to arrange in some
+pattern, but you're
+
+00:49:44.160 --> 00:49:46.365
+going to have really poor
+convergence in your Monte
+
+00:49:46.365 --> 00:49:46.865
+Carlo.
+
+00:49:46.865 --> 00:49:48.240
+And what's the reason?
+
+00:49:48.240 --> 00:49:53.200
+The only way that you
+can displace this thing
+
+00:49:53.200 --> 00:49:55.540
+is by breaking it up.
+
+00:49:55.540 --> 00:49:59.500
+Because the perturbation
+you assign is I take this,
+
+00:49:59.500 --> 00:50:01.150
+and I make it into
+a vacant site.
+
+00:50:01.150 --> 00:50:03.250
+But now you break
+up the triplet or I
+
+00:50:03.250 --> 00:50:04.630
+want to start a new one here.
+
+00:50:07.260 --> 00:50:11.070
+But it's the triplet clusters
+that are very stable,
+
+00:50:11.070 --> 00:50:13.350
+then all these perturbations
+of breaking one
+
+00:50:13.350 --> 00:50:15.120
+up or starting a new
+one and going at them
+
+00:50:15.120 --> 00:50:16.643
+are very high in energy.
+
+00:50:16.643 --> 00:50:18.810
+So what essentially happens
+is that your Monte Carlo
+
+00:50:18.810 --> 00:50:20.400
+doesn't move anymore.
+
+00:50:20.400 --> 00:50:22.740
+Because any excitation
+you've given
+
+00:50:22.740 --> 00:50:25.470
+it is very high in energy.
+
+00:50:25.470 --> 00:50:29.580
+Even though the system may
+have low energy excitations,
+
+00:50:29.580 --> 00:50:32.040
+it may be moving this
+whole thing over.
+
+00:50:32.040 --> 00:50:35.555
+It sort of keeps the
+triplet together.
+
+00:50:35.555 --> 00:50:37.680
+And if there's a weak energy
+interaction with them,
+
+00:50:37.680 --> 00:50:39.375
+that's a low energy excitation.
+
+00:50:39.375 --> 00:50:42.000
+So sometimes, especially at low
+temperature, what you should do
+
+00:50:42.000 --> 00:50:44.550
+is look at your system.
+
+00:50:44.550 --> 00:50:47.460
+And especially if there
+are stable ordered units
+
+00:50:47.460 --> 00:50:48.960
+that form-- for
+example, those could
+
+00:50:48.960 --> 00:50:50.520
+be molecular units
+if you're doing
+
+00:50:50.520 --> 00:50:53.550
+an off lattice for molecular
+simulation-- sometimes
+
+00:50:53.550 --> 00:50:55.830
+it then pays to move
+those things as a whole.
+
+00:50:55.830 --> 00:50:59.340
+It can be a much more
+efficient perturbation.
+
+00:50:59.340 --> 00:51:01.507
+It becomes, of course,
+more complicated to do
+
+00:51:01.507 --> 00:51:02.340
+those kind of moves.
+
+00:51:05.410 --> 00:51:07.000
+This is by far the
+biggest problem
+
+00:51:07.000 --> 00:51:10.670
+I see in complicated systems,
+equilibrating complex systems.
+
+00:51:10.670 --> 00:51:14.020
+They tend to have
+multiple energy scales.
+
+00:51:14.020 --> 00:51:17.800
+And as soon as you
+freeze out one of them,
+
+00:51:17.800 --> 00:51:20.860
+it becomes hard to even
+equilibrate the lower energy
+
+00:51:20.860 --> 00:51:21.790
+scale.
+
+00:51:21.790 --> 00:51:23.290
+OK.
+
+00:51:23.290 --> 00:51:27.670
+So let me sort of do a
+very different system now,
+
+00:51:27.670 --> 00:51:30.370
+to give you an idea
+of how you can do--
+
+00:51:30.370 --> 00:51:32.320
+what kind of perturbations
+you can pick.
+
+00:51:32.320 --> 00:51:34.630
+So now, instead
+of Ising magnets--
+
+00:51:34.630 --> 00:51:37.570
+Ising magnet is one with
+two states up and down--
+
+00:51:37.570 --> 00:51:39.010
+we'll look at a
+Heisenberg magnet.
+
+00:51:39.010 --> 00:51:42.850
+A Heisenberg magnet is one in
+which you have a fixed spin,
+
+00:51:42.850 --> 00:51:45.620
+but it can rotate
+continuously in space.
+
+00:51:45.620 --> 00:51:49.540
+So it can take any direction
+in space not discretized.
+
+00:51:49.540 --> 00:51:57.970
+So the spin vector has three
+components, x, y, and z.
+
+00:51:57.970 --> 00:52:01.570
+The Hamiltonian is very similar
+to an Ising Hamiltonian.
+
+00:52:01.570 --> 00:52:06.910
+You can define the interaction
+energy through the dot product.
+
+00:52:06.910 --> 00:52:10.450
+So again, the dot product
+of the spins are parallel,
+
+00:52:10.450 --> 00:52:11.470
+the dot product is 1.
+
+00:52:11.470 --> 00:52:13.960
+If they're antiparallel,
+the dot product is minus 1.
+
+00:52:13.960 --> 00:52:15.700
+If they're orthogonal, it's 0.
+
+00:52:15.700 --> 00:52:18.050
+And then you can have
+anything in between.
+
+00:52:18.050 --> 00:52:20.500
+So again, the j has a
+very similar meaning.
+
+00:52:20.500 --> 00:52:23.350
+Positive j will give
+you ferromagnets,
+
+00:52:23.350 --> 00:52:25.720
+negative j will give
+you antiferromagnets.
+
+00:52:25.720 --> 00:52:28.390
+And you can have a field term
+or a chemical potential term
+
+00:52:28.390 --> 00:52:30.910
+to control the amount of spin.
+
+00:52:30.910 --> 00:52:34.550
+So how would we do Monte Carlo
+perturbations on this system?
+
+00:52:34.550 --> 00:52:36.460
+Well, first we need
+a coordinate system.
+
+00:52:36.460 --> 00:52:41.320
+And rather than x, y, z, if
+we can serve the amount spin,
+
+00:52:41.320 --> 00:52:44.890
+we can just use a set of
+spherical coordinates, theta,
+
+00:52:44.890 --> 00:52:47.440
+phi, and R. so
+essentially you need
+
+00:52:47.440 --> 00:52:50.480
+three coordinates to give
+the direction of a vector.
+
+00:52:50.480 --> 00:52:52.570
+And that's all we need,
+since the norm, the length
+
+00:52:52.570 --> 00:52:55.462
+of the vector, is conserved.
+
+00:52:55.462 --> 00:52:56.920
+And this is one of
+these ones where
+
+00:52:56.920 --> 00:53:00.310
+maybe if you didn't think
+carefully right away,
+
+00:53:00.310 --> 00:53:04.090
+you'd pick theta
+and phi randomly.
+
+00:53:04.090 --> 00:53:07.720
+So remember, theta
+can go anywhere from--
+
+00:53:07.720 --> 00:53:09.410
+so what's the range of theta--
+
+00:53:09.410 --> 00:53:15.900
+let's say 0 to 180, because the
+vector can go all the way down.
+
+00:53:15.900 --> 00:53:20.490
+And phi has a range of 0 to 360.
+
+00:53:20.490 --> 00:53:23.340
+This one can go
+all the way around.
+
+00:53:23.340 --> 00:53:28.050
+Now, if you picked theta and
+phi randomly in that interval,
+
+00:53:28.050 --> 00:53:30.780
+you'd make a big mistake.
+
+00:53:30.780 --> 00:53:35.310
+And the reason is, if
+you think about it,
+
+00:53:35.310 --> 00:53:40.130
+when you're at
+theta equals 0, then
+
+00:53:40.130 --> 00:53:43.910
+all the states for
+phi, from 0 to 360,
+
+00:53:43.910 --> 00:53:47.280
+map onto the same state.
+
+00:53:47.280 --> 00:53:50.180
+So you'd very
+often end up there.
+
+00:53:50.180 --> 00:53:54.270
+Whereas if theta
+equals 90 degrees,
+
+00:53:54.270 --> 00:53:57.140
+so you're in this plane,
+then all the states
+
+00:53:57.140 --> 00:54:02.670
+for phi, from 0 to 460
+are different states.
+
+00:54:02.670 --> 00:54:15.420
+So essentially, when the density
+with which you sample theta
+
+00:54:15.420 --> 00:54:18.693
+should depend on its value.
+
+00:54:18.693 --> 00:54:20.110
+Let me show that
+in another slide.
+
+00:54:27.200 --> 00:54:31.430
+For a given theta,
+the number of states
+
+00:54:31.430 --> 00:54:35.570
+that have that angle theta
+is proportional to the slice
+
+00:54:35.570 --> 00:54:36.200
+of the sphere.
+
+00:54:36.200 --> 00:54:39.440
+So it's proportional
+to 2pi sine theta.
+
+00:54:39.440 --> 00:54:40.550
+This should be a d theta.
+
+00:54:43.190 --> 00:54:47.630
+So it's proportional to
+the area that you curve out
+
+00:54:47.630 --> 00:54:48.800
+from the sphere.
+
+00:54:48.800 --> 00:54:50.300
+So really what you
+need to do is you
+
+00:54:50.300 --> 00:54:54.940
+need to pick theta proportional
+to sine theta d theta
+
+00:54:54.940 --> 00:54:57.830
+or proportional to
+sine theta really.
+
+00:54:57.830 --> 00:55:03.170
+Because sine theta
+is 0 and theta is 0,
+
+00:55:03.170 --> 00:55:06.140
+so there are very
+few states here.
+
+00:55:06.140 --> 00:55:08.870
+And there's maximum
+amount of states
+
+00:55:08.870 --> 00:55:13.650
+around the sphere when you're
+at theta equals 90 degrees.
+
+00:55:13.650 --> 00:55:14.570
+So how do you do that?
+
+00:55:24.450 --> 00:55:29.540
+You have to go from a
+homogeneous distribution
+
+00:55:29.540 --> 00:55:32.240
+of random numbers, which I've
+taken for convenience here
+
+00:55:32.240 --> 00:55:36.140
+as going from minus 1 to
+1, rather than from 0 to 1,
+
+00:55:36.140 --> 00:55:38.370
+and you want to go
+to a random variable
+
+00:55:38.370 --> 00:55:42.260
+now that's distributed
+with a frequency.
+
+00:55:42.260 --> 00:55:44.840
+You're going to go to a random
+distribution between 0 and 180
+
+00:55:44.840 --> 00:55:47.120
+if you're working for an angle.
+
+00:55:47.120 --> 00:55:49.040
+But you want it
+to be distributed
+
+00:55:49.040 --> 00:55:50.480
+like the sine of theta.
+
+00:55:50.480 --> 00:55:53.430
+And I've taken 1/2 sine of
+theta so that the integral
+
+00:55:53.430 --> 00:55:55.670
+under that curve is 1.
+
+00:55:55.670 --> 00:55:57.770
+So what you need to do
+is find some relation
+
+00:55:57.770 --> 00:56:01.670
+between theta and
+x, since x is what
+
+00:56:01.670 --> 00:56:03.950
+you're going to pick from
+your random number generator
+
+00:56:03.950 --> 00:56:06.320
+and theta is what you
+sample, so that theta
+
+00:56:06.320 --> 00:56:09.440
+is distributed like that.
+
+00:56:09.440 --> 00:56:13.430
+And the way you can do that is
+you can actually write it out.
+
+00:56:13.430 --> 00:56:14.900
+I've written down the solution.
+
+00:56:14.900 --> 00:56:16.970
+But the way you find
+that is by saying
+
+00:56:16.970 --> 00:56:21.230
+that in a given
+interval around theta,
+
+00:56:21.230 --> 00:56:24.920
+you should have the same status
+as a given interval around x.
+
+00:56:24.920 --> 00:56:33.330
+So that means that p theta
+d theta has two equal px dx,
+
+00:56:33.330 --> 00:56:38.500
+and this is 1/2 sine
+of theta d theta.
+
+00:56:38.500 --> 00:56:43.730
+Px is 1/2, because it's
+normalized there as 1/2 dx.
+
+00:56:43.730 --> 00:56:45.280
+So I lose this, I lose this.
+
+00:56:45.280 --> 00:56:51.680
+So d data dx is--
+
+00:56:51.680 --> 00:56:54.070
+sorry.
+
+00:56:54.070 --> 00:56:56.570
+Cross this out.
+
+00:56:56.570 --> 00:57:02.361
+Dx d theta is the sine of theta.
+
+00:57:02.361 --> 00:57:08.250
+That means that x is
+minus the cosine of theta.
+
+00:57:08.250 --> 00:57:13.350
+And that means that theta
+is the arccosine of minus x.
+
+00:57:13.350 --> 00:57:16.170
+So it's the cosine minus 1.
+
+00:57:16.170 --> 00:57:21.090
+So this is how you can go from
+a flat homogeneous distribution
+
+00:57:21.090 --> 00:57:22.600
+to some other distribution.
+
+00:57:22.600 --> 00:57:26.940
+So if you pick the
+angles, with this function
+
+00:57:26.940 --> 00:57:29.940
+you'll actually get a properly
+distributed value of theta.
+
+00:57:29.940 --> 00:57:33.060
+And then, of course,
+phi, the other angle--
+
+00:57:33.060 --> 00:57:34.950
+what do call that
+again, I always
+
+00:57:34.950 --> 00:57:37.800
+forget get the names of these--
+
+00:57:37.800 --> 00:58:03.000
+you can pick randomly
+from 0 to 360.
+
+00:58:03.000 --> 00:58:03.810
+Oh, come on.
+
+00:58:07.690 --> 00:58:08.470
+OK.
+
+00:58:08.470 --> 00:58:15.430
+Let me actually, before
+I show, go to a result.
+
+00:58:15.430 --> 00:58:28.860
+What I've done here is set up a
+ferromagnetic Heisenberg model
+
+00:58:28.860 --> 00:58:32.457
+and looked at the heat capacity.
+
+00:58:32.457 --> 00:58:34.290
+I'm actually not sure
+this is ferromagnetic,
+
+00:58:34.290 --> 00:58:35.710
+but it's a Heisenberg model.
+
+00:58:35.710 --> 00:58:41.060
+But this is the
+temperature axis,
+
+00:58:41.060 --> 00:58:43.067
+and this is the heat capacity.
+
+00:58:43.067 --> 00:58:44.900
+And I'm going to tell
+you in a second-- this
+
+00:58:44.900 --> 00:58:49.390
+is the way it's supposed
+to look, the bottom thing.
+
+00:58:49.390 --> 00:58:52.270
+But this is actually
+how it looks.
+
+00:58:52.270 --> 00:58:55.190
+At lower temperature get
+higher heat capacity,
+
+00:58:55.190 --> 00:58:56.950
+and then it kind of bends over.
+
+00:58:56.950 --> 00:58:59.170
+And this piece is wrong.
+
+00:58:59.170 --> 00:59:03.100
+So I did exactly the
+algorithm that I told.
+
+00:59:06.440 --> 00:59:10.990
+I implemented the distribution
+for theta correctly,
+
+00:59:10.990 --> 00:59:12.730
+and I sort of
+randomly picked angles
+
+00:59:12.730 --> 00:59:15.970
+to look for perturbations.
+
+00:59:15.970 --> 00:59:19.240
+And this is what I get.
+
+00:59:19.240 --> 00:59:21.490
+And the first time I
+saw this, I remember,
+
+00:59:21.490 --> 00:59:23.950
+ah, there must be a
+phase transition here,
+
+00:59:23.950 --> 00:59:26.238
+because there's a sort of
+maximum in heat capacity.
+
+00:59:26.238 --> 00:59:27.280
+But there actually isn't.
+
+00:59:27.280 --> 00:59:29.480
+Because I'll show in a
+second, if you do it right,
+
+00:59:29.480 --> 00:59:31.870
+you get the heat capacity
+slide on the bottom here.
+
+00:59:34.690 --> 00:59:41.660
+Keep in mind that heat capacity
+is sampling fluctuations.
+
+00:59:41.660 --> 00:59:45.460
+So if you do something wrong
+and you don't allow your system
+
+00:59:45.460 --> 00:59:47.950
+to fluctuate enough, you
+will reduce its heat capacity
+
+00:59:47.950 --> 00:59:49.420
+artificially.
+
+00:59:49.420 --> 00:59:51.960
+And that's what's
+going on there.
+
+00:59:51.960 --> 00:59:56.820
+I'm basically not
+doing a good job
+
+00:59:56.820 --> 00:59:58.710
+about sampling
+certain fluctuations,
+
+00:59:58.710 --> 01:00:01.410
+and that's why the heat
+capacity, as I go towards 0,
+
+01:00:01.410 --> 01:00:04.480
+spuriously goes down.
+
+01:00:04.480 --> 01:00:07.480
+And it's interesting, because
+these fluctuations that I'm
+
+01:00:07.480 --> 01:00:10.240
+missing have no counterpart
+in discrete models,
+
+01:00:10.240 --> 01:00:11.800
+like lattice models.
+
+01:00:11.800 --> 01:00:16.610
+In this model, what they
+actually are are spin waves.
+
+01:00:16.610 --> 01:00:18.370
+And that's the previous slide.
+
+01:00:21.090 --> 01:00:26.170
+In a lattice model, the
+lowest energy fluctuation
+
+01:00:26.170 --> 01:00:29.530
+is a finite amount of energy
+above the ground state.
+
+01:00:29.530 --> 01:00:32.278
+If you think of your
+ferromagnetic model,
+
+01:00:32.278 --> 01:00:33.820
+what's the lowest
+energy fluctuation?
+
+01:00:33.820 --> 01:00:35.290
+Flipping one0 spin over.
+
+01:00:35.290 --> 01:00:37.340
+Remember, I told you
+that cost you 8j--
+
+01:00:37.340 --> 01:00:39.040
+that's the energy cost.
+
+01:00:39.040 --> 01:00:42.250
+It's a finite number
+above the ground state.
+
+01:00:42.250 --> 01:00:45.430
+In a continuous
+model, you usually
+
+01:00:45.430 --> 01:00:49.510
+have excitations that are
+an infinitesimal amount
+
+01:00:49.510 --> 01:00:51.580
+above the ground state.
+
+01:00:51.580 --> 01:00:53.080
+That means these
+fluctuations are
+
+01:00:53.080 --> 01:00:56.410
+reachable at any temperature.
+
+01:00:56.410 --> 01:00:58.210
+Because if they're an
+infinitesimal amount
+
+01:00:58.210 --> 01:00:59.877
+above the ground
+state, you can get them
+
+01:00:59.877 --> 01:01:04.420
+as soon as T is
+infinitesimally amount above 0.
+
+01:01:04.420 --> 01:01:07.390
+And in a Heisenberg model,
+then equivalent thing
+
+01:01:07.390 --> 01:01:08.260
+are spin waves.
+
+01:01:10.981 --> 01:01:13.630
+We may have thought that
+we have a ferromagnet,
+
+01:01:13.630 --> 01:01:15.550
+and the lowest
+order fluctuation is
+
+01:01:15.550 --> 01:01:17.980
+to take one spin and kind
+of randomly orient it.
+
+01:01:17.980 --> 01:01:19.840
+Well, they're not.
+
+01:01:19.840 --> 01:01:21.880
+The lowest energy
+fluctuation is a spin wave.
+
+01:01:21.880 --> 01:01:24.700
+It's literally sort of
+like the wave in a stadium,
+
+01:01:24.700 --> 01:01:26.890
+where everybody moves a little.
+
+01:01:26.890 --> 01:01:31.370
+It's essentially where you move
+every spin just a little bit
+
+01:01:31.370 --> 01:01:32.930
+correspondent to the next one.
+
+01:01:32.930 --> 01:01:34.930
+And if you actually
+calculate the energy of that
+
+01:01:34.930 --> 01:01:38.320
+and you take the long
+wave length limit,
+
+01:01:38.320 --> 01:01:40.600
+you find that the
+energy is actually
+
+01:01:40.600 --> 01:01:43.600
+only an infinitesimal amount
+above the ground state--
+
+01:01:43.600 --> 01:01:45.460
+so for the infinite wavelength.
+
+01:01:45.460 --> 01:01:47.140
+And as the wavelength
+gets shorter,
+
+01:01:47.140 --> 01:01:49.760
+the energy of the
+fluctuation goes up.
+
+01:01:49.760 --> 01:01:51.490
+So you can see now
+that we don't get
+
+01:01:51.490 --> 01:01:54.060
+that in our sampling algorithm.
+
+01:01:54.060 --> 01:01:58.460
+And the reason is that we're
+just never efficient enough
+
+01:01:58.460 --> 01:02:01.580
+to perturb states where
+you have just these really
+
+01:02:01.580 --> 01:02:07.070
+small amounts of spin canting
+over a very long wavelength.
+
+01:02:07.070 --> 01:02:08.965
+Because what do we do?
+
+01:02:08.965 --> 01:02:09.590
+Think about it.
+
+01:02:09.590 --> 01:02:11.570
+If we're in a ferromagnetic
+state, what are we going to do?
+
+01:02:11.570 --> 01:02:13.737
+With our algorithm, we're
+going to be picking a spin
+
+01:02:13.737 --> 01:02:15.350
+and taking a random
+new orientation.
+
+01:02:15.350 --> 01:02:16.590
+And we're never
+going to accept it.
+
+01:02:16.590 --> 01:02:18.298
+If you're a low enough
+temperature that's
+
+01:02:18.298 --> 01:02:22.320
+finite energy perturbations,
+you're not going to accept it.
+
+01:02:22.320 --> 01:02:22.880
+OK.
+
+01:02:22.880 --> 01:02:24.510
+So how do you fix this problem?
+
+01:02:24.510 --> 01:02:26.150
+Well, if you
+understand the physics,
+
+01:02:26.150 --> 01:02:27.770
+you start building it in.
+
+01:02:27.770 --> 01:02:30.740
+You start taking
+other perturbations.
+
+01:02:30.740 --> 01:02:34.130
+And here's a very
+simple solution to it--
+
+01:02:34.130 --> 01:02:40.530
+if you have a spin at
+a given orientation,
+
+01:02:40.530 --> 01:02:44.700
+rather than finding a random
+new orientation of the spin,
+
+01:02:44.700 --> 01:02:47.730
+you say, I'm going to randomize
+it just within a small cone.
+
+01:02:51.190 --> 01:02:54.100
+So I'm only allowing a
+certain amount of deviation
+
+01:02:54.100 --> 01:02:55.670
+from that angle.
+
+01:02:55.670 --> 01:02:57.520
+And as you make that
+smaller and smaller,
+
+01:02:57.520 --> 01:02:58.930
+you'll start
+getting speed waves.
+
+01:02:58.930 --> 01:03:03.100
+Because every spin will only be
+perturbed a very small amount
+
+01:03:03.100 --> 01:03:03.620
+of time.
+
+01:03:03.620 --> 01:03:06.280
+You're essentially just
+making your sampling algorithm
+
+01:03:06.280 --> 01:03:07.822
+a lot more efficient.
+
+01:03:12.450 --> 01:03:15.920
+And if you do that, you
+get this heat capacity.
+
+01:03:15.920 --> 01:03:19.220
+So it's perfect.
+
+01:03:19.220 --> 01:03:26.570
+Notice that the heat
+capacity is finite at 0,
+
+01:03:26.570 --> 01:03:27.470
+did you expect that?
+
+01:03:30.690 --> 01:03:35.880
+I mean, heat capacity cannot
+be non-zero at 0 Kelvin.
+
+01:03:35.880 --> 01:03:38.670
+If you have finite
+heat capacity, so
+
+01:03:38.670 --> 01:03:42.120
+heat capacity that's not
+0 at 0 degrees Kelvin,
+
+01:03:42.120 --> 01:03:44.585
+you have infinite entropy.
+
+01:03:44.585 --> 01:03:46.460
+Because remember, the
+entropy is the integral
+
+01:03:46.460 --> 01:03:56.380
+of C V over T V T. S is heat
+capacity at any heat capacity
+
+01:03:56.380 --> 01:03:59.380
+essentially.
+
+01:03:59.380 --> 01:04:04.800
+So if this goes to 0,
+this has to go to 0.
+
+01:04:04.800 --> 01:04:06.510
+Because otherwise this
+integral blows up.
+
+01:04:10.520 --> 01:04:13.370
+And heat capacity
+always goes to 0.
+
+01:04:13.370 --> 01:04:16.098
+So there's something
+wrong with the model.
+
+01:04:16.098 --> 01:04:17.140
+And what's wrong with it?
+
+01:04:29.815 --> 01:04:31.940
+What's wrong with it is
+kind of what I pointed out,
+
+01:04:31.940 --> 01:04:36.050
+that it has these
+infinitesimally
+
+01:04:36.050 --> 01:04:40.340
+small excitation energies,
+because it's a continuum model.
+
+01:04:40.340 --> 01:04:44.790
+In any real system, remember
+that the states are quantized.
+
+01:04:44.790 --> 01:04:49.260
+That means that the first
+excitation is always
+
+01:04:49.260 --> 01:04:51.360
+a finite energy above
+the ground state.
+
+01:04:54.420 --> 01:04:55.920
+And you see, this is important.
+
+01:04:55.920 --> 01:04:58.980
+If you're a finite energy
+above the ground state,
+
+01:04:58.980 --> 01:05:02.250
+there will always be some
+temperature that's low enough
+
+01:05:02.250 --> 01:05:05.670
+to freeze out that excitation.
+
+01:05:05.670 --> 01:05:10.610
+If your first excitation
+is 1 millielectron-volt
+
+01:05:10.610 --> 01:05:13.190
+above the ground state,
+you can do the math.
+
+01:05:13.190 --> 01:05:15.475
+When kT is about 1
+millielectron-volt,
+
+01:05:15.475 --> 01:05:17.225
+below that temperature
+will start freezing
+
+01:05:17.225 --> 01:05:19.700
+out that excitation,
+and it won't contribute
+
+01:05:19.700 --> 01:05:22.590
+to the heat capacity anymore.
+
+01:05:22.590 --> 01:05:24.790
+And this is how heat
+capacities go to 0.
+
+01:05:24.790 --> 01:05:29.500
+It's because energy states
+are in reality quantized.
+
+01:05:29.500 --> 01:05:33.180
+So any time you work
+with a continuum model--
+
+01:05:33.180 --> 01:05:34.140
+let me restate that--
+
+01:05:34.140 --> 01:05:37.410
+I mean, a model with
+continuous degrees of freedom--
+
+01:05:37.410 --> 01:05:40.650
+this was one, the
+Heisenberg angle--
+
+01:05:40.650 --> 01:05:46.500
+atoms moving, like a continuous
+set of coordinates in space,
+
+01:05:46.500 --> 01:05:51.190
+will give you a finite
+heat capacity at 0 Kelvin.
+
+01:05:51.190 --> 01:05:52.720
+And that's wrong.
+
+01:05:52.720 --> 01:05:54.790
+So how should you solve that.
+
+01:05:54.790 --> 01:05:56.325
+Well, that's a
+difficult problem.
+
+01:05:56.325 --> 01:05:57.700
+The way to solve
+that is you will
+
+01:05:57.700 --> 01:06:01.570
+have to know what the
+quantized excitations are.
+
+01:06:04.240 --> 01:06:10.180
+And if you had atoms, there your
+continuous degree of freedom
+
+01:06:10.180 --> 01:06:12.140
+is a displacement.
+
+01:06:12.140 --> 01:06:14.680
+So what's the quantized
+degree of freedom there?
+
+01:06:14.680 --> 01:06:15.730
+Atoms in a solid.
+
+01:06:20.240 --> 01:06:23.370
+Remember, if you do this on a
+solid, just displace the atoms
+
+01:06:23.370 --> 01:06:28.170
+small amounts, you'll get
+non-zero heat capacity.
+
+01:06:28.170 --> 01:06:30.750
+So how do you quantize the
+displacement degree of freedom
+
+01:06:30.750 --> 01:06:33.470
+in a solid?
+
+01:06:33.470 --> 01:06:36.010
+Those are called phonons.
+
+01:06:36.010 --> 01:06:39.620
+It's by phonon diagonalization
+that you find the eigenstates.
+
+01:06:39.620 --> 01:06:42.640
+So those are the quantum states,
+and they are a finite area
+
+01:06:42.640 --> 01:06:43.810
+above the ground state.
+
+01:06:43.810 --> 01:06:45.940
+What are they in a
+Heisenberg magnet?
+
+01:06:48.950 --> 01:06:52.550
+I don't know, and I
+think nobody knows.
+
+01:06:52.550 --> 01:06:55.790
+Finding the eigenstates
+of a Heisenberg model
+
+01:06:55.790 --> 01:06:59.300
+seems to be a really
+difficult problem that
+
+01:06:59.300 --> 01:07:01.700
+to my understanding
+is not fully resolved.
+
+01:07:01.700 --> 01:07:04.200
+So we don't even know what the
+eigenstates are of the system
+
+01:07:04.200 --> 01:07:06.200
+if you wanted to do
+it fully quantized.
+
+01:07:06.200 --> 01:07:07.610
+In an Ising model, we know.
+
+01:07:07.610 --> 01:07:08.652
+They're actually trivial.
+
+01:07:08.652 --> 01:07:12.260
+The eigenstates are states
+with just one spin perturbed
+
+01:07:12.260 --> 01:07:14.210
+from say plus 1 to minus 1.
+
+01:07:14.210 --> 01:07:17.450
+So there we're actually
+getting the right excitations
+
+01:07:17.450 --> 01:07:20.570
+as we go to the ground
+state, as we go to 0.
+
+01:07:20.570 --> 01:07:22.670
+In atoms in solids,
+we know what they are.
+
+01:07:22.670 --> 01:07:24.800
+They're phonons.
+
+01:07:24.800 --> 01:07:27.290
+Those are the eigenstates
+for the displacements
+
+01:07:27.290 --> 01:07:28.100
+of the system.
+
+01:07:28.100 --> 01:07:30.590
+In a model like this, we
+don't know what they are.
+
+01:07:37.160 --> 01:07:39.590
+OK.
+
+01:07:39.590 --> 01:07:45.820
+Other things-- if you go
+through more complex geometries,
+
+01:07:45.820 --> 01:07:48.620
+the kind of perturbation
+algorithms in Monte Carlo
+
+01:07:48.620 --> 01:07:52.002
+get successively more
+complicated and tedious.
+
+01:07:52.002 --> 01:07:53.460
+And I'll give you
+an example of it.
+
+01:07:53.460 --> 01:07:59.570
+Let's say you do a long
+chain molecule, a polymer.
+
+01:07:59.570 --> 01:08:01.910
+This is sort of a simplified
+version of a polymer.
+
+01:08:01.910 --> 01:08:10.100
+It's to kind-- you remove
+all the degrees of freedom
+
+01:08:10.100 --> 01:08:12.050
+from the side group,
+so it's essentially
+
+01:08:12.050 --> 01:08:14.570
+a chain because
+of the fixed angle
+
+01:08:14.570 --> 01:08:16.250
+of a certain
+carbon-carbon bonds.
+
+01:08:16.250 --> 01:08:19.520
+It can only rotate
+along these bonds.
+
+01:08:19.520 --> 01:08:21.859
+So often for a
+polymer, people don't
+
+01:08:21.859 --> 01:08:24.710
+use all the possible
+degrees of freedom.
+
+01:08:24.710 --> 01:08:28.700
+They say, well, an sp2
+or an sp3 carbon bond
+
+01:08:28.700 --> 01:08:29.970
+has a certain angle.
+
+01:08:29.970 --> 01:08:32.819
+So all I can do is
+rotate around that angle
+
+01:08:32.819 --> 01:08:35.240
+so that I keep
+that bonding angle.
+
+01:08:35.240 --> 01:08:38.600
+So it essentially restricts
+the rotation degrees
+
+01:08:38.600 --> 01:08:45.527
+of freedom of every carbon joint
+along the polymer chain axis.
+
+01:08:45.527 --> 01:08:47.819
+So what then you have to do
+is you have to sample space
+
+01:08:47.819 --> 01:08:49.069
+with those degrees of freedom.
+
+01:08:49.069 --> 01:08:52.790
+And I've given here an example.
+
+01:08:52.790 --> 01:08:54.800
+Let's say you want
+to start rotating
+
+01:08:54.800 --> 01:08:57.720
+this end of the chain
+from that carbon.
+
+01:08:57.720 --> 01:09:00.050
+So you would essentially
+keep this fixed
+
+01:09:00.050 --> 01:09:03.402
+and kind of swing the
+rest of the chain around.
+
+01:09:03.402 --> 01:09:04.819
+But what you see
+is that these are
+
+01:09:04.819 --> 01:09:07.580
+going to be very
+inefficient algorithms.
+
+01:09:07.580 --> 01:09:10.700
+Because if this is a really
+long chain, if you just
+
+01:09:10.700 --> 01:09:13.340
+do a small omega,
+you're kind of swinging
+
+01:09:13.340 --> 01:09:15.590
+that far end of the
+chain really far,
+
+01:09:15.590 --> 01:09:19.229
+and it's going to
+bump into other atoms.
+
+01:09:19.229 --> 01:09:20.970
+So people use these
+kind of algorithms.
+
+01:09:20.970 --> 01:09:23.430
+But if you read the
+literature of how
+
+01:09:23.430 --> 01:09:28.800
+to do Monte Carlo
+on polymers not
+
+01:09:28.800 --> 01:09:31.080
+on lattices or in
+real space, it's
+
+01:09:31.080 --> 01:09:34.590
+full of all kinds
+of tricks to find
+
+01:09:34.590 --> 01:09:36.779
+good perturbations that
+make these algorithms more
+
+01:09:36.779 --> 01:09:37.740
+efficient.
+
+01:09:37.740 --> 01:09:40.140
+But in the end, it is
+a difficult problem.
+
+01:09:40.140 --> 01:09:43.859
+Because the problem
+with a polymer
+
+01:09:43.859 --> 01:09:46.410
+or any long
+biological molecule is
+
+01:09:46.410 --> 01:09:49.649
+that it's really hard
+to find excitations
+
+01:09:49.649 --> 01:09:52.740
+that sample all your
+degrees of freedom
+
+01:09:52.740 --> 01:09:55.680
+but that don't make a
+large piece of your chain
+
+01:09:55.680 --> 01:09:57.540
+bump into other things.
+
+01:09:57.540 --> 01:10:00.190
+Because, you see, the
+annoying thing about polymers
+
+01:10:00.190 --> 01:10:02.700
+is that, yes, your atoms can
+move freely a little bit,
+
+01:10:02.700 --> 01:10:04.740
+but they are all connected.
+
+01:10:04.740 --> 01:10:07.110
+And building in that
+constraint in the perturbation
+
+01:10:07.110 --> 01:10:08.880
+is not trivial.
+
+01:10:08.880 --> 01:10:11.220
+Those of us who work with
+small molecules and atoms
+
+01:10:11.220 --> 01:10:12.250
+have it much easier.
+
+01:10:12.250 --> 01:10:13.350
+They are sort of--
+
+01:10:13.350 --> 01:10:16.050
+the perturbations tend
+to be relatively trivial.
+
+01:10:18.850 --> 01:10:20.410
+OK, I got to move on.
+
+01:10:20.410 --> 01:10:24.710
+Because of this, often people
+do polymers on a lattice.
+
+01:10:24.710 --> 01:10:26.520
+And you can do that
+reasonably well.
+
+01:10:26.520 --> 01:10:28.437
+I mean, I'll show you a
+trivial version of it,
+
+01:10:28.437 --> 01:10:31.822
+but people have much
+more sophisticated.
+
+01:10:31.822 --> 01:10:34.405
+A really simple way
+of putting a polymer
+
+01:10:34.405 --> 01:10:36.950
+is by snaking it on a lattice.
+
+01:10:36.950 --> 01:10:40.940
+So this may be every bead.
+
+01:10:40.940 --> 01:10:44.080
+So you say, well, this is sort
+of a polymer snaking around.
+
+01:10:47.430 --> 01:10:49.620
+And people have even
+built lattice models
+
+01:10:49.620 --> 01:10:56.730
+that are much denser, where
+every segment of the polymer--
+
+01:10:56.730 --> 01:10:58.920
+where there's a lot
+more lattice points
+
+01:10:58.920 --> 01:11:00.490
+than segments of the polymer.
+
+01:11:00.490 --> 01:11:03.261
+So the density of
+lattice points--
+
+01:11:03.261 --> 01:11:04.928
+there are much
+more lattice points
+
+01:11:04.928 --> 01:11:06.720
+per unit length of the
+polymer, so that you
+
+01:11:06.720 --> 01:11:11.010
+start to approach a continuum.
+
+01:11:11.010 --> 01:11:12.660
+So the lattice
+algorithms are sort
+
+01:11:12.660 --> 01:11:14.370
+of an important
+class of Monte Carlo
+
+01:11:14.370 --> 01:11:15.700
+algorithms in polymer dynamics.
+
+01:11:15.700 --> 01:11:19.680
+So how would you,
+let's say, perturb--
+
+01:11:19.680 --> 01:11:21.900
+let's say this is your polymer.
+
+01:11:21.900 --> 01:11:24.300
+How would you do Monte
+Carlo perturbations on that?
+
+01:11:27.360 --> 01:11:28.020
+How would you--
+
+01:11:32.355 --> 01:11:34.230
+First of all, let me
+tell you an obvious way.
+
+01:11:36.820 --> 01:11:38.275
+You could rebuild that polymer.
+
+01:11:38.275 --> 01:11:39.400
+So what's the length there?
+
+01:11:39.400 --> 01:11:43.450
+1, 2, 3, 4,5, 6,
+7, 8, 9, 10, 11.
+
+01:11:43.450 --> 01:11:47.140
+So you could build essentially
+all self-avoiding random walks
+
+01:11:47.140 --> 01:11:48.640
+of length 11.
+
+01:11:48.640 --> 01:11:53.350
+And that is the ensemble of
+your polymer of chain length 11.
+
+01:11:53.350 --> 01:11:56.590
+Now, because its 11, that's
+actually quite doable.
+
+01:11:56.590 --> 01:12:00.226
+But, of course, if we go to
+50, that's not doable anymore.
+
+01:12:03.880 --> 01:12:06.280
+I get to see all kinds of
+other things here on the TV.
+
+01:12:06.280 --> 01:12:07.750
+So you can't see that.
+
+01:12:10.643 --> 01:12:12.310
+So how would you do
+an algorithm to sort
+
+01:12:12.310 --> 01:12:15.290
+of perturb chains like that?
+
+01:12:15.290 --> 01:12:17.830
+Remember, it doesn't have
+to be realistic as long
+
+01:12:17.830 --> 01:12:19.210
+as it samples your space.
+
+01:12:23.490 --> 01:12:25.680
+I'm just going to stand
+here until I get an answer.
+
+01:12:30.068 --> 01:12:30.610
+Look at that.
+
+01:12:30.610 --> 01:12:33.663
+How would you perturb
+that snake essentially?
+
+01:12:39.620 --> 01:12:40.120
+Come on.
+
+01:12:40.120 --> 01:12:42.770
+You have to come up with
+at least one scheme.
+
+01:12:42.770 --> 01:12:45.340
+So there are three or
+four different types
+
+01:12:45.340 --> 01:12:48.603
+of perturbations you can do
+on that in sampled space.
+
+01:12:48.603 --> 01:12:50.020
+Remember, the idea
+is, how can you
+
+01:12:50.020 --> 01:12:54.580
+make this thing
+move on the lattice
+
+01:12:54.580 --> 01:12:57.130
+and take on different
+configurations?
+
+01:12:57.130 --> 01:12:59.090
+I think you've pointed--
+
+01:12:59.090 --> 01:13:01.135
+I'm pretty sure that
+what you said is right.
+
+01:13:01.135 --> 01:13:03.370
+AUDIENCE: Like, you just
+cut it and regrow it.
+
+01:13:03.370 --> 01:13:03.700
+GERBRAND CEDER: Yeah.
+
+01:13:03.700 --> 01:13:04.900
+You can cut it and regrow it.
+
+01:13:04.900 --> 01:13:06.358
+There's definitely
+a way you do it.
+
+01:13:06.358 --> 01:13:10.120
+So again, rather than
+sampling the whole random walk
+
+01:13:10.120 --> 01:13:12.670
+of the long polymer,
+you can just
+
+01:13:12.670 --> 01:13:14.590
+cut it and regrow a part of it.
+
+01:13:14.590 --> 01:13:17.200
+When you do that, you've got
+to be really careful that you
+
+01:13:17.200 --> 01:13:20.080
+do your whole sampling
+statistics right for the parts
+
+01:13:20.080 --> 01:13:21.670
+that you keep.
+
+01:13:21.670 --> 01:13:24.070
+But with these you can
+actually do simple things.
+
+01:13:24.070 --> 01:13:26.800
+Like here's an obvious one--
+
+01:13:26.800 --> 01:13:31.420
+you can take the end, this
+end here, and fluctuate it.
+
+01:13:31.420 --> 01:13:35.040
+Like you could say,
+take this segment
+
+01:13:35.040 --> 01:13:38.490
+and make it go
+either here or here.
+
+01:13:38.490 --> 01:13:40.885
+You could slide
+the snake forward.
+
+01:13:43.440 --> 01:13:47.250
+So you could say, I'm going
+to put a vector on this
+
+01:13:47.250 --> 01:13:49.990
+and move this forward one.
+
+01:13:49.990 --> 01:13:51.400
+So that means--
+
+01:13:51.400 --> 01:13:54.530
+I randomly pick where
+I put the next segment.
+
+01:13:54.530 --> 01:13:56.150
+So I take this segment.
+
+01:13:56.150 --> 01:14:00.340
+So that means I can either
+slide it to here or to here,
+
+01:14:00.340 --> 01:14:01.980
+and I slide the
+whole snake forward.
+
+01:14:04.690 --> 01:14:07.240
+That's essentially the same as--
+
+01:14:07.240 --> 01:14:10.150
+the way people often describe
+is, I take the end piece
+
+01:14:10.150 --> 01:14:14.680
+and I put it on the front
+with a random orientation.
+
+01:14:14.680 --> 01:14:17.020
+You can do other things.
+
+01:14:17.020 --> 01:14:19.960
+You can do what's
+called the King jump.
+
+01:14:19.960 --> 01:14:23.800
+See this is whenever you
+have a sort of square corner,
+
+01:14:23.800 --> 01:14:29.450
+you can kink it
+over and do this.
+
+01:14:29.450 --> 01:14:31.380
+Again, that's a
+symmetric perturbation.
+
+01:14:31.380 --> 01:14:35.510
+You can just as easily go from
+here to here, then from here
+
+01:14:35.510 --> 01:14:37.790
+to here.
+
+01:14:37.790 --> 01:14:42.470
+In 3D that's called a
+crank crankshaft jump.
+
+01:14:42.470 --> 01:14:44.120
+Because in 3D, if I can--
+
+01:14:44.120 --> 01:14:49.170
+let's say you have
+a polymer like this.
+
+01:14:49.170 --> 01:14:52.680
+You can rotate this
+piece like a crankshaft.
+
+01:14:52.680 --> 01:14:54.880
+You can do those kind
+of perturbations.
+
+01:14:54.880 --> 01:14:59.100
+So you can pretty much
+choose the kind of things
+
+01:14:59.100 --> 01:15:01.970
+that you want to do.
+
+01:15:01.970 --> 01:15:02.470
+OK.
+
+01:15:15.870 --> 01:15:16.963
+OK, let me stop here.
+
+01:15:16.963 --> 01:15:18.130
+This is kind of a new topic.
+
+01:15:18.130 --> 01:15:20.013
+So I'll pick that up--
+
+01:15:20.013 --> 01:15:21.930
+today's Tuesday-- so I
+guess on Thursday then.
+
+01:15:21.930 --> 01:15:24.020
+So I'll you Thursday.

@@ -1,0 +1,5787 @@
+WEBVTT
+
+00:00:01.550 --> 00:00:03.920
+The following content is
+provided under a Creative
+
+00:00:03.920 --> 00:00:05.310
+Commons license.
+
+00:00:05.310 --> 00:00:07.520
+Your support will help
+MIT OpenCourseWare
+
+00:00:07.520 --> 00:00:11.610
+continue to offer high-quality
+educational resources for free.
+
+00:00:11.610 --> 00:00:14.180
+To make a donation or to
+view additional materials
+
+00:00:14.180 --> 00:00:18.140
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:18.140 --> 00:00:19.026
+at ocw.mit.edu.
+
+00:00:24.100 --> 00:00:26.350
+CHARLES LEISERSON:
+So today we're
+
+00:00:26.350 --> 00:00:31.250
+going to do some
+really cool stuff
+
+00:00:31.250 --> 00:00:33.230
+having to do with
+nondeterministic parallel
+
+00:00:33.230 --> 00:00:33.730
+programming.
+
+00:00:33.730 --> 00:00:35.620
+This is where the course
+starts to get hard.
+
+00:00:41.230 --> 00:00:45.685
+Because nondeterminism
+is really nasty.
+
+00:00:45.685 --> 00:00:47.060
+We'll talk about
+it a little bit.
+
+00:00:47.060 --> 00:00:49.630
+It's really nasty.
+
+00:00:49.630 --> 00:00:52.630
+Parallel computing, as you
+know, is pretty easy, right?
+
+00:00:52.630 --> 00:00:54.760
+It's just work and span.
+
+00:00:54.760 --> 00:00:57.800
+Easy stuff, right?
+
+00:00:57.800 --> 00:01:00.230
+It makes sense.
+
+00:01:00.230 --> 00:01:02.950
+You can measure these
+things, can learn some skills
+
+00:01:02.950 --> 00:01:05.800
+around them, and so forth.
+
+00:01:05.800 --> 00:01:10.780
+But nondeterminism is
+nasty, really nasty.
+
+00:01:10.780 --> 00:01:14.240
+So first let's talk about
+what we mean by determinism.
+
+00:01:14.240 --> 00:01:19.450
+So we say that a program is
+deterministic on a given input
+
+00:01:19.450 --> 00:01:22.330
+if every memory location is
+updated with a sequence--
+
+00:01:22.330 --> 00:01:27.440
+the same sequence of
+values in every execution.
+
+00:01:27.440 --> 00:01:34.060
+So the program always
+behaves the same.
+
+00:01:34.060 --> 00:01:37.810
+And you may end up-- if it's
+a parallel program having
+
+00:01:37.810 --> 00:01:42.200
+different memory locations
+updated in different orders--
+
+00:01:42.200 --> 00:01:49.030
+I may do A and then B, versus
+updating B and then A--
+
+00:01:49.030 --> 00:01:52.960
+but if I look at a single
+memory location, A say,
+
+00:01:52.960 --> 00:01:56.455
+I'm always updating A with
+the same sequence of values.
+
+00:01:59.830 --> 00:02:02.260
+There are lots of
+definitions of determinism.
+
+00:02:02.260 --> 00:02:04.560
+This is not the only one.
+
+00:02:04.560 --> 00:02:07.720
+There are some where
+people say, well, it only
+
+00:02:07.720 --> 00:02:11.590
+matters if the output
+is always the same.
+
+00:02:11.590 --> 00:02:15.010
+And there are others where
+you say not only does it
+
+00:02:15.010 --> 00:02:19.690
+have to be the same but
+every write to a location
+
+00:02:19.690 --> 00:02:22.165
+has to be in the
+same order globally.
+
+00:02:24.760 --> 00:02:27.850
+That turns out to be
+actually pretty hard,
+
+00:02:27.850 --> 00:02:30.530
+because if you have
+parallel computing
+
+00:02:30.530 --> 00:02:33.580
+you're not going to get them
+all updated the same unless you
+
+00:02:33.580 --> 00:02:41.162
+only have one processor
+executing instructions.
+
+00:02:41.162 --> 00:02:42.370
+And so we'll talk about this.
+
+00:02:42.370 --> 00:02:45.520
+We'll talk a little bit more
+about this kind of thing.
+
+00:02:45.520 --> 00:02:50.140
+So why-- what's
+the big advantage
+
+00:02:50.140 --> 00:02:55.360
+of deterministic programs?
+
+00:02:55.360 --> 00:02:57.490
+Why should we care whether
+it's deterministic or
+
+00:02:57.490 --> 00:02:58.540
+nondeterministic?
+
+00:03:02.492 --> 00:03:03.480
+Sure.
+
+00:03:03.480 --> 00:03:04.970
+AUDIENCE: It's repeatable.
+
+00:03:04.970 --> 00:03:05.910
+CHARLES LEISERSON:
+It's repeatable.
+
+00:03:05.910 --> 00:03:06.410
+OK.
+
+00:03:06.410 --> 00:03:07.692
+So what?
+
+00:03:07.692 --> 00:03:12.552
+AUDIENCE: [INAUDIBLE] a lot
+of programs [INAUDIBLE]..
+
+00:03:17.920 --> 00:03:20.494
+CHARLES LEISERSON: Why is that?
+
+00:03:20.494 --> 00:03:23.820
+AUDIENCE: [INAUDIBLE] like a--
+
+00:03:23.820 --> 00:03:24.320
+Why?
+
+00:03:24.320 --> 00:03:26.503
+Because sometimes
+that's what you want.
+
+00:03:26.503 --> 00:03:28.920
+CHARLES LEISERSON: Because
+sometimes that's what you want.
+
+00:03:28.920 --> 00:03:29.420
+OK.
+
+00:03:29.420 --> 00:03:32.910
+That doesn't-- so if--
+
+00:03:32.910 --> 00:03:35.700
+I mean, there's a lot of
+things I might sometimes want.
+
+00:03:35.700 --> 00:03:38.980
+Why is that important
+to want that?
+
+00:03:38.980 --> 00:03:39.480
+Yes.
+
+00:03:39.480 --> 00:03:40.938
+AUDIENCE: Because
+consistency makes
+
+00:03:40.938 --> 00:03:42.360
+it easier to debug source code.
+
+00:03:42.360 --> 00:03:42.680
+CHARLES LEISERSON: Yes.
+
+00:03:42.680 --> 00:03:44.010
+Makes it easier to debug.
+
+00:03:44.010 --> 00:03:47.760
+That's probably the number
+one reason, debugging.
+
+00:03:47.760 --> 00:03:54.180
+If it does the same thing every
+time, then if you have a bug,
+
+00:03:54.180 --> 00:03:55.260
+you can run it again.
+
+00:03:55.260 --> 00:03:58.680
+You expect to see the bug again.
+
+00:03:58.680 --> 00:04:03.140
+So every time you run through,
+hey, I get the same bug.
+
+00:04:03.140 --> 00:04:07.650
+But if it's nondeterministic,
+I get a bug,
+
+00:04:07.650 --> 00:04:11.970
+and now I go to look for it and
+the bug is nowhere to be found.
+
+00:04:11.970 --> 00:04:13.667
+Makes debugging a lot harder.
+
+00:04:13.667 --> 00:04:15.750
+There are other reasons
+for wanting repeatability,
+
+00:04:15.750 --> 00:04:20.730
+so your answer is actually
+a broader correct answer.
+
+00:04:20.730 --> 00:04:24.300
+But the big advantage is
+in the specific application
+
+00:04:24.300 --> 00:04:26.075
+of repeatability to debugging.
+
+00:04:28.800 --> 00:04:33.780
+So here's the golden rule
+of parallel programming.
+
+00:04:33.780 --> 00:04:37.620
+Never write nondeterministic
+parallel programs.
+
+00:04:40.500 --> 00:04:43.410
+They can exhibit
+anomalous behaviors
+
+00:04:43.410 --> 00:04:46.480
+and it's hard to debug them.
+
+00:04:46.480 --> 00:04:49.900
+So never ever write
+nondeterministic programs.
+
+00:04:54.010 --> 00:04:58.510
+Unfortunately, this is one
+of these things that is
+
+00:04:58.510 --> 00:05:02.260
+kind of hard in practice to do.
+
+00:05:04.810 --> 00:05:08.470
+So why might you want to write
+a nondeterministic program
+
+00:05:08.470 --> 00:05:10.120
+even though--
+
+00:05:10.120 --> 00:05:17.200
+even when famous masters
+in the area of performance
+
+00:05:17.200 --> 00:05:22.240
+engineering, with
+highly credentialed--
+
+00:05:25.010 --> 00:05:28.540
+numerous awards and
+so forth, tell you
+
+00:05:28.540 --> 00:05:31.780
+you shouldn't write
+nondeterministic programs?
+
+00:05:31.780 --> 00:05:34.425
+Why might you want
+to do it anyway?
+
+00:05:41.340 --> 00:05:41.840
+Yes.
+
+00:05:41.840 --> 00:05:43.160
+AUDIENCE: You get
+better performance.
+
+00:05:43.160 --> 00:05:44.118
+CHARLES LEISERSON: Yes.
+
+00:05:44.118 --> 00:05:46.520
+You might get
+better performance.
+
+00:05:46.520 --> 00:05:48.980
+That's one of the big ones.
+
+00:05:48.980 --> 00:05:50.450
+That's one of the big ones.
+
+00:05:50.450 --> 00:05:52.980
+And sometimes you can't.
+
+00:05:52.980 --> 00:05:54.890
+The nature of the
+problem is maybe
+
+00:05:54.890 --> 00:05:57.710
+that it's not deterministic.
+
+00:05:57.710 --> 00:06:03.210
+You may have asynchronous
+inputs coming in and so forth.
+
+00:06:06.720 --> 00:06:09.420
+So this is the golden rule.
+
+00:06:09.420 --> 00:06:12.350
+We also have a silver rule.
+
+00:06:12.350 --> 00:06:15.650
+Silver rule says never write
+nondeterministic parallel
+
+00:06:15.650 --> 00:06:21.710
+programs, but if you must
+always devise a test strategy
+
+00:06:21.710 --> 00:06:25.610
+to manage the nondeterminism.
+
+00:06:25.610 --> 00:06:27.410
+So this gets into
+you better have
+
+00:06:27.410 --> 00:06:31.250
+some way of handling how
+you're going to tell what's
+
+00:06:31.250 --> 00:06:34.430
+going on if you have a bug.
+
+00:06:34.430 --> 00:06:37.700
+So what are some of the
+typical test strategies
+
+00:06:37.700 --> 00:06:44.560
+that you could use that would
+manage the nondeterminism?
+
+00:06:44.560 --> 00:06:46.850
+So imagine you've got
+a parallel program
+
+00:06:46.850 --> 00:06:51.350
+and it's got races
+in it and so forth,
+
+00:06:51.350 --> 00:06:54.620
+and it's operating
+nondeterministically.
+
+00:06:54.620 --> 00:06:59.360
+What-- and that's OK if
+everything's going right.
+
+00:06:59.360 --> 00:07:01.305
+How would you-- you find
+a bug in the program.
+
+00:07:01.305 --> 00:07:02.930
+How are you-- what
+are you going to do?
+
+00:07:05.997 --> 00:07:07.330
+What kinds of ideas do you have?
+
+00:07:07.330 --> 00:07:08.038
+Yes.
+
+00:07:08.038 --> 00:07:11.712
+AUDIENCE: You could temporarily
+remove the nondeterminism.
+
+00:07:11.712 --> 00:07:12.670
+CHARLES LEISERSON: Yes.
+
+00:07:12.670 --> 00:07:15.850
+You could turn off
+the nondeterminism.
+
+00:07:15.850 --> 00:07:17.800
+You put a switch in
+there that says, well,
+
+00:07:17.800 --> 00:07:20.955
+I know the source of this
+nondeterministic behavior.
+
+00:07:20.955 --> 00:07:21.580
+Let me do that.
+
+00:07:21.580 --> 00:07:25.090
+Let me give you an
+example of that.
+
+00:07:25.090 --> 00:07:30.610
+For security reasons these
+days, when you allocate memory,
+
+00:07:30.610 --> 00:07:33.100
+it's allocated to
+different locations
+
+00:07:33.100 --> 00:07:35.000
+on different runs
+of the program.
+
+00:07:35.000 --> 00:07:37.240
+It's allocated in random places.
+
+00:07:37.240 --> 00:07:41.140
+They want to randomize the
+addresses when you call malloc.
+
+00:07:41.140 --> 00:07:48.040
+That means that you can end
+up with different behaviors
+
+00:07:48.040 --> 00:07:54.100
+from run to run, and that can
+compromise your performance.
+
+00:07:54.100 --> 00:07:58.280
+But it turns out that
+there is a compiler switch,
+
+00:07:58.280 --> 00:08:00.870
+and if you run it
+in debug mode it
+
+00:08:00.870 --> 00:08:06.730
+will always deliver
+the results of malloc
+
+00:08:06.730 --> 00:08:12.340
+in deterministic
+locations, where
+
+00:08:12.340 --> 00:08:15.460
+the locations of the
+things you're mallocing
+
+00:08:15.460 --> 00:08:18.790
+are repeatable.
+
+00:08:18.790 --> 00:08:21.250
+So that's good because
+they're supported.
+
+00:08:21.250 --> 00:08:25.700
+They said, yes, we have to
+randomize for security reasons
+
+00:08:25.700 --> 00:08:28.780
+so that people can't
+deterministically
+
+00:08:28.780 --> 00:08:31.900
+exploit buffer overflow
+errors, for example,
+
+00:08:31.900 --> 00:08:36.880
+but I don't want to have
+to do that every time.
+
+00:08:36.880 --> 00:08:42.130
+So I don't want to
+randomize every time I run.
+
+00:08:42.130 --> 00:08:43.750
+I want to have the
+option of making it
+
+00:08:43.750 --> 00:08:46.360
+so that that randomization
+is turned off.
+
+00:08:46.360 --> 00:08:47.350
+So that's a good one.
+
+00:08:47.350 --> 00:08:49.030
+What's another one
+that can be done?
+
+00:08:57.350 --> 00:08:59.450
+You're full of good ideas.
+
+00:08:59.450 --> 00:09:01.840
+Let's try somebody else for now.
+
+00:09:01.840 --> 00:09:03.650
+But I like that, I like that.
+
+00:09:03.650 --> 00:09:05.790
+What are some other ideas?
+
+00:09:05.790 --> 00:09:09.740
+What else can you do to
+handle nondeterminism?
+
+00:09:09.740 --> 00:09:10.940
+You got a program and it's--
+
+00:09:13.650 --> 00:09:14.680
+yes, yes, yes.
+
+00:09:14.680 --> 00:09:17.530
+AUDIENCE: If you use random
+numbers, use the same seed.
+
+00:09:17.530 --> 00:09:17.830
+CHARLES LEISERSON: Yes.
+
+00:09:17.830 --> 00:09:19.913
+If you have random numbers,
+you use the same seed.
+
+00:09:19.913 --> 00:09:24.560
+In some sense that's
+kind of the same thing
+
+00:09:24.560 --> 00:09:26.830
+if you're turning
+off nondeterminism.
+
+00:09:26.830 --> 00:09:28.062
+But that's a great one.
+
+00:09:28.062 --> 00:09:29.020
+There are other places.
+
+00:09:29.020 --> 00:09:31.570
+For example, if you read--
+
+00:09:31.570 --> 00:09:36.430
+if you do get time of day
+for something in your program
+
+00:09:36.430 --> 00:09:39.310
+for something, you could have
+an option where it will put
+
+00:09:39.310 --> 00:09:42.370
+in a particular fixed value
+there so you can make sure that
+
+00:09:42.370 --> 00:09:43.780
+it doesn't--
+
+00:09:43.780 --> 00:09:47.800
+even a serial program
+isn't nondeterministic.
+
+00:09:47.800 --> 00:09:50.190
+So that's good, but I also
+consider that to be-- it's
+
+00:09:50.190 --> 00:09:54.572
+another great example of
+turning off and on determinism.
+
+00:09:54.572 --> 00:09:55.780
+What other things can you do?
+
+00:09:58.780 --> 00:09:59.482
+Yes.
+
+00:09:59.482 --> 00:10:06.090
+AUDIENCE: You could record the
+randomized outputs or inputs
+
+00:10:06.090 --> 00:10:07.200
+to determine correctness.
+
+00:10:07.200 --> 00:10:08.158
+CHARLES LEISERSON: Yes.
+
+00:10:08.158 --> 00:10:10.895
+You can do record-replay
+for some things.
+
+00:10:10.895 --> 00:10:12.020
+Is that what you're saying?
+
+00:10:12.020 --> 00:10:12.950
+Is that what you mean?
+
+00:10:12.950 --> 00:10:13.460
+Or am I--
+
+00:10:13.460 --> 00:10:14.360
+AUDIENCE: Maybe.
+
+00:10:14.360 --> 00:10:15.260
+[INAUDIBLE]
+
+00:10:15.260 --> 00:10:17.450
+CHARLES LEISERSON: So
+record-replay says you run it
+
+00:10:17.450 --> 00:10:21.170
+through-- you can run it
+through with random numbers,
+
+00:10:21.170 --> 00:10:26.570
+but it's recording those things,
+so that when you run it again,
+
+00:10:26.570 --> 00:10:28.910
+instead of using
+the random numbers--
+
+00:10:28.910 --> 00:10:32.300
+new random numbers, it uses
+the ones that you used to use.
+
+00:10:32.300 --> 00:10:34.070
+So that's the
+record-replay thing.
+
+00:10:34.070 --> 00:10:36.612
+Is that what you're saying, or
+are you saying something else?
+
+00:10:36.612 --> 00:10:38.510
+Yes, OK, good.
+
+00:10:38.510 --> 00:10:41.445
+So that's using some tools.
+
+00:10:41.445 --> 00:10:43.070
+There are actually
+a lot of strategies.
+
+00:10:43.070 --> 00:10:45.200
+Let me just move on and answer.
+
+00:10:45.200 --> 00:10:49.290
+So another thing you can do is
+encapsulate the nondeterminism.
+
+00:10:49.290 --> 00:10:52.780
+So that's actually done in a
+Cilk runtime system already.
+
+00:10:52.780 --> 00:10:58.580
+The runtime system is using
+a random scheduling strategy,
+
+00:10:58.580 --> 00:11:01.220
+but you don't see that it's
+random in the execution
+
+00:11:01.220 --> 00:11:05.330
+of your code if you don't--
+if you have no race conditions
+
+00:11:05.330 --> 00:11:07.130
+in your code.
+
+00:11:07.130 --> 00:11:09.600
+It's encapsulated.
+
+00:11:09.600 --> 00:11:13.628
+So that the-- in the platform.
+
+00:11:13.628 --> 00:11:15.170
+So the platform is
+going to guarantee
+
+00:11:15.170 --> 00:11:18.300
+you deterministic results even
+though underneath the covers
+
+00:11:18.300 --> 00:11:22.310
+it's doing
+nondeterministic things.
+
+00:11:22.310 --> 00:11:26.150
+You can also substitute a
+deterministic alternative.
+
+00:11:26.150 --> 00:11:29.750
+Sometimes there's a way
+of computing something
+
+00:11:29.750 --> 00:11:34.650
+that is nondeterministic,
+but in debug mode,
+
+00:11:34.650 --> 00:11:39.560
+ah, let me not use the
+nondeterministic one.
+
+00:11:39.560 --> 00:11:41.660
+And you can also
+use analysis tools,
+
+00:11:41.660 --> 00:11:45.650
+which can tell you
+things about your program
+
+00:11:45.650 --> 00:11:49.490
+and which you can
+control things.
+
+00:11:49.490 --> 00:11:51.020
+So there's a lot of things.
+
+00:11:51.020 --> 00:11:53.540
+So whenever you have a
+nondeterministic program,
+
+00:11:53.540 --> 00:11:57.860
+you want to find some
+way of controlling it.
+
+00:11:57.860 --> 00:12:00.560
+Often, the nondeterminism
+is over in this corner
+
+00:12:00.560 --> 00:12:03.150
+but your bug is
+over in this corner.
+
+00:12:03.150 --> 00:12:06.320
+So if you can turn this
+thing off in some way,
+
+00:12:06.320 --> 00:12:11.900
+or encapsulate it,
+or otherwise control
+
+00:12:11.900 --> 00:12:13.490
+the nondeterminism
+over there, now you
+
+00:12:13.490 --> 00:12:17.450
+have a better chance of
+catching the stuff over here.
+
+00:12:17.450 --> 00:12:19.880
+That's going to be particularly
+important in project 4
+
+00:12:19.880 --> 00:12:21.470
+when we get to
+it, because that's
+
+00:12:21.470 --> 00:12:23.053
+going to be actually
+going to be doing
+
+00:12:23.053 --> 00:12:28.100
+nondeterministic programming
+for a game playing program.
+
+00:12:28.100 --> 00:12:31.670
+And one of the things
+is that the processors
+
+00:12:31.670 --> 00:12:36.980
+are, in this case, keeping
+the game positions together.
+
+00:12:36.980 --> 00:12:41.780
+And so if one processor
+stores something
+
+00:12:41.780 --> 00:12:44.510
+into what's called a
+transposition table, which
+
+00:12:44.510 --> 00:12:48.800
+is essentially a big hash
+table of positions it's seen,
+
+00:12:48.800 --> 00:12:52.420
+another one can see that
+value and change its behavior.
+
+00:12:52.420 --> 00:12:54.170
+And so one of the
+things you want to be do
+
+00:12:54.170 --> 00:12:58.160
+is turn off transposition
+table so that you
+
+00:12:58.160 --> 00:13:00.470
+don't take advantage of
+that performance advantage,
+
+00:13:00.470 --> 00:13:03.020
+but now you can debug
+the search code,
+
+00:13:03.020 --> 00:13:06.580
+or you can debug the
+evaluation code, and so forth.
+
+00:13:06.580 --> 00:13:09.590
+You can also do things
+like unit testing
+
+00:13:09.590 --> 00:13:13.550
+so you know whether or not a
+particular piece is correct
+
+00:13:13.550 --> 00:13:14.510
+that might have--
+
+00:13:17.366 --> 00:13:19.340
+so that you can test
+this thing separately
+
+00:13:19.340 --> 00:13:22.110
+from the rest of your system
+which may have nondeterminism.
+
+00:13:22.110 --> 00:13:24.410
+Anyway, this is a major thing.
+
+00:13:24.410 --> 00:13:25.580
+So never write them.
+
+00:13:25.580 --> 00:13:28.790
+But if you have
+to, you always want
+
+00:13:28.790 --> 00:13:31.760
+to have some test strategy.
+
+00:13:31.760 --> 00:13:34.850
+And so for people who are
+not watching this video
+
+00:13:34.850 --> 00:13:38.480
+and who are not in
+class today, they
+
+00:13:38.480 --> 00:13:43.160
+are going to be
+sorely hampered by not
+
+00:13:43.160 --> 00:13:46.580
+knowing this lesson when they
+go into the fourth project.
+
+00:13:52.690 --> 00:13:56.980
+So what we're going
+to do is now we're
+
+00:13:56.980 --> 00:14:01.420
+going to talk about how to do
+nondeterministic programming.
+
+00:14:01.420 --> 00:14:06.550
+So this is-- there's always
+some part of your code
+
+00:14:06.550 --> 00:14:08.800
+which has a skull
+and crossbones.
+
+00:14:08.800 --> 00:14:10.430
+Like you have this abstraction.
+
+00:14:10.430 --> 00:14:13.030
+It's beautiful, and you
+can design, et cetera.
+
+00:14:13.030 --> 00:14:16.060
+And then somewhere there's
+this really ugly thing
+
+00:14:16.060 --> 00:14:19.000
+that nobody should know, and
+you put the skull and crossbones
+
+00:14:19.000 --> 00:14:21.130
+on that, and only experts go in.
+
+00:14:21.130 --> 00:14:25.558
+Well, anyway, that's the
+barrier we're crossing here.
+
+00:14:25.558 --> 00:14:27.850
+And we're going to start out
+by talking about something
+
+00:14:27.850 --> 00:14:29.790
+that you've probably
+seen in some
+
+00:14:29.790 --> 00:14:35.030
+of the other classes, mutual
+exclusion and atomicity.
+
+00:14:35.030 --> 00:14:39.080
+So I'm going to use the
+example of a hash table.
+
+00:14:41.910 --> 00:14:44.690
+So here's a typical hash table.
+
+00:14:44.690 --> 00:14:46.700
+It's got collisions
+resolved by chaining.
+
+00:14:46.700 --> 00:14:49.300
+So you have a bunch
+of linked lists.
+
+00:14:49.300 --> 00:14:51.620
+You hash to a particular
+slot in the table,
+
+00:14:51.620 --> 00:14:55.790
+and then you chase down the
+linked list to find the value.
+
+00:14:55.790 --> 00:14:57.260
+And so, for example,
+if I'm going
+
+00:14:57.260 --> 00:15:02.780
+to insert x which has
+a key value of 81,
+
+00:15:02.780 --> 00:15:04.640
+what I do is figure
+out which slot
+
+00:15:04.640 --> 00:15:09.830
+I go to by hashing the key.
+
+00:15:09.830 --> 00:15:12.680
+And then in this case I
+made it be the last one
+
+00:15:12.680 --> 00:15:15.870
+so that the animations
+could be easier
+
+00:15:15.870 --> 00:15:17.120
+than if it were in the middle.
+
+00:15:19.850 --> 00:15:25.190
+So now what do I do is
+I make the pointer of x
+
+00:15:25.190 --> 00:15:29.630
+go to the first
+element of that list,
+
+00:15:29.630 --> 00:15:33.890
+and then I make the slot
+value now point to x.
+
+00:15:33.890 --> 00:15:37.700
+And that effectively, with a
+constant number of operations,
+
+00:15:37.700 --> 00:15:42.500
+inserts x into the hash
+table, and in particular
+
+00:15:42.500 --> 00:15:45.920
+into the linked list in the
+slot that it's supposed to be.
+
+00:15:45.920 --> 00:15:49.040
+This is all familiar, right?
+
+00:15:49.040 --> 00:15:51.080
+So now what happens
+when you have
+
+00:15:51.080 --> 00:15:56.570
+multiple parallel
+instructions that are
+
+00:15:56.570 --> 00:16:01.490
+accessing the same locations?
+
+00:16:07.170 --> 00:16:10.320
+So here we have two
+threads, one inserting
+
+00:16:10.320 --> 00:16:12.690
+x and one inserting y.
+
+00:16:12.690 --> 00:16:16.020
+And x goes, it does its thing.
+
+00:16:16.020 --> 00:16:20.790
+It hashes to there, and it
+then sets the next pointer
+
+00:16:20.790 --> 00:16:25.510
+to be the--
+
+00:16:25.510 --> 00:16:27.655
+to add itself into the list.
+
+00:16:27.655 --> 00:16:29.030
+And then there's
+this other thing
+
+00:16:29.030 --> 00:16:31.660
+going on in parallel which
+effectively says, oh, I'm
+
+00:16:31.660 --> 00:16:32.900
+going to hash.
+
+00:16:32.900 --> 00:16:34.520
+Oh, we're going
+to the same slot.
+
+00:16:34.520 --> 00:16:37.550
+It doesn't know that
+somebody is already there.
+
+00:16:37.550 --> 00:16:39.470
+And so then it
+decides it's going
+
+00:16:39.470 --> 00:16:46.010
+to put itself in as the
+first element of the list.
+
+00:16:46.010 --> 00:16:49.150
+And then it sets
+the value of y--
+
+00:16:49.150 --> 00:16:52.490
+it sets the value of
+the slot to point to y.
+
+00:16:52.490 --> 00:16:55.220
+And then along comes x,
+finishing off what it's doing,
+
+00:16:55.220 --> 00:16:57.890
+and it points the value to x.
+
+00:16:57.890 --> 00:17:04.609
+And you can see that we have a
+race bug here, a really nasty
+
+00:17:04.609 --> 00:17:08.869
+one because we've just destroyed
+the integrity of our system.
+
+00:17:08.869 --> 00:17:13.190
+We now have-- in particular,
+y is sort of floating,
+
+00:17:13.190 --> 00:17:15.770
+not in the list when it's
+supposed to be in the list.
+
+00:17:19.579 --> 00:17:22.010
+So the standard
+solution to this is
+
+00:17:22.010 --> 00:17:24.529
+to make some of these
+instructions be atomic.
+
+00:17:27.040 --> 00:17:30.770
+And what that means is
+the rest of the system
+
+00:17:30.770 --> 00:17:34.610
+can never view them as
+being partially executed.
+
+00:17:34.610 --> 00:17:37.430
+So they either all have been
+executed or none of them
+
+00:17:37.430 --> 00:17:41.870
+have been executed
+at any point in time
+
+00:17:41.870 --> 00:17:45.650
+as far as the rest of
+the system is concerned.
+
+00:17:45.650 --> 00:17:49.890
+And the part of code that
+is within the atomic region
+
+00:17:49.890 --> 00:17:53.040
+is called the critical section.
+
+00:17:53.040 --> 00:17:54.920
+And, typically, a
+critical section of code
+
+00:17:54.920 --> 00:17:58.190
+is some place that should
+not be being executed
+
+00:17:58.190 --> 00:18:01.590
+by two things at the same time.
+
+00:18:01.590 --> 00:18:03.710
+So the standard
+solution to atomicity
+
+00:18:03.710 --> 00:18:07.100
+is to use what's called a mutex
+lock, or a mutual exclusion
+
+00:18:07.100 --> 00:18:08.900
+lock.
+
+00:18:08.900 --> 00:18:11.720
+And it's basically an object
+with a lock and unlock member
+
+00:18:11.720 --> 00:18:12.290
+functions.
+
+00:18:12.290 --> 00:18:16.580
+And an attempt by a thread to
+lock an already locked mutex
+
+00:18:16.580 --> 00:18:19.880
+causes the thread to block--
+
+00:18:19.880 --> 00:18:24.260
+that is, wait-- until
+the mutex is unlocked.
+
+00:18:24.260 --> 00:18:28.010
+So if somebody grabs the lock,
+somebody else grabs the lock
+
+00:18:28.010 --> 00:18:30.740
+and it's already taken,
+then they have to wait.
+
+00:18:30.740 --> 00:18:34.202
+And they sit there waiting
+until this guy says,
+
+00:18:34.202 --> 00:18:35.410
+yes, I'm going to release it.
+
+00:18:37.940 --> 00:18:41.030
+So what we'll do
+now is we'll make
+
+00:18:41.030 --> 00:18:46.190
+each slot be a struct with a
+mutex L, and a pointer, head,
+
+00:18:46.190 --> 00:18:47.695
+to the slot context.
+
+00:18:47.695 --> 00:18:49.070
+So it's going to
+be the same data
+
+00:18:49.070 --> 00:18:50.528
+structure we had
+before but now I'm
+
+00:18:50.528 --> 00:18:52.730
+going to have not just
+the pointer from the slot
+
+00:18:52.730 --> 00:18:56.540
+but I'll also have a--
+
+00:18:56.540 --> 00:19:03.230
+also have a lock
+in that position.
+
+00:19:03.230 --> 00:19:06.420
+And so the idea of--
+
+00:19:06.420 --> 00:19:09.770
+in the code now is that
+before I access the lock--
+
+00:19:09.770 --> 00:19:11.660
+before I access
+the list, I'm going
+
+00:19:11.660 --> 00:19:19.610
+to lock that list in the
+table by locking slot.
+
+00:19:19.610 --> 00:19:22.010
+Then I'll do the things
+that I need to do,
+
+00:19:22.010 --> 00:19:24.680
+and then I'll unlock it, and
+now anything else can go on.
+
+00:19:24.680 --> 00:19:29.158
+Because what's happening
+is-- the reason
+
+00:19:29.158 --> 00:19:30.950
+we're getting into
+trouble is because we've
+
+00:19:30.950 --> 00:19:33.680
+got some sort of
+interleaving of operations.
+
+00:19:33.680 --> 00:19:35.600
+And our goal is to
+make sure that it's
+
+00:19:35.600 --> 00:19:38.390
+either doing this or
+doing this, and never
+
+00:19:38.390 --> 00:19:41.180
+this, to make sure that--
+
+00:19:41.180 --> 00:19:44.420
+so that each thing,
+each piece of code,
+
+00:19:44.420 --> 00:19:49.530
+is restoring the invariant of
+correctness after it executes
+
+00:19:49.530 --> 00:19:50.280
+the pointer swaps.
+
+00:19:50.280 --> 00:19:52.280
+The invariance in this
+case is that the elements
+
+00:19:52.280 --> 00:19:55.130
+are in a list.
+
+00:19:55.130 --> 00:19:58.100
+And so you want to restore
+that with each one.
+
+00:20:00.700 --> 00:20:03.490
+So mutexes-- this is
+one way you can use
+
+00:20:03.490 --> 00:20:07.610
+mutexes to implement atomicity.
+
+00:20:07.610 --> 00:20:11.570
+So now let's just go back.
+
+00:20:15.980 --> 00:20:18.380
+Who has seen mutexes before?
+
+00:20:18.380 --> 00:20:19.950
+Is that pretty much everybody?
+
+00:20:19.950 --> 00:20:20.450
+Yes.
+
+00:20:20.450 --> 00:20:22.160
+OK, good.
+
+00:20:22.160 --> 00:20:24.830
+I hope that this is not brand
+new for too many of you.
+
+00:20:24.830 --> 00:20:26.480
+If it is brand
+new, that's great.
+
+00:20:26.480 --> 00:20:29.270
+But what I'm trying
+to do is make it-- so
+
+00:20:29.270 --> 00:20:31.860
+let's go back a little bit
+and recall in this class
+
+00:20:31.860 --> 00:20:34.190
+our discussion of
+determinacy races.
+
+00:20:34.190 --> 00:20:36.830
+So, remember, a
+determinacy race occurs
+
+00:20:36.830 --> 00:20:38.990
+when you have two logically
+parallel instructions
+
+00:20:38.990 --> 00:20:43.910
+that access the same memory
+location and at least one
+
+00:20:43.910 --> 00:20:46.700
+of them performs a write.
+
+00:20:46.700 --> 00:20:50.180
+So mutex locks can guarantee
+that critical sections behave
+
+00:20:50.180 --> 00:20:57.030
+atomically, but the
+resulting code is
+
+00:20:57.030 --> 00:21:01.680
+inherently nondeterministic
+because you've got a--
+
+00:21:01.680 --> 00:21:03.210
+we had a race bug there.
+
+00:21:03.210 --> 00:21:06.690
+We had two things trying
+to access the same slot.
+
+00:21:06.690 --> 00:21:08.830
+But that may be what I want.
+
+00:21:08.830 --> 00:21:13.770
+I want to have a shared hash
+table maybe for these things.
+
+00:21:13.770 --> 00:21:16.650
+So I want something
+where there is a race,
+
+00:21:16.650 --> 00:21:19.710
+but I just don't want to have
+the anomalies that arise.
+
+00:21:19.710 --> 00:21:22.710
+In this case, the race
+bug caused things,
+
+00:21:22.710 --> 00:21:24.745
+and I can solve
+that with atomicity.
+
+00:21:30.480 --> 00:21:32.490
+If you have no
+determinacy races,
+
+00:21:32.490 --> 00:21:37.470
+it means that the program is
+deterministic on that input
+
+00:21:37.470 --> 00:21:40.860
+and that it always
+behaves the same.
+
+00:21:40.860 --> 00:21:44.640
+And remember also that if
+a deterministic race exists
+
+00:21:44.640 --> 00:21:49.620
+in an ostensibly
+deterministic program, then
+
+00:21:49.620 --> 00:21:51.600
+it guarantees to find a race.
+
+00:21:51.600 --> 00:21:54.057
+Now, if you put in
+mutexes, you still
+
+00:21:54.057 --> 00:21:55.390
+have a nondeterministic program.
+
+00:21:55.390 --> 00:21:57.903
+You still have a race.
+
+00:21:57.903 --> 00:21:59.820
+Because you have two
+things that are logically
+
+00:21:59.820 --> 00:22:03.150
+parallel that are both
+accessing the lock.
+
+00:22:03.150 --> 00:22:03.780
+That's a race.
+
+00:22:03.780 --> 00:22:06.717
+That's a determinacy race.
+
+00:22:06.717 --> 00:22:08.550
+If you have two things,
+they're in parallel,
+
+00:22:08.550 --> 00:22:11.880
+they're both accessing the
+lock, that's a determinacy race.
+
+00:22:11.880 --> 00:22:19.260
+It may be a safe, correct one,
+but it is a determinacy race.
+
+00:22:19.260 --> 00:22:21.690
+And so any codes
+that use locks are
+
+00:22:21.690 --> 00:22:24.300
+nondeterministic by
+intention, and they're
+
+00:22:24.300 --> 00:22:28.990
+going to invalidate the Cilksan
+guarantee of finding those race
+
+00:22:28.990 --> 00:22:29.490
+bugs.
+
+00:22:32.000 --> 00:22:34.580
+So you will end up
+with races in your code
+
+00:22:34.580 --> 00:22:36.650
+if you're not careful.
+
+00:22:36.650 --> 00:22:38.660
+And so this is one reason
+it's important to have
+
+00:22:38.660 --> 00:22:42.740
+some way of turning off
+nondeterminism to detect stuff.
+
+00:22:42.740 --> 00:22:44.720
+Because what you don't
+want is a whole rash
+
+00:22:44.720 --> 00:22:47.660
+of false positives
+saying, oh, you
+
+00:22:47.660 --> 00:22:50.180
+raced on gathering this lock.
+
+00:22:50.180 --> 00:22:52.730
+Nor do you want to ignore
+that and then discover
+
+00:22:52.730 --> 00:22:56.390
+that a race has popped
+up somewhere else.
+
+00:22:56.390 --> 00:22:58.190
+Now, some people feel that--
+
+00:22:58.190 --> 00:23:04.610
+so this is basically talking
+about having a data race.
+
+00:23:04.610 --> 00:23:09.200
+And a data race is
+similar to the definition
+
+00:23:09.200 --> 00:23:12.680
+of determinacy race,
+but it says that you
+
+00:23:12.680 --> 00:23:15.830
+have two logically
+parallel instructions
+
+00:23:15.830 --> 00:23:20.490
+and they don't hold
+locks in common.
+
+00:23:20.490 --> 00:23:22.038
+And then it's the
+same definition.
+
+00:23:22.038 --> 00:23:24.330
+If they access the same memory
+location and one of them
+
+00:23:24.330 --> 00:23:27.750
+performs a write,
+then you have a--
+
+00:23:27.750 --> 00:23:31.080
+then you have a data race bug.
+
+00:23:31.080 --> 00:23:36.260
+But if they have
+the locks in common,
+
+00:23:36.260 --> 00:23:40.290
+if they both have acquired at
+least one lock that's the same,
+
+00:23:40.290 --> 00:23:44.370
+then you don't have a
+data race, because that
+
+00:23:44.370 --> 00:23:46.530
+means that you've now
+successfully protected
+
+00:23:46.530 --> 00:23:49.380
+the atomicity.
+
+00:23:49.380 --> 00:23:51.840
+But it is still
+nondeterministic and there
+
+00:23:51.840 --> 00:23:54.630
+is a determinacy race,
+just no data race.
+
+00:23:54.630 --> 00:23:57.540
+And that's the big
+distinction between data races
+
+00:23:57.540 --> 00:23:58.710
+and determinacy races.
+
+00:23:58.710 --> 00:24:01.650
+And on quiz 2, you better
+know the difference
+
+00:24:01.650 --> 00:24:05.100
+between data races
+and determinacy races,
+
+00:24:05.100 --> 00:24:07.830
+because they are different.
+
+00:24:07.830 --> 00:24:10.080
+So a program may
+have no determine--
+
+00:24:10.080 --> 00:24:11.675
+may have no data races.
+
+00:24:11.675 --> 00:24:13.050
+That doesn't mean
+that it doesn't
+
+00:24:13.050 --> 00:24:14.220
+have a determinacy race.
+
+00:24:14.220 --> 00:24:17.280
+In fact, if it's got
+any locks, it probably
+
+00:24:17.280 --> 00:24:18.600
+has a determinacy race.
+
+00:24:25.290 --> 00:24:28.440
+So one of the things is,
+if I have no data races,
+
+00:24:28.440 --> 00:24:30.450
+does that mean I have no bugs?
+
+00:24:30.450 --> 00:24:35.010
+Suppose I have no
+data races in my code.
+
+00:24:35.010 --> 00:24:36.750
+Does that mean I have no bugs?
+
+00:24:36.750 --> 00:24:43.110
+This is like an obvious answer
+just by quizmanship, right?
+
+00:24:43.110 --> 00:24:45.120
+So what might happen?
+
+00:24:49.113 --> 00:24:50.280
+Think about it a little bit.
+
+00:24:50.280 --> 00:24:51.030
+What might happen?
+
+00:24:53.490 --> 00:24:57.810
+How could I have no data
+races and yet there still
+
+00:24:57.810 --> 00:24:59.850
+be a bug, even though--
+
+00:24:59.850 --> 00:25:02.957
+I'm assuming it's a correct
+piece of code otherwise.
+
+00:25:02.957 --> 00:25:05.040
+In other words, when it
+runs serially or whatever,
+
+00:25:05.040 --> 00:25:06.750
+it's correct.
+
+00:25:06.750 --> 00:25:12.060
+How could I end up having a
+code-- no data races but still
+
+00:25:12.060 --> 00:25:15.520
+have a bug?
+
+00:25:21.916 --> 00:25:27.067
+AUDIENCE: It's still
+nondeterministic [INAUDIBLE]..
+
+00:25:27.067 --> 00:25:29.650
+CHARLES LEISERSON: Yes, but that
+doesn't mean it's bad, right?
+
+00:25:29.650 --> 00:25:33.610
+AUDIENCE: Well, you said that
+it runs correctly serially.
+
+00:25:33.610 --> 00:25:35.600
+CHARLES LEISERSON: Yes.
+
+00:25:35.600 --> 00:25:38.190
+AUDIENCE: So the order that
+things are put in or generated
+
+00:25:38.190 --> 00:25:39.700
+might still be--
+
+00:25:39.700 --> 00:25:42.072
+CHARLES LEISERSON: Might
+still be different, yes.
+
+00:25:42.072 --> 00:25:45.020
+AUDIENCE: [INAUDIBLE].
+
+00:25:45.020 --> 00:25:47.270
+CHARLES LEISERSON: OK.
+
+00:25:47.270 --> 00:25:49.280
+Yes.
+
+00:25:49.280 --> 00:25:53.270
+Let me give you an example
+which is more to the point.
+
+00:25:53.270 --> 00:25:56.810
+Here is a way of
+making sure that I
+
+00:25:56.810 --> 00:26:08.240
+have no data race, which is I
+lock before I follow the table
+
+00:26:08.240 --> 00:26:10.430
+slot value.
+
+00:26:10.430 --> 00:26:14.940
+Then I unlock, and I lock
+again and then I set the value.
+
+00:26:14.940 --> 00:26:16.930
+So I haven't prevented
+the atomicity.
+
+00:26:16.930 --> 00:26:19.210
+Right now I've got an
+atomicity violation,
+
+00:26:19.210 --> 00:26:23.893
+but I have no data
+races, because I never
+
+00:26:23.893 --> 00:26:25.435
+have two things--
+any two things that
+
+00:26:25.435 --> 00:26:27.660
+are going to access
+things at the same time
+
+00:26:27.660 --> 00:26:28.705
+is protected by the lock.
+
+00:26:31.220 --> 00:26:35.830
+But it didn't solve my
+atomicity, so there's a--
+
+00:26:39.370 --> 00:26:41.650
+you can definitely
+have no data races,
+
+00:26:41.650 --> 00:26:43.375
+but that doesn't mean
+you have no bugs.
+
+00:26:47.390 --> 00:26:54.470
+But, usually, what happens
+is, if you have no data races,
+
+00:26:54.470 --> 00:27:00.380
+then usually the programmer
+actually got this code right.
+
+00:27:00.380 --> 00:27:03.710
+It's one of these things where
+demonstrating no data races
+
+00:27:03.710 --> 00:27:07.295
+is in fact a very positive
+thing in your code.
+
+00:27:07.295 --> 00:27:09.290
+It doesn't mean the
+programmer did right.
+
+00:27:09.290 --> 00:27:12.860
+But most of the time, the reason
+they're putting in the locks
+
+00:27:12.860 --> 00:27:15.290
+is to provide atomicity
+for something,
+
+00:27:15.290 --> 00:27:16.610
+and they usually get it right.
+
+00:27:16.610 --> 00:27:17.960
+They don't always get it right.
+
+00:27:17.960 --> 00:27:21.020
+In fact, Java, for example,
+had a very famous bug
+
+00:27:21.020 --> 00:27:27.200
+early on in the way
+that it specified
+
+00:27:27.200 --> 00:27:30.470
+locking such that the--
+
+00:27:30.470 --> 00:27:34.220
+you could look at the length
+of a string and then modify it,
+
+00:27:34.220 --> 00:27:36.500
+and then you would
+end up with a race bug
+
+00:27:36.500 --> 00:27:39.020
+because somebody else
+could swoop in in between.
+
+00:27:39.020 --> 00:27:41.550
+So they thought they were
+providing atomicity and they
+
+00:27:41.550 --> 00:27:42.050
+didn't.
+
+00:27:45.260 --> 00:27:52.180
+So there's another
+set of issues here
+
+00:27:52.180 --> 00:27:54.020
+having to do with benign races.
+
+00:27:54.020 --> 00:27:58.310
+Now, there's some people who
+argue that no races are--
+
+00:27:58.310 --> 00:28:00.005
+no determinacy races are benign.
+
+00:28:03.480 --> 00:28:07.010
+And they make
+academic statements
+
+00:28:07.010 --> 00:28:09.080
+that I find quite
+compelling, actually,
+
+00:28:09.080 --> 00:28:14.870
+what they say, about races
+and whether races are benign.
+
+00:28:14.870 --> 00:28:18.020
+But, nevertheless,
+the literature
+
+00:28:18.020 --> 00:28:20.660
+also continues to use
+the term benign race
+
+00:28:20.660 --> 00:28:22.080
+for this kind of example.
+
+00:28:22.080 --> 00:28:26.600
+So suppose we want to identify
+what is the set of digits
+
+00:28:26.600 --> 00:28:30.530
+that occurred in some array.
+
+00:28:30.530 --> 00:28:34.280
+So here's an array with
+a bunch of values in it,
+
+00:28:34.280 --> 00:28:36.975
+each one being a
+digit from 0 to 9.
+
+00:28:36.975 --> 00:28:38.600
+So I could write a
+little piece of code
+
+00:28:38.600 --> 00:28:44.630
+that runs through a
+digits array of length 10
+
+00:28:44.630 --> 00:28:49.250
+and sets the number of digits
+I've seen so far of each value
+
+00:28:49.250 --> 00:28:51.500
+to be 0.
+
+00:28:51.500 --> 00:28:53.300
+And now I go through--
+
+00:28:53.300 --> 00:28:56.300
+and I'm going to do
+this in parallel--
+
+00:28:56.300 --> 00:29:03.470
+and I'm going to set, every
+time I see a value A of i--
+
+00:29:03.470 --> 00:29:05.150
+suppose A of i is 3--
+
+00:29:05.150 --> 00:29:10.540
+I set the location
+of A3 to be 1.
+
+00:29:10.540 --> 00:29:12.470
+And, otherwise, and
+now-- otherwise,
+
+00:29:12.470 --> 00:29:16.820
+it's 0 because that's
+what I had it before.
+
+00:29:16.820 --> 00:29:18.960
+So here's the kind
+of thing I have.
+
+00:29:18.960 --> 00:29:21.950
+So, for example, I can
+have both of those 6's--
+
+00:29:21.950 --> 00:29:26.990
+or in parallel, we're going
+to access the location
+
+00:29:26.990 --> 00:29:28.910
+6 to set it to 1.
+
+00:29:28.910 --> 00:29:30.350
+But they're both
+setting it to 1.
+
+00:29:30.350 --> 00:29:33.200
+It doesn't really matter
+what order they do it in.
+
+00:29:33.200 --> 00:29:37.280
+You're going to get the
+same value there, 1.
+
+00:29:37.280 --> 00:29:41.060
+And so there's a race.
+
+00:29:41.060 --> 00:29:44.057
+Maybe we don't too much
+care about that race,
+
+00:29:44.057 --> 00:29:45.890
+because they're both
+setting the same value.
+
+00:29:45.890 --> 00:29:48.650
+We're not going to get
+an incorrect value.
+
+00:29:48.650 --> 00:29:50.660
+Well, not exactly.
+
+00:29:50.660 --> 00:29:52.460
+We might get it on
+some architecture.
+
+00:29:52.460 --> 00:29:55.970
+On the Intel architectures, you
+won't get an incorrect value,
+
+00:29:55.970 --> 00:29:57.350
+on x86.
+
+00:29:57.350 --> 00:30:03.800
+But there are codes
+where the elements--
+
+00:30:03.800 --> 00:30:08.600
+the array values are
+not set atomically.
+
+00:30:08.600 --> 00:30:11.270
+So, for example, on
+the MIPS architecture,
+
+00:30:11.270 --> 00:30:15.650
+in order to set a bite
+to be a particular value,
+
+00:30:15.650 --> 00:30:19.160
+you have to fetch the word,
+mask out, set the word,
+
+00:30:19.160 --> 00:30:20.450
+and then store it back in.
+
+00:30:20.450 --> 00:30:24.290
+Set the byte and then store
+it back into the word.
+
+00:30:24.290 --> 00:30:28.070
+And so if there are two
+guys who are basically
+
+00:30:28.070 --> 00:30:31.430
+operating on that
+same word location,
+
+00:30:31.430 --> 00:30:33.600
+they will have a race,
+even though in the code
+
+00:30:33.600 --> 00:30:36.020
+it looks like they're
+just setting bytes.
+
+00:30:36.020 --> 00:30:37.760
+Does that make sense?
+
+00:30:37.760 --> 00:30:39.680
+So nasty.
+
+00:30:39.680 --> 00:30:40.780
+Nasty bugs.
+
+00:30:40.780 --> 00:30:46.190
+That's why you should never do
+nondeterministic programming
+
+00:30:46.190 --> 00:30:47.150
+unless you have to.
+
+00:30:50.900 --> 00:30:55.880
+So Cilksan allows you to
+turn off race detection
+
+00:30:55.880 --> 00:30:59.390
+for intentional races.
+
+00:30:59.390 --> 00:31:02.060
+So if you really meant there
+to be a race, as in this case,
+
+00:31:02.060 --> 00:31:03.870
+you can turn it off.
+
+00:31:03.870 --> 00:31:08.675
+This is dangerous but
+practical, it turns out.
+
+00:31:08.675 --> 00:31:10.050
+Usually you're
+not turning it off
+
+00:31:10.050 --> 00:31:11.210
+for-- because here's
+what can happen.
+
+00:31:11.210 --> 00:31:12.560
+You can turn it off and yet--
+
+00:31:12.560 --> 00:31:15.050
+then there's something else
+which is using that same stuff,
+
+00:31:15.050 --> 00:31:20.210
+and now you're running Cilksan
+without having turned it off
+
+00:31:20.210 --> 00:31:22.570
+for exactly what
+your race might be.
+
+00:31:22.570 --> 00:31:23.820
+There are better solutions.
+
+00:31:23.820 --> 00:31:26.510
+So in Intel's Cilk
+Screen, there's
+
+00:31:26.510 --> 00:31:28.310
+the notion of fake locks.
+
+00:31:28.310 --> 00:31:35.030
+We just have not yet implemented
+it in the open Cilk compiler
+
+00:31:35.030 --> 00:31:36.050
+and in Cilksan.
+
+00:31:36.050 --> 00:31:37.730
+We'll eventually
+get to doing that.
+
+00:31:37.730 --> 00:31:40.970
+And then people who take
+this class in the future
+
+00:31:40.970 --> 00:31:43.700
+will have an easier time
+with that, because we'll be
+
+00:31:43.700 --> 00:31:46.070
+able to check for that as well.
+
+00:31:46.070 --> 00:31:48.330
+So any questions
+about these notions?
+
+00:31:48.330 --> 00:31:52.610
+So you can see the notions
+of races can get quite hairy
+
+00:31:52.610 --> 00:31:59.270
+and make it quite difficult
+to do your debugging,
+
+00:31:59.270 --> 00:32:03.200
+and in fact even can
+confound your tools that
+
+00:32:03.200 --> 00:32:07.430
+are supposed to be helping
+you to get correct code.
+
+00:32:07.430 --> 00:32:10.430
+All in the name of performance.
+
+00:32:10.430 --> 00:32:12.560
+But we like performance.
+
+00:32:12.560 --> 00:32:15.680
+Any questions?
+
+00:32:15.680 --> 00:32:17.120
+Yes.
+
+00:32:17.120 --> 00:32:20.000
+AUDIENCE: So I don't
+really understand
+
+00:32:20.000 --> 00:32:24.212
+how some architectures can cause
+some error in race conditions.
+
+00:32:24.212 --> 00:32:25.170
+CHARLES LEISERSON: Yes.
+
+00:32:25.170 --> 00:32:27.830
+So how can some architectures
+cause some error?
+
+00:32:27.830 --> 00:32:29.360
+So here's the
+thing, is that if I
+
+00:32:29.360 --> 00:32:39.150
+have a, let's say,
+a byte array, it
+
+00:32:39.150 --> 00:32:42.870
+may be that this is stored
+as a set of let's say
+
+00:32:42.870 --> 00:32:43.860
+four-byte words.
+
+00:32:50.340 --> 00:32:55.650
+And so although you
+may write that A of 0
+
+00:32:55.650 --> 00:33:02.520
+gets 1, what it does is it says,
+let me fetch these four values,
+
+00:33:02.520 --> 00:33:05.340
+because there is no
+byte set instruction
+
+00:33:05.340 --> 00:33:06.810
+on some architectures.
+
+00:33:06.810 --> 00:33:11.550
+It can only set, in
+this case, 32-bit words.
+
+00:33:11.550 --> 00:33:14.046
+So it fetches the values.
+
+00:33:14.046 --> 00:33:17.280
+It then-- into a register.
+
+00:33:17.280 --> 00:33:22.440
+It then sets the value in
+the register by masking.
+
+00:33:22.440 --> 00:33:24.690
+So it doesn't set the
+other things here.
+
+00:33:24.690 --> 00:33:29.190
+And then it stores it back
+so that it has a 1 here.
+
+00:33:29.190 --> 00:33:30.930
+But what if somebody,
+at the same time,
+
+00:33:30.930 --> 00:33:33.720
+is storing into this location?
+
+00:33:33.720 --> 00:33:37.710
+They will fetch it into
+their own register,
+
+00:33:37.710 --> 00:33:39.880
+set their byte,
+mask it, et cetera.
+
+00:33:39.880 --> 00:33:43.370
+And now my writeback
+is going to--
+
+00:33:43.370 --> 00:33:46.975
+we're going to have a lost
+update in the writebacks.
+
+00:33:46.975 --> 00:33:47.850
+Does that make sense?
+
+00:33:47.850 --> 00:33:48.840
+AUDIENCE: [INAUDIBLE].
+
+00:33:48.840 --> 00:33:49.810
+CHARLES LEISERSON: OK.
+
+00:33:49.810 --> 00:33:50.850
+Good.
+
+00:33:50.850 --> 00:33:51.780
+Very good question.
+
+00:33:51.780 --> 00:33:52.370
+Yes, I know.
+
+00:33:52.370 --> 00:33:54.390
+I went through that orally
+a little bit quicker
+
+00:33:54.390 --> 00:33:55.432
+than maybe I should have.
+
+00:33:58.580 --> 00:33:59.750
+Great.
+
+00:33:59.750 --> 00:34:01.780
+So let's talk a little
+bit about implementation.
+
+00:34:01.780 --> 00:34:03.860
+I always like to take
+things down one level
+
+00:34:03.860 --> 00:34:07.040
+below what you necessarily need
+to know in order to do things.
+
+00:34:07.040 --> 00:34:10.489
+But it's helpful to sort
+of see how these things are
+
+00:34:10.489 --> 00:34:15.230
+implemented, because then
+that gives you a better
+
+00:34:15.230 --> 00:34:19.580
+sense at a higher level
+what your capabilities are
+
+00:34:19.580 --> 00:34:22.670
+and how things are actually
+working underneath.
+
+00:34:22.670 --> 00:34:24.710
+So let's talk about mutexes.
+
+00:34:24.710 --> 00:34:26.659
+So here, first of
+all, understand there
+
+00:34:26.659 --> 00:34:28.520
+are lots of different mutexes.
+
+00:34:28.520 --> 00:34:30.590
+If you look at an
+operating system,
+
+00:34:30.590 --> 00:34:34.070
+they may have a half a dozen
+or more different mutexes,
+
+00:34:34.070 --> 00:34:38.690
+different locks that can
+provide mutual exclusion,
+
+00:34:38.690 --> 00:34:45.400
+or parameters that can be
+set for what kind of mutexes.
+
+00:34:45.400 --> 00:34:49.040
+So the first basic
+difference in most things
+
+00:34:49.040 --> 00:34:54.020
+is whether the mutex is
+yielding or spinning.
+
+00:34:54.020 --> 00:34:58.010
+So a yielding mutex returns
+control to the operating system
+
+00:34:58.010 --> 00:34:58.880
+when it blocks.
+
+00:34:58.880 --> 00:35:01.070
+When a program tries to get--
+
+00:35:01.070 --> 00:35:02.600
+when it tries to
+get access, when
+
+00:35:02.600 --> 00:35:07.440
+a thread tries to get access to
+a given lock, if it is blocked,
+
+00:35:07.440 --> 00:35:10.700
+it doesn't just sit
+there and keep--
+
+00:35:10.700 --> 00:35:13.100
+and spinning, where you're
+basically-- spinning
+
+00:35:13.100 --> 00:35:15.950
+means I just sit there checking
+it and checking it and checking
+
+00:35:15.950 --> 00:35:17.780
+it and checking it.
+
+00:35:17.780 --> 00:35:19.880
+Instead what it does
+is it says, oh, I'm
+
+00:35:19.880 --> 00:35:21.860
+doing useless work here.
+
+00:35:21.860 --> 00:35:24.800
+Let me go and return control
+to the operating system.
+
+00:35:24.800 --> 00:35:28.280
+Maybe there's another thread
+that can run at the same time,
+
+00:35:28.280 --> 00:35:30.140
+and therefore I'll give--
+
+00:35:30.140 --> 00:35:35.780
+by switching myself out, by
+yielding my scheduling quantum,
+
+00:35:35.780 --> 00:35:37.730
+I will get better
+efficiency overall,
+
+00:35:37.730 --> 00:35:39.710
+because somebody--
+some other thread that
+
+00:35:39.710 --> 00:35:42.250
+is capable of running
+can run at that point.
+
+00:35:42.250 --> 00:35:45.510
+So is that a clear distinction
+between spinning and yielding?
+
+00:35:48.470 --> 00:35:54.110
+Another one is whether the mutex
+is reentrant or nonreentrant.
+
+00:35:54.110 --> 00:35:56.300
+A reentrant mutex
+allows a thread
+
+00:35:56.300 --> 00:36:01.390
+that is already holding a
+lock to acquire it again.
+
+00:36:01.390 --> 00:36:05.060
+A nonreentrant one
+deadlocks if the thread
+
+00:36:05.060 --> 00:36:09.050
+attempts to require a
+mutex it already holds.
+
+00:36:09.050 --> 00:36:13.330
+So I grab a lock, and now
+I go to a piece of code
+
+00:36:13.330 --> 00:36:15.980
+that says grab that lock.
+
+00:36:15.980 --> 00:36:16.760
+So very simple.
+
+00:36:16.760 --> 00:36:18.350
+I can check to see
+whether I have--
+
+00:36:18.350 --> 00:36:20.490
+if I want to be
+reentrant, I can check,
+
+00:36:20.490 --> 00:36:22.520
+do I have that lock already?
+
+00:36:22.520 --> 00:36:25.470
+And if I do, then I don't
+actually have to acquire it.
+
+00:36:25.470 --> 00:36:26.450
+I just keep going.
+
+00:36:26.450 --> 00:36:28.880
+But that's extra overhead.
+
+00:36:28.880 --> 00:36:33.320
+It's faster for me to
+have a nonreentrant lock,
+
+00:36:33.320 --> 00:36:35.090
+where I just simply
+grab the lock,
+
+00:36:35.090 --> 00:36:37.580
+and if somebody has
+got it, including me,
+
+00:36:37.580 --> 00:36:38.510
+then it's a deadlock.
+
+00:36:38.510 --> 00:36:42.050
+But now if there's
+the possibility
+
+00:36:42.050 --> 00:36:46.430
+that I could reacquire a lock,
+then that might not be safe.
+
+00:36:46.430 --> 00:36:48.140
+You have to worry
+about-- the program has
+
+00:36:48.140 --> 00:36:49.860
+to worry about that now.
+
+00:36:49.860 --> 00:36:53.270
+Is that clear, that one?
+
+00:36:53.270 --> 00:36:57.500
+And then a final basic
+property of mutexes
+
+00:36:57.500 --> 00:37:00.920
+is whether they're
+fair or unfair.
+
+00:37:00.920 --> 00:37:02.870
+So here's the thing.
+
+00:37:02.870 --> 00:37:05.990
+It's the easiest to think about
+it in the context of spinning.
+
+00:37:05.990 --> 00:37:10.040
+I have several
+threads that basically
+
+00:37:10.040 --> 00:37:14.690
+came to the same lock, and we
+decided they're going to spin.
+
+00:37:14.690 --> 00:37:17.480
+They're just going to sit there
+continually checking, waiting
+
+00:37:17.480 --> 00:37:21.110
+for that lock to be free.
+
+00:37:21.110 --> 00:37:26.870
+So when finally the guy
+who has it unlocks it,
+
+00:37:26.870 --> 00:37:29.537
+maybe I've got a half a
+dozen threads sitting there.
+
+00:37:29.537 --> 00:37:30.245
+One of them wins.
+
+00:37:33.760 --> 00:37:36.302
+And which one wins?
+
+00:37:36.302 --> 00:37:37.260
+Well, they're spinning.
+
+00:37:37.260 --> 00:37:39.970
+It could be any one of them.
+
+00:37:39.970 --> 00:37:41.490
+Then it has one.
+
+00:37:41.490 --> 00:37:45.300
+And so the issue
+that can go on is
+
+00:37:45.300 --> 00:37:49.050
+you could have what's called
+a starvation problem, where
+
+00:37:49.050 --> 00:37:53.730
+some guy is sitting there for
+a really long time waiting
+
+00:37:53.730 --> 00:37:56.910
+while everybody else is
+continually grabbing locks
+
+00:37:56.910 --> 00:38:01.710
+out from under his or her nose.
+
+00:38:01.710 --> 00:38:04.830
+So with a fair mutex,
+basically what you do
+
+00:38:04.830 --> 00:38:08.130
+is you go for the one that's
+been waiting the longest,
+
+00:38:08.130 --> 00:38:09.540
+essentially.
+
+00:38:09.540 --> 00:38:11.760
+And so, therefore,
+you never have
+
+00:38:11.760 --> 00:38:14.940
+to wait more than for however
+many things were there
+
+00:38:14.940 --> 00:38:18.430
+when you got there
+before you're able to go.
+
+00:38:18.430 --> 00:38:20.722
+Question.
+
+00:38:20.722 --> 00:38:22.156
+AUDIENCE: Why is that better?
+
+00:38:24.323 --> 00:38:26.740
+CHARLES LEISERSON: It can be
+better because you may freeze
+
+00:38:26.740 --> 00:38:31.480
+out our service if there's
+something that's-- you may
+
+00:38:31.480 --> 00:38:35.650
+never get to do the
+thing that you want to do
+
+00:38:35.650 --> 00:38:37.900
+because there's something
+else always interfering with
+
+00:38:37.900 --> 00:38:41.260
+the ability for that part of
+the program to make progress.
+
+00:38:41.260 --> 00:38:42.940
+This tends to be
+more of an issue
+
+00:38:42.940 --> 00:38:46.750
+in concurrent
+programming, where you
+
+00:38:46.750 --> 00:38:48.580
+have different programs
+that are trying
+
+00:38:48.580 --> 00:38:51.310
+to accomplish
+different tasks and you
+
+00:38:51.310 --> 00:38:54.782
+want to accomplish both tasks.
+
+00:38:54.782 --> 00:38:56.470
+It does not come across--
+
+00:38:56.470 --> 00:39:01.480
+in parallel programming,
+mostly we deal with unfair--
+
+00:39:01.480 --> 00:39:06.070
+often unfair spinning locks
+because they're the cheapest.
+
+00:39:06.070 --> 00:39:09.100
+And we just trust
+that, a, we're not
+
+00:39:09.100 --> 00:39:11.672
+going to have any critical
+regions-- we write
+
+00:39:11.672 --> 00:39:13.630
+our code so we don't have
+critical regions that
+
+00:39:13.630 --> 00:39:17.500
+are really long, so nobody ever
+has to wait a very long time.
+
+00:39:17.500 --> 00:39:19.390
+But, indeed, dealing
+with a contention issue,
+
+00:39:19.390 --> 00:39:26.260
+as we talked about last
+week, can make a difference.
+
+00:39:26.260 --> 00:39:27.040
+good.
+
+00:39:27.040 --> 00:39:30.780
+So here's an implementation
+of a simple spinning mutex
+
+00:39:30.780 --> 00:39:31.810
+an assembly language.
+
+00:39:34.540 --> 00:39:37.480
+So the first thing
+it does is it checks
+
+00:39:37.480 --> 00:39:40.840
+to see if the-- the mutex
+is free if its value is 0.
+
+00:39:40.840 --> 00:39:43.690
+So it compares the
+value of the mutex to 0.
+
+00:39:43.690 --> 00:39:46.780
+And if it is 0, it
+says, oh, it's free.
+
+00:39:46.780 --> 00:39:48.460
+Let me go get it.
+
+00:39:48.460 --> 00:39:55.450
+It then-- to get the mutex,
+what it does is it moves a 1
+
+00:39:55.450 --> 00:39:58.420
+into the--
+
+00:39:58.420 --> 00:40:00.700
+it basically moves
+1 into a register,
+
+00:40:00.700 --> 00:40:07.600
+and then it exchanges the
+mutex with that register eax.
+
+00:40:07.600 --> 00:40:11.110
+And then it compares
+to see whether or not
+
+00:40:11.110 --> 00:40:13.780
+it actually got the mutex.
+
+00:40:13.780 --> 00:40:16.330
+And if it didn't, then it
+goes back up to the top
+
+00:40:16.330 --> 00:40:18.880
+and starts again.
+
+00:40:18.880 --> 00:40:22.180
+And then the other branch
+is at the top there.
+
+00:40:22.180 --> 00:40:24.580
+It does this pause,
+and this apparently
+
+00:40:24.580 --> 00:40:28.090
+is due to a bug in
+x86 that they end up
+
+00:40:28.090 --> 00:40:30.550
+having to put this pause
+instruction in there.
+
+00:40:30.550 --> 00:40:32.440
+And then, otherwise,
+you jump to where
+
+00:40:32.440 --> 00:40:36.880
+the Spin_Mutex is and go again.
+
+00:40:36.880 --> 00:40:39.490
+And then, once you've
+done the Critical_Section,
+
+00:40:39.490 --> 00:40:42.370
+when you're done you free
+it by just setting it to 0.
+
+00:40:42.370 --> 00:40:55.570
+So the question here is--
+so the exchange instruction
+
+00:40:55.570 --> 00:40:57.000
+is an atomic exchange.
+
+00:40:57.000 --> 00:41:00.950
+So it takes the register and the
+memory value and it swaps them,
+
+00:41:00.950 --> 00:41:03.110
+and you can't have
+anything come in.
+
+00:41:03.110 --> 00:41:05.185
+So one of the things
+that might have you
+
+00:41:05.185 --> 00:41:07.060
+confused a little bit
+here is, wait a second.
+
+00:41:07.060 --> 00:41:09.970
+I checked to see if
+the mutex is free,
+
+00:41:09.970 --> 00:41:13.300
+and then I tried to get it
+to test if I was successful.
+
+00:41:13.300 --> 00:41:15.200
+Why?
+
+00:41:15.200 --> 00:41:20.260
+Why can't I just start out by
+essentially going to get mutex?
+
+00:41:23.610 --> 00:41:28.710
+I mean, why do I need any of
+the code between Spin_Mutex
+
+00:41:28.710 --> 00:41:30.068
+and Get_Mutex?
+
+00:41:36.790 --> 00:41:40.000
+So if I just started with
+Get_Mutex, I would move a 1 in.
+
+00:41:40.000 --> 00:41:43.240
+I would exchange, check
+to see if I could get it.
+
+00:41:43.240 --> 00:41:45.370
+If I had it, fine.
+
+00:41:45.370 --> 00:41:46.960
+Then I execute the end.
+
+00:41:46.960 --> 00:41:56.690
+If not, I would go
+back and try again.
+
+00:41:56.690 --> 00:42:03.168
+So why-- because if
+somebody has it, by the way,
+
+00:42:03.168 --> 00:42:05.210
+the value that I'm going
+to get is going to be 1.
+
+00:42:05.210 --> 00:42:08.900
+And that's what I swapped in,
+so I haven't changed anything.
+
+00:42:08.900 --> 00:42:11.180
+I go back and I check again.
+
+00:42:11.180 --> 00:42:13.660
+So why do I need
+that first part?
+
+00:42:13.660 --> 00:42:14.160
+Yes.
+
+00:42:14.160 --> 00:42:17.332
+AUDIENCE: Maybe it's faster
+to just get [INAUDIBLE]..
+
+00:42:17.332 --> 00:42:18.290
+CHARLES LEISERSON: Yes.
+
+00:42:18.290 --> 00:42:20.010
+Maybe it's faster.
+
+00:42:20.010 --> 00:42:22.580
+So, indeed, it's
+because it's faster.
+
+00:42:22.580 --> 00:42:26.150
+Even though you're executing
+extra code, it's faster.
+
+00:42:26.150 --> 00:42:27.620
+Tell me why it's faster.
+
+00:42:27.620 --> 00:42:29.060
+And this will take
+you-- you have
+
+00:42:29.060 --> 00:42:32.900
+to think a little bit
+about the cache protocols
+
+00:42:32.900 --> 00:42:35.692
+and the invalidation issue.
+
+00:42:35.692 --> 00:42:37.025
+So why is it going to be faster?
+
+00:42:40.990 --> 00:42:41.490
+Yes.
+
+00:42:41.490 --> 00:42:43.903
+AUDIENCE: Because I do
+the atomic exchange.
+
+00:42:43.903 --> 00:42:45.070
+CHARLES LEISERSON: OK, good.
+
+00:42:45.070 --> 00:42:47.078
+Say more.
+
+00:42:47.078 --> 00:42:49.120
+AUDIENCE: Basically, just
+to exchange atomically,
+
+00:42:49.120 --> 00:42:51.494
+you have to have [INAUDIBLE].
+
+00:42:57.266 --> 00:43:00.062
+And you bring it in
+only just to do a swap.
+
+00:43:00.062 --> 00:43:01.020
+CHARLES LEISERSON: Yes.
+
+00:43:01.020 --> 00:43:05.100
+So it turns out the exchange
+operation is like a write.
+
+00:43:05.100 --> 00:43:07.650
+And so in order to
+do a write, what do I
+
+00:43:07.650 --> 00:43:12.210
+need to do for the
+cache line that it's on?
+
+00:43:12.210 --> 00:43:13.252
+AUDIENCE: To bring it in.
+
+00:43:13.252 --> 00:43:14.668
+CHARLES LEISERSON:
+To bring it in.
+
+00:43:14.668 --> 00:43:16.740
+But how does it have
+to be brought in?
+
+00:43:16.740 --> 00:43:18.610
+Remember, the cache lines have--
+
+00:43:18.610 --> 00:43:19.680
+let's ima--
+
+00:43:19.680 --> 00:43:21.180
+AUDIENCE: [INAUDIBLE].
+
+00:43:21.180 --> 00:43:23.680
+CHARLES LEISERSON: You have to
+invalidate on the other ones,
+
+00:43:23.680 --> 00:43:26.190
+and you have to hold
+it in what state?
+
+00:43:26.190 --> 00:43:27.890
+Remember, the cache lines have--
+
+00:43:27.890 --> 00:43:32.610
+if we take a look at just a
+simplified protocol where--
+
+00:43:32.610 --> 00:43:35.138
+the MSI's protocol.
+
+00:43:35.138 --> 00:43:36.590
+AUDIENCE: [INAUDIBLE].
+
+00:43:40.702 --> 00:43:41.660
+CHARLES LEISERSON: Yes.
+
+00:43:41.660 --> 00:43:43.250
+You have to have it--
+
+00:43:43.250 --> 00:43:48.530
+in MSI or MESI, you have
+to bring it in in modified
+
+00:43:48.530 --> 00:43:51.500
+or at least exclusive state.
+
+00:43:51.500 --> 00:43:53.960
+So exclusive is for
+the MESI protocol.
+
+00:43:53.960 --> 00:43:55.880
+We mentioned that but
+we didn't really do it.
+
+00:43:55.880 --> 00:43:57.020
+Mostly we just went--
+
+00:43:57.020 --> 00:43:59.120
+but I have to bring
+it in and modify it,
+
+00:43:59.120 --> 00:44:01.020
+where I guarantee there
+are no other copies.
+
+00:44:01.020 --> 00:44:05.270
+So if I've got two guys that
+are polling on this location,
+
+00:44:05.270 --> 00:44:07.700
+they're both continually
+invalidating each other,
+
+00:44:07.700 --> 00:44:12.300
+and you create a whole bunch of
+traffic on the memory network.
+
+00:44:12.300 --> 00:44:15.140
+That's going to slow
+everything down.
+
+00:44:15.140 --> 00:44:18.230
+Whereas if I do the first one,
+what state do I get it in?
+
+00:44:18.230 --> 00:44:19.400
+AUDIENCE: [INAUDIBLE].
+
+00:44:19.400 --> 00:44:20.750
+CHARLES LEISERSON: Then
+you get it in shared state.
+
+00:44:20.750 --> 00:44:22.262
+What does the other
+guy get it in?
+
+00:44:22.262 --> 00:44:22.970
+AUDIENCE: Shared.
+
+00:44:22.970 --> 00:44:24.303
+CHARLES LEISERSON: Shared state.
+
+00:44:24.303 --> 00:44:25.820
+And now I keep
+going, just having
+
+00:44:25.820 --> 00:44:28.220
+it spinning in my
+own local cache,
+
+00:44:28.220 --> 00:44:34.220
+not generating any local
+traffic until the--
+
+00:44:34.220 --> 00:44:38.630
+until somebody releases
+the lock, in which case
+
+00:44:38.630 --> 00:44:39.860
+it invalidates all those.
+
+00:44:39.860 --> 00:44:42.620
+And now you can actually
+get a little bit of a storm
+
+00:44:42.620 --> 00:44:43.500
+after the fact.
+
+00:44:43.500 --> 00:44:45.333
+There are in fact locks
+where you don't even
+
+00:44:45.333 --> 00:44:50.210
+get a storm after the
+fact called MCS locks.
+
+00:44:50.210 --> 00:44:53.420
+But this kind of lock is,
+for most practical purposes,
+
+00:44:53.420 --> 00:44:54.030
+just fine.
+
+00:44:58.030 --> 00:45:00.398
+So everybody follow
+that description
+
+00:45:00.398 --> 00:45:01.440
+of what's going on there?
+
+00:45:01.440 --> 00:45:03.880
+So that first code, for
+correctness purpose,
+
+00:45:03.880 --> 00:45:04.770
+is not important.
+
+00:45:04.770 --> 00:45:06.780
+For performance,
+it is important.
+
+00:45:09.300 --> 00:45:11.880
+Isn't it great that you guys
+can read assembly language?
+
+00:45:20.490 --> 00:45:22.820
+Now suppose that-- this
+is a spinning mutex.
+
+00:45:22.820 --> 00:45:26.538
+Suppose that I want to
+do a yielding mutex.
+
+00:45:26.538 --> 00:45:27.955
+How does this code
+have to change?
+
+00:45:33.947 --> 00:45:35.030
+So this is a spinning one.
+
+00:45:35.030 --> 00:45:36.170
+It just keeps checking.
+
+00:45:36.170 --> 00:45:37.555
+Instead, I want
+to return control
+
+00:45:37.555 --> 00:45:38.555
+to the operating system.
+
+00:45:41.210 --> 00:45:43.580
+So how does this code
+change if I do that?
+
+00:45:43.580 --> 00:45:44.742
+Yes.
+
+00:45:44.742 --> 00:45:47.122
+AUDIENCE: Instead of
+the pause, [INAUDIBLE]..
+
+00:45:50.940 --> 00:45:53.730
+CHARLES LEISERSON: Like that.
+
+00:45:53.730 --> 00:45:55.710
+Yes, exactly.
+
+00:45:55.710 --> 00:46:02.090
+So instead of doing that
+pause instruction, which--
+
+00:46:02.090 --> 00:46:05.280
+the documentation on
+this is not very clear.
+
+00:46:05.280 --> 00:46:08.850
+I'd love to have the inside
+scoop on why they really
+
+00:46:08.850 --> 00:46:11.070
+had to do the pause there.
+
+00:46:11.070 --> 00:46:14.040
+But in any case,
+you take that no op
+
+00:46:14.040 --> 00:46:16.740
+that they want to have in
+there and you replace it
+
+00:46:16.740 --> 00:46:21.780
+with just a call to the yield,
+which allows the operating
+
+00:46:21.780 --> 00:46:23.700
+system to schedule
+something else.
+
+00:46:23.700 --> 00:46:25.830
+And then when it's
+your turn again,
+
+00:46:25.830 --> 00:46:28.320
+it resumes from that point.
+
+00:46:28.320 --> 00:46:29.760
+So that's the yield.
+
+00:46:32.850 --> 00:46:34.950
+So that's the difference
+in implementation,
+
+00:46:34.950 --> 00:46:38.210
+essentially, between a spinning
+mutex and a yielding mutex.
+
+00:46:41.870 --> 00:46:43.520
+Now, there's another
+kind of mutex
+
+00:46:43.520 --> 00:46:48.710
+that is kind of cool which is
+called a competitive mutex.
+
+00:46:48.710 --> 00:46:51.070
+So think about it this way.
+
+00:46:51.070 --> 00:46:53.310
+I have competing goals.
+
+00:46:53.310 --> 00:46:58.820
+One is I want to get the
+mutex as quickly as possible
+
+00:46:58.820 --> 00:47:00.980
+after it's released.
+
+00:47:00.980 --> 00:47:03.680
+I don't want-- if
+it's unlocked, I
+
+00:47:03.680 --> 00:47:07.970
+don't want to sit there
+for a really long time
+
+00:47:07.970 --> 00:47:10.230
+before I actually acquire it.
+
+00:47:10.230 --> 00:47:15.020
+And, two, yes, but I don't
+want to sit there spinning
+
+00:47:15.020 --> 00:47:17.330
+for a really long time.
+
+00:47:17.330 --> 00:47:21.760
+And then-- because as
+long as I'm doing that,
+
+00:47:21.760 --> 00:47:24.100
+I'm taking up cycles and
+not accomplishing anything.
+
+00:47:24.100 --> 00:47:27.670
+Let me turn it over to some
+other thread that can use
+
+00:47:27.670 --> 00:47:31.370
+the cycles more effectively.
+
+00:47:31.370 --> 00:47:33.890
+So there are those two goals.
+
+00:47:33.890 --> 00:47:36.340
+How can I get the best
+of both worlds here?
+
+00:47:39.967 --> 00:47:42.050
+Something that's close to
+the best of both worlds.
+
+00:47:42.050 --> 00:47:44.300
+It's not absolutely the
+best of both worlds,
+
+00:47:44.300 --> 00:47:46.140
+but it's close to the
+best of both worlds.
+
+00:47:49.650 --> 00:47:51.800
+What strategy could I do?
+
+00:47:51.800 --> 00:47:53.720
+So I want to claim it very soon.
+
+00:47:53.720 --> 00:47:56.940
+So the point is that
+the spinning mutex
+
+00:47:56.940 --> 00:48:04.890
+achieves goal 1, and the
+yielding mutex achieved goal 2.
+
+00:48:04.890 --> 00:48:08.040
+So how can I-- what can
+I do to get both goals?
+
+00:48:08.040 --> 00:48:08.540
+Yes.
+
+00:48:08.540 --> 00:48:10.873
+AUDIENCE: [INAUDIBLE] you
+could use some sort of message
+
+00:48:10.873 --> 00:48:12.425
+passing to [INAUDIBLE].
+
+00:48:23.542 --> 00:48:25.000
+CHARLES LEISERSON:
+So you're saying
+
+00:48:25.000 --> 00:48:29.106
+use message passing to inform--
+
+00:48:29.106 --> 00:48:30.542
+AUDIENCE: The waiting threads.
+
+00:48:30.542 --> 00:48:32.250
+CHARLES LEISERSON:
+--the waiting threads.
+
+00:48:32.250 --> 00:48:37.812
+I'm think of something a
+lot simpler in this context.
+
+00:48:37.812 --> 00:48:39.270
+Because the message
+passing, you're
+
+00:48:39.270 --> 00:48:40.500
+going to have to go through--
+
+00:48:40.500 --> 00:48:42.810
+to do message passing
+properly, you actually
+
+00:48:42.810 --> 00:48:46.320
+need to use mutexes that
+are to implement it.
+
+00:48:46.320 --> 00:48:51.930
+So you want to be a little
+bit careful about that.
+
+00:48:51.930 --> 00:48:54.560
+But interesting idea.
+
+00:48:54.560 --> 00:48:55.330
+Yes.
+
+00:48:55.330 --> 00:48:58.150
+AUDIENCE: Could you
+try using an interrupt?
+
+00:48:58.150 --> 00:49:00.323
+CHARLES LEISERSON:
+Using an interrupt.
+
+00:49:00.323 --> 00:49:01.240
+How would you do that?
+
+00:49:01.240 --> 00:49:06.531
+AUDIENCE: Like once
+the [INAUDIBLE]..
+
+00:49:08.922 --> 00:49:09.880
+CHARLES LEISERSON: Yes.
+
+00:49:09.880 --> 00:49:11.588
+So, typically, if you
+implement interrupt
+
+00:49:11.588 --> 00:49:14.680
+you also need to have some
+mutual exclusions to do it
+
+00:49:14.680 --> 00:49:16.450
+properly, but--
+
+00:49:16.450 --> 00:49:18.580
+I mean, hardware
+will support that.
+
+00:49:18.580 --> 00:49:20.560
+That's pretty
+heavy-handed as well.
+
+00:49:20.560 --> 00:49:23.200
+There's actually a
+very simple solution.
+
+00:49:29.920 --> 00:49:31.300
+I'm seeing familiar hands.
+
+00:49:31.300 --> 00:49:33.310
+I want to see some
+unfamiliar hands.
+
+00:49:33.310 --> 00:49:34.570
+Who's got an unfamiliar hand?
+
+00:49:37.390 --> 00:49:37.942
+I see.
+
+00:49:37.942 --> 00:49:39.400
+You raised your
+left hand that time
+
+00:49:39.400 --> 00:49:41.320
+instead of your right hand.
+
+00:49:41.320 --> 00:49:43.075
+Yes.
+
+00:49:43.075 --> 00:49:44.560
+AUDIENCE: You try
+to have whichever
+
+00:49:44.560 --> 00:49:48.597
+one is closest to being back
+to the beginning of the cycle
+
+00:49:48.597 --> 00:49:49.180
+take the lock.
+
+00:49:49.180 --> 00:49:51.138
+CHARLES LEISERSON: Hard
+to measure that, right?
+
+00:49:51.138 --> 00:49:54.250
+How would you write
+code to measure that?
+
+00:49:54.250 --> 00:49:55.070
+Yes.
+
+00:49:55.070 --> 00:49:56.410
+Hmm.
+
+00:49:56.410 --> 00:49:56.920
+Hmm.
+
+00:49:56.920 --> 00:49:59.640
+Yes.
+
+00:49:59.640 --> 00:50:00.557
+Go ahead.
+
+00:50:00.557 --> 00:50:02.140
+AUDIENCE: I have a
+question, actually.
+
+00:50:02.140 --> 00:50:03.307
+CHARLES LEISERSON: OK, good.
+
+00:50:03.307 --> 00:50:06.200
+AUDIENCE: Why does
+it [INAUDIBLE]??
+
+00:50:10.800 --> 00:50:12.530
+CHARLES LEISERSON:
+Why doesn't it have a?
+
+00:50:12.530 --> 00:50:13.447
+AUDIENCE: [INAUDIBLE].
+
+00:50:13.447 --> 00:50:16.380
+Why does yielding
+mutex [INAUDIBLE]??
+
+00:50:19.380 --> 00:50:21.710
+CHARLES LEISERSON:
+Because if I yield--
+
+00:50:21.710 --> 00:50:24.660
+so what's the-- how often does--
+
+00:50:24.660 --> 00:50:28.710
+if I context switch, how often
+is it going to be that I--
+
+00:50:28.710 --> 00:50:31.650
+how long am I going to
+have to wait, typically,
+
+00:50:31.650 --> 00:50:33.930
+before I am scheduled again?
+
+00:50:36.456 --> 00:50:38.790
+When a code yields to
+the operating system,
+
+00:50:38.790 --> 00:50:41.100
+how often does the
+operating system normally
+
+00:50:41.100 --> 00:50:44.070
+do context switching?
+
+00:50:44.070 --> 00:50:46.320
+What's the rate at which
+it context switches
+
+00:50:46.320 --> 00:50:48.930
+for the different
+multiplexing of threads
+
+00:50:48.930 --> 00:50:53.760
+that it does onto the
+available processors?
+
+00:50:53.760 --> 00:50:57.120
+What's the rate at
+which it shifts?
+
+00:50:57.120 --> 00:50:58.040
+Oh, this is--
+
+00:50:58.040 --> 00:51:02.230
+OK, that's going
+to be on the quiz.
+
+00:51:02.230 --> 00:51:03.990
+This is a numeracy thing.
+
+00:51:03.990 --> 00:51:04.490
+Yes.
+
+00:51:04.490 --> 00:51:06.765
+Do you know how frequently?
+
+00:51:06.765 --> 00:51:10.490
+AUDIENCE: [INAUDIBLE]
+sub-millisecond [INAUDIBLE]..
+
+00:51:10.490 --> 00:51:14.930
+CHARLES LEISERSON:
+Not quite, but you're
+
+00:51:14.930 --> 00:51:17.393
+not off by more than
+an order of magnitude.
+
+00:51:20.420 --> 00:51:23.450
+So what are the typical
+rates that the system
+
+00:51:23.450 --> 00:51:26.900
+does context switching?
+
+00:51:26.900 --> 00:51:31.083
+So in human time, it's
+the blink of an eye.
+
+00:51:31.083 --> 00:51:32.750
+So it's actually
+around 10 milliseconds.
+
+00:51:32.750 --> 00:51:34.710
+So it does a hundred
+times a second.
+
+00:51:34.710 --> 00:51:35.450
+Some of them do.
+
+00:51:35.450 --> 00:51:38.330
+Some do 60 times a second.
+
+00:51:38.330 --> 00:51:40.800
+That's how often it switches.
+
+00:51:40.800 --> 00:51:44.600
+Now, let's say it's a
+hundred times a second, 10
+
+00:51:44.600 --> 00:51:45.200
+milliseconds.
+
+00:51:45.200 --> 00:51:47.100
+So you're pretty close.
+
+00:51:47.100 --> 00:51:48.620
+10 milliseconds.
+
+00:51:48.620 --> 00:51:53.510
+How many orders of magnitude
+is that from the execution
+
+00:51:53.510 --> 00:51:57.050
+of a simple instruction?
+
+00:51:57.050 --> 00:51:58.960
+So we're going at
+more than a gigahertz.
+
+00:52:02.020 --> 00:52:05.200
+And so a gigahertz
+is 10 to the ninth,
+
+00:52:05.200 --> 00:52:07.150
+and we're talking
+10 to the minus 9,
+
+00:52:07.150 --> 00:52:10.360
+and we're talking
+10 to the minus 2.
+
+00:52:10.360 --> 00:52:17.110
+So that's 10 million
+instruction opportunities
+
+00:52:17.110 --> 00:52:19.480
+that we miss if we switch out.
+
+00:52:19.480 --> 00:52:22.210
+And, of course, we'd probably
+only switch out for half our--
+
+00:52:22.210 --> 00:52:23.917
+where are you along the thing.
+
+00:52:23.917 --> 00:52:25.750
+So you're only switching
+out maybe for half,
+
+00:52:25.750 --> 00:52:27.760
+assuming nothing else
+is going on there.
+
+00:52:27.760 --> 00:52:31.420
+But that means you're not
+grabbing the lock quickly
+
+00:52:31.420 --> 00:52:33.430
+after it's released,
+because you've
+
+00:52:33.430 --> 00:52:36.430
+got 10 million instructions
+that are going to execute
+
+00:52:36.430 --> 00:52:40.480
+before you're going to have a
+chance to come back in and grab
+
+00:52:40.480 --> 00:52:41.500
+it.
+
+00:52:41.500 --> 00:52:48.760
+So that's why a yielding one
+does not grab it quickly.
+
+00:52:48.760 --> 00:52:51.160
+Whereas spinning is like
+we're executing this stuff
+
+00:52:51.160 --> 00:52:53.980
+at the rate of gigahertz,
+checking again, checking again,
+
+00:52:53.980 --> 00:52:56.410
+checking again.
+
+00:52:56.410 --> 00:53:00.110
+So why-- so what's
+the strategy here?
+
+00:53:00.110 --> 00:53:00.820
+What can I do?
+
+00:53:00.820 --> 00:53:02.024
+Yes.
+
+00:53:02.024 --> 00:53:04.826
+AUDIENCE: Maybe we could
+spin for a little bit
+
+00:53:04.826 --> 00:53:06.052
+and then yield.
+
+00:53:06.052 --> 00:53:07.760
+CHARLES LEISERSON:
+Hey, what a good idea.
+
+00:53:11.140 --> 00:53:14.590
+Spin for a while and then yield.
+
+00:53:14.590 --> 00:53:22.780
+So the idea being, hey, if
+the lock is released soon,
+
+00:53:22.780 --> 00:53:26.470
+then I will be able
+to grab it immediately
+
+00:53:26.470 --> 00:53:28.220
+because I'm spinning.
+
+00:53:28.220 --> 00:53:31.830
+If it takes a long time
+for the lock to yield,
+
+00:53:31.830 --> 00:53:33.330
+well, I will yield eventually.
+
+00:53:33.330 --> 00:53:36.090
+So yes, but how long to spin?
+
+00:53:42.510 --> 00:53:46.140
+How long shall I spin?
+
+00:53:46.140 --> 00:53:46.980
+Sure.
+
+00:53:46.980 --> 00:53:48.938
+AUDIENCE: Somewhere close
+to the amount of time
+
+00:53:48.938 --> 00:53:51.282
+it takes to yield and come back.
+
+00:53:51.282 --> 00:53:52.240
+CHARLES LEISERSON: Yes.
+
+00:53:52.240 --> 00:53:55.570
+Basically as long as a
+context switch takes, as long
+
+00:53:55.570 --> 00:53:59.350
+as it takes to go
+out and come back.
+
+00:53:59.350 --> 00:54:03.520
+And if you do that,
+then you never
+
+00:54:03.520 --> 00:54:07.800
+wait more than twice
+the optimal time.
+
+00:54:07.800 --> 00:54:11.580
+This is competitive analysis,
+which the theoreticians have
+
+00:54:11.580 --> 00:54:15.730
+gone off-- there's brilliant
+work in competitive analysis.
+
+00:54:15.730 --> 00:54:18.090
+So the idea here is
+that if the mutex is
+
+00:54:18.090 --> 00:54:22.110
+released while you're spinning,
+then this strategy is optimal.
+
+00:54:24.740 --> 00:54:27.410
+Because you just
+sat there spinning,
+
+00:54:27.410 --> 00:54:31.100
+and as soon as it was there
+you got it on the next cycle.
+
+00:54:31.100 --> 00:54:34.190
+If the mutex is released
+after the yield,
+
+00:54:34.190 --> 00:54:37.620
+you've already spun
+for the equal to that.
+
+00:54:37.620 --> 00:54:43.790
+So you'll come back and get it
+within at most a factor of 2.
+
+00:54:43.790 --> 00:54:45.402
+This is-- by the
+way, this shows up
+
+00:54:45.402 --> 00:54:47.360
+in the theory literature,
+if you're interested,
+
+00:54:47.360 --> 00:54:50.930
+is it's called the
+ski rental problem.
+
+00:54:50.930 --> 00:54:52.160
+And here's the idea.
+
+00:54:52.160 --> 00:54:53.840
+You're going to go--
+
+00:54:53.840 --> 00:54:57.290
+your friends have persuaded
+you to go try skiing.
+
+00:54:57.290 --> 00:54:58.628
+Snow skiing, right?
+
+00:54:58.628 --> 00:55:00.260
+Pu-chu, pu-chu, pu-chu.
+
+00:55:00.260 --> 00:55:01.520
+Right?
+
+00:55:01.520 --> 00:55:05.360
+And so you say, gee,
+should I buy the equipment
+
+00:55:05.360 --> 00:55:08.330
+or should I rent?
+
+00:55:08.330 --> 00:55:11.870
+After all, you may discover
+that you rent and then--
+
+00:55:11.870 --> 00:55:14.150
+you buy it, and then
+you break your leg
+
+00:55:14.150 --> 00:55:16.540
+and never want to go back.
+
+00:55:16.540 --> 00:55:18.900
+Well, then, if you've bought
+it's been very expensive.
+
+00:55:18.900 --> 00:55:22.500
+And if you've rented, well,
+then you're probably better off.
+
+00:55:22.500 --> 00:55:24.500
+On the other hand, if it
+turns out you like it,
+
+00:55:24.500 --> 00:55:28.790
+you're now accumulating
+the costs going forward.
+
+00:55:28.790 --> 00:55:32.030
+And so the question is,
+well, what's your strategy?
+
+00:55:32.030 --> 00:55:35.630
+And the idea is, well, let's
+look at what renting costs
+
+00:55:35.630 --> 00:55:36.900
+and what buying costs.
+
+00:55:36.900 --> 00:55:42.890
+Let me rent until it's
+equal to the cost of buying
+
+00:55:42.890 --> 00:55:44.130
+and then buy.
+
+00:55:44.130 --> 00:55:45.860
+And then I'm within
+a factor of 2
+
+00:55:45.860 --> 00:55:49.700
+of having spent the optimal
+amount of money for--
+
+00:55:49.700 --> 00:55:53.430
+because then if I break my leg
+after that, well, at least I--
+
+00:55:56.060 --> 00:56:00.770
+I got-- I didn't spend
+more than a factor of 2.
+
+00:56:00.770 --> 00:56:04.460
+And if I get it before,
+then I've spent optimally.
+
+00:56:04.460 --> 00:56:06.060
+Yes.
+
+00:56:06.060 --> 00:56:09.790
+AUDIENCE: So when you say how
+long a context switch takes,
+
+00:56:09.790 --> 00:56:11.522
+is that in milliseconds or--
+
+00:56:11.522 --> 00:56:12.480
+CHARLES LEISERSON: Yes.
+
+00:56:12.480 --> 00:56:14.100
+10 milliseconds.
+
+00:56:14.100 --> 00:56:15.060
+Yes.
+
+00:56:15.060 --> 00:56:19.080
+So spin for 10 milliseconds,
+and then switch.
+
+00:56:19.080 --> 00:56:24.270
+So now the point is that
+when you come back in,
+
+00:56:24.270 --> 00:56:27.095
+the other job's going to run
+for 10 milliseconds or whatever.
+
+00:56:30.360 --> 00:56:34.500
+So if you get switched out,
+then if the lock is released,
+
+00:56:34.500 --> 00:56:39.690
+you're going to be done
+in 20 milliseconds.
+
+00:56:39.690 --> 00:56:41.400
+And so you'll be
+within a factor of 2.
+
+00:56:41.400 --> 00:56:44.550
+And if it happened if the
+lockout released before then,
+
+00:56:44.550 --> 00:56:47.580
+you're right there to grab it.
+
+00:56:47.580 --> 00:56:49.890
+Now, it turns out that
+there's a really clever
+
+00:56:49.890 --> 00:56:51.060
+randomized algorithm--
+
+00:56:51.060 --> 00:56:53.520
+I love this algorithm--
+
+00:56:53.520 --> 00:56:58.440
+from 1994 that achieves
+a competitive ratio
+
+00:56:58.440 --> 00:57:02.610
+of e over e minus 1 using
+a randomized strategy.
+
+00:57:02.610 --> 00:57:05.050
+And I'll encourage
+you, those of you
+
+00:57:05.050 --> 00:57:09.120
+have a theoretical bent,
+to go take a look at that.
+
+00:57:09.120 --> 00:57:11.730
+It's very clever.
+
+00:57:11.730 --> 00:57:14.370
+So, basically, you have
+some probability of,
+
+00:57:14.370 --> 00:57:17.040
+at every step, of whether
+you, at that point,
+
+00:57:17.040 --> 00:57:24.360
+decide to yield or
+continue spinning.
+
+00:57:24.360 --> 00:57:26.160
+And by using a
+randomized strategy,
+
+00:57:26.160 --> 00:57:32.580
+you can actually get
+this to e over e minus 1.
+
+00:57:32.580 --> 00:57:33.960
+Questions about this?
+
+00:57:33.960 --> 00:57:35.652
+So this is sort of
+some of the basics.
+
+00:57:35.652 --> 00:57:37.110
+I'm glad we went
+over some of that,
+
+00:57:37.110 --> 00:57:40.440
+because everybody should know
+these basic numbers about what
+
+00:57:40.440 --> 00:57:41.220
+things cost.
+
+00:57:41.220 --> 00:57:43.428
+Because, otherwise, you
+don't know where to spend it.
+
+00:57:43.428 --> 00:57:46.170
+So context switching time is on
+the order of 10 milliseconds.
+
+00:57:46.170 --> 00:57:53.410
+How long is a disk
+access compared to--
+
+00:57:53.410 --> 00:57:53.910
+yes.
+
+00:57:53.910 --> 00:57:55.572
+What's a disk access?
+
+00:57:55.572 --> 00:57:58.250
+AUDIENCE: 150 cycles?
+
+00:57:58.250 --> 00:58:01.518
+CHARLES LEISERSON: 150 cycles?
+
+00:58:01.518 --> 00:58:03.497
+Hmm, that's a--
+
+00:58:03.497 --> 00:58:05.270
+AUDIENCE: Or is that the cache?
+
+00:58:05.270 --> 00:58:07.270
+CHARLES LEISERSON: That
+would be accessing DRAM.
+
+00:58:09.820 --> 00:58:15.070
+Accessing DRAM, if it wasn't
+in cache, might be 150 cycles.
+
+00:58:15.070 --> 00:58:18.010
+So two orders of
+magnitude or so.
+
+00:58:18.010 --> 00:58:19.720
+So what about a disk access?
+
+00:58:19.720 --> 00:58:21.450
+How long does that take?
+
+00:58:21.450 --> 00:58:21.950
+Yes.
+
+00:58:21.950 --> 00:58:22.908
+AUDIENCE: Milliseconds?
+
+00:58:22.908 --> 00:58:23.867
+CHARLES LEISERSON: Yes.
+
+00:58:23.867 --> 00:58:24.850
+Several milliseconds.
+
+00:58:24.850 --> 00:58:27.160
+So 10 milliseconds or 5
+milliseconds depending
+
+00:58:27.160 --> 00:58:28.720
+upon how fast your disk is.
+
+00:58:28.720 --> 00:58:31.363
+But, once again, it's on
+the order of milliseconds.
+
+00:58:31.363 --> 00:58:33.280
+So it's helpful to know
+some of these numbers,
+
+00:58:33.280 --> 00:58:36.680
+because, otherwise, where
+are you spending your time?
+
+00:58:36.680 --> 00:58:41.110
+Especially, we're sort of
+doing performance engineering
+
+00:58:41.110 --> 00:58:44.020
+in the small, basically
+looking within the pro--
+
+00:58:44.020 --> 00:58:46.120
+within a multicore processor.
+
+00:58:46.120 --> 00:58:48.640
+Most performance engineering
+is on all the stuff
+
+00:58:48.640 --> 00:58:51.910
+on the outside, dealing with
+networking, and file systems,
+
+00:58:51.910 --> 00:58:54.673
+and stuff where things
+are really costly,
+
+00:58:54.673 --> 00:58:56.590
+and where, if you actually
+have a lot of time,
+
+00:58:56.590 --> 00:58:59.650
+you can write a fast piece
+of code that can figure out
+
+00:58:59.650 --> 00:59:02.560
+how you should best deal
+with these slow parts
+
+00:59:02.560 --> 00:59:05.050
+of your system.
+
+00:59:05.050 --> 00:59:07.450
+So those are all sort
+of good numbers to know.
+
+00:59:07.450 --> 00:59:09.790
+You'll probably see
+some of them on quiz 2.
+
+00:59:16.680 --> 00:59:17.470
+Deadlock.
+
+00:59:17.470 --> 00:59:19.020
+I mentioned deadlock earlier.
+
+00:59:19.020 --> 00:59:25.170
+Let's talk about what deadlock
+is and understand this.
+
+00:59:25.170 --> 00:59:28.203
+Once again, I expect some
+of you have seen this,
+
+00:59:28.203 --> 00:59:30.120
+but I still want to go
+through it because it's
+
+00:59:30.120 --> 00:59:33.120
+hugely important material.
+
+00:59:33.120 --> 00:59:35.790
+And this is the issue, that
+holding more than one lock
+
+00:59:35.790 --> 00:59:38.550
+at a time can be dangerous.
+
+00:59:38.550 --> 00:59:43.800
+So imagine that thread 1 says,
+I'm going to lock A, lock B,
+
+00:59:43.800 --> 00:59:46.945
+execute the critical section,
+unlock B, unlock A, were A
+
+00:59:46.945 --> 00:59:48.780
+and B are mutexes.
+
+00:59:48.780 --> 00:59:51.450
+And thread 2 does
+something very similar.
+
+00:59:51.450 --> 00:59:55.110
+It locks B and locks A. Then
+it does the critical section,
+
+00:59:55.110 --> 00:59:56.970
+then it unlocks A
+and then unlocks
+
+00:59:56.970 --> 01:00:00.360
+B. So what can happen here?
+
+01:00:00.360 --> 01:00:04.260
+So thread 1 locks
+A, thread 2 locks
+
+01:00:04.260 --> 01:00:13.190
+B. Thread 1 can't go and lock
+B because thread 2 has it.
+
+01:00:13.190 --> 01:00:17.000
+Thread 2 can't go and lock
+A because thread 1 has it.
+
+01:00:17.000 --> 01:00:19.100
+So they sit there, blocked.
+
+01:00:19.100 --> 01:00:21.650
+I don't care if they're
+spinning or yielding.
+
+01:00:21.650 --> 01:00:24.320
+They're not going anywhere.
+
+01:00:24.320 --> 01:00:27.000
+So this is the ultimate
+loss of performance.
+
+01:00:27.000 --> 01:00:30.440
+It's like-- it's incorrect.
+
+01:00:30.440 --> 01:00:34.310
+It's like you're stuck,
+you've deadlocked.
+
+01:00:34.310 --> 01:00:38.540
+Now, there's three basic
+conditions for deadlock.
+
+01:00:38.540 --> 01:00:40.120
+Everybody understands
+this, right?
+
+01:00:40.120 --> 01:00:44.980
+Is there anybody who has
+a question, because just--
+
+01:00:44.980 --> 01:00:46.752
+OK.
+
+01:00:46.752 --> 01:00:48.710
+There's three conditions
+you need for deadlock.
+
+01:00:48.710 --> 01:00:51.060
+The first one is
+mutual exclusion,
+
+01:00:51.060 --> 01:00:53.000
+that you're going to
+have exclusive control
+
+01:00:53.000 --> 01:00:54.270
+over the resources.
+
+01:00:54.270 --> 01:00:56.630
+The second is nonpreemption.
+
+01:00:56.630 --> 01:00:58.850
+You don't release
+your resources.
+
+01:00:58.850 --> 01:01:02.990
+You hold until you
+finish using them.
+
+01:01:02.990 --> 01:01:05.390
+And three is circular waiting.
+
+01:01:05.390 --> 01:01:07.790
+You have a cycle of threads,
+in which each thread is
+
+01:01:07.790 --> 01:01:10.580
+blocked waiting for resources
+held by the next one.
+
+01:01:10.580 --> 01:01:13.640
+In this case, the
+resource is the lock.
+
+01:01:13.640 --> 01:01:18.710
+And so if you remove any
+one of these constraints,
+
+01:01:18.710 --> 01:01:21.507
+you can come up with
+solutions that won't deadlock.
+
+01:01:21.507 --> 01:01:23.090
+So, for example, it
+could be that when
+
+01:01:23.090 --> 01:01:27.260
+I try to acquire a lock,
+if somebody else has them,
+
+01:01:27.260 --> 01:01:28.220
+I take it away.
+
+01:01:31.310 --> 01:01:32.420
+That could be one thing.
+
+01:01:32.420 --> 01:01:34.850
+Now, they may get into other
+issues, which is like, well,
+
+01:01:34.850 --> 01:01:39.500
+but what if he's actually
+doing real work or whatever?
+
+01:01:39.500 --> 01:01:41.420
+So all of these
+things have things.
+
+01:01:41.420 --> 01:01:46.460
+Or I don't insist that it be
+mutual exclusion, except that's
+
+01:01:46.460 --> 01:01:49.830
+the kind of problem that
+we're trying to solve.
+
+01:01:49.830 --> 01:01:51.950
+So these are generally
+the three things
+
+01:01:51.950 --> 01:01:58.820
+that are necessary in order
+to have a deadlock situation.
+
+01:01:58.820 --> 01:02:01.130
+Now, in any discussion
+of deadlock,
+
+01:02:01.130 --> 01:02:04.070
+you have to talk about
+dining philosophers.
+
+01:02:04.070 --> 01:02:06.710
+When I was an undergraduate--
+
+01:02:06.710 --> 01:02:14.540
+and I graduated in 1975 from
+Yale, a humanities school--
+
+01:02:18.140 --> 01:02:20.720
+I was taught the
+dining philosophers,
+
+01:02:20.720 --> 01:02:23.360
+because, after all,
+philosophy is what
+
+01:02:23.360 --> 01:02:26.177
+you find at humanities schools.
+
+01:02:26.177 --> 01:02:28.010
+I mean, we have a
+philosophy department too.
+
+01:02:28.010 --> 01:02:28.850
+Don't get me wrong.
+
+01:02:28.850 --> 01:02:31.820
+But at Yale the
+humanities is huge.
+
+01:02:31.820 --> 01:02:34.580
+And so philosophy,
+I guess they thought
+
+01:02:34.580 --> 01:02:36.800
+this would appeal to
+the people who were not
+
+01:02:36.800 --> 01:02:38.570
+real techies in the background.
+
+01:02:38.570 --> 01:02:39.900
+I sort of like--
+
+01:02:39.900 --> 01:02:44.810
+I was a techie in the midst of
+all these non-technical people.
+
+01:02:44.810 --> 01:02:47.990
+Dining philosophers
+is a story of deadlock
+
+01:02:47.990 --> 01:02:53.990
+told by Tony Hoare based
+on an examination question
+
+01:02:53.990 --> 01:02:56.660
+by Edsger Dijkstra.
+
+01:02:56.660 --> 01:02:58.370
+And it's been embellished
+over the years
+
+01:02:58.370 --> 01:03:01.550
+by many, many, many retellers.
+
+01:03:01.550 --> 01:03:04.070
+And I like the Chinese
+version of this.
+
+01:03:04.070 --> 01:03:06.950
+There's versions where they
+use forks, but I'm going to--
+
+01:03:06.950 --> 01:03:08.740
+this is going to
+be-- they're dining--
+
+01:03:08.740 --> 01:03:13.130
+I'm going to say that they are
+eating noodles with chopsticks.
+
+01:03:13.130 --> 01:03:16.520
+And there are n philosophers
+seated around the table,
+
+01:03:16.520 --> 01:03:21.320
+and between every plate of
+noodles there's a chopstick.
+
+01:03:21.320 --> 01:03:24.800
+And so in order
+to eat the noodles
+
+01:03:24.800 --> 01:03:31.190
+they need two chopsticks, which
+to me sounds very natural.
+
+01:03:31.190 --> 01:03:35.720
+And so here's the code
+for philosopher i.
+
+01:03:35.720 --> 01:03:40.760
+So he's a philosopher, so he
+starts by thinking for a while.
+
+01:03:40.760 --> 01:03:46.010
+And then he gets hungry,
+he or she gets hungry.
+
+01:03:46.010 --> 01:03:53.680
+So the philosopher grabs
+the chopstick on the right--
+
+01:03:53.680 --> 01:03:55.960
+on the left, sorry.
+
+01:03:55.960 --> 01:04:03.340
+And then he grabs the one on
+the right, which is i plus 1.
+
+01:04:03.340 --> 01:04:07.450
+But he has to do that mod n,
+because if it's the last one,
+
+01:04:07.450 --> 01:04:09.880
+you've got to go around
+and grab the first one.
+
+01:04:09.880 --> 01:04:13.450
+Then eats, and then it
+unlocks the two chopsticks.
+
+01:04:13.450 --> 01:04:17.650
+And now they can be used by
+the other dining philosophers
+
+01:04:17.650 --> 01:04:25.350
+because they don't think much
+about sanitation and so forth.
+
+01:04:25.350 --> 01:04:27.300
+Because they're too
+busy thinking, right?
+
+01:04:29.840 --> 01:04:30.760
+But what happens?
+
+01:04:30.760 --> 01:04:33.050
+What's wrong with this solution?
+
+01:04:33.050 --> 01:04:33.610
+What happens?
+
+01:04:33.610 --> 01:04:34.690
+What can happen for this?
+
+01:04:34.690 --> 01:04:35.590
+It's very simple.
+
+01:04:35.590 --> 01:04:36.730
+I need two chopsticks.
+
+01:04:36.730 --> 01:04:40.780
+I grab one, I grab
+the other, I eat.
+
+01:04:40.780 --> 01:04:42.010
+One day, what happens?
+
+01:04:45.496 --> 01:04:45.997
+Yes.
+
+01:04:45.997 --> 01:04:48.080
+AUDIENCE: Everyone grabs
+the chopstick to the left
+
+01:04:48.080 --> 01:04:49.450
+and they're all stuck
+with one chopstick.
+
+01:04:49.450 --> 01:04:50.408
+CHARLES LEISERSON: Yes.
+
+01:04:50.408 --> 01:04:53.890
+They grab one to the left,
+and now they go to the right.
+
+01:04:53.890 --> 01:04:57.670
+It's not there, and they starve.
+
+01:04:57.670 --> 01:04:59.500
+One day they grab
+all the things,
+
+01:04:59.500 --> 01:05:03.265
+so we have the starving
+philosophers problem.
+
+01:05:05.980 --> 01:05:10.523
+So motivated by this
+problem-- yes, question.
+
+01:05:10.523 --> 01:05:12.690
+AUDIENCE: Is there any way
+to temporarily unlock it?
+
+01:05:12.690 --> 01:05:14.940
+Like the philosopher could just
+hand the chopstick [INAUDIBLE]..
+
+01:05:14.940 --> 01:05:15.898
+CHARLES LEISERSON: Yes.
+
+01:05:15.898 --> 01:05:18.800
+So if you're willing to preempt,
+then that would be preemption.
+
+01:05:18.800 --> 01:05:21.100
+As I say, it's got to be
+nonpreemptive in order
+
+01:05:21.100 --> 01:05:22.570
+for deadlock to occur.
+
+01:05:22.570 --> 01:05:23.620
+In this case, yes.
+
+01:05:23.620 --> 01:05:25.690
+But you also have to
+worry in those cases.
+
+01:05:25.690 --> 01:05:27.790
+Could be, oh, well if
+I couldn't get both,
+
+01:05:27.790 --> 01:05:29.920
+let me put them both down.
+
+01:05:29.920 --> 01:05:34.900
+But then you can have a
+thing that's called livelock.
+
+01:05:34.900 --> 01:05:36.300
+So they all pick up their left.
+
+01:05:36.300 --> 01:05:38.610
+They see the right one's
+busy, so they put it down
+
+01:05:38.610 --> 01:05:39.950
+so somebody else can have it.
+
+01:05:39.950 --> 01:05:40.730
+They look around.
+
+01:05:40.730 --> 01:05:41.685
+Oh, OK.
+
+01:05:41.685 --> 01:05:43.540
+Let me pick up one.
+
+01:05:43.540 --> 01:05:44.190
+Oh, no.
+
+01:05:44.190 --> 01:05:46.110
+OK.
+
+01:05:46.110 --> 01:05:49.410
+And so they still starve even
+though they've done that.
+
+01:05:49.410 --> 01:05:53.100
+So in that kind of situation,
+you could put in a time delay.
+
+01:05:53.100 --> 01:05:56.070
+You could say-- let everybody
+pick a random number to have
+
+01:05:56.070 --> 01:05:59.580
+a randomized scheme
+so that we're not--
+
+01:05:59.580 --> 01:06:01.470
+so there are other
+solutions if you
+
+01:06:01.470 --> 01:06:04.110
+don't insist on nonpreemption.
+
+01:06:04.110 --> 01:06:06.540
+I'm going to give you one
+where we have nonpreemption
+
+01:06:06.540 --> 01:06:09.150
+but we still avoid
+deadlock, and it's
+
+01:06:09.150 --> 01:06:11.950
+to go for that cyclic problem.
+
+01:06:11.950 --> 01:06:14.140
+So here's the idea.
+
+01:06:14.140 --> 01:06:17.400
+Suppose that we can
+linearly order the mutexes.
+
+01:06:17.400 --> 01:06:19.890
+So I pick some order
+of the mutexes,
+
+01:06:19.890 --> 01:06:24.240
+so that whenever a thread
+holds a mutex L sub i
+
+01:06:24.240 --> 01:06:28.590
+and attempts to lock
+another mutex L sub j,
+
+01:06:28.590 --> 01:06:30.465
+we have that in
+this linear order--
+
+01:06:30.465 --> 01:06:34.363
+L sub i comes before L sub j.
+
+01:06:34.363 --> 01:06:35.655
+Then you can't have a deadlock.
+
+01:06:38.240 --> 01:06:40.750
+So in this case, for
+the dining philosophers,
+
+01:06:40.750 --> 01:06:49.360
+it would, for example, number
+the chopsticks from 1 to n,
+
+01:06:49.360 --> 01:06:50.950
+or 0 to n minus 1, whatever.
+
+01:06:50.950 --> 01:06:55.180
+And then grab the smaller one
+and then grab the larger one.
+
+01:06:55.180 --> 01:06:59.000
+And then it says then you
+would never have a deadlock.
+
+01:06:59.000 --> 01:07:00.160
+And so here's the proof.
+
+01:07:00.160 --> 01:07:03.490
+You know I like proofs.
+
+01:07:03.490 --> 01:07:04.880
+Proofs are really important.
+
+01:07:04.880 --> 01:07:08.440
+So I'm going to show you that
+if you do that, you couldn't
+
+01:07:08.440 --> 01:07:09.500
+have a cycle of waiting.
+
+01:07:09.500 --> 01:07:12.070
+So suppose you had
+a cycle of waiting.
+
+01:07:12.070 --> 01:07:13.870
+We're in a situation
+where everybody
+
+01:07:13.870 --> 01:07:17.277
+is holding chopsticks,
+and one of them
+
+01:07:17.277 --> 01:07:19.360
+is waiting for another
+one, which is waiting for--
+
+01:07:19.360 --> 01:07:20.860
+all the way around
+to the first one.
+
+01:07:20.860 --> 01:07:23.530
+That's what we need
+for deadlock to occur.
+
+01:07:23.530 --> 01:07:29.540
+So let me just look at what's
+the largest mutex on the cycle.
+
+01:07:29.540 --> 01:07:32.260
+Let's call that L max.
+
+01:07:32.260 --> 01:07:36.040
+And suppose that it's waiting on
+mutex L held by the next thread
+
+01:07:36.040 --> 01:07:38.110
+in the cycle.
+
+01:07:38.110 --> 01:07:40.990
+Well, then, we have
+something that's
+
+01:07:40.990 --> 01:07:44.790
+bigger than the maximum one.
+
+01:07:44.790 --> 01:07:49.170
+And so that contradicts the
+fact that I grab them-- whenever
+
+01:07:49.170 --> 01:07:52.440
+I grab them, I do it in order.
+
+01:07:52.440 --> 01:07:56.160
+So very simple-- very simple
+proof that you can't have
+
+01:07:56.160 --> 01:08:00.480
+deadlock if you grab them
+according to a linear order.
+
+01:08:00.480 --> 01:08:03.120
+And so for this
+particular problem,
+
+01:08:03.120 --> 01:08:05.910
+what I do is,
+instead of grabbing
+
+01:08:05.910 --> 01:08:08.100
+the one on the left and
+one the right, as I say,
+
+01:08:08.100 --> 01:08:10.530
+you grab the smaller of
+the two and then grab
+
+01:08:10.530 --> 01:08:11.820
+the larger of the two.
+
+01:08:11.820 --> 01:08:15.458
+And then you're guaranteed
+to have no deadlock.
+
+01:08:15.458 --> 01:08:18.920
+Does that make sense?
+
+01:08:18.920 --> 01:08:21.740
+Now, if you're going
+to use locks in Cilk,
+
+01:08:21.740 --> 01:08:24.140
+you have to realize
+that in the operating--
+
+01:08:24.140 --> 01:08:28.520
+in the runtime system
+of Cilk, they're doing--
+
+01:08:28.520 --> 01:08:29.630
+they're using locks.
+
+01:08:29.630 --> 01:08:31.370
+You can't see them.
+
+01:08:31.370 --> 01:08:33.350
+They're encapsulated,
+as we talked about.
+
+01:08:33.350 --> 01:08:35.720
+The nondeterminism in
+Cilk is encapsulated.
+
+01:08:35.720 --> 01:08:38.180
+It's still going on
+underneath the covers.
+
+01:08:38.180 --> 01:08:42.080
+And if you start introducing
+your own nondeterminism
+
+01:08:42.080 --> 01:08:44.479
+through the use of locks
+you can run into trouble
+
+01:08:44.479 --> 01:08:45.710
+if you're not careful.
+
+01:08:45.710 --> 01:08:49.460
+And let me give you an example.
+
+01:08:49.460 --> 01:08:54.290
+This is a situation-- you can
+deadlock your program in Cilk
+
+01:08:54.290 --> 01:08:57.890
+with just one lock.
+
+01:08:57.890 --> 01:09:00.920
+So here's an example of
+a code that does that.
+
+01:09:00.920 --> 01:09:03.520
+So main spawns off foo.
+
+01:09:03.520 --> 01:09:10.439
+And foo basically locks the
+lock L and then unlocks it.
+
+01:09:10.439 --> 01:09:13.279
+And, meanwhile, after
+it spawns off foo,
+
+01:09:13.279 --> 01:09:16.130
+the continuation goes
+and it locks L itself,
+
+01:09:16.130 --> 01:09:20.930
+and then does a sync,
+and then it unlocks it.
+
+01:09:20.930 --> 01:09:21.830
+So what happens here?
+
+01:09:21.830 --> 01:09:25.922
+We sort of have a
+situation like this,
+
+01:09:25.922 --> 01:09:29.149
+where the locking I've
+done with an open bracket,
+
+01:09:29.149 --> 01:09:33.130
+and an unlock, a release, I'm
+doing with a closed bracket.
+
+01:09:33.130 --> 01:09:36.649
+So I'm spawning off foo,
+which is the lower part there,
+
+01:09:36.649 --> 01:09:38.840
+and locking and unlocking.
+
+01:09:38.840 --> 01:09:41.229
+And up above unlocking
+then unlocking.
+
+01:09:41.229 --> 01:09:42.800
+So what can happen here?
+
+01:09:42.800 --> 01:09:49.399
+I can go and I basically spawn
+off the child, but then I lock.
+
+01:09:49.399 --> 01:09:53.630
+And now the child goes and
+it says, whoops, can't--
+
+01:09:53.630 --> 01:09:56.840
+foo is going to wait here
+because it can't grab the lock
+
+01:09:56.840 --> 01:10:00.740
+because it's owned by main.
+
+01:10:00.740 --> 01:10:03.650
+And now we get to
+the point where
+
+01:10:03.650 --> 01:10:10.940
+main has to wait for
+the sync, and the child
+
+01:10:10.940 --> 01:10:12.440
+is never going to
+complete because I
+
+01:10:12.440 --> 01:10:16.610
+hold the resource that the
+child needs to complete.
+
+01:10:16.610 --> 01:10:20.930
+So don't hold mutexes
+across Cilk syncs.
+
+01:10:20.930 --> 01:10:22.830
+That's the lesson there.
+
+01:10:22.830 --> 01:10:24.690
+There are actually
+places you can,
+
+01:10:24.690 --> 01:10:27.050
+but if you don't hold
+them across that,
+
+01:10:27.050 --> 01:10:29.820
+then you won't run into
+this particular problem.
+
+01:10:29.820 --> 01:10:34.280
+A good strategy is only
+holding mutexes within strands.
+
+01:10:34.280 --> 01:10:35.620
+So there's no parallelism.
+
+01:10:35.620 --> 01:10:37.190
+So you have it bounded.
+
+01:10:37.190 --> 01:10:38.960
+And also, that's a
+good idea generally
+
+01:10:38.960 --> 01:10:42.200
+because you want to hold
+mutexes as short amount of time
+
+01:10:42.200 --> 01:10:44.120
+as you possibly can.
+
+01:10:44.120 --> 01:10:46.910
+So, for example, if you
+have a big calculation
+
+01:10:46.910 --> 01:10:48.980
+and then you want to assign
+something atomically,
+
+01:10:48.980 --> 01:10:53.450
+don't put the big calculation
+inside the critical region.
+
+01:10:53.450 --> 01:10:56.120
+Move the calculation
+outside the critical region,
+
+01:10:56.120 --> 01:10:58.100
+do the calculation
+you need to do,
+
+01:10:58.100 --> 01:11:02.070
+and then acquire the locks
+just to do the interaction
+
+01:11:02.070 --> 01:11:04.960
+you need to set a value.
+
+01:11:04.960 --> 01:11:07.770
+And then you'll have
+a lot faster code
+
+01:11:07.770 --> 01:11:12.380
+because you're not holding up
+other threads for a long time.
+
+01:11:12.380 --> 01:11:16.578
+And always try to avoid
+nondeterministic programming.
+
+01:11:16.578 --> 01:11:17.870
+But that's not always possible.
+
+01:11:20.700 --> 01:11:22.220
+So any questions about that?
+
+01:11:22.220 --> 01:11:24.650
+Then I want to go on a
+really interesting topic
+
+01:11:24.650 --> 01:11:30.410
+because it's a really
+recent research level topic,
+
+01:11:30.410 --> 01:11:33.290
+and that's to talk about
+transactional memory.
+
+01:11:33.290 --> 01:11:36.200
+Who's heard this term before?
+
+01:11:36.200 --> 01:11:37.100
+Anybody?
+
+01:11:37.100 --> 01:11:40.700
+So the idea is to have
+database transactions,
+
+01:11:40.700 --> 01:11:43.110
+that you have things like
+database transactions
+
+01:11:43.110 --> 01:11:45.710
+where the atomicity is
+happening implicitly.
+
+01:11:45.710 --> 01:11:46.970
+You don't specify locks.
+
+01:11:46.970 --> 01:11:50.510
+You just say this is
+a critical region.
+
+01:11:50.510 --> 01:11:52.700
+Don't interrupt me while
+I do this critical region.
+
+01:11:52.700 --> 01:11:55.430
+The system works everything out.
+
+01:11:55.430 --> 01:11:58.320
+Here's a good example of
+where it might be useful.
+
+01:11:58.320 --> 01:12:03.470
+Suppose we want to do a
+concurrent graph computation.
+
+01:12:03.470 --> 01:12:05.450
+And so you take people
+involved in parallel
+
+01:12:05.450 --> 01:12:12.120
+and distributed computing
+at MIT and you say,
+
+01:12:12.120 --> 01:12:16.110
+OK, I want to do Gaussian
+elimination on this graph.
+
+01:12:16.110 --> 01:12:18.020
+Now, you guys, I'm
+sure most of you
+
+01:12:18.020 --> 01:12:20.920
+know Gaussian elimination
+from the matrix context.
+
+01:12:20.920 --> 01:12:23.720
+Do you know what it
+means in a graph context?
+
+01:12:23.720 --> 01:12:27.320
+So if you have a sparse matrix,
+you actually have a graph.
+
+01:12:27.320 --> 01:12:30.410
+And Gaussian elimination is a
+way of manipulating the graph,
+
+01:12:30.410 --> 01:12:32.270
+and you get exactly
+the same behavior
+
+01:12:32.270 --> 01:12:34.170
+as you get in the dense one.
+
+01:12:34.170 --> 01:12:36.020
+So I'll show you what it is.
+
+01:12:36.020 --> 01:12:38.810
+You basically pick
+somebody to eliminate.
+
+01:12:38.810 --> 01:12:42.542
+[STUDENTS LAUGH]
+
+01:12:43.760 --> 01:12:51.650
+And now what you do is look at
+all this vertex's neighbors.
+
+01:12:51.650 --> 01:12:53.180
+Those guys.
+
+01:12:53.180 --> 01:12:57.020
+And what you do is you
+eliminate that vertex--
+
+01:12:57.020 --> 01:13:01.730
+bye bye-- and you
+interconnect all the neighbors
+
+01:13:01.730 --> 01:13:05.320
+with all the edges that
+don't already exist.
+
+01:13:05.320 --> 01:13:07.210
+And that's Gaussian elimination.
+
+01:13:07.210 --> 01:13:09.670
+And if you think of it in
+terms of matrix fashion,
+
+01:13:09.670 --> 01:13:11.692
+the question is, if you
+have a sparse matrix,
+
+01:13:11.692 --> 01:13:13.150
+where are you going
+to get fill in?
+
+01:13:13.150 --> 01:13:14.525
+What are the places
+that you need
+
+01:13:14.525 --> 01:13:18.100
+to update when you do
+a pivot in Gaussian
+
+01:13:18.100 --> 01:13:20.590
+elimination in a matrix?
+
+01:13:20.590 --> 01:13:24.580
+So that's the basic
+notion of graph--
+
+01:13:24.580 --> 01:13:26.500
+of doing Gaussian elimination.
+
+01:13:26.500 --> 01:13:30.190
+But now we want to deal
+with the concurrency.
+
+01:13:30.190 --> 01:13:35.290
+And the problem occurs
+if I want to eliminate
+
+01:13:35.290 --> 01:13:41.020
+two nodes at the same time.
+
+01:13:41.020 --> 01:13:43.390
+Because now they're
+adjacent to each other,
+
+01:13:43.390 --> 01:13:45.490
+and if I just do
+what I expressed,
+
+01:13:45.490 --> 01:13:47.930
+there's going to be all kinds
+of atomicity violations,
+
+01:13:47.930 --> 01:13:48.620
+et cetera.
+
+01:13:48.620 --> 01:13:51.280
+By the way, the reason I'm
+picking these two folks
+
+01:13:51.280 --> 01:13:53.110
+is because they're
+going to a better place.
+
+01:14:00.500 --> 01:14:02.120
+So how do you deal with this?
+
+01:14:02.120 --> 01:14:06.790
+And so in transactional memory,
+what I want to be able to do
+
+01:14:06.790 --> 01:14:09.520
+is just simply say,
+OK, here's the thing
+
+01:14:09.520 --> 01:14:11.170
+that I need to be atomic.
+
+01:14:11.170 --> 01:14:13.210
+And so if I look
+at this code, it's
+
+01:14:13.210 --> 01:14:17.230
+basically saying who
+are my neighbors,
+
+01:14:17.230 --> 01:14:21.220
+and then let me identify
+all of the edges that
+
+01:14:21.220 --> 01:14:24.400
+need to be removed, the
+ones that I just showed you
+
+01:14:24.400 --> 01:14:25.520
+that we removed.
+
+01:14:25.520 --> 01:14:30.190
+Now let me get rid
+of the element v.
+
+01:14:30.190 --> 01:14:37.390
+And now, for all of
+the neighbors of u,
+
+01:14:37.390 --> 01:14:41.950
+let us add in the edge
+between the neighbor and--
+
+01:14:41.950 --> 01:14:43.720
+between the pairs of neighbors.
+
+01:14:43.720 --> 01:14:46.090
+So that's basically
+what it's doing.
+
+01:14:46.090 --> 01:14:49.870
+And I'd like to just
+say that's atomic.
+
+01:14:49.870 --> 01:14:52.360
+And so the idea is
+that if I express
+
+01:14:52.360 --> 01:14:54.460
+that as a transaction,
+then the idea
+
+01:14:54.460 --> 01:14:56.890
+is that, on the
+transaction commit,
+
+01:14:56.890 --> 01:14:59.110
+all the memory updates
+in the critical region
+
+01:14:59.110 --> 01:15:02.805
+appear to take it
+happen at once.
+
+01:15:02.805 --> 01:15:04.180
+However, in
+transaction, remember
+
+01:15:04.180 --> 01:15:07.750
+the idea is, rather than
+forcing it to go forward,
+
+01:15:07.750 --> 01:15:10.900
+I can have the
+transactions abort.
+
+01:15:10.900 --> 01:15:14.020
+So if I get a conflict, I'll
+abort one and restart it.
+
+01:15:14.020 --> 01:15:16.522
+And then the
+restarted transaction
+
+01:15:16.522 --> 01:15:18.730
+may take a different code
+path, because, after all, I
+
+01:15:18.730 --> 01:15:21.770
+may have restructured
+the graph underneath.
+
+01:15:21.770 --> 01:15:24.340
+And so it may do something
+different the second time
+
+01:15:24.340 --> 01:15:25.300
+through than the first.
+
+01:15:25.300 --> 01:15:28.880
+It may also abort
+again and so forth.
+
+01:15:28.880 --> 01:15:32.645
+So when you study transaction,
+transactional memory--
+
+01:15:32.645 --> 01:15:34.270
+let me just do a
+couple of definitions.
+
+01:15:34.270 --> 01:15:35.380
+One is a conflict.
+
+01:15:35.380 --> 01:15:39.310
+That's when you have two
+transactions that are--
+
+01:15:39.310 --> 01:15:41.350
+they can't both complete.
+
+01:15:41.350 --> 01:15:43.730
+One of them has to be aborted.
+
+01:15:43.730 --> 01:15:45.370
+And aborting, by the
+way, is once again
+
+01:15:45.370 --> 01:15:49.900
+violating the
+nonpreemptive nature.
+
+01:15:49.900 --> 01:15:51.700
+Here we're going to
+preempt one of them
+
+01:15:51.700 --> 01:15:55.120
+by keeping all the states
+so I can roll a state back
+
+01:15:55.120 --> 01:15:57.530
+and restart it from scratch.
+
+01:15:57.530 --> 01:15:59.320
+So contention
+resolution is deciding
+
+01:15:59.320 --> 01:16:01.720
+which of the two
+conflicting transactions
+
+01:16:01.720 --> 01:16:05.170
+to wait or to abort and restart,
+and under what conditions
+
+01:16:05.170 --> 01:16:05.830
+you do that.
+
+01:16:05.830 --> 01:16:10.720
+So the resolution
+manager has to figure out
+
+01:16:10.720 --> 01:16:13.120
+what happens in the
+case of contention.
+
+01:16:13.120 --> 01:16:18.190
+And then forward progress is
+avoiding deadlock of course,
+
+01:16:18.190 --> 01:16:20.770
+but also livelock
+and starvation.
+
+01:16:20.770 --> 01:16:22.890
+You want to make sure that
+you're going to make--
+
+01:16:22.890 --> 01:16:24.682
+because what you don't
+want to have happen,
+
+01:16:24.682 --> 01:16:26.380
+for example, is that
+two transactions
+
+01:16:26.380 --> 01:16:30.220
+keep aborting each other and
+you never make forward progress.
+
+01:16:30.220 --> 01:16:32.758
+And throughput, well, you'd
+like to run as many transactions
+
+01:16:32.758 --> 01:16:33.925
+as concurrently as possible.
+
+01:16:37.732 --> 01:16:39.940
+So I'm going to show you an
+algorithm for doing this.
+
+01:16:39.940 --> 01:16:43.540
+It's a really simple algorithm.
+
+01:16:43.540 --> 01:16:45.370
+It happens to be one
+that I discovered
+
+01:16:45.370 --> 01:16:47.860
+just a couple of years ago.
+
+01:16:47.860 --> 01:16:52.000
+And I was surprised that it did
+not appear in the literature,
+
+01:16:52.000 --> 01:16:56.110
+and so I wrote a very
+short paper on it.
+
+01:16:56.110 --> 01:17:00.160
+Because what happens for
+a lot of people is they--
+
+01:17:00.160 --> 01:17:02.740
+if they discover there's
+a lot of aborting,
+
+01:17:02.740 --> 01:17:06.010
+they say, oh, well let's
+grab a global lock.
+
+01:17:06.010 --> 01:17:08.840
+And then if everybody
+grabs a global lock,
+
+01:17:08.840 --> 01:17:10.090
+you can do this sort of thing.
+
+01:17:10.090 --> 01:17:12.670
+You can't deadlock
+with a single lock
+
+01:17:12.670 --> 01:17:18.220
+if you're not also doing things
+like Cilk sync or whatever.
+
+01:17:18.220 --> 01:17:21.010
+But, in any case, if you
+have just a single lock,
+
+01:17:21.010 --> 01:17:23.830
+everybody falls back
+to the single lock,
+
+01:17:23.830 --> 01:17:28.240
+and then you have no
+concurrency in your program,
+
+01:17:28.240 --> 01:17:30.580
+no performance,
+until everybody gets
+
+01:17:30.580 --> 01:17:31.750
+through the difficult time.
+
+01:17:31.750 --> 01:17:35.470
+So this is an algorithm that
+doesn't require a global lock.
+
+01:17:35.470 --> 01:17:39.040
+So it assumes the
+transactional memory system
+
+01:17:39.040 --> 01:17:40.622
+will log the reads and writes.
+
+01:17:40.622 --> 01:17:42.580
+That's typically true of
+any transaction, where
+
+01:17:42.580 --> 01:17:44.080
+you log what reads
+and writes you're
+
+01:17:44.080 --> 01:17:47.590
+doing so that you can
+either abort and roll back,
+
+01:17:47.590 --> 01:17:50.470
+or you can--
+
+01:17:50.470 --> 01:17:54.100
+when you abort-- or else
+you sandbox things and then
+
+01:17:54.100 --> 01:17:56.535
+atomically commit them.
+
+01:17:56.535 --> 01:17:57.910
+And so we have
+all the mechanisms
+
+01:17:57.910 --> 01:17:59.180
+for aborting and rolling back.
+
+01:17:59.180 --> 01:18:01.263
+These are all very interesting
+in their own right,
+
+01:18:01.263 --> 01:18:02.440
+and restarting.
+
+01:18:02.440 --> 01:18:06.040
+And this is going to basically
+use a lock-based approach that
+
+01:18:06.040 --> 01:18:08.020
+uses two ideas.
+
+01:18:08.020 --> 01:18:10.780
+One is the notion of what's
+called a finite ownership
+
+01:18:10.780 --> 01:18:16.600
+array, and another is a thing
+called release-sort-reacquire.
+
+01:18:16.600 --> 01:18:18.700
+And let me explain
+those two things,
+
+01:18:18.700 --> 01:18:22.570
+and I'll show you really quickly
+how this beautiful algorithm
+
+01:18:22.570 --> 01:18:24.520
+works.
+
+01:18:24.520 --> 01:18:27.580
+So you have an array of
+anti-starvation mutual
+
+01:18:27.580 --> 01:18:28.930
+exclusion locks.
+
+01:18:28.930 --> 01:18:32.590
+So these are ones that are
+going to be fair, so that you're
+
+01:18:32.590 --> 01:18:34.450
+always going to the oldest one.
+
+01:18:34.450 --> 01:18:37.060
+And you can do an
+acquire, but we're also
+
+01:18:37.060 --> 01:18:38.890
+going to add in a try acquire.
+
+01:18:38.890 --> 01:18:42.520
+Tell me whether, if I tried
+to acquire, I would get it.
+
+01:18:42.520 --> 01:18:45.280
+That is, if I get
+it, give it to me.
+
+01:18:45.280 --> 01:18:47.110
+If I don't get it, don't wait.
+
+01:18:47.110 --> 01:18:51.260
+Just tell me that I didn't
+get it, and then release.
+
+01:18:51.260 --> 01:18:58.510
+And there's an owner function
+that maps all of the--
+
+01:18:58.510 --> 01:19:04.810
+function h that maps my
+universe of memory locations
+
+01:19:04.810 --> 01:19:08.680
+to the indexes in
+this finite ownership
+
+01:19:08.680 --> 01:19:10.490
+array, this lock array.
+
+01:19:10.490 --> 01:19:11.860
+So the lock has length--
+
+01:19:11.860 --> 01:19:14.800
+array has length n,
+has n slots in it.
+
+01:19:14.800 --> 01:19:19.380
+To lock a location x in the
+set of all possible memory
+
+01:19:19.380 --> 01:19:23.740
+locations, you actually
+acquire lock of h of x.
+
+01:19:23.740 --> 01:19:25.782
+So you can think of
+h as a hash function,
+
+01:19:25.782 --> 01:19:28.240
+but it doesn't have to be a
+fair hash function or whatever.
+
+01:19:28.240 --> 01:19:30.160
+Any function will do.
+
+01:19:30.160 --> 01:19:33.700
+And then, yes, there will be
+some advantages to picking
+
+01:19:33.700 --> 01:19:36.010
+some functions or another one.
+
+01:19:36.010 --> 01:19:38.230
+So rather than actually
+locking the location
+
+01:19:38.230 --> 01:19:42.890
+or locking the object,
+I lock a location
+
+01:19:42.890 --> 01:19:47.250
+that essentially I hash
+to from that object.
+
+01:19:47.250 --> 01:19:50.030
+So if two guys are trying
+to grab the same location,
+
+01:19:50.030 --> 01:19:51.740
+they will both
+grab the same lock
+
+01:19:51.740 --> 01:19:53.960
+because they've got
+the same hash function.
+
+01:19:53.960 --> 01:19:57.200
+But I may have
+inadvertent locks where
+
+01:19:57.200 --> 01:20:01.220
+if I were locking the
+objects themselves,
+
+01:20:01.220 --> 01:20:04.040
+I wouldn't have them both
+trying to acquire the same lock.
+
+01:20:04.040 --> 01:20:07.370
+That might happen
+in this algorithm.
+
+01:20:07.370 --> 01:20:09.440
+So here's the idea.
+
+01:20:09.440 --> 01:20:12.530
+The first idea is called
+release, sort, and reacquire.
+
+01:20:12.530 --> 01:20:15.140
+So that's the ownership array
+part that I just explained.
+
+01:20:15.140 --> 01:20:18.050
+Now here's the release,
+sort, reacquire.
+
+01:20:18.050 --> 01:20:21.410
+Before you access a
+memory location x,
+
+01:20:21.410 --> 01:20:24.320
+simply try to grab
+lock of x greedily.
+
+01:20:24.320 --> 01:20:27.287
+And if you have a conflict--
+
+01:20:27.287 --> 01:20:29.120
+so if you don't have a
+conflict, you get it.
+
+01:20:29.120 --> 01:20:30.380
+You just simply try to get it.
+
+01:20:30.380 --> 01:20:31.588
+And if you can, that's great.
+
+01:20:31.588 --> 01:20:34.970
+If not, then what I'm going to
+do is roll back the transaction
+
+01:20:34.970 --> 01:20:37.790
+but don't release
+the locks I hold,
+
+01:20:37.790 --> 01:20:40.010
+and then release all
+the locks with indexes
+
+01:20:40.010 --> 01:20:41.570
+greater than h of x.
+
+01:20:44.620 --> 01:20:47.320
+And then I'm going to
+acquire the lock that I want.
+
+01:20:47.320 --> 01:20:51.470
+And now, at that point, I've
+released all the bigger locks,
+
+01:20:51.470 --> 01:20:54.350
+so I'm acquiring the next lock.
+
+01:20:54.350 --> 01:20:59.090
+And then I reacquire the
+released locks in sorted order.
+
+01:20:59.090 --> 01:21:01.640
+So I go through all the locks
+I released and I reacquire them
+
+01:21:01.640 --> 01:21:03.950
+in sorted order.
+
+01:21:03.950 --> 01:21:06.020
+And then I start my
+transaction over again.
+
+01:21:06.020 --> 01:21:07.490
+I try again.
+
+01:21:07.490 --> 01:21:10.070
+So what happens each time
+through this process,
+
+01:21:10.070 --> 01:21:10.910
+I'm always--
+
+01:21:10.910 --> 01:21:14.270
+whenever I'm trying
+to acquire a lock,
+
+01:21:14.270 --> 01:21:18.180
+I'm only holding locks
+that are smaller.
+
+01:21:18.180 --> 01:21:21.390
+But each time that I
+restart, I have one more lock
+
+01:21:21.390 --> 01:21:24.000
+that I didn't used to
+have before I restart
+
+01:21:24.000 --> 01:21:27.720
+my transaction, which I've
+acquired in the order,
+
+01:21:27.720 --> 01:21:35.250
+in the linear order, in
+that ownership array from 0
+
+01:21:35.250 --> 01:21:38.550
+to n minus 1.
+
+01:21:38.550 --> 01:21:40.140
+And so here's the algorithm.
+
+01:21:40.140 --> 01:21:43.260
+I'll let you guys look
+at it in more detail,
+
+01:21:43.260 --> 01:21:45.630
+because I see our time is up.
+
+01:21:45.630 --> 01:21:49.710
+And it's actually fun
+to take a look at,
+
+01:21:49.710 --> 01:21:51.630
+and we'll put the paper online.
+
+01:21:51.630 --> 01:21:56.640
+There's one other topic that
+I wanted to go through here
+
+01:21:56.640 --> 01:21:58.860
+which you should know about,
+is this locking anomaly
+
+01:21:58.860 --> 01:22:00.230
+called convoying.
+
+01:22:00.230 --> 01:22:03.300
+And this was actually a bug
+that we had-- a performance bug
+
+01:22:03.300 --> 01:22:05.350
+that we had in our
+original and MIT-Cilk.
+
+01:22:05.350 --> 01:22:09.525
+So it's kind of a neat one to
+see and how we resolved it.
+
+01:22:09.525 --> 01:22:11.417
+And that's it.

@@ -1,0 +1,727 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.300 
+We will now talk
+about redo logging.
+
+2
+00:00:04.400 --> 00:00:08.800 
+It's the same example, so
+again we do an insert in
+
+3
+00:00:08.800 --> 00:00:13.130 
+our world population
+table and in this case the
+
+4
+00:00:14.140 --> 00:00:16.160 
+log entry looks
+a bit different.
+
+5
+00:00:17.170 --> 00:00:20.200 
+So in this case we must
+log really all attributes
+
+6
+00:00:20.200 --> 00:00:24.240 
+so that we are able to the
+redo transaction change
+
+7
+00:00:24.240 --> 00:00:29.290 
+again and again we want to talk
+about the cases when the system
+
+8
+00:00:29.290 --> 00:00:34.340 
+fails and how we recover it.
+For redo logging, the first
+
+9
+00:00:34.340 --> 00:00:39.390 
+step is to identify all
+committed transactions so we look
+
+10
+00:00:39.390 --> 00:00:43.430 
+at our log and
+
+11
+00:00:44.440 --> 00:00:47.470 
+note or write down
+the transaction
+
+12
+00:00:47.470 --> 00:00:51.510 
+which started and committed.
+All these are transaction
+
+13
+00:00:51.510 --> 00:00:53.530 
+changes have
+to be re-done.
+
+14
+00:00:58.580 --> 00:01:01.610 
+The first case,
+our transaction
+
+15
+00:01:01.610 --> 00:01:05.650 
+committed because the commit
+entries is in the log.
+
+16
+00:01:06.660 --> 00:01:09.690 
+You can see the case here
+that it didn't change
+
+17
+00:01:09.690 --> 00:01:13.730 
+the in-memory structures yet
+but it still committed because
+
+18
+00:01:13.730 --> 00:01:16.760 
+the commit entry is in
+the log. During recovery
+
+19
+00:01:16.760 --> 00:01:19.790 
+we would redo the
+
+20
+00:01:19.790 --> 00:01:20.800 
+changes again.
+
+21
+00:01:22.820 --> 00:01:25.850 
+In the second case the
+transaction is not committed
+
+22
+00:01:25.850 --> 00:01:29.890 
+because a committed entry is
+not in the log and there are
+
+23
+00:01:29.890 --> 00:01:31.910 
+no changes to
+be re-done.
+
+24
+00:01:34.940 --> 00:01:38.980 
+So far we abstracted in
+the form that we used
+
+25
+00:01:43.103 --> 00:01:47.107 
+changes in an abstract
+way and now when we talk
+
+26
+00:01:47.107 --> 00:01:51.111 
+about in memory databases and
+have dictionary compression,
+
+27
+00:01:51.111 --> 00:01:54.114 
+there are some
+types of these
+
+28
+00:01:54.114 --> 00:01:57.117 
+attributes changes.
+The first type I want
+
+29
+00:01:57.117 --> 00:02:02.122 
+to talk about is dictionary
+log, this log type is used for
+
+30
+00:02:02.122 --> 00:02:06.126 
+a new entry in dictionary, so
+think about a new value insert in
+
+31
+00:02:06.126 --> 00:02:09.129 
+a table where the
+value is really new.
+
+32
+00:02:09.129 --> 00:02:13.133 
+In this case we just
+have to store, the
+
+33
+00:02:13.133 --> 00:02:16.136 
+table in which we
+inserted the column
+
+34
+00:02:16.136 --> 00:02:20.140 
+the value and the value
+id. To note here is that
+
+35
+00:02:20.140 --> 00:02:24.144 
+we don't have to write
+down the transaction id
+
+36
+00:02:24.144 --> 00:02:27.147 
+because it doesn't
+matter for recovery.
+
+37
+00:02:27.147 --> 00:02:31.151 
+The second value
+type is the value log
+
+38
+00:02:31.151 --> 00:02:35.155 
+which is used for updates and
+inserts, in this case we have any
+
+39
+00:02:35.155 --> 00:02:41.161 
+transaction id and the
+similar information
+
+40
+00:02:41.161 --> 00:02:46.166 
+to identify the tuple and besides
+this, we have a value ID vector
+
+41
+00:02:46.166 --> 00:02:50.170 
+which references
+to the value
+
+42
+00:02:50.170 --> 00:02:55.175 
+IDs of the dictionary.
+The last case
+
+43
+00:02:55.175 --> 00:02:58.178 
+or last logging type is
+an invalidation log entry
+
+44
+00:02:59.179 --> 00:03:03.183 
+which is used for deletes
+or updates when we apply
+
+45
+00:03:03.183 --> 00:03:07.187 
+an insert only approach, in this
+case again we need the transaction
+
+46
+00:03:07.187 --> 00:03:12.192 
+ID which removed the
+tuple or the attribute
+
+47
+00:03:12.192 --> 00:03:15.195 
+and the row which
+was deleted.
+
+48
+00:03:16.196 --> 00:03:19.199 
+Now we can think about
+optimizations for
+
+49
+00:03:19.199 --> 00:03:24.204 
+updates and it's shown here
+that we can use and shorten the
+
+50
+00:03:24.204 --> 00:03:29.209 
+ID vector. In this case we
+have a bitmask which says which
+
+51
+00:03:29.209 --> 00:03:34.214 
+attributes are really changed
+and then we only store
+
+52
+00:03:34.214 --> 00:03:38.218 
+the changed values and this is
+an optimisation in which you
+
+53
+00:03:38.218 --> 00:03:43.223 
+reduce your log size but the
+disadvantage of this approaches is ,
+
+54
+00:03:43.223 --> 00:03:47.227 
+think about recovery and we have
+an insert only approach and it's
+
+55
+00:03:47.227 --> 00:03:52.232 
+not easy to tell, it's
+not complete in the
+
+56
+00:03:52.232 --> 00:03:55.235 
+logging information, which
+is a new insert we have
+
+57
+00:03:55.235 --> 00:03:59.239 
+to write to our structures,
+we have to first
+
+58
+00:03:59.239 --> 00:04:03.243 
+read the information
+for the deleted tuple.
+
+59
+00:04:06.246 --> 00:04:11.251 
+Ok, now an example
+of logging for
+
+60
+00:04:11.251 --> 00:04:15.255 
+dictionary encoded
+columns, this is
+
+61
+00:04:15.255 --> 00:04:20.260 
+a unsorted dictionary
+so think about the delta
+
+62
+00:04:20.260 --> 00:04:24.264 
+of the HANA or
+Sanssouci DB, we have
+
+63
+00:04:24.264 --> 00:04:28.268 
+two entries in our table.
+In this case we only
+
+64
+00:04:28.268 --> 00:04:32.272 
+store first and last name
+and there is also the
+
+65
+00:04:32.272 --> 00:04:36.276 
+mvcc columns
+here to show you
+
+66
+00:04:37.277 --> 00:04:40.280 
+which lines of the table
+are visible to the user.
+
+67
+00:04:40.280 --> 00:04:43.283 
+In this case we
+have two entries
+
+68
+00:04:43.283 --> 00:04:47.287 
+Martin Schulze and Martin
+Meyer which are both valid
+
+69
+00:04:47.287 --> 00:04:50.290 
+because the end
+commit ID is
+
+70
+00:04:50.290 --> 00:04:55.295 
+infinity and now a new transaction
+comes in, an insert in our
+
+71
+00:04:55.295 --> 00:04:59.299 
+table and what we have
+
+72
+00:04:59.299 --> 00:05:03.303 
+log here first are the
+dictionary logs because
+
+73
+00:05:03.303 --> 00:05:07.307 
+Michael Berg, these are
+new values for both columns
+
+74
+00:05:07.307 --> 00:05:13.313 
+so we add them in a dictionary
+and also store the encoded
+
+75
+00:05:13.313 --> 00:05:16.316 
+value so Michael is two
+
+76
+00:05:17.317 --> 00:05:21.321 
+and Berg is a three. Besides
+the log entry so the dictionary
+
+77
+00:05:21.321 --> 00:05:27.327 
+we have to add a log for the real
+insert in the value id vector
+
+78
+00:05:27.327 --> 00:05:31.331 
+and here we encode
+
+79
+00:05:31.331 --> 00:05:36.336 
+the table, the row id,
+and the values of the
+
+80
+00:05:36.336 --> 00:05:40.340 
+value ID vector. Besides
+what is shown here
+
+81
+00:05:40.340 --> 00:05:43.343 
+is that in the mvcc columns we
+have also another line which
+
+82
+00:05:43.343 --> 00:05:47.347 
+shows that this line is
+visible now to the user.
+
+83
+00:05:47.347 --> 00:05:52.352 
+Now another case, so
+instead of an insert
+
+84
+00:05:52.352 --> 00:05:56.356 
+we look at an update,
+in this case we want to
+
+85
+00:05:56.356 --> 00:06:00.360 
+update the person
+which we just inserted
+
+86
+00:06:01.361 --> 00:06:06.366 
+which is Michael and want
+to change his last name,
+
+87
+00:06:08.368 --> 00:06:10.370 
+think about a
+marriage for example.
+
+88
+00:06:10.370 --> 00:06:14.374 
+In this case we want to
+have an insert only approach
+
+89
+00:06:14.374 --> 00:06:17.377 
+so we want to
+delete the old line
+
+90
+00:06:17.377 --> 00:06:20.380 
+which is done with an
+invalidation log entry
+
+91
+00:06:20.380 --> 00:06:23.383 
+which specifies the
+row id and the table
+
+92
+00:06:23.383 --> 00:06:27.387 
+and besides we
+have to enter a new
+
+93
+00:06:27.387 --> 00:06:33.393 
+log entry for the new line. You
+could straight forward so it's
+
+94
+00:06:33.393 --> 00:06:37.397 
+a new row, row number four
+and then we have to look
+
+95
+00:06:37.397 --> 00:06:41.401 
+up the values in the dictionary,
+so it's Michael and Schulze.
+
+96
+00:06:43.403 --> 00:06:46.406 
+Again you can see here
+in the mvcc columns that
+
+97
+00:06:47.407 --> 00:06:50.410 
+line three is not visible
+to the user anymore and
+
+98
+00:06:50.410 --> 00:06:56.416 
+the new value was
+added. The last case
+
+99
+00:06:56.416 --> 00:07:00.420 
+what we want to talk about is
+deletion of a tuple and for
+
+100
+00:07:00.420 --> 00:07:04.424 
+this we just need an
+invalidation log entry
+
+101
+00:07:05.425 --> 00:07:09.429 
+which specifies the row
+ID which is deleted.
+
+102
+00:07:09.429 --> 00:07:12.432 
+So the question arose,
+
+103
+00:07:13.433 --> 00:07:14.434 
+what to do with all the
+logging information?
+
+104
+00:07:15.435 --> 00:07:20.440 
+Usually you have, or with
+information I gave you so far
+
+105
+00:07:20.440 --> 00:07:24.444 
+you have to read all your
+logs to know which transaction
+
+106
+00:07:24.444 --> 00:07:28.448 
+committed and one idea
+to shorten the recovery
+
+107
+00:07:28.448 --> 00:07:33.453 
+process is use checkpointing
+and the idea of checkpointing
+
+108
+00:07:33.453 --> 00:07:37.457 
+is that you have
+a point in time
+
+109
+00:07:37.457 --> 00:07:42.462 
+where you consolidate your
+log and for this based system
+
+110
+00:07:42.462 --> 00:07:45.465 
+this is a case,
+you'll note
+
+111
+00:07:45.465 --> 00:07:49.469 
+which transaction finishes or
+finished until a point of time
+
+112
+00:07:49.469 --> 00:07:52.472 
+and then you
+have to redo only
+
+113
+00:07:53.473 --> 00:07:57.477 
+the changes of the transaction
+which are not finished
+
+114
+00:07:58.478 --> 00:08:02.482 
+to this point in time. For in-memory
+database systems a problem is
+
+115
+00:08:02.482 --> 00:08:05.485 
+after a crash the whole
+systems down so nothing is
+
+116
+00:08:06.486 --> 00:08:10.490 
+in volatile memory anymore.
+An idea is that we use
+
+117
+00:08:10.490 --> 00:08:14.494 
+snapshotting here so
+from time to time we
+
+118
+00:08:14.494 --> 00:08:18.498 
+write a snapshot of our
+in-memory database structures
+
+119
+00:08:19.499 --> 00:08:23.503 
+to persistency and during
+recovery, we first load
+
+120
+00:08:24.504 --> 00:08:29.509 
+this snapshot and then apply
+the most recent log entry
+
+121
+00:08:29.509 --> 00:08:32.512 
+to this in-memory recently
+recovered snapshot.
+
+122
+00:08:34.514 --> 00:08:38.518 
+Now we can think about
+what is a good set up or
+
+123
+00:08:38.518 --> 00:08:43.523 
+good time to do a snapshot
+and for our main delta
+
+124
+00:08:43.523 --> 00:08:48.528 
+store this is as after a merge
+process and in this case we would
+
+125
+00:08:48.528 --> 00:08:52.532 
+snapshot the
+new main store
+
+126
+00:08:53.533 --> 00:08:57.537 
+and in case of
+changes to the main
+
+127
+00:08:57.537 --> 00:09:01.541 
+store, we have only to log the
+invalidations of the main store
+
+128
+00:09:01.541 --> 00:09:07.547 
+and the changes to the delta
+store and when we think about
+
+129
+00:09:07.547 --> 00:09:11.551 
+our new proposed,
+chunk-based our horizontal
+
+130
+00:09:11.551 --> 00:09:16.556 
+partitioning architecture where
+we can compress single chunks
+
+131
+00:09:16.556 --> 00:09:21.561 
+then a good thing to snapshot
+would be a compressed
+
+132
+00:09:21.561 --> 00:09:24.564 
+chunk because there are only
+invalidations for compressed chunks
+
+133
+00:09:25.565 --> 00:09:29.569 
+and known you inserts so the
+dictionary can't change anymore.
+
+134
+00:09:33.573 --> 00:09:39.579 
+So to summary this talk,
+as said logging and besides
+
+135
+00:09:39.579 --> 00:09:44.584 
+mvcc and concurrency control, these
+are all overhead to database systems
+
+136
+00:09:44.584 --> 00:09:48.588 
+but they are necessary to
+guarantee the asset quiteria.
+
+137
+00:09:48.588 --> 00:09:50.590 
+For logging and recovery
+
+138
+00:09:51.591 --> 00:09:54.594 
+this is consistency
+and durability
+
+139
+00:09:54.594 --> 00:09:58.598 
+so we have to do it.
+
+140
+00:09:58.598 --> 00:10:02.602 
+There as several
+approaches, logging
+
+141
+00:10:02.602 --> 00:10:05.605 
+approaches which can be
+applied to physical or
+
+142
+00:10:06.606 --> 00:10:09.609 
+a logic logging and
+also redo and undo
+
+143
+00:10:09.609 --> 00:10:13.613 
+logging and redo logging
+is really the approach
+
+144
+00:10:13.613 --> 00:10:17.617 
+to do or to handle
+in-memory database systems
+
+145
+00:10:17.617 --> 00:10:21.621 
+because we have, normally, no
+persistent state after a system crash
+
+146
+00:10:21.621 --> 00:10:28.628 
+and checkpointing, as said,
+is a mechanism to reduce
+
+147
+00:10:28.628 --> 00:10:32.632 
+the log sizes which have to be
+applied after system failure.

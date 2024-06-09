@@ -1,0 +1,437 @@
+WEBVTT
+
+1
+00:00:00.440 --> 00:00:10.589 
+Hello and welcome. In the last video I mentioned it that an essential difficulty in Federated learning is how to minimize
+
+2
+00:00:10.589 --> 00:00:16.589 
+the number of communications, even if doing so will increase the computation.
+
+3
+00:00:16.600 --> 00:00:20.559 
+The need for overall model optimization is worth considering.
+
+4
+00:00:21.739 --> 00:00:28.250 
+For example, the original Federated learning to train a model requests 1000 iterations.
+
+5
+00:00:28.739 --> 00:00:30.859 
+A better algorithm makes it SGD
+
+6
+00:00:30.859 --> 00:00:31.239 
+
+
+7
+00:00:31.239 --> 00:00:41.359 
+of the central server converge faster by generating a better gradient locally, which only needs for instance 100 iterations.
+
+8
+00:00:42.039 --> 00:00:52.390 
+So the communication is saved 10 times, which is the goal of the current algorithm design the local computation is performed
+
+9
+00:00:52.399 --> 00:01:00.549 
+when the device such as a mobile phone is charging so it will not cause too much inconvenience to the user.
+
+10
+00:01:01.539 --> 00:01:09.060 
+Next I would like to introduce to you the Federated Average method first time proposed by google.
+
+11
+00:01:11.719 --> 00:01:18.510 
+Let's shortly recap how the traditional distributed learning method works first at the edge.
+
+12
+00:01:18.510 --> 00:01:24.049 
+Note, it receives the up to date model ways from the central server.
+
+13
+00:01:25.340 --> 00:01:30.599 
+Then it uses the local data and obtain the ways to compute the gradients.
+
+14
+00:01:31.140 --> 00:01:35.090 
+It further passes the gradient to the central server
+
+15
+00:01:35.099 --> 00:01:36.659 
+for a global update.
+
+16
+00:01:38.739 --> 00:01:47.480 
+The central server receives gradient from all the edge nodes, then sum them up and updates the weights according to the formula
+
+17
+00:01:48.239 --> 00:01:53.540 
+actually learned before theta represents the weight parameters.
+
+18
+00:01:53.680 --> 00:01:55.200 
+Theta is the learning rate.
+
+19
+00:01:55.209 --> 00:02:04.250 
+So after its weight updates we just finished the current iteration, it may require many iterations to get the model to converge.
+
+20
+00:02:06.640 --> 00:02:10.860 
+Now let's take a look at the Federated Average method.
+
+21
+00:02:11.539 --> 00:02:20.259 
+Federated Average is a communication efficient algorithm requiring fewer iterations to make the model converge.
+
+22
+00:02:20.740 --> 00:02:26.050 
+First the edge node worker will also get the ways from the central server.
+
+23
+00:02:26.610 --> 00:02:36.949 
+Then it will repeat the following iterations at first use the local data and receive the ways to compute the gradient, then
+
+24
+00:02:36.949 --> 00:02:40.849 
+use the gradient to update the ways we call this step
+
+25
+00:02:40.949 --> 00:02:42.050 
+the local update.
+
+26
+00:02:42.740 --> 00:02:50.150 
+It will generally continue to update for several epochs and each epoch needs to traverse all the local data.
+
+27
+00:02:50.639 --> 00:02:55.759 
+Google's paper suggests that local updates repeat 1 - 5 times.
+
+28
+00:02:56.740 --> 00:03:04.360 
+There's always this way the local weight parameters are already different from received from the central server.
+
+29
+00:03:05.039 --> 00:03:06.719 
+After the local updates,
+
+30
+00:03:06.900 --> 00:03:10.289 
+the new weight parameters ascend to the server.
+
+31
+00:03:10.389 --> 00:03:16.050 
+Central server know that what is sent here is no longer the gradient.
+
+32
+00:03:17.240 --> 00:03:18.729 
+Why do we do that?
+
+33
+00:03:18.740 --> 00:03:27.789 
+Because doing so we can make more weights changed in one communication, not just one time gradient descent. After the central
+
+34
+00:03:27.789 --> 00:03:34.659 
+server received the ways of all edge nodes, it does not need to perform gradient descent.
+
+35
+00:03:34.669 --> 00:03:39.360 
+Still, it performs a simple calculation or weight average
+
+36
+00:03:39.370 --> 00:03:41.159 
+to obtain the new model weights.
+
+37
+00:03:41.740 --> 00:03:45.599 
+Now we can see why the name of the algorithm is called
+
+38
+00:03:45.610 --> 00:03:49.539 
+Federated averaging?
+
+39
+00:03:49.539 --> 00:03:51.080 
+The paper reports.
+
+40
+00:03:51.080 --> 00:03:54.930 
+The following experimental comparison results of SGD
+
+41
+00:03:54.930 --> 00:03:55.080 
+
+
+42
+00:03:55.080 --> 00:03:55.530 
+
+
+43
+00:03:55.539 --> 00:03:59.139 
+and Federated averaging
+
+44
+00:03:59.139 --> 00:04:04.490 
+the horizontal axis in the number of communications and the vertical axis
+
+45
+00:04:04.490 --> 00:04:06.759 
+they know the classification accuracy.
+
+46
+00:04:07.139 --> 00:04:15.979 
+You can see that fit average converge faster and has higher accuracy with the same communication overhead.
+
+47
+00:04:15.990 --> 00:04:26.250 
+This is exactly the goal of federated average, which is no to achieve a faster convergence rate and fewer communication times
+
+48
+00:04:26.939 --> 00:04:31.709 
+between two connections. Federal average allows the edge.
+
+49
+00:04:31.709 --> 00:04:38.660 
+nodes, do a lot of local computation in exchange for more efficient communication.
+
+50
+00:04:39.040 --> 00:04:43.050 
+So suppose we now require federal it average and SGD
+
+51
+00:04:43.050 --> 00:04:43.209 
+
+
+52
+00:04:43.209 --> 00:04:43.490 
+
+
+53
+00:04:43.490 --> 00:04:46.399 
+to do the same amount of computation at the edge
+
+54
+00:04:46.399 --> 00:04:53.040 
+node, then the convergence speed of Federated average will be slower than that of SGD.
+
+55
+00:04:53.040 --> 00:04:53.220 
+
+
+56
+00:04:53.220 --> 00:04:53.649 
+
+
+57
+00:04:54.139 --> 00:05:03.930 
+We know that in the scenario of Federated Learning the computational cost is relatively small while the communication cost
+
+58
+00:05:03.939 --> 00:05:04.850 
+is high.
+
+59
+00:05:05.540 --> 00:05:09.089 
+So Federated average algorithm is very practical.
+
+60
+00:05:09.100 --> 00:05:15.649 
+Another point from the figure is that with Federated Average one can use higher learning rate.
+
+61
+00:05:16.040 --> 00:05:23.259 
+So the result of the learning rates equals to 0.25 is better than that of 0.05.
+
+62
+00:05:24.139 --> 00:05:25.610 
+On the contrary, SGD
+
+63
+00:05:25.610 --> 00:05:25.779 
+
+
+64
+00:05:25.779 --> 00:05:35.040 
+with higher learning rates results in worse learning curves.
+
+65
+00:05:35.040 --> 00:05:44.470 
+According to the previous example, we can find that the communication content between age nodes and central server in Federated
+
+66
+00:05:44.470 --> 00:05:47.750 
+Learning is mainly the models ways
+
+67
+00:05:47.759 --> 00:05:52.360 
+and the gradient information, which is computed at the edge
+
+68
+00:05:52.360 --> 00:06:01.949 
+node. User data does not leave the local device, but the question is, are weight and gradient information secure enough?
+
+69
+00:06:02.839 --> 00:06:12.180 
+Let's take a look at the formula of gradient computation, we know that gradient is a derivative of the loss function with
+
+70
+00:06:12.180 --> 00:06:16.470 
+respect to a weight parameter. Here X,
+
+71
+00:06:16.480 --> 00:06:17.360 
+is a sample,.
+
+72
+00:06:17.839 --> 00:06:25.259 
+and Y represents a label. The mathematical transformation of local data obtains the gradients.
+
+73
+00:06:25.750 --> 00:06:31.860 
+Therefore, gradient carriers, certain information from the training data.
+
+74
+00:06:32.240 --> 00:06:40.459 
+So if the gradient contains the information of training data, we can reverse engineer the data from the gradient somehow.
+
+75
+00:06:40.939 --> 00:06:50.930 
+Unfortunately, the foreign literature shows that the training data information can be severelly leaked through the model ways
+
+76
+00:06:50.939 --> 00:07:03.379 
+and gradients. In another paper, the authors devise a new set of attacks to compromising influence data privacy in collaborative
+
+77
+00:07:03.379 --> 00:07:12.560 
+AI system when deep network model and the corresponding inference task are split and distributed to different nodes.
+
+78
+00:07:13.339 --> 00:07:24.339 
+So one malicious participants can accurately recover and arbitrary input fed into this system, even if he has no access
+
+79
+00:07:24.339 --> 00:07:31.300 
+to another participants data or computations. it can also recover the prediction APIs
+
+80
+00:07:31.300 --> 00:07:31.579 
+
+
+81
+00:07:31.579 --> 00:07:31.689 
+
+
+82
+00:07:31.689 --> 00:07:31.889 
+
+
+83
+00:07:31.889 --> 00:07:33.759 
+from querying this system.
+
+84
+00:07:37.009 --> 00:07:46.500 
+This paper, demonstrates that Federated learnings update leak unintended information about participants training data.
+
+85
+00:07:46.509 --> 00:07:52.199 
+And it develops several inference attacks to exploit this leakage.
+
+86
+00:07:52.209 --> 00:07:59.860 
+It shows that adversarial participants can infer the presence of exact data points.
+
+87
+00:08:00.839 --> 00:08:05.750 
+For example, the specific locations in another training data.
+
+88
+00:08:05.759 --> 00:08:10.529 
+In other words the membership inflerence. Second,
+
+89
+00:08:10.529 --> 00:08:17.689 
+the authors show how the adversary can infer properties that hold only for a subset.
+
+90
+00:08:17.699 --> 00:08:28.259 
+For example, the adversary can infer when a specific person first appears in the photos used to train the binary gender classifier,
+
+91
+00:08:28.639 --> 00:08:34.870 
+in this way by using the gradient information as features to train the binary classifier
+
+92
+00:08:34.879 --> 00:08:40.759 
+one can further in for other properties like age, race, disease, etcetera.
+
+93
+00:08:41.240 --> 00:08:47.149 
+All very sensitive personal data, personal information that must be protected.
+
+94
+00:08:48.340 --> 00:08:54.850 
+So, there are many ways to obtain data information through model ways or gradient information.
+
+95
+00:08:55.409 --> 00:08:57.259 
+This video only introduced
+
+96
+00:08:57.269 --> 00:09:01.710 
+simplest one, privacy protection algorithms are indeed
+
+97
+00:09:01.720 --> 00:09:06.259 
+which shows research directions in the Federated Learning.
+
+98
+00:09:07.340 --> 00:09:16.100 
+How is the different defense also critical? for example, adding noise to gradient to strengthen protection
+
+99
+00:09:16.110 --> 00:09:20.039 
+this method is called differential privacy.
+
+100
+00:09:20.049 --> 00:09:29.059 
+However, the sort of method secures the information but also decreases the accuracy and convergence speed of the model.
+
+101
+00:09:30.039 --> 00:09:38.820 
+Therefore, the privacy protection of Federated Learning is still a challenging task first of all, ensuring the robustness
+
+102
+00:09:38.820 --> 00:09:42.159 
+of learning and combining barriers
+
+103
+00:09:42.169 --> 00:09:49.120 
+security attacks is also a good research direction. Such as the poisoning attack.
+
+104
+00:09:49.129 --> 00:09:57.350 
+It is an attacker who pretends to be a participant to join the Federation and insert poison in data.
+
+105
+00:09:58.440 --> 00:10:07.940 
+This kind of poison data information will  disrupt other participants and make the entire learning task a fail.
+
+106
+00:10:07.950 --> 00:10:17.250 
+For example, this kind of attack can let the Global Model make a specific mistake by adding a customized adversarial examples
+
+107
+00:10:17.340 --> 00:10:27.210 
+or living an attack back door. Overall how to defend the privacy leakage and improve the robustness are
+
+108
+00:10:27.220 --> 00:10:30.960 
+essential research directions in the Federated Learning.
+
+109
+00:10:33.639 --> 00:10:34.750 
+Thank you for watching

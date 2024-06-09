@@ -1,0 +1,441 @@
+WEBVTT
+
+00:00:00.729 --> 00:00:03.450
+Let's take a moment to look at a different
+example.
+
+00:00:03.450 --> 00:00:08.780
+Automated teller machines allow bank customers
+to perform a variety of transactions: deposits,
+
+00:00:08.780 --> 00:00:11.139
+withdrawals, transfers, etc.
+
+00:00:11.139 --> 00:00:16.560
+Let's consider what happens when two customers
+try to withdraw $50 from the same account
+
+00:00:16.560 --> 00:00:17.589
+at the same time.
+
+00:00:17.589 --> 00:00:23.220
+A portion of the bank's code for a withdrawal
+transaction is shown in the upper right.
+
+00:00:23.220 --> 00:00:28.529
+This code is responsible for adjusting the
+account balance to reflect the amount of the
+
+00:00:28.529 --> 00:00:29.529
+withdrawal.
+
+00:00:29.529 --> 00:00:33.050
+Presumably the check to see if there is sufficient
+funds has already happened.
+
+00:00:33.050 --> 00:00:35.200
+What's supposed to happen?
+
+00:00:35.200 --> 00:00:40.489
+Let's assume that the bank is using a separate
+process to handle each transaction, so the
+
+00:00:40.489 --> 00:00:46.370
+two withdrawal transactions cause two different
+processes to be created, each of which will
+
+00:00:46.370 --> 00:00:48.989
+run the Debit code.
+
+00:00:48.989 --> 00:00:55.050
+If each of the calls to Debit run to completion
+without interruption, we get the desired outcome:
+
+00:00:55.050 --> 00:00:59.890
+the first transaction debits the account by
+$50, then the second transaction does the
+
+00:00:59.890 --> 00:01:01.210
+same.
+
+00:01:01.210 --> 00:01:07.020
+The net result is that you and your friend
+have $100 and the balance is $100 less.
+
+00:01:07.020 --> 00:01:08.970
+So far, so good.
+
+00:01:08.970 --> 00:01:15.570
+But what if the process for the first transaction
+is interrupted just after it's read the balance?
+
+00:01:15.570 --> 00:01:20.400
+The second process subtracts $50 from the
+balance, completing that transaction.
+
+00:01:20.400 --> 00:01:26.000
+Now the first process resumes, using the now
+out-of-date balance it loaded just before
+
+00:01:26.000 --> 00:01:27.660
+being interrupted.
+
+00:01:27.660 --> 00:01:32.520
+The net result is that you and your friend
+have $100, but the balance has only been debited
+
+00:01:32.520 --> 00:01:35.050
+by $50.
+
+00:01:35.050 --> 00:01:38.690
+The moral of the story is that we need to
+be careful when writing code that reads and
+
+00:01:38.690 --> 00:01:44.580
+writes shared data since other processes might
+modify the data in the middle of our execution.
+
+00:01:44.580 --> 00:01:51.410
+When, say, updating a shared memory location,
+we'll need to LD the current value, modify
+
+00:01:51.410 --> 00:01:54.430
+it, then ST the updated value.
+
+00:01:54.430 --> 00:01:59.360
+We would like to ensure that no other processes
+access the shared location between the start
+
+00:01:59.360 --> 00:02:03.000
+of the LD and the completion of the ST.
+
+00:02:03.000 --> 00:02:08.470
+The LD/modify/ST code sequence is what we
+call a "critical section".
+
+00:02:08.470 --> 00:02:13.220
+We need to arrange that other processes attempting
+to execute the same critical section are delayed
+
+00:02:13.220 --> 00:02:16.379
+until our execution is complete.
+
+00:02:16.379 --> 00:02:22.519
+This constraint is called "mutual exclusion",
+i.e., only one process at a time can be executing
+
+00:02:22.519 --> 00:02:26.980
+code in the same critical section.
+
+00:02:26.980 --> 00:02:32.500
+Once we've identified critical sections, we'll
+use semaphores to guarantee they execute atomically,
+
+00:02:32.500 --> 00:02:38.140
+i.e., that once execution of the critical
+section begins, no other process will be able
+
+00:02:38.140 --> 00:02:42.650
+to enter the critical section until the execution
+is complete.
+
+00:02:42.650 --> 00:02:47.819
+The combination of the semaphore to enforce
+the mutual exclusion constraint and the critical
+
+00:02:47.819 --> 00:02:51.390
+section of code implement what's called a
+"transaction".
+
+00:02:51.390 --> 00:02:56.379
+A transaction can perform multiple reads and
+writes of shared data with the guarantee that
+
+00:02:56.379 --> 00:03:01.920
+none of the data will be read or written by
+other processes while the transaction is in
+
+00:03:01.920 --> 00:03:02.920
+progress.
+
+00:03:02.920 --> 00:03:07.200
+Here's the original code to Debit, which we'll
+modify by adding a LOCK semaphore.
+
+00:03:07.200 --> 00:03:11.650
+In this case, the resource controlled by the
+semaphore is the right to run the code in
+
+00:03:11.650 --> 00:03:13.569
+the critical section.
+
+00:03:13.569 --> 00:03:19.569
+By initializing LOCK to 1, we're saying that
+at most one process can execute the critical
+
+00:03:19.569 --> 00:03:21.060
+section at a time.
+
+00:03:21.060 --> 00:03:25.879
+A process running the Debit code WAITs on
+the LOCK semaphore.
+
+00:03:25.879 --> 00:03:32.950
+If the value of LOCK is 1, the WAIT will decrement
+value of LOCK to 0 and let the process enter
+
+00:03:32.950 --> 00:03:34.829
+the critical section.
+
+00:03:34.829 --> 00:03:37.599
+This is called acquiring the lock.
+
+00:03:37.599 --> 00:03:42.629
+If the value of LOCK is 0, some other process
+has acquired the lock and is executing the
+
+00:03:42.629 --> 00:03:48.779
+critical section and our execution is suspended
+until the LOCK value is non-zero.
+
+00:03:48.779 --> 00:03:53.489
+When the process completes execution of the
+critical section, it releases the LOCK with
+
+00:03:53.489 --> 00:03:58.790
+a call to SIGNAL, which will allow other processes
+to enter the critical section.
+
+00:03:58.790 --> 00:04:03.409
+If there are multiple WAITing processes, only
+one will be able to acquire the lock, and
+
+00:04:03.409 --> 00:04:06.419
+the others will still have to wait their turn.
+
+00:04:06.419 --> 00:04:11.730
+Used in this manner, semaphores are implementing
+a mutual exclusion constraint, i.e., there's
+
+00:04:11.730 --> 00:04:16.660
+a guarantee that two executions of the critical
+section cannot overlap.
+
+00:04:16.660 --> 00:04:21.500
+Note that if multiple processes need to execute
+the critical section, they may run in any
+
+00:04:21.500 --> 00:04:27.470
+order and the only guarantee is that their
+executions will not overlap.
+
+00:04:27.470 --> 00:04:31.390
+There are some interesting engineering issues
+to consider.
+
+00:04:31.390 --> 00:04:36.200
+There's the question of the granularity of
+the lock, i.e., what shared data is controlled
+
+00:04:36.200 --> 00:04:37.560
+by the lock?
+
+00:04:37.560 --> 00:04:42.800
+In our bank example, should there be one lock
+controlling access to the balance for all
+
+00:04:42.800 --> 00:04:43.890
+accounts?
+
+00:04:43.890 --> 00:04:48.920
+That would mean that no one could access any
+balance while a transaction was in progress.
+
+00:04:48.920 --> 00:04:53.140
+That would mean that transactions accessing
+different accounts would have to run one after
+
+00:04:53.140 --> 00:04:57.080
+the other even though they're accessing different
+data.
+
+00:04:57.080 --> 00:05:02.060
+So one lock for all the balances would introduce
+unnecessary precedence constraints, greatly
+
+00:05:02.060 --> 00:05:06.870
+slowing the rate at which transactions could
+be processed.
+
+00:05:06.870 --> 00:05:11.400
+Since the guarantee we need is that we shouldn't
+permit multiple simultaneous transactions
+
+00:05:11.400 --> 00:05:14.820
+on the same account,
+it would make more sense to have a separate
+
+00:05:14.820 --> 00:05:19.710
+lock for each account, and change the Debit
+code to acquire the account's lock before
+
+00:05:19.710 --> 00:05:21.790
+proceeding.
+
+00:05:21.790 --> 00:05:26.890
+That will only delay transactions that truly
+overlap, an important efficiency consideration
+
+00:05:26.890 --> 00:05:32.400
+for a large system processing many thousands
+of mostly non-overlapping transactions each
+
+00:05:32.400 --> 00:05:33.400
+second.
+
+00:05:33.400 --> 00:05:38.470
+Of course, having per-account locks would
+mean a lot of locks!
+
+00:05:38.470 --> 00:05:43.000
+If that's a concern, we can adopt a compromise
+strategy of having locks that protect groups
+
+00:05:43.000 --> 00:05:48.580
+of accounts, e.g., accounts with same last
+three digits in the account number.
+
+00:05:48.580 --> 00:05:53.220
+That would mean we'd only need 1000 locks,
+which would allow up to 1000 transactions
+
+00:05:53.220 --> 00:05:55.970
+to happen simultaneously.
+
+00:05:55.970 --> 00:06:00.110
+The notion of transactions on shared data
+is so useful that we often use a separate
+
+00:06:00.110 --> 00:06:04.080
+system called a database that provides the
+desired functionality.
+
+00:06:04.080 --> 00:06:09.640
+Database systems are engineered to provide
+low-latency access to shared data, providing
+
+00:06:09.640 --> 00:06:13.150
+the appropriate transactional semantics.
+
+00:06:13.150 --> 00:06:17.400
+The design and implementation of databases
+and transactions is pretty interesting.
+
+00:06:17.400 --> 00:06:22.360
+To follow up, I recommend reading about databases
+on the web.
+
+00:06:22.360 --> 00:06:27.380
+Returning to our producer/consumer example,
+we see that if multiple producers are trying
+
+00:06:27.380 --> 00:06:30.190
+to insert characters into the buffer at the
+same time,
+
+00:06:30.190 --> 00:06:35.570
+it's possible that their execution may overlap
+in a way that causes characters to be overwritten
+
+00:06:35.570 --> 00:06:40.490
+and/or the index to be improperly incremented.
+
+00:06:40.490 --> 00:06:45.691
+We just saw this bug in the bank example:
+the producer code contains a critical section
+
+00:06:45.691 --> 00:06:50.390
+of code that accesses the FIFO buffer and
+we need to ensure that the critical section
+
+00:06:50.390 --> 00:06:53.000
+is executed atomically.
+
+00:06:53.000 --> 00:06:58.080
+Here we've added a third semaphore, called
+LOCK, to implement the necessary mutual exclusion
+
+00:06:58.080 --> 00:07:04.400
+constraint for the critical section of code
+that inserts characters into the FIFO buffer.
+
+00:07:04.400 --> 00:07:09.580
+With this modification, the system will now
+work correctly when there are multiple producer
+
+00:07:09.580 --> 00:07:10.580
+processes.
+
+00:07:10.580 --> 00:07:14.990
+There's a similar issue with multiple consumers,
+so we've used the same LOCK to protect the
+
+00:07:14.990 --> 00:07:19.710
+critical section for reading from the buffer
+in the RCV code.
+
+00:07:19.710 --> 00:07:25.210
+Using the same LOCK for producers and consumers
+will work, but does introduce unnecessary
+
+00:07:25.210 --> 00:07:30.110
+precedence constraints since producers and
+consumers use different indices,
+
+00:07:30.110 --> 00:07:34.610
+i.e., IN for producers and OUT for consumers.
+
+00:07:34.610 --> 00:07:40.750
+To solve this problem we could use two locks:
+one for producers and one for consumers.
+
+00:07:40.750 --> 00:07:45.080
+Semaphores are a pretty handy swiss army knife
+when it comes to dealing with synchronization
+
+00:07:45.080 --> 00:07:46.400
+issues.
+
+00:07:46.400 --> 00:07:51.490
+When WAIT and SIGNAL appear in different processes,
+the semaphore ensures the correct execution
+
+00:07:51.490 --> 00:07:54.020
+timing between processes.
+
+00:07:54.020 --> 00:07:58.870
+In our example, we used two semaphores to
+ensure that consumers can't read from an empty
+
+00:07:58.870 --> 00:08:04.240
+buffer and that producers can't write into
+a full buffer.
+
+00:08:04.240 --> 00:08:09.930
+We also used semaphores to ensure that execution
+of critical sections -- in our example, updates
+
+00:08:09.930 --> 00:08:13.480
+of the indices IN and OUT -- were guaranteed
+to be atomic.
+
+00:08:13.480 --> 00:08:18.710
+In other words, that the sequence of reads
+and writes needed to increment a shared index
+
+00:08:18.710 --> 00:08:23.700
+would not be interrupted by another process
+between the initial read of the index and
+
+00:08:23.700 --> 00:08:24.490
+the final write.

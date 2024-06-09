@@ -1,0 +1,4349 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.520
+The following content is
+provided under a Creative
+
+00:00:02.520 --> 00:00:03.970
+Commons license.
+
+00:00:03.970 --> 00:00:06.360
+Your support will help
+MIT OpenCourseWare
+
+00:00:06.360 --> 00:00:10.660
+continue to offer high quality
+educational resources for free.
+
+00:00:10.660 --> 00:00:13.350
+To make a donation or
+view additional materials
+
+00:00:13.350 --> 00:00:17.190
+from hundreds of MIT courses,
+visit MIT OpenCourseWare
+
+00:00:17.190 --> 00:00:18.306
+at ocw.mit.edu.
+
+00:00:22.180 --> 00:00:23.890
+RUSS TEDRAKE: Welcome, back.
+
+00:00:23.890 --> 00:00:27.700
+Today we're going to break
+the mold of these one
+
+00:00:27.700 --> 00:00:32.080
+degree of freedom
+systems in a major way.
+
+00:00:32.080 --> 00:00:34.810
+We're going to go to two
+degree of freedom systems.
+
+00:00:34.810 --> 00:00:40.220
+There are two sort of canonical
+underactuated systems.
+
+00:00:40.220 --> 00:00:44.207
+In fact, I'd say that the
+field of underactuated robotics
+
+00:00:44.207 --> 00:00:45.790
+spends most of its
+time thinking about
+
+00:00:45.790 --> 00:00:50.045
+a few canonical
+underactuated problems.
+
+00:00:50.045 --> 00:00:51.670
+The two we're going
+to talk about today
+
+00:00:51.670 --> 00:00:55.240
+are the Acrobot and
+the cart-pole systems.
+
+00:00:55.240 --> 00:00:59.920
+The Acrobot is a
+two-link robotic arm.
+
+00:00:59.920 --> 00:01:01.310
+The only thing
+special about it--
+
+00:01:01.310 --> 00:01:03.070
+it's operating in
+the vertical plane.
+
+00:01:07.090 --> 00:01:08.920
+The only thing that
+makes it special
+
+00:01:08.920 --> 00:01:11.950
+is that somebody forgot to
+put a motor at the shoulder.
+
+00:01:11.950 --> 00:01:14.230
+So you've got a motor at
+the elbow and no motor
+
+00:01:14.230 --> 00:01:16.150
+at the shoulder.
+
+00:01:16.150 --> 00:01:18.513
+It's called the Acrobot
+because you can--
+
+00:01:18.513 --> 00:01:20.680
+it's a little bit like an
+acrobat on a high bar that
+
+00:01:20.680 --> 00:01:23.680
+has to spin around
+and do tricks,
+
+00:01:23.680 --> 00:01:26.260
+even though they can't produce
+much torque with their wrist
+
+00:01:26.260 --> 00:01:29.440
+and they have to do it
+all with their waist.
+
+00:01:29.440 --> 00:01:32.230
+The other one, the
+cart-pole system,
+
+00:01:32.230 --> 00:01:36.130
+you've probably seen it in
+an intro controls course.
+
+00:01:36.130 --> 00:01:38.920
+In our 6003 and our
+Signals and Systems
+
+00:01:38.920 --> 00:01:41.770
+course at the end of the year,
+they bring in a cart-pole
+
+00:01:41.770 --> 00:01:44.570
+and do a little demonstration.
+
+00:01:44.570 --> 00:01:47.470
+It's a cart with--
+
+00:01:47.470 --> 00:01:49.060
+I made it a simple
+pendulum, since we
+
+00:01:49.060 --> 00:01:53.210
+thought a lot about the
+simple pendulums, on the cart.
+
+00:01:53.210 --> 00:01:56.080
+You're allowed to push
+the cart sideways.
+
+00:01:56.080 --> 00:02:01.690
+But there's only a pin joint
+here holding the pendulum up.
+
+00:02:01.690 --> 00:02:04.240
+So you have to the
+balance the pendulum
+
+00:02:04.240 --> 00:02:06.640
+with the cart by
+moving the cart.
+
+00:02:06.640 --> 00:02:10.180
+Now, in our intro
+controls courses,
+
+00:02:10.180 --> 00:02:11.440
+they do linear control.
+
+00:02:11.440 --> 00:02:15.250
+At the top, they do
+some simple modeling,
+
+00:02:15.250 --> 00:02:17.530
+some pole placement in 6003.
+
+00:02:17.530 --> 00:02:18.790
+So they start it near the top.
+
+00:02:18.790 --> 00:02:20.410
+It stays near the top.
+
+00:02:20.410 --> 00:02:23.518
+They actually-- they put a wine
+glass or something on the top.
+
+00:02:23.518 --> 00:02:25.060
+They put a Christmas
+tree on the top.
+
+00:02:25.060 --> 00:02:28.270
+They do all these things, but
+they never start it from here
+
+00:02:28.270 --> 00:02:30.550
+because then the
+nonlinearity kicks in.
+
+00:02:30.550 --> 00:02:32.450
+And that's why we
+need this course.
+
+00:02:32.450 --> 00:02:35.110
+We've got to-- that's
+a harder problem.
+
+00:02:35.110 --> 00:02:39.160
+So we're going to do the full
+Cart-Pole starting today.
+
+00:02:39.160 --> 00:02:40.690
+And we'll finish it on Thursday.
+
+00:02:45.678 --> 00:02:47.470
+So the equations of
+motion of both of those
+
+00:02:47.470 --> 00:02:48.970
+are quite easy to derive.
+
+00:02:48.970 --> 00:02:53.530
+They take a half a page,
+and they're in the notes.
+
+00:02:53.530 --> 00:02:58.780
+Both of them are nicely
+described by the manipulator
+
+00:02:58.780 --> 00:03:01.190
+equations that I introduced
+in the first lecture.
+
+00:03:01.190 --> 00:03:04.070
+So let's work in the
+manipulator equation form.
+
+00:03:04.070 --> 00:03:07.390
+So if you remember,
+I said that most
+
+00:03:07.390 --> 00:03:09.250
+of the systems we
+care about can be
+
+00:03:09.250 --> 00:03:12.220
+described by these equations.
+
+00:03:25.300 --> 00:03:28.030
+It happens that both
+of these systems
+
+00:03:28.030 --> 00:03:30.940
+are sort of trivially
+underactuated.
+
+00:03:30.940 --> 00:03:34.180
+They've got one actuator
+and one passive joint,
+
+00:03:34.180 --> 00:03:36.730
+so B turns out to be--
+
+00:03:36.730 --> 00:03:41.800
+well, I've actually got it
+to be 0 and 1 for the Acrobot
+
+00:03:41.800 --> 00:03:46.372
+and 1, 0 for the cart-pole.
+
+00:03:48.970 --> 00:03:52.050
+But they're both sort
+of the standard form.
+
+00:03:55.810 --> 00:03:59.800
+So the first thing I
+think that everybody
+
+00:03:59.800 --> 00:04:02.200
+does with these systems
+and that we have to discuss
+
+00:04:02.200 --> 00:04:05.020
+is, let's see if we can
+make it balance at the top.
+
+00:04:05.020 --> 00:04:06.940
+The task in both
+of these cases is
+
+00:04:06.940 --> 00:04:10.720
+to take the system from some
+arbitrary initial condition
+
+00:04:10.720 --> 00:04:14.740
+and get it up to the
+top, and balance.
+
+00:04:14.740 --> 00:04:18.010
+It turns out that, even though
+the systems are underactuated,
+
+00:04:18.010 --> 00:04:19.720
+you can do that.
+
+00:04:19.720 --> 00:04:20.721
+Just to show you the--
+
+00:04:23.487 --> 00:04:25.000
+to help your
+intuition here, this
+
+00:04:25.000 --> 00:04:30.280
+is some Acrobot
+video from the web.
+
+00:04:33.250 --> 00:04:34.660
+They have a belt
+drive going down
+
+00:04:34.660 --> 00:04:38.560
+to their elbow motor
+and a big motor
+
+00:04:38.560 --> 00:04:42.664
+up here, like very
+big motor up here.
+
+00:04:42.664 --> 00:04:43.570
+[VIDEO PLAYBACK]
+
+00:04:43.570 --> 00:04:46.750
+And if you're willing to
+sort of pump energy up
+
+00:04:46.750 --> 00:04:50.070
+through the second
+link, then you can--
+
+00:04:50.070 --> 00:04:50.908
+- Oh!
+
+00:04:50.908 --> 00:04:52.450
+RUSS TEDRAKE: They
+were very excited.
+
+00:04:52.450 --> 00:04:57.100
+[LAUGHTER] Then you can
+add energy to the system,
+
+00:04:57.100 --> 00:04:58.300
+get it to swing around.
+
+00:04:58.300 --> 00:05:00.430
+And then the cool thing
+is, you can stabilize it
+
+00:05:00.430 --> 00:05:04.920
+at the top, which is
+actually pretty surprising.
+
+00:05:04.920 --> 00:05:13.000
+So this one took however many
+pumps, got itself the top,
+
+00:05:13.000 --> 00:05:15.880
+balanced, they said, oh!
+
+00:05:15.880 --> 00:05:19.670
+So in this class, we're
+going to do better.
+
+00:05:19.670 --> 00:05:21.250
+So this is just a teaser.
+
+00:05:21.250 --> 00:05:24.850
+But here, if you were to take
+your optimal control tools
+
+00:05:24.850 --> 00:05:28.208
+and try to solve the same
+problem, the exact same system.
+
+00:05:28.208 --> 00:05:29.000
+Now it's in MATLAB.
+
+00:05:29.000 --> 00:05:32.110
+But we're going to do a
+lot better by thinking
+
+00:05:32.110 --> 00:05:36.400
+about sort of minimum
+time or even LQR solutions
+
+00:05:36.400 --> 00:05:37.330
+to get to the top.
+
+00:05:37.330 --> 00:05:38.950
+I think that's pretty elegant.
+
+00:05:38.950 --> 00:05:42.042
+So single pump,
+and then it's up.
+
+00:05:42.042 --> 00:05:44.500
+And of course, it will depend
+on your torque limits and all
+
+00:05:44.500 --> 00:05:47.887
+these things, but I think we
+can do very elegant control
+
+00:05:47.887 --> 00:05:48.970
+on these kind of problems.
+
+00:05:52.510 --> 00:05:57.670
+OK, so I want to
+start by thinking
+
+00:05:57.670 --> 00:05:59.390
+about balancing at the top.
+
+00:05:59.390 --> 00:06:03.730
+So it's not obvious, if I've
+got a system with a motor
+
+00:06:03.730 --> 00:06:06.310
+at the elbow and no
+motor at the shoulder,
+
+00:06:06.310 --> 00:06:08.830
+that I could balance at the top.
+
+00:06:08.830 --> 00:06:11.518
+You'd think that, if I
+fall with my elbow motor,
+
+00:06:11.518 --> 00:06:13.310
+I've got nothing
+immediately to correct it.
+
+00:06:13.310 --> 00:06:18.070
+So how the heck do I stabilize
+that fixed point at the top?
+
+00:06:18.070 --> 00:06:20.080
+Well, it turns out you can.
+
+00:06:20.080 --> 00:06:22.720
+And let's look at that.
+
+00:06:22.720 --> 00:06:24.470
+You've probably seen
+linearization before.
+
+00:06:24.470 --> 00:06:26.320
+It turns out, if you're
+linearizing things
+
+00:06:26.320 --> 00:06:31.000
+from the manipulated
+equations, it's pretty elegant.
+
+00:06:31.000 --> 00:06:33.100
+So I'm going to do
+that quickly here.
+
+00:06:37.420 --> 00:06:44.800
+So our system that we're working
+with here is just an x dot.
+
+00:06:44.800 --> 00:06:46.750
+It equals f of u in
+state-space form.
+
+00:06:46.750 --> 00:06:50.200
+But it happens because it's
+from the manipulator equation,
+
+00:06:50.200 --> 00:06:52.885
+that if we choose
+x to be q, q dot,
+
+00:06:52.885 --> 00:06:58.930
+like we always
+do, then f of x, u
+
+00:06:58.930 --> 00:07:04.310
+has this sort of block matrix,
+a block vector form here,
+
+00:07:04.310 --> 00:07:05.230
+which is--
+
+00:07:05.230 --> 00:07:12.340
+q double dot is now H
+inverse q, Bu minus Cq
+
+00:07:12.340 --> 00:07:23.470
+dot minus G. I just solve
+that for q double dot.
+
+00:07:23.470 --> 00:07:25.170
+We know that H is--
+
+00:07:25.170 --> 00:07:28.625
+an inertial matrix, it's always
+uniformly positive definite.
+
+00:07:28.625 --> 00:07:30.250
+So for all q's, it's
+positive definite.
+
+00:07:30.250 --> 00:07:33.250
+So I can take its inverse,
+and I get that solution for q
+
+00:07:33.250 --> 00:07:34.620
+double that.
+
+00:07:34.620 --> 00:07:37.210
+So the derivative of x is--
+
+00:07:37.210 --> 00:07:39.202
+this is q dot, sorry.
+
+00:07:39.202 --> 00:07:41.240
+It looks like a
+line, but it's a dot.
+
+00:07:45.700 --> 00:07:49.060
+And now we want to think
+about linearizing that system
+
+00:07:49.060 --> 00:07:50.650
+around a fixed point.
+
+00:08:15.540 --> 00:08:17.290
+The way we're going
+to do that, of course,
+
+00:08:17.290 --> 00:08:18.498
+is taking a Taylor expansion.
+
+00:08:22.810 --> 00:08:25.750
+I'm going to take
+my x dot and say
+
+00:08:25.750 --> 00:08:30.190
+it's approximately equal to
+f of x at the fixed point, u
+
+00:08:30.190 --> 00:08:36.370
+of x at the fixed point,
+plus partial f, partial x,
+
+00:08:36.370 --> 00:08:39.429
+with x evaluated
+at the fixed point,
+
+00:08:39.429 --> 00:08:46.690
+u evaluated at the fixed
+point, times x minus x star,
+
+00:08:46.690 --> 00:08:52.480
+plus partial f, partial u,
+evaluated at the fixed point.
+
+00:09:06.560 --> 00:09:09.130
+And it turns out
+for these equations,
+
+00:09:09.130 --> 00:09:13.617
+at a fixed point, that's really
+not a hard thing to compute.
+
+00:09:13.617 --> 00:09:14.700
+So can we do that quickly?
+
+00:09:14.700 --> 00:09:20.020
+So what's this
+term, first of all?
+
+00:09:26.950 --> 00:09:28.440
+AUDIENCE: 0.
+
+00:09:28.440 --> 00:09:30.950
+RUSS TEDRAKE: It's
+going to be 0, right?
+
+00:09:30.950 --> 00:09:35.270
+If we're at a fixed
+point, then the derivative
+
+00:09:35.270 --> 00:09:36.860
+at that fixed point better be 0.
+
+00:09:36.860 --> 00:09:38.472
+So this guy just disappears.
+
+00:09:41.360 --> 00:09:44.120
+Partial f, partial x
+we'll look at real quick.
+
+00:09:44.120 --> 00:09:46.250
+Partial f, partial u turns
+out to be not too hard.
+
+00:09:46.250 --> 00:09:48.110
+Let's do a partial
+f, partial u first.
+
+00:09:48.110 --> 00:09:48.950
+It's even easier.
+
+00:09:56.430 --> 00:09:59.770
+So this is a vector, right?
+
+00:09:59.770 --> 00:10:05.700
+So I'm going to end up with,
+in general, a matrix of here,
+
+00:10:05.700 --> 00:10:11.730
+which contains the
+terms partial q
+
+00:10:11.730 --> 00:10:16.760
+dot, roughly, partial u,
+and partial q double dot,
+
+00:10:16.760 --> 00:10:17.390
+partial u.
+
+00:10:21.764 --> 00:10:23.660
+So what's partial
+q dot, partial u?
+
+00:10:26.901 --> 00:10:28.082
+AUDIENCE: 0.
+
+00:10:28.082 --> 00:10:29.040
+RUSS TEDRAKE: 0, right?
+
+00:10:34.480 --> 00:10:37.170
+Partial q double
+dot, partial u, well,
+
+00:10:37.170 --> 00:10:38.920
+that turns out to be--
+even though there's
+
+00:10:38.920 --> 00:10:41.710
+a lot of matrices
+flying around here
+
+00:10:41.710 --> 00:10:44.020
+with possibly nonlinear
+things inside,
+
+00:10:44.020 --> 00:10:46.960
+everything's linear in u.
+
+00:10:46.960 --> 00:10:49.090
+So that's actually
+pretty easy to write too.
+
+00:10:49.090 --> 00:10:59.660
+That turns out to be H inverse
+B. And this whole thing is
+
+00:10:59.660 --> 00:11:02.240
+going to be evaluated at our--
+
+00:11:08.030 --> 00:11:10.250
+u doesn't matter in this
+case-- but evaluated
+
+00:11:10.250 --> 00:11:11.960
+at our fixed point.
+
+00:11:17.160 --> 00:11:19.230
+OK, what about
+partial f, partial x?
+
+00:11:32.910 --> 00:11:36.550
+So now x is a bigger thing.
+
+00:11:36.550 --> 00:11:40.430
+So I'm going to have partial
+q dot, partial q here.
+
+00:11:40.430 --> 00:11:43.560
+This is sort of a block
+matrix form I'm using here--
+
+00:11:43.560 --> 00:11:47.850
+partial q dot,
+partial q dot here,
+
+00:11:47.850 --> 00:11:52.710
+and then partial q double
+dot, partial q, partial q
+
+00:11:52.710 --> 00:11:55.800
+double dot, partial q dot.
+
+00:12:01.360 --> 00:12:04.000
+What's this?
+
+00:12:04.000 --> 00:12:04.500
+AUDIENCE: 0.
+
+00:12:04.500 --> 00:12:06.990
+RUSS TEDRAKE: 0.
+
+00:12:06.990 --> 00:12:07.897
+What's this one?
+
+00:12:07.897 --> 00:12:08.871
+AUDIENCE: 1.
+
+00:12:08.871 --> 00:12:10.880
+RUSS TEDRAKE: 1, or
+more generally, I, yeah.
+
+00:12:15.840 --> 00:12:17.280
+q double dot, partial q--
+
+00:12:24.930 --> 00:12:26.690
+we need to use our chain rule.
+
+00:12:26.690 --> 00:12:29.340
+This is, something
+depends on q times
+
+00:12:29.340 --> 00:12:31.650
+something else
+that depends on q.
+
+00:12:31.650 --> 00:12:37.710
+So it's going to be partial
+H inverse, partial q,
+
+00:12:37.710 --> 00:12:46.285
+times Bu minus Cq dot minus
+G, plus H inverse, partial
+
+00:12:46.285 --> 00:12:47.160
+of that whole inside.
+
+00:13:01.250 --> 00:13:04.550
+And H is potentially
+a little messy.
+
+00:13:04.550 --> 00:13:07.550
+H inverse is
+probably more messy.
+
+00:13:07.550 --> 00:13:10.430
+But it turns out this is going
+to be very simple, again,
+
+00:13:10.430 --> 00:13:12.290
+for us.
+
+00:13:12.290 --> 00:13:17.480
+So I claim that this
+term at the fixed point
+
+00:13:17.480 --> 00:13:18.590
+has also got to be 0.
+
+00:13:21.300 --> 00:13:22.343
+Do you buy that?
+
+00:13:22.343 --> 00:13:22.843
+Yep.
+
+00:13:25.530 --> 00:13:29.440
+This thing has got to
+equal H, q double dot.
+
+00:13:29.440 --> 00:13:32.710
+H is positive definite.
+
+00:13:32.710 --> 00:13:37.540
+So for q double dot to be
+0, this had better be 0.
+
+00:13:37.540 --> 00:13:40.150
+So that whole thing goes to 0.
+
+00:13:40.150 --> 00:13:43.630
+So this term-- or we don't
+have to do partial H inverse,
+
+00:13:43.630 --> 00:13:45.160
+partial q--
+
+00:13:45.160 --> 00:13:47.200
+great.
+
+00:13:47.200 --> 00:13:49.540
+And this one, again, is
+actually pretty simple.
+
+00:13:53.500 --> 00:13:55.310
+In the very first
+lecture, I did use B
+
+00:13:55.310 --> 00:13:57.760
+as potentially a function of q.
+
+00:13:57.760 --> 00:13:59.765
+But for these examples,
+it certainly isn't.
+
+00:13:59.765 --> 00:14:01.670
+It's just a constant.
+
+00:14:01.670 --> 00:14:03.910
+So this doesn't have
+any dependence on q.
+
+00:14:03.910 --> 00:14:05.230
+C does depend on q.
+
+00:14:05.230 --> 00:14:07.336
+G does depend on q.
+
+00:14:07.336 --> 00:14:10.570
+But at the fixed
+point, q dot had better
+
+00:14:10.570 --> 00:14:13.158
+be 0, if it's a fixed point.
+
+00:14:13.158 --> 00:14:14.950
+So the only term that
+actually survives out
+
+00:14:14.950 --> 00:14:18.460
+of this whole potentially
+scary thing is--
+
+00:14:22.880 --> 00:14:28.670
+yeah, good-- is negative H
+inverse, partial G, partial q.
+
+00:14:41.980 --> 00:14:45.585
+Take the derivative
+with respect to q dot.
+
+00:14:45.585 --> 00:14:47.260
+Again, this term is 0.
+
+00:14:47.260 --> 00:14:48.760
+So no matter--
+
+00:14:48.760 --> 00:14:51.350
+H inverse, partial q
+dot doesn't matter.
+
+00:14:51.350 --> 00:14:56.140
+And then what in here
+depends on q dot?
+
+00:14:56.140 --> 00:15:02.110
+Well, C depends on q dot,
+both directly and internally.
+
+00:15:02.110 --> 00:15:07.360
+So we end up with partial--
+
+00:15:07.360 --> 00:15:19.150
+so H inverse, partial C, partial
+q dot, times q dot, plus--
+
+00:15:19.150 --> 00:15:21.100
+I'll do the whole
+thing as minus here--
+
+00:15:21.100 --> 00:15:32.110
+plus C. But again, q dot
+is 0 at the fixed point,
+
+00:15:32.110 --> 00:15:38.110
+so it ends up-- this whole scary
+thing reduces to H inverse C.
+
+00:15:42.915 --> 00:15:45.980
+AUDIENCE: So G is
+[INAUDIBLE] of [? theta? ?]
+
+00:15:45.980 --> 00:15:47.483
+RUSS TEDRAKE:
+That's correct, yep.
+
+00:15:47.483 --> 00:15:49.150
+Those are our
+gravitational terms, yeah.
+
+00:15:52.780 --> 00:15:59.640
+OK, so this whole potentially
+scary thing works out
+
+00:15:59.640 --> 00:16:21.020
+to be 0, I, negative H
+inverse, partial G, partial q,
+
+00:16:21.020 --> 00:16:43.940
+negative H inverse, C. OK?
+
+00:16:47.042 --> 00:16:49.250
+There's a lot of beauty in
+the manipulator equations.
+
+00:16:49.250 --> 00:16:56.570
+It's a very nice middle ground
+between sort of any arbitrary
+
+00:16:56.570 --> 00:16:59.537
+nonlinear system, but
+it's got enough structure
+
+00:16:59.537 --> 00:17:01.370
+that you can play a lot
+of tricks like this.
+
+00:17:01.370 --> 00:17:03.234
+And often, things simplify.
+
+00:17:03.234 --> 00:17:05.359
+So I actually think it's
+a beautiful representation
+
+00:17:05.359 --> 00:17:07.369
+that we're lucky to
+have in robotics.
+
+00:17:23.619 --> 00:17:25.869
+OK, now I've got this form.
+
+00:17:25.869 --> 00:17:28.990
+That's a linear
+system here, right?
+
+00:17:28.990 --> 00:17:33.610
+I've got-- if I just call
+this thing A and this thing B,
+
+00:17:33.610 --> 00:17:39.546
+then I've got x equals
+Ax plus Bu here.
+
+00:17:42.420 --> 00:17:47.190
+And if you prefer to
+really make it linear,
+
+00:17:47.190 --> 00:17:53.910
+then let's define x bar
+to be x minus x star,
+
+00:17:53.910 --> 00:17:58.920
+u bar to be u minus u star,
+to put the origin at the fixed
+
+00:17:58.920 --> 00:17:59.930
+point.
+
+00:17:59.930 --> 00:18:00.430
+Oops.
+
+00:18:03.400 --> 00:18:10.660
+Now, x bar dot is
+just x dot minus--
+
+00:18:10.660 --> 00:18:13.930
+this thing's-- that's
+0, so it's just x dot.
+
+00:18:13.930 --> 00:18:20.410
+So I could equally write
+this as Ax bar plus Bu bar.
+
+00:18:33.300 --> 00:18:37.200
+OK, so given the manipulator
+equations for the Acrobot,
+
+00:18:37.200 --> 00:18:42.360
+for the cart-pole, it's trivial
+to find a local approximation
+
+00:18:42.360 --> 00:18:44.910
+of those dynamics which is
+valid around the fixed point
+
+00:18:44.910 --> 00:18:46.183
+we're trying to stabilize.
+
+00:18:49.450 --> 00:18:53.610
+And if I have that, then I could
+play some of the linear control
+
+00:18:53.610 --> 00:18:56.610
+games that we started with.
+
+00:18:56.610 --> 00:19:02.196
+So the first thing to try,
+let's do LQR at the top.
+
+00:19:02.196 --> 00:19:06.030
+It turns out LQR at the
+top just works really well.
+
+00:19:06.030 --> 00:19:09.660
+It's not too
+surprising, I guess.
+
+00:19:09.660 --> 00:19:12.270
+Actually, before we do
+LQR, let me take a minute
+
+00:19:12.270 --> 00:19:16.680
+and actually decide
+if we should--
+
+00:19:16.680 --> 00:19:19.800
+if it's proper to do LQR.
+
+00:19:19.800 --> 00:19:21.300
+So there's a
+condition in LQR that
+
+00:19:21.300 --> 00:19:23.700
+had to be met in that
+derivation that I threw at you.
+
+00:19:26.580 --> 00:19:33.450
+If the infinite horizon cost,
+that integral wasn't bounded,
+
+00:19:33.450 --> 00:19:37.260
+if your system didn't
+get to the origin,
+
+00:19:37.260 --> 00:19:40.740
+then the LQR cost
+would be infinite,
+
+00:19:40.740 --> 00:19:42.420
+and the LQR derivation
+would break.
+
+00:19:45.630 --> 00:19:49.950
+If your system-- if you
+cannot, with feedback,
+
+00:19:49.950 --> 00:19:54.400
+drive your system so that
+x is at the fixed point,
+
+00:19:54.400 --> 00:19:58.620
+then the LQR cost function
+will accumulate cost forever
+
+00:19:58.620 --> 00:20:00.390
+and blow up.
+
+00:20:00.390 --> 00:20:03.150
+So really, the first
+thing, before we apply LQR,
+
+00:20:03.150 --> 00:20:04.650
+we better take a
+second to decide
+
+00:20:04.650 --> 00:20:07.500
+if we think the system can get
+to the origin with feedback.
+
+00:20:10.050 --> 00:20:14.010
+And that condition is
+called controllability.
+
+00:20:14.010 --> 00:20:17.737
+And controllability is
+a very powerful concept.
+
+00:20:17.737 --> 00:20:19.320
+And I want to make
+sure you understand
+
+00:20:19.320 --> 00:20:20.987
+the relationship
+between controllability
+
+00:20:20.987 --> 00:20:22.145
+and underactuation.
+
+00:20:38.180 --> 00:20:39.260
+So the question is--
+
+00:20:51.350 --> 00:20:54.840
+for this system,
+the question is,
+
+00:20:54.840 --> 00:20:58.940
+if I have my linear system
+and I started in some initial
+
+00:20:58.940 --> 00:21:00.840
+conditions that are non-0--
+
+00:21:00.840 --> 00:21:03.680
+otherwise it's not
+so interesting--
+
+00:21:03.680 --> 00:21:06.290
+if my initial
+conditions are non-0,
+
+00:21:06.290 --> 00:21:10.880
+can I design a feedback
+law, find some actions, u,
+
+00:21:10.880 --> 00:21:13.970
+that will drive my system
+to 0 in a finite time?
+
+00:21:18.360 --> 00:21:23.140
+So more generally, the
+definition of controllability
+
+00:21:23.140 --> 00:21:23.640
+says--
+
+00:21:49.430 --> 00:21:56.480
+let's say, x at 0 equals
+some initial conditions
+
+00:21:56.480 --> 00:22:14.800
+to x at some final time to be
+some other initial conditions,
+
+00:22:14.800 --> 00:22:24.940
+given unbounded actions
+in a finite time.
+
+00:22:41.680 --> 00:22:43.750
+So controllability
+is actually the thing
+
+00:22:43.750 --> 00:22:45.670
+we care about in life.
+
+00:22:45.670 --> 00:22:48.910
+For nonlinear systems,
+controllability is actually
+
+00:22:48.910 --> 00:22:50.740
+incredibly hard to evaluate.
+
+00:22:50.740 --> 00:22:53.050
+Most systems tend
+to be controllable.
+
+00:22:53.050 --> 00:22:58.512
+But it's a hard thing to
+evaluate for nonlinear systems.
+
+00:22:58.512 --> 00:23:00.220
+For linear systems,
+we have all the tools
+
+00:23:00.220 --> 00:23:02.937
+we could dream of to
+evaluate the controllability
+
+00:23:02.937 --> 00:23:03.520
+of the system.
+
+00:23:07.660 --> 00:23:19.450
+So for linear controllability,
+it's sufficient to say,
+
+00:23:19.450 --> 00:23:25.090
+x, t final equals 0.
+
+00:23:25.090 --> 00:23:26.890
+So a lot of times
+for linear systems,
+
+00:23:26.890 --> 00:23:29.140
+people just ask controllable--
+say it's controllable
+
+00:23:29.140 --> 00:23:32.290
+if I can drive my system from
+any initial conditions to 0
+
+00:23:32.290 --> 00:23:33.940
+in a finite time.
+
+00:23:33.940 --> 00:23:36.760
+And because everything's
+nice and linear,
+
+00:23:36.760 --> 00:23:38.890
+that's actually-- that's
+equivalent to the stronger
+
+00:23:38.890 --> 00:23:41.820
+definition for linear systems.
+
+00:23:41.820 --> 00:23:43.570
+In nonlinear systems,
+you have to evaluate
+
+00:23:43.570 --> 00:23:45.638
+every initial condition,
+every final condition,
+
+00:23:45.638 --> 00:23:46.555
+if you're not careful.
+
+00:23:49.415 --> 00:23:50.290
+So what do you think?
+
+00:23:50.290 --> 00:23:54.070
+If the system is
+underactuated, then
+
+00:23:54.070 --> 00:23:56.751
+do you think it can
+be controllable?
+
+00:24:02.160 --> 00:24:10.380
+If I choose some place,
+some state for the Acrobot,
+
+00:24:10.380 --> 00:24:15.180
+and I choose a
+finite time, can you
+
+00:24:15.180 --> 00:24:18.840
+design a controller, potentially
+with really big actions,
+
+00:24:18.840 --> 00:24:22.173
+that gets me there
+in finite time?
+
+00:24:22.173 --> 00:24:22.715
+AUDIENCE: No.
+
+00:24:26.207 --> 00:24:27.290
+RUSS TEDRAKE: Tell me why.
+
+00:24:27.290 --> 00:24:28.765
+Tell me why you say no.
+
+00:24:28.765 --> 00:24:32.725
+AUDIENCE: Well, it can
+[INAUDIBLE] you potentially
+
+00:24:32.725 --> 00:24:36.190
+[INAUDIBLE] stabilize
+for Acrobot.
+
+00:24:36.190 --> 00:24:39.010
+So regardless of the fact,
+which [INAUDIBLE] you
+
+00:24:39.010 --> 00:24:41.025
+can reach that [? theta. ?]
+
+00:24:41.025 --> 00:24:42.400
+RUSS TEDRAKE: But
+there's nothing
+
+00:24:42.400 --> 00:24:45.550
+to say I can't leave
+that state and come back
+
+00:24:45.550 --> 00:24:48.820
+in some very finite, very
+small amount of time.
+
+00:24:54.720 --> 00:24:57.652
+So you're saying, if
+I ask you to go here
+
+00:24:57.652 --> 00:24:59.860
+at some small amount of
+time, and I start right here,
+
+00:24:59.860 --> 00:25:02.320
+then I can't be there in
+some small amount of time.
+
+00:25:02.320 --> 00:25:04.180
+But what if I put in so much
+actuation that I go like this
+
+00:25:04.180 --> 00:25:04.972
+and I'm back there?
+
+00:25:11.840 --> 00:25:14.130
+AUDIENCE: [INAUDIBLE] have
+to stay in the final state?
+
+00:25:14.130 --> 00:25:15.845
+RUSS TEDRAKE: No,
+it does not have
+
+00:25:15.845 --> 00:25:16.970
+to stay in the final state.
+
+00:25:19.600 --> 00:25:21.450
+AUDIENCE: So
+underactuated implies
+
+00:25:21.450 --> 00:25:24.720
+that the local dimensionality
+of the reachable state-space
+
+00:25:24.720 --> 00:25:26.790
+is lower than the
+full dimension, right?
+
+00:25:26.790 --> 00:25:29.220
+So if you just shrink
+your finite time
+
+00:25:29.220 --> 00:25:33.300
+to an arbitrarily
+small time, we won't
+
+00:25:33.300 --> 00:25:36.343
+be able to reach states
+outside that [INAUDIBLE]..
+
+00:25:36.343 --> 00:25:38.760
+RUSS TEDRAKE: I think that--
+so this is exactly the point.
+
+00:25:38.760 --> 00:25:41.490
+So what he said is, he says,
+the underactuation is--
+
+00:25:41.490 --> 00:25:43.260
+I'll use the word instantaneous.
+
+00:25:43.260 --> 00:25:45.955
+It's an instantaneous
+constraint on what you can do.
+
+00:25:45.955 --> 00:25:48.330
+At any incident in time, I
+can only produce accelerations
+
+00:25:48.330 --> 00:25:49.700
+in a certain direction.
+
+00:25:49.700 --> 00:25:51.900
+So how can I possibly,
+in some-- if I
+
+00:25:51.900 --> 00:25:54.210
+make my finite
+time small enough,
+
+00:25:54.210 --> 00:25:56.080
+how can I possibly get there?
+
+00:25:56.080 --> 00:25:59.680
+Well, finite time is actually
+different than 0 time.
+
+00:25:59.680 --> 00:26:03.060
+And the actions can
+potentially be huge.
+
+00:26:03.060 --> 00:26:05.460
+But actually, most-- a lot
+of the underactuated systems
+
+00:26:05.460 --> 00:26:08.610
+are controllable.
+
+00:26:08.610 --> 00:26:13.740
+So we'll see it carefully in
+the linearization of this.
+
+00:26:13.740 --> 00:26:16.350
+But actually, controllability--
+if you get one thing out
+
+00:26:16.350 --> 00:26:17.190
+of this lecture--
+
+00:26:17.190 --> 00:26:19.190
+and I'm going to write
+at the end of the lecture
+
+00:26:19.190 --> 00:26:20.217
+again on the board--
+
+00:26:20.217 --> 00:26:22.050
+there's a difference
+between controllability
+
+00:26:22.050 --> 00:26:23.970
+and underactuation.
+
+00:26:23.970 --> 00:26:26.190
+A lot of the underactuated
+systems are, in fact,
+
+00:26:26.190 --> 00:26:27.570
+controllable.
+
+00:26:27.570 --> 00:26:29.370
+And that's what makes--
+
+00:26:29.370 --> 00:26:31.620
+gives us a few more things
+to talk about in the class.
+
+00:26:34.860 --> 00:26:39.000
+So let's see if I can
+make that point to you.
+
+00:26:42.920 --> 00:26:45.700
+So how do we talk
+about controllability,
+
+00:26:45.700 --> 00:26:46.810
+in a linear system even?
+
+00:26:49.983 --> 00:26:52.150
+So what are the tools people
+use for controllability
+
+00:26:52.150 --> 00:26:52.942
+in a linear system?
+
+00:26:52.942 --> 00:26:54.490
+If you used them, call them out.
+
+00:26:57.410 --> 00:27:01.320
+Who's used
+controllability tools?
+
+00:27:01.320 --> 00:27:01.920
+Yeah.
+
+00:27:01.920 --> 00:27:06.270
+AUDIENCE: There's the matrix
+C times B, C times A, times B,
+
+00:27:06.270 --> 00:27:08.210
+write it all out,
+then find the rank.
+
+00:27:08.210 --> 00:27:09.150
+Would that be true?
+
+00:27:09.150 --> 00:27:10.380
+RUSS TEDRAKE: Good, there's
+a controllability matrix.
+
+00:27:10.380 --> 00:27:12.213
+AUDIENCE: There's a
+controllability Gramian,
+
+00:27:12.213 --> 00:27:12.715
+I think.
+
+00:27:12.715 --> 00:27:15.090
+RUSS TEDRAKE: Awesome, there's
+a controllability Gramian,
+
+00:27:15.090 --> 00:27:19.470
+which turns out to be
+almost exactly the--
+
+00:27:19.470 --> 00:27:23.820
+what came out of
+our LQR derivation.
+
+00:27:23.820 --> 00:27:25.027
+Those are the two big ones.
+
+00:27:25.027 --> 00:27:26.610
+So there are
+controllability matrices,
+
+00:27:26.610 --> 00:27:27.410
+controllability Gramians.
+
+00:27:27.410 --> 00:27:28.920
+I'm going to say
+a minute about it.
+
+00:27:28.920 --> 00:27:30.040
+But if you care about--
+
+00:27:30.040 --> 00:27:32.040
+we can actually-- both
+of those are a little bit
+
+00:27:32.040 --> 00:27:33.457
+unintuitive, actually.
+
+00:27:33.457 --> 00:27:35.790
+And the proofs are-- the proof
+of the Gramian's not bad,
+
+00:27:35.790 --> 00:27:36.970
+but the proof of the--
+
+00:27:36.970 --> 00:27:38.910
+the derivation of the
+controllability matrix
+
+00:27:38.910 --> 00:27:41.850
+is a little bit of black magic.
+
+00:27:41.850 --> 00:27:45.570
+So I decided instead to
+let's do a simpler case where
+
+00:27:45.570 --> 00:27:47.550
+we can actually understand it.
+
+00:27:47.550 --> 00:27:52.590
+But it'll be a less
+general result.
+
+00:27:52.590 --> 00:27:57.330
+So let's look at the x dot
+equals Ax plus Bu system.
+
+00:28:05.320 --> 00:28:07.440
+I'm going to make
+our derivation easier
+
+00:28:07.440 --> 00:28:11.430
+by making an assumption
+that the eigenvalues of A
+
+00:28:11.430 --> 00:28:12.360
+are all unique.
+
+00:28:29.430 --> 00:28:31.180
+If you're willing to
+make that assumption,
+
+00:28:31.180 --> 00:28:33.060
+we can see a lot of things.
+
+00:28:33.060 --> 00:28:35.430
+The more general
+derivations don't have that,
+
+00:28:35.430 --> 00:28:37.890
+but require black magic.
+
+00:28:42.390 --> 00:28:49.530
+OK, so if you remember, our
+eigenvalue thing, an eigenvalue
+
+00:28:49.530 --> 00:28:51.570
+means that multiplying
+A times that
+
+00:28:51.570 --> 00:28:53.970
+is just the same as
+multiplying a scalar times n.
+
+00:28:57.810 --> 00:29:00.000
+If I compose all the--
+
+00:29:00.000 --> 00:29:01.615
+sorry, these are eigenvectors.
+
+00:29:01.615 --> 00:29:02.490
+That's an eigenvalue.
+
+00:29:02.490 --> 00:29:05.260
+If I compose them all
+into a matrix form,
+
+00:29:05.260 --> 00:29:10.710
+I can see A times V, where
+V has all the eigenvectors
+
+00:29:10.710 --> 00:29:14.230
+as columns, is equivalent to--
+
+00:29:14.230 --> 00:29:17.175
+well, let's write it
+like V times lambda,
+
+00:29:17.175 --> 00:29:20.220
+where lambda is a
+diagonal matrix, which has
+
+00:29:20.220 --> 00:29:23.430
+lambda 1, lambda 2, and so on.
+
+00:29:33.920 --> 00:29:36.590
+The cool thing about--
+
+00:29:36.590 --> 00:29:40.310
+the reason we assume that
+there's no repeated eigenvalues
+
+00:29:40.310 --> 00:29:46.760
+is that it implies
+that all of the--
+
+00:29:46.760 --> 00:29:49.880
+eigenvalues are unique implies
+that all the eigenvectors are
+
+00:29:49.880 --> 00:29:52.910
+actually unique and that
+they span the space.
+
+00:29:52.910 --> 00:29:54.530
+And it implies that
+V inverse exists.
+
+00:29:57.652 --> 00:29:59.360
+As soon as you have
+repeated eigenvalues,
+
+00:29:59.360 --> 00:30:01.042
+you don't have that
+simplification.
+
+00:30:01.042 --> 00:30:02.750
+You have to do repeated
+roots and things.
+
+00:30:05.570 --> 00:30:08.630
+But in that
+simplification, we can
+
+00:30:08.630 --> 00:30:10.678
+switch to modal coordinates.
+
+00:30:22.900 --> 00:30:27.480
+So let's-- if V is full
+rank, then I can just change
+
+00:30:27.480 --> 00:30:31.740
+coordinates from x through
+V inverse to some other
+
+00:30:31.740 --> 00:30:32.730
+coordinate system r.
+
+00:30:55.480 --> 00:30:56.690
+Why is that a good idea?
+
+00:30:56.690 --> 00:31:02.200
+That's a good idea, because
+then r dot is just going to be--
+
+00:31:02.200 --> 00:31:10.000
+so V inverse times x
+dot, which is A times Vr.
+
+00:31:24.260 --> 00:31:27.650
+That's just substituting
+this into the x dot equals Ax
+
+00:31:27.650 --> 00:31:28.750
+plus Bu.
+
+00:31:28.750 --> 00:31:31.880
+But what's V inverse AV?
+
+00:31:31.880 --> 00:31:37.070
+If you look at this, that's
+just our diagonal matrix.
+
+00:31:46.440 --> 00:31:48.430
+So on the eigen--
+
+00:31:48.430 --> 00:31:55.990
+in the modal
+decomposition, the systems
+
+00:31:55.990 --> 00:31:59.110
+evolve without coupling.
+
+00:31:59.110 --> 00:32:01.840
+I can write--
+component-wise, I could say,
+
+00:32:01.840 --> 00:32:07.390
+ri dot, the i-th component
+is just lambda ir,
+
+00:32:07.390 --> 00:32:09.070
+plus some contributions
+from this guy.
+
+00:32:41.720 --> 00:32:44.240
+So now I'm looking at my--
+in these modal coordinates,
+
+00:32:44.240 --> 00:32:48.860
+I'm saying that the
+result of applying A--
+
+00:32:48.860 --> 00:32:50.570
+this is the same
+thing I wrote before.
+
+00:32:50.570 --> 00:32:53.180
+This is the reason we can
+make-- in these phase plots,
+
+00:32:53.180 --> 00:32:56.450
+we can find the
+eigenvectors and just
+
+00:32:56.450 --> 00:32:59.960
+talk about the dynamics on
+those eigenvectors, same thing.
+
+00:32:59.960 --> 00:33:03.320
+It just says that,
+on the eigenvectors,
+
+00:33:03.320 --> 00:33:10.160
+the dynamics are
+just the eigenvalues.
+
+00:33:10.160 --> 00:33:13.700
+And then they've got
+this impulse, this input
+
+00:33:13.700 --> 00:33:18.657
+from the control actions.
+
+00:33:18.657 --> 00:33:20.240
+So now let's think
+about what it would
+
+00:33:20.240 --> 00:33:21.823
+mean to be controllable
+in this sense.
+
+00:33:32.500 --> 00:33:34.420
+What kind of
+conditions would you
+
+00:33:34.420 --> 00:33:40.454
+want to say that the
+system is controllable?
+
+00:33:47.990 --> 00:33:48.490
+Yeah.
+
+00:33:48.490 --> 00:33:53.120
+AUDIENCE: We can
+change r dot using u.
+
+00:33:53.120 --> 00:33:57.410
+RUSS TEDRAKE: You can
+change r dot to do
+
+00:33:57.410 --> 00:34:00.560
+anything you want using u.
+
+00:34:00.560 --> 00:34:03.140
+You'd like to be
+able to say, make
+
+00:34:03.140 --> 00:34:07.060
+it act like the eigenvalues were
+arbitrarily fast, for instance,
+
+00:34:07.060 --> 00:34:10.580
+or arbitrarily unstable, if you
+chose to do something so silly.
+
+00:34:13.639 --> 00:34:15.260
+So what is required to do that?
+
+00:34:19.670 --> 00:34:24.411
+AUDIENCE: [INAUDIBLE] from
+the [? beta ?] values.
+
+00:34:24.411 --> 00:34:27.000
+There'd have to be some
+non-0's [INAUDIBLE]..
+
+00:34:27.000 --> 00:34:29.010
+RUSS TEDRAKE: Excellent.
+
+00:34:29.010 --> 00:34:31.590
+OK, so imagine you only have
+a single thing you're trying
+
+00:34:31.590 --> 00:34:34.550
+to control and lots of inputs.
+
+00:34:34.550 --> 00:34:37.050
+Then it should be sufficient
+that, if any one of those betas
+
+00:34:37.050 --> 00:34:39.739
+is non-0, that should be enough.
+
+00:34:39.739 --> 00:34:44.010
+OK, now let's say you have
+multiple things you're
+
+00:34:44.010 --> 00:34:46.889
+trying to control.
+
+00:34:46.889 --> 00:34:50.070
+You start having to worry
+about whether you can use u
+
+00:34:50.070 --> 00:34:53.219
+to control eigenvector
+1 and eigenvector 2,
+
+00:34:53.219 --> 00:34:56.440
+both at the same time.
+
+00:34:56.440 --> 00:34:58.950
+But it turns out,
+because we assumed
+
+00:34:58.950 --> 00:35:05.288
+we're in the case of
+distinct eigenvalues,
+
+00:35:05.288 --> 00:35:07.830
+if you think really hard-- and
+I will write a little bit more
+
+00:35:07.830 --> 00:35:09.780
+about this-- but it
+turns out it's still
+
+00:35:09.780 --> 00:35:14.190
+OK to just have one thing
+that can control you.
+
+00:35:14.190 --> 00:35:17.610
+Because things are converging
+at different rates,
+
+00:35:17.610 --> 00:35:19.710
+it's actually sufficient
+to be able to control--
+
+00:35:19.710 --> 00:35:21.720
+if you can control each
+of them independently,
+
+00:35:21.720 --> 00:35:24.190
+then you can actually
+control them all.
+
+00:35:24.190 --> 00:35:28.560
+So the condition turns
+out to be, for all i,
+
+00:35:28.560 --> 00:35:38.070
+there exists a j, such that
+beta ij is not equal to 0.
+
+00:35:51.770 --> 00:35:58.250
+Beta ij, again, is my B
+matrix, but also permutated
+
+00:35:58.250 --> 00:36:01.310
+by this V inverse.
+
+00:36:01.310 --> 00:36:09.920
+So if I was looking at whether
+the system was underactuated,
+
+00:36:09.920 --> 00:36:13.970
+if B wasn't full
+rank, I'd be hosed.
+
+00:36:13.970 --> 00:36:15.740
+I'd be underactuated.
+
+00:36:15.740 --> 00:36:18.620
+But this is actually a
+much less strict condition.
+
+00:36:18.620 --> 00:36:24.350
+I say, I only have to have
+one of my-- in my eigen modes,
+
+00:36:24.350 --> 00:36:26.570
+I have to be able to
+control each of them.
+
+00:36:29.180 --> 00:36:31.190
+So that's our first
+sort of glimpse
+
+00:36:31.190 --> 00:36:34.880
+at how you could imagine an
+underactuated system being
+
+00:36:34.880 --> 00:36:38.030
+completely controllable.
+
+00:36:38.030 --> 00:36:40.140
+AUDIENCE: Is it
+the same as saying
+
+00:36:40.140 --> 00:36:42.120
+that, if you have
+[? any ?] dimension
+
+00:36:42.120 --> 00:36:46.230
+that you want to control,
+then beta should have at least
+
+00:36:46.230 --> 00:36:47.864
+n different eigenvalues?
+
+00:36:47.864 --> 00:36:50.860
+[INAUDIBLE]
+
+00:36:50.860 --> 00:36:53.435
+RUSS TEDRAKE: So excellent--
+so this actually says--
+
+00:36:53.435 --> 00:36:54.810
+for instance, in
+the limit, let's
+
+00:36:54.810 --> 00:36:58.290
+take the case where you
+have 100 degrees of freedom
+
+00:36:58.290 --> 00:37:01.260
+and one actuator.
+
+00:37:01.260 --> 00:37:06.270
+As long as Bij is non-0 for
+all of those, then it says,
+
+00:37:06.270 --> 00:37:08.190
+with my one actuator,
+I could control--
+
+00:37:08.190 --> 00:37:12.690
+I can drive that 100 degree of
+freedom system to the origin.
+
+00:37:12.690 --> 00:37:18.250
+That's a great question,
+a great example.
+
+00:37:18.250 --> 00:37:21.260
+So it does not have that
+same rank condition on B.
+
+00:37:21.260 --> 00:37:23.475
+AUDIENCE: So as long as
+none of your eigenvectors
+
+00:37:23.475 --> 00:37:25.954
+are in the null
+space [INAUDIBLE]..
+
+00:37:28.887 --> 00:37:29.720
+RUSS TEDRAKE: Right.
+
+00:37:34.010 --> 00:37:37.490
+It's the-- I have to think
+about what V inverse is,
+
+00:37:37.490 --> 00:37:39.330
+but I think that's right.
+
+00:37:39.330 --> 00:37:41.630
+I think that's right.
+
+00:37:41.630 --> 00:37:46.760
+He said-- so you
+don't want B to be
+
+00:37:46.760 --> 00:37:48.695
+in the null space
+of the inverse.
+
+00:37:54.540 --> 00:37:55.040
+Right.
+
+00:37:57.548 --> 00:37:59.090
+Do I see another
+question over there?
+
+00:37:59.090 --> 00:38:01.430
+No?
+
+00:38:01.430 --> 00:38:05.000
+OK, so 100 degree of
+freedom robot, one actuator,
+
+00:38:05.000 --> 00:38:07.420
+there's a chance that
+you can control it.
+
+00:38:09.908 --> 00:38:12.200
+Now it doesn't say anything
+about the trajectory you're
+
+00:38:12.200 --> 00:38:13.505
+going to take to get there.
+
+00:38:13.505 --> 00:38:15.823
+It might be really hard.
+
+00:38:15.823 --> 00:38:17.490
+But there's a chance
+you can control it.
+
+00:38:26.810 --> 00:38:29.690
+There's lots of
+ways to see this.
+
+00:38:29.690 --> 00:38:32.570
+Let's leave it at that, if
+people are satisfied with that.
+
+00:38:32.570 --> 00:38:35.930
+Let's not-- I won't do my
+second derivation here.
+
+00:38:35.930 --> 00:38:40.230
+But let's get straight
+to the example.
+
+00:38:40.230 --> 00:38:46.220
+So now, that says that,
+if I take my Ax plus Bu
+
+00:38:46.220 --> 00:38:53.570
+representation of the Acrobot,
+B is going to be low rank.
+
+00:38:53.570 --> 00:38:54.350
+It's going to be--
+
+00:38:58.790 --> 00:39:00.810
+so I used B actually
+twice already today.
+
+00:39:00.810 --> 00:39:01.850
+Did you notice that?
+
+00:39:01.850 --> 00:39:03.968
+Anybody catch me on that?
+
+00:39:03.968 --> 00:39:05.510
+I used B in the
+manipulate equations,
+
+00:39:05.510 --> 00:39:08.060
+then I used B for
+the block form.
+
+00:39:08.060 --> 00:39:10.550
+And I swear I've lost
+sleep trying to figure out
+
+00:39:10.550 --> 00:39:12.230
+if I could put another
+letter in there,
+
+00:39:12.230 --> 00:39:13.820
+but I'm not happy with
+any other letters,
+
+00:39:13.820 --> 00:39:15.987
+because they both-- they
+almost mean the same thing.
+
+00:39:15.987 --> 00:39:20.160
+But I did slip that one past.
+
+00:39:20.160 --> 00:39:21.980
+So this is B in the linear form.
+
+00:39:24.530 --> 00:39:25.880
+So it's not just 0, 1.
+
+00:39:25.880 --> 00:39:27.710
+It's H inverse times 0, 1.
+
+00:39:31.128 --> 00:39:32.420
+So it's going to have some 0's.
+
+00:39:37.108 --> 00:39:44.518
+Sorry, it doesn't-- so it's
+going to be a vector again.
+
+00:39:44.518 --> 00:39:46.060
+It actually doesn't
+have to have 0's.
+
+00:39:46.060 --> 00:39:47.727
+And in fact, it
+probably won't have 0's.
+
+00:39:47.727 --> 00:39:48.460
+I misspoke.
+
+00:39:48.460 --> 00:39:55.810
+This is going to be H1, 1, H1,
+2 in the Acrobot case, H inverse
+
+00:39:55.810 --> 00:39:56.664
+1, 1.
+
+00:40:04.300 --> 00:40:09.820
+The question is-- it's still
+low rank because it's a column.
+
+00:40:09.820 --> 00:40:13.110
+It's not a full matrix, so
+it's still underactuated.
+
+00:40:13.110 --> 00:40:17.740
+And can I drive that
+thing with LQR to the top?
+
+00:40:17.740 --> 00:40:21.880
+We just said that it's possible
+that these things are still
+
+00:40:21.880 --> 00:40:22.960
+controllable.
+
+00:40:22.960 --> 00:40:26.800
+The tests that you can
+use, the user's guide
+
+00:40:26.800 --> 00:40:28.224
+to controllability--
+
+00:40:35.140 --> 00:40:38.290
+there's this funky
+test which says,
+
+00:40:38.290 --> 00:40:42.970
+if I take a matrix, a
+controllability matrix, which
+
+00:40:42.970 --> 00:40:49.090
+is the B matrix, AB--
+
+00:40:49.090 --> 00:40:53.650
+these are just cascaded
+in columns here,
+
+00:40:53.650 --> 00:41:02.890
+A squared B up to
+the A to the n, B,
+
+00:41:02.890 --> 00:41:04.720
+where n is the number of states.
+
+00:41:09.742 --> 00:41:11.796
+AUDIENCE: Would it be n minus 1?
+
+00:41:11.796 --> 00:41:13.930
+[INAUDIBLE]
+
+00:41:13.930 --> 00:41:16.300
+RUSS TEDRAKE: n minus
+1-- thank you, yeah.
+
+00:41:21.570 --> 00:41:24.750
+Good, yeah.
+
+00:41:24.750 --> 00:41:27.330
+It turns out that if
+this matrix is still--
+
+00:41:27.330 --> 00:41:43.698
+is full row rank, then the
+system is controllable.
+
+00:41:54.755 --> 00:41:56.130
+There's actually--
+the derivation
+
+00:41:56.130 --> 00:41:58.160
+of that is in your
+notes that I'll post.
+
+00:42:02.100 --> 00:42:05.220
+It's not very hard,
+it's just a matter--
+
+00:42:05.220 --> 00:42:09.780
+there's all these forms for e to
+the AT, the matrix exponential.
+
+00:42:09.780 --> 00:42:12.390
+And it involves one of the
+forms that kind of comes out
+
+00:42:12.390 --> 00:42:13.090
+of nowhere.
+
+00:42:13.090 --> 00:42:16.170
+And so I won't go through
+the derivation on the board.
+
+00:42:16.170 --> 00:42:19.350
+But it turns out that
+it's sufficient to check
+
+00:42:19.350 --> 00:42:22.187
+the rank of this matrix.
+
+00:42:22.187 --> 00:42:24.270
+And that'll tell you if
+the system's controllable.
+
+00:42:24.270 --> 00:42:28.770
+And this is sort of primal
+enough and important enough
+
+00:42:28.770 --> 00:42:31.770
+that MATLAB has a
+function for it.
+
+00:42:31.770 --> 00:42:32.940
+So you can call--
+
+00:42:32.940 --> 00:42:35.040
+I think it's ctrb, right?
+
+00:42:35.040 --> 00:42:36.240
+Is that what it is?
+
+00:42:45.367 --> 00:42:46.950
+And then check the
+rank of it, and you
+
+00:42:46.950 --> 00:42:49.566
+could check if your
+systems are controllable.
+
+00:42:55.400 --> 00:42:58.590
+It turns out, if you linearize
+the dynamics of the Acrobot,
+
+00:42:58.590 --> 00:43:00.690
+you linearize the
+dynamics of the cart-pole,
+
+00:43:00.690 --> 00:43:05.338
+you pop in the A and B, you
+get a full rank matrix out.
+
+00:43:05.338 --> 00:43:07.380
+So they're both controllable,
+even though they're
+
+00:43:07.380 --> 00:43:09.704
+underactuated around the top.
+
+00:43:09.704 --> 00:43:13.300
+AUDIENCE: Would these
+be in [INAUDIBLE]??
+
+00:43:13.300 --> 00:43:14.050
+RUSS TEDRAKE: Yes.
+
+00:43:17.220 --> 00:43:19.020
+It's the linear form.
+
+00:43:22.650 --> 00:43:24.900
+Maybe I should call it B
+prime or something like that.
+
+00:43:24.900 --> 00:43:28.332
+But still, it feels
+unnatural to use either--
+
+00:43:28.332 --> 00:43:29.540
+anything else in either case.
+
+00:43:43.530 --> 00:43:45.280
+AUDIENCE: So these
+matrices are calculated
+
+00:43:45.280 --> 00:43:46.740
+for every single point, or--
+
+00:43:50.520 --> 00:43:51.930
+RUSS TEDRAKE: So I just do it--
+
+00:43:51.930 --> 00:43:56.010
+I evaluate these things
+once at the x star.
+
+00:43:56.010 --> 00:44:00.168
+So it's partial f, partial
+x, evaluated at x star.
+
+00:44:00.168 --> 00:44:01.710
+AUDIENCE: So when
+you say something--
+
+00:44:01.710 --> 00:44:04.950
+a system is controllable,
+because when we--
+
+00:44:04.950 --> 00:44:07.260
+RUSS TEDRAKE: All
+I mean is that--
+
+00:44:07.260 --> 00:44:09.630
+all I can show with the rank
+condition check in MATLAB
+
+00:44:09.630 --> 00:44:13.200
+is that the system linearized--
+the linear system that
+
+00:44:13.200 --> 00:44:16.500
+approximates the Acrobot
+linearized around the top
+
+00:44:16.500 --> 00:44:17.190
+is controllable.
+
+00:44:17.190 --> 00:44:18.640
+Mm-hmm.
+
+00:44:18.640 --> 00:44:24.270
+AUDIENCE: So controllability
+is defined [INAUDIBLE]??
+
+00:44:24.270 --> 00:44:25.740
+RUSS TEDRAKE: No,
+controllability
+
+00:44:25.740 --> 00:44:28.590
+is a property of the system.
+
+00:44:28.590 --> 00:44:30.840
+The linearization,
+the linear system
+
+00:44:30.840 --> 00:44:35.340
+is only a relevant approximation
+of the Acrobot around a given
+
+00:44:35.340 --> 00:44:36.600
+state.
+
+00:44:36.600 --> 00:44:38.708
+And I'm saying that
+the linear system--
+
+00:44:38.708 --> 00:44:40.500
+you can evaluate the
+linear system anywhere
+
+00:44:40.500 --> 00:44:42.270
+it's controllable.
+
+00:44:42.270 --> 00:44:44.380
+I can go from any
+initial condition.
+
+00:44:44.380 --> 00:44:46.715
+But it's only a
+relevant example--
+
+00:44:46.715 --> 00:44:48.090
+it's only relevant
+to the Acrobot
+
+00:44:48.090 --> 00:44:49.465
+if it's close to
+the fixed point.
+
+00:44:53.846 --> 00:44:58.690
+AUDIENCE: So that definition
+actually is for all the states.
+
+00:44:58.690 --> 00:45:00.100
+RUSS TEDRAKE: That's right.
+
+00:45:00.100 --> 00:45:03.370
+So yes, if I can
+say this stronger
+
+00:45:03.370 --> 00:45:07.060
+thing for the nonlinear
+system, for the Acrobot,
+
+00:45:07.060 --> 00:45:09.730
+in order to say that, I would
+have to say, for any state,
+
+00:45:09.730 --> 00:45:11.380
+this is true.
+
+00:45:11.380 --> 00:45:12.730
+I can't say that.
+
+00:45:12.730 --> 00:45:15.490
+I went to a weaker
+form by looking just
+
+00:45:15.490 --> 00:45:16.684
+at the linear system.
+
+00:45:16.684 --> 00:45:17.184
+Mm-hmm.
+
+00:45:30.830 --> 00:45:31.670
+That's pretty big.
+
+00:45:38.960 --> 00:45:40.003
+Is that big enough?
+
+00:45:40.003 --> 00:45:40.810
+AUDIENCE: Mm-hmm.
+
+00:45:40.810 --> 00:45:41.330
+RUSS TEDRAKE: Yeah?
+
+00:45:41.330 --> 00:45:41.830
+OK.
+
+00:45:45.190 --> 00:45:50.200
+So let's take our
+A and B matrices
+
+00:45:50.200 --> 00:45:54.200
+that we got from doing the
+linearization around the fixed
+
+00:45:54.200 --> 00:45:54.700
+point.
+
+00:45:54.700 --> 00:45:56.860
+And if you like, if it
+helps, I can sort of
+
+00:45:56.860 --> 00:45:59.365
+show you how that goes.
+
+00:46:05.110 --> 00:46:10.160
+So very literally, I take
+my manipulator equations,
+
+00:46:10.160 --> 00:46:12.780
+I get an H, C, G, and B.
+
+00:46:12.780 --> 00:46:14.530
+I take the gradient--
+
+00:46:14.530 --> 00:46:18.490
+the partial G, partial
+q, I compute that.
+
+00:46:18.490 --> 00:46:22.780
+And then my A is negative
+inverse partial G, partial q.
+
+00:46:22.780 --> 00:46:24.460
+And then the--
+
+00:46:24.460 --> 00:46:28.800
+C happens to be 0
+for the Acrobot.
+
+00:46:28.800 --> 00:46:32.300
+I evaluated at the top,
+but that's not a general,
+
+00:46:32.300 --> 00:46:35.890
+so that's why I don't have the
+negative H inverse C there,
+
+00:46:35.890 --> 00:46:43.600
+and then my inverse H, B. So
+that gives me an A and a B.
+
+00:46:43.600 --> 00:46:50.720
+And I can write
+my LQR controller
+
+00:46:50.720 --> 00:46:53.960
+to balance it at the
+top, by literally getting
+
+00:46:53.960 --> 00:46:59.960
+a and B from the linearized
+system, calling LQR.
+
+00:46:59.960 --> 00:47:03.140
+I chose-- the LQR
+syntax is A, B, q, r.
+
+00:47:03.140 --> 00:47:06.770
+So I chose q to be a diagonal
+matrix, 10, 10, 1, 1,
+
+00:47:06.770 --> 00:47:09.680
+just saying I penalize
+position errors
+
+00:47:09.680 --> 00:47:13.370
+10 times more than velocity
+errors because it happens--
+
+00:47:13.370 --> 00:47:16.280
+with units, you tend to do that.
+
+00:47:16.280 --> 00:47:18.458
+And r is 1.
+
+00:47:18.458 --> 00:47:20.750
+And it's in a persistent loop
+just so I don't compute--
+
+00:47:20.750 --> 00:47:23.450
+I don't call LQR every
+time I call my function.
+
+00:47:23.450 --> 00:47:26.490
+I only call it every
+time I start the system.
+
+00:47:26.490 --> 00:47:28.100
+And then my control
+law is u equals
+
+00:47:28.100 --> 00:47:30.828
+negative k, x minus x desired.
+
+00:47:30.828 --> 00:47:32.870
+Now, you're going to do
+sort of the similar thing
+
+00:47:32.870 --> 00:47:34.010
+to what I'm doing for
+the Acrobot you're
+
+00:47:34.010 --> 00:47:36.135
+going to do for the cart-pole
+for your problem set.
+
+00:47:36.135 --> 00:47:39.020
+I will bet that half of you
+will forget to subtract out
+
+00:47:39.020 --> 00:47:41.660
+x desired at least once.
+
+00:47:41.660 --> 00:47:43.180
+I know I do all the time.
+
+00:47:43.180 --> 00:47:45.530
+So remember the minus x desired.
+
+00:47:48.320 --> 00:47:52.010
+If I put that at
+the top, if I put
+
+00:47:52.010 --> 00:47:56.840
+initial conditions near
+the top, and I run it,
+
+00:47:56.840 --> 00:47:57.590
+look what happens.
+
+00:47:57.590 --> 00:47:58.090
+Oops.
+
+00:48:09.987 --> 00:48:11.570
+OK, I'm going to
+start it-- every time
+
+00:48:11.570 --> 00:48:15.080
+it flashes it's going to
+be new initial condition.
+
+00:48:15.080 --> 00:48:21.680
+It actually goes pretty far
+from the top and gets back.
+
+00:48:21.680 --> 00:48:24.550
+Wow, that's a good one.
+
+00:48:24.550 --> 00:48:28.300
+If I-- I'm just choosing
+Gaussian random variables
+
+00:48:28.300 --> 00:48:28.800
+at the top.
+
+00:48:28.800 --> 00:48:30.300
+So if we watch long
+enough, we might
+
+00:48:30.300 --> 00:48:32.780
+see one fail catastrophically.
+
+00:48:32.780 --> 00:48:35.823
+So the LQR for the linear
+system will stabilize it
+
+00:48:35.823 --> 00:48:37.490
+from any point because
+the linear system
+
+00:48:37.490 --> 00:48:38.900
+is a bad approximation.
+
+00:48:38.900 --> 00:48:41.480
+For the nonlinear, if I started
+it way down at the bottom
+
+00:48:41.480 --> 00:48:44.360
+it's just going to go nuts.
+
+00:48:44.360 --> 00:48:45.770
+Wow, that's pretty good.
+
+00:48:45.770 --> 00:48:48.620
+Now, you might notice that
+my second link is pretty big
+
+00:48:48.620 --> 00:48:50.330
+compared to my first link.
+
+00:48:50.330 --> 00:48:53.390
+That helps.
+
+00:48:53.390 --> 00:48:56.120
+And you'll see why
+in a few minutes.
+
+00:48:56.120 --> 00:48:57.420
+But it's pretty good.
+
+00:48:57.420 --> 00:48:59.637
+AUDIENCE: Does it
+have unbounded torque?
+
+00:48:59.637 --> 00:49:01.470
+RUSS TEDRAKE: It does
+have unbounded torque.
+
+00:49:01.470 --> 00:49:01.970
+Whoa.
+
+00:49:01.970 --> 00:49:05.192
+[LAUGHTER] That's pretty good.
+
+00:49:05.192 --> 00:49:06.650
+It does have
+unbounded torque, yep.
+
+00:49:06.650 --> 00:49:07.575
+If I were to
+saturate the torque,
+
+00:49:07.575 --> 00:49:08.908
+it probably wouldn't do as well.
+
+00:49:11.210 --> 00:49:13.010
+Now, the cool thing is--
+
+00:49:13.010 --> 00:49:13.930
+I can stop that.
+
+00:49:18.710 --> 00:49:19.210
+Stop.
+
+00:49:22.380 --> 00:49:26.350
+These MATLAB timers
+don't like to stop.
+
+00:49:26.350 --> 00:49:31.470
+So I get these huge
+excursions from the upright
+
+00:49:31.470 --> 00:49:32.890
+in my balancing.
+
+00:49:32.890 --> 00:49:34.810
+But it's not actually
+because I started
+
+00:49:34.810 --> 00:49:36.580
+with crazy initial conditions.
+
+00:49:36.580 --> 00:49:38.500
+If you noticed, it
+wasn't like the plot
+
+00:49:38.500 --> 00:49:41.020
+was going, oh, and starting
+over here and then coming up.
+
+00:49:41.020 --> 00:49:44.360
+It was actually going like this.
+
+00:49:44.360 --> 00:49:45.970
+So if you look at
+a time trajectory--
+
+00:49:45.970 --> 00:49:47.290
+let's see if I got lucky.
+
+00:49:47.290 --> 00:49:50.235
+OK, almost all of
+them are like this.
+
+00:49:50.235 --> 00:49:51.790
+Are those lines
+dark enough to see?
+
+00:49:51.790 --> 00:49:54.010
+Yeah?
+
+00:49:54.010 --> 00:49:58.180
+The initial conditions
+are actually pretty small.
+
+00:49:58.180 --> 00:50:01.180
+But in order to
+stabilize the system,
+
+00:50:01.180 --> 00:50:04.900
+it actually goes way
+away from the fixed point
+
+00:50:04.900 --> 00:50:09.760
+and comes way back, big time.
+
+00:50:09.760 --> 00:50:13.600
+This is like-- this is
+the velocity of 18 radians
+
+00:50:13.600 --> 00:50:16.540
+per second or something.
+
+00:50:16.540 --> 00:50:17.860
+And then it finds its way back.
+
+00:50:20.650 --> 00:50:26.825
+So for that reason, you
+might easily sort of, in LQR,
+
+00:50:26.825 --> 00:50:28.450
+say, OK, my linearization
+is good here,
+
+00:50:28.450 --> 00:50:30.490
+so any initial conditions
+here should work.
+
+00:50:30.490 --> 00:50:32.907
+But that's not actually true
+because your LQR might easily
+
+00:50:32.907 --> 00:50:37.270
+drive you further away
+before it comes back.
+
+00:50:37.270 --> 00:50:40.480
+If you were to-- if you're
+a linear controls guy,
+
+00:50:40.480 --> 00:50:43.540
+and you were to do-- this is
+a multi-input, multi-output
+
+00:50:43.540 --> 00:50:44.050
+system.
+
+00:50:44.050 --> 00:50:47.050
+But if you try to find
+the poles and 0's, that's
+
+00:50:47.050 --> 00:50:48.130
+what's this going to--
+
+00:50:48.130 --> 00:50:51.678
+where are the 0's--
+is this going to be?
+
+00:50:51.678 --> 00:50:53.610
+AUDIENCE: [INAUDIBLE]
+
+00:50:53.610 --> 00:50:56.013
+RUSS TEDRAKE: Yeah,
+there's three 0's
+
+00:50:56.013 --> 00:50:57.930
+in the right f plane for
+the Acrobot actually.
+
+00:50:57.930 --> 00:50:59.470
+It's a nonminimum phase system.
+
+00:51:01.980 --> 00:51:04.680
+The cart-pole has one
+0 in the right f plane.
+
+00:51:09.060 --> 00:51:11.820
+It's not a general property
+of underactuated systems.
+
+00:51:11.820 --> 00:51:15.780
+But sometimes, in order to
+do this with less actuators
+
+00:51:15.780 --> 00:51:19.440
+than you might like, you have
+to do crazy things to get back
+
+00:51:19.440 --> 00:51:20.970
+to where you want to go.
+
+00:51:20.970 --> 00:51:24.570
+So I can get-- and I could--
+if I tightened my time limit,
+
+00:51:24.570 --> 00:51:26.430
+the things I would do
+would be even crazier.
+
+00:51:26.430 --> 00:51:27.760
+But I could still do it.
+
+00:51:39.090 --> 00:51:43.020
+It's actually-- just to say
+it, without really teaching it,
+
+00:51:43.020 --> 00:51:47.940
+but if you did care about sort
+of the basin of attraction
+
+00:51:47.940 --> 00:51:53.790
+of these systems, if you wanted
+to do as well as you possibly
+
+00:51:53.790 --> 00:51:57.150
+could with a linear controller
+on the nonlinear system,
+
+00:51:57.150 --> 00:51:59.610
+you probably wouldn't
+do what we just did.
+
+00:51:59.610 --> 00:52:02.370
+There's better tools from
+robust control, which
+
+00:52:02.370 --> 00:52:05.250
+would allow you to sort of
+design a linear controller
+
+00:52:05.250 --> 00:52:07.590
+but explicitly reason about
+how nonlinear the thing
+
+00:52:07.590 --> 00:52:09.240
+gets when you're away.
+
+00:52:09.240 --> 00:52:11.670
+And you can design
+a linear controller
+
+00:52:11.670 --> 00:52:13.530
+that has a bigger
+basin of attraction
+
+00:52:13.530 --> 00:52:16.830
+than if you just don't reason
+about the nonlinearities
+
+00:52:16.830 --> 00:52:18.570
+at all.
+
+00:52:18.570 --> 00:52:21.240
+So you can put a bound on how
+nonlinear things are and do
+
+00:52:21.240 --> 00:52:23.380
+a robust control
+synthesis, and get,
+
+00:52:23.380 --> 00:52:25.900
+in some sense, a
+better controller.
+
+00:52:25.900 --> 00:52:29.460
+You would have lower
+performance, potentially,
+
+00:52:29.460 --> 00:52:32.400
+but it would work better
+on the nonlinear system,
+
+00:52:32.400 --> 00:52:33.954
+bigger basin of attraction.
+
+00:52:33.954 --> 00:52:38.220
+AUDIENCE: [INAUDIBLE]
+
+00:52:38.220 --> 00:52:42.770
+RUSS TEDRAKE: Oh, my fixed
+point was pi 0, 0, 0.
+
+00:52:42.770 --> 00:52:46.663
+Or-- yeah.
+
+00:52:46.663 --> 00:52:48.830
+So those are all going to
+0, that one's going to pi,
+
+00:52:48.830 --> 00:52:49.810
+as they should.
+
+00:52:49.810 --> 00:52:50.310
+Yep.
+
+00:53:00.400 --> 00:53:01.660
+OK, excellent.
+
+00:53:01.660 --> 00:53:04.090
+So LQR works, right?
+
+00:53:04.090 --> 00:53:08.890
+And it works-- this is actually
+sort of a problem, in my mind.
+
+00:53:08.890 --> 00:53:11.140
+Because that works and
+it works so well And so
+
+00:53:11.140 --> 00:53:12.730
+many different
+systems, that's why
+
+00:53:12.730 --> 00:53:14.980
+people haven't thought about
+nonlinear control enough,
+
+00:53:14.980 --> 00:53:15.910
+in my mind.
+
+00:53:15.910 --> 00:53:18.550
+It's sort of unfortunate
+that that works so darn well,
+
+00:53:18.550 --> 00:53:23.200
+because sometimes
+that's all people do.
+
+00:53:23.200 --> 00:53:28.050
+So let's think about if we're
+a little bit further from
+
+00:53:28.050 --> 00:53:32.280
+the fixed point, just to-- maybe
+I should even make the point--
+
+00:53:32.280 --> 00:53:34.840
+in other words, you'll probably
+ask me if I don't do this,
+
+00:53:34.840 --> 00:53:38.020
+because you always test
+me on the limits of where
+
+00:53:38.020 --> 00:53:39.320
+my things work here.
+
+00:53:39.320 --> 00:53:43.540
+So what if I were to start it
+far away from the fixed point?
+
+00:53:47.310 --> 00:53:49.010
+Let's be more dramatic.
+
+00:53:53.750 --> 00:53:55.275
+And let's just do it once.
+
+00:53:57.950 --> 00:53:59.012
+Oh, see, that's bad.
+
+00:53:59.012 --> 00:54:00.470
+When it takes that
+long, that means
+
+00:54:00.470 --> 00:54:03.500
+the integrator's choking because
+it can't simulate things right.
+
+00:54:03.500 --> 00:54:06.110
+So it's just complete
+nonsense if it's too far
+
+00:54:06.110 --> 00:54:07.410
+from the linearization point.
+
+00:54:13.160 --> 00:54:16.610
+So what if we want to do control
+away from that fixed point?
+
+00:54:16.610 --> 00:54:19.850
+Then nothing I just said
+helps if I'm too far away
+
+00:54:19.850 --> 00:54:22.260
+from that fixed point.
+
+00:54:22.260 --> 00:54:23.340
+So what do we do?
+
+00:54:23.340 --> 00:54:31.700
+Well, you don't have to throw
+out linearization completely.
+
+00:54:31.700 --> 00:54:34.400
+We talked about, in
+the first lecture,
+
+00:54:34.400 --> 00:54:36.890
+how the underactuated
+systems are the systems that
+
+00:54:36.890 --> 00:54:38.840
+are not feedback linearizable.
+
+00:54:38.840 --> 00:54:40.520
+That's what distinguishes them.
+
+00:54:40.520 --> 00:54:43.290
+They're not feedback
+linearizable.
+
+00:54:43.290 --> 00:54:48.290
+I can't just turn the nonlinear
+system into a linear system.
+
+00:54:48.290 --> 00:54:51.020
+But they are partial
+feedback linearizable.
+
+00:54:51.020 --> 00:54:52.520
+So if you want to
+stick to your guns
+
+00:54:52.520 --> 00:54:56.510
+and do feedback linearization,
+you can do half the work.
+
+00:54:56.510 --> 00:55:00.680
+So it actually is pretty
+elegant how that works out.
+
+00:55:43.850 --> 00:55:46.585
+OK, to keep things fresh, let's
+do it on the cart-pole instead
+
+00:55:46.585 --> 00:55:47.210
+of the Acrobot.
+
+00:55:47.210 --> 00:55:49.130
+We've been talking
+about the Acrobot a lot.
+
+00:55:49.130 --> 00:55:53.583
+But I promise I wasn't
+going to do the derivation
+
+00:55:53.583 --> 00:55:55.250
+of the equations of
+motion, and I won't.
+
+00:55:55.250 --> 00:55:58.250
+But it turns out the
+result of the cart-pole
+
+00:55:58.250 --> 00:56:01.500
+is simple enough I can
+write it real quick.
+
+00:56:01.500 --> 00:56:09.675
+The equations of motion for
+the cart-pole are mc plus mp.
+
+00:56:14.073 --> 00:56:15.240
+And these are in your notes.
+
+00:56:15.240 --> 00:56:17.238
+You don't have to
+write these down.
+
+00:56:17.238 --> 00:56:19.280
+I want you to see where
+the next line comes from.
+
+00:56:59.900 --> 00:57:01.730
+OK, well, that's
+a reasonable thing
+
+00:57:01.730 --> 00:57:03.860
+we might get out of
+the Lagrange equations.
+
+00:57:03.860 --> 00:57:06.270
+I've got a force on my cart.
+
+00:57:06.270 --> 00:57:10.310
+I've got a 0 in
+the other equation.
+
+00:57:10.310 --> 00:57:12.380
+You can see how this
+could be easily separated
+
+00:57:12.380 --> 00:57:15.297
+into the manipulator equations.
+
+00:57:15.297 --> 00:57:16.880
+But since I'm going
+to be manipulating
+
+00:57:16.880 --> 00:57:20.420
+some of these things, let
+me just sort of arbitrarily
+
+00:57:20.420 --> 00:57:22.070
+set all the parameters to 1.
+
+00:57:22.070 --> 00:57:23.420
+Let's just-- so--
+
+00:57:36.950 --> 00:57:41.780
+it's easy to repeat these
+for the real equations.
+
+00:57:41.780 --> 00:57:43.280
+But let's just do this.
+
+00:57:43.280 --> 00:57:50.210
+And I'll get a 2x double dot
+plus theta double dot, c,
+
+00:57:50.210 --> 00:57:52.970
+which is cosine
+theta-- c is enough--
+
+00:57:52.970 --> 00:58:00.150
+minus theta dot
+squared s equals f.
+
+00:58:00.150 --> 00:58:10.610
+OK, and then x double dot c,
+plus theta double dot, plus x
+
+00:58:10.610 --> 00:58:11.780
+equals 0.
+
+00:58:11.780 --> 00:58:13.490
+Now, those I can work with.
+
+00:58:22.202 --> 00:58:25.140
+AUDIENCE: It says G [INAUDIBLE].
+
+00:58:25.140 --> 00:58:27.780
+RUSS TEDRAKE: Yeah, that's
+just to save my handwriting.
+
+00:58:27.780 --> 00:58:30.630
+It's not to be
+physically accurate.
+
+00:58:30.630 --> 00:58:34.470
+It doesn't change the
+structure of the equations.
+
+00:58:34.470 --> 00:58:36.845
+If you like, you could set--
+
+00:58:36.845 --> 00:58:38.970
+I bet I could come up with
+a parameterization which
+
+00:58:38.970 --> 00:58:41.160
+would keep G at around
+10 and do OK, but--
+
+00:58:41.160 --> 00:58:43.385
+AUDIENCE: [INAUDIBLE]
+
+00:58:43.385 --> 00:58:45.154
+RUSS TEDRAKE: There
+you go, there you go.
+
+00:58:55.330 --> 00:59:01.300
+OK, so given these equations,
+can I make x double
+
+00:59:01.300 --> 00:59:04.000
+dot and theta double
+dot do whatever I want?
+
+00:59:08.170 --> 00:59:11.120
+So no.
+
+00:59:11.120 --> 00:59:14.410
+We said that the feedback
+linearization trick required
+
+00:59:14.410 --> 00:59:18.271
+that B inverse, in general.
+
+00:59:18.271 --> 00:59:19.630
+And so we couldn't do that.
+
+00:59:22.180 --> 00:59:25.093
+But it turns out I
+can do something.
+
+00:59:25.093 --> 00:59:26.260
+So what are these equations?
+
+00:59:26.260 --> 00:59:31.090
+This is a cart moving around
+with a pendulum on it.
+
+00:59:31.090 --> 00:59:34.090
+And I'm pushing the cart, and
+the pendulum's dangling away.
+
+00:59:36.830 --> 00:59:38.720
+So what would feedback
+linearization--
+
+00:59:38.720 --> 00:59:41.960
+what would a partial
+feedback linearization mean?
+
+00:59:41.960 --> 00:59:44.770
+Well, if I know the
+dynamics of the pendulum
+
+00:59:44.770 --> 00:59:48.430
+and I know the state
+of the pendulum,
+
+00:59:48.430 --> 00:59:51.100
+and I can control
+the force on my cart,
+
+00:59:51.100 --> 00:59:55.030
+then it's pretty reasonable
+to think that I could--
+
+00:59:55.030 --> 00:59:56.860
+whatever force the
+pendulum was applying
+
+00:59:56.860 --> 01:00:00.530
+to push my cart around, I could
+just exactly cancel that out.
+
+01:00:00.530 --> 01:00:03.730
+So I could turn my cart
+dynamics to sort of just
+
+01:00:03.730 --> 01:00:06.580
+do whatever I want and
+just cancel out the effect
+
+01:00:06.580 --> 01:00:09.100
+that that pendulum's
+adding to me.
+
+01:00:09.100 --> 01:00:12.010
+That seems reasonable.
+
+01:00:12.010 --> 01:00:17.084
+And that's called a collocated
+partial feedback linearization.
+
+01:00:34.980 --> 01:00:36.700
+I'm going to write
+PFL from now on.
+
+01:00:41.470 --> 01:00:45.970
+It's collocated because the
+state I'm trying to linearize
+
+01:00:45.970 --> 01:00:48.070
+is the same one where
+the actuator is sitting.
+
+01:00:48.070 --> 01:00:48.760
+It's collocated.
+
+01:00:48.760 --> 01:00:51.730
+The state I'm linearizing is
+collocated with my actuators.
+
+01:00:55.930 --> 01:01:04.150
+So my goal is to make x double
+dot have the dynamics, whatever
+
+01:01:04.150 --> 01:01:09.083
+dynamics I choose-- x double
+dot desired, let's say.
+
+01:01:09.083 --> 01:01:11.000
+So let's see if we can
+do this by manipulating
+
+01:01:11.000 --> 01:01:13.670
+the equations a little bit.
+
+01:01:13.670 --> 01:01:17.710
+OK, so I can figure out how x
+double dot and theta double dot
+
+01:01:17.710 --> 01:01:20.320
+are related with
+that second equation.
+
+01:01:20.320 --> 01:01:24.061
+So let's get rid of
+theta double dot.
+
+01:01:24.061 --> 01:01:28.630
+I can see theta double dot had
+better be negative x double
+
+01:01:28.630 --> 01:01:33.465
+dot c minus s.
+
+01:01:33.465 --> 01:01:37.100
+And if I insert that
+into the first equation,
+
+01:01:37.100 --> 01:01:45.872
+then I get 2x double dot
+minus x double dot, c minus s.
+
+01:01:45.872 --> 01:01:46.372
+Oops.
+
+01:01:58.830 --> 01:02:04.695
+Minus sc minus theta
+dot squared s equals f.
+
+01:02:11.500 --> 01:02:20.380
+That means, if I
+apply the control law,
+
+01:02:20.380 --> 01:02:25.120
+2 minus c squared, x
+double dot desired,
+
+01:02:25.120 --> 01:02:32.950
+minus sc minus
+theta dot desired s,
+
+01:02:32.950 --> 01:02:37.090
+that implies that x double dot
+equals x double dot desired,
+
+01:02:37.090 --> 01:02:39.010
+like we wanted.
+
+01:02:39.010 --> 01:02:44.590
+And theta double dot ends
+up doing something coupled.
+
+01:02:49.420 --> 01:02:51.580
+But that's sort of the
+resulting dynamics.
+
+01:02:51.580 --> 01:02:53.108
+I didn't actually plan for that.
+
+01:02:53.108 --> 01:02:54.400
+That's just whatever I got out.
+
+01:03:00.940 --> 01:03:02.680
+Does that make sense?
+
+01:03:02.680 --> 01:03:04.005
+That's just me saying--
+
+01:03:04.005 --> 01:03:05.380
+if you think about
+the controller
+
+01:03:05.380 --> 01:03:08.110
+here, that's just
+taking the terms that
+
+01:03:08.110 --> 01:03:12.460
+Are going to be contributed to
+the dynamics by the pendulum
+
+01:03:12.460 --> 01:03:14.680
+and canceling them
+out by applying
+
+01:03:14.680 --> 01:03:18.100
+exactly the opposite forces.
+
+01:03:18.100 --> 01:03:21.550
+And the result is that my
+x moves exactly however I
+
+01:03:21.550 --> 01:03:24.010
+want it to do.
+
+01:03:24.010 --> 01:03:25.810
+So feedback
+linearization isn't dead
+
+01:03:25.810 --> 01:03:27.310
+if you have an
+underactuated system.
+
+01:03:27.310 --> 01:03:29.830
+But you can't feedback
+linearize the whole system.
+
+01:03:29.830 --> 01:03:32.114
+You can do this collocated
+feedback linearization.
+
+01:03:35.080 --> 01:03:37.420
+Now, the cooler thing
+is, you can actually,
+
+01:03:37.420 --> 01:03:42.310
+often, also feedback
+linearize the passive joint.
+
+01:03:45.850 --> 01:03:50.410
+So it's pretty
+logical that I could
+
+01:03:50.410 --> 01:03:53.500
+move the cart in such a way
+that I can't allow the pendulum
+
+01:03:53.500 --> 01:03:54.970
+dynamics.
+
+01:03:54.970 --> 01:03:56.470
+It's a little less
+intuitive that I
+
+01:03:56.470 --> 01:03:58.540
+can make the
+pendulum dynamics do
+
+01:03:58.540 --> 01:04:01.210
+whatever I want with the cart.
+
+01:04:05.180 --> 01:04:08.090
+But you can, most of the time.
+
+01:04:21.330 --> 01:04:33.390
+OK, so non-collocated
+means I'm going to use one
+
+01:04:33.390 --> 01:04:34.830
+of my actuators to control--
+
+01:04:34.830 --> 01:04:38.820
+feedback linearize one
+of my passive joints.
+
+01:04:38.820 --> 01:04:45.540
+So now let's see if we can make
+theta double dot do whenever
+
+01:04:45.540 --> 01:04:46.620
+we--
+
+01:04:46.620 --> 01:04:47.640
+bend to our will.
+
+01:04:51.215 --> 01:04:55.463
+It turns out the manipulation
+is almost exactly the same.
+
+01:04:55.463 --> 01:04:56.880
+Algebraically,
+it's not surprising
+
+01:04:56.880 --> 01:04:58.200
+that I can do either one.
+
+01:04:58.200 --> 01:05:00.300
+I've got my equations
+of motion here.
+
+01:05:00.300 --> 01:05:02.970
+I've got-- both x double
+dot and theta double
+
+01:05:02.970 --> 01:05:05.460
+depend on my force.
+
+01:05:05.460 --> 01:05:07.860
+And they're coupled here.
+
+01:05:07.860 --> 01:05:10.742
+So sure, I can control
+either one of them.
+
+01:05:10.742 --> 01:05:12.450
+Physically, it's a
+little less intuitive.
+
+01:05:12.450 --> 01:05:15.970
+But algebraically,
+it's just as obvious.
+
+01:05:15.970 --> 01:05:19.080
+OK, so let's just
+do the opposite one.
+
+01:05:19.080 --> 01:05:26.054
+So x double dot had better
+be theta double dot,
+
+01:05:26.054 --> 01:05:30.510
+plus s over c, that
+whole thing negative,
+
+01:05:30.510 --> 01:05:31.800
+based on that second equation.
+
+01:05:35.160 --> 01:05:45.630
+And so I get 2 over
+c, theta double
+
+01:05:45.630 --> 01:05:50.970
+dot plus s, negative on
+there, plus theta double
+
+01:05:50.970 --> 01:05:57.470
+dot c, minus theta
+dot squared c--
+
+01:05:57.470 --> 01:06:03.880
+oops, s-- sorry-- equals f.
+
+01:06:03.880 --> 01:06:11.208
+Yeah, so sure, so if I apply
+f equals is the controller--
+
+01:06:16.477 --> 01:06:18.310
+what's the best way to
+write this? c minus 2
+
+01:06:18.310 --> 01:06:25.450
+over c, theta
+double dot, desired,
+
+01:06:25.450 --> 01:06:28.085
+minus theta dot squared s.
+
+01:06:28.085 --> 01:06:30.862
+Is that right?
+
+01:06:30.862 --> 01:06:35.270
+AUDIENCE: Minus 2 SOC from
+the first [INAUDIBLE]..
+
+01:06:35.270 --> 01:06:37.100
+RUSS TEDRAKE: Good, yes.
+
+01:06:37.100 --> 01:06:43.730
+Minus 2 tan theta.
+
+01:06:43.730 --> 01:06:44.480
+Good, thank you.
+
+01:06:52.840 --> 01:06:53.560
+Cool.
+
+01:06:53.560 --> 01:06:59.680
+So that's a much less
+intuitive result, I think.
+
+01:06:59.680 --> 01:07:02.142
+But it's a much
+more powerful one.
+
+01:07:02.142 --> 01:07:11.560
+It says, if I wanted to directly
+control the pendulum, I can.
+
+01:07:11.560 --> 01:07:13.960
+I have to give up something.
+
+01:07:13.960 --> 01:07:16.870
+x double dot, then, is
+going to end up being--
+
+01:07:16.870 --> 01:07:20.290
+the resulting motion of the
+cart could be a little strange.
+
+01:07:20.290 --> 01:07:23.380
+It's going to be whatever this
+theta double dot desired plus s
+
+01:07:23.380 --> 01:07:24.460
+over c looks like.
+
+01:07:27.010 --> 01:07:29.200
+But who cares?
+
+01:07:29.200 --> 01:07:32.380
+If I'm just trying to keep
+the cart up, that's OK.
+
+01:07:32.380 --> 01:07:34.780
+In your 6003 type
+demos, they also
+
+01:07:34.780 --> 01:07:39.420
+worry about not running into
+the rails, which is important.
+
+01:07:39.420 --> 01:07:41.980
+But to first order,
+this is a good thing.
+
+01:07:41.980 --> 01:07:43.460
+What did I gloss over?
+
+01:07:43.460 --> 01:07:45.910
+AUDIENCE: Theta
+goes to pi over 2.
+
+01:07:45.910 --> 01:07:47.830
+RUSS TEDRAKE: Yeah, right?
+
+01:07:47.830 --> 01:07:52.570
+So I put a cosine on the
+bottom here without being
+
+01:07:52.570 --> 01:07:54.020
+careful about that.
+
+01:07:54.020 --> 01:07:55.900
+So what is that?
+
+01:07:55.900 --> 01:07:58.635
+What is that
+physically related to?
+
+01:07:58.635 --> 01:08:01.733
+AUDIENCE: If your pendulum
+goes flat, then [INAUDIBLE]..
+
+01:08:01.733 --> 01:08:02.650
+RUSS TEDRAKE: Exactly.
+
+01:08:02.650 --> 01:08:08.770
+When my pendulum is directly
+sideways, then suddenly,
+
+01:08:08.770 --> 01:08:10.810
+nothing I do with
+the cart is going
+
+01:08:10.810 --> 01:08:13.450
+to control the accelerations
+of that pendulum.
+
+01:08:13.450 --> 01:08:19.720
+So instantaneously, you lose
+the ability to control that.
+
+01:08:19.720 --> 01:08:22.460
+If you're going to swing up
+from the bottom to the top,
+
+01:08:22.460 --> 01:08:24.580
+then you go through that.
+
+01:08:24.580 --> 01:08:25.252
+So who cares?
+
+01:08:25.252 --> 01:08:26.710
+So stop doing
+control for a second,
+
+01:08:26.710 --> 01:08:28.168
+and then you'll
+get back to a place
+
+01:08:28.168 --> 01:08:29.760
+where you can control it again.
+
+01:08:33.899 --> 01:08:36.180
+So that sort of says
+everything, I think,
+
+01:08:36.180 --> 01:08:41.160
+that your intuition should
+relate about these things.
+
+01:08:41.160 --> 01:08:44.790
+And then for the Acrobot, it's
+sort of similarly surprising,
+
+01:08:44.790 --> 01:08:50.460
+but I can use my elbow torque to
+feedback linearize my shoulder
+
+01:08:50.460 --> 01:08:50.960
+torque--
+
+01:08:54.540 --> 01:08:56.560
+same thing.
+
+01:08:56.560 --> 01:08:59.520
+So if I wanted to make
+it do whatever I want,
+
+01:08:59.520 --> 01:09:02.529
+really, then I can do that.
+
+01:09:02.529 --> 01:09:05.580
+I might have to spin like
+crazy or do something nuts.
+
+01:09:05.580 --> 01:09:09.660
+But I can make my passive
+joint do whatever I want.
+
+01:09:09.660 --> 01:09:12.300
+It's kind of cool.
+
+01:09:12.300 --> 01:09:15.510
+In fact, just to--
+
+01:09:15.510 --> 01:09:20.130
+I want to show the slightly
+more general derivation of that
+
+01:09:20.130 --> 01:09:25.180
+or form of that, but
+just to make the point.
+
+01:09:25.180 --> 01:09:29.340
+So one of the ways we've been
+playing with Little Dog--
+
+01:09:29.340 --> 01:09:33.029
+this is our robotic dog.
+
+01:09:33.029 --> 01:09:36.270
+So Little Dog has actuators
+at all the internal joints.
+
+01:09:36.270 --> 01:09:38.520
+It's got-- if you're just
+looking at it from the side,
+
+01:09:38.520 --> 01:09:40.350
+all you care about, it's got
+one in the knee, it's got,
+
+01:09:40.350 --> 01:09:42.840
+actually, two in the hip--
+but that doesn't matter here--
+
+01:09:42.840 --> 01:09:45.490
+two in the other
+hip, one in the knee.
+
+01:09:45.490 --> 01:09:47.220
+But the thing we're
+about to make it do
+
+01:09:47.220 --> 01:09:51.390
+is try to control the dynamics
+around the foot, which
+
+01:09:51.390 --> 01:09:52.529
+is just like the Acrobot.
+
+01:09:52.529 --> 01:09:54.450
+It doesn't-- the place where
+you might think you'd want it
+
+01:09:54.450 --> 01:09:56.367
+the most is where you
+don't have the actuator.
+
+01:09:58.650 --> 01:10:08.380
+So if you want to do something
+like this with your dog,
+
+01:10:08.380 --> 01:10:10.420
+then you've got a reason
+about the coupling,
+
+01:10:10.420 --> 01:10:14.380
+the inertial coupling,
+which is what we did here,
+
+01:10:14.380 --> 01:10:15.810
+that allows you to decide--
+
+01:10:15.810 --> 01:10:18.310
+the slipping at the end is ugly
+and we didn't do that right.
+
+01:10:18.310 --> 01:10:21.280
+But until the impact, we did
+a pretty good job, actually,
+
+01:10:21.280 --> 01:10:24.460
+of regulating the
+position of the dog,
+
+01:10:24.460 --> 01:10:28.690
+just using the controlled
+actuators and where our most
+
+01:10:28.690 --> 01:10:31.330
+essential variable was passive.
+
+01:10:31.330 --> 01:10:32.930
+It took a slightly
+more general form,
+
+01:10:32.930 --> 01:10:36.460
+which I'm going to show you
+on Thursday, to do that.
+
+01:10:36.460 --> 01:10:39.880
+But partial feedback
+linearization
+
+01:10:39.880 --> 01:10:47.020
+is sort of alive and well
+and useful in robotics.
+
+01:10:47.020 --> 01:10:48.985
+Let me just--
+
+01:10:48.985 --> 01:10:50.830
+I'll show you half of the--
+
+01:10:50.830 --> 01:10:54.910
+or one of the slightly more
+general derivations of it,
+
+01:10:54.910 --> 01:10:57.910
+just because it's so easy with
+this algebra manipulation.
+
+01:10:57.910 --> 01:11:03.370
+So let's say I have manipulator
+equations of the form--
+
+01:11:03.370 --> 01:11:09.340
+I'm just going to lump C, q
+dot, and G into a single term
+
+01:11:09.340 --> 01:11:12.040
+because they don't affect
+the derivation at all.
+
+01:11:12.040 --> 01:11:16.000
+And let's say that
+I've stacked--
+
+01:11:16.000 --> 01:11:17.570
+I've reordered my
+equations of motion
+
+01:11:17.570 --> 01:11:22.540
+so that all of my
+passive joints are on top
+
+01:11:22.540 --> 01:11:25.510
+and all my actuated
+joints are on the bottom.
+
+01:11:25.510 --> 01:11:27.115
+So these are all matrices.
+
+01:11:33.940 --> 01:11:37.360
+Let me call q1, the
+collection-- it's
+
+01:11:37.360 --> 01:11:42.670
+a vector of all
+the passive joints,
+
+01:11:42.670 --> 01:11:46.570
+and q2 all the active joints.
+
+01:11:52.150 --> 01:11:56.140
+Then if I break this
+up just a little bit,
+
+01:11:56.140 --> 01:12:00.800
+I can write the
+same equation as--
+
+01:12:20.110 --> 01:12:20.850
+as that.
+
+01:12:32.285 --> 01:12:33.660
+I left these up
+the whole lecture
+
+01:12:33.660 --> 01:12:35.827
+thinking I was going to
+point to them all the time--
+
+01:12:35.827 --> 01:12:36.470
+never did.
+
+01:12:36.470 --> 01:12:38.100
+I'm going to erase them now.
+
+01:12:44.740 --> 01:12:54.880
+OK, so what is my
+collocated form?
+
+01:12:54.880 --> 01:12:58.060
+Collocated means I'm going
+to try to control q2.
+
+01:12:58.060 --> 01:12:59.605
+So let's solve for--
+
+01:12:59.605 --> 01:13:10.300
+q1 is going to be H1,
+1, inverse, H1, 2,
+
+01:13:10.300 --> 01:13:13.510
+q2 double dot plus phi 1.
+
+01:13:17.446 --> 01:13:20.680
+Am I allowed to do
+that, H1, 1, inverse?
+
+01:13:24.552 --> 01:13:28.420
+It takes a little bit of
+thinking, but it's actually OK.
+
+01:13:28.420 --> 01:13:32.570
+It's a positive
+definite matrix H.
+
+01:13:32.570 --> 01:13:37.610
+So it turns out the square
+diagonal entries are actually
+
+01:13:37.610 --> 01:13:40.610
+also have to be
+positive definite.
+
+01:13:40.610 --> 01:13:43.490
+So maybe take my word on that.
+
+01:13:43.490 --> 01:13:49.430
+And then I can plug that in
+and see that, if I do tau--
+
+01:13:49.430 --> 01:13:53.180
+let's see if I can just
+do it in the step here.
+
+01:13:53.180 --> 01:13:59.240
+Tau is going to have
+to be H2, 2, plus--
+
+01:13:59.240 --> 01:14:02.270
+no, I missed a minus, didn't I?
+
+01:14:02.270 --> 01:14:05.000
+q1 is-- I missed
+a minus in here.
+
+01:14:08.090 --> 01:14:12.335
+Minus H1, 1, H1, 2--
+
+01:14:17.400 --> 01:14:18.180
+I did that.
+
+01:14:20.940 --> 01:14:23.610
+I should have done
+it in two steps.
+
+01:14:23.610 --> 01:14:38.240
+It's H2, 1, H1, 1, inverse,
+H1, 2, q2 double dot desired,
+
+01:14:38.240 --> 01:14:40.840
+plus phi 2.
+
+01:14:44.580 --> 01:14:45.080
+Right?
+
+01:14:52.290 --> 01:15:00.990
+In the non-collocated,
+we're going
+
+01:15:00.990 --> 01:15:06.460
+to have to solve
+for q2 double dot.
+
+01:15:06.460 --> 01:15:17.720
+That's going to be H1, 2,
+negative H1, 2, inverse,
+
+01:15:17.720 --> 01:15:25.160
+times H1, 1, q1 double
+dot, plus theta 1.
+
+01:15:25.160 --> 01:15:28.052
+I missed my theta 1
+term in here somewhere.
+
+01:15:28.052 --> 01:15:29.510
+That should have
+been also in here.
+
+01:15:52.450 --> 01:15:54.530
+Yeah.
+
+01:15:54.530 --> 01:15:57.380
+OK, so the first step in the
+non-collocated, in general,
+
+01:15:57.380 --> 01:16:00.060
+is this H1, 2 inverse.
+
+01:16:00.060 --> 01:16:01.456
+Is that one OK?
+
+01:16:01.456 --> 01:16:03.450
+AUDIENCE: [INAUDIBLE]
+
+01:16:03.450 --> 01:16:04.700
+RUSS TEDRAKE: Not necessarily.
+
+01:16:04.700 --> 01:16:06.158
+I could have had
+a different number
+
+01:16:06.158 --> 01:16:12.740
+of actuated active and
+passive degrees of freedom.
+
+01:16:12.740 --> 01:16:16.271
+So let me write something
+that's a little bit better,
+
+01:16:16.271 --> 01:16:17.780
+the sort of pseudo inverse.
+
+01:16:21.140 --> 01:16:26.713
+And what matters--
+the non-collocation,
+
+01:16:26.713 --> 01:16:28.130
+the partial feedback
+linearization
+
+01:16:28.130 --> 01:16:32.990
+is going to work if and only
+if that matrix is full row
+
+01:16:32.990 --> 01:16:33.570
+rank again.
+
+01:16:36.230 --> 01:16:38.580
+So what does that mean?
+
+01:16:38.580 --> 01:16:41.960
+It means I can't use one
+active degree of freedom
+
+01:16:41.960 --> 01:16:45.195
+to control two or more
+passive degrees of freedom.
+
+01:16:45.195 --> 01:16:47.820
+I need to have at least as many
+actuators as degrees of freedom
+
+01:16:47.820 --> 01:16:49.190
+I'm going to try to control.
+
+01:16:49.190 --> 01:16:50.990
+That's reasonable.
+
+01:16:50.990 --> 01:16:54.170
+But it's a little bit
+more than that still.
+
+01:16:54.170 --> 01:16:58.370
+I actually have to have
+them inertially coupled
+
+01:16:58.370 --> 01:16:59.370
+in the right way.
+
+01:16:59.370 --> 01:17:05.390
+So if I had two
+pendula on the table--
+
+01:17:05.390 --> 01:17:07.310
+well, the table might
+have some dynamics.
+
+01:17:07.310 --> 01:17:12.410
+If I had two pendula bolted to
+completely independent bases,
+
+01:17:12.410 --> 01:17:15.830
+and I had an actuator on one and
+not an actuator on the other,
+
+01:17:15.830 --> 01:17:17.120
+that ain't gonna work.
+
+01:17:17.120 --> 01:17:21.300
+I can't make any math that's
+going to make that work.
+
+01:17:21.300 --> 01:17:25.250
+So there has to be some inertial
+coupling between the two.
+
+01:17:25.250 --> 01:17:34.700
+So the rank condition on
+this is the condition of--
+
+01:17:34.700 --> 01:17:36.560
+is sometimes called
+the condition
+
+01:17:36.560 --> 01:17:38.285
+of strong inertial coupling.
+
+01:17:48.500 --> 01:18:00.410
+The strong means that it's
+uniformly inertially coupled.
+
+01:18:00.410 --> 01:18:02.210
+It's just inertially
+coupled in some state.
+
+01:18:02.210 --> 01:18:06.170
+And if for all q this
+thing is full rank,
+
+01:18:06.170 --> 01:18:08.390
+then it's strong
+inertial coupling.
+
+01:18:13.310 --> 01:18:16.550
+And there's even a
+more general form.
+
+01:18:16.550 --> 01:18:19.430
+So in general, you can--
+
+01:18:19.430 --> 01:18:21.800
+and what we do in
+Little Dog is, we
+
+01:18:21.800 --> 01:18:25.560
+pick some combination of
+actuated and unactuated degrees
+
+01:18:25.560 --> 01:18:26.060
+of freedom.
+
+01:18:26.060 --> 01:18:28.727
+And actually, what we care about
+is a virtual degree of freedom,
+
+01:18:28.727 --> 01:18:30.320
+which is the center of mass.
+
+01:18:30.320 --> 01:18:34.600
+And I'll show you at the
+beginning of the next lecture
+
+01:18:34.600 --> 01:18:36.770
+the most general form of this.
+
+01:18:40.190 --> 01:18:43.670
+But I can't put up
+these PFL equations
+
+01:18:43.670 --> 01:18:48.530
+without spending one
+minute at the end saying,
+
+01:18:48.530 --> 01:18:51.570
+PFL is still sort of bad, right?
+
+01:18:51.570 --> 01:18:54.020
+I don't really-- it
+works, and I use it
+
+01:18:54.020 --> 01:18:55.940
+because I want to
+control these robots.
+
+01:18:55.940 --> 01:18:59.270
+But I don't like
+feedback linearization.
+
+01:18:59.270 --> 01:19:00.980
+Feedback linearization is bad.
+
+01:19:00.980 --> 01:19:05.750
+This is taking some beautiful
+nonlinear system that
+
+01:19:05.750 --> 01:19:10.190
+has beautiful equations
+and arbitrarily
+
+01:19:10.190 --> 01:19:14.150
+pumping in some potentially
+large amount of energy
+
+01:19:14.150 --> 01:19:18.343
+to squish those dynamics
+and bend them to your will.
+
+01:19:18.343 --> 01:19:19.010
+And that's good.
+
+01:19:19.010 --> 01:19:20.690
+That's the feedback way.
+
+01:19:20.690 --> 01:19:23.450
+But it's not the only way.
+
+01:19:23.450 --> 01:19:27.830
+So we do it when we have to.
+
+01:19:27.830 --> 01:19:30.320
+But it's better if you don't.
+
+01:19:30.320 --> 01:19:30.933
+Yeah.
+
+01:19:30.933 --> 01:19:32.850
+AUDIENCE: Wouldn't you
+have [INAUDIBLE] errors
+
+01:19:32.850 --> 01:19:33.720
+in the [INAUDIBLE]?
+
+01:19:33.720 --> 01:19:37.047
+RUSS TEDRAKE: It
+could be that, if you
+
+01:19:37.047 --> 01:19:38.630
+don't have the model
+perfect, that you
+
+01:19:38.630 --> 01:19:40.050
+could be doing bad things too.
+
+01:19:40.050 --> 01:19:42.980
+Any time you have large
+control gains going around,
+
+01:19:42.980 --> 01:19:44.890
+you're going to be sensitive.
+
+01:19:48.050 --> 01:19:49.467
+So don't always do this.
+
+01:19:49.467 --> 01:19:51.800
+But I do want you to know
+that you can do this if you so
+
+01:19:51.800 --> 01:19:54.890
+choose to take that path.
+
+01:19:54.890 --> 01:20:00.440
+OK, cool, so on Thursday we
+will use these partial feedback
+
+01:20:00.440 --> 01:20:02.960
+linearizations and
+LQR together to make
+
+01:20:02.960 --> 01:20:05.540
+the Acrobot, the cart-pole
+swing up and balance.
+
+01:20:05.540 --> 01:20:07.790
+If all goes well and we don't
+have any License Manager
+
+01:20:07.790 --> 01:20:10.270
+issues, then we'll
+see it in class.

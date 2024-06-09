@@ -1,0 +1,1097 @@
+WEBVTT
+
+1
+00:00:00.400 --> 00:00:05.900 
+So when we do a column
+organization then
+
+2
+00:00:07.110 --> 00:00:13.170 
+we come, instantly, to the fact
+that we see how we can minimize
+
+3
+00:00:13.170 --> 00:00:19.230 
+the access to memory and access
+to memory can be minimized
+
+4
+00:00:19.230 --> 00:00:23.270 
+by, first I only access
+the columns I need
+
+5
+00:00:24.280 --> 00:00:27.310 
+and second when we look
+at individual columns
+
+6
+00:00:28.320 --> 00:00:32.360 
+then we can do something
+with columns we can't do or
+
+7
+00:00:32.360 --> 00:00:36.400 
+couldn't do in a normal
+disk based database.
+
+8
+00:00:37.410 --> 00:00:42.460 
+We couldn't do a attribute
+based compression in a row
+
+9
+00:00:42.460 --> 00:00:48.520 
+database on disk, but we can
+do a column based compression
+
+10
+00:00:48.520 --> 00:00:53.570 
+in an column based database
+in memory and this is what we
+
+11
+00:00:54.580 --> 00:00:58.000 
+will look at one example now
+in go through the example and
+
+12
+00:00:58.000 --> 00:01:00.640 
+then you can
+get a feeling
+
+13
+00:01:01.650 --> 00:01:05.690 
+what we can achieve and
+why this column concept
+
+14
+00:01:06.700 --> 00:01:11.750 
+then becomes so superior. We
+learned already main memory access
+
+15
+00:01:11.750 --> 00:01:16.800 
+is the bottleneck and we
+want to reduce the overall
+
+16
+00:01:17.810 --> 00:01:22.860 
+main memory access and one
+way is to reduce the amount
+
+17
+00:01:23.870 --> 00:01:27.910 
+of bits we need to store
+the information which is
+
+18
+00:01:27.910 --> 00:01:32.960 
+which is in a table.
+
+19
+00:01:33.970 --> 00:01:35.990 
+So we want to introduce
+data compression
+
+20
+00:01:37.101 --> 00:01:40.104 
+and we want to introduce data
+compression in a way that the
+
+21
+00:01:40.104 --> 00:01:44.108 
+operators, the operations we
+perform on a table can be performed
+
+22
+00:01:44.108 --> 00:01:45.109 
+in compressed form.
+
+23
+00:01:47.111 --> 00:01:50.114 
+For the ones who know
+row based compressions,
+
+24
+00:01:51.115 --> 00:01:54.118 
+the row based compressions
+at least the ones SAP
+
+25
+00:01:54.118 --> 00:01:58.122 
+has used in the last 40 years,
+all did not allow execution
+
+26
+00:01:59.123 --> 00:02:03.127 
+in compressed form. So
+before anything could happen
+
+27
+00:02:03.127 --> 00:02:08.132 
+on a tuple, on an attribute of a tuple,
+the tuple had to be decompressed.
+
+28
+00:02:09.133 --> 00:02:13.137 
+Our example is the world
+population, eight billion humans
+
+29
+00:02:14.138 --> 00:02:18.142 
+and we have attributes like first
+name, last name, gender, country,
+
+30
+00:02:18.142 --> 00:02:21.145 
+city, birth date, probably
+we have 200 bytes per person.
+
+31
+00:02:23.147 --> 00:02:28.152 
+In the old days I hit
+
+32
+00:02:28.152 --> 00:02:33.157 
+the total number of bytes we need,
+so what is eight billion by two
+
+33
+00:02:33.157 --> 00:02:38.162 
+hundred, that's
+1.6 terra.
+
+34
+00:02:39.163 --> 00:02:42.166 
+Now we want to see
+how this comes down
+
+35
+00:02:42.166 --> 00:02:47.171 
+when we start working on the data.
+We have here our simple table
+
+36
+00:02:48.172 --> 00:02:52.176 
+tuple has a record ID, this
+is the relative position
+
+37
+00:02:52.176 --> 00:02:57.181 
+in the table and then
+we have in character
+
+38
+00:02:57.181 --> 00:03:02.186 
+the attributes here, the
+instances john, mary, jane etc.
+
+39
+00:03:03.187 --> 00:03:06.190 
+We have a gender male
+female, female male male
+
+40
+00:03:07.191 --> 00:03:09.193 
+etc.
+
+41
+00:03:12.196 --> 00:03:16.200 
+Now we start a concept
+which is called dictionary
+
+42
+00:03:17.201 --> 00:03:21.205 
+encoding, we take now
+an individual column
+
+43
+00:03:22.206 --> 00:03:30.214 
+let's take the first name column
+and re-organize the data in
+
+44
+00:03:31.215 --> 00:03:35.219 
+a vector, which
+is pointing
+
+45
+00:03:38.222 --> 00:03:42.226 
+it to a dictionary and the
+dictionary we keep the name the
+
+46
+00:03:42.226 --> 00:03:47.231 
+actual instance Mary,
+John, Mary, Jane, Peter
+
+47
+00:03:49.233 --> 00:03:54.238 
+and in this dictionary we have
+a relative position of the name
+
+48
+00:03:54.238 --> 00:03:59.243 
+which is which is an integer
+and use the integer then
+
+49
+00:03:59.243 --> 00:04:04.248 
+in the actual column. So we
+replace the character string
+
+50
+00:04:05.249 --> 00:04:09.253 
+John as a name by integer
+pointing to a character string
+
+51
+00:04:09.253 --> 00:04:16.260 
+"John." So we have eight billion
+people we have only five million first names
+
+52
+00:04:18.262 --> 00:04:24.268 
+so for five million first
+names we, here, we need
+
+53
+00:04:24.268 --> 00:04:26.270 
+only 23 bits
+to encode this.
+
+54
+00:04:30.274 --> 00:04:34.278 
+We do little design
+assessment here and how many
+
+55
+00:04:34.278 --> 00:04:40.284 
+need bytes do we need for
+first names? 10 is not enough.
+
+56
+00:04:40.284 --> 00:04:45.289 
+You have probably up to 20,
+there are some countries where
+
+57
+00:04:45.289 --> 00:04:47.291 
+the first names are
+pretty extended.
+
+58
+00:04:52.296 --> 00:04:57.301 
+We have no nobody from India
+here but there are others
+
+59
+00:04:58.302 --> 00:05:03.307 
+in the world, so let us
+take 20 bytes instead of 20
+
+60
+00:05:03.307 --> 00:05:09.313 
+bytes we can encode the
+same information by using 23
+
+61
+00:05:09.313 --> 00:05:14.318 
+bits and a dictionary.
+So we get to take all the
+
+62
+00:05:14.318 --> 00:05:19.323 
+distinct values of the first
+name, into a dictionary.
+
+63
+00:05:20.324 --> 00:05:24.328 
+We sort the dictionary, then
+every name has a position.
+
+64
+00:05:26.330 --> 00:05:29.333 
+John is on position
+23, Mary on 24.
+
+65
+00:05:30.334 --> 00:05:35.339 
+This is an integer of
+the length of 23 bit
+
+66
+00:05:36.340 --> 00:05:40.344 
+and we store now this
+integer value called value ID
+
+67
+00:05:41.345 --> 00:05:45.349 
+in the attribute-vector
+for first name.
+
+68
+00:05:48.352 --> 00:05:52.356 
+The compression is now 24
+bits, now probably we take
+
+69
+00:05:52.356 --> 00:05:56.360 
+23 bits, we take
+24 bits. This is
+
+70
+00:05:56.360 --> 00:05:59.363 
+three bytes and we had twenty bytes
+before, so we have a compression
+
+71
+00:05:59.363 --> 00:06:00.364 
+from 20 to 3.
+
+72
+00:06:03.367 --> 00:06:05.369 
+Plus the dictionary.
+
+73
+00:06:08.372 --> 00:06:10.374 
+So we save 17 bytes,
+
+74
+00:06:12.376 --> 00:06:17.381 
+we save 17 bytes and
+the times a billion,
+
+75
+00:06:18.382 --> 00:06:24.388 
+this is quite a lot and always
+remember if we reduce that,
+
+76
+00:06:25.389 --> 00:06:28.392 
+that amount of space we need
+to store the information
+
+77
+00:06:29.000 --> 00:06:34.398 
+we increase the speed with which
+we go through all this information.
+
+78
+00:06:34.398 --> 00:06:37.401 
+In this case, it is,
+we increase the scan
+
+79
+00:06:37.401 --> 00:06:45.409 
+of first names already by
+a factor of 70, 20 divided
+
+80
+00:06:45.409 --> 00:06:50.414 
+by three this is
+seven, roughly.
+
+81
+00:06:52.416 --> 00:06:56.420 
+Without doing anything the skin
+speed of first names is now
+
+82
+00:06:56.420 --> 00:07:01.425 
+full table, full column scan speed
+is seven times faster than in
+
+83
+00:07:01.425 --> 00:07:05.429 
+a database which
+stores the character.
+
+84
+00:07:11.435 --> 00:07:15.439 
+When we do this with gender then
+it becomes even more obvious,
+
+85
+00:07:17.441 --> 00:07:19.443 
+for gender we
+need only one bit
+
+86
+00:07:21.445 --> 00:07:26.450 
+instead of n and f which is a
+character we can compressed now
+
+87
+00:07:26.450 --> 00:07:31.455 
+from 8 bits to 1 bit
+so it's a factor 8.
+
+88
+00:07:33.457 --> 00:07:36.460 
+We have a bit
+vector which is
+
+89
+00:07:39.463 --> 00:07:40.464 
+8 billion bits long,
+
+90
+00:07:42.466 --> 00:07:44.468 
+that's one billion
+characters.
+
+91
+00:07:47.471 --> 00:07:51.475 
+When we want to scan
+through the vector
+
+92
+00:07:52.476 --> 00:07:57.481 
+male female, so the gender vector,
+we just check for bit on and
+
+93
+00:07:57.481 --> 00:08:03.487 
+off, then we can achieve
+a very fast scan speed.
+
+94
+00:08:04.488 --> 00:08:08.492 
+So the dictionary, there is a
+design decision very early on
+
+95
+00:08:08.492 --> 00:08:13.497 
+to keep the
+dictionaries sorted
+
+96
+00:08:14.498 --> 00:08:18.502 
+this is good for inserts, this
+is good what we later will learn,
+
+97
+00:08:18.502 --> 00:08:22.506 
+for joins. If the dictionaries
+are sorted we can have
+
+98
+00:08:22.506 --> 00:08:25.509 
+binary search on top of
+the dictionary so with
+
+99
+00:08:25.509 --> 00:08:34.518 
+a log we can find
+the distinct value
+
+100
+00:08:34.518 --> 00:08:37.521 
+and we need this
+for speed of
+
+101
+00:08:37.521 --> 00:08:44.528 
+creating or transferring
+incoming character-based tuples
+
+102
+00:08:44.528 --> 00:08:48.532 
+into these dictionary encoding
+tuples. The dictionary
+
+103
+00:08:51.535 --> 00:08:54.538 
+entries themselves can be compressed
+and we will see at least one compression
+
+104
+00:08:55.539 --> 00:08:59.543 
+technology, or technique, it's not
+a technology, a technique later.
+
+105
+00:09:00.544 --> 00:09:06.550 
+So the compression rate
+depends on the cardinality
+
+106
+00:09:07.551 --> 00:09:12.556 
+of a column, how
+many different values
+
+107
+00:09:12.556 --> 00:09:17.561 
+are in a column. If we have
+only two different values
+
+108
+00:09:17.561 --> 00:09:21.565 
+like male and female
+in a column then I
+
+109
+00:09:22.566 --> 00:09:26.570 
+can compress this
+down to one bit
+
+110
+00:09:27.571 --> 00:09:30.574 
+and if I use the byte before,
+as I said, this is 8 to 1
+
+111
+00:09:30.574 --> 00:09:33.577 
+in the case
+of first names
+
+112
+00:09:35.579 --> 00:09:37.581 
+probably something
+like 7 to 1 or
+
+113
+00:09:38.582 --> 00:09:42.586 
+less if we have a
+shorter first name field.
+
+114
+00:09:42.586 --> 00:09:45.589 
+There are there two definitions
+here for cardinality
+
+115
+00:09:45.589 --> 00:09:50.594 
+the, when we talk about
+the cardinality of table
+
+116
+00:09:51.595 --> 00:09:54.598 
+then it is just the number of
+tuples in the relation because
+
+117
+00:09:54.598 --> 00:10:01.605 
+every single tuple
+is, I still discuss
+
+118
+00:10:01.605 --> 00:10:05.609 
+this, if the tuples
+are all distinct
+
+119
+00:10:06.610 --> 00:10:09.613 
+and then the cardinality is
+equal to the number of tuples,
+
+120
+00:10:10.614 --> 00:10:13.617 
+if we don't
+have duplicates.
+
+121
+00:10:13.617 --> 00:10:17.621 
+A column cardinality is
+defined as the number
+
+122
+00:10:17.621 --> 00:10:23.627 
+of distinct values in a column.
+So the column cardinality of
+
+123
+00:10:23.627 --> 00:10:27.631 
+the gender column is very low,
+the column cardinality which
+
+124
+00:10:27.631 --> 00:10:30.634 
+one is probably the
+highest one here, that's a
+
+125
+00:10:30.634 --> 00:10:31.635 
+trick question
+
+126
+00:10:34.638 --> 00:10:39.643 
+countries it's only 200,
+currencies is even less,
+
+127
+00:10:41.645 --> 00:10:43.647 
+cities is a good one
+
+128
+00:10:44.648 --> 00:10:45.649 
+one million only.
+
+129
+00:10:47.651 --> 00:10:54.658 
+So you get a feeling how the
+actual character description
+
+130
+00:10:54.658 --> 00:10:59.663 
+of objects in a
+world collapses. The
+
+131
+00:11:00.664 --> 00:11:05.669 
+cardinality of those
+objects is relatively small
+
+132
+00:11:07.671 --> 00:11:11.675 
+and when we use this for
+encoding we can achieve
+
+133
+00:11:12.676 --> 00:11:17.681 
+significant compression
+rates. By the way, this
+
+134
+00:11:17.681 --> 00:11:20.684 
+was done in the old
+days. in building
+
+135
+00:11:21.685 --> 00:11:23.687 
+our enterprise systems
+a lot when you look at a
+
+136
+00:11:24.688 --> 00:11:29.693 
+SAP system, an older SAP system
+or still carry forward, there's
+
+137
+00:11:29.693 --> 00:11:32.696 
+a lot of coding. So there
+is not, country, a text
+
+138
+00:11:33.697 --> 00:11:38.702 
+field in in a customer record,
+there is a country code pointing
+
+139
+00:11:38.702 --> 00:11:42.706 
+to a country. So this type of
+dictionary encoding was introduced
+
+140
+00:11:42.706 --> 00:11:45.709 
+many years ago in
+enterprise computing.
+
+141
+00:11:45.709 --> 00:11:49.713 
+Sometimes painful, because
+the you always have
+
+142
+00:11:49.713 --> 00:11:52.716 
+to re-translate it back
+and when you want to show
+
+143
+00:11:53.717 --> 00:11:58.722 
+where 007 lives
+then you have to go
+
+144
+00:11:58.722 --> 00:12:01.725 
+into 007's country code
+and from the country
+
+145
+00:12:01.725 --> 00:12:04.728 
+code in the country table and
+then you find out he comes from
+
+146
+00:12:04.728 --> 00:12:09.733 
+Great Britain. Systems which
+were developed later very often
+
+147
+00:12:09.733 --> 00:12:13.737 
+didn't do this, systems which
+came from the PC world mainly
+
+148
+00:12:13.737 --> 00:12:19.743 
+work on the original value
+strings. So the country is a field
+
+149
+00:12:19.743 --> 00:12:22.746 
+and there is a
+country coded,
+
+150
+00:12:23.747 --> 00:12:26.750 
+negative as
+you might have
+
+151
+00:12:26.750 --> 00:12:30.754 
+the same countries several
+times misspelled in
+
+152
+00:12:30.754 --> 00:12:34.758 
+the system. So there are all
+kinds of application issues
+
+153
+00:12:34.758 --> 00:12:39.763 
+what we do here is we
+automatically code all columns
+
+154
+00:12:40.764 --> 00:12:46.770 
+and compress them as much as we
+can down to bits. The nice thing
+
+155
+00:12:46.770 --> 00:12:49.773 
+is we don't have to work
+on byte level anymore
+
+156
+00:12:49.773 --> 00:12:54.778 
+because with the
+modern CPU's,
+
+157
+00:12:54.778 --> 00:12:57.781 
+the modern input CPUs and
+I think other CPUs are
+
+158
+00:12:57.781 --> 00:13:01.785 
+all following. We
+got new instructions
+
+159
+00:13:01.785 --> 00:13:04.788 
+well we can shift
+the 64 bits back and
+
+160
+00:13:04.788 --> 00:13:08.792 
+forth and can do all kinds of
+operations, bit oriented operations
+
+161
+00:13:08.792 --> 00:13:12.796 
+with a very very high speed. So
+we have a sorted dictionary, we
+
+162
+00:13:12.796 --> 00:13:15.799 
+have this, we have
+a compression rate
+
+163
+00:13:15.799 --> 00:13:20.804 
+and then here are our
+size. Now the first names
+
+164
+00:13:20.804 --> 00:13:23.807 
+5 million, last names
+8 million, gender 2,
+
+165
+00:13:23.807 --> 00:13:27.811 
+city 1, country 2 hundred,
+birthday 40,000, this is
+
+166
+00:13:27.811 --> 00:13:32.816 
+just to get a feeling
+and the then we have the
+
+167
+00:13:33.000 --> 00:13:36.820 
+entropy and we can,
+
+168
+00:13:38.822 --> 00:13:42.826 
+we have item size we even
+have here 49 bytes so
+
+169
+00:13:42.826 --> 00:13:45.829 
+I should have looked
+through this first here.
+
+170
+00:13:46.830 --> 00:13:49.833 
+And with the dictionary
+we can compress this
+
+171
+00:13:50.834 --> 00:13:52.836 
+significantly, here are
+the compression rates
+
+172
+00:13:53.837 --> 00:13:57.841 
+on the between plain and
+with dictionary compression
+
+173
+00:13:57.841 --> 00:14:00.844 
+on the right-hand side.
+When we look at the
+
+174
+00:14:01.845 --> 00:14:05.849 
+compression, at this
+point we can already say
+
+175
+00:14:05.849 --> 00:14:08.852 
+when we have a large table,
+one of these enterprise tables
+
+176
+00:14:09.853 --> 00:14:13.857 
+coming from an SAP
+system. I have in mind now
+
+177
+00:14:15.859 --> 00:14:20.864 
+a table with 500 attributes
+and as from sales and
+
+178
+00:14:20.864 --> 00:14:23.867 
+we have learned already
+that probably only 20 % of
+
+179
+00:14:23.867 --> 00:14:27.871 
+the attributes are being used
+in one single installation.
+
+180
+00:14:29.873 --> 00:14:33.877 
+That means
+that 400 fields
+
+181
+00:14:35.879 --> 00:14:38.882 
+on a populated
+400 columns are
+
+182
+00:14:39.883 --> 00:14:44.888 
+all empty and what does
+the database do if a column
+
+183
+00:14:44.888 --> 00:14:45.889 
+is completely empty?
+There is no column.
+
+184
+00:14:48.892 --> 00:14:53.897 
+So the first compression we get
+is columns which are not being
+
+185
+00:14:53.897 --> 00:14:57.901 
+populated are being stored.
+They are known to the system
+
+186
+00:14:57.901 --> 00:15:01.905 
+in the metadata. There
+is probably, technically
+
+187
+00:15:01.905 --> 00:15:06.910 
+a little management
+information that the column
+
+188
+00:15:06.910 --> 00:15:10.914 
+is empty but there is
+no column and we can
+
+189
+00:15:10.914 --> 00:15:13.917 
+use that in the system,
+definitely it doesn't cost
+
+190
+00:15:14.918 --> 00:15:18.922 
+space and definitely we can
+avoid processing columns which
+
+191
+00:15:18.922 --> 00:15:19.923 
+are not being populated.
+
+192
+00:15:23.927 --> 00:15:28.932 
+The second is the remaining
+columns we compressed
+
+193
+00:15:29.933 --> 00:15:32.936 
+and the compression
+rates we can see here.
+
+194
+00:15:33.937 --> 00:15:37.941 
+If the compression, the average
+compression is a factor 5
+
+195
+00:15:37.941 --> 00:15:41.945 
+this is probably a
+good rule of thumb.
+
+196
+00:15:42.946 --> 00:15:46.950 
+So compression of a factor
+5 for populated data
+
+197
+00:15:46.950 --> 00:15:50.954 
+and the compression
+of 100% or close to
+
+198
+00:15:50.954 --> 00:15:53.957 
+a 100%, let's take
+100% for non populated
+
+199
+00:15:53.957 --> 00:15:59.963 
+data. If you find out the
+the amount of population
+
+200
+00:16:00.964 --> 00:16:04.968 
+for a given table, this is
+just a mini program running
+
+201
+00:16:04.968 --> 00:16:08.972 
+should be, by the
+way, a feature of the
+
+202
+00:16:09.973 --> 00:16:11.975 
+system management
+tool, I think it is
+
+203
+00:16:13.977 --> 00:16:18.982 
+somebody could check then
+we can already predict
+
+204
+00:16:18.982 --> 00:16:21.985 
+what the compression will be
+before we ever do something
+
+205
+00:16:22.986 --> 00:16:28.992 
+with a table. So knowing the
+distinct values and the size of
+
+206
+00:16:28.992 --> 00:16:32.996 
+the table we can calculate the
+populated ones and the un-populated
+
+207
+00:16:32.996 --> 00:16:36.100 
+ones, we don't have to calculate
+if we want to compare with
+
+208
+00:16:36.100 --> 00:16:42.100 
+the x, the plane table,
+how it probably comes
+
+209
+00:16:42.100 --> 00:16:46.101 
+into the system so all fields
+are populated even with default
+
+210
+00:16:46.101 --> 00:16:49.101 
+values, then we have
+the compression factor.
+
+211
+00:16:50.101 --> 00:16:54.101 
+Compression factor varies
+between, five is typically minimum
+
+212
+00:16:55.101 --> 00:16:58.102 
+these are tables where all
+attributes are populated
+
+213
+00:16:59.102 --> 00:17:03.102 
+to factor 50, these are
+tables in SAP financial
+
+214
+00:17:05.102 --> 00:17:11.103 
+and it varies in between
+taking any type of tables,
+
+215
+00:17:11.103 --> 00:17:15.103 
+some companies have set up
+a factor 10, is probably
+
+216
+00:17:15.103 --> 00:17:19.104 
+pretty good as a compression
+factor. So if somebody says we have
+
+217
+00:17:19.104 --> 00:17:25.104 
+today a 10 terrabyte
+table space
+
+218
+00:17:25.104 --> 00:17:30.105 
+and we do not compress the
+data, this is for example in
+
+219
+00:17:30.105 --> 00:17:35.105 
+maxDB or, in most
+cases, in DB2.
+
+220
+00:17:36.106 --> 00:17:40.106 
+Then we need in this
+database only one.
+
+221
+00:17:42.106 --> 00:17:46.107 
+Did I say terabyte or
+gigabyte? The equivalent.
+
+222
+00:17:47.107 --> 00:17:48.107 
+So it's a factor 10.

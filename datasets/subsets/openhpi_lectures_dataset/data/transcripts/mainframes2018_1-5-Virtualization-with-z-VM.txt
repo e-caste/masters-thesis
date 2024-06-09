@@ -1,0 +1,561 @@
+WEBVTT
+
+1
+00:00:00.990 --> 00:00:05.729 
+Welcome to the introduction to Virtualization using z/VM.
+
+2
+00:00:05.730 --> 00:00:10.769 
+In this part of an ever closer look on how virtualization works with that z/VM.
+
+3
+00:00:10.770 --> 00:00:14.610 
+My name is Prof. Dr. Philip Brune from Neu-Ulm University of Applied Sciences.
+
+4
+00:00:16.160 --> 00:00:21.259 
+If you look at the overview slide - history and evolution
+
+5
+00:00:21.260 --> 00:00:25.909 
+of mainframe operating systems, we see that there is a
+
+6
+00:00:25.910 --> 00:00:29.510 
+separate path here for VM
+
+7
+00:00:30.550 --> 00:00:35.049 
+but now it's called z/VM, and you see that it has been around for a long
+
+8
+00:00:35.050 --> 00:00:39.669 
+time, the origins dating back to the early seventies and late
+
+9
+00:00:39.670 --> 00:00:44.679 
+sixties and why the name changed over the years,
+
+10
+00:00:44.680 --> 00:00:50.049 
+the basic structure has remained and z/VM
+
+11
+00:00:50.050 --> 00:00:54.189 
+is the product that allows us to do software-based
+
+12
+00:00:55.210 --> 00:00:59.739 
+hardware virtualization on the mainframe or the said systems
+
+13
+00:00:59.740 --> 00:01:00.740 
+architecture.
+
+14
+00:01:03.070 --> 00:01:07.779 
+So, z/VM is a mainframe operating system, and
+
+15
+00:01:07.780 --> 00:01:12.369 
+to understand how hardware virtualization works, not only inside VM but
+
+16
+00:01:12.370 --> 00:01:13.370 
+of course other where.
+
+17
+00:01:14.410 --> 00:01:18.549 
+We should have a closer look at the underlying mechanism.
+
+18
+00:01:19.750 --> 00:01:24.309 
+If you look at any kind of CPU that allows virtualization
+
+19
+00:01:24.310 --> 00:01:29.049 
+or supports virtualizations of the parts which are memory and other more
+
+20
+00:01:29.050 --> 00:01:33.549 
+sophisticated things then typically these kindsof processors have at
+
+21
+00:01:33.550 --> 00:01:38.379 
+least two, maybe even more different states, internal states
+
+22
+00:01:38.380 --> 00:01:43.359 
+and they have the possibility that some machine instructions are not executed
+
+23
+00:01:43.360 --> 00:01:46.479 
+in all of the internal states.
+
+24
+00:01:46.480 --> 00:01:51.129 
+In this example here, you see the basic structure
+
+25
+00:01:51.130 --> 00:01:55.659 
+inside the mainframe CPU. We have this, which is called the problem state
+
+26
+00:01:55.660 --> 00:02:00.369 
+and the supervisor state. So the mainframe processor can be in the problem state
+
+27
+00:02:00.370 --> 00:02:04.839 
+or the supervisor state and in the supervisor state, only in the supervisor
+
+28
+00:02:04.840 --> 00:02:08.369 
+state, certain machine instructions will be executed.
+
+29
+00:02:08.370 --> 00:02:13.499 
+If certain machine instructions are executed or these machine instructions executed
+
+30
+00:02:13.500 --> 00:02:18.149 
+in the problem state of a program tries to execute them, there will be an exception,
+
+31
+00:02:18.150 --> 00:02:23.399 
+which leads to an interrupt that needs to be handled.
+
+32
+00:02:23.400 --> 00:02:28.109 
+So, in general, modern CPUs distinguish privileged and non-privilegedmachine
+
+33
+00:02:28.110 --> 00:02:32.699 
+instructions, and privileged instructions are
+
+34
+00:02:32.700 --> 00:02:37.339 
+only executed or it's only allowed to execute them in a
+
+35
+00:02:37.340 --> 00:02:41.789 
+sort of a privileged state of the CPU, in this case, called the supervisor
+
+36
+00:02:41.790 --> 00:02:46.469 
+state for the mainframe CPU and not in
+
+37
+00:02:46.470 --> 00:02:50.066 
+the problem state. What kind of instructions are typically privileged?
+
+38
+00:02:50.067 --> 00:02:54.599 
+So, privileged instructions typically are all instructions that are needed to, for
+
+39
+00:02:54.600 --> 00:02:59.819 
+example, initialize the registers for setting up the virtual memory management,
+
+40
+00:02:59.820 --> 00:03:03.689 
+for controlling the CPU itself, and so on.
+
+41
+00:03:03.690 --> 00:03:08.489 
+So, everything that is of IO operations, everything that basically an operating
+
+42
+00:03:08.490 --> 00:03:10.889 
+system needs to do, and not a user program.
+
+43
+00:03:12.390 --> 00:03:16.859 
+Whereasin the problem state you can execute all the so-called normal instructions like
+
+44
+00:03:16.860 --> 00:03:21.509 
+arithmetic and logic instructions, branching, jumps, and loading the operations
+
+45
+00:03:21.510 --> 00:03:24.239 
+and everything that every program needs to do.
+
+46
+00:03:24.240 --> 00:03:29.159 
+So, the basic idea is that a modern CPU
+
+47
+00:03:29.160 --> 00:03:33.899 
+makes processing more secure by executing privileged instructions only
+
+48
+00:03:33.900 --> 00:03:35.639 
+in a privileged state.
+
+49
+00:03:36.810 --> 00:03:41.279 
+So, if you write an operating system or the operating system kernel, it usually
+
+50
+00:03:41.280 --> 00:03:43.979 
+will execute mostly in the supervised state.
+
+51
+00:03:43.980 --> 00:03:48.629 
+And every time a program makes a call to the kernel, it makes a so-called supervisor
+
+52
+00:03:48.630 --> 00:03:53.609 
+call. This is an instruction that is called on the mainframe CPU that switches
+
+53
+00:03:53.610 --> 00:03:58.199 
+the state to the supervisor state and executes the appropriate
+
+54
+00:03:58.200 --> 00:04:00.300 
+kernel function. So,
+
+55
+00:04:02.670 --> 00:04:05.369 
+what happens now when you do virtualization?
+
+56
+00:04:05.370 --> 00:04:09.599 
+Virtualization means when you start up the system, the first thing that is started is the
+
+57
+00:04:09.600 --> 00:04:14.069 
+hypervisor, the mineralization software itself, the virtualization software itself on the
+
+58
+00:04:14.070 --> 00:04:18.929 
+mainframe. This would be, for example, that IBM is running as an operating system
+
+59
+00:04:18.930 --> 00:04:24.179 
+and is sort of occupying the privileged stage and is running as the
+
+60
+00:04:24.180 --> 00:04:26.369 
+basic operating system.
+
+61
+00:04:26.370 --> 00:04:31.019 
+So when this said VM now should start or should execute another operating
+
+62
+00:04:31.020 --> 00:04:35.369 
+system as a virtual guest, what it has to do is basically to run the full operating
+
+63
+00:04:35.370 --> 00:04:39.089 
+system, the guest operating system, including its applications.
+
+64
+00:04:39.090 --> 00:04:41.909 
+And the problem said this.
+
+65
+00:04:41.910 --> 00:04:46.149 
+Of course, what was now is happening is when you start an operating system, the problem
+
+66
+00:04:46.150 --> 00:04:50.489 
+state, the first time the operating system kernel of this system tries to make some
+
+67
+00:04:50.490 --> 00:04:53.069 
+privileged call privilege instruction.
+
+68
+00:04:53.070 --> 00:04:55.709 
+It will get an interrupted trigger and interrupt.
+
+69
+00:04:55.710 --> 00:05:00.419 
+And the supervisor, the program here will be informed and has to handle that.
+
+70
+00:05:00.420 --> 00:05:02.949 
+And the idea of a hypervisor is now every time
+
+71
+00:05:05.590 --> 00:05:10.109 
+the guest already system creates an exception, and then this
+
+72
+00:05:10.110 --> 00:05:14.679 
+exception is trapped and then handled and
+
+73
+00:05:15.850 --> 00:05:20.709 
+that is the appropriate handler in the hypervisor - the virtualization
+
+74
+00:05:20.710 --> 00:05:25.189 
+software. That then ensures that handing this
+
+75
+00:05:25.190 --> 00:05:29.359 
+exception leads to the same result as it would run on a physical machine, so the guest
+
+76
+00:05:29.360 --> 00:05:33.409 
+operating system can continue afterward and control is returned and it continues until
+
+77
+00:05:33.410 --> 00:05:37.849 
+the next privileged instruction occurs. So, and by this mechanism, the hypervisor is
+
+78
+00:05:37.850 --> 00:05:42.289 
+able to simulate or emulate the actual
+
+79
+00:05:42.290 --> 00:05:46.129 
+hardware and present the virtual hardware to the guest operating system.
+
+80
+00:05:46.130 --> 00:05:50.389 
+So this is the way how all hardware emulators, basically hardware virtualization
+
+81
+00:05:50.390 --> 00:05:52.729 
+solutions basically work.
+
+82
+00:05:52.730 --> 00:05:55.388 
+And this is also the case for z/VM.
+
+83
+00:05:57.380 --> 00:06:02.209 
+And of course, this creates some sort of overhead because
+
+84
+00:06:02.210 --> 00:06:07.469 
+every privileged instruction that a guest executes has to be trapped and handled.
+
+85
+00:06:07.470 --> 00:06:12.379 
+This is different for para-virtualization, as we learned in the introduction part because
+
+86
+00:06:12.380 --> 00:06:15.799 
+in para-virtualization, the guest operating system is changed and every time it wants to
+
+87
+00:06:15.800 --> 00:06:20.269 
+do something privileged, it just calls a respective function of their host
+
+88
+00:06:20.270 --> 00:06:24.859 
+kernel. So, this is not being trapped handled,
+
+89
+00:06:24.860 --> 00:06:26.749 
+but it's directly calling the routine.
+
+90
+00:06:26.750 --> 00:06:30.700 
+So, this overhead is reduced in that sense.
+
+91
+00:06:30.701 --> 00:06:35.119 
+In para-virtualization, of course, you need to adjust and modify the guest
+
+92
+00:06:35.120 --> 00:06:38.360 
+operating system, which cannot be done for all operating systems.
+
+93
+00:06:39.410 --> 00:06:43.999 
+Modern CPUs offer hardware support for this problem and
+
+94
+00:06:44.000 --> 00:06:49.009 
+also the mainframe CPU for many years already offers
+
+95
+00:06:49.010 --> 00:06:50.120 
+special hardware support.
+
+96
+00:06:51.530 --> 00:06:55.129 
+So, let's have a look at z/VM, as we learn is the hypervisor.
+
+97
+00:06:55.130 --> 00:06:59.749 
+So basically this is partially true because z/VM
+
+98
+00:06:59.750 --> 00:07:01.729 
+in total consists of two parts.
+
+99
+00:07:03.300 --> 00:07:07.859 
+z/VM is the product name and it has 2 parts, the first one is called CP, the Control
+
+100
+00:07:07.860 --> 00:07:12.389 
+Program and this is actually the actual hypervisor
+
+101
+00:07:12.390 --> 00:07:17.639 
+software and the second part is the CMS - the Conversational
+
+102
+00:07:17.640 --> 00:07:22.079 
+Monitor System. The CMS is itself a
+
+103
+00:07:22.080 --> 00:07:24.479 
+small operating system.
+
+104
+00:07:24.480 --> 00:07:28.919 
+It's a simple single-usermainframe operating
+
+105
+00:07:28.920 --> 00:07:33.839 
+system that allows interactive work at the machine.
+
+106
+00:07:33.840 --> 00:07:38.249 
+And it was originally implemented as a tool for software developers to program
+
+107
+00:07:38.250 --> 00:07:42.689 
+applications that should later run on, for example, MVS these days.
+
+108
+00:07:42.690 --> 00:07:46.019 
+So it's basically a tool for software developers.
+
+109
+00:07:46.020 --> 00:07:50.759 
+It offers an editor, a programming environment,
+
+110
+00:07:50.760 --> 00:07:55.319 
+and so on. So, that was the original purpose but then in combination with
+
+111
+00:07:55.320 --> 00:07:59.670 
+the hypervisor, nowadays it's not used as
+
+112
+00:08:00.840 --> 00:08:05.579 
+a virtual guest for production use anymore, but it's mainly used as the administration
+
+113
+00:08:05.580 --> 00:08:07.220 
+tool for the hypervisor.
+
+114
+00:08:08.250 --> 00:08:11.550 
+In principle, CMS is a virtual or is a
+
+115
+00:08:13.200 --> 00:08:18.029 
+mainframe operating system that runs as a virtual guest on the Controll
+
+116
+00:08:18.030 --> 00:08:22.649 
+Program and the original idea
+
+117
+00:08:22.650 --> 00:08:25.229 
+was that every developer got its own virtual guest.
+
+118
+00:08:25.230 --> 00:08:29.189 
+So it's a single-usersystem, but if you have many instances of a single-usersystem, then
+
+119
+00:08:29.190 --> 00:08:33.839 
+everyone can work. So, every developer could have a virtual guest,
+
+120
+00:08:33.840 --> 00:08:35.879 
+isolated environment.
+
+121
+00:08:35.880 --> 00:08:40.678 
+This kind of usage today is not relevant anymore because developers
+
+122
+00:08:40.679 --> 00:08:44.189 
+usually work with other tools like Eclipse and PCs and so on.
+
+123
+00:08:44.190 --> 00:08:48.959 
+But CMS is still used as the administration user interface
+
+124
+00:08:48.960 --> 00:08:53.759 
+for the CP. So when you start a z/VM basically
+
+125
+00:08:53.760 --> 00:08:58.559 
+boots the CP or IP of the CP and then when you log in, you have first the CMS
+
+126
+00:08:58.560 --> 00:09:03.119 
+as a sort of a console you need to give commands and configure the
+
+127
+00:09:03.120 --> 00:09:07.739 
+system and then you could start and run as guests as other operating
+
+128
+00:09:07.740 --> 00:09:12.239 
+systems. Today, mainly Linux, so it's very common to run Linux and many
+
+129
+00:09:12.240 --> 00:09:16.109 
+Linux virtual machines as guests under z/VM.
+
+130
+00:09:16.110 --> 00:09:19.679 
+But in principle, every other mainframe operating system would work.
+
+131
+00:09:19.680 --> 00:09:23.190 
+So, zOS can be run as a guest as well, or
+
+132
+00:09:24.510 --> 00:09:28.109 
+even z/VM can run as a guest on itself in a way.
+
+133
+00:09:28.110 --> 00:09:31.890 
+So, that is possible and
+
+134
+00:09:33.420 --> 00:09:37.919 
+the idea is that nowadays when you work with a system, you usually log into the
+
+135
+00:09:37.920 --> 00:09:42.659 
+CMS and then you can issue CP commands that
+
+136
+00:09:42.660 --> 00:09:45.329 
+directly affect the hypervisor.
+
+137
+00:09:45.330 --> 00:09:48.269 
+So, that is how CMS is used today.
+
+138
+00:09:48.270 --> 00:09:53.639 
+But we should keep in mind that z/VM has always these two levels, CMS and
+
+139
+00:09:53.640 --> 00:09:54.640 
+the CP.
+
+140
+00:09:55.620 --> 00:09:56.620 
+Thank you very much.

@@ -1,0 +1,1929 @@
+WEBVTT
+
+1
+00:00:00.740 --> 00:00:09.210 
+Thank you very much, Mr Meinel, for the nice introduction. I will make it very short now, we have three lectures for the time being, just
+
+2
+00:00:09.210 --> 00:00:17.269 
+from the different HPI departments. We have Sven Köhler, Max Plauth and Dr. Haojin Yang.
+
+3
+00:00:17.300 --> 00:00:25.100 
+And they will present various things to us, so we can ask a few questions directly after the presentation.
+
+4
+00:00:25.109 --> 00:00:32.149 
+presentation and at the end we will have a small panel, depending on how much time we have then. And with that I would
+
+5
+00:00:32.149 --> 00:00:39.710 
+just go straight to the first presentation. It starts with Sven Köhler, he's a PhD student in Operating Systems and Middleware group.
+
+6
+00:00:39.710 --> 00:00:47.200 
+His research focuses on accelerators and energy-aware computing, and he will lead us to
+
+7
+00:00:47.200 --> 00:00:50.649 
+Assessing Computation of Software Systems.
+
+8
+00:00:51.840 --> 00:00:54.840 
+Please.
+
+9
+00:00:54.840 --> 00:00:56.359 
+Well, thank you for the introduction.
+
+10
+00:00:59.140 --> 00:01:05.290 
+That's me with all the masks and I'm part of the operating systems and middleware chair here, at the HPI.
+
+11
+00:01:05.290 --> 00:01:14.079 
+And we as operating system folks try to think about energy consumption as just another resource like time or memory, which
+
+12
+00:01:14.079 --> 00:01:16.459 
+we are managing operating system wise.
+
+13
+00:01:17.040 --> 00:01:25.459 
+And these are my colleagues from the energy interested group and Max will give you some more details about our work.
+
+14
+00:01:25.469 --> 00:01:31.010 
+But what I want to talk about now is misconceptions about energy assessments.
+
+15
+00:01:31.019 --> 00:01:35.790 
+So the entire day effort, it's difficult to measure energy.
+
+16
+00:01:35.799 --> 00:01:38.750 
+It's tricky to get a grasp of what's going on.
+
+17
+00:01:38.760 --> 00:01:45.780 
+And I agree yet if you found a way of measuring energy, you can still do things wrong.
+
+18
+00:01:45.790 --> 00:01:55.250 
+And in this talk I'm trying to highlight the typical flaws and traps we have seen so far in research papers, in other works,
+
+19
+00:01:55.260 --> 00:02:02.450 
+in discussion with companies and maybe you can understand this as the things you should be aware when you start measuring.
+
+20
+00:02:02.939 --> 00:02:07.250 
+So misconception number one, a computer is somehow a box.
+
+21
+00:02:07.260 --> 00:02:10.349 
+Maybe there's some screen and maybe there's a keyboard attached.
+
+22
+00:02:10.840 --> 00:02:17.159 
+Sounds weird and I know all of you are aware that your specific computers look different.
+
+23
+00:02:17.169 --> 00:02:23.189 
+We've heard from the data center folks, we've heard from the people who are using mobile devices and then when we had the
+
+24
+00:02:23.189 --> 00:02:27.009 
+discussion with the back end but of course computers come in different shapes.
+
+25
+00:02:27.009 --> 00:02:36.259 
+They can range from small tensor units, you plug in via USB, which make your computation network faster but consume energy
+
+26
+00:02:36.270 --> 00:02:37.090 
+via USB.
+
+27
+00:02:37.099 --> 00:02:39.930 
+You can have microcontrollers like in those microphones.
+
+28
+00:02:39.930 --> 00:02:46.729 
+If we can somehow cut the energy demand of those microcontrollers because of their scale, we can turn off entire power
+
+29
+00:02:46.729 --> 00:02:55.009 
+plants or we can have our desktop PCs or even server blades or maybe big compute machines you can find on high performance
+
+30
+00:02:55.009 --> 00:03:01.169 
+computing, like the open power machine here from our machine park, which is of particular interest, which I want to show
+
+31
+00:03:01.169 --> 00:03:02.849 
+you here for a particular reason.
+
+32
+00:03:03.340 --> 00:03:08.039 
+So given we have a physics simulation, in this case, it's a convolution.
+
+33
+00:03:08.039 --> 00:03:13.759 
+You can find it also in artificial intelligence workloads, but also in your climate simulation.
+
+34
+00:03:14.139 --> 00:03:22.639 
+And we implemented this physics simulation with four different approaches, One on the GPU, two different approaches on the
+
+35
+00:03:22.639 --> 00:03:25.409 
+CPU and one on the field programmable gate area.
+
+36
+00:03:25.419 --> 00:03:33.860 
+So a reconfigurable chip and turns out if you look at the energy efficiency in terms of throughput, we can achieve per Joule
+
+37
+00:03:34.439 --> 00:03:44.590 
+the FPGA is in orders of magnitude better to use in this particular case, although the CPU or not being a little
+
+38
+00:03:44.590 --> 00:03:46.379 
+bit slower out beat the GPU.
+
+39
+00:03:46.379 --> 00:03:53.360 
+So for this particular preparation step, if you have this in your AI network, maybe it's interesting to have a look on not
+
+40
+00:03:53.360 --> 00:04:00.729 
+having it drawn on your GPU with tensorflow or whatever library you use on, if you start measuring and understand that your
+
+41
+00:04:00.729 --> 00:04:08.750 
+computer components look differently on the inside, maybe you can start to use the right compute devices but as I said, Max
+
+42
+00:04:08.750 --> 00:04:10.620 
+will give you more details to this. First,
+
+43
+00:04:10.620 --> 00:04:13.449 
+I want to talk about misconception number two.
+
+44
+00:04:13.840 --> 00:04:20.139 
+So what I measure is about right but my physics teacher always told me there missed, missed, missed.
+
+45
+00:04:20.149 --> 00:04:22.939 
+So if you think you're measuring right.
+
+46
+00:04:22.949 --> 00:04:23.860 
+Think again.
+
+47
+00:04:24.439 --> 00:04:26.060 
+First of all,
+
+48
+00:04:26.439 --> 00:04:28.560 
+so what is a measurement device?
+
+49
+00:04:28.569 --> 00:04:32.839 
+Typically you have some kind of
+
+50
+00:04:32.839 --> 00:04:39.250 
+shunt which is a physical device you have to attach to the particular you want to measure.
+
+51
+00:04:39.259 --> 00:04:45.339 
+But if I think about the structure size and the modern chip than a human hair compared to it like a Nord Stream 2 pipeline
+
+52
+00:04:45.339 --> 00:04:46.949 
+or something, it's really big.
+
+53
+00:04:46.959 --> 00:04:56.529 
+So it's tricky to put something that small into a compute device, what happens is that for a long time hardware vendors were
+
+54
+00:04:56.529 --> 00:04:58.620 
+using logical measurements instead.
+
+55
+00:04:58.629 --> 00:05:06.519 
+So they had some ground truth from lab experiments and then they did some correlations like the number of instructions issued
+
+56
+00:05:06.519 --> 00:05:14.850 
+or the memory access and then they reported those back but with a different unit, they wrote Joule there or if they were
+
+57
+00:05:14.850 --> 00:05:22.310 
+measuring energy and told you that's milliwatts and this is a mathematical model and it can be wrong.
+
+58
+00:05:22.319 --> 00:05:29.199 
+So if you buy something like this and look into it, especially when you're in the mobile computing platform look again, if
+
+59
+00:05:29.199 --> 00:05:35.810 
+you rely on accurate measurements, if you want to have a roundabout, that's fine.
+
+60
+00:05:35.819 --> 00:05:39.199 
+If you want to really say this is better than the other.
+
+61
+00:05:39.199 --> 00:05:41.560 
+This implementation is maybe the more energy efficient.
+
+62
+00:05:41.939 --> 00:05:44.160 
+Think about getting another measurement device.
+
+63
+00:05:44.740 --> 00:05:53.949 
+Next up, we all know from physics class that the energy is the integral over time of the consumed power demand.
+
+64
+00:05:54.339 --> 00:06:01.449 
+But this somehow implies that we have this continuous curve which we can then use and simply take the integral of.
+
+65
+00:06:02.139 --> 00:06:06.060 
+In reality we have sampling points, obvious thing.
+
+66
+00:06:06.540 --> 00:06:11.850 
+And hopefully those sampling points are somewhat equidistant so we can do a numerical integration.
+
+67
+00:06:12.240 --> 00:06:15.560 
+But where does the clock for assembling device come from?
+
+68
+00:06:15.569 --> 00:06:25.060 
+I've got a little measurement device here, oops, looks like this and there is no clock here.
+
+69
+00:06:25.069 --> 00:06:29.370 
+The clock actually comes from the frequency of the network.
+
+70
+00:06:29.370 --> 00:06:36.759 
+So what's coming out of my wall socket means if I plug this into an American outlet, you will see other numbers there.
+
+71
+00:06:37.139 --> 00:06:41.639 
+So think about what the sampling rate is and hope for them to be accurate.
+
+72
+00:06:41.649 --> 00:06:47.160 
+Otherwise you will end up with non equidistant sampling and then your American integrals are wrong.
+
+73
+00:06:47.740 --> 00:06:49.730 
+Next up, what is the delivered solution
+
+74
+00:06:49.730 --> 00:06:57.389 
+of course? If your digital analog converter is somehow off, maybe you have noise that you don't know about or if your sampling
+
+75
+00:06:57.389 --> 00:06:59.279 
+frequency is too low at all.
+
+76
+00:06:59.290 --> 00:07:03.610 
+So for example, you are just looking at the numbers recorded by IPMI
+
+77
+00:07:03.610 --> 00:07:08.060 
+for your entire computing rack, which has a sampling frequency of maybe half a second.
+
+78
+00:07:08.439 --> 00:07:10.149 
+You missed the important power peak.
+
+79
+00:07:10.639 --> 00:07:18.759 
+So maybe opt for a measurement device that has something like some inbuilt capacitor that recharges and recharges and actually
+
+80
+00:07:18.759 --> 00:07:25.250 
+tells you then the number of consumed Joules instead of what's at a particular point in time.
+
+81
+00:07:26.240 --> 00:07:35.560 
+Looking at different measurement devices and facilities, we see some like those attached externally.
+
+82
+00:07:35.560 --> 00:07:43.480 
+So you intercept the computer device on the wall socket and then you can move down and get closer to the actual hardware
+
+83
+00:07:43.480 --> 00:07:48.610 
+like with RAPL on Intel or AMD platforms with power.
+
+84
+00:07:48.610 --> 00:07:53.160 
+Also see if you're in the IBM domain or with Apple M1.
+
+85
+00:07:53.170 --> 00:08:00.250 
+They have very nice counters not on the new MacBooks, but also they only tell you one part of the truth.
+
+86
+00:08:00.839 --> 00:08:09.120 
+And if you look at the overall support metrics of what measurement device can be used on, which hardware you can find that
+
+87
+00:08:09.120 --> 00:08:10.370 
+is rather sparse.
+
+88
+00:08:10.379 --> 00:08:17.199 
+That's why we propose some kind of interface which we implemented in a tool called PINPOINT.
+
+89
+00:08:17.209 --> 00:08:24.370 
+You can check it out here and this looks a little bit like perf, you may know from Linux which reports you the energy consumption
+
+90
+00:08:24.370 --> 00:08:27.660 
+of different components of your program.
+
+91
+00:08:27.660 --> 00:08:35.720 
+So you can know how much did your memory use or how much did your CPU use and we've been using this, for example on
+
+92
+00:08:35.730 --> 00:08:37.259 
+nVidia development board
+
+93
+00:08:37.740 --> 00:08:46.460 
+where we compared the very particular, simulation you've seen before, one time implemented with OpenMP, so run on a CPU
+
+94
+00:08:47.039 --> 00:08:50.919 
+and one time implement with CUDA run on the integrated GPU.
+
+95
+00:08:50.950 --> 00:08:58.299 
+And here we can find that the CPU implementation actually shows us something very interesting.
+
+96
+00:08:58.309 --> 00:09:05.039 
+So somehow we had some effects there and we've had a very high amount of jitter, so maybe I should use
+
+97
+00:09:05.039 --> 00:09:09.059 
+another measurement device to get some grasp of what's going on there.
+
+98
+00:09:09.539 --> 00:09:12.059 
+Next up, we also see that there is a certain slope.
+
+99
+00:09:12.440 --> 00:09:20.830 
+So the internal measurement devices lied to us, they were averaging over time to report less noise. As a result,
+
+100
+00:09:20.840 --> 00:09:26.429 
+even after we've had a spike on energy consumption, you can see, okay, it's not catching up to the real value.
+
+101
+00:09:26.440 --> 00:09:28.549 
+It's even worse on other compute platforms.
+
+102
+00:09:29.440 --> 00:09:36.539 
+So what we did then is that we introduced some new ground truth by attaching an external measurement device where we also
+
+103
+00:09:36.549 --> 00:09:41.480 
+have some kind of slopes and we see, okay, that's more likely how it looks like.
+
+104
+00:09:41.480 --> 00:09:46.039 
+And we can now use mathematical models to reconstruct the actionable signals.
+
+105
+00:09:46.039 --> 00:09:49.679 
+So we're having a kind of signal fusion. And also quite interesting.
+
+106
+00:09:49.690 --> 00:09:57.720 
+We can find that's about 2.5 watt discrepancy between what the internal measurement reports us as the total energy consumption
+
+107
+00:09:57.730 --> 00:09:59.080 
+and the ground truth.
+
+108
+00:09:59.090 --> 00:10:05.590 
+This is what the fan is using and so on and 2.5 watt is not that much, but I can use a small LED and
+
+109
+00:10:05.590 --> 00:10:09.259 
+light up my desk with this so it may be considerable for this.
+
+110
+00:10:10.039 --> 00:10:17.950 
+Well, I've got good eyes and interestingly, I don't see this slide here.
+
+111
+00:10:18.019 --> 00:10:19.850 
+Is this supposed to be? Anyway.
+
+112
+00:10:20.340 --> 00:10:29.429 
+And we can now say that on this particular platform we would opt for the GPU implementation because it was more energy
+
+113
+00:10:29.440 --> 00:10:33.870 
+conservative than the CPU implementation and it's something we can now judge with all tools.
+
+114
+00:10:33.870 --> 00:10:41.500 
+So we compare different implementations. Moving to our big high end HPC machine.
+
+115
+00:10:41.500 --> 00:10:48.820 
+We did the same experiment here and turns out on that particular machine, the implementation running with OpenMP on
+
+116
+00:10:48.820 --> 00:10:52.830 
+the power CPU was more energy efficient than with our nVidia card.
+
+117
+00:10:52.840 --> 00:11:00.000 
+So for this particular workload on this particular machine now using this comparison, I would say okay, I would opt for the
+
+118
+00:11:00.000 --> 00:11:03.049 
+CPU implementation if I want to save energy.
+
+119
+00:11:04.240 --> 00:11:09.759 
+Third and last misconception, a faster program equals less energy consumed.
+
+120
+00:11:10.440 --> 00:11:11.679 
+Why is that important?
+
+121
+00:11:11.690 --> 00:11:20.649 
+Or why do I mention this quite often when I talk to people from other research fields or from companies that tell me, "well,
+
+122
+00:11:20.659 --> 00:11:23.590 
+our program now now runs 90% faster.
+
+123
+00:11:23.600 --> 00:11:25.860 
+Hence we use 10% of the energy."
+
+124
+00:11:27.340 --> 00:11:30.370 
+If I said my car runs 90% faster.
+
+125
+00:11:30.370 --> 00:11:32.460 
+Hence I use 10% of fuel.
+
+126
+00:11:32.470 --> 00:11:33.590 
+You would now look.
+
+127
+00:11:33.600 --> 00:11:34.049 
+Huh?
+
+128
+00:11:34.440 --> 00:11:35.250 
+That's not right.
+
+129
+00:11:37.139 --> 00:11:37.899 
+Why is this?
+
+130
+00:11:37.909 --> 00:11:41.570 
+Well, first of all, we already had mentioned this race to sleep.
+
+131
+00:11:41.570 --> 00:11:45.649 
+So we somehow assume we use as much as energy as we can.
+
+132
+00:11:45.659 --> 00:11:48.259 
+And after some time we switch off and there we go.
+
+133
+00:11:48.269 --> 00:11:48.860 
+That's good.
+
+134
+00:11:49.240 --> 00:11:58.590 
+The next thing is of course that people remember this formula and see well, energy is the amount of power consumed over time
+
+135
+00:11:58.600 --> 00:12:06.850 
+So if we cut down time, we cut down energy and of course, you know, as with the car when the car goes faster, the
+
+136
+00:12:06.850 --> 00:12:09.899 
+air resistance does not increase linearly.
+
+137
+00:12:09.909 --> 00:12:13.960 
+So of course the overall energy consumption rises.
+
+138
+00:12:14.639 --> 00:12:16.909 
+And we can also see this in compute platforms.
+
+139
+00:12:16.919 --> 00:12:26.960 
+So our co authors did some experiments quite some years ago where they compared different standard
+
+140
+00:12:26.960 --> 00:12:36.389 
+benchmarks on an embedded platform in high and low power mode and you can see that the difference of save time does not equal
+
+141
+00:12:36.399 --> 00:12:38.129 
+the same difference of saved energy.
+
+142
+00:12:38.139 --> 00:12:44.960 
+So there is no linear correlation. In some cases even the total amount of energy over time increased.
+
+143
+00:12:45.539 --> 00:12:51.799 
+And in the last panel discussion we already heard that there's a kind of sweet spot and this is another part of the research
+
+144
+00:12:51.799 --> 00:13:00.320 
+we are working on at our lab. We are playing with different frequencies and different common workloads in the HPC community
+
+145
+00:13:00.330 --> 00:13:04.289 
+to find the perfect configuration where we can find the sweet spot.
+
+146
+00:13:04.299 --> 00:13:11.149 
+And here you see that the entire energy consumption is maybe the lowest, even though your runtime is not the lowest.
+
+147
+00:13:11.639 --> 00:13:15.529 
+So your takeaways - think about all you're involved
+
+148
+00:13:15.529 --> 00:13:22.659 
+computer hardware components, measure, re-measure and compare your measurements and then don't let execution time fool you.
+
+149
+00:13:23.039 --> 00:13:23.460 
+Thank you.
+
+150
+00:13:32.139 --> 00:13:32.750 
+So let me see.
+
+151
+00:13:32.759 --> 00:13:33.610 
+Yeah, this works.
+
+152
+00:13:33.620 --> 00:13:36.559 
+So maybe we have time for one question.
+
+153
+00:13:36.570 --> 00:13:39.850 
+One quick question before we continue with the next presentation.
+
+154
+00:13:39.860 --> 00:13:53.639 
+If you have, there is a question. Yes, please
+
+155
+00:14:11.840 --> 00:14:12.600 
+This is true.
+
+156
+00:14:12.610 --> 00:14:20.440 
+So I would not put for those particular, I wouldn't put my foot down for those particular examples for this problem size,
+
+157
+00:14:20.450 --> 00:14:21.250 
+you are right.
+
+158
+00:14:21.259 --> 00:14:27.539 
+But the thing is, you know this because you measured it because you have experience but what I experienced with students
+
+159
+00:14:27.539 --> 00:14:32.259 
+or other people, they run their workload, they open up their jupyter notebook and they do it anyway.
+
+160
+00:14:32.840 --> 00:14:36.370 
+So what you're saying is the very right thought.
+
+161
+00:14:36.379 --> 00:14:40.990 
+Think about is your hardware components utilized in the correct way?
+
+162
+00:14:41.000 --> 00:14:41.559 
+Thank you.
+
+163
+00:14:45.139 --> 00:14:45.899 
+Okay, thank you.
+
+164
+00:14:45.899 --> 00:14:53.409 
+So in the interest of time I would say we go to the next presentation will have some time hopefully towards the end for discussions.
+
+165
+00:14:53.419 --> 00:14:56.029 
+So our next presentation will be by Max Plauth.
+
+166
+00:14:56.039 --> 00:15:04.809 
+He's also a PhD candidate also in the Operating Systems and Middleware group and his research interests are also similar in
+
+167
+00:15:04.809 --> 00:15:06.990 
+accelerators and energy aware computing.
+
+168
+00:15:07.000 --> 00:15:10.659 
+So he will present on energy aware computing, please.
+
+169
+00:15:10.929 --> 00:15:12.259 
+Thank you for the introduction.
+
+170
+00:15:12.740 --> 00:15:22.090 
+So actually this work picks up a little bit on one of the last slides, that Sven presented you showing
+
+171
+00:15:22.090 --> 00:15:28.399 
+that if you're configuring your hardware at different clock speeds, you might hit different sweet spots.
+
+172
+00:15:28.409 --> 00:15:35.960 
+So this is basically, this talk covers multiple variants of this strategy, so to say.
+
+173
+00:15:36.440 --> 00:15:44.509 
+So if you're willing so you perhaps can, can relate to the analogy that if you have something somewhere really urgent to
+
+174
+00:15:44.509 --> 00:15:53.029 
+go to an appointment and you have to drive there by car and you're on autobahn, you can push down the accelerator and
+
+175
+00:15:53.039 --> 00:16:01.230 
+go as fast as your car can, assuming the road is free, but you have to live with the high fuel consumption.
+
+176
+00:16:01.539 --> 00:16:03.389 
+That's okay for urgent tasks perhaps.
+
+177
+00:16:03.389 --> 00:16:13.149 
+But assuming that not all tasks are really that urgent, we should think about if we're willing to perhaps go a little bit
+
+178
+00:16:13.159 --> 00:16:23.059 
+down with the speed, do not push down the throttle pedal to the full extent and get a good trade off at some point.
+
+179
+00:16:23.940 --> 00:16:31.779 
+So yeah, here again is the team of people in our group who are interested in energy
+
+180
+00:16:31.779 --> 00:16:34.950 
+aware computing, again without masks.
+
+181
+00:16:36.950 --> 00:16:45.440 
+So in the end, this is, these are three different ideas or three different strategies that you can think about.
+
+182
+00:16:45.450 --> 00:16:52.549 
+How can your software inference power consumed at execution time?
+
+183
+00:16:52.700 --> 00:17:00.730 
+So, first of all, you can work differently by using more or less computer resources.
+
+184
+00:17:00.730 --> 00:17:05.990 
+So you can think about, elastic scaling in the cloud for example.
+
+185
+00:17:05.990 --> 00:17:14.279 
+So if you have a large workload, you can just book more resources and that of course also burns more energy or the other
+
+186
+00:17:14.279 --> 00:17:21.430 
+way around, working at another time would be a strategy that, you know well from your notebooks or phones.
+
+187
+00:17:21.430 --> 00:17:30.210 
+So for example when your notebook is not connected to the power supply, it won't do backups in the background, it won't
+
+188
+00:17:30.210 --> 00:17:32.359 
+synchronize your photo library and so on.
+
+189
+00:17:33.039 --> 00:17:35.410 
+And the third part. on
+
+190
+00:17:35.410 --> 00:17:45.799 
+the third strategy is a that you can also work or that you can schedule the same workload on different kinds of computer
+
+191
+00:17:45.799 --> 00:17:52.359 
+resources and try to exploit their characteristics at certain tasks.
+
+192
+00:17:52.940 --> 00:18:03.049 
+So this idea is also was brought forward by my colleagues Sven and what we're particularly interested is the last option
+
+193
+00:18:03.049 --> 00:18:13.660 
+because the first two are quite well researched in many ways I think and the last one still gives a lot of potential that
+
+194
+00:18:14.279 --> 00:18:16.170 
+can be tapped.
+
+195
+00:18:17.539 --> 00:18:25.809 
+So, another problem, that's what we've talked about, so we have to deal with increasing amounts of data and the compute units
+
+196
+00:18:25.809 --> 00:18:27.559 
+themselves are super fast.
+
+197
+00:18:27.940 --> 00:18:35.230 
+But the problem is that you have to move the data to the computer units fast enough in order to keep them busy and moving
+
+198
+00:18:35.230 --> 00:18:37.750 
+data also consumes a lot of energy.
+
+199
+00:18:38.049 --> 00:18:46.470 
+So yeah, you can see a certain discrepancy between the development of
+
+200
+00:18:46.470 --> 00:18:56.019 
+compute performance and the development of network or interconnection technologies, on various abstraction layers on the
+
+201
+00:18:56.019 --> 00:19:03.109 
+system on the inter system level and so on and now if we want to use our accelerators
+
+202
+00:19:03.109 --> 00:19:06.359 
+of course we want to keep them busy.
+
+203
+00:19:07.539 --> 00:19:15.190 
+So what is important to consider is we have to keep our eyes open and embrace new interconnection technology.
+
+204
+00:19:15.190 --> 00:19:20.190 
+So this is one option where we as software developers can't do too much.
+
+205
+00:19:20.190 --> 00:19:29.759 
+So we rely on new technology achievements brought forward by the semiconductor industry.
+
+206
+00:19:30.240 --> 00:19:40.900 
+So here in this example we have a set up with a Power9 system that where you can communicate between GPUs and the host
+
+207
+00:19:40.910 --> 00:19:41.960 
+CPU
+
+208
+00:19:41.970 --> 00:19:50.109 
+via very fast interconnection links using this unveiling protocol which is way faster than PCI Express 3, which was
+
+209
+00:19:50.119 --> 00:19:55.859 
+the de-facto standard at this point in time and meanwhile this is also a little bit overhauled.
+
+210
+00:19:56.240 --> 00:20:05.779 
+And this can speed up several applications significantly and well by making data movement a little bit more efficient
+
+211
+00:20:05.789 --> 00:20:13.170 
+but also helps saving energy. In the meanwhile, more development happened there, which is quite nice.
+
+212
+00:20:13.640 --> 00:20:16.140 
+So
+
+213
+00:20:16.140 --> 00:20:17.349 
+we're on a good way there.
+
+214
+00:20:17.359 --> 00:20:26.640 
+But another option that I want to encourage at this point is that you can think about, well not just configuring your machine
+
+215
+00:20:26.640 --> 00:20:30.049 
+at a slower speed, but perhaps think about it,
+
+216
+00:20:30.640 --> 00:20:33.490 
+all tasks have to run on the biggest iron available.
+
+217
+00:20:33.500 --> 00:20:41.289 
+So yeah, that would be again at the analogy with the car, so you can deploy workloads on the high end system that pushes
+
+218
+00:20:41.289 --> 00:20:46.450 
+through in the shortest amount of time, but also has a really high energy envelope.
+
+219
+00:20:47.140 --> 00:20:53.660 
+Yeah, or if it's perhaps not, it's not a very crucial or very time sensitive tasks,
+
+220
+00:20:54.039 --> 00:20:56.950 
+you can deploy it on a more balanced hardware configuration.
+
+221
+00:20:58.940 --> 00:21:10.319 
+So one example that I want to bring forward to put some numbers behind this idea is it's taken from a relatively
+
+222
+00:21:10.329 --> 00:21:11.460 
+recent publication.
+
+223
+00:21:11.839 --> 00:21:20.640 
+What we thought about if you want to scale out workloads across multiple hosts, then of course, data transfers between these
+
+224
+00:21:20.640 --> 00:21:22.640 
+hosts is becoming a bottleneck.
+
+225
+00:21:22.650 --> 00:21:24.410 
+So what do we do?
+
+226
+00:21:24.420 --> 00:21:32.460 
+We apply compression to these data transfers, but compression operation is also something that requires energy.
+
+227
+00:21:33.740 --> 00:21:42.230 
+So what we did then is we tried implementations of this compression algorithm on different hardware.
+
+228
+00:21:42.240 --> 00:21:54.359 
+So this is the GPU and our Power8 system that Sven showed previously, we also performed some measurements on the small developer board
+
+229
+00:21:54.890 --> 00:22:03.349 
+and on a more well midrange GPU, it's not the most recent one, the Tesla T4 but it's a quite decent one intended
+
+230
+00:22:03.349 --> 00:22:06.180 
+for inference tasks.
+
+231
+00:22:06.740 --> 00:22:19.769 
+And what you can see here is that if you're willing to live with 1/3 of the throughput, you can gain almost seven
+
+232
+00:22:19.769 --> 00:22:29.799 
+times the energy efficiency at the same time compared to well moving from this Tesla K80 card or the other way around, if
+
+233
+00:22:29.799 --> 00:22:35.750 
+you say, okay, now, perhaps this small Jetson board, it's too underpowered.
+
+234
+00:22:35.759 --> 00:22:39.450 
+Well then consider moving from a K80
+
+235
+00:22:39.450 --> 00:22:48.029 
+card which used to be a high end card at the time when it released and replace it with two generations newer
+
+236
+00:22:48.029 --> 00:22:52.529 
+card but with much, much lower power envelope.
+
+237
+00:22:52.599 --> 00:23:03.410 
+So Okay, T80 is 300 watts versus 70 watts of the T4 and you can even get throughput improvements while also improving
+
+238
+00:23:03.420 --> 00:23:06.259 
+the efficiency of this task.
+
+239
+00:23:07.200 --> 00:23:17.670 
+And another option that I want to present is so this has been very much focused on offloading tasks to GPUs but we shouldn't
+
+240
+00:23:17.670 --> 00:23:24.880 
+forget that GPUs aren't the only kinds of accelerators, of course the FPGAs which can be really, really efficient for certain
+
+241
+00:23:24.880 --> 00:23:25.759 
+workloads at hands.
+
+242
+00:23:26.339 --> 00:23:35.509 
+But then sometimes our computers already have several accelerators in them that we don't really see or realize that they
+
+243
+00:23:35.509 --> 00:23:44.170 
+are there, for example, in power CPUs for a certain there have been integrated compression co-processors which are
+
+244
+00:23:44.170 --> 00:23:48.049 
+not part of the instructions set, which is why they are really hard to use.
+
+245
+00:23:48.440 --> 00:23:53.680 
+But once you manage or find a way how to use them, they are really, really efficient.
+
+246
+00:23:53.799 --> 00:24:01.740 
+So here we compared the software based implementation of a compression and decompression cycle to the hardware accelerated
+
+247
+00:24:01.740 --> 00:24:03.170 
+compression decompression cycle.
+
+248
+00:24:03.450 --> 00:24:07.559 
+Of course, the hardware implementation is much more energy efficient.
+
+249
+00:24:08.640 --> 00:24:16.029 
+But with the trend that in your, for example, Apple M1 socks, there are so many accelerators that are probably not used
+
+250
+00:24:16.039 --> 00:24:16.769 
+all the time.
+
+251
+00:24:17.339 --> 00:24:23.150 
+It makes sense to think if perhaps there aren't unused potentials in your
+
+252
+00:24:23.150 --> 00:24:23.670 
+systems.
+
+253
+00:24:24.440 --> 00:24:25.000 
+Yeah.
+
+254
+00:24:25.009 --> 00:24:30.059 
+And that brings me to the conclusion of this brief overview.
+
+255
+00:24:30.069 --> 00:24:32.539 
+So
+
+256
+00:24:32.539 --> 00:24:40.579 
+first of all, what I think is important that always you have to know your workload and you have to know a little bit about
+
+257
+00:24:40.579 --> 00:24:48.220 
+the underlying hardware and then see if your workload, for example, doesn't fully utilize high end machines, perhaps move
+
+258
+00:24:48.220 --> 00:24:50.950 
+it to a smaller machine to boost efficiency.
+
+259
+00:24:51.640 --> 00:24:58.049 
+Then something where we have to think a little bit about what do we do with old hardware?
+
+260
+00:24:58.049 --> 00:25:05.569 
+I mean replacing hardware with newer hardware which is more efficient can help but for that we also have to somehow think
+
+261
+00:25:05.569 --> 00:25:11.660 
+about how what do we do with this electronic waste or can we somehow find ways to recycle that.
+
+262
+00:25:12.640 --> 00:25:19.660 
+And finally this is also a little bit picking up on Sven's last point of discussion.
+
+263
+00:25:21.140 --> 00:25:23.440 
+Think about which hardware really
+
+264
+00:25:23.450 --> 00:25:24.710 
+or try it out,
+
+265
+00:25:24.720 --> 00:25:26.769 
+try it out on little benchmarks.
+
+266
+00:25:27.640 --> 00:25:35.170 
+Figure out which hardware is the most efficient one for your given task attempts before you're just randomly throw it at
+
+267
+00:25:35.839 --> 00:25:37.059 
+hardware class
+
+268
+00:25:37.059 --> 00:25:39.349 
+that is supposed to be really good.
+
+269
+00:25:39.940 --> 00:25:43.349 
+Yeah, so that brings me to the end of my presentation.
+
+270
+00:25:44.240 --> 00:25:47.660 
+Yeah, thank you very much.
+
+271
+00:25:48.539 --> 00:25:55.700 
+Thank you very much for the presentation.
+
+272
+00:25:55.700 --> 00:26:01.240 
+So we have time for a few questions
+
+273
+00:26:01.710 --> 00:26:03.000 
+There we have a question.
+
+274
+00:26:03.000 --> 00:26:03.670 
+Yes please.
+
+275
+00:26:31.839 --> 00:26:37.490 
+That is a very good question that I would still like to include in this calculation.
+
+276
+00:26:37.490 --> 00:26:42.039 
+Of course, I realise that there is still
+
+277
+00:26:42.039 --> 00:26:46.759 
+energy and also the CO2 factor, which is not yet included in the price.
+
+278
+00:26:47.339 --> 00:26:54.259 
+I think there will be a certain sweet spot from which it makes sense to phase out the old hardware.
+
+279
+00:26:54.640 --> 00:26:59.809 
+Maybe it won't be after three years, but I'm talking about the K80, which is almost 10 years
+
+280
+00:26:59.809 --> 00:27:01.940 
+old.
+
+281
+00:27:01.940 --> 00:27:03.450 
+If I don't remember it completely wrong.
+
+282
+00:27:05.130 --> 00:27:13.049 
+You have to find the right moment when the old hardware burns more energy.
+
+283
+00:27:13.740 --> 00:27:24.440 
+than it would cost to make new hardware and the whole process that goes with it.
+
+284
+00:27:24.440 --> 00:27:26.839 
+Good question, yes!
+
+285
+00:27:26.839 --> 00:27:28.049 
+Are there any other questions?
+
+286
+00:27:32.440 --> 00:27:32.710 
+Okay.
+
+287
+00:27:32.710 --> 00:27:40.359 
+So if there are no immediate questions I would say we'll pick up on this, I think this is very relevant topic but we'll
+
+288
+00:27:40.359 --> 00:27:49.140 
+pick up on this at the end in our panel discussion and we'll continue with our last presentation of the session and this
+
+289
+00:27:49.140 --> 00:27:55.420 
+will be by Dr Haojin Yang and he will present on energy efficient deep neural networks.
+
+290
+00:27:55.420 --> 00:28:02.460 
+Haojin Yang is a senior researcher and head of the Multimedia and Machine Learning research group here at HPI.
+
+291
+00:28:03.339 --> 00:28:05.670 
+And with that the stage is all yours.
+
+292
+00:28:06.640 --> 00:28:09.670 
+Thank you so much for the kind introduction.
+
+293
+00:28:10.539 --> 00:28:13.119 
+Good afternoon everyone.
+
+294
+00:28:13.130 --> 00:28:21.650 
+It's a great honor to be here to have this opportunity to briefly present some of our ongoing research work on efficient
+
+295
+00:28:21.650 --> 00:28:22.670 
+deep learning models.
+
+296
+00:28:23.839 --> 00:28:27.000 
+So that's just introduced by Professor Rabl.
+
+297
+00:28:27.009 --> 00:28:34.109 
+I'm leading a research group for Multimedia and Machine Learning at the chair of Internet Technology and Systems headed by
+
+298
+00:28:34.109 --> 00:28:34.859 
+Professor Meinel.
+
+299
+00:28:35.539 --> 00:28:42.349 
+And first of all, I would like to briefly introduce the main research directions of our group, of our team.
+
+300
+00:28:43.140 --> 00:28:50.269 
+So first we are working on to decouple the dependence of deep learning on high performance computing resources.
+
+301
+00:28:50.740 --> 00:28:58.609 
+So we've been working on binary neural network for many years and we're also working on other deep model compression techniques
+
+302
+00:28:58.619 --> 00:29:03.670 
+such as knowledge distillation, compact network design using NAS.
+
+303
+00:29:04.740 --> 00:29:06.740 
+And
+
+304
+00:29:06.740 --> 00:29:14.740 
+specifically currently we are working on an efficient deep learning model for large scale language models.
+
+305
+00:29:14.750 --> 00:29:25.250 
+So I will briefly present our two projects - Dynamic BERT and Binary BERT later in this talk. Second we are
+
+306
+00:29:25.250 --> 00:29:32.359 
+also working on how to reduce the reliance of deep learning on large scale label dataset.
+
+307
+00:29:32.839 --> 00:29:37.480 
+So we explore the way to do the dataset synthesis.
+
+308
+00:29:37.490 --> 00:29:44.859 
+We're working on a weekly supervised learning and currently we are working on novel class discovery and liberal noise problems.
+
+309
+00:29:45.440 --> 00:29:51.349 
+By reducing the reliance of deep learning on the large scale label dataset,
+
+310
+00:29:51.740 --> 00:29:56.059 
+we can actively reduce energy consumption.
+
+311
+00:29:56.059 --> 00:30:02.960 
+Edge AI Computing brains a computation and data storage closer to the data sources.
+
+312
+00:30:04.539 --> 00:30:16.700 
+Edge AI enables that we can do the AI computing directly on the device client or the Edge devices able to enhancing power
+
+313
+00:30:16.710 --> 00:30:19.130 
+efficiency, support low latency.
+
+314
+00:30:19.140 --> 00:30:29.150 
+Probably we can solve the data privacy issue and it offers a perfect application scenarios for other to research directions
+
+315
+00:30:29.160 --> 00:30:36.960 
+as I just mentioned it. According to the time limit, I would like to just focus on one model in the rest of my talk.
+
+316
+00:30:37.640 --> 00:30:47.230 
+This is the transformer. Transformer is a deep learning model developed by Google researchers in 2017. It applies self attention
+
+317
+00:30:47.230 --> 00:30:51.759 
+mechanism which works pretty well on a lot of NLP tasks.
+
+318
+00:30:53.140 --> 00:31:03.869 
+Self attention basically can measure the significance of the input sequences of each token, of the input sequences,
+
+319
+00:31:03.880 --> 00:31:06.049 
+for example, for the machine translation.
+
+320
+00:31:06.440 --> 00:31:16.059 
+So self attention is going to learn the correlations between each input token and all the other tokens in the input sentences.
+
+321
+00:31:16.440 --> 00:31:23.059 
+Thus transformer has a strong ability to learn the global context information of the input sentence.
+
+322
+00:31:23.740 --> 00:31:31.859 
+And a basic block of transformer consists of a self attention module and a standard feed forward neural network layers.
+
+323
+00:31:32.240 --> 00:31:36.700 
+A typical transformer consists of a bunch of such basic blocks,
+
+324
+00:31:36.710 --> 00:31:44.859 
+Encoder-decoder blocks and BERT model is actually only apply the encoder part of transformers.
+
+325
+00:31:45.839 --> 00:31:50.150 
+GPT means generative pre-trained transformer.
+
+326
+00:31:50.160 --> 00:31:56.750 
+So as you can see although there are three different names when basically they are all transformer architectures.
+
+327
+00:31:56.759 --> 00:32:05.660 
+They have been trained by using large scale language datasets such as Wikipedia corpus and they achieved great success
+
+328
+00:32:05.660 --> 00:32:10.349 
+in the recent years for large scale downstream NLP tasks.
+
+329
+00:32:11.440 --> 00:32:17.559 
+Now I want to show you an example that people actually using transformer and BERT every day.
+
+330
+00:32:18.440 --> 00:32:23.450 
+BERT is applied in the Google Search engine for 72 languages since 2019.
+
+331
+00:32:24.140 --> 00:32:25.059 
+What does this mean?
+
+332
+00:32:25.940 --> 00:32:28.750 
+5.6 billion searches query per day.
+
+333
+00:32:28.759 --> 00:32:37.200 
+So Google tried to apply BERT to help to understand the user search query. And transformer is applied in the Google translate.
+
+334
+00:32:37.210 --> 00:32:41.059 
+So it processes more than 100 billion words per day.
+
+335
+00:32:41.640 --> 00:32:42.890 
+It's a huge number right?
+
+336
+00:32:44.640 --> 00:32:50.670 
+Therefore more than 60% of the Google TPU resources are applied for this single model.
+
+337
+00:32:51.240 --> 00:33:01.319 
+So I cannot guarantee the correctness of this number 60%, but I believe the real number, it should be large enough surprising
+
+338
+00:33:01.319 --> 00:33:03.640 
+us.
+
+339
+00:33:03.640 --> 00:33:07.269 
+On the other hand, AI computing brings a lot of carbon emissions.
+
+340
+00:33:07.839 --> 00:33:15.490 
+So let me show you an example based on transformer. Training transformer by using neural architecture search creates the carbon
+
+341
+00:33:15.490 --> 00:33:22.549 
+emissions equivalent to 300 round flight between San Francisco and New York city for one passenger.
+
+342
+00:33:23.440 --> 00:33:30.839 
+So if you look at the parameter numbers 213 million parameters of transformer model which is already huge.
+
+343
+00:33:30.849 --> 00:33:42.150 
+But if we look at the more recent model open as GPT-3 which has 175 billion parameters, training such a model has the
+
+344
+00:33:42.150 --> 00:33:46.859 
+energy consumption equivalent to 43 cars or 24 US families per year.
+
+345
+00:33:47.839 --> 00:33:54.170 
+So obviously we cannot ignore the impact of AI computing on the environment.
+
+346
+00:33:54.839 --> 00:34:01.769 
+This is the reason that why we started two project in our group on this specific model, BERT.
+
+347
+00:34:02.240 --> 00:34:04.759 
+The first is dynamic Slimmable BERT.
+
+348
+00:34:05.140 --> 00:34:13.900 
+The core idea is that deep learning models, most of the time they are over parametrised, they have redundancies
+
+349
+00:34:13.909 --> 00:34:15.690 
+rather than parameters in their model
+
+350
+00:34:15.690 --> 00:34:17.050 
+to a certain extent.
+
+351
+00:34:17.539 --> 00:34:27.869 
+The idea is, could we implement a dynamic architecture which is the input example of where we can adaptively adjust width
+
+352
+00:34:27.889 --> 00:34:31.460 
+and depth and the test time with respect to the input.
+
+353
+00:34:31.550 --> 00:34:32.559 
+Simply speaking,
+
+354
+00:34:33.340 --> 00:34:42.800 
+are we able to implement a dynamic network and able to identify the difficulty of the input? For a simple input,
+
+355
+00:34:42.800 --> 00:34:46.309 
+we don't need to apply the whole network architecture for the inference.
+
+356
+00:34:46.320 --> 00:34:54.269 
+We just apply a small model with fewer layers, fewer filters and for the difficult examples then we apply the whole network.
+
+357
+00:34:54.280 --> 00:35:00.050 
+This way we can decrease computation complexity and accelerate the inference.
+
+358
+00:35:00.539 --> 00:35:10.110 
+So in this project, we explored several different methods, we created a training method that we are able to train a
+
+359
+00:35:10.119 --> 00:35:13.750 
+number of sub-networks of the BERT model 17 years later.
+
+360
+00:35:14.239 --> 00:35:16.730 
+So this is also the way we can save energy.
+
+361
+00:35:16.739 --> 00:35:23.659 
+We train the model one time and after that we can create a number of sub networks with different widths and depths.
+
+362
+00:35:24.239 --> 00:35:33.730 
+We added gating module into the BERT model which is able to predict the waste factor for the subsequent block so that we
+
+363
+00:35:33.730 --> 00:35:36.650 
+can implement this dynamic gating mechanism.
+
+364
+00:35:36.659 --> 00:35:44.150 
+We added intermediate classifier so that we can implement the early exit mechanism.
+
+365
+00:35:44.159 --> 00:35:49.059 
+So we don't need to present the whole model for the inference for some easy examples.
+
+366
+00:35:50.639 --> 00:35:53.760 
+Let's take a look at some preliminary experimental results.
+
+367
+00:35:54.139 --> 00:36:03.460 
+We measure the performance of our model in terms of inference latency and the accuracy on the SST-2.
+
+368
+00:36:03.460 --> 00:36:06.949 
+task which is a sentiment analysis dataset.
+
+369
+00:36:07.329 --> 00:36:13.519 
+And compared to the BERT base you can see that our model is at the same accuracy level.
+
+370
+00:36:13.530 --> 00:36:21.849 
+Our model is able to achieve two times speed up on GPU hardware and more than five times speed up on CPU.
+
+371
+00:36:22.329 --> 00:36:28.190 
+And we also compared to some recent state of the art models such as TinyBERT or DynaBERT.
+
+372
+00:36:28.199 --> 00:36:32.360 
+We can also perform them on this single dataset.
+
+373
+00:36:32.369 --> 00:36:34.829 
+Of course this is just a preliminary result.
+
+374
+00:36:34.829 --> 00:36:40.460 
+We are also working on a more comprehensive evaluation on bunch of NLP task.
+
+375
+00:36:42.429 --> 00:36:49.809 
+So the second project I want to briefly introduces binary neural network. Simply speaking binary neural network apply one
+
+376
+00:36:49.809 --> 00:36:57.460 
+bit information to represent the parameters of the neural network computing instead of the 32 bit floating point number.
+
+377
+00:36:57.829 --> 00:37:00.039 
+Here we have a very simple example.
+
+378
+00:37:00.039 --> 00:37:05.070 
+We have a 32 dimensional vectors consisting of floating point numbers.
+
+379
+00:37:05.079 --> 00:37:13.269 
+We can use it to represent weights or activations for a neural network. Looking first simply binarised those numbers convert
+
+380
+00:37:13.269 --> 00:37:20.539 
+into 0 or 1. So that we have a 32 dimensional vector consisting of only 0 and 1.
+
+381
+00:37:20.929 --> 00:37:27.579 
+And we can further do Bit-packing and we can create a just single integer number in the end.
+
+382
+00:37:27.590 --> 00:37:35.750 
+As you can see you can achieve easily achieve 32 times model compression and we can also apply the bitwise operation for
+
+383
+00:37:35.750 --> 00:37:39.260 
+the neural network inference. So that we can achieve that
+
+384
+00:37:39.269 --> 00:37:43.650 
+up to 58 times theoretical speed up for the inference.
+
+385
+00:37:44.530 --> 00:37:49.389 
+According to the literature report on the dedicated hardware like FPGA
+
+386
+00:37:49.389 --> 00:37:49.760 
+or ASIC,
+
+387
+00:37:49.760 --> 00:37:55.449 
+Binary Neural Network is able to achieve more than 1000 times energy saving.
+
+388
+00:37:58.329 --> 00:38:02.559 
+We also conduct the case study on the Binary BERT.
+
+389
+00:38:02.570 --> 00:38:04.840 
+We want to create the binary BERT.
+
+390
+00:38:05.219 --> 00:38:11.909 
+We evaluate the different components of BERT model and we evaluate the sensitivity to the binarisation.
+
+391
+00:38:11.920 --> 00:38:15.489 
+As you can see, we have three columns here in the table.
+
+392
+00:38:15.500 --> 00:38:24.329 
+So we evaluate the binarisation performance on the feed forward network layers, attention layers and other linear layers
+
+393
+00:38:24.519 --> 00:38:27.719 
+So if you look at this role,
+
+394
+00:38:27.719 --> 00:38:33.769 
+If you just keep the attention part in 8 bit and binarise fully connect layers
+
+395
+00:38:33.780 --> 00:38:41.840 
+for feed forward layers and other linear layers, we can still maintain very good accuracy over 90% on this dataset.
+
+396
+00:38:42.320 --> 00:38:49.639 
+And the reduction we can achieve more than three times reduction of the computation complexity in terms of the number
+
+397
+00:38:49.639 --> 00:38:50.650 
+of operations.
+
+398
+00:38:51.719 --> 00:39:01.519 
+If we find a way to be able to also binarise the attention part, we can achieve more than 50 times reduction of the computation
+
+399
+00:39:01.519 --> 00:39:02.460 
+complexity.
+
+400
+00:39:02.469 --> 00:39:08.949 
+But as you can see currently, unfortunately the accuracy there is a large drop of accuracy.
+
+401
+00:39:09.420 --> 00:39:15.139 
+We're still working on this problem but I think it shows that very huge potential for the future work.
+
+402
+00:39:17.320 --> 00:39:18.090 
+Okay.
+
+403
+00:39:18.099 --> 00:39:26.739 
+According to our previous experience, we summarize several many research directions in this domain in binary neural network.
+
+404
+00:39:27.119 --> 00:39:29.610 
+First of all, lots of accuracy problem.
+
+405
+00:39:29.619 --> 00:39:37.340 
+As you can see in our previous slides and missing of a tailor made optimization algorithm for binary neural network.
+
+406
+00:39:37.920 --> 00:39:48.340 
+And I believe the final form of binary neural network is a dedicated AI accelerators which is extremely energy efficient.
+
+407
+00:39:49.219 --> 00:39:53.750 
+So then here we have the third research challenge.
+
+408
+00:39:53.760 --> 00:40:02.059 
+How could we balance the accuracy and energy consumption for AI accelerators? Last but not least, lack of support for solid
+
+409
+00:40:02.059 --> 00:40:05.329 
+inference acceleration for heterogeneous hardware.
+
+410
+00:40:06.010 --> 00:40:13.139 
+Our group, we try to contribute in all of those research directions and take this opportunity
+
+411
+00:40:13.139 --> 00:40:22.030 
+I also want to do us more advertisement of our open source binary neural network framework.
+
+412
+00:40:22.409 --> 00:40:25.429 
+Among those competing computation frameworks.
+
+413
+00:40:25.440 --> 00:40:34.969 
+Two of them BMXNet 2 and BITorch are developed by our group and we welcome for the external contribution to this
+
+414
+00:40:34.980 --> 00:40:39.309 
+project because we are not expert for the hardware code optimization.
+
+415
+00:40:39.320 --> 00:40:41.630 
+Especially the CUDA to assembly code.
+
+416
+00:40:42.510 --> 00:40:43.400 
+Yeah, that's it.
+
+417
+00:40:43.409 --> 00:40:44.429 
+Thank you for your attention.
+
+418
+00:40:45.809 --> 00:40:52.170 
+Thank you very much.
+
+419
+00:40:52.179 --> 00:40:56.030 
+So, do we have a direct question to this work?
+
+420
+00:40:57.210 --> 00:40:57.739 
+Yes.
+
+421
+00:41:26.309 --> 00:41:30.739 
+So I guess you need to explain the concept that give a bit more detail.
+
+422
+00:41:58.309 --> 00:42:02.630 
+Actually our current implementation of binary neural network for the inference
+
+423
+00:42:02.630 --> 00:42:06.500 
+we already have
+
+424
+00:42:06.500 --> 00:42:13.360 
+as you know, the development of the arithmetic libraries like
+
+425
+00:42:13.369 --> 00:42:17.599 
+cuBLAS for CUDA,
+
+426
+00:42:17.599 --> 00:42:21.230 
+have been very wide optimized during the years.
+
+427
+00:42:21.599 --> 00:42:26.019 
+But for the binary inference engine, for instance, we still suffer from the optimization.
+
+428
+00:42:26.900 --> 00:42:35.820 
+This is why I very widely welcome the contribution from the hardware research team.
+
+429
+00:42:35.829 --> 00:42:42.230 
+We can do the code optimization algorithm and hardware optimization.
+
+430
+00:42:44.900 --> 00:42:45.179 
+Okay.
+
+431
+00:42:45.179 --> 00:42:45.530 
+Thank you.
+
+432
+00:42:45.530 --> 00:42:51.199 
+So maybe for so we don't have that much time for the panel but maybe please join us here.
+
+433
+00:42:51.210 --> 00:42:57.139 
+I want to basically ask all three of you at least one question.
+
+434
+00:42:57.300 --> 00:43:06.440 
+And this is basically if you think about your work, like what is needed in order to make like practical impact in order to
+
+435
+00:43:06.449 --> 00:43:11.309 
+actually save energy or like make computing cleaner.
+
+436
+00:43:12.099 --> 00:43:16.119 
+So I mean in any order you want to start?
+
+437
+00:43:19.099 --> 00:43:28.719 
+Well, I often thought about energy efficiency, but what I've learned now it's not how much I saved, but rather when I compute
+
+438
+00:43:28.719 --> 00:43:37.329 
+as the gentleman mentioned before, we don't know how much energy or carbon is emitted in debt to speak for building something
+
+439
+00:43:37.329 --> 00:43:37.750 
+new.
+
+440
+00:43:37.809 --> 00:43:47.130 
+And most importantly, we don't know how much carbon can produce by our actual computation because it changes in the grid
+
+441
+00:43:47.139 --> 00:43:56.750 
+and it changes also at the way I compute is not really translatable to one metric ton of carbon, for example.
+
+442
+00:43:56.750 --> 00:44:05.159 
+So if I with my measurements can make sure that people shift their nightly builds, not from to have them run during the night
+
+443
+00:44:05.170 --> 00:44:09.050 
+but rather during the day when there's a lot of sunshine and the wind is blowing.
+
+444
+00:44:09.289 --> 00:44:11.500 
+This is maybe the biggest impact I can have.
+
+445
+00:44:11.550 --> 00:44:18.219 
+So to understand that it's not that it's not how much energy we save, but rather how much carbon we save.
+
+446
+00:44:18.230 --> 00:44:23.409 
+And this is also very much dependent on when we compute and not only how we compute.
+
+447
+00:44:24.389 --> 00:44:30.550 
+Okay, so summarizing it's also important just to measure, to get an understanding for that and then being able.
+
+448
+00:44:30.550 --> 00:44:35.460 
+So it's more like a baseline or basically an enabler research
+
+449
+00:44:35.469 --> 00:44:36.059 
+what you do.
+
+450
+00:44:36.929 --> 00:44:38.010 
+I would argue so! Okay, thank you.
+
+451
+00:44:39.150 --> 00:44:41.940 
+And I think going into a similar direction.
+
+452
+00:44:41.940 --> 00:44:53.630 
+So then, in the line of these measurements, it would also be very helpful to build up a larger data set of algorithms
+
+453
+00:44:53.630 --> 00:44:57.440 
+and hardware types, how well they align together.
+
+454
+00:44:57.449 --> 00:45:07.500 
+So, that at the point where we can't delay this job to a time where when more renewables are in the
+
+455
+00:45:07.500 --> 00:45:13.690 
+grid, but we have to make the best out of the situation which hardware do I use for my task.
+
+456
+00:45:13.690 --> 00:45:16.650 
+And a big problem that we have here
+
+457
+00:45:16.659 --> 00:45:20.650 
+so now we have a nice machine part.
+
+458
+00:45:20.659 --> 00:45:29.039 
+But even with those machines, the dataset for what different types of hardware and how well are they suited for different
+
+459
+00:45:29.050 --> 00:45:29.760 
+tasks?
+
+460
+00:45:29.760 --> 00:45:32.329 
+It's it's a very time consuming and complex job.
+
+461
+00:45:32.340 --> 00:45:37.500 
+But if we had something like this, I think that could be of really great help.
+
+462
+00:45:38.590 --> 00:45:39.010 
+Thank you.
+
+463
+00:45:39.989 --> 00:45:48.210 
+Okay, from my part I think as I shortly introduced our research interests,
+
+464
+00:45:48.219 --> 00:45:58.039 
+so from three different perspectives design of deep learning models, we are able and we want to implement or design more efficient
+
+465
+00:45:58.039 --> 00:45:59.210 
+model architectures.
+
+466
+00:45:59.219 --> 00:46:08.840 
+So let model run faster and I believe AI models on GPU computation or CPU computations already densely computation models
+
+467
+00:46:09.389 --> 00:46:14.360 
+You really use a 100% of the GPU computing
+
+468
+00:46:14.679 --> 00:46:18.119 
+cores for CUDA computation.
+
+469
+00:46:18.130 --> 00:46:26.639 
+And if you can design the model more faster, smaller, more efficient and more memory efficient so you can save, actually save
+
+470
+00:46:26.639 --> 00:46:31.090 
+the power and on the other hand, training of deep learning models is
+
+471
+00:46:31.090 --> 00:46:33.510 
+very time consuming and energy consuming.
+
+472
+00:46:33.519 --> 00:46:40.059 
+Are we able to train our model, a curated model without a large scale data set?
+
+473
+00:46:40.070 --> 00:46:48.400 
+I think this is also the way we can make our AI computing more efficient to save energy.
+
+474
+00:46:48.780 --> 00:46:49.239 
+Yeah.
+
+475
+00:46:49.250 --> 00:46:55.800 
+And Edge AI, as I said, I think this is the future computing paradigm in the future.
+
+476
+00:46:55.809 --> 00:47:03.809 
+Now the cloud computing and Edge AI bring the computation to the edge, closer to the data sources and this way we can also achieve
+
+477
+00:47:03.809 --> 00:47:04.710 
+more efficiency.
+
+478
+00:47:05.179 --> 00:47:10.039 
+Okay, so you're saying more efficient models and let's say closer to the user.
+
+479
+00:47:10.050 --> 00:47:11.349 
+Okay thank you very much.
+
+480
+00:47:11.360 --> 00:47:13.449 
+So this concludes our session.
+
+481
+00:47:13.460 --> 00:47:18.000 
+Thanks a lot and I will hand back over to you, Professor Meinel.
+
+482
+00:47:18.010 --> 00:47:18.500 
+Thank you.

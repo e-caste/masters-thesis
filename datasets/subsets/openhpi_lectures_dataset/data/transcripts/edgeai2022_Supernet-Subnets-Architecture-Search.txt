@@ -1,0 +1,313 @@
+WEBVTT
+
+1
+00:00:00.840 --> 00:00:02.839 
+Hello and welcome. Today,
+
+2
+00:00:02.839 --> 00:00:06.849 
+we will be talking about the supernet-subnets architecture search.
+
+3
+00:00:09.939 --> 00:00:19.050 
+This works based on a hypothesis that are large deep neural network also called Supernet contains high position and high
+
+4
+00:00:19.050 --> 00:00:21.059 
+compact subnet networks.
+
+5
+00:00:22.039 --> 00:00:30.500 
+It can be considered the type of ensemble learning and the goal is once for all only training.
+
+6
+00:00:30.500 --> 00:00:36.060 
+The Supernet can generate subnets suitable for different deployment requirements.
+
+7
+00:00:37.340 --> 00:00:45.859 
+We use nested squares to denote the models with shared weights and square size to denote each model size.
+
+8
+00:00:46.560 --> 00:00:54.649 
+The recent one shot approach adapt a weight sharing strategy to reduce the computation.
+
+9
+00:00:55.140 --> 00:01:00.829 
+A Supernet sub summing all the architectures is trained
+
+10
+00:01:00.829 --> 00:01:09.640 
+only once and each architecture inherits its weights from the supernet and only fine tuning is performed,
+
+11
+00:01:09.659 --> 00:01:13.150 
+the computation cost is thus greatly reduced.
+
+12
+00:01:14.239 --> 00:01:22.840 
+The single stage model simultaneously trains all the child node models and the Supernet with the weight sharing and deploys
+
+13
+00:01:22.840 --> 00:01:26.060 
+them without retraining or fine tuning.
+
+14
+00:01:27.040 --> 00:01:36.609 
+And the last type, the third type refers to a once for all approach, where sub models are sequentially introduced through
+
+15
+00:01:36.609 --> 00:01:42.439 
+the progressive distillation and channel sorting.
+
+16
+00:01:42.439 --> 00:01:49.760 
+Architectural realization of the single stage model and child models model S, M, L, XL
+
+17
+00:01:49.760 --> 00:01:58.060 
+all child models are directly sliced from the single stage model without retraining or fine tuning.
+
+18
+00:01:59.340 --> 00:02:09.349 
+So in each training step given the mini batch of data, the sandwich rules samples the smallest child model and the biggest
+
+19
+00:02:09.360 --> 00:02:10.349 
+child model.
+
+20
+00:02:11.240 --> 00:02:18.219 
+An N randomly sampled child models. So N equals 2 in these experiments.
+
+21
+00:02:18.229 --> 00:02:27.460 
+Then aggregates this gradient from all the example of the child models before updating the ways of the single stage model.
+
+22
+00:02:28.939 --> 00:02:32.669 
+So the motivation is to improve all the child models
+
+23
+00:02:32.680 --> 00:02:44.229 
+in the search space simultaneously. It will push up the performance of lower bond and the smallest lower bound established
+
+24
+00:02:44.229 --> 00:02:49.960 
+by the smallest child model and the upper bound established by the biggest child model.
+
+25
+00:02:51.439 --> 00:03:01.110 
+During the training of a single stage model in place, inplace distillation takes the soft levels predicted by the biggest possible
+
+26
+00:03:01.110 --> 00:03:01.930 
+child model,
+
+27
+00:03:01.939 --> 00:03:12.259 
+the full model to supervise all the other child models and the benefit of inplace distillation comes for free in our training
+
+28
+00:03:12.259 --> 00:03:17.900 
+settings as we always have access to the predictions of the largest child model in
+
+29
+00:03:17.909 --> 00:03:21.759 
+each gradient update step, thanks to the sandwich rule.
+
+30
+00:03:22.340 --> 00:03:30.840 
+And empirically when comparing the training validation losses, we find a big child models tends to over fit the training
+
+31
+00:03:30.840 --> 00:03:42.330 
+data, whereas a small child models tends to underfit. BigNAS, introduce a simple, very simple rule that is surprisingly
+
+32
+00:03:42.330 --> 00:03:43.949 
+effective for this problem.
+
+33
+00:03:44.740 --> 00:03:47.819 
+Regularize only the biggest child model.
+
+34
+00:03:47.830 --> 00:03:53.969 
+It means that the only model with direct access to the ground truth training levels.
+
+35
+00:03:53.979 --> 00:03:58.150 
+Since other child models are training with the inplace distillation only.
+
+36
+00:03:59.539 --> 00:04:09.729 
+So batch norm statistics are not accumulated when training the single stage model as they are defined with varying
+
+37
+00:04:09.729 --> 00:04:19.639 
+architectures. After the training is completed and authors recalibrate the batch norm statistics, the batch norm parameters
+
+38
+00:04:19.649 --> 00:04:20.860 
+for each network.
+
+39
+00:04:21.339 --> 00:04:24.250 
+I think this step is necessary.
+
+40
+00:04:26.240 --> 00:04:34.980 
+So bigNAS achieves permitting results in different computation skills and this approach show it is highly effective for
+
+41
+00:04:34.980 --> 00:04:37.850 
+resource constrained NAS scenarios.
+
+42
+00:04:40.540 --> 00:04:50.560 
+Single Path One-Shot is another supernet subnet architecture which the subnets are created through a uniform sampling strategy.
+
+43
+00:04:51.439 --> 00:04:58.069 
+The network consists of stacked choice blocks and each block has several parallel choices.
+
+44
+00:04:58.079 --> 00:05:07.769 
+For example, the convolutional layers with different kernel size. Other searchable such as channel numbers, activation
+
+45
+00:05:07.769 --> 00:05:10.560 
+functions, number of layers etcetera.
+
+46
+00:05:13.230 --> 00:05:22.610 
+The training workflow of this method is as follows - it first uniformly samples a single path from the supernet as a
+
+47
+00:05:22.610 --> 00:05:29.319 
+subnet, then train all the subnets with shared weights similar to bigNAS,
+
+48
+00:05:29.379 --> 00:05:35.360 
+it also applies in place knowledge distillation from the supernet to all the subnets.
+
+49
+00:05:36.139 --> 00:05:45.459 
+After training is finished it will search subnets with the target accuracy, FLOPs or inference speed using specific hardware.
+
+50
+00:05:46.389 --> 00:05:52.959 
+The applied search methods are evolutionary search or random sampling in this work.
+
+51
+00:05:53.639 --> 00:06:02.730 
+But the problem is that it is hard to optimize all the subnets while with limited computation budges due to the huge
+
+52
+00:06:02.779 --> 00:06:06.839 
+exploring space.
+
+53
+00:06:06.839 --> 00:06:15.180 
+For different devices, even when the same device has different power levels, the optimal model structure of a function is
+
+54
+00:06:15.180 --> 00:06:15.899 
+different.
+
+55
+00:06:15.910 --> 00:06:21.750 
+So how to make the training model adaptively adapt to devices in other states?
+
+56
+00:06:22.240 --> 00:06:31.589 
+In addition from the perspective of a couple emissions, repeated training or compression of the same model to adapt the different
+
+57
+00:06:31.600 --> 00:06:34.160 
+platforms will increase carbon emissions.
+
+58
+00:06:35.240 --> 00:06:44.560 
+Therefore, a straightforward method here is to build a training Supernet and directly draw sub networks from this
+
+59
+00:06:44.560 --> 00:06:45.449 
+supernet
+
+60
+00:06:45.459 --> 00:06:48.259 
+according to specific requirements.
+
+61
+00:06:50.639 --> 00:06:54.149 
+Supernet cannot guarantee sufficient accuracy.
+
+62
+00:06:55.540 --> 00:07:04.589 
+If the sub networks have a very large search space for the subnets, it is impossible to traverse all the sub networks
+
+63
+00:07:04.589 --> 00:07:06.889 
+during the training
+
+64
+00:07:06.899 --> 00:07:15.829 
+if the search space is too large. Randomly drawing sub networks view cause the ways of the larger sub networks to be addressed
+
+65
+00:07:15.829 --> 00:07:19.050 
+by a small sub network strong later.
+
+66
+00:07:19.740 --> 00:07:30.279 
+Therefore the author of this paper proposes a progressive shrinking method to ensure that when the sub network is trained, the
+
+67
+00:07:30.279 --> 00:07:36.370 
+initialization ways of the small sub network are initialized based on the trained
+
+68
+00:07:36.370 --> 00:07:40.259 
+weights of a large, of a larger sub network.
+
+69
+00:07:41.240 --> 00:07:44.560 
+So the training process is as follows.
+
+70
+00:07:45.040 --> 00:07:52.660 
+First, train the Supernet, then pick and train relatively large sub networks with weight inheritance.
+
+71
+00:07:53.540 --> 00:08:02.620 
+Pick and train the medium size sub networks with weight inheritence and the last, pick and
+
+72
+00:08:02.620 --> 00:08:13.350 
+train a small sized sub network with still with the weight inheritance and the process continues until the end condition
+
+73
+00:08:13.360 --> 00:08:14.050 
+is met.
+
+74
+00:08:14.639 --> 00:08:23.069 
+After training is finished, the sub network sampling and the performance evaluation will be done on the larger on the target
+
+75
+00:08:23.069 --> 00:08:24.959 
+hardware platforms.
+
+76
+00:08:25.439 --> 00:08:35.000 
+It achieves the higher accuracy and lower FLOPs and suitable for various platforms without repeated training, thus generating
+
+77
+00:08:35.000 --> 00:08:36.559 
+fewer carbon emissions.
+
+78
+00:08:39.039 --> 00:08:40.450 
+Thank you for watching the video.
